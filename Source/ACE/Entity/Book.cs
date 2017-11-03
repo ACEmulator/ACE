@@ -17,28 +17,21 @@ namespace ACE.Entity
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc
-        public override void HandleActionOnUse(ObjectGuid playerId)
+        public override void ActOnUse(ObjectGuid playerId)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
             {
-                Player player = wo as Player;
-                if (player == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                // Make sure player is within the use radius of the item.
-                if (!player.IsWithinUseRadiusOf(this))
-                    player.DoMoveTo(this);
-                else
-                {
-                    BookUseHandler(player.Session);
-                }
-            });
-
-            // Run on the player
-            chain.EnqueueChain();
+            // Make sure player is within the use radius of the item.
+            if (!player.IsWithinUseRadiusOf(this))
+                player.DoMoveTo(this);
+            else
+            {
+                BookUseHandler(player.Session);
+            }
         }
 
         // Called when the items is in a player's inventory

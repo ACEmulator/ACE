@@ -868,14 +868,15 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
-        public override ActionChain GetOnKillChain(Session killerSession)
+        public override void DoOnKill(Session killerSession)
         {
             // First do on-kill
-            ActionChain onKillChain = new ActionChain(this, () => OnKill(killerSession));
-            onKillChain.AddChain(base.GetOnKillChain(killerSession));
+            OnKill(killerSession);
+            // Then get onKill from our parent
+            ActionChain killChain = base.OnKillInternal(killerSession);
 
-            // Send the teleport out
-            onKillChain.AddAction(this, () =>
+            // Send the teleport out after we animate death
+            killChain.AddAction(this, () =>
             {
                 // teleport to sanctuary or best location
                 Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
@@ -905,8 +906,7 @@ namespace ACE.Entity
                 });
                 teleportChain.EnqueueChain();
             });
-
-            return onKillChain;
+            killChain.EnqueueChain();
         }
 
         /// <summary>
@@ -990,15 +990,7 @@ namespace ACE.Entity
                 else
                 {
                     // examine item on land block
-                    ActionChain chain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(
-                    chain,
-                    examinationId,
-                    (WorldObject cwo) =>
-                    {
-                        cwo.Examine(Session);
-                    });
-                chain.EnqueueChain();
+                    CurrentLandblock.GetObject(examinationId).Examine(Session);
                 }
             });
             examineChain.EnqueueChain();
@@ -1018,13 +1010,7 @@ namespace ACE.Entity
 
                 // Remember the selected Target
                 selectedTarget = queryId;
-
-                ActionChain idChain = new ActionChain();
-                CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                {
-                    cwo.QueryHealth(Session);
-                });
-                idChain.EnqueueChain();
+                CurrentLandblock.GetObject(queryId).QueryHealth(Session);
             });
             chain.EnqueueChain();
         }
@@ -1085,12 +1071,7 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    ActionChain chain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(chain, bookId, (WorldObject cwo) =>
-                    {
-                        cwo.ReadBookPage(Session, pageNum);
-                    });
-                    chain.EnqueueChain();
+                    CurrentLandblock.GetObject(bookId).ReadBookPage(Session, pageNum);
                 }
             });
             bookChain.EnqueueChain();
@@ -1117,12 +1098,11 @@ namespace ACE.Entity
         /// <param name="items"></param>
         public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, vendorId, (WorldObject vdr) =>
+            new ActionChain(this, () =>
             {
-                (vdr as Vendor).BuyValidateTransaction(vendorId, items, this);
-            });
-            chain.EnqueueChain();
+                Vendor vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
+                vendor.BuyValidateTransaction(vendorId, items, this);
+            }).EnqueueChain();
         }
 
         /// <summary>
@@ -1132,41 +1112,32 @@ namespace ACE.Entity
         /// <param name="purchaselist"></param>
         /// <param name="valid"></param>
         /// <param name="goldcost"></param>
-        public void HandleActionBuyFinalTransaction(WorldObject vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
+        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
         {
-            new ActionChain(this, () =>
+            // todo research packets more for both buy and sell. ripley thinks buy is update..
+            // vendor accepted the transaction
+            if (valid)
             {
-                // todo research packets more for both buy and sell. ripley thinks buy is update..
-                // vendor accepted the transaction
-                if (valid)
+                if (SpendCurrency(goldcost, WeenieType.Coin))
                 {
-                    if (SpendCurrency(goldcost, WeenieType.Coin))
+                    foreach (WorldObject wo in uqlist)
                     {
-                        foreach (WorldObject wo in uqlist)
-                        {
-                            wo.ContainerId = Guid.Full;
-                            wo.Placement = 0;
-                            AddToInventory(wo);
-                            Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
-                            Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
-                        }
-                        HandleAddNewWorldObjectsToInventory(genlist);
+                        wo.ContainerId = Guid.Full;
+                        wo.Placement = 0;
+                        AddToInventory(wo);
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                        Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
+                        Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                     }
-                    else // not enough cash.
-                    {
-                        valid = false;
-                    }
+                    HandleAddNewWorldObjectsToInventory(genlist);
                 }
-
-                // send results back to vendor the transaction failed
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendor.Guid, (WorldObject vdr) =>
+                else // not enough cash.
                 {
-                    (vdr as Vendor).BuyItemsFinalTransaction(this, uqlist, valid);
-                });
-                vendorchain.EnqueueChain();
-            }).EnqueueChain();
+                    valid = false;
+                }
+            }
+
+            vendor.BuyItemsFinalTransaction(this, uqlist, valid);
         }
 
         /// <summary>
@@ -1217,66 +1188,57 @@ namespace ACE.Entity
                     purchaselist.Add(item);
                 }
 
-                // Send Items to Vendor for processing..
-                ActionChain vendorchain = new ActionChain();
-                CurrentLandblock.ChainOnObject(vendorchain, vendorId, (WorldObject vdr) =>
-                {
-                    (vdr as Vendor).SellItemsValidateTransaction(this, purchaselist);
-                });
-                vendorchain.EnqueueChain();
+                Vendor vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
+                vendor.SellItemsValidateTransaction(this, purchaselist);
             });
             chain.EnqueueChain();
         }
 
-        public void HandleActionSellFinalTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
+        public void FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
         {
-            new ActionChain(this, () =>
+            // pay player in voinds
+            if (valid)
             {
-                // pay player in voinds
-                if (valid)
-                    CreateCurrency(WeenieType.Coin, payout);
-            }).EnqueueChain();
+                CreateCurrency(WeenieType.Coin, payout);
+            }
         }
         #endregion
 
         public bool CreateCurrency(WeenieType type, uint amount)
         {
-            new ActionChain(this, () =>
+            // todo: we need to look up this object to understand it by its weenie id.
+            // todo: support more then hard coded coin.
+            const uint coinWeenieId = 273;
+            WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+            ushort maxstacksize = wochk.MaxStackSize.Value;
+            wochk = null;
+
+            List<WorldObject> payout = new List<WorldObject>();
+
+            while (amount > 0)
             {
-                // todo: we need to look up this object to understand it by its weenie id.
-                // todo: support more then hard coded coin.
-                const uint coinWeenieId = 273;
-                WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
-                ushort maxstacksize = wochk.MaxStackSize.Value;
-                wochk = null;
-
-                List<WorldObject> payout = new List<WorldObject>();
-
-                while (amount > 0)
+                WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+                // payment contains a max stack
+                if (maxstacksize <= amount)
                 {
-                    WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
-                    // payment contains a max stack
-                    if (maxstacksize <= amount)
-                    {
-                        currancystack.StackSize = maxstacksize;
-                        payout.Add(currancystack);
-                        amount = amount - maxstacksize;
-                    }
-                    else // not a full stack
-                    {
-                        currancystack.StackSize = (ushort)amount;
-                        payout.Add(currancystack);
-                        amount = amount - amount;
-                    }
+                    currancystack.StackSize = maxstacksize;
+                    payout.Add(currancystack);
+                    amount = amount - maxstacksize;
                 }
-
-                // add money to player inventory.
-                foreach (WorldObject wo in payout)
+                else // not a full stack
                 {
-                    HandleAddNewWorldObjectToInventory(wo);
+                    currancystack.StackSize = (ushort)amount;
+                    payout.Add(currancystack);
+                    amount = amount - amount;
                 }
-                UpdateCurrencyClientCalculations(WeenieType.Coin);
-            }).EnqueueChain();
+            }
+
+            // add money to player inventory.
+            foreach (WorldObject wo in payout)
+            {
+                HandleAddNewWorldObjectToInventory(wo);
+            }
+            UpdateCurrencyClientCalculations(WeenieType.Coin);
             return true;
         }
 
@@ -3137,13 +3099,9 @@ namespace ACE.Entity
                 }
                 else if (invSource.WeenieType == WeenieType.Key)
                 {
-                    ActionChain landblockChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(landblockChain, targetObjectId, (WorldObject theTarget) =>
-                    {
-                        Key key = invSource as Key;
-                        key.HandleActionUseOnTarget(this, theTarget);
-                    });
-                    landblockChain.EnqueueChain();
+                    WorldObject theTarget = CurrentLandblock.GetObject(targetObjectId);
+                    Key key = invSource as Key;
+                    key.HandleActionUseOnTarget(this, theTarget);
                 }
                 else if (targetObjectId == Guid)
                 {
@@ -3152,12 +3110,8 @@ namespace ACE.Entity
                 }
                 else
                 {
-                    ActionChain landblockChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(landblockChain, targetObjectId, (WorldObject theTarget) =>
-                    {
-                        RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
-                    });
-                    landblockChain.EnqueueChain();
+                    WorldObject theTarget = CurrentLandblock.GetObject(targetObjectId);
+                    RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
                 }
             });
             chain.EnqueueChain();
@@ -3177,15 +3131,11 @@ namespace ACE.Entity
                     if (CurrentLandblock != null)
                     {
                         // Just forward our action to the appropriate user...
-                        ActionChain onUseChain = new ActionChain();
-                        CurrentLandblock.ChainOnObject(onUseChain, usedItemId, wo =>
+                        WorldObject wo = CurrentLandblock.GetObject(usedItemId);
+                        if (wo != null)
                         {
-                            if (wo != null)
-                            {
-                                wo.HandleActionOnUse(Guid);
-                            }
-                        });
-                        onUseChain.EnqueueChain();
+                            wo.ActOnUse(Guid);
+                        }
                     }
                 }
             }).EnqueueChain();
@@ -3202,7 +3152,11 @@ namespace ACE.Entity
             new ActionChain(this, () =>
             {
                 WorldObject iwo = GetInventoryItem(itemGuid);
-                if (iwo == null) return;
+                if (iwo == null)
+                {
+                    return;
+                }
+
                 if (iwo.Inscribable && iwo.ScribeName != "prewritten")
                 {
                     if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
@@ -3304,18 +3258,18 @@ namespace ACE.Entity
             // Create smite action chain... then send it
             new ActionChain(this, () =>
             {
+                if (CurrentLandblock == null)
+                {
+                    return;
+                }
+
                 foreach (ObjectGuid toSmite in GetKnownCreatures())
                 {
-                    ActionChain smiteChain = new ActionChain();
-                    CurrentLandblock.ChainOnObject(smiteChain, toSmite, (WorldObject wo) =>
+                    Creature smitee = CurrentLandblock.GetObject(toSmite) as Creature;
+                    if (smitee != null)
                     {
-                        Creature c = wo as Creature;
-                        if (c != null)
-                        {
-                            c.GetOnKillChain(Session).EnqueueChain();
-                        }
-                    });
-                    smiteChain.EnqueueChain();
+                        smitee.DoOnKill(Session);
+                    }
                 }
             }).EnqueueChain();
         }
@@ -3441,17 +3395,14 @@ namespace ACE.Entity
         public void HandleActionKill(ObjectGuid toSmite)
         {
             // Create smite action chain... then send it
-            ActionChain smiteChain = new ActionChain();
-            CurrentLandblock.ChainOnObject(smiteChain, toSmite, (WorldObject wo) =>
+            new ActionChain(this, () =>
             {
-                Creature c = wo as Creature;
+                Creature c = CurrentLandblock.GetObject(toSmite) as Creature;
                 if (c != null)
                 {
-                    c.GetOnKillChain(Session).EnqueueChain();
+                    c.DoOnKill(Session);
                 }
-            });
-
-            smiteChain.EnqueueChain();
+            }).EnqueueChain();
         }
 
         // FIXME(ddevec): Copy pasted code for prototyping -- clean later
@@ -3560,7 +3511,7 @@ namespace ACE.Entity
             moveToObjectChain.AddChain(CreateMoveToChain(wo.Guid, 0.2f));
             moveToObjectChain.AddDelaySeconds(0.50);
 
-            moveToObjectChain.AddAction(wo, () => wo.HandleActionOnUse(Guid));
+            moveToObjectChain.AddAction(wo, () => wo.ActOnUse(Guid));
 
             moveToObjectChain.EnqueueChain();
         }

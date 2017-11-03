@@ -313,7 +313,7 @@ namespace ACE.Managers
                     });
                 });
 
-                // Process between landblock object motions sequentially -- for safety
+                // Process between landblock object motions sequentially
                 // Currently only used for picking items up off a landblock
                 MotionQueue.RunActions();
 
@@ -321,16 +321,13 @@ namespace ACE.Managers
                 //   This is responsible for updating all "actors" residing within the landblock. 
                 //   Objects and landblocks are "actors"
                 //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                //   RULE: action functions CANNOT read/modify other objects 
-                //      -- unless they "own" the other object: e.g. in a container
-                //      -- action objects must send requests (actions) to other actor's action queues, and have them do modification
                 // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
                 // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
                 //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                ActionQueue.RunActionsParallel();
+                ActionQueue.RunActions();
 
                 // Handles sending out all per-landblock broadcasts -- This may rework when we rework tracking -- tbd
-                BroadcastQueue.RunActionsParallel();
+                BroadcastQueue.RunActions();
 
                 // XXX(ddevec): Should this be its own step in world-update thread?
                 sessionLock.EnterReadLock();

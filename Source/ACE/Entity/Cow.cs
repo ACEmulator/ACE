@@ -43,45 +43,33 @@ namespace ACE.Entity
             set;
         }
 
-        public override void HandleActionOnUse(ObjectGuid playerId)
+        public override void ActOnUse(ObjectGuid playerId)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
             {
-                Player player = wo as Player;
-                if (player == null)
+                return;
+            }
+
+            ////if (playerDistanceTo >= 2500)
+            ////{
+            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
+            ////    return;
+            ////}
+
+            if (!player.IsWithinUseRadiusOf(this))
+                player.DoMoveTo(this);
+            else
+            {
+                if (AllowedActivator == null)
                 {
-                    return;
+                    Activate(playerId);
                 }
 
-                ////if (playerDistanceTo >= 2500)
-                ////{
-                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-                ////    return;
-                ////}
-
-                if (!player.IsWithinUseRadiusOf(this))
-                    player.DoMoveTo(this);
-                else
-                {
-                    ActionChain useObjectChain = new ActionChain();
-
-                    useObjectChain.AddAction(this, () =>
-                    {
-                        if (AllowedActivator == null)
-                        {
-                            Activate(playerId);
-                        }
-
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    });
-
-                    useObjectChain.EnqueueChain();
-                }
-            });
-            chain.EnqueueChain();
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            }
         }
 
         private void Activate(ObjectGuid activator = new ObjectGuid())
