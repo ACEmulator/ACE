@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-11-03
+[Ripley]
+* Fix AppVeyor issues.
+
 ### 2017-11-02
 [Ripley]
 * Fix Landblock loading of weenie instance position data.
