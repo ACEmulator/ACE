@@ -2060,30 +2060,27 @@ namespace ACE.Entity
         {
             if (Positions.ContainsKey(PositionType.Sanctuary))
             {
-                // session.Player.Teleport(session.Player.Positions[PositionType.Sanctuary]);
-                string msg = $"{Name} is recalling to the lifestone.";
-
-                var sysChatMessage = new GameMessageSystemChat(msg, ChatMessageType.Recall);
-
                 // FIXME(ddevec): I should probably make a better interface for this
                 UpdateVitalInternal(Mana, Mana.Current / 2);
 
-                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, 1);
+                if (CombatMode != CombatMode.NonCombat)
+                {
+                    var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                    Session.Network.EnqueueSend(updateCombatMode);
+                }
 
                 var motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
-
                 // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
+                CurrentLandblock.EnqueueBroadcastSystemChat(this, $"{Name} is recalling to the lifestone.", ChatMessageType.Recall);
                 // FIX: Recall text isn't being broadcast yet, need to address
-                Session.Network.EnqueueSend(updateCombatMode);
-                CurrentLandblock.EnqueueBroadcastMotion(this, motionLifestoneRecall);
                 DoMotion(motionLifestoneRecall);
 
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
                 float lifestoneAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LifestoneRecall);
-                lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);
 
                 // Then do teleport
+                lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);
                 lifestoneChain.AddChain(GetTeleportChain(Positions[PositionType.Sanctuary]));
 
                 lifestoneChain.EnqueueChain();
@@ -2115,9 +2112,7 @@ namespace ACE.Entity
         {
             string message = $"{Name} is recalling to the marketplace.";
 
-            var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Recall);
-
-            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, 1);
+            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
             var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
 
@@ -2127,7 +2122,8 @@ namespace ACE.Entity
 
             // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
             // FIX: Recall text isn't being broadcast yet, need to address
-            Session.Network.EnqueueSend(updateCombatMode, sysChatMessage);
+            CurrentLandblock.EnqueueBroadcastSystemChat(this, message, ChatMessageType.Recall);
+            Session.Network.EnqueueSend(updateCombatMode);
             DoMotion(motionMarketplaceRecall);
         }
 

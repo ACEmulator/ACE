@@ -3,7 +3,7 @@
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum CombatMode
+    public enum CombatMode : int
     {
         Undef       = 0x00,
         NonCombat   = 0x01,

@@ -537,6 +537,24 @@ namespace ACE.Entity
                     sound,
                     volume));
         }
+        
+        /// <summary>
+        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="message"></param>
+        public void EnqueueBroadcastSystemChat(WorldObject wo, string message, ChatMessageType type)
+        {
+            // wo must exist on us
+            if (wo.CurrentLandblock != this)
+            {
+                log.Error("ERROR: Broadcasting chat from object not on our landblock");
+            }
+
+            GameMessageSystemChat chatMsg = new GameMessageSystemChat(message, type);
+
+            EnqueueBroadcast(wo.Location, MaxObjectRange, chatMsg);
+        }
 
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
