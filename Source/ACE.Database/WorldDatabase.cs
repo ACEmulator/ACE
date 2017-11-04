@@ -356,8 +356,8 @@ namespace ACE.Database
             {
                 where = where != null ? where + " AND " : "";
                 where += "`itemType` = ?";
-                var p = new MySqlParameter("", MySqlDbType.UInt32);
-                p.Value = (uint)criteria.ItemType.Value;
+                var p = new MySqlParameter("", MySqlDbType.Int32);
+                p.Value = (int)criteria.ItemType.Value;
                 mysqlParams.Add(p);
             }
 
@@ -365,8 +365,8 @@ namespace ACE.Database
             {
                 where = where != null ? where + " AND " : "";
                 where += "`weenieType` = ?";
-                var p = new MySqlParameter("", MySqlDbType.UInt32);
-                p.Value = (uint)criteria.WeenieType.Value;
+                var p = new MySqlParameter("", MySqlDbType.Int32);
+                p.Value = (int)criteria.WeenieType.Value;
                 mysqlParams.Add(p);
             }
 
