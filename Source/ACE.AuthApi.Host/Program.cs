@@ -16,13 +16,12 @@ namespace ACE.AuthApi.Host
                 var url = ConfigManager.Config.AuthServer.ListenUrl;
                 var server = WebApp.Start<Startup>(url);
                 Console.WriteLine($"ACE Auth API listening at {url}");
-                Console.ReadLine();
             }
             else
             {
                 Console.WriteLine("There was an error in your AuthApi configuration.");
-                Console.ReadLine(); // need a readline or the error flashes without being seen
             }
+            Console.ReadLine(); // need a readline or the error flashes without being seen
         }
     }
 }

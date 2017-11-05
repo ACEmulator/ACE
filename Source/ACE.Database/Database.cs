@@ -11,6 +11,7 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using System.Reflection;
+using System.Data.SqlClient;
 
 namespace ACE.Database
 {
@@ -260,7 +261,9 @@ namespace ACE.Database
                 Password = password,
                 Database = database,
                 IgnorePrepare = false,
-                Pooling = true
+                Pooling = true,
+                AllowUserVariables = true,
+                AllowZeroDateTime = true
             };
 
             connectionString = connectionBuilder.ToString();
@@ -288,6 +291,24 @@ namespace ACE.Database
             }
 
             InitializePreparedStatements();
+        }
+
+        public void ResetConnectionString(string host, uint port, string user, string password, string database, bool autoReconnect = true)
+        {
+            var connectionBuilder = new MySqlConnectionStringBuilder()
+            {
+                Server = host,
+                Port = port,
+                UserID = user,
+                Password = password,
+                Database = database,
+                IgnorePrepare = false,
+                Pooling = true,
+                AllowUserVariables = true,
+                AllowZeroDateTime = true
+            };
+
+            connectionString = connectionBuilder.ToString();
         }
 
         public DatabaseTransaction BeginTransaction() { return new DatabaseTransaction(this); }
@@ -1150,6 +1171,152 @@ namespace ACE.Database
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Executs a single Sql query against a specific database.
+        /// </summary>
+        /// <remarks>This function needs to be converted to common ACE functions, like prepared/constructed statements.</remarks>
+        public string ExecuteSqlQueryOrScript(string query, string databaseName, bool executeAsScript)
+        {
+            var result = "";
+            try
+            {
+                if (executeAsScript)
+                    RunScript(query, databaseName);
+                else
+                    RunQuery(query, databaseName);
+            }
+            catch (SqlException ex)
+            {
+                var errMsg = $"SQL Error in the downloaded data: {ex.Message}";
+#if DEBUG
+                Console.WriteLine(errMsg);
+#endif
+                return errMsg;
+            }
+            catch (MySqlException ex)
+            {
+                var errMsg = "Error: ";
+                // get the number from the inner exception
+                if (ex.InnerException != null)
+                {
+                    var mySqlErrorNumber = GetExceptionNumber(ex);
+                    // create a short error message for the console log / label
+                    errMsg += $"{mySqlErrorNumber} : {ex.InnerException.Message}";
+                }
+                else
+                {
+                    errMsg += $"{ex.Message}";
+                }
+#if DEBUG
+                // long message to console
+                Console.WriteLine(errMsg);
+#endif
+                return errMsg;
+            }
+            catch (Exception e)
+            {
+                var errMsg = $"Error: {e.Message}";
+#if DEBUG
+                Console.WriteLine(errMsg);
+#endif
+                return errMsg;
+            }
+            return $"{result}";
+        }
+
+        /// <remarks>This function needs to be converted to common ACE functions.</remarks>
+        private void RunQuery(string query, string databaseName)
+        {
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (MySqlCommand command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = query;
+                MySqlDataReader reader = command.ExecuteReader();
+                connection.Close();
+            }
+        }
+
+        private void RunScript(string script, string databaseName)
+        {
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                MySqlScript query = new MySqlScript(connection, script);
+                query.Error += Query_Error;
+                query.ScriptCompleted += Query_ScriptCompleted;
+                query.StatementExecuted += Query_StatementExecuted;
+                query.Execute();
+                connection.Close();
+            }
+        }
+
+        private void Query_StatementExecuted(object sender, MySqlScriptEventArgs args)
+        {
+            Console.Write($"{args.Position}.");
+        }
+
+        private void Query_ScriptCompleted(object sender, EventArgs e)
+        {
+            Console.WriteLine("Script has completed!");
+        }
+
+        private void Query_Error(object sender, MySqlScriptErrorEventArgs args)
+        {
+            Console.WriteLine($"Script encountered an error! {args.Exception.Message}");
+        }
+
+        /// <summary>
+        /// Attempts to Drop a database, with a name collected a Form Textbox.
+        /// </summary>
+        /// <remarks>This function must NOT set a database in the connection string.</remarks>
+        public string DropDatabase(string databaseName)
+        {
+            log.Debug($"Dropping database {databaseName}!!!");
+            var dbQuery = "DROP DATABASE IF EXISTS `" + databaseName + "`;";
+            var result = ExecuteSqlQueryOrScript(dbQuery, databaseName, false);
+            if (result.Length > 0 && result != "0")
+            {
+                return result;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Attempts to create a database, with a name collected a Form Textbox.
+        /// </summary>
+        /// <remarks>This function must NOT set a database in the connection string.</remarks>
+        public string CreateDatabase(string databaseName)
+        {
+            log.Debug($"Creating database {databaseName}...");
+            var dbQuery = "CREATE DATABASE IF NOT EXISTS `" + databaseName + "` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;";
+            var result = ExecuteSqlQueryOrScript(dbQuery, "", false);
+            // Only show result strings
+            if (result.Length > 3)
+            {
+                return result;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns inner MySql Exception number.
+        /// </summary>
+        public static int GetExceptionNumber(MySqlException my)
+        {
+            if (my != null)
+            {
+                int number = my.Number;
+                // if the number is zero, try to get the number of the inner exception
+                if (number == 0 && (my = my.InnerException as MySqlException) != null)
+                {
+                    number = my.Number;
+                }
+                return number;
+            }
+            return -1;
         }
     }
 }

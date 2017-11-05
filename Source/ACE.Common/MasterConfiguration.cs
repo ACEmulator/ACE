@@ -14,6 +14,8 @@ namespace ACE.Common
 
         public ApiServerConfiguration AuthServer { get; set; }
 
+        public ContentServerConfiguration ContentServer { get; set; }
+
         public DatabaseConfiguration MySql { get; set; }
     }
 }

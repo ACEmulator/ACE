@@ -484,5 +484,16 @@ namespace ACE.Database
 
             return results;
         }
+
+        public bool UserModifiedFlagPresent()
+        {
+            // seach weenies or look for a single user mod flag ?
+            SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();
+            criteria.UserModified = true;
+            var result = SearchWeenies(criteria);
+            if (result.Count > 0)
+                return true;
+            return false;
+        }
     }
 }

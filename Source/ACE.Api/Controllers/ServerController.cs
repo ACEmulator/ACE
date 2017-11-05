@@ -39,7 +39,6 @@ namespace ACE.Api.Controllers
         /// <summary>
         /// Redeploys the world database from the current contents of your ACE-World repository.  all changes that
         /// have not already been exported WILL BE LOST, and `user_modified` flags will all be reset to false.
-        /// TODO: fantom implement
         /// </summary>
         [HttpGet]
         [AceAuthorize(AccessLevel.Developer)]
@@ -49,12 +48,53 @@ namespace ACE.Api.Controllers
         [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
         public HttpResponseMessage RedeployWorldDatabase(RedeployRequest request)
         {
+            // Only allow one request at a time:
+            if (Database.RemoteContentSync.RedeploymentActive)
+                return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
+            //TODO: Fix this hack, make the redeploy request object work properly:
+            var forceDeploy = Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            // Check to determine if a userModified flag has been set in the database
+            var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
+            if (!modifiedFlagPresent || forceDeploy)
+            {
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World);
+                if (errorResult == null)
+                    return Request.CreateResponse(HttpStatusCode.OK, "The World Database has been redeployed!");
+                else
+                    return Request.CreateResponse(HttpStatusCode.InternalServerError, $"There was an error durring your request. {errorResult}");
+            }
+            return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.");
+        }
 
-            // Download the database from Github:
-            // RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
-            // Download the latest ACE-World release archive, extract contents into database dir, remove downloaded zip
-            // Run all scripts, in the correct sequences.
-            return Request.CreateResponse(HttpStatusCode.OK, "You win!");
+        /// <summary>
+        /// Redeploys all sql scripts to reset all databases.  all changes that have not already been exported 
+        /// WILL BE LOST, and `user_modified` flags will all be reset to false.
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Redeploy successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
+        public HttpResponseMessage RedeployAllDatabases(RedeployRequest request)
+        {
+            // Only allow one request at a time:
+            if (Database.RemoteContentSync.RedeploymentActive)
+                return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
+            //TODO: Fix this hack, make the redeploy request object work properly:
+            var forceDeploy = Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            // Check to determine if a userModified flag has been set in the database
+            var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
+            if (!modifiedFlagPresent || forceDeploy)
+            {
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.All);
+
+                if (errorResult == null)
+                    return Request.CreateResponse(HttpStatusCode.OK, "All Databases have been redeployed; the databases should now be completely reset. Please remember to readd your user accounts!");
+                else
+                    return Request.CreateResponse(HttpStatusCode.InternalServerError, $"There was an error durring your request. {errorResult}");
+            }
+            return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.");
         }
 
         /// <summary>

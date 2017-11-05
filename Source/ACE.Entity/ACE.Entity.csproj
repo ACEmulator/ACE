@@ -90,6 +90,7 @@
     <Compile Include="Enum\BSPType.cs" />
     <Compile Include="Enum\ClientProperties.cs" />
     <Compile Include="Enum\AceObjectPropertyType.cs" />
+    <Compile Include="Enum\DatabaseSelectionOption.cs" />
     <Compile Include="Enum\DestinationType.cs" />
     <Compile Include="Enum\ContentType.cs" />
     <Compile Include="Enum\CombatStyle.cs" />

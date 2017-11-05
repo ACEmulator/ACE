@@ -5,6 +5,7 @@ using ACE.Managers;
 using ACE.Network;
 using ACE.DatLoader;
 using System.Collections.Generic;
+using ACE.Database;
 
 namespace ACE.Command.Handlers
 {
@@ -96,6 +97,85 @@ namespace ACE.Command.Handlers
                 }
             }
             Console.WriteLine($"Export to {exportDir} complete.");
+        }
+
+        [CommandHandler("redeploy-world", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Download and redeploy the world content, from github.")]
+        public static void RedeployWorld(Session session, params string[] parameters)
+        {
+            bool forceRedploy = false;
+            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
+            if (parameters?.Length > 0)
+            {
+                string force = parameters[0];
+                if (force.Length > 0)
+                {
+                    if (force.ToLowerInvariant().Contains("force"))
+                    {
+                        Console.WriteLine("Force redeploy reached!");
+                        forceRedploy = true;
+                    }
+                }
+            }
+            if (forceRedploy || !userModifiedFlagPresent)
+            {
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World);
+                if (errorResult == null)
+                    Console.WriteLine("The World Database has been deployed!");
+                else
+                    Console.WriteLine($"There was an error durring your request. {errorResult}");
+                return;
+            }
+            Console.WriteLine("User created content has been detected in the database. Please export the current database or include the 'force' parameter with this command.");
+        }
+
+        [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 1,
+            "Downloads and redeploys database content from github. WARNING: THIS CAN WIPE DATA!",
+            "<datbase selection> force\n\nYou must pass in a database selection as well as the force string.\nDetabase Selection Options include: None, Authentication, Shard, World, All.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
+        public static void RedeployAllDatabases(Session session, params string[] parameters)
+        {
+            if (parameters?.Length != 2)
+            {
+                Console.WriteLine("Usage: redeploy <datbase selection> force");
+                return;
+            }
+
+            var databaseSelection = new DatabaseSelectionOption();
+            bool forceRedploy = false;
+            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
+            if (parameters?.Length > 0)
+            {
+                // Loop through the enum to attempt at matching the first parameter with an option
+                foreach (string dbSelection in System.Enum.GetNames(typeof(DatabaseSelectionOption)))
+                {
+                    if (parameters[0].ToLower()[0] == dbSelection.ToLower()[0])
+                    {
+                        // If found, selectorType will hold the correct AccoutLookupType
+                        // If this returns true, that means we were successful and can stop looping
+                        if (Enum.TryParse(dbSelection, out databaseSelection))
+                            break;
+                    }
+                }
+                string force = parameters[1];
+                if (force.Length > 0)
+                {
+                    if (force.ToLowerInvariant().Contains("force"))
+                    {
+                        Console.WriteLine("Force redeploy reached!");
+                        forceRedploy = true;
+                    }
+                }
+            }
+            if (forceRedploy)
+            {
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(databaseSelection);
+                // Database.RemoteContentSync.RedeployWorldDatabase();
+                if (errorResult == null)
+                    Console.WriteLine("All databases have been redeployed!");
+                else
+                    Console.WriteLine($"There was an error durring your request. {errorResult}");
+                return;
+            }
+            Console.WriteLine("You must also pass the 'force' parameter with this command, to start the database reset process.");
         }
     }
 }

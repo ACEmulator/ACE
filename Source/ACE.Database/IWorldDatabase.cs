@@ -44,6 +44,8 @@ namespace ACE.Database
         /// </summary>
         List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria);
 
+        bool UserModifiedFlagPresent();
+
         /// <summary>
         /// does a full object replacement, deleting all properties prior to insertion
         /// </summary>
