@@ -389,7 +389,7 @@ namespace ACE.Database
         /// <returns>List of downloaded files; null on error</returns>
         private static List<GithubResource> RetrieveGithubFolderList(string url)
         {
-            if ( RemaingApiCalls > 0 || (DateTime.Now >= ApiResetTime.Value))
+            if (RemaingApiCalls > 0 || (DateTime.Now >= ApiResetTime.Value))
             {
                 // Check to see if the input is usable and the data path is valid
                 if (url?.Length > 0)
@@ -556,6 +556,20 @@ namespace ACE.Database
             }
         }
 
+        public static List<GithubResource> LocalSync()
+        {
+            var databaseFiles = (ConfigManager.Config.ContentServer.DatabaseUrl);
+            RetreieveWorldData();
+            return databaseFiles;
+        }
+
+        public static List<GithubResource> RemoteSync()
+        {
+            var databaseFiles = RetrieveGithubFolderList(ConfigManager.Config.ContentServer.DatabaseUrl);
+            RetreieveWorldData();
+            return databaseFiles;
+        }
+
         /// <summary>
         /// Attempts to download and redeploy data from Github, to the specified database(s). WARNING: CAN CAUSE LOSS OF DATA IF USED IMPROPERLY!
         /// </summary>
@@ -565,7 +579,7 @@ namespace ACE.Database
         ///    Second Search Path if updating world database: ACE-World\\${WorldGithubFilename}
         ///    Third Search Path: ${Downloads}\\Database\\Updates\\
         /// </remarks>
-        public static string RedeployAllDatabases(DatabaseSelectionOption databaseSelection)
+        public static string RedeployAllDatabases(DatabaseSelectionOption databaseSelection, bool localFilesOnly)
         {
             if (RedeploymentActive)
                 return "There is already an active redeployment in progress...";
@@ -589,14 +603,17 @@ namespace ACE.Database
                     RedeploymentActive = true;
                     // Setup the database requirements.
                     Initialize();
-
+                    List<GithubResource> databaseFiles = null;
                     // Download the database files from Github:
                     log.Debug("Attempting download of all database files from Github Folder.");
-                    var databaseFiles = RetrieveGithubFolderList(ConfigManager.Config.ContentServer.DatabaseUrl);
+                    if (!localFilesOnly)
+                        databaseFiles = RemoteSync();
+                    else
+                        databaseFiles = LocalSync();
+
                     if (databaseFiles?.Count > 0)
                     {
                         log.Debug("Downloading ACE-World Archive.");
-                        RetreieveWorldData();
 
                         List<GithubResourceList> resources = new List<GithubResourceList>();
 

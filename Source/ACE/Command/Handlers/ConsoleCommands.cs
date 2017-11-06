@@ -118,7 +118,7 @@ namespace ACE.Command.Handlers
             }
             if (forceRedploy || !userModifiedFlagPresent)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, true);
                 if (errorResult == null)
                     Console.WriteLine("The World Database has been deployed!");
                 else
@@ -128,7 +128,7 @@ namespace ACE.Command.Handlers
             Console.WriteLine("User created content has been detected in the database. Please export the current database or include the 'force' parameter with this command.");
         }
 
-        [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 1,
+        [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 3,
             "Downloads and redeploys database content from github. WARNING: THIS CAN WIPE DATA!",
             "<datbase selection> force\n\nYou must pass in a database selection as well as the force string.\nDetabase Selection Options include: None, Authentication, Shard, World, All.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
         public static void RedeployAllDatabases(Session session, params string[] parameters)
@@ -147,7 +147,8 @@ namespace ACE.Command.Handlers
                 // Loop through the enum to attempt at matching the first parameter with an option
                 foreach (string dbSelection in System.Enum.GetNames(typeof(DatabaseSelectionOption)))
                 {
-                    if (parameters[0].ToLower()[0] == dbSelection.ToLower()[0])
+                    var extr1 = parameters[0].ToLower()[0];
+                    if (parameters[0].ToLower() == dbSelection.ToLower())
                     {
                         // If found, selectorType will hold the correct AccoutLookupType
                         // If this returns true, that means we were successful and can stop looping
@@ -155,7 +156,10 @@ namespace ACE.Command.Handlers
                             break;
                     }
                 }
-                string force = parameters[1];
+
+                var localOrRemoteSync = parameters[1];
+
+                string force = parameters[2];
                 if (force.Length > 0)
                 {
                     if (force.ToLowerInvariant().Contains("force"))
@@ -167,7 +171,7 @@ namespace ACE.Command.Handlers
             }
             if (forceRedploy)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(databaseSelection);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(databaseSelection, false);
                 // Database.RemoteContentSync.RedeployWorldDatabase();
                 if (errorResult == null)
                     Console.WriteLine("All databases have been redeployed!");

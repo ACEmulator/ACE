@@ -57,7 +57,7 @@ namespace ACE.Api.Controllers
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, true);
                 if (errorResult == null)
                     return Request.CreateResponse(HttpStatusCode.OK, "The World Database has been redeployed!");
                 else
@@ -87,7 +87,7 @@ namespace ACE.Api.Controllers
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.All);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.All, false);
 
                 if (errorResult == null)
                     return Request.CreateResponse(HttpStatusCode.OK, "All Databases have been redeployed; the databases should now be completely reset. Please remember to readd your user accounts!");
