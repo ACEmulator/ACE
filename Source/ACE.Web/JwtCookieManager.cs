@@ -17,9 +17,16 @@ namespace ACE.Web
         public void OnAuthentication(System.Web.Mvc.Filters.AuthenticationContext filterContext)
         {
             SessionSecurityToken sst = null;
-            if (FederatedAuthentication.SessionAuthenticationModule.TryReadSessionTokenFromCookie(out sst))
+            try
             {
-                filterContext.Principal = sst.ClaimsPrincipal;
+                if (FederatedAuthentication.SessionAuthenticationModule.TryReadSessionTokenFromCookie(out sst))
+                {
+                    filterContext.Principal = sst.ClaimsPrincipal;
+                }
+            }
+            catch
+            {
+
             }
         }
 
@@ -37,9 +44,14 @@ namespace ACE.Web
             var bodyJson = Encoding.UTF8.GetString(Base64UrlDecode(bodyBase64));
             var bodyData = JObject.Parse(bodyJson);
 
-            string username = (string)bodyData[ClaimTypes.Name];
+            string displayName = (string)bodyData["display_name"];
+            string username = (string)bodyData["unique_name"];
 
-            List<Claim> claims = new List<Claim>() { new Claim(ClaimTypes.Name, username), new Claim("ticket", token) };
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.Name, displayName));
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, username));
+            claims.Add(new Claim("http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider", "ACE.Auth"));
+            claims.Add(new Claim("ticket", token));
             ClaimsIdentity ci = new ClaimsIdentity(claims, "ACE");
             ClaimsPrincipal cp = new ClaimsPrincipal(ci);
 

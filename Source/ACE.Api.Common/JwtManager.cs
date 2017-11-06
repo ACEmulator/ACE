@@ -88,7 +88,8 @@ namespace ACE.Api.Common
                 new Claim(ClaimTypes.Name, account.Name),
                 new Claim(ClaimTypes.NameIdentifier, account.AccountGuid.ToString()),
                 new Claim("account_id", account.AccountId.ToString()),
-                new Claim("issuing_server", ConfigManager.Config.AuthServer.PublicUrl)
+                new Claim("issuing_server", ConfigManager.Config.AuthServer.PublicUrl),
+                new Claim("display_name", account.DisplayName ?? account.Name)
             });
 
             roles.ForEach(r => subject.AddClaim(new Claim(ClaimTypes.Role, r)));
