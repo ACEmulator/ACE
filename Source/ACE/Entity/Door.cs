@@ -168,62 +168,57 @@ namespace ACE.Entity
             set;
         }
 
-        public override void HandleActionOnUse(ObjectGuid playerId)
+        public override void ActOnUse(ObjectGuid playerId)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
             {
-                Player player = wo as Player;
-                if (player == null)
+                return;
+            }
+
+            ////if (playerDistanceTo >= 2500)
+            ////{
+            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
+            ////    return;
+            ////}
+
+            if (!player.IsWithinUseRadiusOf(this))
+                player.DoMoveTo(this);
+            else
+            {
+                ActionChain checkDoorChain = new ActionChain();
+
+                checkDoorChain.AddAction(this, () =>
                 {
-                    return;
-                }
-
-                ////if (playerDistanceTo >= 2500)
-                ////{
-                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-                ////    return;
-                ////}
-
-                if (!player.IsWithinUseRadiusOf(this))
-                    player.DoMoveTo(this);
-                else
-                {
-                    ActionChain checkDoorChain = new ActionChain();
-
-                    checkDoorChain.AddAction(this, () =>
+                    if (!IsLocked)
                     {
-                        if (!IsLocked)
+                        if (!IsOpen)
                         {
-                            if (!IsOpen)
-                            {
-                                Open(playerId);
-                            }
-                            else
-                            {
-                                Close(playerId);
-                            }
-
-                            // Create Door auto close timer
-                            ActionChain autoCloseTimer = new ActionChain();
-                            autoCloseTimer.AddDelaySeconds(ResetInterval);
-                            autoCloseTimer.AddAction(this, () => Reset());
-                            autoCloseTimer.EnqueueChain();
+                            Open(playerId);
                         }
                         else
                         {
-                            CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                            Close(playerId);
                         }
 
-                        var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    });
+                            // Create Door auto close timer
+                            ActionChain autoCloseTimer = new ActionChain();
+                        autoCloseTimer.AddDelaySeconds(ResetInterval);
+                        autoCloseTimer.AddAction(this, () => Reset());
+                        autoCloseTimer.EnqueueChain();
+                    }
+                    else
+                    {
+                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    }
 
-                    checkDoorChain.EnqueueChain();
-                }
-            });
-            chain.EnqueueChain();
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                });
+
+                checkDoorChain.EnqueueChain();
+            }
         }
 
         private void Open(ObjectGuid opener = new ObjectGuid())

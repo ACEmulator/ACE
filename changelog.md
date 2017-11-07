@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
 ### 2017-11-03
+[ddevec]
+* Change core structure eliminating multi-threading between threads.  
+* Removed ChainOnObject() from landblock, make GetObject() public.
+* Simplified Action code to reflect for new threading model.
+
 [Ripley]
 * Fix AppVeyor issues.
 
