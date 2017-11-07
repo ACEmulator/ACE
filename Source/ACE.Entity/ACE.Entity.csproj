@@ -65,6 +65,7 @@
     <Compile Include="AbilityVitalAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="AccountByName.cs" />
+    <Compile Include="AceQuaternion.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
     <Compile Include="AceContractTracker.cs" />
@@ -84,9 +85,12 @@
     <Compile Include="AceObjectPropertyId.cs" />
     <Compile Include="BaseAceProperty.cs" />
     <Compile Include="CachedWieldedObject.cs" />
+    <Compile Include="CBSPNode.cs" />
+    <Compile Include="CPlane.cs" />
     <Compile Include="ChangeTrackedObject.cs" />
     <Compile Include="ContentLandblock.cs" />
     <Compile Include="ContentLink.cs" />
+    <Compile Include="Enum\BSPNodeType.cs" />
     <Compile Include="Enum\BSPType.cs" />
     <Compile Include="Enum\ClientProperties.cs" />
     <Compile Include="Enum\AceObjectPropertyType.cs" />
@@ -96,6 +100,7 @@
     <Compile Include="Enum\EmoteCategory.cs" />
     <Compile Include="Enum\EmoteType.cs" />
     <Compile Include="Enum\EnchantmentTypeFlags.cs" />
+    <Compile Include="Enum\PlaneSide.cs" />
     <Compile Include="Enum\RecipeResult.cs" />
     <Compile Include="Enum\RecipeType.cs" />
     <Compile Include="Enum\SurfaceType.cs" />
@@ -104,6 +109,9 @@
     <Compile Include="ContentWeenie.cs" />
     <Compile Include="SearchWeenieProperty.cs" />
     <Compile Include="Subscription.cs" />
+    <Compile Include="AceMatrix4X4.cs" />
+    <Compile Include="CBSPTree.cs" />
+    <Compile Include="Vector3.cs" />
     <Compile Include="WeenieSearchResult.cs" />
     <Compile Include="Recipe.cs" />
     <Compile Include="SearchWeeniesCriteria.cs" />
@@ -211,7 +219,7 @@
     <Compile Include="TextureMapOverride.cs" />
     <Compile Include="TupleExtensions.cs" />
     <Compile Include="AceObject.cs" />
-    <Compile Include="Vector3.cs" />
+    <Compile Include="AceMath3dUtil.cs" />
     <Compile Include="Weenie.cs" />
     <Compile Include="AceCharacter.cs" />
   </ItemGroup>

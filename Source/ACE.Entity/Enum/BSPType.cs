@@ -4,6 +4,6 @@
     {
         Drawing = 0,
         Physics = 1,
-        Cell = 2,
+        Cell    = 2,
     }
 }
