@@ -11,6 +11,11 @@
 * Added a workaround that prevents a crash when a bad token is passed in to the API.
 
 ### 2017-11-03
+[ddevec]
+* Change core structure eliminating multi-threading between threads.  
+* Removed ChainOnObject() from landblock, make GetObject() public.
+* Simplified Action code to reflect for new threading model.
+
 [Ripley]
 * Fix AppVeyor issues.
 

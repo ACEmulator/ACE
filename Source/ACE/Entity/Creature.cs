@@ -119,17 +119,18 @@ namespace ACE.Entity
             }
         }
 
-        public virtual ActionChain GetOnKillChain(Session killerSession)
+        public virtual void DoOnKill(Session killerSession)
         {
-            ActionChain onKillChain = new ActionChain();
-            /*
-            // Wait to respawn
-            onKillChain.AddDelayTicks(10);
-            */
+            OnKillInternal(killerSession).EnqueueChain();
+        }
 
+        protected ActionChain OnKillInternal(Session killerSession)
+        {
             // Will start death animation
-            onKillChain.AddAction(this, () => OnKill(killerSession));
-            // Wait for kill animation
+            OnKill(killerSession);
+
+            // Wait, then run kill animation
+            ActionChain onKillChain = new ActionChain();
             onKillChain.AddDelaySeconds(2);
             onKillChain.AddChain(GetCreateCorpseChain());
 
@@ -677,39 +678,25 @@ namespace ACE.Entity
         ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
         /// </summary>
         /// <param name="playerId">Identity of the player we are interacting with</param>
-        public override void HandleActionOnUse(ObjectGuid playerId)
+        public override void ActOnUse(ObjectGuid playerId)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, playerId, wo =>
+            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
             {
-                Player player = wo as Player;
-                if (player == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (!player.IsWithinUseRadiusOf(this))
-                    player.DoMoveTo(this);
-                else
-                {
-                    ActionChain turnToChain = new ActionChain();
-                    turnToChain.AddAction(this, () =>
-                    {
-                        OnAutonomousMove(wo.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
-                    });
-                    turnToChain.EnqueueChain();
+            if (!player.IsWithinUseRadiusOf(this))
+            {
+                player.DoMoveTo(this);
+            }
+            else
+            {
+                OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
 
-                    ActionChain doneChain = new ActionChain();
-
-                    doneChain.AddAction(this, () =>
-                    {
-                        GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                    });
-                    doneChain.EnqueueChain();
-                }
-            });
-            chain.EnqueueChain();
+                GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            }
         }
     }
 }

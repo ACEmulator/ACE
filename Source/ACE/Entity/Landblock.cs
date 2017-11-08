@@ -331,7 +331,8 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// main game loop
+        /// Every game-loop iteration work.  Ideally this wouldn't exist, but we haven't finished
+        /// fully transitioning landblocks to an event-based system.
         /// </summary>
         public void UseTime(double tickTime)
         {
@@ -536,6 +537,24 @@ namespace ACE.Entity
                     sound,
                     volume));
         }
+        
+        /// <summary>
+        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="message"></param>
+        public void EnqueueBroadcastSystemChat(WorldObject wo, string message, ChatMessageType type)
+        {
+            // wo must exist on us
+            if (wo.CurrentLandblock != this)
+            {
+                log.Error("ERROR: Broadcasting chat from object not on our landblock");
+            }
+
+            GameMessageSystemChat chatMsg = new GameMessageSystemChat(message, type);
+
+            EnqueueBroadcast(wo.Location, MaxObjectRange, chatMsg);
+        }
 
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
@@ -716,7 +735,7 @@ namespace ACE.Entity
             return null;
         }
 
-        private WorldObject GetObject(ObjectGuid guid)
+        public WorldObject GetObject(ObjectGuid guid)
         {
             Landblock lb = GetOwner(guid);
             if (lb == null)
@@ -751,6 +770,7 @@ namespace ACE.Entity
             return worldObjects.ContainsKey(guid) ? worldObjects[guid].WeenieType : 0;
         }
 
+        /*
         public void ChainOnObject(ActionChain chain, ObjectGuid woGuid, Action<WorldObject> action)
         {
             WorldObject wo = GetObject(woGuid);
@@ -761,6 +781,7 @@ namespace ACE.Entity
 
             chain.AddAction(wo, () => action(wo));
         }
+        */
 
         /// <summary>
         /// Intended for when moving an item directly to a player's container (which is not visible to the landblock)
@@ -812,6 +833,7 @@ namespace ACE.Entity
 
             RemoveWorldObjectInternal(woGuid, false);
             wo.ContainerId = container.Guid.Full;
+
             // We are coming off the world we need to be ready to save.
             wo.Location = null;
             wo.InitializeAceObjectForSave();

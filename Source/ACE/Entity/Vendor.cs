@@ -53,30 +53,21 @@ namespace ACE.Entity
         /// Fired when Client clicks on the Vendor World Object
         /// </summary>
         /// <param name="playerId"></param>
-        public override void HandleActionOnUse(ObjectGuid playerId)
+        public override void ActOnUse(ObjectGuid playerId)
         {
-            ActionChain chain = new ActionChain();
-            CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
             {
-                Player player = wo as Player;
-                if (player == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (!player.IsWithinUseRadiusOf(this))
-                    player.DoMoveTo(this);
-                else
-                {
-                    chain.AddAction(this, () =>
-                    {
-                        LoadInventory();
-                        ApproachVendor(player);
-                    });
-                }
-            });
-
-            chain.EnqueueChain();
+            if (!player.IsWithinUseRadiusOf(this))
+                player.DoMoveTo(this);
+            else
+            {
+                LoadInventory();
+                ApproachVendor(player);
+            }
         }
 
         /// <summary>
@@ -227,7 +218,7 @@ namespace ACE.Entity
             }
 
             // send transaction to player for further processing and.
-            player.HandleActionBuyFinalTransaction(this, uqlist, genlist, true, goldcost);
+            player.FinalizeBuyTransaction(this, uqlist, genlist, true, goldcost);
         }
 
         /// <summary>
@@ -280,7 +271,7 @@ namespace ACE.Entity
             }
 
             ApproachVendor(player);
-            player.HandleActionSellFinalTransaction(this, true, accepted, payout);
+            player.FinalizeSellTransaction(this, true, accepted, payout);
         }
 
         #endregion

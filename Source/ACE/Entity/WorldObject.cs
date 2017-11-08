@@ -3007,29 +3007,24 @@ namespace ACE.Entity
                 Frozen = true;
         }
 
-        public virtual void HandleActionOnUse(ObjectGuid playerId)
+        public virtual void ActOnUse(ObjectGuid playerId)
         {
             // Do Nothing by default
             if (CurrentLandblock != null)
             {
-                ActionChain chain = new ActionChain();
-                CurrentLandblock.ChainOnObject(chain, playerId, (WorldObject wo) =>
+                Player player = CurrentLandblock.GetObject(playerId) as Player;
+                if (player == null)
                 {
-                    Player player = wo as Player;
-                    if (player == null)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
 #if DEBUG
-                    var errorMessage = new GameMessageSystemChat($"Default HandleActionOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-                    player.Session.Network.EnqueueSend(errorMessage);
+                var errorMessage = new GameMessageSystemChat($"Default HandleActionOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+                player.Session.Network.EnqueueSend(errorMessage);
 #endif
 
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                });
-                chain.EnqueueChain();
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
             }
         }
 
