@@ -52,8 +52,23 @@ namespace ACE.Api.Controllers
             if (Database.Redeploy.RedeploymentActive)
                 return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
             //TODO: Fix this hack, make the redeploy request object work properly:
-            var forceDeploy = Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
-            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=true") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
+            bool forceDeploy = false; //Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
+            foreach (KeyValuePair<string, string> query in Request.GetQueryNameValuePairs())
+            {
+                if (query.Key.ToLowerInvariant() == "request.sourceselection")
+                {
+                    Enum.TryParse<SourceSelectionOption>(query.Value, out dataSource);
+                }
+                if (query.Key.ToLowerInvariant() == "request.force")
+                {
+                    // try to parse selection enum
+                    if (Convert.ToBoolean(query.Value))
+                    {
+                        forceDeploy = true;
+                    }
+                }
+            }
             // Check to determine if a userModified flag has been set in the database
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
@@ -77,19 +92,41 @@ namespace ACE.Api.Controllers
         [SwaggerResponse(HttpStatusCode.OK, "Redeploy successful.  Return message contains the sql log.", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
         [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
-        public HttpResponseMessage RedeployAllDatabases(RedeployRequest request)
+        public HttpResponseMessage RedeployDatabase(RedeployRequest request)
         {
             // Only allow one request at a time:
             if (Database.Redeploy.RedeploymentActive)
                 return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
             //TODO: Fix this hack, make the redeploy request object work properly:
-            var forceDeploy = Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
-            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=true") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
+            bool forceDeploy = false; //Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
+            DatabaseSelectionOption databaseName = DatabaseSelectionOption.None;
+            foreach (KeyValuePair<string, string> query in Request.GetQueryNameValuePairs())
+            {
+                if (query.Key.ToLowerInvariant() == "request.sourceselection")
+                {
+                    Enum.TryParse<SourceSelectionOption>(query.Value, out dataSource);
+                }
+                if (query.Key.ToLowerInvariant() == "request.databaseselection")
+                {
+                    // try to parse selection enum
+                    Enum.TryParse<DatabaseSelectionOption>(query.Value, out databaseName);
+                }
+                if (query.Key.ToLowerInvariant() == "request.force")
+                {
+                    // try to parse selection enum
+                    if (Convert.ToBoolean(query.Value))
+                    {
+                        forceDeploy = true;
+                    }
+                }
+            }
+
             // Check to determine if a userModified flag has been set in the database
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.Redeploy.RedeployAllDatabases(DatabaseSelectionOption.All, dataSource);
+                string errorResult = Database.Redeploy.RedeployAllDatabases(databaseName, dataSource);
 
                 if (errorResult == null)
                     return Request.CreateResponse(HttpStatusCode.OK, "All Databases have been redeployed; the databases should now be completely reset. Please remember to readd your user accounts!");

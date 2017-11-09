@@ -581,7 +581,7 @@ namespace ACE.Database
             using (Stream file = File.Open(filePath, FileMode.Open))
             using (Stream fileStream = new System.Security.Cryptography.CryptoStream(file, sha, System.Security.Cryptography.CryptoStreamMode.Read))
             {
-                while (fileStream.ReadByte() != -1) ;
+                while (fileStream.ReadByte() != -1);
                 shaHash = sha.Hash;
             }
             return string.Join("", shaHash.Select(b => b.ToString("x2")).ToArray());
@@ -614,13 +614,12 @@ namespace ACE.Database
                     var fileHash = GetFileHash(file.File);
                     if (item.Item1.Length > 0)
                     {
-                        resources.Add(new GithubResource() { FileName = fileName, FilePath = file.File, SourcePath = searchPath, SourceUri = file.File, DatabaseName = item.Item1, Type = item.Item2, FileSize = Convert.ToInt32(fileSize), Hash = fileHash});
+                        resources.Add(new GithubResource() { FileName = fileName, FilePath = file.File, SourcePath = searchPath, SourceUri = file.File, DatabaseName = item.Item1, Type = item.Item2, FileSize = Convert.ToInt32(fileSize), Hash = fileHash });
                     }
                 }
             }
 
             return resources;
-
         }
 
         public static List<GithubResource> LocalSync()
@@ -745,7 +744,7 @@ namespace ACE.Database
                                 {
                                     updates.Add(download.FilePath);
                                 }
-                                if(download.Type == GithubResourceType.WorldReleaseSqlFile)
+                                if (download.Type == GithubResourceType.WorldReleaseSqlFile)
                                 {
                                     worldFile = download.FilePath;
                                 }

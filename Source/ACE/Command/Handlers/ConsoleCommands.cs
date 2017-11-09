@@ -105,14 +105,14 @@ namespace ACE.Command.Handlers
             bool forceRedploy = false;
             var sourceSelection = new SourceSelectionOption();
             var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
+
+            // Match parameters
             if (parameters?.Length > 0)
             {
                 foreach (string sourceSelectionItem in System.Enum.GetNames(typeof(SourceSelectionOption)))
                 {
                     if (parameters[0].ToLower() == sourceSelectionItem.ToLower())
                     {
-                        // If found, selectorType will hold the correct AccoutLookupType
-                        // If this returns true, that means we were successful and can stop looping
                         if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
                             break;
                     }
@@ -142,7 +142,7 @@ namespace ACE.Command.Handlers
 
         [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 2,
             "Downloads and redeploys database content from github. WARNING: THIS CAN WIPE DATA!",
-            "<datbase selection> <source selection> force\n\nYou must pass in a database selection, source selection, as well as the force string.\nDatabase Selection Options include: None, Authentication, Shard, World, All.\nSource Selections include: LocalDisk and Github.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
+            "<datbase selection> <source selection> <force>\n\nYou must pass in a database selection and a source selection, but the force string is optional.\nDatabase Selection Options include: None, Authentication, Shard, World, All.\nSource Selections include: LocalDisk and Github.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
         public static void RedeployAllDatabases(Session session, params string[] parameters)
         {
             if (parameters?.Length < 2 && parameters?.Length > 3)
@@ -162,8 +162,6 @@ namespace ACE.Command.Handlers
                 {
                     if (parameters[0].ToLower() == dbSelection.ToLower())
                     {
-                        // If found, selectorType will hold the correct DatabaseSelectionOption
-                        // If this returns true, that means we were successful and can stop looping
                         if (Enum.TryParse(dbSelection, out databaseSelection))
                             break;
                     }
@@ -174,8 +172,6 @@ namespace ACE.Command.Handlers
                 {
                     if (parameters[1].ToLower() == sourceSelectionItem.ToLower())
                     {
-                        // If found, selectorType will hold the correct SourceSelectionOption
-                        // If this returns true, that means we were successful and can stop looping
                         if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
                             break;
                     }
@@ -189,7 +185,6 @@ namespace ACE.Command.Handlers
                         forceRedploy = true;
                     }
                 }
-                
             }
             var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent() && databaseSelection == DatabaseSelectionOption.World ? true : false;
             if (forceRedploy || !userModifiedFlagPresent)

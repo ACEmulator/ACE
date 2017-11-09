@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ACE.Entity.Enum;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,18 @@ namespace ACE.Api.Models
         public bool ForceDeploy { get; set; } = false;
 
         /// <summary>
+        /// Database selection option
+        /// </summary>
+        [JsonProperty("databaseSelection")]
+        public DatabaseSelectionOption DatabaseSelection { get; set; }
+
+        /// <summary>
+        /// Remote (Github) or Local data source selection option
+        /// </summary>
+        [JsonProperty("sourceSelection")]
+        public SourceSelectionOption SourceSelection { get; set; }
+
+        /// <summary>
         /// Default Redeployment Request
         /// </summary>
         public RedeployRequest() { }
@@ -26,9 +39,13 @@ namespace ACE.Api.Models
         /// <summary>
         /// Database Redeployment Request with optional Parameter allowing force overwrite operations.
         /// </summary>
-        /// <param name="forceDeploy"></param>
-        public RedeployRequest(bool forceDeploy)
+        /// <param name="forceDeploy">force a database overwrite/wipe</param>
+        /// <param name="databaseSelection">database selection option</param>
+        /// <param name="sourceSelection">source selection option</param>
+        public RedeployRequest(bool forceDeploy, DatabaseSelectionOption databaseSelection, SourceSelectionOption sourceSelection)
         {
+            DatabaseSelection = databaseSelection;
+            SourceSelection = sourceSelection;
             ForceDeploy = forceDeploy;
         }
     }

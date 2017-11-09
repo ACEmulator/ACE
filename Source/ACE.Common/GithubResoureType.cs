@@ -12,11 +12,11 @@ namespace ACE.Common
         String,
         File,
         Directory,
-        SqlFile,
         TextFile,
-        SqlUpdateFile,
+        SqlFile,
         SqlBaseFile,
-        Archive,
-        WorldReleaseSqlFile
+        SqlUpdateFile,
+        WorldReleaseSqlFile,
+        Archive
     }
 }
