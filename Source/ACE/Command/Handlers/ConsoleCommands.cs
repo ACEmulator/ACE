@@ -99,14 +99,26 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Export to {exportDir} complete.");
         }
 
-        [CommandHandler("redeploy-world", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Download and redeploy the world content, from github.")]
+        [CommandHandler("redeploy-world", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 1, "Download and redeploy the world content, from github.")]
         public static void RedeployWorld(Session session, params string[] parameters)
         {
             bool forceRedploy = false;
+            var sourceSelection = new SourceSelectionOption();
             var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
             if (parameters?.Length > 0)
             {
-                string force = parameters[0];
+                foreach (string sourceSelectionItem in System.Enum.GetNames(typeof(SourceSelectionOption)))
+                {
+                    if (parameters[0].ToLower() == sourceSelectionItem.ToLower())
+                    {
+                        // If found, selectorType will hold the correct AccoutLookupType
+                        // If this returns true, that means we were successful and can stop looping
+                        if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
+                            break;
+                    }
+                }
+
+                string force = parameters[1];
                 if (force.Length > 0)
                 {
                     if (force.ToLowerInvariant().Contains("force"))
@@ -118,7 +130,7 @@ namespace ACE.Command.Handlers
             }
             if (forceRedploy || !userModifiedFlagPresent)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, true);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, sourceSelection);
                 if (errorResult == null)
                     Console.WriteLine("The World Database has been deployed!");
                 else
@@ -128,18 +140,19 @@ namespace ACE.Command.Handlers
             Console.WriteLine("User created content has been detected in the database. Please export the current database or include the 'force' parameter with this command.");
         }
 
-        [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 3,
+        [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 2,
             "Downloads and redeploys database content from github. WARNING: THIS CAN WIPE DATA!",
-            "<datbase selection> force\n\nYou must pass in a database selection as well as the force string.\nDetabase Selection Options include: None, Authentication, Shard, World, All.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
+            "<datbase selection> <source selection> force\n\nYou must pass in a database selection, source selection, as well as the force string.\nDatabase Selection Options include: None, Authentication, Shard, World, All.\nSource Selections include: LocalDisk and Github.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
         public static void RedeployAllDatabases(Session session, params string[] parameters)
         {
-            if (parameters?.Length != 2)
+            if (parameters?.Length != 3)
             {
-                Console.WriteLine("Usage: redeploy <datbase selection> force");
+                Console.WriteLine("Usage: redeploy <datbase selection> <source selection> force");
                 return;
             }
 
             var databaseSelection = new DatabaseSelectionOption();
+            var sourceSelection = new SourceSelectionOption();
             bool forceRedploy = false;
             var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
             if (parameters?.Length > 0)
@@ -147,7 +160,6 @@ namespace ACE.Command.Handlers
                 // Loop through the enum to attempt at matching the first parameter with an option
                 foreach (string dbSelection in System.Enum.GetNames(typeof(DatabaseSelectionOption)))
                 {
-                    var extr1 = parameters[0].ToLower()[0];
                     if (parameters[0].ToLower() == dbSelection.ToLower())
                     {
                         // If found, selectorType will hold the correct AccoutLookupType
@@ -157,7 +169,17 @@ namespace ACE.Command.Handlers
                     }
                 }
 
-                var localOrRemoteSync = parameters[1];
+                // Loop through the enum to attempt at matching the second parameter with an option
+                foreach (string sourceSelectionItem in System.Enum.GetNames(typeof(SourceSelectionOption)))
+                {
+                    if (parameters[1].ToLower() == sourceSelectionItem.ToLower())
+                    {
+                        // If found, selectorType will hold the correct AccoutLookupType
+                        // If this returns true, that means we were successful and can stop looping
+                        if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
+                            break;
+                    }
+                }
 
                 string force = parameters[2];
                 if (force.Length > 0)
@@ -171,7 +193,7 @@ namespace ACE.Command.Handlers
             }
             if (forceRedploy)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(databaseSelection, false);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(databaseSelection, sourceSelection);
                 // Database.RemoteContentSync.RedeployWorldDatabase();
                 if (errorResult == null)
                     Console.WriteLine("All databases have been redeployed!");

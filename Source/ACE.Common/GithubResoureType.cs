@@ -16,6 +16,7 @@ namespace ACE.Common
         TextFile,
         SqlUpdateFile,
         SqlBaseFile,
-        Archive
+        Archive,
+        WorldReleaseSqlFile
     }
 }

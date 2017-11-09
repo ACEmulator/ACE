@@ -335,15 +335,15 @@ namespace ACE.Database
         /// <summary>
         /// Parses a file path too determine the correct database.
         /// </summary>
-        private static Tuple<string, GithubResourceType> GetDatabaseNameAndResourceType(string searchString, string fileName)
+        private static Tuple<string, GithubResourceType> GetDatabaseNameAndResourceType(string filePath, string fileName)
         {
             var localType = GithubResourceType.Unknown;
             var databaseName = string.Empty;
-            if (searchString.Contains(".txt"))
+            if (fileName.Contains(".txt"))
             {
                 localType = GithubResourceType.TextFile;
             }
-            else if (searchString.Contains("/Base"))
+            else if (filePath.Contains("/Base"))
             {
                 localType = GithubResourceType.SqlBaseFile;
                 if (fileName.Contains("AuthenticationBase"))
@@ -359,23 +359,28 @@ namespace ACE.Database
                     databaseName = DefaultWorldDatabaseName;
                 }
             }
-            else if (searchString.Contains("/Updates"))
+            else if (filePath.Contains("/Updates"))
             {
                 localType = GithubResourceType.SqlUpdateFile;
-                if (searchString.Contains("/Authentication"))
+                if (filePath.Contains("/Authentication"))
                 {
                     databaseName = DefaultAuthenticationDatabaseName;
                 }
-                else if (searchString.Contains("/Shard"))
+                else if (filePath.Contains("/Shard"))
                 {
                     databaseName = DefaultShardDatabaseName;
                 }
-                else if (searchString.Contains("/World"))
+                else if (filePath.Contains("/World"))
                 {
                     databaseName = DefaultWorldDatabaseName;
                 }
             }
-            else if (searchString.Contains(".sql"))
+            else if (filePath.Contains("/ACE-World"))
+            {
+                databaseName = DefaultWorldDatabaseName;
+                localType = GithubResourceType.WorldReleaseSqlFile;
+            }
+            else if (filePath.Contains(".sql"))
             {
                 localType = GithubResourceType.SqlFile;
             }
@@ -396,6 +401,7 @@ namespace ACE.Database
                 {
                     List<GithubResource> downloadList = new List<GithubResource>();
                     var localDataPath = Path.GetFullPath(ConfigManager.Config.ContentServer.LocalDataPath);
+                    // Directories collected from the API
                     List<string> directoryUrls = new List<string>();
                     directoryUrls.Add(url);
                     // Recurse api and collect all downloads
@@ -463,11 +469,8 @@ namespace ACE.Database
             return null;
         }
 
-        /// <summary>
-        /// Creates a webClient that connects too Github and extracts relevant download metadata.
-        /// </summary>
-        private static string RetreieveWorldData()
-        {
+        private static GithubResource RetreieveWorldDataFile()
+        {            
             if (RemaingApiCalls > 0)
             {
                 // attempt to download the latest ACE-World json data
@@ -490,27 +493,41 @@ namespace ACE.Database
                 catch (Exception error)
                 {
                     log.Debug($"Trouble capturing metadata from the Github API. {error.ToString()}");
-                    return error.Message;
+                    return null;
                 }
 
                 var worldArchive = Path.GetFullPath(Path.Combine(ConfigManager.Config.ContentServer.LocalDataPath, WorldGithubFilename));
+                var worldPath = Path.GetFullPath(Path.Combine(ConfigManager.Config.ContentServer.LocalDataPath, WorldDataPath));
 
                 if (RetrieveWebContent(WorldGithubDownload, worldArchive))
                 {
                     // Extract & delete
-                    var extractionError = ExtractZip(worldArchive, Path.GetFullPath(Path.Combine(ConfigManager.Config.ContentServer.LocalDataPath, "Database\\ACE-World\\")));
+                    var extractionError = ExtractZip(worldArchive, worldPath);
                     if (extractionError?.Length > 0)
                     {
                         log.Debug($"Could not extract {worldArchive} {extractionError}");
-                        return $"Error Extracting {extractionError}";
+                        return null;
                     }
                 }
-                return null;
+                
+                // Grab the archive folder path
+                var files = from file in Directory.EnumerateFiles(worldPath) where !file.Contains(".txt") select new { File = file };
+
+                GithubResource resource = new GithubResource();
+
+                foreach (var file in files)
+                {
+                    resource.FileName = Path.GetFileName(file.File);
+                    resource.FilePath = file.File;
+                    resource.DatabaseName = DefaultWorldDatabaseName;
+                    resource.Type = GithubResourceType.WorldReleaseSqlFile;
+                }
+
+                return resource;
             }
             // No more calls left, detail the time remaining
-            var errorMessage = $"You have exhausted your Github API limt. Please wait till {ApiResetTime}";
-            log.Error(errorMessage);
-            return errorMessage;
+            log.Error($"You have exhausted your Github API limt. Please wait till {ApiResetTime}");
+            return null;
         }
 
         /// <summary>
@@ -556,17 +573,76 @@ namespace ACE.Database
             }
         }
 
+        private static string GetFileHash(string filePath)
+        {
+            Byte[] shaHash;
+
+            using (var sha = new System.Security.Cryptography.SHA1Managed())
+            using (Stream file = File.Open(filePath, FileMode.Open))
+            using (Stream fileStream = new System.Security.Cryptography.CryptoStream(file, sha, System.Security.Cryptography.CryptoStreamMode.Read))
+            {
+                while (fileStream.ReadByte() != -1) ;
+                shaHash = sha.Hash;
+            }
+            return Convert.ToBase64String(shaHash);
+        }
+
+        /// <summary>
+        /// Scoures a directory and finds relevante data on the local system that originated from Github.
+        /// </summary>
+        /// <param name="directoryPath"></param>
+        public static List<GithubResource> ParseLocalDatabase(string directoryPath)
+        {
+            List<GithubResource> resources = null;
+
+            var actualPath = Path.GetFullPath(Path.Combine(directoryPath));
+
+            if (Directory.Exists(actualPath))
+            {
+                // Instance the new object
+                resources = new List<GithubResource>();
+
+                var files = from file in Directory.EnumerateFiles(actualPath, "*.*", SearchOption.AllDirectories) where !file.Contains(".txt") select new { File = file };
+
+                foreach (var file in files)
+                {
+                    var path = Path.GetDirectoryName(file.File); 
+                    var searchPath = path.Replace(actualPath, string.Empty).Replace(@"\", @"/");
+                    var fileName = Path.GetFileName(file.File);
+                    var fileSize = new FileInfo(file.File).Length;
+                    var item = GetDatabaseNameAndResourceType(searchPath, fileName);
+                    var fileHash = GetFileHash(file.File);
+                    if (item.Item1.Length > 0)
+                    {
+                        resources.Add(new GithubResource() { FileName = fileName, FilePath = file.File, SourcePath = searchPath, SourceUri = file.File, DatabaseName = item.Item1, Type = item.Item2, FileSize = Convert.ToInt32(fileSize), Hash = fileHash});
+                    }
+                }
+            }
+
+            return resources;
+
+        }
+
         public static List<GithubResource> LocalSync()
         {
-            var databaseFiles = (ConfigManager.Config.ContentServer.DatabaseUrl);
-            RetreieveWorldData();
+            var databaseFiles = ParseLocalDatabase(ConfigManager.Config.ContentServer.LocalDataPath);
             return databaseFiles;
         }
 
         public static List<GithubResource> RemoteSync()
         {
             var databaseFiles = RetrieveGithubFolderList(ConfigManager.Config.ContentServer.DatabaseUrl);
-            RetreieveWorldData();
+            log.Debug("Downloading ACE-World Archive.");
+            var worldFile = RetreieveWorldDataFile();
+            if (worldFile != null)
+            {
+                databaseFiles.Add(worldFile);
+            }
+            else
+            {
+                log.Error("Error downloading worldfile!");
+                return null;
+            }
             return databaseFiles;
         }
 
@@ -579,12 +655,14 @@ namespace ACE.Database
         ///    Second Search Path if updating world database: ACE-World\\${WorldGithubFilename}
         ///    Third Search Path: ${Downloads}\\Database\\Updates\\
         /// </remarks>
-        public static string RedeployAllDatabases(DatabaseSelectionOption databaseSelection, bool localFilesOnly)
+        public static string RedeployAllDatabases(DatabaseSelectionOption databaseSelection, SourceSelectionOption dataSource)
         {
             if (RedeploymentActive)
                 return "There is already an active redeployment in progress...";
             if (databaseSelection == DatabaseSelectionOption.None)
                 return "You must select a database other than 0 (None)..";
+            if (dataSource == SourceSelectionOption.None)
+                return "You must select a source option other than 0 (None)..";
 
             log.Debug("A full database Redeployment has been initiated!");
             // Determine if the config settings appear valid:
@@ -592,10 +670,6 @@ namespace ACE.Database
             {
                 // Local database download Path
                 var localDataPath = Path.GetFullPath(Path.Combine(ConfigManager.Config.ContentServer.LocalDataPath));
-
-                // Delete the database content to remove errornous content
-                if (Directory.Exists(localDataPath))
-                    Directory.Delete(localDataPath, true);
 
                 // Check the data path and create if needed.
                 if (CheckLocalDataPath(localDataPath))
@@ -606,15 +680,21 @@ namespace ACE.Database
                     List<GithubResource> databaseFiles = null;
                     // Download the database files from Github:
                     log.Debug("Attempting download of all database files from Github Folder.");
-                    if (!localFilesOnly)
+
+                    // Attempt to get remote data from github.
+                    if (dataSource == SourceSelectionOption.Github)
+                    {
+                        // Delete the database content to remove old content
+                        if (Directory.Exists(localDataPath))
+                            Directory.Delete(localDataPath, true);
                         databaseFiles = RemoteSync();
-                    else
+                    }
+                    // Load prevoous download/local data
+                    else if (dataSource == SourceSelectionOption.LocalDisk)
                         databaseFiles = LocalSync();
 
                     if (databaseFiles?.Count > 0)
                     {
-                        log.Debug("Downloading ACE-World Archive.");
-
                         List<GithubResourceList> resources = new List<GithubResourceList>();
 
                         ParseDownloads(databaseFiles);
@@ -652,6 +732,7 @@ namespace ACE.Database
 
                             var baseFile = string.Empty;
                             List<string> updates = new List<string>();
+                            var worldFile = string.Empty;
 
                             // Seporate base files from updates
                             foreach (var download in resource.Downloads)
@@ -663,6 +744,10 @@ namespace ACE.Database
                                 if (download.Type == GithubResourceType.SqlUpdateFile)
                                 {
                                     updates.Add(download.FilePath);
+                                }
+                                if(download.Type == GithubResourceType.WorldReleaseSqlFile)
+                                {
+                                    worldFile = download.FilePath;
                                 }
                             }
 
@@ -684,16 +769,14 @@ namespace ACE.Database
                                 // Second, if this is the world database, we will load ACE-World
                                 if (resource.DefaultDatabaseName == DefaultWorldDatabaseName)
                                 {
-                                    // Grab the archive folder path
-                                    var worldDataPath = Path.GetFullPath(Path.Combine(ConfigManager.Config.ContentServer.LocalDataPath, WorldDataPath));
-                                    var files = from file in Directory.EnumerateFiles(worldDataPath) where !file.Contains(".txt") select new { File = file };
-                                    if (files.Count() > 0)
+                                    if (File.Exists(worldFile))
+                                        ReadAndLoadScript(worldFile, resource.ConfigDatabaseName, resource.DefaultDatabaseName);
+                                    else
                                     {
-                                        // Load all SQL files within the ACE-World folder
-                                        foreach (var file in files)
-                                        {
-                                            ReadAndLoadScript(file.File, resource.ConfigDatabaseName, resource.DefaultDatabaseName);
-                                        }
+                                        var errorMessage = $"There was an error locating the base file {worldFile} for {resource.DefaultDatabaseName}!";
+                                        log.Debug(errorMessage);
+                                        Console.WriteLine(errorMessage);
+                                        return errorMessage;
                                     }
                                 }
 

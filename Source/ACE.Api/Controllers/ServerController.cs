@@ -53,11 +53,12 @@ namespace ACE.Api.Controllers
                 return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
             //TODO: Fix this hack, make the redeploy request object work properly:
             var forceDeploy = Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=true") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
             // Check to determine if a userModified flag has been set in the database
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, true);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, dataSource);
                 if (errorResult == null)
                     return Request.CreateResponse(HttpStatusCode.OK, "The World Database has been redeployed!");
                 else
@@ -83,11 +84,12 @@ namespace ACE.Api.Controllers
                 return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
             //TODO: Fix this hack, make the redeploy request object work properly:
             var forceDeploy = Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=true") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
             // Check to determine if a userModified flag has been set in the database
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.All, false);
+                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.All, dataSource);
 
                 if (errorResult == null)
                     return Request.CreateResponse(HttpStatusCode.OK, "All Databases have been redeployed; the databases should now be completely reset. Please remember to readd your user accounts!");
