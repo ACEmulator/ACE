@@ -21,7 +21,7 @@ namespace ACE.Database
     /// <summary>
     /// Remote Content sync is used to download content from the Github Api.
     /// </summary>
-    public static class RemoteContentSync
+    public static class Redeploy
     {
         private static ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -584,7 +584,7 @@ namespace ACE.Database
                 while (fileStream.ReadByte() != -1) ;
                 shaHash = sha.Hash;
             }
-            return Convert.ToBase64String(shaHash);
+            return string.Join("", shaHash.Select(b => b.ToString("x2")).ToArray());
         }
 
         /// <summary>

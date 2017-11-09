@@ -79,7 +79,7 @@
     </Compile>
     <Compile Include="CommonDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RemoteContentSync.cs" />
+    <Compile Include="Redeploy.cs" />
     <Compile Include="SerializedShardDatabase.cs" />
     <Compile Include="ShardDatabase.cs" />
     <Compile Include="StoredPreparedStatement.cs" />

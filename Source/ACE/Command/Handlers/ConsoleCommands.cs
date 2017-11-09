@@ -130,7 +130,7 @@ namespace ACE.Command.Handlers
             }
             if (forceRedploy || !userModifiedFlagPresent)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(DatabaseSelectionOption.World, sourceSelection);
+                string errorResult = Database.Redeploy.RedeployAllDatabases(DatabaseSelectionOption.World, sourceSelection);
                 if (errorResult == null)
                     Console.WriteLine("The World Database has been deployed!");
                 else
@@ -145,7 +145,7 @@ namespace ACE.Command.Handlers
             "<datbase selection> <source selection> force\n\nYou must pass in a database selection, source selection, as well as the force string.\nDatabase Selection Options include: None, Authentication, Shard, World, All.\nSource Selections include: LocalDisk and Github.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
         public static void RedeployAllDatabases(Session session, params string[] parameters)
         {
-            if (parameters?.Length != 3)
+            if (parameters?.Length < 2 && parameters?.Length > 3)
             {
                 Console.WriteLine("Usage: redeploy <datbase selection> <source selection> force");
                 return;
@@ -154,7 +154,7 @@ namespace ACE.Command.Handlers
             var databaseSelection = new DatabaseSelectionOption();
             var sourceSelection = new SourceSelectionOption();
             bool forceRedploy = false;
-            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
+            
             if (parameters?.Length > 0)
             {
                 // Loop through the enum to attempt at matching the first parameter with an option
@@ -162,7 +162,7 @@ namespace ACE.Command.Handlers
                 {
                     if (parameters[0].ToLower() == dbSelection.ToLower())
                     {
-                        // If found, selectorType will hold the correct AccoutLookupType
+                        // If found, selectorType will hold the correct DatabaseSelectionOption
                         // If this returns true, that means we were successful and can stop looping
                         if (Enum.TryParse(dbSelection, out databaseSelection))
                             break;
@@ -174,26 +174,27 @@ namespace ACE.Command.Handlers
                 {
                     if (parameters[1].ToLower() == sourceSelectionItem.ToLower())
                     {
-                        // If found, selectorType will hold the correct AccoutLookupType
+                        // If found, selectorType will hold the correct SourceSelectionOption
                         // If this returns true, that means we were successful and can stop looping
                         if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
                             break;
                     }
                 }
 
-                string force = parameters[2];
-                if (force.Length > 0)
+                if (parameters?.Length > 2)
                 {
-                    if (force.ToLowerInvariant().Contains("force"))
+                    if (parameters[2].ToLowerInvariant().Contains("force"))
                     {
                         Console.WriteLine("Force redeploy reached!");
                         forceRedploy = true;
                     }
                 }
+                
             }
-            if (forceRedploy)
+            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent() && databaseSelection == DatabaseSelectionOption.World ? true : false;
+            if (forceRedploy || !userModifiedFlagPresent)
             {
-                string errorResult = Database.RemoteContentSync.RedeployAllDatabases(databaseSelection, sourceSelection);
+                string errorResult = Database.Redeploy.RedeployAllDatabases(databaseSelection, sourceSelection);
                 // Database.RemoteContentSync.RedeployWorldDatabase();
                 if (errorResult == null)
                     Console.WriteLine("All databases have been redeployed!");
@@ -201,7 +202,7 @@ namespace ACE.Command.Handlers
                     Console.WriteLine($"There was an error durring your request. {errorResult}");
                 return;
             }
-            Console.WriteLine("You must also pass the 'force' parameter with this command, to start the database reset process.");
+            Console.WriteLine("User modified objects were found in the database.\nYou must also pass the 'force' parameter with this command, to start the database reset process.");
         }
     }
 }
