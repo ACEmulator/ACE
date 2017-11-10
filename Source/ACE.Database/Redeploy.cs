@@ -217,7 +217,7 @@ namespace ACE.Database
                 if (File.Exists(destinationFilePath))
                     return true;
             }
-            log.Info($"Troubles downloading {url} {destinationFilePath}");
+            log.Error($"Troubles downloading {url} {destinationFilePath}");
             return false;
         }
 
@@ -248,7 +248,7 @@ namespace ACE.Database
                     }
                     catch
                     {
-                        log.Info($"Could not create directory: {dataPath}");
+                        log.Error($"Could not create directory: {dataPath}");
                         return false;
                     }
                 }
@@ -258,83 +258,16 @@ namespace ACE.Database
                 if (!perms.IsSubsetOf(AppDomain.CurrentDomain.PermissionSet))
                 {
                     // You don't have write permissions
-                    log.Info($"Write permissions missing in: {dataPath}");
+                    log.Error($"Write permissions missing in: {dataPath}");
                     return false;
                 }
                 // All checks pass, so the directory is good to use.
                 return true;
             }
-            log.Info($"Configuration error, missing datapath!");
+            log.Error($"Configuration error, missing datapath!");
             return false;
         }
-
-        /// <summary>
-        /// Attempts to retrieve contents from a Github directory/folder structure.
-        /// </summary>
-        /// <param name="url">String value containing web location to parse from the Github API.</param>
-        /// <returns>true on success, false on failure</returns>
-        private static bool RetrieveGithubFolder(string url)
-        {
-            // Check to see if the input is usable and the data path is valid
-            if (url?.Length > 0)
-            {
-                var localDataPath = Path.GetFullPath(ConfigManager.Config.ContentServer.LocalContentPath);
-                List<string> directoryUrls = new List<string>();
-                directoryUrls.Add(url);
-                var downloads = new List<Tuple<string, string>>();
-                // Recurse api and collect all downloads
-                while (directoryUrls.Count > 0)
-                {
-                    var currentUrl = directoryUrls.LastOrDefault();
-                    var apiRequestData = RetrieveWebString(currentUrl);
-                    if (apiRequestData != null)
-                    {
-                        var repoFiles = JArray.Parse(apiRequestData);
-                        var repoPath = Path.Combine(localDataPath, Path.GetDirectoryName(repoFiles[0]["path"].ToString()));
-                        CheckLocalDataPath(repoPath);
-                        if (repoFiles?.Count > 0)
-                        {
-                            foreach (var file in repoFiles)
-                            {
-                                if (file["type"].ToString() == "dir")
-                                {
-                                    directoryUrls.Add(file["url"].ToString());
-                                    CheckLocalDataPath(Path.Combine(localDataPath, file["path"].ToString()));
-                                }
-                                else
-                                {
-                                    downloads.Add(new Tuple<string, string>(item1: file["download_url"].ToString(), item2: Path.Combine(localDataPath, file["path"].ToString())));
-                                }
-                            }
-                        }
-                        // Cancel because the string was caught in exception
-                        if (repoFiles == null)
-                        {
-                            log.Info($"No files found within {repoPath}");
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        log.Info($"Issue found calling API.");
-                        return false;
-                    }
-                    // Remove the parsed url
-                    directoryUrls.Remove(currentUrl);
-                }
-                // Download the files from the downloads tuple
-                foreach (var download in downloads)
-                {
-                    // If we cannot Retrieve content, return false for failure
-                    if (!RetrieveWebContent(download.Item1, download.Item2))
-                        log.Info($"Trouble downloading {download.Item1} : {download.Item2}");
-                }
-                return true;
-            }
-            log.Info($"Invalid Url provided, please check configuration.");
-            return false;
-        }
-
+        
         /// <summary>
         /// Parses a file path too determine the correct database.
         /// </summary>
@@ -449,7 +382,7 @@ namespace ACE.Database
                         // Cancel because the string was caught in exception
                         if (repoFiles == null)
                         {
-                            log.Info($"No files found within {currentUrl}");
+                            log.Error($"No files found within {currentUrl}");
                             return null;
                         }
                         // Remove the parsed url
@@ -460,15 +393,15 @@ namespace ACE.Database
                     {
                         // If we cannot Retrieve content, return false for failure
                         if (!RetrieveWebContent(download.SourceUri, download.FilePath))
-                            log.Info($"Trouble downloading {download.SourceUri} : {download.FilePath}");
+                            log.Error($"Trouble downloading {download.SourceUri} : {download.FilePath}");
                     }
                     return downloadList;
                 }
-                log.Info($"Invalid Url provided, please check configuration.");
+                log.Error($"Invalid Url provided, please check configuration.");
                 return null;
             }
 
-            log.Info($"You have exhausted your Github API limt. Please wait till {ApiResetTime}");
+            log.Error($"You have exhausted your Github API limt. Please wait till {ApiResetTime}");
             return null;
         }
 
@@ -495,7 +428,7 @@ namespace ACE.Database
                 }
                 catch (Exception error)
                 {
-                    log.Info($"Trouble capturing metadata from the Github API. {error.ToString()}");
+                    log.Error($"Trouble capturing metadata from the Github API. {error.ToString()}");
                     return null;
                 }
 
@@ -508,7 +441,7 @@ namespace ACE.Database
                     var extractionError = ExtractZip(worldArchive, worldPath);
                     if (extractionError?.Length > 0)
                     {
-                        log.Info($"Could not extract {worldArchive} {extractionError}");
+                        log.Error($"Could not extract {worldArchive} {extractionError}");
                         return null;
                     }
                 }
@@ -543,14 +476,14 @@ namespace ACE.Database
             var dropResult = CurrentDb.DropDatabase(databaseName);
             if (dropResult != null)
             {
-                log.Info($"Error dropping database: {dropResult}");
+                log.Error($"Error dropping database: {dropResult}");
             }
 
             // Create Database
             var createResult = CurrentDb.CreateDatabase(databaseName);
             if (createResult != null)
             {
-                log.Info($"Error dropping database: {createResult}");
+                log.Error($"Error creating database: {createResult}");
             }
         }
 
@@ -805,7 +738,7 @@ namespace ACE.Database
                         else
                         {
                             var errorMessage = $"There was an error locating the base file {baseFile} for {resource.DefaultDatabaseName}!";
-                            log.Info(errorMessage);
+                            log.Error(errorMessage);
                         }
 
                         // Second, if this is the world database, we will load ACE-World
@@ -816,7 +749,7 @@ namespace ACE.Database
                             else
                             {
                                 var errorMessage = $"There was an error locating the base file {worldFile} for {resource.DefaultDatabaseName}!";
-                                log.Info(errorMessage);
+                                log.Error(errorMessage);
                                 return errorMessage;
                             }
                         }
@@ -837,7 +770,7 @@ namespace ACE.Database
                         {
                             errorMessage += " Inner: " + error.InnerException.Message;
                         }
-                        log.Info(errorMessage);
+                        log.Error(errorMessage);
                         RedeploymentActive = false;
                         return errorMessage;
                     }
@@ -849,7 +782,7 @@ namespace ACE.Database
             RedeploymentActive = false;
             // Could not find configuration or error in function.
             var configErrorMessage = "No data files were found on local disk or an unknown error has occurred.";
-            log.Info(configErrorMessage);
+            log.Error(configErrorMessage);
             return configErrorMessage;
         }
 
