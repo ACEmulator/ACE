@@ -130,7 +130,7 @@ namespace ACE.Command.Handlers
             }
             if (forceRedploy || !userModifiedFlagPresent)
             {
-                string errorResult = Database.Redeploy.RedeployAllDatabases(DatabaseSelectionOption.World, sourceSelection);
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(DatabaseSelectionOption.World, sourceSelection);
                 if (errorResult == null)
                     Console.WriteLine("The World Database has been deployed!");
                 else
@@ -186,10 +186,10 @@ namespace ACE.Command.Handlers
                     }
                 }
             }
-            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent() && databaseSelection == DatabaseSelectionOption.World ? true : false;
+            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent() && (databaseSelection == DatabaseSelectionOption.World || databaseSelection == DatabaseSelectionOption.All) ? true : false;
             if (forceRedploy || !userModifiedFlagPresent)
             {
-                string errorResult = Database.Redeploy.RedeployAllDatabases(databaseSelection, sourceSelection);
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(databaseSelection, sourceSelection);
                 // Database.RemoteContentSync.RedeployWorldDatabase();
                 if (errorResult == null)
                     Console.WriteLine("All databases have been redeployed!");
@@ -198,6 +198,14 @@ namespace ACE.Command.Handlers
                 return;
             }
             Console.WriteLine("User modified objects were found in the database.\nYou must also pass the 'force' parameter with this command, to start the database reset process.");
+        }
+
+        [CommandHandler("download-github-content", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0,
+            "Downloads content from github.",
+            "")]
+        public static void DownloadGithubContent(Session session, params string[] parameters)
+        {
+            Database.Redeploy.GetDataFiles(SourceSelectionOption.Github);
         }
     }
 }

@@ -1,4 +1,10 @@
 # ACEmulator Change Log
+### 2017-11-09
+[fantoms]
+* Added command and API endpoint for retreiving the database content from Github.
+* You can now redeploy database content from local disk.
+* Updated logging for redeployment.
+
 ### 2017-11-05
 [fantoms]
 * Added Database Redeployment feature to allow for updating or resetting a database from the latest github content.

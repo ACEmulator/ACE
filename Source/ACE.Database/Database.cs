@@ -1255,17 +1255,19 @@ namespace ACE.Database
 
         private void Query_StatementExecuted(object sender, MySqlScriptEventArgs args)
         {
-            Console.Write($"{args.Position}.");
+            Console.Write(".");
         }
 
         private void Query_ScriptCompleted(object sender, EventArgs e)
         {
-            Console.WriteLine("Script has completed!");
+            Console.WriteLine(".");
+            log.Info("Script has completed!");
         }
 
         private void Query_Error(object sender, MySqlScriptErrorEventArgs args)
         {
-            Console.WriteLine($"Script encountered an error! {args.Exception.Message}");
+            Console.WriteLine(".");
+            log.Info($"Script encountered an error! {args.Exception.Message}");
         }
 
         /// <summary>

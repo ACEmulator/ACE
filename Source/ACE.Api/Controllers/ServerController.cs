@@ -73,7 +73,7 @@ namespace ACE.Api.Controllers
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.Redeploy.RedeployAllDatabases(DatabaseSelectionOption.World, dataSource);
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(DatabaseSelectionOption.World, dataSource);
                 if (errorResult == null)
                     return Request.CreateResponse(HttpStatusCode.OK, "The World Database has been redeployed!");
                 else
@@ -126,14 +126,40 @@ namespace ACE.Api.Controllers
             var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
             if (!modifiedFlagPresent || forceDeploy)
             {
-                string errorResult = Database.Redeploy.RedeployAllDatabases(databaseName, dataSource);
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(databaseName, dataSource);
 
                 if (errorResult == null)
-                    return Request.CreateResponse(HttpStatusCode.OK, "All Databases have been redeployed; the databases should now be completely reset. Please remember to readd your user accounts!");
+                    return Request.CreateResponse(HttpStatusCode.OK, "Database(s) have been redeployed and should now be completely reset. Please remember to recreate your user accounts if you reset the authentication database!");
                 else
                     return Request.CreateResponse(HttpStatusCode.InternalServerError, $"There was an error durring your request. {errorResult}");
             }
             return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.");
+        }
+
+        /// <summary>
+        /// Downloads Github content into local content data path.
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Download successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        public HttpResponseMessage DownloadGithubContent()
+        {
+            var result = Database.Redeploy.GetDataFiles(SourceSelectionOption.Github);
+            if (result != null)
+            {
+                if (result.Count > 0)
+                    return Request.CreateResponse(HttpStatusCode.OK, $"{result.Count.ToString()} files received.");
+                else
+                    return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.");
+            }
+            else
+            {
+                var couldNotDownload = Database.Redeploy.RemaingApiCalls == 0 ? $"limit reached, please wait until {Database.Redeploy.ApiResetTime.ToString()} and then try again." : "Unknown issue downloading.";
+
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Github API: {couldNotDownload}");
+            }
         }
 
         /// <summary>
