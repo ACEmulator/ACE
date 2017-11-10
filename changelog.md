@@ -4,6 +4,7 @@
 * Added command and API endpoint for retreiving the database content from Github.
 * You can now redeploy database content from local disk.
 * Updated logging for redeployment.
+* Added `ContentServer` example config setting.
 
 ### 2017-11-05
 [fantoms]

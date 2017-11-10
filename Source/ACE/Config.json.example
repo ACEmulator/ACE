@@ -28,6 +28,9 @@
     "ListenUrl": "http://*:8001",
     "PublicUrl": "http://localhost:8001"
   },
+  "ContentServer": {
+    "LocalContentPath": "Content\\"
+  },
   "MySql": {
     "Authentication": {
       "Host": "127.0.0.1",

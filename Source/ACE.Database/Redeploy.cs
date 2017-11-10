@@ -650,11 +650,10 @@ namespace ACE.Database
             log.Info($"A full database Redeployment has been initiated for {Enum.GetName(typeof(DatabaseSelectionOption), databaseSelection)}!");
 
             RedeploymentActive = true;
+
             // Setup the database requirements.
             Initialize();
             List<GithubResource> databaseFiles = null;
-            // Download the database files from Github:
-            log.Info("Attempting download of all database files from Github Folder.");
 
             databaseFiles = GetDataFiles(dataSource);
 
