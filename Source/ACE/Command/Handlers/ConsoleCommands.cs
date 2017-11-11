@@ -5,6 +5,7 @@ using ACE.Managers;
 using ACE.Network;
 using ACE.DatLoader;
 using System.Collections.Generic;
+using ACE.Database;
 
 namespace ACE.Command.Handlers
 {
@@ -96,6 +97,115 @@ namespace ACE.Command.Handlers
                 }
             }
             Console.WriteLine($"Export to {exportDir} complete.");
+        }
+
+        [CommandHandler("redeploy-world", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 1, "Download and redeploy the world content, from github.")]
+        public static void RedeployWorld(Session session, params string[] parameters)
+        {
+            bool forceRedploy = false;
+            var sourceSelection = new SourceSelectionOption();
+            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent();
+
+            // Match parameters
+            if (parameters?.Length > 0)
+            {
+                foreach (string sourceSelectionItem in System.Enum.GetNames(typeof(SourceSelectionOption)))
+                {
+                    if (parameters[0].ToLower() == sourceSelectionItem.ToLower())
+                    {
+                        if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
+                            break;
+                    }
+                }
+
+                string force = parameters[1];
+                if (force.Length > 0)
+                {
+                    if (force.ToLowerInvariant().Contains("force"))
+                    {
+                        Console.WriteLine("Force redeploy reached!");
+                        forceRedploy = true;
+                    }
+                }
+            }
+            if (forceRedploy || !userModifiedFlagPresent)
+            {
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(DatabaseSelectionOption.World, sourceSelection);
+                if (errorResult == null)
+                    Console.WriteLine("The World Database has been deployed!");
+                else
+                    Console.WriteLine($"There was an error durring your request. {errorResult}");
+                return;
+            }
+            Console.WriteLine("User created content has been detected in the database. Please export the current database or include the 'force' parameter with this command.");
+        }
+
+        [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 2,
+            "Downloads and redeploys database content from github. WARNING: THIS CAN WIPE DATA!",
+            "<datbase selection> <source selection> <force>\n\nYou must pass in a database selection and a source selection, but the force string is optional.\nDatabase Selection Options include: None, Authentication, Shard, World, All.\nSource Selections include: LocalDisk and Github.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
+        public static void RedeployAllDatabases(Session session, params string[] parameters)
+        {
+            if (parameters?.Length < 2 && parameters?.Length > 3)
+            {
+                Console.WriteLine("Usage: redeploy <datbase selection> <source selection> force");
+                return;
+            }
+
+            var databaseSelection = new DatabaseSelectionOption();
+            var sourceSelection = new SourceSelectionOption();
+            bool forceRedploy = false;
+            
+            if (parameters?.Length > 0)
+            {
+                // Loop through the enum to attempt at matching the first parameter with an option
+                foreach (string dbSelection in System.Enum.GetNames(typeof(DatabaseSelectionOption)))
+                {
+                    if (parameters[0].ToLower() == dbSelection.ToLower())
+                    {
+                        if (Enum.TryParse(dbSelection, out databaseSelection))
+                            break;
+                    }
+                }
+
+                // Loop through the enum to attempt at matching the second parameter with an option
+                foreach (string sourceSelectionItem in System.Enum.GetNames(typeof(SourceSelectionOption)))
+                {
+                    if (parameters[1].ToLower() == sourceSelectionItem.ToLower())
+                    {
+                        if (Enum.TryParse(sourceSelectionItem, out sourceSelection))
+                            break;
+                    }
+                }
+
+                if (parameters?.Length > 2)
+                {
+                    if (parameters[2].ToLowerInvariant().Contains("force"))
+                    {
+                        Console.WriteLine("Force redeploy reached!");
+                        forceRedploy = true;
+                    }
+                }
+            }
+            var userModifiedFlagPresent = DatabaseManager.World.UserModifiedFlagPresent() && (databaseSelection == DatabaseSelectionOption.World || databaseSelection == DatabaseSelectionOption.All) ? true : false;
+            if (forceRedploy || !userModifiedFlagPresent)
+            {
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(databaseSelection, sourceSelection);
+                // Database.RemoteContentSync.RedeployWorldDatabase();
+                if (errorResult == null)
+                    Console.WriteLine("All databases have been redeployed!");
+                else
+                    Console.WriteLine($"There was an error durring your request. {errorResult}");
+                return;
+            }
+            Console.WriteLine("User modified objects were found in the database.\nYou must also pass the 'force' parameter with this command, to start the database reset process.");
+        }
+
+        [CommandHandler("download-github-content", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0,
+            "Downloads content from github.",
+            "")]
+        public static void DownloadGithubContent(Session session, params string[] parameters)
+        {
+            Database.Redeploy.GetDataFiles(SourceSelectionOption.Github);
         }
     }
 }

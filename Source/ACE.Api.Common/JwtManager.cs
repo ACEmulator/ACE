@@ -33,14 +33,14 @@ namespace ACE.Api.Common
         private static string RsaPrivateKey { get; set; }
 
         public static SigningCredentials HmacSigning { get; private set; }
-        
+
         static JwtManager()
         {
             EnsureHmacKey();
 
             var hmacKey = Convert.FromBase64String(HmacSecret);
-            HmacSigning = new SigningCredentials(new InMemorySymmetricSecurityKey(hmacKey), 
-                                                  "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256", 
+            HmacSigning = new SigningCredentials(new InMemorySymmetricSecurityKey(hmacKey),
+                                                  "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256",
                                                   "http://www.w3.org/2001/04/xmlenc#sha256");
         }
 
@@ -75,7 +75,7 @@ namespace ACE.Api.Common
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var now = DateTime.UtcNow;
-            
+
             List<string> roles = new List<string>();
             foreach (AccessLevel level in Enum.GetValues(typeof(AccessLevel)))
             {
@@ -110,64 +110,69 @@ namespace ACE.Api.Common
         public static TokenInfo ParseToken(string token, bool validateHmac = true)
         {
             TokenInfo ti = new TokenInfo();
-            
+
             var parts = token.Split('.');
-            var headerBase64 = parts[0];
-            var bodyBase64 = parts[1];
-            var signature = parts[2];
-
-            // parse the header and body into objects
-            var headerJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(headerBase64));
-            var headerData = JObject.Parse(headerJson);
-            var bodyJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(bodyBase64));
-            var bodyData = JObject.Parse(bodyJson);
-
-            // verify algorithm
-            var algorithm = (string)headerData["alg"];
-            if (algorithm != "HS256")
-                throw new NotSupportedException("Only HS256 is supported for this algorithm.");
-
-            if (validateHmac)
+            if (parts.Length == 3)
             {
-                // verify signature
-                byte[] bytesToSign = GetBytes(string.Join(".", headerBase64, bodyBase64));
-                var alg = new HMACSHA256(Convert.FromBase64String(HmacSecret));
-                var hash = alg.ComputeHash(bytesToSign);
-                var computedSig = JwtUtil.Base64UrlEncode(hash);
+                var headerBase64 = parts[0];
+                var bodyBase64 = parts[1];
+                var signature = parts[2];
 
-                if (computedSig != signature)
-                    throw new AuthenticationException("Invalid JWT signature");
+                // parse the header and body into objects
+                var headerJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(headerBase64));
+                var headerData = JObject.Parse(headerJson);
+                var bodyJson = Encoding.UTF8.GetString(JwtUtil.Base64UrlDecode(bodyBase64));
+                var bodyData = JObject.Parse(bodyJson);
+
+                // verify algorithm
+                var algorithm = (string)headerData["alg"];
+                if (algorithm != "HS256")
+                    throw new NotSupportedException("Only HS256 is supported for this algorithm.");
+
+                if (validateHmac)
+                {
+                    // verify signature
+                    byte[] bytesToSign = GetBytes(string.Join(".", headerBase64, bodyBase64));
+                    var alg = new HMACSHA256(Convert.FromBase64String(HmacSecret));
+                    var hash = alg.ComputeHash(bytesToSign);
+                    var computedSig = JwtUtil.Base64UrlEncode(hash);
+
+                    if (computedSig != signature)
+                        throw new AuthenticationException("Invalid JWT signature");
+                }
+
+                // verify expiration
+                var expirationUtc = JwtUtil.ConvertFromUnixTimestamp((long)bodyData["exp"]);
+                if (DateTime.UtcNow > expirationUtc)
+                    throw new AuthenticationException("Token has expired");
+
+                // verify audience
+                var jwtAudience = (string)bodyData["aud"];
+
+                if (jwtAudience != JwtManager.AceAudience)
+                    throw new AuthenticationException($"Invalid audience '{jwtAudience}'.  Expected '{JwtManager.AceAudience}'.");
+
+                ti.Name = (string)bodyData[ClaimTypes.Name] ?? (string)bodyData["unique_name"];
+
+                var roles = bodyData[ClaimTypes.Role] ?? bodyData["role"];
+
+                if (roles != null)
+                {
+                    if (roles.HasValues)
+                        ti.Roles = roles.Select(r => (string)r).ToList();
+                    else
+                        ti.Roles = new List<string>() { (string)roles };
+                }
+
+                string accountGuid = (string)bodyData[ClaimTypes.NameIdentifier] ?? (string)bodyData["nameid"];
+                ti.AccountGuid = Guid.Parse(accountGuid);
+                ti.AccountId = uint.Parse((string)bodyData["account_id"]);
+                ti.IssuingServer = (string)bodyData["issuing_server"];
+
+                return ti;
             }
-
-            // verify expiration
-            var expirationUtc = JwtUtil.ConvertFromUnixTimestamp((long)bodyData["exp"]);
-            if (DateTime.UtcNow > expirationUtc)
-                throw new AuthenticationException("Token has expired");
-
-            // verify audience
-            var jwtAudience = (string)bodyData["aud"];
-
-            if (jwtAudience != JwtManager.AceAudience)
-                throw new AuthenticationException($"Invalid audience '{jwtAudience}'.  Expected '{JwtManager.AceAudience}'.");
-
-            ti.Name = (string)bodyData[ClaimTypes.Name] ?? (string)bodyData["unique_name"];
-
-            var roles = bodyData[ClaimTypes.Role] ?? bodyData["role"];
-
-            if (roles != null)
-            {
-                if (roles.HasValues)
-                    ti.Roles = roles.Select(r => (string)r).ToList();
-                else
-                    ti.Roles = new List<string>() { (string)roles };
-            }
-
-            string accountGuid = (string)bodyData[ClaimTypes.NameIdentifier] ?? (string)bodyData["nameid"];
-            ti.AccountGuid = Guid.Parse(accountGuid);
-            ti.AccountId = uint.Parse((string)bodyData["account_id"]);
-            ti.IssuingServer = (string)bodyData["issuing_server"];
-
-            return ti;
+            else
+                throw new AuthenticationException("Invalid JWT!");
         }
 
         public static IPrincipal GetPrincipal(TokenInfo ti)
@@ -187,7 +192,7 @@ namespace ACE.Api.Common
 
         public static TokenInfo ParseRemoteToken(string rawToken)
         {
-             TokenInfo ti = ParseToken(rawToken, false);
+            TokenInfo ti = ParseToken(rawToken, false);
 
             // check game config to see if the issuing server is allowed
             if (!ConfigManager.Config.Server.AllowedAuthServers.Contains(ti.IssuingServer))

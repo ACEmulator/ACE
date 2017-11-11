@@ -54,7 +54,11 @@
   <ItemGroup>
     <Compile Include="AccountDefaults.cs" />
     <Compile Include="ApiServerConfiguration.cs" />
+    <Compile Include="ContentServerConfiguration.cs" />
     <Compile Include="DatabaseConfiguration.cs" />
+    <Compile Include="GithubResource.cs" />
+    <Compile Include="GithubResourceList.cs" />
+    <Compile Include="GithubResoureType.cs" />
     <Compile Include="MasterConfiguration.cs" />
     <Compile Include="GameConfiguration.cs" />
     <Compile Include="NetworkSettings.cs" />

@@ -39,7 +39,6 @@ namespace ACE.Api.Controllers
         /// <summary>
         /// Redeploys the world database from the current contents of your ACE-World repository.  all changes that
         /// have not already been exported WILL BE LOST, and `user_modified` flags will all be reset to false.
-        /// TODO: fantom implement
         /// </summary>
         [HttpGet]
         [AceAuthorize(AccessLevel.Developer)]
@@ -49,12 +48,118 @@ namespace ACE.Api.Controllers
         [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
         public HttpResponseMessage RedeployWorldDatabase(RedeployRequest request)
         {
+            // Only allow one request at a time:
+            if (Database.Redeploy.RedeploymentActive)
+                return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
+            //TODO: Fix this hack, make the redeploy request object work properly:
+            bool forceDeploy = false; //Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
+            foreach (KeyValuePair<string, string> query in Request.GetQueryNameValuePairs())
+            {
+                if (query.Key.ToLowerInvariant() == "request.sourceselection")
+                {
+                    Enum.TryParse<SourceSelectionOption>(query.Value, out dataSource);
+                }
+                if (query.Key.ToLowerInvariant() == "request.force")
+                {
+                    // try to parse selection enum
+                    if (Convert.ToBoolean(query.Value))
+                    {
+                        forceDeploy = true;
+                    }
+                }
+            }
+            // Check to determine if a userModified flag has been set in the database
+            var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
+            if (!modifiedFlagPresent || forceDeploy)
+            {
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(DatabaseSelectionOption.World, dataSource);
+                if (errorResult == null)
+                    return Request.CreateResponse(HttpStatusCode.OK, "The World Database has been redeployed!");
+                else
+                    return Request.CreateResponse(HttpStatusCode.InternalServerError, $"There was an error durring your request. {errorResult}");
+            }
+            return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.");
+        }
 
-            // Download the database from Github:
-            // RemoteContentSync.RetreiveGithubFolder(ConfigManager.Config.ContentServer.DatabaseUrl);
-            // Download the latest ACE-World release archive, extract contents into database dir, remove downloaded zip
-            // Run all scripts, in the correct sequences.
-            return Request.CreateResponse(HttpStatusCode.OK, "You win!");
+        /// <summary>
+        /// Redeploys all sql scripts to reset all databases.  all changes that have not already been exported 
+        /// WILL BE LOST, and `user_modified` flags will all be reset to false.
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Redeploy successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.", typeof(SimpleMessage))]
+        public HttpResponseMessage RedeployDatabase(RedeployRequest request)
+        {
+            // Only allow one request at a time:
+            if (Database.Redeploy.RedeploymentActive)
+                return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "A Redeployment already in progress!");
+            //TODO: Fix this hack, make the redeploy request object work properly:
+            bool forceDeploy = false; //Request.RequestUri.Query.ToLowerInvariant().Contains("request.force=true") ? true : false;
+            SourceSelectionOption dataSource = Request.RequestUri.Query.ToLowerInvariant().Contains("request.dataSource=") ? SourceSelectionOption.LocalDisk : SourceSelectionOption.Github;
+            DatabaseSelectionOption databaseName = DatabaseSelectionOption.None;
+            foreach (KeyValuePair<string, string> query in Request.GetQueryNameValuePairs())
+            {
+                if (query.Key.ToLowerInvariant() == "request.sourceselection")
+                {
+                    Enum.TryParse<SourceSelectionOption>(query.Value, out dataSource);
+                }
+                if (query.Key.ToLowerInvariant() == "request.databaseselection")
+                {
+                    // try to parse selection enum
+                    Enum.TryParse<DatabaseSelectionOption>(query.Value, out databaseName);
+                }
+                if (query.Key.ToLowerInvariant() == "request.force")
+                {
+                    // try to parse selection enum
+                    if (Convert.ToBoolean(query.Value))
+                    {
+                        forceDeploy = true;
+                    }
+                }
+            }
+
+            // Check to determine if a userModified flag has been set in the database
+            var modifiedFlagPresent = WorldDb.UserModifiedFlagPresent();
+            if (!modifiedFlagPresent || forceDeploy)
+            {
+                string errorResult = Database.Redeploy.RedeployDatabaseFromSource(databaseName, dataSource);
+
+                if (errorResult == null)
+                    return Request.CreateResponse(HttpStatusCode.OK, "Database(s) have been redeployed and should now be completely reset. Please remember to recreate your user accounts if you reset the authentication database!");
+                else
+                    return Request.CreateResponse(HttpStatusCode.InternalServerError, $"There was an error durring your request. {errorResult}");
+            }
+            return Request.CreateResponse(HttpStatusCode.MethodNotAllowed, "You have unexported changes in your database.  Please specify 'force = true' in your request.");
+        }
+
+        /// <summary>
+        /// Downloads Github content into local content data path.
+        /// </summary>
+        [HttpGet]
+        [AceAuthorize(AccessLevel.Developer)]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "Developer access level is required for this call.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Download successful.  Return message contains the sql log.", typeof(SimpleMessage))]
+        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.", typeof(SimpleMessage))]
+        public HttpResponseMessage DownloadGithubContent()
+        {
+            var result = Database.Redeploy.GetDataFiles(SourceSelectionOption.Github);
+            if (result != null)
+            {
+                if (result.Count > 0)
+                    return Request.CreateResponse(HttpStatusCode.OK, $"{result.Count.ToString()} files received.");
+                else
+                    return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error occurred.  Return message contains exception details.");
+            }
+            else
+            {
+                var couldNotDownload = Database.Redeploy.RemaingApiCalls == 0 ? $"limit reached, please wait until {Database.Redeploy.ApiResetTime.ToString()} and then try again." : "Unknown issue downloading.";
+
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Github API: {couldNotDownload}");
+            }
         }
 
         /// <summary>

@@ -1,4 +1,21 @@
 # ACEmulator Change Log
+### 2017-11-09
+[fantoms]
+* Added command and API endpoint for retreiving the database content from Github.
+* You can now redeploy database content from local disk.
+* Updated logging for redeployment.
+* Added `ContentServer` example config setting.
+
+### 2017-11-05
+[fantoms]
+* Added Database Redeployment feature to allow for updating or resetting a database from the latest github content.
+* Added `redeploy-world` command from the console to issue world redeployment.
+* Added `redeploy` console command to allow for resetting one or more databases, using the redeployment functionality. This command requires a database selectiona dnd the "force" string as a parameter, for added security.
+* Implemented API functionality for World redeployment and database Redeployment.
+* Added configuration section for Remote Content downloads from Github, `ContentServer`.
+* Added database.cs functions to allow for database creation, removal, connectionString changes, and database script loading events.
+* Added WorldDatabase function to check for user modified flag.
+* Added a workaround that prevents a crash when a bad token is passed in to the API.
 
 ### 2017-11-03
 [ddevec]
