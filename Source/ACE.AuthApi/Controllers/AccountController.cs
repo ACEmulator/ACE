@@ -31,8 +31,7 @@ namespace ACE.AuthApi.Controllers
                 var subscriptions = AuthDb.GetSubscriptionsByAccount(account.AccountGuid);
                 return Request.CreateResponse(HttpStatusCode.OK, new AuthResponse() { AuthToken = JwtManager.GenerateToken(account, (subscriptions.Count > 0) ? subscriptions[0].AccessLevel : Entity.Enum.AccessLevel.Player, JwtManager.HmacSigning) });
             }
-
-            throw new HttpResponseException(HttpStatusCode.Unauthorized);
+            return Request.CreateResponse(HttpStatusCode.Unauthorized, "Username or password combination was not found.");
         }
 
         private Account CheckUser(string username, string password)
