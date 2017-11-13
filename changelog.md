@@ -1,4 +1,11 @@
 # ACEmulator Change Log
+
+### 2017-11-12
+[Ripley]
+* Changes made to Api.Host and AuthApi.Host to handle automatically fixing issues with urlacl and firewall.
+* Removed second Database.Start from ACE main program.
+* Removed AnyCPU configuration.
+
 ### 2017-11-09
 [fantoms]
 * Added command and API endpoint for retreiving the database content from Github.
@@ -16,12 +23,6 @@
 * Added database.cs functions to allow for database creation, removal, connectionString changes, and database script loading events.
 * Added WorldDatabase function to check for user modified flag.
 * Added a workaround that prevents a crash when a bad token is passed in to the API.
-
-### 2017-11-12
-[Ripley]
-* Changes made to Api.Host and AuthApi.Host to handle automatically fixing issues with urlacl and firewall.
-* Removed second Database.Start from ACE main program.
-* Removed AnyCPU configuration.
 
 ### 2017-11-03
 [ddevec]
