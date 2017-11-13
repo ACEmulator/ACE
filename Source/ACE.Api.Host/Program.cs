@@ -38,8 +38,6 @@ namespace ACE.Api.Host
 
                     Process proc = new Process();
 
-                    // procStartInfo.RedirectStandardOutput = true;
-                    // procStartInfo.RedirectStandardError = true;
                     procStartInfo.UseShellExecute = true;
                     procStartInfo.CreateNoWindow = true;
                     procStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
@@ -62,21 +60,6 @@ namespace ACE.Api.Host
                         Console.WriteLine($"Failed to fix TargetInvocationException with the following error:");
                         Console.WriteLine($"{ex2.ToString()}");
                     }
-
-                    // StreamReader outputReader = proc.StandardOutput;
-                    // StreamReader errorReader = proc.StandardError;
-
-                    // while (!outputReader.EndOfStream)
-                    // {
-                    //    string text = outputReader.ReadLine();
-                    //    Console.WriteLine(text);
-                    // }
-
-                    // while (!errorReader.EndOfStream)
-                    // {
-                    //    string text = errorReader.ReadLine();
-                    //    Console.WriteLine(text);
-                    // }
                 }
                 catch (Exception ex)
                 {
@@ -117,8 +100,6 @@ namespace ACE.Api.Host
 
                     Process procFw = new Process();
 
-                    // procStartInfo.RedirectStandardOutput = true;
-                    // procStartInfo.RedirectStandardError = true;
                     procStartInfoFw.UseShellExecute = true;
                     procStartInfoFw.CreateNoWindow = true;
                     procStartInfoFw.WindowStyle = ProcessWindowStyle.Hidden;
