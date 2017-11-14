@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-11-10
+[Verbal]
+* updated fellowship creation to read the xp sharing flag
+
 ### 2017-11-09
 [fantoms]
 * Added command and API endpoint for retreiving the database content from Github.
