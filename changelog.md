@@ -1,4 +1,11 @@
 # ACEmulator Change Log
+
+### 2017-11-12
+[Ripley]
+* Changes made to Api.Host and AuthApi.Host to handle automatically fixing issues with urlacl and firewall.
+* Removed second Database.Start from ACE main program.
+* Removed AnyCPU configuration.
+
 ### 2017-11-10
 [Verbal]
 * updated fellowship creation to read the xp sharing flag

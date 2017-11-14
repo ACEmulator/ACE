@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 using ACE.Command;
@@ -34,8 +34,6 @@ namespace ACE
             WorldManager.Initialize();
             CommandManager.Initialize();
             RecipeManager.Initialize();
-
-            DatabaseManager.Start();
         }
 
         private static void OnProcessExit(object sender, EventArgs e)
