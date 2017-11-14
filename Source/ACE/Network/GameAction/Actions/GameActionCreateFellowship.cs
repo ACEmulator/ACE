@@ -17,8 +17,9 @@ namespace ACE.Network.GameAction.Actions
             // todo: option for sharing XP
 
             var fellowshipName = message.Payload.ReadString16L();
+            bool shareXp = message.Payload.ReadUInt32() > 0;
 
-            session.Player.CreateFellowship(fellowshipName, true);
+            session.Player.CreateFellowship(fellowshipName, shareXp);
             session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(session));            
         }
     }

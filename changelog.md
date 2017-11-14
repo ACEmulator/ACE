@@ -6,6 +6,10 @@
 * Removed second Database.Start from ACE main program.
 * Removed AnyCPU configuration.
 
+### 2017-11-10
+[Verbal]
+* updated fellowship creation to read the xp sharing flag
+
 ### 2017-11-09
 [fantoms]
 * Added command and API endpoint for retreiving the database content from Github.
