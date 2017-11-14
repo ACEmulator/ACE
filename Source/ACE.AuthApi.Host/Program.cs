@@ -1,11 +1,13 @@
 using Microsoft.Owin.Hosting;
+
 using System;
+using System.Diagnostics;
+using System.Linq;
+
 using ACE.Common;
 using ACE.Api.Common;
-using System.Diagnostics;
-using System.IO;
+
 using NetFwTypeLib;
-using System.Linq;
 
 namespace ACE.AuthApi.Host
 {
@@ -52,6 +54,9 @@ namespace ACE.AuthApi.Host
 
                         proc.WaitForExit();
 
+                        if (proc.ExitCode > 0)
+                            Console.WriteLine($"Command executed but Fix likely failed with error code {proc.ExitCode}");
+
                         var server = WebApp.Start<Startup>(url); // try to start the api host a second time.
 
                         success = true;
@@ -70,8 +75,12 @@ namespace ACE.AuthApi.Host
                 }
 
                 bool fwRuleFound = false;
+                bool fwPortCorrect = false;
                 string fwCommand = "add";
                 string fwRuleName = "ACEAuthApiHost";
+
+                Uri apiUri = new Uri(url.Replace("*", "localhost").Replace("+", "localhost")); // uri must be valid so swapping wildcards for localhost, this is just used to get port.
+
                 try
                 {
                     INetFwPolicy2 firewallPolicy = (INetFwPolicy2)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwPolicy2"));
@@ -82,6 +91,9 @@ namespace ACE.AuthApi.Host
                         Console.WriteLine(firewallRule.Name + " rule has been found in Firewall Policy");
                         fwRuleFound = true;
                         fwCommand = "set";
+
+                        if (firewallRule.LocalPorts.Contains(apiUri.Port.ToString()))
+                            fwPortCorrect = true;
                     }
                 }
                 catch (Exception exFw)
@@ -89,8 +101,6 @@ namespace ACE.AuthApi.Host
                     Console.WriteLine("Could not access Windows firewall to validate rules.");
                     Console.WriteLine(exFw.ToString());
                 }
-
-                Uri apiUri = new Uri(url.Replace("*", "localhost").Replace("+", "localhost")); // uri must be valid so swapping wildcards for localhost, this is just used to get port.
 
                 if (!fwRuleFound)
                 {
@@ -113,11 +123,48 @@ namespace ACE.AuthApi.Host
                         procFw.Start();
 
                         procFw.WaitForExit();
+
+                        if (procFw.ExitCode > 0)
+                            Console.WriteLine($"Command executed but Fix likely failed with error code {procFw.ExitCode}");
                     }
                     catch (Exception ex2)
                     {
                         Console.WriteLine($"Failed to run firewall {fwCommand} command with the following error:");
                         Console.WriteLine($"{ex2.ToString()}");
+                    }
+                }
+                else
+                {
+                    if (!fwPortCorrect)
+                    {
+                        Console.WriteLine(fwRuleName + " has been found in Firewall Policy but with an incorrect port assignment");
+                        Console.WriteLine($"attempting to fix... expect a UAC prompt to follow, click yes or this fix will fail.");
+                        string argumentsFw = $"advfirewall firewall {fwCommand} rule name={fwRuleName} dir=in protocol=tcp new localport={apiUri.Port} action=allow";
+                        ProcessStartInfo procStartInfoFw = new ProcessStartInfo("netsh", argumentsFw);
+
+                        Process procFw = new Process();
+
+                        procStartInfoFw.UseShellExecute = true;
+                        procStartInfoFw.CreateNoWindow = true;
+                        procStartInfoFw.WindowStyle = ProcessWindowStyle.Hidden;
+                        procStartInfoFw.Verb = "runas";
+
+                        procFw.StartInfo = procStartInfoFw;
+
+                        try
+                        {
+                            procFw.Start();
+
+                            procFw.WaitForExit();
+
+                            if (procFw.ExitCode > 0)
+                                Console.WriteLine($"Command executed but Fix likely failed with error code {procFw.ExitCode}");
+                        }
+                        catch (Exception ex2)
+                        {
+                            Console.WriteLine($"Failed to run firewall {fwCommand} command with the following error:");
+                            Console.WriteLine($"{ex2.ToString()}");
+                        }
                     }
                 }
 
