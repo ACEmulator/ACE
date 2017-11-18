@@ -177,6 +177,8 @@
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionBookPageData.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionFellowshipUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionGameQuit.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionGameJoin.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQuitFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
@@ -232,7 +234,9 @@
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventGameOver.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventMagicUpdateEnchantment.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventJoinGameResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTrackerTable.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTracker.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventInscriptionResponse.cs" />
