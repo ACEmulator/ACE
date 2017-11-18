@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
 using ACE.Network.Motion;
@@ -62,11 +62,11 @@ namespace ACE.Entity
             set { AceObject.CorpseGeneratedRare = value; }
         }
 
-        public bool SuppressGenerateEffect
-        {
-            get { return AceObject.SuppressGenerateEffect ?? false; }
-            set { AceObject.SuppressGenerateEffect = value; }
-        }
+        ////public bool SuppressGenerateEffect
+        ////{
+        ////    get { return AceObject.SuppressGenerateEffect ?? false; }
+        ////    set { AceObject.SuppressGenerateEffect = value; }
+        ////}
 
         public bool ChestRegenOnClose
         {

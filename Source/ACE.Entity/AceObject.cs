@@ -1782,6 +1782,36 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
         }
 
+        #region Chess
+        [JsonIgnore]
+        public int? ChessGamesLost
+        {
+            get { return GetIntProperty(PropertyInt.ChessGamesLost); }
+            set { SetIntProperty(PropertyInt.ChessGamesLost, value); }
+        }
+
+        [JsonIgnore]
+        public int? ChessGamesWon
+        {
+            get { return GetIntProperty(PropertyInt.ChessGamesWon); }
+            set { SetIntProperty(PropertyInt.ChessGamesWon, value); }
+        }
+
+        [JsonIgnore]
+        public int? ChessRank
+        {
+            get { return GetIntProperty(PropertyInt.ChessRank); }
+            set { SetIntProperty(PropertyInt.ChessRank, value); }
+        }
+
+        [JsonIgnore]
+        public int? ChessTotalGames
+        {
+            get { return GetIntProperty(PropertyInt.ChessTotalGames); }
+            set { SetIntProperty(PropertyInt.ChessTotalGames, value); }
+        }
+        #endregion
+
         protected uint? GetDataIdProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;

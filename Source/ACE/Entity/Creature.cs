@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Factories;
 using ACE.Managers;
@@ -698,5 +698,54 @@ namespace ACE.Entity
                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
             }
         }
+
+        public void HandleActionMotion(UniversalMotion motion)
+        {
+            if (CurrentLandblock != null)
+            {
+                DoMotion(motion);
+            }
+        }
+
+        public void DoMotion(UniversalMotion motion)
+        {
+            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+        }
+
+        public void HandleActionApplyVisualEffect(PlayScript effect)
+        {
+            // new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
+            if (CurrentLandblock != null)
+            {
+                PlayParticleEffect(effect, Guid);
+            }
+        }
+
+        // plays particle effect like spell casting or bleed etc..
+        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
+        {
+            if (CurrentLandblock != null)
+            {
+                var effectEvent = new GameMessageScript(targetId, effectId);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
+            }
+        }
+
+        public void EnterWorld()
+        {
+            if (Location != null)
+            {
+                ActionChain spawnChain = new ActionChain();
+                spawnChain.AddChain(LandblockManager.GetAddObjectChain(this));
+                spawnChain.AddAction(this, () =>
+                {
+                    if (SuppressGenerateEffect != true)
+                        HandleActionApplyVisualEffect(Enum.PlayScript.Create);
+                });
+                spawnChain.EnqueueChain();
+            }
+        }
+
+        protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
     }
 }

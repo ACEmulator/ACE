@@ -1,4 +1,4 @@
-﻿using ACE.DatLoader.FileTypes;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
@@ -1485,6 +1485,12 @@ namespace ACE.Entity
         {
             get { return AceObject.NpcLooksLikeObject; }
             set { AceObject.NpcLooksLikeObject = value; }
+        }
+
+        public bool? SuppressGenerateEffect
+        {
+            get { return AceObject.SuppressGenerateEffect; }
+            set { AceObject.SuppressGenerateEffect = value; }
         }
 
         public CreatureType? CreatureType
@@ -3043,6 +3049,30 @@ namespace ACE.Entity
         public virtual void HandleActionOnCollide(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.
+        }
+
+        public int? ChessGamesLost
+        {
+            get { return AceObject.ChessGamesLost; }
+            set { AceObject.ChessGamesLost = value; }
+        }
+
+        public int? ChessGamesWon
+        {
+            get { return AceObject.ChessGamesWon; }
+            set { AceObject.ChessGamesWon = value; }
+        }
+
+        public int? ChessRank
+        {
+            get { return AceObject.ChessRank; }
+            set { AceObject.ChessRank = value; }
+        }
+
+        public int? ChessTotalGames
+        {
+            get { return AceObject.ChessTotalGames; }
+            set { AceObject.ChessTotalGames = value; }
         }
     }
 }

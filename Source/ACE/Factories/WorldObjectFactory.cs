@@ -1,4 +1,4 @@
-﻿using ACE.Database;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -69,6 +69,10 @@ namespace ACE.Factories
                     return new Food(aceO);
                 case WeenieType.Gem:
                     return new Gem(aceO);
+                case WeenieType.Game:
+                    return new Game(aceO);
+                case WeenieType.GamePiece:
+                    return new GamePiece(aceO);
                 default:
                     return new GenericObject(aceO);
             }
