@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2017-11-20
+[OptimShi]
+* Changed EquipTest debug command to utilize the index of a clothing table item and added an optional shade parameter
+
 ### 2017-11-10
 [Verbal]
 * updated fellowship creation to read the xp sharing flag
