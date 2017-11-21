@@ -18,8 +18,8 @@ namespace ACE.Command.Handlers
 {
     internal enum TestWeenieClassIds : uint
     {
-        Pants = 120,
-        Tunic = 134,
+        Pants        = 120,
+        Tunic        = 134,
         TrainingWand = 12748,
         ColoBackpack = 36561
     }
