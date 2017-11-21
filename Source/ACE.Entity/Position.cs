@@ -279,7 +279,7 @@ namespace ACE.Entity
             return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
         }
 
-        public string ToFullString()
+        public string ToLOCString()
         {
             return $"0x{LandblockId.Raw:X} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
         }

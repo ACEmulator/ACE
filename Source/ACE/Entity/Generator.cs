@@ -62,12 +62,6 @@ namespace ACE.Entity
             set { AceObject.CorpseGeneratedRare = value; }
         }
 
-        ////public bool SuppressGenerateEffect
-        ////{
-        ////    get { return AceObject.SuppressGenerateEffect ?? false; }
-        ////    set { AceObject.SuppressGenerateEffect = value; }
-        ////}
-
         public bool ChestRegenOnClose
         {
             get { return AceObject.ChestRegenOnClose ?? false; }

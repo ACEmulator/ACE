@@ -3074,5 +3074,37 @@ namespace ACE.Entity
             get { return AceObject.ChessTotalGames; }
             set { AceObject.ChessTotalGames = value; }
         }
+
+        public void HandleActionMotion(UniversalMotion motion)
+        {
+            if (CurrentLandblock != null)
+            {
+                DoMotion(motion);
+            }
+        }
+
+        public void DoMotion(UniversalMotion motion)
+        {
+            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+        }
+
+        public void HandleActionApplyVisualEffect(PlayScript effect)
+        {
+            // new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
+            if (CurrentLandblock != null)
+            {
+                PlayParticleEffect(effect, Guid);
+            }
+        }
+
+        // plays particle effect like spell casting or bleed etc..
+        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
+        {
+            if (CurrentLandblock != null)
+            {
+                var effectEvent = new GameMessageScript(targetId, effectId);
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
+            }
+        }
     }
 }
