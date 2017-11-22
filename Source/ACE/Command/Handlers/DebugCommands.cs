@@ -245,10 +245,10 @@ namespace ACE.Command.Handlers
 
             ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
             {
-                Stage                = 0,
-                TimeWhenDone         = 0,
-                TimeWhenRepeats      = 0,
-                DeleteContract       = 0,
+                Stage = 0,
+                TimeWhenDone = 0,
+                TimeWhenRepeats = 0,
+                DeleteContract = 0,
                 SetAsDisplayContract = 1
             };
 
@@ -748,7 +748,7 @@ namespace ACE.Command.Handlers
         {
             if (!(parameters?.Length > 0))
             {
-                ChatPacket.SendServerMessage(session, "Usage: @equiptest (hex)clothingTableId [palette_index].\neg '@equiptest 0x100005fd'",
+                ChatPacket.SendServerMessage(session, "Usage: @equiptest (hex)clothingTableId [palette_index] [shade].\neg '@equiptest 0x100005fd'",
                     ChatMessageType.Broadcast);
                 return;
             }
@@ -767,9 +767,16 @@ namespace ACE.Command.Handlers
                 int palOption = -1;
                 if (parameters.Length > 1)
                     palOption = Int32.Parse(parameters[1]);
+                float shade = 0;
+                if (parameters.Length > 2)
+                    shade = Single.Parse(parameters[2]);
+                if (shade < 0)
+                    shade = 0;
+                if (shade > 1)
+                    shade = 1;
 
                 if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
-                    session.Player.TestWieldItem(session, modelId, palOption);
+                    session.Player.TestWieldItem(session, modelId, palOption, shade);
                 else
                     ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
                         ChatMessageType.Broadcast);

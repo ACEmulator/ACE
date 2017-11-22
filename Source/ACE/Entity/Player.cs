@@ -350,11 +350,11 @@ namespace ACE.Entity
             {
                 ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId, Guid.Full)
                 {
-                    DeleteContract       = trackedContract.Value.DeleteContract,
+                    DeleteContract = trackedContract.Value.DeleteContract,
                     SetAsDisplayContract = trackedContract.Value.SetAsDisplayContract,
-                    Stage                = trackedContract.Value.Stage,
-                    TimeWhenDone         = trackedContract.Value.TimeWhenDone,
-                    TimeWhenRepeats      = trackedContract.Value.TimeWhenRepeats
+                    Stage = trackedContract.Value.Stage,
+                    TimeWhenDone = trackedContract.Value.TimeWhenDone,
+                    TimeWhenRepeats = trackedContract.Value.TimeWhenRepeats
                 };
 
                 TrackedContracts.Add(trackedContract.Key, loadContract);
@@ -2405,62 +2405,62 @@ namespace ACE.Entity
             // TODO: add the complementary method to combine items Og II
             ActionChain splitItemsChain = new ActionChain();
             splitItemsChain.AddAction(this, () =>
+            {
+                Container container;
+                if (containerId == Guid.Full)
                 {
-                    Container container;
-                    if (containerId == Guid.Full)
-                    {
-                        container = this;
-                    }
-                    else
-                    {
-                        container = (Container)GetInventoryItem(new ObjectGuid(containerId));
-                    }
+                    container = this;
+                }
+                else
+                {
+                    container = (Container)GetInventoryItem(new ObjectGuid(containerId));
+                }
 
-                    if (container == null)
-                    {
-                        log.InfoFormat("Asked to split stack {0} in container {1} - the container was not found",
-                            stackId,
-                            containerId);
-                        return;
-                    }
-                    WorldObject stack = container.GetInventoryItem(new ObjectGuid(stackId));
-                    if (stack == null)
-                    {
-                        log.InfoFormat("Asked to split stack {0} in container {1} - the stack item was not found",
-                            stackId,
-                            containerId);
-                        return;
-                    }
-                    if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
-                    {
-                        log.InfoFormat(
-                            "Asked to split stack {0} in container {1} - with amount of {2} but there is not enough to split",
-                            stackId, containerId, amount);
-                        return;
-                    }
+                if (container == null)
+                {
+                    log.InfoFormat("Asked to split stack {0} in container {1} - the container was not found",
+                        stackId,
+                        containerId);
+                    return;
+                }
+                WorldObject stack = container.GetInventoryItem(new ObjectGuid(stackId));
+                if (stack == null)
+                {
+                    log.InfoFormat("Asked to split stack {0} in container {1} - the stack item was not found",
+                        stackId,
+                        containerId);
+                    return;
+                }
+                if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
+                {
+                    log.InfoFormat(
+                        "Asked to split stack {0} in container {1} - with amount of {2} but there is not enough to split",
+                        stackId, containerId, amount);
+                    return;
+                }
 
-                    // Ok we are in business
+                // Ok we are in business
 
-                    WorldObject newStack = WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
-                    container.AddToInventory(newStack);
+                WorldObject newStack = WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
+                container.AddToInventory(newStack);
 
-                    ushort oldStackSize = (ushort)stack.StackSize;
-                    stack.StackSize = (ushort)(oldStackSize - amount);
+                ushort oldStackSize = (ushort)stack.StackSize;
+                stack.StackSize = (ushort)(oldStackSize - amount);
 
-                    newStack.StackSize = amount;
+                newStack.StackSize = amount;
 
-                    GameMessagePutObjectInContainer msgPutObjectInContainer =
-                        new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
-                    GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
-                        stack.Guid, (int)stack.StackSize, (int)stack.Value);
-                    GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
+                GameMessagePutObjectInContainer msgPutObjectInContainer =
+                    new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
+                GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
+                    stack.Guid, (int)stack.StackSize, (int)stack.Value);
+                GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
 
-                    CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                        msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
+                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                    msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
 
-                    if (stack.WeenieType == WeenieType.Coin)
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                });
+                if (stack.WeenieType == WeenieType.Coin)
+                    UpdateCurrencyClientCalculations(WeenieType.Coin);
+            });
             splitItemsChain.EnqueueChain();
         }
 
@@ -2495,12 +2495,12 @@ namespace ACE.Entity
                 AceObject.TrackedContracts.Remove(contractId);
 
                 DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
-               {
-                   if (deleteSuccess)
-                       log.Info($"ContractId {contractId:X} successfully deleted");
-                   else
-                       log.Error($"Unable to delete contractId {contractId:X} ");
-               });
+                {
+                    if (deleteSuccess)
+                        log.Info($"ContractId {contractId:X} successfully deleted");
+                    else
+                        log.Error($"Unable to delete contractId {contractId:X} ");
+                });
 
                 Session.Network.EnqueueSend(contractMsg);
             });
@@ -2834,94 +2834,94 @@ namespace ACE.Entity
         {
             ActionChain wieldChain = new ActionChain();
             wieldChain.AddAction(this, () =>
+            {
+                ObjectGuid itemGuid = new ObjectGuid(itemId);
+                WorldObject item = GetInventoryItem(itemGuid);
+                WorldObject packItem;
+
+                if (item != null)
                 {
-                    ObjectGuid itemGuid = new ObjectGuid(itemId);
-                    WorldObject item = GetInventoryItem(itemGuid);
-                    WorldObject packItem;
-
-                    if (item != null)
+                    ObjectGuid containerGuid = ObjectGuid.Invalid;
+                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                    foreach (var subpack in containers)
                     {
-                        ObjectGuid containerGuid = ObjectGuid.Invalid;
-                        var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-                        foreach (var subpack in containers)
+                        if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
                         {
-                            if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
-                            {
-                                containerGuid = subpack.Value.Guid;
-                                break;
-                            }
+                            containerGuid = subpack.Value.Guid;
+                            break;
                         }
+                    }
 
-                        Container pack;
-                        if (item != null && containerGuid != ObjectGuid.Invalid)
-                        {
-                            pack = (Container)GetInventoryItem(containerGuid);
+                    Container pack;
+                    if (item != null && containerGuid != ObjectGuid.Invalid)
+                    {
+                        pack = (Container)GetInventoryItem(containerGuid);
 
+                        RemoveWorldObjectFromInventory(itemGuid);
+                    }
+                    else
+                    {
+                        if (item != null)
                             RemoveWorldObjectFromInventory(itemGuid);
-                        }
-                        else
+                    }
+
+                    AddToWieldedObjects(ref item, container, (EquipMask)placement);
+
+                    if ((EquipMask)placement == EquipMask.MissileAmmo)
+                        Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement),
+                                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
+                    else
+                    {
+                        if (((EquipMask)placement & EquipMask.Selectable) != 0)
                         {
-                            if (item != null)
-                                RemoveWorldObjectFromInventory(itemGuid);
-                        }
+                            int placementId;
+                            int childLocation;
+                            SetChild(container, item, placement, out placementId, out childLocation);
 
-                        AddToWieldedObjects(ref item, container, (EquipMask)placement);
+                            UpdateAppearance(container);
 
-                        if ((EquipMask)placement == EquipMask.MissileAmmo)
-                            Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
-                        else
-                        {
-                            if (((EquipMask)placement & EquipMask.Selectable) != 0)
-                            {
-                                int placementId;
-                                int childLocation;
-                                SetChild(container, item, placement, out placementId, out childLocation);
-
-                                UpdateAppearance(container);
-
-                                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                                                new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
-                                                                new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
-                                                                new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement));
-
-                                if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                                    return;
-                                switch ((EquipMask)placement)
-                                {
-                                    case EquipMask.MissileWeapon:
-                                        SetCombatMode(CombatMode.Missile);
-                                        break;
-                                    case EquipMask.Held:
-                                        SetCombatMode(CombatMode.Magic);
-                                        break;
-                                    default:
-                                        SetCombatMode(CombatMode.Melee);
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                UpdateAppearance(container);
-
-                                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                            new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                                             new GameEventWieldItem(Session, itemGuid.Full, placement),
                                                             new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                             new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
                                                             new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
-                                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement),
-                                                            new GameMessageObjDescEvent(container));
+                                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement));
+
+                            if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
+                                return;
+                            switch ((EquipMask)placement)
+                            {
+                                case EquipMask.MissileWeapon:
+                                    SetCombatMode(CombatMode.Missile);
+                                    break;
+                                case EquipMask.Held:
+                                    SetCombatMode(CombatMode.Magic);
+                                    break;
+                                default:
+                                    SetCombatMode(CombatMode.Melee);
+                                    break;
                             }
                         }
+                        else
+                        {
+                            UpdateAppearance(container);
+
+                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                        new GameEventWieldItem(Session, itemGuid.Full, placement),
+                                                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                        new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
+                                                        new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
+                                                        new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement),
+                                                        new GameMessageObjDescEvent(container));
+                        }
                     }
-                    else
-                    {
-                        HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Wielder);
-                    }
-                });
+                }
+                else
+                {
+                    HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Wielder);
+                }
+            });
             wieldChain.EnqueueChain();
         }
 
@@ -2931,44 +2931,44 @@ namespace ACE.Entity
             inContainerChain.AddAction(
                 this,
                 () =>
+                {
+                    Container container;
+
+                    if (containerGuid.IsPlayer())
+                        container = this;
+                    else
                     {
-                        Container container;
+                        // Ok I am going into player pack - not the main pack.
 
-                        if (containerGuid.IsPlayer())
-                            container = this;
-                        else
-                        {
-                            // Ok I am going into player pack - not the main pack.
+                        // TODO pick up here - I have a generic object for a container, need to find out why.
+                        container = (Container)GetInventoryItem(containerGuid);
+                    }
 
-                            // TODO pick up here - I have a generic object for a container, need to find out why.
-                            container = (Container)GetInventoryItem(containerGuid);
-                        }
+                    // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                    if (!HasItem(itemGuid))
+                    {
+                        // This is a pickup into our main pack.
+                        HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                        return;
+                    }
 
-                        // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                        if (!HasItem(itemGuid))
-                        {
-                            // This is a pickup into our main pack.
-                            HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                            return;
-                        }
+                    // Ok, I know my container and I know I must have the item so let's get it.
+                    WorldObject item = GetInventoryItem(itemGuid);
 
-                        // Ok, I know my container and I know I must have the item so let's get it.
-                        WorldObject item = GetInventoryItem(itemGuid);
+                    // check wilded.
+                    if (item == null)
+                        item = GetWieldedItem(itemGuid);
 
-                        // check wilded.
-                        if (item == null)
-                            item = GetWieldedItem(itemGuid);
+                    // Was I equiped?   If so, lets take care of that and unequip
+                    if (item.WielderId != null)
+                    {
+                        HandleUnwieldItem(container, item, placement, inContainerChain);
+                        return;
+                    }
 
-                        // Was I equiped?   If so, lets take care of that and unequip
-                        if (item.WielderId != null)
-                        {
-                            HandleUnwieldItem(container, item, placement, inContainerChain);
-                            return;
-                        }
-
-                        // if were are still here, this needs to do a pack pack or main pack move.
-                        HandleMove(ref item, container, placement);
-                    });
+                    // if were are still here, this needs to do a pack pack or main pack move.
+                    HandleMove(ref item, container, placement);
+                });
             inContainerChain.EnqueueChain();
         }
 
@@ -3033,24 +3033,24 @@ namespace ACE.Entity
                 // Put item on landblock
                 chain.AddAction(this, () =>
                 {
-                motion = new UniversalMotion(MotionStance.Standing);
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
-                new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+                    motion = new UniversalMotion(MotionStance.Standing);
+                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
+                    new GameMessagePutObjectIn3d(Session, this, itemGuid),
+                    new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
-                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                Debug.Assert(item != null, "item != null");
-                item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                item.Sequences.GetNextSequence(SequenceType.ObjectVector);
+                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                    Debug.Assert(item != null, "item != null");
+                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                    item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                CurrentLandblock.AddWorldObject(item);
+                    CurrentLandblock.AddWorldObject(item);
 
-                // Ok we have handed off to the landblock, let's clean up the shard database.
-                DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                    // Ok we have handed off to the landblock, let's clean up the shard database.
+                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
 
-                Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-            });
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                });
 
                 chain.EnqueueChain();
                 // Removed SaveSession - this was causing items that were dropped to not be removed
@@ -3263,7 +3263,7 @@ namespace ACE.Entity
             }).EnqueueChain();
         }
 
-        public void TestWieldItem(Session session, uint modelId, int palOption)
+        public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
         {
             // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
             // ClothingTable item = ClothingTable.ReadFromDat(0x10000867); // Cloak
@@ -3294,24 +3294,27 @@ namespace ACE.Entity
                 // For actual equipment, these should just be stored in the ace_object palette_change table and loaded from there
                 if (item.ClothingSubPalEffects.Count > 0)
                 {
-                    List<CloSubPalEffect> values = Enumerable.ToList(item.ClothingSubPalEffects.Values);
                     int size = item.ClothingSubPalEffects.Count;
                     palCount = size;
 
+                    CloSubPalEffect itemSubPal;
                     // Generate a random index if one isn't provided
-                    if (palOption < 0)
+                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
                     {
+                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                    }
+                    else
+                    {
+                        List<CloSubPalEffect> values = Enumerable.ToList(item.ClothingSubPalEffects.Values);
                         Random rand = new Random();
                         palOption = rand.Next(size);
+                        itemSubPal = values[palOption];
                     }
-                    if (palOption > size)
-                        palOption = size - 1;
 
-                    CloSubPalEffect itemSubPal = values[palOption];
                     for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                     {
                         PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(0);
+                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
 
                         for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
                         {
@@ -3332,7 +3335,9 @@ namespace ACE.Entity
 
                 var objDescEvent = new GameMessageObjDescEvent(this);
                 session.Network.EnqueueSend(objDescEvent);
-                ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") + ", Applying palette index " + palOption.ToString() + " of " + palCount.ToString() + ".", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") +
+                                                      ", Applying palette index " + palOption.ToString() + " of " + palCount.ToString() +
+                                                      " with a shade value of " + shade.ToString() + ".", ChatMessageType.Broadcast);
             }
             else
             {
