@@ -116,6 +116,7 @@
     <Compile Include="Entity\Events\DeathMessageArgs.cs" />
     <Compile Include="Entity\Events\ChatMessageArgs.cs" />
     <Compile Include="Entity\Fellowship.cs" />
+    <Compile Include="Entity\GamePiece.cs" />
     <Compile Include="Entity\Generator.cs" />
     <Compile Include="Entity\IPlayer.cs" />
     <Compile Include="Entity\ItemProfile.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Entity\Key.cs" />
     <Compile Include="Entity\Food.cs" />
     <Compile Include="Entity\Gem.cs" />
+    <Compile Include="Entity\Game.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
@@ -177,6 +179,8 @@
     <Compile Include="Network\GameAction\Actions\GameActionAllegianceUpdateRequest.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionBookPageData.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionFellowshipUpdateRequest.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionGameQuit.cs" />
+    <Compile Include="Network\GameAction\Actions\GameActionGameJoin.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQuitFellowship.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionRemoveSpellFavorite.cs" />
     <Compile Include="Network\GameAction\Actions\GameActionQueryItemMana.cs" />
@@ -232,7 +236,9 @@
     <Compile Include="Network\GameEvent\Events\GameEventAllegianceUpdate.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventApproachVendor.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventBookDataResponse.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventGameOver.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventMagicUpdateEnchantment.cs" />
+    <Compile Include="Network\GameEvent\Events\GameEventJoinGameResponse.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTrackerTable.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventSendClientContractTracker.cs" />
     <Compile Include="Network\GameEvent\Events\GameEventInscriptionResponse.cs" />

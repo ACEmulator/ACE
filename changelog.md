@@ -1,7 +1,16 @@
 # ACEmulator Change Log
+
 ### 2017-11-20
 [OptimShi]
 * Changed EquipTest debug command to utilize the index of a clothing table item and added an optional shade parameter
+
+
+### 2017-11-18
+[Ripley]
+* Added some foundational elements to support Chess minigame.
+* Client handles it cleanly now.
+* Find a chessboard in the world and try it out. Enjoy your table flipping.
+
 
 ### 2017-11-10
 [Verbal]

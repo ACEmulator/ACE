@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -1393,16 +1393,6 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
         }
 
-        // plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
-        {
-            if (CurrentLandblock != null)
-            {
-                var effectEvent = new GameMessageScript(targetId, effectId);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
-            }
-        }
-
         /// <summary>
         /// spends the xp on this skill.
         /// </summary>
@@ -1906,6 +1896,8 @@ namespace ACE.Entity
             else
             {
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                ////if (worldObject.SuppressGenerateEffect != true)
+                ////    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, Enum.PlayScript.Create));
                 if (worldObject.DefaultScriptId != null)
                     Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, (PlayScript)worldObject.DefaultScriptId));
             }
@@ -2219,19 +2211,6 @@ namespace ACE.Entity
                     log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
             });
             objDescChain.EnqueueChain();
-        }
-
-        public void HandleActionMotion(UniversalMotion motion)
-        {
-            if (CurrentLandblock != null)
-            {
-                DoMotion(motion);
-            }
-        }
-
-        private void DoMotion(UniversalMotion motion)
-        {
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
 
         protected override void SendUpdatePosition()
@@ -3191,11 +3170,6 @@ namespace ACE.Entity
         public void HandleActionApplySoundEffect(Sound sound)
         {
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
-        }
-
-        public void HandleActionApplyVisualEffect(PlayScript effect)
-        {
-            new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
         }
 
         public ActionChain CreateMoveToChain(ObjectGuid target, float distance)
