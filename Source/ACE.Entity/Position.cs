@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Entity.Enum;
 using ACE.Common;
@@ -277,6 +277,11 @@ namespace ACE.Entity
         public override string ToString()
         {
             return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
+        }
+
+        public string ToLOCString()
+        {
+            return $"0x{LandblockId.Raw:X} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
         }
 
         public AceObjectPropertiesPosition GetAceObjectPosition(ObjectGuid guid, PositionType type)
