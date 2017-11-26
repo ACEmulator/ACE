@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using ACE.Entity.Enum.Properties;
@@ -1769,17 +1769,31 @@ namespace ACE.Entity
         #endregion
 
         [JsonIgnore]
-        public double? BuyRate
+        public double? BuyPrice
         {
             get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
             set { SetDoubleProperty(PropertyDouble.BuyPrice, value); }
         }
 
         [JsonIgnore]
-        public double? SellRate
+        public double? SellPrice
         {
             get { return GetDoubleProperty(PropertyDouble.SellPrice); }
             set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
+        }
+
+        [JsonIgnore]
+        public bool? DealMagicalItems
+        {
+            get { return GetBoolProperty(PropertyBool.DealMagicalItems); }
+            set { SetBoolProperty(PropertyBool.DealMagicalItems, value); }
+        }
+
+        [JsonIgnore]
+        public uint? AlternateCurrencyDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.AlternateCurrency); }
+            set { SetDataIdProperty(PropertyDataId.AlternateCurrency, value); }
         }
 
         #region Chess
@@ -2241,6 +2255,9 @@ namespace ACE.Entity
             return !success ? null : ret;
         }
 
+        [JsonProperty("createlist")]
+        public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
+
         public object Clone()
         {
             AceObject ret = new AceObject
@@ -2262,6 +2279,7 @@ namespace ACE.Entity
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
                 GeneratorLinks = CloneList(GeneratorLinks),
+                CreateList = CloneList(CreateList),
                 AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
                 AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
                 AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
@@ -2299,6 +2317,7 @@ namespace ACE.Entity
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.CreateList.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
 

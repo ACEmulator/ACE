@@ -1,9 +1,18 @@
 # ACEmulator Change Log
 
+### 2017-11-26
+[Ripley]
+* Deleted VendorItems class.
+* Replaced VendorItems class with more generic AceObjectInventory class.. This is entirely based on CreationProfile found in protocol doc so probably could stand to be renamed, same with database table.
+* Made changes to Vendor to use AceObjectInventory and added a bit more functionality with respect to alternate currency.
+* Added more to DestinationType enum.
+* Added some properties to AO/WO.
+* Added WieldList object spawning to the CreateWorldObjects function of the WorldObjectFactory. This is not the final, correct way to do this but does visually look right.
+* WorldObjects are not really world aware so they have much work to do to be able to really wield and use objects, as well as report them properly to the landblock manager.
+
 ### 2017-11-20
 [OptimShi]
 * Changed EquipTest debug command to utilize the index of a clothing table item and added an optional shade parameter
-
 
 ### 2017-11-18
 [Ripley]

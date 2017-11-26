@@ -65,6 +65,7 @@
     <Compile Include="AbilityVitalAttribute.cs" />
     <Compile Include="Account.cs" />
     <Compile Include="AccountByName.cs" />
+    <Compile Include="AceObjectInventory.cs" />
     <Compile Include="AceObjectGeneratorLink.cs" />
     <Compile Include="AceObjectPropertiesBook.cs" />
     <Compile Include="AceContractTracker.cs" />
@@ -110,7 +111,6 @@
     <Compile Include="Recipe.cs" />
     <Compile Include="SearchWeeniesCriteria.cs" />
     <Compile Include="ServerOnlyAttribute.cs" />
-    <Compile Include="VendorItems.cs" />
     <Compile Include="WeenieObjectInstance.cs" />
     <Compile Include="CachedWeenieClass.cs" />
     <Compile Include="CachedInventoryObject.cs" />

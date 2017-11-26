@@ -60,24 +60,6 @@ namespace ACE.Entity
             get { return AceObject.IntProperties; }
         }
 
-        public int? MerchandiseItemTypes
-        {
-            get { return AceObject.MerchandiseItemTypes; }
-            set { AceObject.MerchandiseItemTypes = value; }
-        }
-
-        public int? MerchandiseMinValue
-        {
-            get { return AceObject.MerchandiseMinValue; }
-            set { AceObject.MerchandiseMinValue = value; }
-        }
-
-        public int? MerchandiseMaxValue
-        {
-            get { return AceObject.MerchandiseMaxValue; }
-            set { AceObject.MerchandiseMaxValue = value; }
-        }
-
         public List<AceObjectPropertiesInt64> PropertiesInt64
         {
             get { return AceObject.Int64Properties; }
@@ -2373,9 +2355,9 @@ namespace ACE.Entity
 
         public virtual void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)
         {
+            writer.WriteGuid(Guid);
             if (!gamedataonly)
             {
-                writer.WriteGuid(Guid);
                 SerializeModelData(writer);
                 SerializePhysicsData(writer);
             }
@@ -3105,6 +3087,63 @@ namespace ACE.Entity
                 var effectEvent = new GameMessageScript(targetId, effectId);
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
             }
+        }
+
+        public List<AceObjectInventory> CreateList
+        {
+            get { return AceObject.CreateList; }
+        }
+
+        public List<AceObjectInventory> WieldList
+        {
+            get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Wield).ToList(); }
+        }
+
+        public List<AceObjectInventory> ShopList
+        {
+            get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Shop).ToList(); }
+        }
+
+        public int? MerchandiseItemTypes
+        {
+            get { return AceObject.MerchandiseItemTypes; }
+            set { AceObject.MerchandiseItemTypes = value; }
+        }
+
+        public int? MerchandiseMinValue
+        {
+            get { return AceObject.MerchandiseMinValue; }
+            set { AceObject.MerchandiseMinValue = value; }
+        }
+
+        public int? MerchandiseMaxValue
+        {
+            get { return AceObject.MerchandiseMaxValue; }
+            set { AceObject.MerchandiseMaxValue = value; }
+        }
+
+        public double? BuyPrice
+        {
+            get { return AceObject.BuyPrice; }
+            set { AceObject.BuyPrice = (double)value; }
+        }
+
+        public double? SellPrice
+        {
+            get { return AceObject.SellPrice; }
+            set { AceObject.SellPrice = (double)value; }
+        }
+
+        public bool? DealMagicalItems
+        {
+            get { return AceObject.DealMagicalItems; }
+            set { AceObject.DealMagicalItems = value; }
+        }
+
+        public uint? AlternateCurrencyDID
+        {
+            get { return AceObject.AlternateCurrencyDID; }
+            set { AceObject.AlternateCurrencyDID = value; }
         }
     }
 }

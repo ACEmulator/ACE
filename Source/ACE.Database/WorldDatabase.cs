@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Data;
@@ -26,10 +26,10 @@ namespace ACE.Database
             GetItemsByTypeId,
             GetAceObject,
             GetAceObjectGeneratorLinks,
+            GetAceObjectInventory,
             GetMaxId,
 
-            GetWeenieInstancesByLandblock,
-            GetVendorWeenieInventoryById,
+            GetWeenieInstancesByLandblock,            
 
             GetAllRecipes,
             CreateRecipe,
@@ -85,13 +85,13 @@ namespace ACE.Database
             
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
 
+            ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
+
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
             ConstructMaxQueryStatement(WorldPreparedStatement.GetMaxId, "ace_object", "aceObjectId");
 
             ConstructGetListStatement(WorldPreparedStatement.GetWeenieInstancesByLandblock, typeof(WeenieObjectInstance), criteria2);
-
-            ConstructGetListStatement(WorldPreparedStatement.GetVendorWeenieInventoryById, typeof(VendorItems), new HashSet<string> { "aceObjectId", "destinationType" });
 
             // recipes
             ConstructStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), ConstructedStatementType.GetList);
@@ -161,6 +161,7 @@ namespace ACE.Database
         {
             base.LoadIntoObject(aceObject);
             aceObject.GeneratorLinks = GetAceObjectGeneratorLinks(aceObject.AceObjectId);
+            aceObject.CreateList = GetAceObjectInventory(aceObject.AceObjectId);
         }
 
         public List<AceObject> GetWeenieInstancesByLandblock(ushort landblock)
@@ -191,6 +192,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorLink>(WorldPreparedStatement.GetAceObjectGeneratorLinks, criteria);
+            return objects;
+        }
+
+        private List<AceObjectInventory> GetAceObjectInventory(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectInventory>(WorldPreparedStatement.GetAceObjectInventory, criteria);
             return objects;
         }
 
@@ -227,13 +235,6 @@ namespace ACE.Database
         public List<Recipe> GetAllRecipes()
         {
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, Recipe>(WorldPreparedStatement.GetAllRecipes, new Dictionary<string, object>());
-            return objects;
-        }
-
-        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId, DestinationType desType)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId }, { "destinationType", desType } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, VendorItems>(WorldPreparedStatement.GetVendorWeenieInventoryById, criteria);
             return objects;
         }
 

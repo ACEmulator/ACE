@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
@@ -35,18 +35,6 @@ namespace ACE.Entity
         {
         }
 
-        public double BuyRate
-        {
-            get { return AceObject.BuyRate ?? 0.8; }
-            set { AceObject.BuyRate = value; }
-        }
-
-        public double SellRate
-        {
-            get { return AceObject.SellRate ?? 1.0; }
-            set { AceObject.SellRate = value; }
-        }
-
         #region General Vendor functions
 
         /// <summary>
@@ -78,9 +66,7 @@ namespace ACE.Entity
             // Load Vendor Inventory from database.
             if (!inventoryloaded)
             {
-                List<VendorItems> items = new List<VendorItems>();
-                items = DatabaseManager.World.GetVendorWeenieInventoryById(AceObject.WeenieClassId, DestinationType.Shop);
-                foreach (VendorItems item in items)
+                foreach (AceObjectInventory item in ShopList)
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
                     if (wo != null)
@@ -205,14 +191,14 @@ namespace ACE.Entity
             // calculate price. (both unique and item profile)
             foreach (WorldObject wo in uqlist)
             {
-                goldcost = goldcost + (uint)Math.Ceiling(SellRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
                 wo.Value = wo.Value;        // Also set the stack's value for unique items, using the builtin WO calculations
                 wo.Burden = wo.Burden;      // Also set the stack's encumbrance for unique items, using the builtin WO calculations
             }
 
             foreach (WorldObject wo in genlist)
             {
-                goldcost = goldcost + (uint)Math.Ceiling(SellRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
                 wo.Value = wo.Value;        // Also set the stack's value for stock items, using the builtin WO calculations
                 wo.Burden = wo.Burden;      // Also set the stack's encumbrance for stock items, using the builtin WO calculations
             }
@@ -253,7 +239,7 @@ namespace ACE.Entity
             foreach (WorldObject wo in items)
             {
                 // payout scaled by the vendor's buy rate
-                payout = payout + (uint)Math.Floor(BuyRate * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
+                payout = payout + (uint)Math.Floor((BuyPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
 
                 if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
                 {

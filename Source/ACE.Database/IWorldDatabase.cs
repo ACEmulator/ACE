@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
@@ -27,8 +27,6 @@ namespace ACE.Database
         void UpdateRecipe(Recipe recipe);
 
         void DeleteRecipe(Guid recipeGuid);
-
-        List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId, DestinationType desType);
 
         List<Content> GetAllContent();
         

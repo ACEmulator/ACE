@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -72,11 +72,6 @@ namespace ACE.Database
         public List<Recipe> GetAllRecipes()
         {
             return _wrappedDatabase.GetAllRecipes();
-        }
-
-        public List<VendorItems> GetVendorWeenieInventoryById(uint aceObjectId, DestinationType desType)
-        {
-            return _wrappedDatabase.GetVendorWeenieInventoryById(aceObjectId, desType);
         }
 
         public void CreateRecipe(Recipe recipe)
