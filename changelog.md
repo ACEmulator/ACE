@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2017-12-02
+[Ripley]
+* Updated README links relating to Protocol documentation.
+* Fixed read issue with AnimationFrame in DatLoader. (Issue reported from Discord & confirmed by OptimShi)
+* Rebased SQL scripts.
+
+[Mag-nus]
+* Changes to eventually support .net core 2.0
+  * Changed target .net framework to 4.6.1
+  * Changed build environment to Visual Studio 2017.
+
 ### 2017-11-26
 [Ripley]
 * Deleted VendorItems class.
