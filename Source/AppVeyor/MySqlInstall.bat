@@ -11,7 +11,6 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 
 REM execute Update Scripts for Shard Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\changeme.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2017-10-18-00-create-ace-object-tracker.sql
 
 REM Download latest ACE-World database, extract and import it
 appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.3.0/ACE-World-db-v0.3.0.sql.zip
@@ -21,4 +20,3 @@ appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-06-30-00-generator-chains-testdata.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-10-30-00-weenie-updates.sql
