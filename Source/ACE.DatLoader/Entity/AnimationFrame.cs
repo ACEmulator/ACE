@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,13 +20,13 @@ namespace ACE.DatLoader.Entity
             {
                 Position p = new Position();
                 // Origin
-                p.PositionX = datReader.ReadUInt32();
-                p.PositionY = datReader.ReadUInt32();
-                p.PositionZ = datReader.ReadUInt32();
-                p.RotationW = datReader.ReadUInt32();
-                p.RotationX = datReader.ReadUInt32();
-                p.RotationY = datReader.ReadUInt32();
-                p.RotationZ = datReader.ReadUInt32();
+                p.PositionX = datReader.ReadSingle();
+                p.PositionY = datReader.ReadSingle();
+                p.PositionZ = datReader.ReadSingle();
+                p.RotationW = datReader.ReadSingle();
+                p.RotationX = datReader.ReadSingle();
+                p.RotationY = datReader.ReadSingle();
+                p.RotationZ = datReader.ReadSingle();
                 a.Locations.Add(p);
             }
 

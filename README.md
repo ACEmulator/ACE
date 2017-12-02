@@ -100,7 +100,7 @@ netsh http add urlacl url=http://+:8001/ user=<YOUR USER ACCOUNT>
 
 
 ## Other Resources
-* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Recommended)
-* [Zegeger Protocol documentation](http://http://ac.zegeger.net/protocol/) (At times, this link may be more recently updated)
+* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Out of date currently)
+* [Zegeger Protocol documentation](http://ac.zegeger.net/protocol/) (Recommended)
 * [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php) (outdated)
 * [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)
