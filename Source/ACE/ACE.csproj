@@ -401,7 +401,7 @@
       <Name>ACE.Api.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
-      <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
+      <Project>{d50b690b-0664-48bd-9d5a-b26b0d869d63}</Project>
       <Name>ACE.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
@@ -417,7 +417,7 @@
       <Name>ACE.Diagnostics</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
-      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
+      <Project>{90de28a4-a3e6-4a38-b96d-07b4d7ab1f60}</Project>
       <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
