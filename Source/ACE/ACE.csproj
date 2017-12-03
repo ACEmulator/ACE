@@ -409,7 +409,7 @@
       <Name>ACE.Database</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
-      <Project>{21d1aa6d-7bec-4ee5-b503-41e6e6f3480a}</Project>
+      <Project>{3949c280-2162-4465-a688-1f598dd9a18d}</Project>
       <Name>ACE.DatLoader</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Diagnostics\ACE.Diagnostics.csproj">

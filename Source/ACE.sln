@@ -6,15 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE", "ACE\ACE.csproj", "{1CE9FC39-B920-4120-939D-1C0AA6FF017C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6} = {A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}
-		{21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A} = {21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A}
 		{7CFA48D9-1B44-49A6-AFB4-D8BF1F1E545A} = {7CFA48D9-1B44-49A6-AFB4-D8BF1F1E545A}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Database", "ACE.Database\ACE.Database.csproj", "{7CFA48D9-1B44-49A6-AFB4-D8BF1F1E545A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Database.Tests", "ACE.Database.Tests\ACE.Database.Tests.csproj", "{EA068F6C-458B-4584-9CFB-DE7096B8CF8D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.DatLoader", "ACE.DatLoader\ACE.DatLoader.csproj", "{21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.DatLoader.Tests", "ACE.DatLoader.Tests\ACE.DatLoader.Tests.csproj", "{099DAC65-CB36-43CD-A7D7-6DEADA862299}"
 EndProject
@@ -64,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Common", "ACE.Common\AC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Entity", "ACE.Entity\ACE.Entity.csproj", "{90DE28A4-A3E6-4A38-B96D-07B4D7AB1F60}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.DatLoader", "ACE.DatLoader\ACE.DatLoader.csproj", "{3949C280-2162-4465-A688-1F598DD9A18D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -82,10 +81,6 @@ Global
 		{EA068F6C-458B-4584-9CFB-DE7096B8CF8D}.Debug|x64.Build.0 = Debug|x64
 		{EA068F6C-458B-4584-9CFB-DE7096B8CF8D}.Release|x64.ActiveCfg = Release|x64
 		{EA068F6C-458B-4584-9CFB-DE7096B8CF8D}.Release|x64.Build.0 = Release|x64
-		{21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A}.Debug|x64.ActiveCfg = Debug|x64
-		{21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A}.Debug|x64.Build.0 = Debug|x64
-		{21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A}.Release|x64.ActiveCfg = Release|x64
-		{21D1AA6D-7BEC-4EE5-B503-41E6E6F3480A}.Release|x64.Build.0 = Release|x64
 		{099DAC65-CB36-43CD-A7D7-6DEADA862299}.Debug|x64.ActiveCfg = Debug|x64
 		{099DAC65-CB36-43CD-A7D7-6DEADA862299}.Debug|x64.Build.0 = Debug|x64
 		{099DAC65-CB36-43CD-A7D7-6DEADA862299}.Release|x64.ActiveCfg = Release|x64
@@ -134,6 +129,10 @@ Global
 		{90DE28A4-A3E6-4A38-B96D-07B4D7AB1F60}.Debug|x64.Build.0 = Debug|x64
 		{90DE28A4-A3E6-4A38-B96D-07B4D7AB1F60}.Release|x64.ActiveCfg = Release|x64
 		{90DE28A4-A3E6-4A38-B96D-07B4D7AB1F60}.Release|x64.Build.0 = Release|x64
+		{3949C280-2162-4465-A688-1F598DD9A18D}.Debug|x64.ActiveCfg = Debug|x64
+		{3949C280-2162-4465-A688-1F598DD9A18D}.Debug|x64.Build.0 = Debug|x64
+		{3949C280-2162-4465-A688-1F598DD9A18D}.Release|x64.ActiveCfg = Release|x64
+		{3949C280-2162-4465-A688-1F598DD9A18D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

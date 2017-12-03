@@ -64,14 +64,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
-      <Project>{21d1aa6d-7bec-4ee5-b503-41e6e6f3480a}</Project>
-      <Name>ACE.DatLoader</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
+      <Project>{3949c280-2162-4465-a688-1f598dd9a18d}</Project>
+      <Name>ACE.DatLoader</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

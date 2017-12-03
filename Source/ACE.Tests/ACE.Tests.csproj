@@ -87,10 +87,6 @@
       <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
       <Name>ACE.Database</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
-      <Project>{21d1aa6d-7bec-4ee5-b503-41e6e6f3480a}</Project>
-      <Name>ACE.DatLoader</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
