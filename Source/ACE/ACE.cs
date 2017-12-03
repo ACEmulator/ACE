@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 using ACE.Command;
@@ -41,7 +41,9 @@ namespace ACE
         private static void OnProcessExit(object sender, EventArgs e)
         {
             DatabaseManager.Stop();
-            Diagnostics.Diagnostics.LandBlockDiag = false;
+            // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
+            // TODO: We need a better way to expose diagnostic information moving forward.
+            // Diagnostics.Diagnostics.LandBlockDiag = false;
         }
     }
 }

@@ -78,7 +78,6 @@
       <HintPath>..\packages\System.Numerics.Vectors.4.4.0\lib\portable-net45+win8+wp8+wpa81\System.Numerics.Vectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command\CommandHandler.cs" />
@@ -410,10 +409,6 @@
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
       <Project>{3949c280-2162-4465-a688-1f598dd9a18d}</Project>
       <Name>ACE.DatLoader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ACE.Diagnostics\ACE.Diagnostics.csproj">
-      <Project>{a4625c11-22be-4d82-9a6c-63dcb5caffb6}</Project>
-      <Name>ACE.Diagnostics</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
       <Project>{90de28a4-a3e6-4a38-b96d-07b4d7ab1f60}</Project>
