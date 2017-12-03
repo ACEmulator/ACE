@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -18,7 +18,7 @@ namespace ACE.Database
     public class Database
     {
         // This is a debug channel for the general debugging of the database.
-        private ILog log = LogManager.GetLogger("Database");
+        private ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
 

@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />
     <ProjectReference Include="..\ACE\ACE.csproj" />
   </ItemGroup>
 

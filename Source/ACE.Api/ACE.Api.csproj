@@ -151,7 +151,7 @@
       <Name>ACE.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
-      <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
+      <Project>{cd2b6dee-6809-458a-b45a-e0b0bd1308fe}</Project>
       <Name>ACE.Database</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">

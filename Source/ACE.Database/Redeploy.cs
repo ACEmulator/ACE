@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
 using log4net;
@@ -252,6 +252,7 @@ namespace ACE.Database
                         return false;
                     }
                 }
+                /* TODO: .net standard/core does not support file permissions yet...
                 PermissionSet perms = new PermissionSet(PermissionState.None);
                 FileIOPermission writePermission = new FileIOPermission(FileIOPermissionAccess.Write, currentPath);
                 perms.AddPermission(writePermission);
@@ -260,7 +261,7 @@ namespace ACE.Database
                     // You don't have write permissions
                     log.Error($"Write permissions missing in: {dataPath}");
                     return false;
-                }
+                }*/
                 // All checks pass, so the directory is good to use.
                 return true;
             }
