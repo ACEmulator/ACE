@@ -64,6 +64,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
+      <Project>{419b5111-f84e-48b2-b30b-f75eccd75039}</Project>
+      <Name>ACE.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
       <Project>{21d1aa6d-7bec-4ee5-b503-41e6e6f3480a}</Project>
       <Name>ACE.DatLoader</Name>

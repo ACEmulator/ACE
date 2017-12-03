@@ -110,11 +110,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
-      <Project>{136E260E-B4A8-4E6F-B9CB-6AE7FC368DC8}</Project>
+      <Project>{419b5111-f84e-48b2-b30b-f75eccd75039}</Project>
       <Name>ACE.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
-      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
+      <Project>{b248cdcb-c7b3-4446-86fb-63ca6766d55f}</Project>
       <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
