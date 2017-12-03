@@ -71,17 +71,13 @@
     <Compile Include="StarterGearTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
-      <Project>{419b5111-f84e-48b2-b30b-f75eccd75039}</Project>
-      <Name>ACE.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
-      <Project>{b248cdcb-c7b3-4446-86fb-63ca6766d55f}</Project>
-      <Name>ACE.Entity</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ACE\ACE.csproj">
       <Project>{1ce9fc39-b920-4120-939d-1c0aa6ff017c}</Project>
       <Name>ACE</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
+      <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
+      <Name>ACE.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
       <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
@@ -90,6 +86,10 @@
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj">
       <Project>{21d1aa6d-7bec-4ee5-b503-41e6e6f3480a}</Project>
       <Name>ACE.DatLoader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
+      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
+      <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
