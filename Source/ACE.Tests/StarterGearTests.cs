@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Entity;
 using Newtonsoft.Json;
@@ -12,7 +12,7 @@ namespace ACE.Tests
         [TestMethod]
         public void CanParseStarterGearJson()
         {
-            string contents = File.ReadAllText("../../../../ACE/starterGear.json");
+            string contents = File.ReadAllText("../../../ACE/starterGear.json");
 
             StarterGearConfiguration config = JsonConvert.DeserializeObject<StarterGearConfiguration>(contents);
         }

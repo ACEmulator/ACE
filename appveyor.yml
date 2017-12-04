@@ -16,8 +16,8 @@ test_script:
 # This mess is because appveyor is not using the latest vstest.console exe.
 # See here: https://github.com/Microsoft/vstest/issues/443#issuecomment-277467717
 #
-# Good (TPv1): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform\
-# Bad  (TPv2): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
+# Bad  (TPv1): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
+# Good (TPv2): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform\
 - cmd: set path=%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform;%path%
 #
 # These sepcify the AppVeyor logger, which results in the fllowing error: Could not find a test logger with URI or FriendlyName 'Appveyor'. Command exited with code 1
