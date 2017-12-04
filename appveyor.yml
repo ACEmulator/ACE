@@ -13,5 +13,11 @@ build:
   project: source\ACE.sln
   verbosity: minimal
 test_script:
-- cmd: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console' /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
-- cmd: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\Extensions\TestPlatform\vstest.console' /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+# This is failing because AppVeyor is not using the latest vstest.console exe.
+# See here: https://github.com/Microsoft/vstest/issues/443#issuecomment-277467717
+# Good (TPv1): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform\
+# Bad  (TPv2): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
+#- cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+#- cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+- cmd: dotnet test --no-build "Source\ACE.Tests"
+- cmd: dotnet test --no-build "Source\ACE.Database.Test"
