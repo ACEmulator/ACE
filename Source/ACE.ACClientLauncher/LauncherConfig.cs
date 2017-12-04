@@ -1,19 +1,11 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ACE.CmdLineLauncher
+namespace ACE.ACClientLauncher
 {
     public class LauncherConfig
     {
-        public LauncherConfig()
-        { 
-        }
-
         public string GameApi { get; set; }
 
         public string LoginServer { get; set; }
