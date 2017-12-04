@@ -16,29 +16,17 @@ namespace ACE.Database.Extensions
             // So, as a work around, we populate the dataTable manually.
             // Big thanks to Rawaho for helping with this.
 
-            var columns = Enumerable.Range(0, dataReader.FieldCount).Select(dataReader.GetName).ToList();
-
-            var dataColummn = new DataColumn();
-
-            foreach (var column in columns)
-            {
-                if (column == "MAX(`aceObjectId`)")
-                {
-                    dataColummn.ColumnName = column;
-                    dataColummn.DataType = typeof(UInt32);
-                }
-                else
-                    throw new NotImplementedException();
-            }
-
-            dataTable.Columns.Add(dataColummn);
+            for (int i = 0; i < dataReader.FieldCount; i++)
+                dataTable.Columns.Add(dataReader.GetName(i), dataReader.GetFieldType(i));
 
             while (dataReader.Read())
             {
-                if (columns.Count == 1)
-                    dataTable.Rows.Add(dataReader[0]);
-                else
-                    throw new NotImplementedException();
+                DataRow row = dataTable.NewRow();
+
+                for (int i = 0; i < dataReader.FieldCount; i++)
+                    row[i] = dataReader.GetValue(i);
+
+                dataTable.Rows.Add(row);
             }
 #endif
         }
