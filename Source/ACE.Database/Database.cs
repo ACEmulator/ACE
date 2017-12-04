@@ -977,7 +977,7 @@ namespace ACE.Database
             }
         }
 
-        protected MySqlResult SelectPreparedStatement<T>(T id, params object[] parameters)
+        protected DataTable SelectPreparedStatement<T>(T id, params object[] parameters)
         {
             // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
@@ -1000,10 +1000,9 @@ namespace ACE.Database
 
                         using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                         {
-                            using (var result = new MySqlResult())
+                            using (var result = new DataTable())
                             {
                                 result.Load(commandReader);
-                                result.Count = (uint)result.Rows.Count;
                                 return result;
                             }
                         }
@@ -1019,7 +1018,7 @@ namespace ACE.Database
             return null;
         }
 
-        protected async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
+        protected async Task<DataTable> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
         {
             // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
@@ -1044,10 +1043,9 @@ namespace ACE.Database
                         {
                             using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                             {
-                                using (var result = new MySqlResult())
+                                using (var result = new DataTable())
                                 {
                                     result.Load(commandReader);
-                                    result.Count = (uint)result.Rows.Count;
                                     return result;
                                 }
                             }
