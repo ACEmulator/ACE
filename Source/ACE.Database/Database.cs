@@ -12,6 +12,7 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using System.Reflection;
 using System.Data.SqlClient;
+using ACE.Database.Extensions;
 
 namespace ACE.Database
 {
@@ -1002,7 +1003,7 @@ namespace ACE.Database
                         {
                             using (var result = new DataTable())
                             {
-                                result.Load(commandReader);
+                                result.LoadEx(commandReader);
                                 return result;
                             }
                         }
@@ -1045,7 +1046,7 @@ namespace ACE.Database
                             {
                                 using (var result = new DataTable())
                                 {
-                                    result.Load(commandReader);
+                                    result.LoadEx(commandReader);
                                     return result;
                                 }
                             }
