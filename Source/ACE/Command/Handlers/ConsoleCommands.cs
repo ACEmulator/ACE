@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -70,8 +70,11 @@ namespace ACE.Command.Handlers
         [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
         public static void Diag(Session session, params string[] parameters)
         {
-            Diagnostics.Diagnostics.LandBlockDiag = true;
-            Diagnostics.Common.Monitor.ShowDialog();
+            // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
+            // TODO: We need a better way to expose diagnostic information moving forward.
+            Console.WriteLine("diag has been disabled when we switched to .net standard 2.0 and needs to be reworked");
+            // Diagnostics.Diagnostics.LandBlockDiag = true;
+            // Diagnostics.Common.Monitor.ShowDialog();
         }
 
         /// <summary>

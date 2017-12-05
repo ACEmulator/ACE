@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-12-03
+[Mag-nus]
+* Many projects converted to .net standard 2.0 or .net core 2.0
+* MySqlResult object removed from ACE.Database
+* ACE.Diagnostics removed from ACE. ('diag' command is disabled until we fine a better solution)
+* ACE.CmdLineLauncher changed over to ACE.ACClientLauncher. Build is also disabled by default in Configuration Manager.
+
 ### 2017-12-02
 [Ripley]
 * Updated README links relating to Protocol documentation.

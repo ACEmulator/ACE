@@ -1,6 +1,7 @@
 services:
   - mysql
 version: 0.0.{build}
+image: Visual Studio 2017
 pull_requests:
   do_not_increment_build_number: true
 platform: x64
@@ -12,5 +13,21 @@ build:
   project: source\ACE.sln
   verbosity: minimal
 test_script:
-- cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64
-- cmd: vstest.console /logger:Appveyor /inIsolation "Source\ACE.Database.Tests\bin\x64\Debug\ACE.Database.Tests.dll" /Platform:x64
+# This mess is because appveyor is not using the latest vstest.console exe.
+# See here: https://github.com/Microsoft/vstest/issues/443#issuecomment-277467717
+#
+# Bad  (TPv1): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
+# Good (TPv2): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform\
+- cmd: set path=%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform;%path%
+#
+# These sepcify the AppVeyor logger, which results in the fllowing error: Could not find a test logger with URI or FriendlyName 'Appveyor'. Command exited with code 1
+#- cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+#- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+#
+- cmd: vstest.console "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+- cmd: vstest.console "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+#
+#
+# Alternate test engine:
+#- cmd: dotnet test --no-build "Source\ACE.Tests"
+#- cmd: dotnet test --no-build "Source\ACE.Database.Test"

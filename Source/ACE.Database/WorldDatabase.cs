@@ -217,7 +217,7 @@ namespace ACE.Database
         private uint GetMaxId(WorldPreparedStatement id, uint min, uint max)
         {
             object[] critera = new object[] { min, max };
-            MySqlResult res = SelectPreparedStatement<WorldPreparedStatement>(id, critera);
+            var res = SelectPreparedStatement<WorldPreparedStatement>(id, critera);
             var ret = res.Rows[0][0];
             if (ret is DBNull)
             {

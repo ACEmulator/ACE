@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ACE.Common;
 using System.IO;
@@ -15,7 +15,7 @@ namespace ACE.Tests
         public static void TestSetup(TestContext context)
         {
             // copy config.json and initialize configuration
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
             ConfigManager.Initialize();
         }
 

@@ -76,7 +76,7 @@ namespace ACE.Database
         private uint GetMaxGuid(ShardPreparedStatement id, uint min, uint max)
         {
             object[] critera = new object[] { min, max };
-            MySqlResult res = SelectPreparedStatement<ShardPreparedStatement>(id, critera);
+            var res = SelectPreparedStatement<ShardPreparedStatement>(id, critera);
             var ret = res.Rows[0][0];
             if (ret is DBNull)
             {

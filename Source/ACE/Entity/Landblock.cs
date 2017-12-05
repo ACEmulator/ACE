@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -361,7 +361,9 @@ namespace ACE.Entity
         private void UpdateStatus(LandBlockStatusFlag flag)
         {
             Status.LandBlockStatusFlag = flag;
-            Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
+            // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
+            // TODO: We need a better way to expose diagnostic information moving forward.
+            // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
         }
 
         private void UpdateStatus(int pcount)
@@ -370,7 +372,9 @@ namespace ACE.Entity
             if (pcount > 0)
             {
                 Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
-                Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
+                // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
+                // TODO: We need a better way to expose diagnostic information moving forward.
+                // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
             }
             else
             {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,7 +23,7 @@ namespace ACE.Database.Tests
         public static void TestSetup(TestContext context)
         {
             // copy config.json
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
 
             ConfigManager.Initialize();
             worldDb = new Database();

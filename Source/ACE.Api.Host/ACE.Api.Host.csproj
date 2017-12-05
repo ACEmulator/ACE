@@ -102,7 +102,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -125,16 +124,8 @@
       <Name>ACE.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj">
-      <Project>{136e260e-b4a8-4e6f-b9cb-6ae7fc368dc8}</Project>
+      <Project>{d50b690b-0664-48bd-9d5a-b26b0d869d63}</Project>
       <Name>ACE.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ACE.Database\ACE.Database.csproj">
-      <Project>{7cfa48d9-1b44-49a6-afb4-d8bf1f1e545a}</Project>
-      <Name>ACE.Database</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj">
-      <Project>{aa611a84-cdf8-4ab6-8d53-085c897a7422}</Project>
-      <Name>ACE.Entity</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

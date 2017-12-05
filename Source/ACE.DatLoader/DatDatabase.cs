@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using log4net;
@@ -22,7 +22,7 @@ namespace ACE.DatLoader
 
         public uint SectorSize { get; private set; }
 
-        internal DatDatabase(string filePath, DatDatabaseType type)
+        public DatDatabase(string filePath, DatDatabaseType type)
         {
             if (!File.Exists(filePath))
             {

@@ -1,14 +1,11 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ACE.CmdLineLauncher
+namespace ACE.ACClientLauncher
 {
     class Program
     {
@@ -45,7 +42,8 @@ namespace ACE.CmdLineLauncher
 
                     args = new string[0];
                 }
-            } else
+            }
+            else
                 Console.WriteLine("Please check your launcher_config.json file for errors.");
         }
 
