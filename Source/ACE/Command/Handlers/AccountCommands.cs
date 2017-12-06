@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using ACE.Common.Cryptography;
@@ -12,8 +12,8 @@ namespace ACE.Command.Handlers
     public static class AccountCommands
     {
         // accountcreate username password (accesslevel)
-        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2, 
-            "Creates a new account.", 
+        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2,
+            "Creates a new account.",
             "username password (accesslevel)\n" +
             "accesslevel can be a number or enum name\n" +
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
@@ -23,9 +23,9 @@ namespace ACE.Command.Handlers
             newAccount.Name = parameters[0].ToLower();
             newAccount.DisplayName = newAccount.Name; // default to this for command-line created accounts
             newAccount.SetPassword(parameters[1]);
-            
-            AccessLevel accessLevel         = AccessLevel.Player;
-            AccessLevel defaultAccessLevel  = (AccessLevel)Common.ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
+
+            AccessLevel accessLevel = AccessLevel.Player;
+            AccessLevel defaultAccessLevel = (AccessLevel)Common.ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
 
             if (!Enum.IsDefined(typeof(AccessLevel), defaultAccessLevel))
                 defaultAccessLevel = AccessLevel.Player;
@@ -39,19 +39,26 @@ namespace ACE.Command.Handlers
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
-            
-            DatabaseManager.Authentication.CreateAccount(newAccount);
+   
+            var accountExists = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
 
-            // also create a default subscription with new accounts
-            Subscription s = new Subscription();
-            s.AccessLevel = accessLevel;
-            s.AccountGuid = newAccount.AccountGuid;
-            s.Name = "auto";
-            DatabaseManager.Authentication.CreateSubscription(s);
-            
-            Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+            if (accountExists != null)
+            {
+                Console.WriteLine("Account already exists. Try a new name.");
+            }
+            else
+            {
+                DatabaseManager.Authentication.CreateAccount(newAccount);
+                // also create a default subscription with new accounts
+                Subscription s = new Subscription();
+                s.AccessLevel = accessLevel;
+                s.AccountGuid = newAccount.AccountGuid;
+                s.Name = "auto";
+                DatabaseManager.Authentication.CreateSubscription(s);
+                Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+            }
         }
-        
+  
         [CommandHandler("accountget", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1,
             "Gets an account.",
             "username")]
