@@ -20,8 +20,8 @@ namespace ACE.Command.Handlers
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
             Account newAccount = new Account();
-            newAccount.Name = parameters[0].ToLower();
-            newAccount.DisplayName = newAccount.Name; // default to this for command-line created accounts
+            newAccount.Name         = parameters[0].ToLower();
+            newAccount.DisplayName  = newAccount.Name; // default to this for command-line created accounts
             newAccount.SetPassword(parameters[1]);
 
             AccessLevel accessLevel = AccessLevel.Player;
