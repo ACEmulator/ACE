@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2017-12-06
+[HellsWrath]
+* Fixed an issue with accountcreate command. It did not check if accountname already existed.
+
 ### 2017-12-03
 [Mag-nus]
 * Many projects converted to .net standard 2.0 or .net core 2.0
