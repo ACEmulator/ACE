@@ -24,7 +24,7 @@ namespace ACE.Command.Handlers
             newAccount.DisplayName  = newAccount.Name; // default to this for command-line created accounts
             newAccount.SetPassword(parameters[1]);
 
-            AccessLevel accessLevel = AccessLevel.Player;
+            AccessLevel accessLevel        = AccessLevel.Player;
             AccessLevel defaultAccessLevel = (AccessLevel)Common.ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
 
             if (!Enum.IsDefined(typeof(AccessLevel), defaultAccessLevel))
