@@ -291,7 +291,12 @@ namespace ACE.Database
                 }
             }
 
+            log.Debug($"Initializing prepared statements for {database}...");
+
+            // This is a very time consuming call
             InitializePreparedStatements();
+
+            log.Debug($"Initializing prepared statements for {database} completed.");
         }
 
         public void ResetConnectionString(string host, uint port, string user, string password, string database, bool autoReconnect = true)

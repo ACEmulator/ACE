@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 using ACE.Command;
@@ -8,6 +9,7 @@ using ACE.Managers;
 using ACE.Network.Managers;
 using ACE.DatLoader;
 using log4net;
+using log4net.Config;
 
 namespace ACE
 {
@@ -18,6 +20,9 @@ namespace ACE
         public static void Main(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+
+            var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
             log.Info("Starting ACEmulator...");
             Console.Title = @"ACEmulator";
