@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -19,7 +19,7 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToLifestone)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Player.HandleActionTeleToLifestone();
+            session.Player.TeleToLifestone();
         }
     }
 }

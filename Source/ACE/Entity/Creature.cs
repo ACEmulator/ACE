@@ -703,14 +703,9 @@ namespace ACE.Entity
         {
             if (Location != null)
             {
-                ActionChain spawnChain = new ActionChain();
-                spawnChain.AddChain(LandblockManager.GetAddObjectChain(this));
-                spawnChain.AddAction(this, () =>
-                {
-                    if (SuppressGenerateEffect != true)
-                        HandleActionApplyVisualEffect(Enum.PlayScript.Create);
-                });
-                spawnChain.EnqueueChain();
+                LandblockManager.AddObject(this);
+                if (SuppressGenerateEffect != true)
+                    ApplyVisualEffects(Enum.PlayScript.Create);
             }
         }
 

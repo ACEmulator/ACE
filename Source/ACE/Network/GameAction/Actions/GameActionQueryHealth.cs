@@ -14,7 +14,7 @@ namespace ACE.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(fullId);
 
-            session.Player.HandleActionQueryHealth(guid);
+            session.Player.QueryHealth(guid);
         }
     }
 }

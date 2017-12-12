@@ -365,7 +365,7 @@ namespace ACE.Entity
                 if (!HasItem(mergeFromGuid))
                 {
                     // This is a pickup into our main pack.
-                    session.Player.HandleActionPutItemInContainer(mergeFromGuid, session.Player.Guid);
+                    session.Player.PutItemInContainer(mergeFromGuid, session.Player.Guid);
                 }
 
                 WorldObject fromWo = GetInventoryItem(mergeFromGuid);

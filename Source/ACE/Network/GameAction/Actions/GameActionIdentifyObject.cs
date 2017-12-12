@@ -14,7 +14,7 @@ namespace ACE.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(id);
 
-            session.Player.HandleActionExamination(guid);
+            session.Player.ExamineObject(guid);
         }
     }
 }
