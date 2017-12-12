@@ -1,13 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE", "ACE\ACE.csproj", "{1CE9FC39-B920-4120-939D-1C0AA6FF017C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6} = {A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root items", "root items", "{1BA67CED-4F8D-433A-90E1-9871DD6A31EF}"
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.yml = ..\appveyor.yml
@@ -62,16 +57,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database", "ACE.Databas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.ACClientLauncher", "ACE.ACClientLauncher\ACE.ACClientLauncher.csproj", "{3DD92100-FEF6-428E-B216-730DDA4A6C93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE", "ACE\ACE.csproj", "{943276B8-1DCC-48C6-A98D-692D60F53E43}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1CE9FC39-B920-4120-939D-1C0AA6FF017C}.Debug|x64.ActiveCfg = Debug|x64
-		{1CE9FC39-B920-4120-939D-1C0AA6FF017C}.Debug|x64.Build.0 = Debug|x64
-		{1CE9FC39-B920-4120-939D-1C0AA6FF017C}.Release|x64.ActiveCfg = Release|x64
-		{1CE9FC39-B920-4120-939D-1C0AA6FF017C}.Release|x64.Build.0 = Release|x64
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.ActiveCfg = Debug|x64
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Debug|x64.Build.0 = Debug|x64
 		{A4625C11-22BE-4D82-9A6C-63DCB5CAFFB6}.Release|x64.ActiveCfg = Release|x64
@@ -130,6 +123,10 @@ Global
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Release|x64.Build.0 = Release|x64
 		{3DD92100-FEF6-428E-B216-730DDA4A6C93}.Debug|x64.ActiveCfg = Debug|x64
 		{3DD92100-FEF6-428E-B216-730DDA4A6C93}.Release|x64.ActiveCfg = Release|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.ActiveCfg = Debug|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.Build.0 = Debug|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.ActiveCfg = Release|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

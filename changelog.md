@@ -6,6 +6,12 @@
 * Network messages are now seralized
 * Removed the vast majority of ActionChain code that was being used for parallelism/thread safety
 
+### 2017-12-10
+[Mag-nus]
+* ACE has been converted from .net framework 4.6.1 to .net core 2.0.
+  * This also involves changing the way databases are loaded to a manual method which is .net core compatible.
+  * This breaks secure auth. That system will need to be reworked by someone more experienced to function properly.
+
 ### 2017-12-03
 [Mag-nus]
 * Many projects converted to .net standard 2.0 or .net core 2.0
