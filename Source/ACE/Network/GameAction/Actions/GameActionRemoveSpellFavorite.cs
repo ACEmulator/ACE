@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.GameAction.Actions
+namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionRemoveSpellFavorite
     {
@@ -7,7 +7,7 @@
         {
             uint spellId = message.Payload.ReadUInt32();
             uint spellBarId = message.Payload.ReadUInt32();
-            session.Player.HandleActionRemoveSpellToSpellBar(spellId, spellBarId);
+            session.Player.RemoveSpellToSpellBar(spellId, spellBarId);
         }
     }
 }

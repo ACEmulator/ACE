@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -71,7 +71,10 @@ namespace ACE.Command
 
                 CommandHandlerInfo commandHandler;
                 if (GetCommandHandler(null, command, parameters, out commandHandler) == CommandHandlerResponse.Ok)
+                {
+                    // Add command to world manager's main thread...
                     ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                }
             }
         }
 

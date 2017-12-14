@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-12-11
+[ddevec]
+* More updates to parallelism structure
+* Network messages are now seralized
+* Removed the vast majority of ActionChain code that was being used for parallelism/thread safety
+
 ### 2017-12-10
 [Mag-nus]
 * ACE has been converted from .net framework 4.6.1 to .net core 2.0.

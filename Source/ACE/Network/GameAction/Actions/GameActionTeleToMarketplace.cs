@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
@@ -14,7 +14,7 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToMarketPlace)]
         public static void Handle(ClientMessage clientMessage, Session session)
         {
-            session.Player.HandleActionTeleToMarketplace();
+            session.Player.TeleToMarketplace();
         }
     }
 }

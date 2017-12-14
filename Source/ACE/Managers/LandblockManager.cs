@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using ACE.Common;
 using System.Collections.Generic;
@@ -59,12 +59,6 @@ namespace ACE.Managers
         {
             var block = GetLandblock(worldObject.Location.LandblockId, true);
             block.AddWorldObject(worldObject);
-        }
-
-        public static ActionChain GetAddObjectChain(WorldObject worldObject)
-        {
-            Landblock block = GetLandblock(worldObject.Location.LandblockId, true);
-            return block.GetAddWorldObjectChain(worldObject);
         }
 
         // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS

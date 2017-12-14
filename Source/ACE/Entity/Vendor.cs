@@ -139,7 +139,7 @@ namespace ACE.Entity
             }
 
             player.TrackInteractiveObjects(vendorlist);
-            player.HandleActionApproachVendor(this, vendorlist);
+            player.ApproachVendor(this, vendorlist);
         }
         #endregion
 

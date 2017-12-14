@@ -176,29 +176,21 @@ namespace ACE.Entity
             return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
         }
 
-        public void HandleActionMagicRemoveSpellId(uint spellId)
+        public void MagicRemoveSpellId(uint spellId)
         {
-            ActionChain unlearnSpellChain = new ActionChain();
-            unlearnSpellChain.AddAction(
-                this,
-                () =>
-                {
-                    if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
-                    {
-                        log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
-                        return;
-                    }
+            if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
+            {
+                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                return;
+            }
 
-                    AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
-                    GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
-                    Session.Network.EnqueueSend(removeSpellEvent);
-                });
-            unlearnSpellChain.EnqueueChain();
+            AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
+            GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+            Session.Network.EnqueueSend(removeSpellEvent);
         }
 
-        public void HandleActionLearnSpell(uint spellId)
+        public void LearnSpell(uint spellId)
         {
-            ActionChain learnSpellChain = new ActionChain();
             SpellTable spells = SpellTable.ReadFromDat();
             if (!spells.Spells.ContainsKey(spellId))
             {
@@ -206,33 +198,31 @@ namespace ACE.Entity
                 Session.Network.EnqueueSend(errorMessage);
                 return;
             }
-            learnSpellChain.AddAction(this,
-                () =>
-                {
-                    if (!UnknownSpell(spellId))
-                    {
-                        GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
-                        Session.Network.EnqueueSend(errorMessage);
-                        return;
-                    }
-                    AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell
-                    {
-                        AceObjectId = this.Guid.Full,
-                        SpellId = spellId
-                    };
-                    AceObject.SpellIdProperties.Add(newSpell);
-                    GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
-                    Session.Network.EnqueueSend(updateSpellEvent);
 
-                    // Always seems to be this SkillUpPurple effect
-                    Session.Player.HandleActionApplyVisualEffect(Enum.PlayScript.SkillUpPurple);
+            if (!UnknownSpell(spellId))
+            {
+                GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(errorMessage);
+                return;
+            }
 
-                    string spellName = spells.Spells[spellId].Name;
-                    string message = "You learn the " + spellName + " spell.\n";
-                    GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                    Session.Network.EnqueueSend(learnMessage);
-                });
-            learnSpellChain.EnqueueChain();
+            AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell
+            {
+                AceObjectId = this.Guid.Full,
+                SpellId = spellId
+            };
+
+            AceObject.SpellIdProperties.Add(newSpell);
+            GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
+            Session.Network.EnqueueSend(updateSpellEvent);
+
+            // Always seems to be this SkillUpPurple effect
+            Session.Player.ApplyVisualEffects(Enum.PlayScript.SkillUpPurple);
+
+            string spellName = spells.Spells[spellId].Name;
+            string message = "You learn the " + spellName + " spell.\n";
+            GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+            Session.Network.EnqueueSend(learnMessage);
         }
 
         /// <summary>
@@ -241,21 +231,16 @@ namespace ACE.Entity
         /// <param name="spellId"></param>
         /// <param name="spellBarPositionId"></param>
         /// <param name="spellBarId"></param>
-        public void HandleActionAddSpellToSpellBar(uint spellId, uint spellBarPositionId, uint spellBarId)
+        public void AddSpellToSpellBar(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
-            // The spell bar magic happens here. First, let's mind our race conditions....
-            ActionChain addSpellBarChain = new ActionChain();
-            addSpellBarChain.AddAction(this, () =>
+            // The spell bar magic happens here.
+            SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
             {
-                SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
-                {
-                    AceObjectId = AceObject.AceObjectId,
-                    SpellId = spellId,
-                    SpellBarId = spellBarId,
-                    SpellBarPositionId = spellBarPositionId
-                });
+                AceObjectId = AceObject.AceObjectId,
+                SpellId = spellId,
+                SpellBarId = spellBarId,
+                SpellBarPositionId = spellBarPositionId
             });
-            addSpellBarChain.EnqueueChain();
         }
 
         /// <summary>
@@ -263,23 +248,18 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="spellId"></param>
         /// <param name="spellBarId"></param>
-        public void HandleActionRemoveSpellToSpellBar(uint spellId, uint spellBarId)
+        public void RemoveSpellToSpellBar(uint spellId, uint spellBarId)
         {
-            // More spell bar magic happens here. First, let's mind our race conditions....
-            ActionChain removeSpellBarChain = new ActionChain();
-            removeSpellBarChain.AddAction(this, () =>
+            // More spell bar magic happens here.
+            SpellsInSpellBars.Remove(SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
+            // Now I have to reorder
+            var sorted = SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
+            uint newSpellBarPosition = 0;
+            foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
             {
-                SpellsInSpellBars.Remove(SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
-                // Now I have to reorder
-                var sorted = SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
-                uint newSpellBarPosition = 0;
-                foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
-                {
-                    spells.SpellBarPositionId = newSpellBarPosition;
-                    newSpellBarPosition++;
-                }
-            });
-            removeSpellBarChain.EnqueueChain();
+                spells.SpellBarPositionId = newSpellBarPosition;
+                newSpellBarPosition++;
+            }
         }
 
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
@@ -952,10 +932,9 @@ namespace ACE.Entity
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
         }
 
-        public void HandleActionExamination(ObjectGuid examinationId)
+        public void ExamineObject(ObjectGuid examinationId)
         {
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
-            ActionChain examineChain = new ActionChain();
 
             if (examinationId.Full == 0)
             {
@@ -966,55 +945,47 @@ namespace ACE.Entity
 
             // The object can be in two spots... on the player or on the landblock
             // First check the player
-            examineChain.AddAction(this, () =>
+            // search packs
+            WorldObject wo = GetInventoryItem(examinationId);
+
+            // search wielded items
+            if (wo == null)
+                wo = GetWieldedItem(examinationId);
+
+            // search interactive objects
+            if (wo == null)
             {
-                // search packs
-                WorldObject wo = GetInventoryItem(examinationId);
+                if (interactiveWorldObjects.ContainsKey(examinationId))
+                    wo = interactiveWorldObjects[examinationId];
+            }
 
-                // search wielded items
-                if (wo == null)
-                    wo = GetWieldedItem(examinationId);
-
-                // search interactive objects
-                if (wo == null)
-                {
-                    if (interactiveWorldObjects.ContainsKey(examinationId))
-                        wo = interactiveWorldObjects[examinationId];
-                }
-
-                // if its local examine it
-                if (wo != null)
-                {
-                    wo.Examine(Session);
-                }
-                else
-                {
-                    // examine item on land block
-                    CurrentLandblock.GetObject(examinationId).Examine(Session);
-                }
-            });
-            examineChain.EnqueueChain();
+            // if its local examine it
+            if (wo != null)
+            {
+                wo.Examine(Session);
+            }
+            else
+            {
+                // examine item on land block
+                CurrentLandblock.GetObject(examinationId).Examine(Session);
+            }
         }
 
-        public void HandleActionQueryHealth(ObjectGuid queryId)
+        public void QueryHealth(ObjectGuid queryId)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () =>
+            if (queryId.Full == 0)
             {
-                if (queryId.Full == 0)
-                {
-                    // Deselect the formerly selected Target
-                    selectedTarget = ObjectGuid.Invalid;
-                    return;
-                }
+                // Deselect the formerly selected Target
+                selectedTarget = ObjectGuid.Invalid;
+                return;
+            }
 
-                // Remember the selected Target
-                selectedTarget = queryId;
-                CurrentLandblock.GetObject(queryId).QueryHealth(Session);
-            });
-            chain.EnqueueChain();
+            // Remember the selected Target
+            selectedTarget = queryId;
+            CurrentLandblock.GetObject(queryId).QueryHealth(Session);
         }
-        public void HandleActionQueryItemMana(ObjectGuid queryId)
+
+        public void QueryItemMana(ObjectGuid queryId)
         {
             if (queryId.Full == 0)
             {
@@ -1022,59 +993,48 @@ namespace ACE.Entity
                 return;
             }
 
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () =>
+            // the object could be in the world or on the player, first check player
+            WorldObject wo = GetInventoryItem(queryId);
+            if (wo != null)
             {
-                // the object could be in the world or on the player, first check player
-                WorldObject wo = GetInventoryItem(queryId);
-                if (wo != null)
+                wo.QueryItemMana(Session);
+            }
+
+            else
+            {
+                // We could be wielded - let's check that next.
+                if (WieldedObjects.TryGetValue(queryId, out wo))
                 {
                     wo.QueryItemMana(Session);
                 }
-
                 else
                 {
-                    // We could be wielded - let's check that next.
-                    if (WieldedObjects.TryGetValue(queryId, out wo))
-                    {
-                        wo.QueryItemMana(Session);
-                    }
-                    else
-                    {
-                        // todo replace with interactive items.... this creates crashing!
-                        // ActionChain idChain = new ActionChain();
-                        // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                        // {
-                        //    cwo.QueryItemMana(Session);
-                        // });
-                        // idChain.EnqueueChain();
-                    }
+                    // todo replace with interactive items.... this creates crashing!
+                    // ActionChain idChain = new ActionChain();
+                    // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
+                    // {
+                    //    cwo.QueryItemMana(Session);
+                    // });
+                    // idChain.EnqueueChain();
                 }
-            });
-            chain.EnqueueChain();
+            }
         }
 
-        public void HandleActionReadBookPage(ObjectGuid bookId, uint pageNum)
+        public void ReadBookPage(ObjectGuid bookId, uint pageNum)
         {
             // TODO: Do we want to throttle this request, like appraisals?
-            ActionChain bookChain = new ActionChain();
-
             // The object can be in two spots... on the player or on the landblock
             // First check the player
-            bookChain.AddAction(this, () =>
+            WorldObject wo = GetInventoryItem(bookId);
+            // book is in the player's inventory...
+            if (wo != null)
             {
-                WorldObject wo = GetInventoryItem(bookId);
-                // book is in the player's inventory...
-                if (wo != null)
-                {
-                    wo.ReadBookPage(Session, pageNum);
-                }
-                else
-                {
-                    CurrentLandblock.GetObject(bookId).ReadBookPage(Session, pageNum);
-                }
-            });
-            bookChain.EnqueueChain();
+                wo.ReadBookPage(Session, pageNum);
+            }
+            else
+            {
+                CurrentLandblock.GetObject(bookId).ReadBookPage(Session, pageNum);
+            }
         }
 
         #region VendorTransactions
@@ -1082,13 +1042,10 @@ namespace ACE.Entity
         /// <summary>
         /// Sends updated network packets to client / vendor item list.
         /// </summary>
-        public void HandleActionApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
+        public void ApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
         {
-            new ActionChain(this, () =>
-            {
-                Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
-                SendUseDoneEvent();
-            }).EnqueueChain();
+            Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
+            SendUseDoneEvent();
         }
 
         /// <summary>
@@ -1096,13 +1053,10 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="vendorId"></param>
         /// <param name="items"></param>
-        public void HandleActionBuy(ObjectGuid vendorId, List<ItemProfile> items)
+        public void BuyFromVendor(ObjectGuid vendorId, List<ItemProfile> items)
         {
-            new ActionChain(this, () =>
-            {
-                Vendor vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
-                vendor.BuyValidateTransaction(vendorId, items, this);
-            }).EnqueueChain();
+            Vendor vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
+            vendor.BuyValidateTransaction(vendorId, items, this);
         }
 
         /// <summary>
@@ -1145,53 +1099,47 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="items"></param>
         /// <param name="vendorId"></param>
-        public void HandleActionSell(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
+        public void SellToVendor(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
         {
-            ActionChain chain = new ActionChain();
-
-            chain.AddAction(this, () =>
+            List<WorldObject> purchaselist = new List<WorldObject>();
+            foreach (ItemProfile profile in itemprofiles)
             {
-                List<WorldObject> purchaselist = new List<WorldObject>();
-                foreach (ItemProfile profile in itemprofiles)
+                // check packs of item.
+                WorldObject item = GetInventoryItem(profile.Guid);
+                if (item == null)
                 {
-                    // check packs of item.
-                    WorldObject item = GetInventoryItem(profile.Guid);
-                    if (item == null)
+                    // check to see if this item is wielded
+                    item = GetWieldedItem(profile.Guid);
+                    if (item != null)
                     {
-                        // check to see if this item is wielded
-                        item = GetWieldedItem(profile.Guid);
-                        if (item != null)
-                        {
-                            RemoveFromWieldedObjects(item.Guid);
-                            UpdateAppearance(this);
-                            Session.Network.EnqueueSend(
-                               new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                               new GameMessageObjDescEvent(this),
-                               new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
-                               new GameMessagePublicUpdatePropertyInt(Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0));
-                        }
+                        RemoveFromWieldedObjects(item.Guid);
+                        UpdateAppearance(this);
+                        Session.Network.EnqueueSend(
+                           new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                           new GameMessageObjDescEvent(this),
+                           new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder),
+                           new GameMessagePublicUpdatePropertyInt(Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0));
                     }
-                    else
-                    {
-                        // remove item from inventory.
-                        RemoveWorldObjectFromInventory(profile.Guid);
-                    }
-
-                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, new ObjectGuid(0), PropertyInstanceId.Container));
-
-                    SetInventoryForVendor(item);
-
-                    // clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-
-                    Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
-                    purchaselist.Add(item);
+                }
+                else
+                {
+                    // remove item from inventory.
+                    RemoveWorldObjectFromInventory(profile.Guid);
                 }
 
-                Vendor vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
-                vendor.SellItemsValidateTransaction(this, purchaselist);
-            });
-            chain.EnqueueChain();
+                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, new ObjectGuid(0), PropertyInstanceId.Container));
+
+                SetInventoryForVendor(item);
+
+                // clean up the shard database.
+                DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
+                purchaselist.Add(item);
+            }
+
+            Vendor vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
+            vendor.SellItemsValidateTransaction(this, purchaselist);
         }
 
         public void FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
@@ -1789,7 +1737,7 @@ namespace ACE.Entity
 
         public void RequestUpdatePosition(Position pos)
         {
-            new ActionChain(this, () => ExternalUpdatePosition(pos)).EnqueueChain();
+            ExternalUpdatePosition(pos);
         }
 
         public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
@@ -2012,43 +1960,29 @@ namespace ACE.Entity
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
 
-        public void HandleActionTeleToPosition(PositionType position, Action onError = null)
+        /// <summary>
+        /// Teleports the player to position
+        /// </summary>
+        /// <param name="position">PositionType to be teleported to</param>
+        /// <returns>true on success (position is set) false otherwise</returns>
+        public bool TeleToPosition(PositionType position)
         {
-            GetTeleToPositionChain(position, onError).EnqueueChain();
-        }
-
-        public ActionChain GetTeleToPositionChain(PositionType position, Action onError)
-        {
-            ActionChain teleChain = new ActionChain();
-            teleChain.AddAction(this, () =>
+            if (Positions.ContainsKey(position))
             {
-                if (Positions.ContainsKey(position))
-                {
-                    Position dest = Positions[position];
-                    Teleport(dest);
-                }
-                else
-                {
-                    if (onError != null)
-                    {
-                        onError();
-                    }
-                }
-            });
-            return teleChain;
+                Position dest = Positions[position];
+                Teleport(dest);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        public void HandleActionTeleToLifestone()
-        {
-            ActionChain lifestoneChain = new ActionChain();
-
-            // Handle lifestone internal must decide what to do next...
-            lifestoneChain.AddAction(this, new ActionEventDelegate(() => HandleActionTeleToLifestoneInternal()));
-
-            lifestoneChain.EnqueueChain();
-        }
-
-        private void HandleActionTeleToLifestoneInternal()
+        /// <summary>
+        /// Handles teleporting a player to the lifestone (/ls or /lifestone command)
+        /// </summary>
+        public void TeleToLifestone()
         {
             if (Positions.ContainsKey(PositionType.Sanctuary))
             {
@@ -2083,24 +2017,7 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleActionTeleToMarketplace()
-        {
-            ActionChain mpChain = new ActionChain();
-            mpChain.AddAction(this, () => HandleActionTeleToMarketplaceInternal());
-
-            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
-            // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
-            // mpChain.AddDelaySeconds(mpAnimationLength);
-            mpChain.AddDelaySeconds(14);
-
-            // Then do teleport
-            mpChain.AddChain(GetTeleportChain(MarketplaceDrop));
-
-            // Set the chain to run
-            mpChain.EnqueueChain();
-        }
-
-        private void HandleActionTeleToMarketplaceInternal()
+        public void TeleToMarketplace()
         {
             string message = $"{Name} is recalling to the marketplace.";
 
@@ -2117,6 +2034,18 @@ namespace ACE.Entity
             CurrentLandblock.EnqueueBroadcastSystemChat(this, message, ChatMessageType.Recall);
             Session.Network.EnqueueSend(updateCombatMode);
             DoMotion(motionMarketplaceRecall);
+
+            // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
+            // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
+            // mpChain.AddDelaySeconds(mpAnimationLength);
+            ActionChain mpChain = new ActionChain();
+            mpChain.AddDelaySeconds(14);
+
+            // Then do teleport
+            mpChain.AddChain(GetTeleportChain(MarketplaceDrop));
+
+            // Set the chain to run
+            mpChain.EnqueueChain();
         }
 
         public void HandleActionFinishBarber(ClientMessage message)
@@ -2311,7 +2240,7 @@ namespace ACE.Entity
         /// <param name="item"></param>
         /// <param name="placement"></param>
         /// <param name="inContainerChain"></param>
-        private void HandleUnwieldItem(Container container, WorldObject item, int placement, ActionChain inContainerChain)
+        private void HandleUnwieldItem(Container container, WorldObject item, int placement)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
@@ -2332,6 +2261,7 @@ namespace ACE.Entity
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
 
+            ActionChain inContainerChain = new ActionChain();
             inContainerChain.AddAction(this, () =>
             {
                 if (container.Guid != Guid)
@@ -2342,6 +2272,7 @@ namespace ACE.Entity
                 else
                     AddToInventory(item, placement);
             });
+            inContainerChain.EnqueueChain();
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                             new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, new ObjectGuid(0)),
@@ -2470,41 +2401,36 @@ namespace ACE.Entity
         /// response to the client to remove the item from the quest panel. Og II
         /// </summary>
         /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
-        public void HandleActionAbandonContract(uint contractId)
+        public void AbandonContract(uint contractId)
         {
-            ActionChain abandonContractChain = new ActionChain();
-            abandonContractChain.AddAction(this, () =>
+            ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
             {
-                ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
-                {
-                    Stage = 0,
-                    TimeWhenDone = 0,
-                    TimeWhenRepeats = 0,
-                    DeleteContract = 1,
-                    SetAsDisplayContract = 0
-                };
+                Stage = 0,
+                TimeWhenDone = 0,
+                TimeWhenRepeats = 0,
+                DeleteContract = 1,
+                SetAsDisplayContract = 0
+            };
 
-                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
+            GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
 
-                AceContractTracker contract = new AceContractTracker();
-                if (TrackedContracts.ContainsKey(contractId))
-                    contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
+            AceContractTracker contract = new AceContractTracker();
+            if (TrackedContracts.ContainsKey(contractId))
+                contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
 
-                TrackedContracts.Remove(contractId);
-                LastUseTracker.Remove((int)contractId);
-                AceObject.TrackedContracts.Remove(contractId);
+            TrackedContracts.Remove(contractId);
+            LastUseTracker.Remove((int)contractId);
+            AceObject.TrackedContracts.Remove(contractId);
 
-                DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
-                {
-                    if (deleteSuccess)
-                        log.Info($"ContractId {contractId:X} successfully deleted");
-                    else
-                        log.Error($"Unable to delete contractId {contractId:X} ");
-                });
-
-                Session.Network.EnqueueSend(contractMsg);
+            DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
+            {
+                if (deleteSuccess)
+                    log.Info($"ContractId {contractId:X} successfully deleted");
+                else
+                    log.Error($"Unable to delete contractId {contractId:X} ");
             });
-            abandonContractChain.EnqueueChain();
+
+            Session.Network.EnqueueSend(contractMsg);
         }
 
         /// <summary>
@@ -2925,51 +2851,44 @@ namespace ACE.Entity
             wieldChain.EnqueueChain();
         }
 
-        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
+        public void PutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
         {
-            ActionChain inContainerChain = new ActionChain();
-            inContainerChain.AddAction(
-                this,
-                () =>
-                {
-                    Container container;
+            Container container;
 
-                    if (containerGuid.IsPlayer())
-                        container = this;
-                    else
-                    {
-                        // Ok I am going into player pack - not the main pack.
+            if (containerGuid.IsPlayer())
+                container = this;
+            else
+            {
+                // Ok I am going into player pack - not the main pack.
 
-                        // TODO pick up here - I have a generic object for a container, need to find out why.
-                        container = (Container)GetInventoryItem(containerGuid);
-                    }
+                // TODO pick up here - I have a generic object for a container, need to find out why.
+                container = (Container)GetInventoryItem(containerGuid);
+            }
 
-                    // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                    if (!HasItem(itemGuid))
-                    {
-                        // This is a pickup into our main pack.
-                        HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                        return;
-                    }
+            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+            if (!HasItem(itemGuid))
+            {
+                // This is a pickup into our main pack.
+                HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                return;
+            }
 
-                    // Ok, I know my container and I know I must have the item so let's get it.
-                    WorldObject item = GetInventoryItem(itemGuid);
+            // Ok, I know my container and I know I must have the item so let's get it.
+            WorldObject item = GetInventoryItem(itemGuid);
 
-                    // check wilded.
-                    if (item == null)
-                        item = GetWieldedItem(itemGuid);
+            // check wilded.
+            if (item == null)
+                item = GetWieldedItem(itemGuid);
 
-                    // Was I equiped?   If so, lets take care of that and unequip
-                    if (item.WielderId != null)
-                    {
-                        HandleUnwieldItem(container, item, placement, inContainerChain);
-                        return;
-                    }
+            // Was I equiped?   If so, lets take care of that and unequip
+            if (item.WielderId != null)
+            {
+                HandleUnwieldItem(container, item, placement);
+                return;
+            }
 
-                    // if were are still here, this needs to do a pack pack or main pack move.
-                    HandleMove(ref item, container, placement);
-                });
-            inContainerChain.EnqueueChain();
+            // if were are still here, this needs to do a pack pack or main pack move.
+            HandleMove(ref item, container, placement);
         }
 
         /// <summary>

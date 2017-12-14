@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.GameAction.Actions
+namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionAddSpellFavorite
     {
@@ -8,7 +8,7 @@
             uint spellId = message.Payload.ReadUInt32();
             uint spellBarPositionId = message.Payload.ReadUInt32();
             uint spellBarId = message.Payload.ReadUInt32();
-            session.Player.HandleActionAddSpellToSpellBar(spellId, spellBarPositionId, spellBarId);
+            session.Player.AddSpellToSpellBar(spellId, spellBarPositionId, spellBarId);
         }
     }
 }

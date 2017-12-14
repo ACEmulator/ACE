@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Actions;
+using ACE.Entity.Actions;
 using ACE.Entity;
 using ACE.Database;
 using ACE.Managers;
@@ -15,16 +15,11 @@ namespace ACE.Factories
 
         public static void Spawn(WorldObject inventoryItem, Position position)
         {
-            GetSpawnChain(inventoryItem, position).EnqueueChain();
-        }
-
-        public static ActionChain GetSpawnChain(WorldObject inventoryItem, Position position)
-        {
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
             inventoryItem.Location = position.InFrontOf(1.00f);
             inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            return LandblockManager.GetAddObjectChain(inventoryItem);
+            LandblockManager.AddObject(inventoryItem);
         }
 
         public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)

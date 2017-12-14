@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -37,7 +37,7 @@ namespace ACE.Network.GameAction.Actions
             uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.HandleActionBuy(vendorId, items);
+            session.Player.BuyFromVendor(vendorId, items);
         }
     }
 }

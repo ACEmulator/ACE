@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
 using ACE.Network.GameAction;
 using ACE.Network.GameMessages;
+using ACE.Entity.Actions;
 using log4net;
 
 namespace ACE.Network.Managers
@@ -93,7 +94,12 @@ namespace ACE.Network.Managers
                 if (messageHandlers.TryGetValue(opcode, out messageHandlerInfo))
                 {
                     if (messageHandlerInfo.Attribute.State == session.State)
-                        messageHandlerInfo.Handler.Invoke(message, session);
+                    {
+                        session.EnqueueAction(new ActionEventDelegate(() =>
+                        {
+                            messageHandlerInfo.Handler.Invoke(message, session);
+                        }));
+                    }
                 }
             }
         }
@@ -107,7 +113,9 @@ namespace ACE.Network.Managers
                 ActionHandlerInfo actionHandlerInfo;
                 if (actionHandlers.TryGetValue(opcode, out actionHandlerInfo))
                 {
-                    actionHandlerInfo.Handler.Invoke(message, session);
+                    session.EnqueueAction(new ActionEventDelegate(() => {
+                        actionHandlerInfo.Handler.Invoke(message, session);
+                    }));
                 }
             }
         }

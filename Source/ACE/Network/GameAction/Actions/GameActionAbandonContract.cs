@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.GameAction.Actions
+namespace ACE.Network.GameAction.Actions
 {
     /// <summary>
     /// This method handles the Game Action F7B1 - 0x0316 Abandon Contract.   This is sent to the server when the player
@@ -12,7 +12,7 @@
         {
             // Read in the applicable data.
             uint contractId = message.Payload.ReadUInt32();
-            session.Player.HandleActionAbandonContract(contractId);
+            session.Player.AbandonContract(contractId);
         }
     }
 }

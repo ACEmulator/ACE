@@ -188,7 +188,8 @@ namespace ACE.Entity
 
         public void AddWorldObject(WorldObject wo)
         {
-            EnqueueAction(new ActionEventDelegate(() => AddWorldObjectInternal(wo)));
+            // EnqueueAction(new ActionEventDelegate(() => AddWorldObjectInternal(wo)));
+            AddWorldObjectInternal(wo);
         }
 
         public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)

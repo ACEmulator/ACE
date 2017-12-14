@@ -3070,7 +3070,7 @@ namespace ACE.Entity
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
 
-        public void HandleActionApplyVisualEffect(PlayScript effect)
+        public void ApplyVisualEffects(PlayScript effect)
         {
             // new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
             if (CurrentLandblock != null)

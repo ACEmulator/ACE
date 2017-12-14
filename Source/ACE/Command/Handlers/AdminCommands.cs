@@ -422,7 +422,7 @@ namespace ACE.Command.Handlers
                 // If we have the position, teleport the player
                 if (session.Player.Positions.ContainsKey(positionType))
                 {
-                    session.Player.HandleActionTeleToPosition(positionType);
+                    session.Player.TeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -930,7 +930,7 @@ namespace ACE.Command.Handlers
             {
                 if (Enum.IsDefined(typeof(Spell), spellId))
                 {
-                    session.Player.HandleActionLearnSpell((uint)spellId);
+                    session.Player.LearnSpell((uint)spellId);
                 }
             }
         }
