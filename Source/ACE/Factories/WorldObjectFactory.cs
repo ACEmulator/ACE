@@ -14,23 +14,12 @@ namespace ACE.Factories
 
             foreach (var aceO in sourceObjects)
             {
-                // FIXME: This generator part is all wrong. Needs overhaul.
-                if (aceO.GeneratorStatus ?? false)  // Generator
-                {
-                    aceO.Location = aceO.Location.InFrontOf(-2.0);
-                    aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
-                    results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
-                    aceO.GeneratorEnteredWorld = true;
-                    var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
-                    objectList.ForEach(o => results.Add(o));
-                    continue;
-                }
-
                 if (aceO.Location != null)
                 {
                     WorldObject wo = CreateWorldObject(aceO);
                     if (wo != null)
                         results.Add(wo);
+
                     // TODO: this is a hack job. Remove this and do it right. 
                     foreach (var item in wo.WieldList)
                     {

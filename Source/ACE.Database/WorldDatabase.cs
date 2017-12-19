@@ -26,6 +26,7 @@ namespace ACE.Database
             GetItemsByTypeId,
             GetAceObject,
             GetAceObjectGeneratorLinks,
+            GetAceObjectGeneratorProfiles,
             GetAceObjectInventory,
             GetMaxId,
 
@@ -84,6 +85,8 @@ namespace ACE.Database
             ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
             
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
+
+            ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorProfiles, typeof(AceObjectGeneratorProfile), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
 
@@ -161,6 +164,7 @@ namespace ACE.Database
         {
             base.LoadIntoObject(aceObject);
             aceObject.GeneratorLinks = GetAceObjectGeneratorLinks(aceObject.AceObjectId);
+            aceObject.GeneratorProfiles = GetAceObjectGeneratorProfiles(aceObject.AceObjectId);
             aceObject.CreateList = GetAceObjectInventory(aceObject.AceObjectId);
         }
 
@@ -199,6 +203,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectInventory>(WorldPreparedStatement.GetAceObjectInventory, criteria);
+            return objects;
+        }
+
+        private List<AceObjectGeneratorProfile> GetAceObjectGeneratorProfiles(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorProfile>(WorldPreparedStatement.GetAceObjectGeneratorProfiles, criteria);
             return objects;
         }
 

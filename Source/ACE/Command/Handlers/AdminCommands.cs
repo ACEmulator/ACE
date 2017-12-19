@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -986,14 +986,14 @@ namespace ACE.Command.Handlers
             "Creates an object in the world.", "wclassid(string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            ushort weenieId;
+            uint weenieId;
             try
             {
-                weenieId = Convert.ToUInt16(parameters[0]);
+                weenieId = Convert.ToUInt32(parameters[0]);
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 0 - {uint.MaxValue}", ChatMessageType.Broadcast);
                 return;
             }
             var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);

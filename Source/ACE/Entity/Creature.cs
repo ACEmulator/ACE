@@ -699,16 +699,6 @@ namespace ACE.Entity
             }
         }       
 
-        public void EnterWorld()
-        {
-            if (Location != null)
-            {
-                LandblockManager.AddObject(this);
-                if (SuppressGenerateEffect != true)
-                    ApplyVisualEffects(Enum.PlayScript.Create);
-            }
-        }
-
         protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
     }
 }

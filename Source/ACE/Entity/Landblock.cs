@@ -843,6 +843,17 @@ namespace ACE.Entity
             wo.Location = null;
             wo.InitializeAceObjectForSave();
             container.AddToInventory(wo, placement);
+
+            // Was Item controlled by a generator?
+
+            if (wo.GeneratorId > 0)
+            {
+                WorldObject generator = GetObject(new ObjectGuid((uint)wo.GeneratorId));
+
+                wo.GeneratorId = null;
+
+                generator.NotifyGeneratorOfPickup(wo.Guid.Full);
+            }
         }
 
         private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)

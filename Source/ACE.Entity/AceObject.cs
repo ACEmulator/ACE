@@ -1796,6 +1796,27 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.AlternateCurrency, value); }
         }
 
+        [JsonIgnore]
+        public double? HeartbeatInterval
+        {
+            get { return GetDoubleProperty(PropertyDouble.HeartbeatInterval); }
+            set { SetDoubleProperty(PropertyDouble.HeartbeatInterval, value); }
+        }
+
+        [JsonIgnore]
+        public int? InitGeneratedObjects
+        {
+            get { return GetIntProperty(PropertyInt.InitGeneratedObjects); }
+            set { SetIntProperty(PropertyInt.InitGeneratedObjects, value); }
+        }
+
+        [JsonIgnore]
+        public double? RegenerationInterval
+        {
+            get { return GetDoubleProperty(PropertyDouble.RegenerationInterval); }
+            set { SetDoubleProperty(PropertyDouble.RegenerationInterval, value); }
+        }
+
         #region Chess
         [JsonIgnore]
         public int? ChessGamesLost
@@ -2213,6 +2234,9 @@ namespace ACE.Entity
         [JsonProperty("generators")]
         public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
 
+        [JsonProperty("generatorProfiles")]
+        public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
+
         [JsonProperty("abilities")]
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
 
@@ -2279,6 +2303,7 @@ namespace ACE.Entity
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
                 GeneratorLinks = CloneList(GeneratorLinks),
+                GeneratorProfiles = CloneList(GeneratorProfiles),
                 CreateList = CloneList(CreateList),
                 AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
                 AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
@@ -2317,6 +2342,7 @@ namespace ACE.Entity
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
             ret.CreateList.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
