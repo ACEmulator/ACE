@@ -7,6 +7,7 @@
   * Locations of the test generators are below. The creature generators do not support regeneration, while the item generators will regenerate.
   * /teleloc 0x7f0301ad [12.319899559021 -28.482000350952 0.0049999998882413] 0.33894598484039 0 0 0.94080585241318
   * /telepoi Holtburg
+* Added @adminvision command, use it to see the generators (and eventually other unsendable things).
 
 ### 2017-12-11
 [ddevec]

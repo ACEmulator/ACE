@@ -24,7 +24,8 @@ namespace ACE.Command.Handlers
         // }
 
         // adminvision { on | off | toggle | check}
-        [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Allows the admin to see admin - only visible items.", "{ on | off | toggle | check }")]
         public static void HandleAdminvision(Session session, params string[] parameters)
         {
             // @adminvision { on | off | toggle | check}
@@ -35,7 +36,26 @@ namespace ACE.Command.Handlers
 
             // output: Admin Visible is {state}
 
-            ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
+            // ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
+
+            switch (parameters?[0].ToLower())
+            {
+                case "1":
+                case "on":
+                    session.Player.HandleAdminvisionToggle(1);
+                    break;
+                case "0":
+                case "off":
+                    session.Player.HandleAdminvisionToggle(0);
+                    break;
+                case "toggle":
+                    session.Player.HandleAdminvisionToggle(2);
+                    break;
+                case "check":
+                default:
+                    session.Player.HandleAdminvisionToggle(-1);
+                    break;
+            }
         }
 
         // adminui

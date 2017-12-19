@@ -867,5 +867,12 @@ namespace ACE.Entity
         {
             log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
         }
+
+        public void ResendObjectsInRange(WorldObject wo)
+        {
+            List<WorldObject> wolist = null;
+            wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
+            AddPlayerTracking(wolist, (wo as Player));
+        }
     }
 }

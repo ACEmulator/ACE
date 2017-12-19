@@ -1818,6 +1818,10 @@ namespace ACE.Entity
             if (worldObject.Guid == this.Guid)
                 return;
 
+            // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
+            if ((worldObject.Visibility ?? false) && !Adminvision)
+                return;
+
             lock (clientObjectList)
             {
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
@@ -1843,9 +1847,7 @@ namespace ACE.Entity
             }
             else
             {
-                // TODO: add in support for client to toggle sending all objects (@adminvision on/off)
-                if (!(worldObject.Visibility ?? false)) // If Visibility is true, do not sent object to client, object is server side only
-                    Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
             }
         }
 
@@ -3567,6 +3569,36 @@ namespace ACE.Entity
             // Return to standing position after the animation delay
             motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.Standing)));
             motionChain.EnqueueChain();
+        }
+
+        public bool Adminvision = false;
+
+        public void HandleAdminvisionToggle(int choice)
+        {
+            switch (choice)
+            {
+                case -1:
+                    // Do nothing
+                     break;
+                case 0:
+                    Adminvision = false;
+                    break;
+                case 1:
+                    Adminvision = true;                    
+                    break;
+                case 2:
+                    if (Adminvision)
+                        Adminvision = false;
+                    else
+                        Adminvision = true;
+                    break;
+            }
+
+            if (Adminvision)
+                CurrentLandblock.ResendObjectsInRange(this);
+
+            string state = Adminvision ? "enabled" : "disabled";
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));
         }
     }
 }
