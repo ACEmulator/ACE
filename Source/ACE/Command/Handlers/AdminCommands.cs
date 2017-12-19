@@ -25,18 +25,13 @@ namespace ACE.Command.Handlers
 
         // adminvision { on | off | toggle | check}
         [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
-            "Allows the admin to see admin - only visible items.", "{ on | off | toggle | check }")]
+            "Allows the admin to see admin - only visible items.", "{ on | off | toggle | check }\n" +
+            "Controls whether or not the admin can see admin-only visible items. Note that if you turn this feature off, you will need to log out and back in before the visible items become invisible.")]
         public static void HandleAdminvision(Session session, params string[] parameters)
         {
             // @adminvision { on | off | toggle | check}
             // Controls whether or not the admin can see admin-only visible items. Note that if you turn this feature off, you will need to log out and back in before the visible items become invisible.
             // @adminvision - Allows the admin to see admin - only visible items.
-
-            // TODO: output
-
-            // output: Admin Visible is {state}
-
-            // ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
 
             switch (parameters?[0].ToLower())
             {

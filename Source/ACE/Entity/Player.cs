@@ -3575,6 +3575,8 @@ namespace ACE.Entity
 
         public void HandleAdminvisionToggle(int choice)
         {
+            bool oldState = Adminvision;
+
             switch (choice)
             {
                 case -1:
@@ -3599,6 +3601,11 @@ namespace ACE.Entity
 
             string state = Adminvision ? "enabled" : "disabled";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));
+
+            if (oldState != Adminvision && !Adminvision)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
+            }
         }
     }
 }
