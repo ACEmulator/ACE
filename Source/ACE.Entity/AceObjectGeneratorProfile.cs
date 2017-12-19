@@ -44,10 +44,6 @@ namespace ACE.Entity
         [DbField("whereCreate", (int)MySqlDbType.UInt32)]
         public uint WhereCreate { get; set; }
 
-        ////[JsonProperty("destinationType")]
-        ////[DbField("destinationType", (int)MySqlDbType.Byte)]
-        ////public sbyte DestinationType { get; set; }
-
         [JsonProperty("stackSize")]
         [DbField("stackSize", (int)MySqlDbType.Int32)]
         public int StackSize { get; set; }
@@ -59,10 +55,6 @@ namespace ACE.Entity
         [JsonProperty("shade")]
         [DbField("shade", (int)MySqlDbType.Float)]
         public float Shade { get; set; }
-
-        // [JsonProperty("tryToBond")]
-        // [DbField("tryToBond", (int)MySqlDbType.Byte)]
-        // public bool TryToBond { get; set; }
 
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint LandblockRaw { get; set; }

@@ -1844,12 +1844,8 @@ namespace ACE.Entity
             else
             {
                 // TODO: add in support for client to toggle sending all objects (@adminvision on/off)
-                if (!(worldObject.Visibility ?? false)) // If Visibility is true, do not sent object to client, object is server side only (unless client is an admin
+                if (!(worldObject.Visibility ?? false)) // If Visibility is true, do not sent object to client, object is server side only
                     Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
-                ////if (worldObject.SuppressGenerateEffect != true)
-                ////    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, Enum.PlayScript.Create));
-                if (worldObject.DefaultScriptId != null)
-                    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, (PlayScript)worldObject.DefaultScriptId));
             }
         }
 

@@ -3148,9 +3148,6 @@ namespace ACE.Entity
             }
         }
 
-        ////public Dictionary<uint, Dictionary<uint, uint>> GeneratorRegistry = new Dictionary<uint, Dictionary<uint, uint>>();
-        ////public Dictionary<uint, List<uint>> GeneratorRegistry = new Dictionary<uint, List<uint>>();
-
         public Dictionary<uint, GeneratorRegistryNode> GeneratorRegistry = new Dictionary<uint, GeneratorRegistryNode>();
 
         public List<GeneratorQueueNode> GeneratorQueue = new List<GeneratorQueueNode>();
