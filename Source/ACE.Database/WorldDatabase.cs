@@ -182,10 +182,19 @@ namespace ACE.Database
                 ao.Location = new Position(instance.LandblockRaw, instance.PositionX, instance.PositionY, instance.PositionZ, instance.RotationX, instance.RotationY, instance.RotationZ, instance.RotationW);
 
                 // Use the guid recorded by the PCAP.
-                // This step could eventually be removed if we want to let the GuidManager handle assigning guids for static objects, ignoring the recorded guids.
+                // Cloning the CurrentMotionState would likely be removed at some point as it is mainly useful for examining objects as recorded at time of pcap.
                 string cmsClone = ao.CurrentMotionState; // Make a copy of the CurrentMotionState for cloning
-                ao = (AceObject)ao.Clone(instance.PreassignedGuid); // Clone AceObject and assign the recorded Guid
+
+                // Clone AceObject and assign the recorded Guid
+                ao = (AceObject)ao.Clone(instance.PreassignedGuid); // Use recorded guid
+
                 ao.CurrentMotionState = cmsClone; // Restore CurrentMotionState from original weenie
+
+                // Skip linked objects that aren't the source object
+                if (instance.LinkSlot > 0)
+                    ao.LinkSlot = instance.LinkSlot;
+                if (instance.LinkSource == 1)
+                    ao.LinkSource = true;
 
                 ret.Add(ao);
             });

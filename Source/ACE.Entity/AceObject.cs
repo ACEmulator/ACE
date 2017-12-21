@@ -2402,5 +2402,11 @@ namespace ACE.Entity
         {
             return toClone.ToDictionary(x => x.Key, x => (V)x.Value.Clone());
         }
+
+        [JsonIgnore]
+        public int? LinkSlot;
+
+        [JsonIgnore]
+        public bool? LinkSource;
     }
 }
