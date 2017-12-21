@@ -841,6 +841,7 @@ namespace ACE.Entity
             container.AddToInventory(wo, placement);
 
             // Was Item controlled by a generator?
+            // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
 
             if (wo.GeneratorId > 0)
             {
