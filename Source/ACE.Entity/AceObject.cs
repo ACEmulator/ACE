@@ -420,9 +420,6 @@ namespace ACE.Entity
             set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
         }
 
-        /// <summary>
-        /// If in a container, then what slot am I currently in.
-        /// </summary>
         [JsonIgnore]
         public int? Placement
         {

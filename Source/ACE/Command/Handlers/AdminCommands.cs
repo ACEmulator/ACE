@@ -1035,7 +1035,7 @@ namespace ACE.Command.Handlers
 
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
             loot.ContainerId = session.Player.Guid.Full;
-            loot.Placement = 0;
+            loot.PlacementPosition = 0;
             session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
             session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),

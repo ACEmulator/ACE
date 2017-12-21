@@ -10,8 +10,8 @@ namespace ACE.Entity
         public GenericObject(AceObject aceObject)
             : base(aceObject)
         {
-            if (AnimationFrame == null)
-                AnimationFrame = 101;
+            if (Placement == null)
+                Placement = Enum.Placement.Resting;
         }
 
         ////public GenericObject(ObjectGuid guid, AceObject aceObject)

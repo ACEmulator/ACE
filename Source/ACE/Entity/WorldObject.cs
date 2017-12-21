@@ -236,10 +236,10 @@ namespace ACE.Entity
             set { AceObject.Elasticity = value; }
         }
 
-        public int? AnimationFrame
+        public Placement? Placement // Sometimes known as AnimationFrame
         {
-            get { return AceObject.PlacementPosition; }
-            set { AceObject.PlacementPosition = value; }
+            get { return (Placement?)AceObject.Placement; }
+            set { AceObject.Placement = (int?)value; }
         }
 
         public AceVector3 Acceleration { get; set; }
@@ -448,10 +448,10 @@ namespace ACE.Entity
             set { AceObject.ContainerIID = value; }
         }
 
-        public int? Placement
+        public int? PlacementPosition
         {
-            get { return AceObject.Placement; }
-            set { AceObject.Placement = value; }
+            get { return AceObject.PlacementPosition; }
+            set { AceObject.PlacementPosition = value; }
         }
 
         public uint? WielderId
@@ -1659,12 +1659,12 @@ namespace ACE.Entity
             inventoryItem.Location = null;
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.ContainerId = null;
-            inventoryItem.Placement = null;
+            inventoryItem.PlacementPosition = null;
             inventoryItem.WielderId = null;
             inventoryItem.CurrentWieldedLocation = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
-            inventoryItem.AnimationFrame = 0x65;
+            inventoryItem.Placement = Enum.Placement.Resting;
         }
 
         internal void SetInventoryForWorld(WorldObject inventoryItem)
@@ -1676,12 +1676,12 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQx;
 
             inventoryItem.ContainerId = null;
-            inventoryItem.Placement = null;
+            inventoryItem.PlacementPosition = null;
             inventoryItem.WielderId = null;
             inventoryItem.CurrentWieldedLocation = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
-            inventoryItem.AnimationFrame = 0x65;
+            inventoryItem.Placement = Enum.Placement.Resting;
         }
 
         internal void SetInventoryForContainer(WorldObject inventoryItem, int placement)
@@ -1690,8 +1690,8 @@ namespace ACE.Entity
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             // TODO: Create enums for this.
-            inventoryItem.AnimationFrame = 1;
-            inventoryItem.Placement = placement;
+            inventoryItem.Placement = Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
+            inventoryItem.PlacementPosition = placement;
             inventoryItem.Location = null;
             inventoryItem.ParentLocation = null;
             inventoryItem.CurrentWieldedLocation = null;
@@ -2511,7 +2511,7 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            Location.Serialize(writer, PositionFlag, this.AnimationFrame ?? 0);
+            Location.Serialize(writer, PositionFlag, (int)(Placement ?? Enum.Placement.Default));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
@@ -2632,7 +2632,7 @@ namespace ACE.Entity
             if (CurrentMotionState != null && movementData.Length > 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if (AnimationFrame != null)
+            if (Placement != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
             if (Location != null)
@@ -2721,7 +2721,7 @@ namespace ACE.Entity
                 }
             }
             else if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
-                writer.Write((AnimationFrame ?? 0));
+                writer.Write(((uint)(Placement ?? Enum.Placement.Default)));
             // TODO: Keep an eye on this, are we sure the client does not just ignore it?   I would think they way it reads by buffer length that this would blow up.
             // probably an edge case - just watch this - Og II
 

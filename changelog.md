@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2017-12-21
+[Ripley]
+* Added Placement Enum.
+* Swapped storage of Placement data with PlacementPosition data.
+* Removed AnimationFrame and linked it with Placement.
+
 ### 2017-12-19
 [Ripley]
 * Overhauled Generator system to bring it more in line with how it operated on retail servers.

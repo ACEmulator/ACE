@@ -812,7 +812,7 @@ namespace ACE.Command.Handlers
             {
                 WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
-                loot.Placement = 0;
+                loot.PlacementPosition = 0;
                 // TODO: Og II
                 // Need this hack because weenies are not cleaned up.   Can be removed once weenies are fixed.
                 loot.WielderId = null;
@@ -840,7 +840,7 @@ namespace ACE.Command.Handlers
             {
                 WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
-                loot.Placement = 0;
+                loot.PlacementPosition = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
                 ActionChain chain = new ActionChain();
@@ -869,7 +869,7 @@ namespace ACE.Command.Handlers
                 loot.StackSize = loot.MaxStackSize;
                 loot.Value = loot.StackSize * valueEach;
                 loot.ContainerId = session.Player.Guid.Full;
-                loot.Placement = 0;
+                loot.PlacementPosition = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
                 session.Network.EnqueueSend(

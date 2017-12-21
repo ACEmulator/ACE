@@ -1077,7 +1077,7 @@ namespace ACE.Entity
                     foreach (WorldObject wo in uqlist)
                     {
                         wo.ContainerId = Guid.Full;
-                        wo.Placement = 0;
+                        wo.PlacementPosition = 0;
                         AddToInventory(wo);
                         Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                         Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
@@ -1313,7 +1313,7 @@ namespace ACE.Entity
         {
             var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             wo.ContainerId = Guid.Full;
-            wo.Placement = 0;
+            wo.PlacementPosition = 0;
             AddToInventory(wo);
             TrackObject(wo);
             return wo;
@@ -2159,7 +2159,7 @@ namespace ACE.Entity
         private void AddToWieldedObjects(ref WorldObject item, WorldObject wielder, EquipMask currentWieldedLocation)
         {
             // Unset container fields
-            item.Placement = null;
+            item.PlacementPosition = null;
             item.ContainerId = null;
             // Set fields needed to be wielded.
             item.WielderId = wielder.Guid.Full;
@@ -2259,7 +2259,7 @@ namespace ACE.Entity
 
             // Set the container stuff
             item.ContainerId = container.Guid.Full;
-            item.Placement = placement;
+            item.PlacementPosition = placement;
 
             ActionChain inContainerChain = new ActionChain();
             inContainerChain.AddAction(this, () =>
@@ -2302,7 +2302,7 @@ namespace ACE.Entity
             RemoveWorldObjectFromInventory(item.Guid);
 
             item.ContainerId = container.Guid.Full;
-            item.Placement = placement;
+            item.PlacementPosition = placement;
 
             container.AddToInventory(item, placement);
 
@@ -2753,7 +2753,7 @@ namespace ACE.Entity
                 container.Children.Add(new HeldItem(item.Guid.Full, childLocation, (EquipMask)item.CurrentWieldedLocation));
             item.ParentLocation = childLocation;
             item.Location = Location;
-            item.AnimationFrame = placementId;
+            item.Placement = (Placement)placementId;
         }
 
         public void HandleActionWieldItem(Container container, uint itemId, int placement)
