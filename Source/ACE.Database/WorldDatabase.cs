@@ -190,7 +190,7 @@ namespace ACE.Database
 
                 ao.CurrentMotionState = cmsClone; // Restore CurrentMotionState from original weenie
 
-                // Skip linked objects that aren't the source object
+                // If instance has linking data add it to the object
                 if (instance.LinkSlot > 0)
                     ao.LinkSlot = instance.LinkSlot;
                 if (instance.LinkSource == 1)
