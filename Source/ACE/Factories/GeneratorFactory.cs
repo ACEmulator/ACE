@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using ACE.Database;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -121,10 +121,10 @@ namespace ACE.Factories
                     if (wo != null)
                     {
                         wo.Location = pos;
-                        // if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
-                        //    wo.Guid = GuidManager.NewNonStaticGuid();
-                        // else
-                        //    wo.Guid = GuidManager.NewItemGuid();
+                        if (wo.WeenieType == WeenieType.Creature || wo.WeenieType == WeenieType.Cow)
+                            wo.Guid = GuidManager.NewNonStaticGuid();
+                         else
+                            wo.Guid = GuidManager.NewItemGuid();
                         wo.GeneratorId = generator.AceObjectId;
 
                         results.Add(wo);

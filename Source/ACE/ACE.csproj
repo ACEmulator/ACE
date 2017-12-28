@@ -106,6 +106,9 @@
     <Compile Include="Entity\Actions\LoopAction.cs" />
     <Compile Include="Entity\Actions\NestedActionQueue.cs" />
     <Compile Include="Entity\Adjacency.cs" />
+    <Compile Include="Entity\Ammunition.cs" />
+    <Compile Include="Entity\Caster.cs" />
+    <Compile Include="Entity\Clothing.cs" />
     <Compile Include="Entity\Container.cs" />
     <Compile Include="Entity\ContractTracker.cs" />
     <Compile Include="Entity\Creature.cs" />
@@ -123,6 +126,8 @@
     <Compile Include="Entity\Food.cs" />
     <Compile Include="Entity\Gem.cs" />
     <Compile Include="Entity\Game.cs" />
+    <Compile Include="Entity\MeleeWeapon.cs" />
+    <Compile Include="Entity\Missile.cs" />
     <Compile Include="Entity\Scroll.cs" />
     <Compile Include="Entity\GenericObject.cs" />
     <Compile Include="Entity\Lifestone.cs" />
@@ -146,6 +151,7 @@
     <Compile Include="Entity\Vendor.cs" />
     <Compile Include="Factories\GeneratorFactory.cs" />
     <Compile Include="Factories\LootGenerationFactory.cs" />
+    <Compile Include="Factories\LootHelper.cs" />
     <Compile Include="Factories\MonsterFactory.cs" />
     <Compile Include="Factories\SpecialPortalObjectFactory.cs" />
     <Compile Include="Factories\StarterGearFactory.cs" />

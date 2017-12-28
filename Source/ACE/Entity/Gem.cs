@@ -1,12 +1,14 @@
-﻿using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
+using System.Collections.Generic;
 
 namespace ACE.Entity
 {
+    using global::ACE.Entity.Enum.Properties;
     using System;
     using System.Diagnostics;
 
@@ -20,12 +22,16 @@ namespace ACE.Entity
             get { return AceObject.UseCreateContractId; }
             set { AceObject.UseCreateContractId = value; }
         }
-
+        public override int? Value
+        {
+            get { return AceObject.Value; }
+            set { AceObject.Value = value; }
+        }
         public Gem(AceObject aceObject)
             : base(aceObject)
         {
+            PropertiesSpellId = new List<AceObjectPropertiesSpell>();
         }
-
         /// <summary>
         /// The OnUse method for this class is to use a contract to add a tracked quest to our quest panel.
         /// This gives the player access to information about the quest such as starting and ending NPC locations,
@@ -91,9 +97,14 @@ namespace ACE.Entity
                     Duration = CooldownDuration.Value,
                     DegradeModifier = 0,
                     DegradeLimit = -666
-            };
+                };
                 session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase, layer, spellCategory, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
-
+                Entity.Player.ConsumableBuffType buffType = Entity.Player.ConsumableBuffType.Spell;
+                session.Player.ApplyComsumable(Name, Sound.EnchantUp, buffType, (uint)0, SpellDID);
+                session.Player.HandleActionRemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
+                var sendUseDoneEvent = new GameEventUseDone(session);
+                session.Network.EnqueueSend(sendUseDoneEvent);
+                ChatPacket.SendServerMessage(session, "You are trying to use the magical gem", ChatMessageType.Broadcast);
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
                 session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);

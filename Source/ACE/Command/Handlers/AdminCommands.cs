@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -999,6 +999,14 @@ namespace ACE.Command.Handlers
             var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+        }
+
+        // create wclassid (number)
+        [CommandHandler("createT1", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an random amount of tier 1 objects by typing @createt1 1")]
+        public static void CreateT1(Session session, params string[] parameters)
+        {
+            LootGenerationFactory.CreateTierOneLootItems(session.Player);
         }
 
         // ci wclassid (number)

@@ -141,7 +141,8 @@ namespace ACE.Entity.Enum.Properties
         NoOlthoiTalk                     = 129,
         AutowieldLeft                    = 130,
         [ServerOnly]
-        IsDeleted                        = 9001
+        IsDeleted                        = 9001,
+        IsDyable = 9002
     }
 
     public static class PropertyBoolExtensions

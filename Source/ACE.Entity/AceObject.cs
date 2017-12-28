@@ -265,7 +265,7 @@ namespace ACE.Entity
             get { return GetDataIdProperty(PropertyDataId.CombatTable); }
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
-
+		
         [JsonIgnore]
         public int? PhysicsState
         {
@@ -292,6 +292,13 @@ namespace ACE.Entity
         {
             get { return GetDataIdProperty(PropertyDataId.Icon); }
             set { SetDataIdProperty(PropertyDataId.Icon, value); }
+        }
+		
+		[JsonIgnore]
+        public uint? Spell
+        {
+            get { return GetDataIdProperty(PropertyDataId.Spell); }
+            set { SetDataIdProperty(PropertyDataId.Spell, value); }
         }
 
         [JsonIgnore]
@@ -330,10 +337,101 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
+        public int? ElementalDamageBonus
+        {
+            get { return GetIntProperty(PropertyInt.ElementalDamageBonus); }
+            set { SetIntProperty(PropertyInt.ElementalDamageBonus, (int)value); }
+        }
+
+        [JsonIgnore]
         public int? Value
         {
             get { return GetIntProperty(PropertyInt.Value); }
             set { SetIntProperty(PropertyInt.Value, value); }
+        }
+
+        [JsonIgnore]
+        public int? ArmorLevel
+		{
+            get { return GetIntProperty(PropertyInt.ArmorLevel); }
+            set { SetIntProperty(PropertyInt.ArmorLevel, value); }
+        }
+
+        [JsonIgnore]
+        public int? WeaponType
+        {
+            get { return GetIntProperty(PropertyInt.WeaponType); }
+            set { SetIntProperty(PropertyInt.WeaponType, value); }
+        }
+
+        [JsonIgnore]
+        public int? ItemSpellcraft
+		{
+            get { return GetIntProperty(PropertyInt.ItemSpellcraft); }
+            set { SetIntProperty(PropertyInt.ItemSpellcraft, value); }
+        }
+		
+		[JsonIgnore]
+        public int? ItemDifficulty
+		{
+            get { return GetIntProperty(PropertyInt.ItemDifficulty); }
+            set { SetIntProperty(PropertyInt.ItemDifficulty, value); }
+        }
+		
+		[JsonIgnore]
+        public int? ItemAllegianceRankLimit
+		{
+            get { return GetIntProperty(PropertyInt.ItemAllegianceRankLimit); }
+            set { SetIntProperty(PropertyInt.ItemAllegianceRankLimit, value); }
+        }
+		
+		[JsonIgnore]
+        public int? ItemSkillLevelLimit
+		{
+            get { return GetIntProperty(PropertyInt.ItemSkillLevelLimit); }
+            set { SetIntProperty(PropertyInt.ItemSkillLevelLimit, value); }
+        }
+		
+		[JsonIgnore]
+        public int? MaterialType
+		{
+            get { return GetIntProperty(PropertyInt.MaterialType); }
+            set { SetIntProperty(PropertyInt.MaterialType, value); }
+        }
+		
+		[JsonIgnore]
+        public int? WieldRequirements
+		{
+            get { return GetIntProperty(PropertyInt.WieldRequirements); }
+            set { SetIntProperty(PropertyInt.WieldRequirements, value); }
+        }
+		
+		[JsonIgnore]
+        public int? WieldSkilltype
+		{
+            get { return GetIntProperty(PropertyInt.WieldSkilltype); }
+            set { SetIntProperty(PropertyInt.WieldSkilltype, value); }
+        }
+		
+		[JsonIgnore]
+        public int? WieldDifficulty
+		{
+            get { return GetIntProperty(PropertyInt.WieldDifficulty); }
+            set { SetIntProperty(PropertyInt.WieldDifficulty, value); }
+        }
+
+        [JsonIgnore]
+        public int? EquipmentSetId
+		{
+            get { return GetIntProperty(PropertyInt.EquipmentSetId); }
+            set { SetIntProperty(PropertyInt.EquipmentSetId, value); }
+        }
+		
+		[JsonIgnore]
+        public int? StackUnitValue
+        {
+            get { return GetIntProperty(PropertyInt.StackUnitValue); }
+            set { SetIntProperty(PropertyInt.StackUnitValue, value); }
         }
 
         [JsonIgnore]
@@ -536,13 +634,6 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public byte? MaterialType
-        {
-            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
-            set { SetIntProperty(PropertyInt.MaterialType, (byte?)value); }
-        }
-
-        [JsonIgnore]
         public int? SharedCooldown
         {
             get { return GetIntProperty(PropertyInt.SharedCooldown); }
@@ -661,6 +752,12 @@ namespace ACE.Entity
             get { return GetBoolProperty(PropertyBool.IsDeleted); }
             set { SetBoolProperty(PropertyBool.IsDeleted, value); }
         }
+		
+		public bool? IsDyable
+        {
+            get { return GetBoolProperty(PropertyBool.IsDyable); }
+            set { SetBoolProperty(PropertyBool.IsDyable, value); }
+        }
 
         [JsonIgnore]
         public ulong? DeleteTime
@@ -727,6 +824,20 @@ namespace ACE.Entity
 
         [JsonIgnore]
         public int? VitaeCpPool
+        {
+            get { return GetIntProperty(PropertyInt.VitaeCpPool); }
+            set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
+        }
+		
+		[JsonIgnore]
+        public int? AppraisalLongDescDecoration
+        {
+            get { return GetIntProperty(PropertyInt.AppraisalLongDescDecoration); }
+            set { SetIntProperty(PropertyInt.AppraisalLongDescDecoration, value); }
+        }
+		
+		[JsonIgnore]
+        public int? SpellID
         {
             get { return GetIntProperty(PropertyInt.VitaeCpPool); }
             set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
@@ -1561,12 +1672,166 @@ namespace ACE.Entity
             get { return GetIntProperty(PropertyInt.BoosterEnum); }
             set { SetIntProperty(PropertyInt.BoosterEnum, value); }
         }
+		
+		[JsonIgnore]
+        public int? WeaponTime
+        {
+            get { return GetIntProperty(PropertyInt.WeaponTime); }
+            set { SetIntProperty(PropertyInt.WeaponTime, value); }
+        }
+		
+		[JsonIgnore]
+        public int? GemCount
+        {
+            get { return GetIntProperty(PropertyInt.GemCount); }
+            set { SetIntProperty(PropertyInt.GemCount, value); }
+        }
+		
+		[JsonIgnore]
+        public int? GemType
+        {
+            get { return GetIntProperty(PropertyInt.GemType); }
+            set { SetIntProperty(PropertyInt.GemType, value); }
+        }
+		
+		[JsonIgnore]
+        public int? WeaponSkill
+        {
+            get { return GetIntProperty(PropertyInt.GemType); }
+            set { SetIntProperty(PropertyInt.GemType, value); }
+        }
 
         [JsonIgnore]
         public double? HealkitMod
         {
             get { return GetDoubleProperty(PropertyDouble.HealkitMod); }
             set { SetDoubleProperty(PropertyDouble.HealkitMod, value); }
+        }
+		
+		[JsonIgnore]
+        public double? ManaRate 
+        {
+            get { return GetDoubleProperty(PropertyDouble.ManaRate ); }
+            set { SetDoubleProperty(PropertyDouble.ManaRate , value); }
+        }
+
+        [JsonIgnore]
+        public double? ManaConversionMod
+        {
+            get { return GetDoubleProperty(PropertyDouble.ManaConversionMod); }
+            set { SetDoubleProperty(PropertyDouble.ManaConversionMod, value); }
+        }
+
+        [JsonIgnore]
+        public double? ArmorModVsSlash
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsSlash); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsSlash, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsPierce
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsPierce); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsPierce, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsBludgeon
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsBludgeon); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsBludgeon, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsCold
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsCold); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsCold, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsFire
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsFire); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsFire, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsAcid
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsAcid); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsAcid, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsElectric
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsElectric); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsElectric, value); }
+        }
+
+		[JsonIgnore]
+        public double? ArmorModVsNether
+        {
+            get { return GetDoubleProperty(PropertyDouble.ArmorModVsNether); }
+            set { SetDoubleProperty(PropertyDouble.ArmorModVsNether, value); }
+        }
+
+        [JsonIgnore]
+        public double? WeaponLength
+        {
+            get { return GetDoubleProperty(PropertyDouble.WeaponLength); }
+            set { SetDoubleProperty(PropertyDouble.WeaponLength, value); }
+        }
+
+        [JsonIgnore]
+        public double? DamageVariance
+        {
+            get { return GetDoubleProperty(PropertyDouble.DamageVariance); }
+            set { SetDoubleProperty(PropertyDouble.DamageVariance, value); }
+        }
+
+        [JsonIgnore]
+        public double? MaximumVelocity
+        {
+            get { return GetDoubleProperty(PropertyDouble.MaximumVelocity); }
+            set { SetDoubleProperty(PropertyDouble.MaximumVelocity, value); }
+        }
+
+        [JsonIgnore]
+        public double? WeaponDefense
+        {
+            get { return GetDoubleProperty(PropertyDouble.WeaponDefense); }
+            set { SetDoubleProperty(PropertyDouble.WeaponDefense, value); }
+        }
+
+        [JsonIgnore]
+        public double? WeaponOffense
+        {
+            get { return GetDoubleProperty(PropertyDouble.WeaponOffense); }
+            set { SetDoubleProperty(PropertyDouble.WeaponOffense, value); }
+        }
+
+        [JsonIgnore]
+        public double? DamageMod
+        {
+            get { return GetDoubleProperty(PropertyDouble.DamageMod); }
+            set { SetDoubleProperty(PropertyDouble.DamageMod, value); }
+        }
+
+        [JsonIgnore]
+        public int? Damage
+        {
+            get { return GetIntProperty(PropertyInt.Damage); }
+            set { SetIntProperty(PropertyInt.Damage, (int)value); }
+        }
+
+        [JsonIgnore]
+        public int? DamageType
+        {
+            get { return GetIntProperty(PropertyInt.DamageType); }
+            set { SetIntProperty(PropertyInt.DamageType, (int)value); }
         }
 
         [JsonIgnore]
@@ -1794,6 +2059,13 @@ namespace ACE.Entity
         {
             get { return GetDataIdProperty(PropertyDataId.AlternateCurrency); }
             set { SetDataIdProperty(PropertyDataId.AlternateCurrency, value); }
+        }
+
+        [JsonIgnore]
+        public uint? Setup
+        {
+            get { return GetDataIdProperty(PropertyDataId.Setup); }
+            set { SetDataIdProperty(PropertyDataId.Setup, value); }
         }
 
         #region Chess

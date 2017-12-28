@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity
+namespace ACE.Entity
 {
     public enum GuidType
     {
@@ -33,7 +33,7 @@
 
         // FIXME(ddevec): Currently
         public static uint NonStaticMin { get; } = 0x001E8480; // 2,000,000
-        public static uint NonStaticMax { get; } = 0x4FFFFFFF;
+        public static uint NonStaticMax { get; } = 0x50000000;
 
         public static uint PlayerMin { get; } = 0x50000001;
         public static uint PlayerMax { get; } = 0x5FFFFFFF;

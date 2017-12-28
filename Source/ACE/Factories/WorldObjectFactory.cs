@@ -3,6 +3,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using System.Collections.Generic;
+using System;
 
 namespace ACE.Factories
 {
@@ -83,9 +84,28 @@ namespace ACE.Factories
                     return new Game(aceO);
                 case WeenieType.GamePiece:
                     return new GamePiece(aceO);
+                case WeenieType.Clothing:
+                    return new Clothing(aceO);
+                case WeenieType.Missile:
+                    return new Missile(aceO);
+                case WeenieType.Ammunition:
+                    return new Ammunition(aceO);
+                case WeenieType.MeleeWeapon:
+                    return new MeleeWeapon(aceO);
+                case WeenieType.Caster:
+                    return new Caster(aceO);
                 default:
                     return new GenericObject(aceO);
             }
+        }
+
+        public static WorldObject CreateCorpse(Creature cs)
+        {
+            ////Console.WriteLine("Inside CreateCorpse");
+            WorldObject wo = CreateNewWorldObject(1217);
+            ////Console.WriteLine("Added location to corpse");
+            wo.Location = cs.Location;
+            return wo;
         }
 
         public static WorldObject CreateWorldObject(uint weenieId)
@@ -103,6 +123,7 @@ namespace ACE.Factories
 
         public static WorldObject CreateNewWorldObject(uint weenieId)
         {
+            Console.WriteLine("Creating new world object");
             WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
             return wo;
         }

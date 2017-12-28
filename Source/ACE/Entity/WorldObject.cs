@@ -90,9 +90,10 @@ namespace ACE.Entity
             get { return AceObject.InstanceIdProperties; }
         }
 
-        public List<AceObjectPropertiesSpell> PropertiesSpellId
+        public virtual List<AceObjectPropertiesSpell> PropertiesSpellId
         {
             get { return AceObject.SpellIdProperties; }
+            set { AceObject.SpellIdProperties = value; }
         }
 
         public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook
@@ -397,6 +398,18 @@ namespace ACE.Entity
         {
             get { return AceObject.TargetType; }
             set { AceObject.TargetType = value; }
+        }
+
+        public int? ElementalDamageBonus
+        {
+            get { return AceObject.ElementalDamageBonus; }
+            set { AceObject.ElementalDamageBonus = value; }
+        }
+
+        public int? WeaponType
+        {
+            get { return AceObject.WeaponType; }
+            set { AceObject.WeaponType = value; }
         }
 
         public UiEffects? UiEffects
@@ -1397,6 +1410,169 @@ namespace ACE.Entity
             set { AceObject.ItemMaxMana = value; }
         }
 
+        public double? WeaponLength
+        {
+            get { return AceObject.WeaponLength; }
+            set { AceObject.WeaponLength = value; }
+        }
+        public double? DamageVariance
+        {
+            get { return AceObject.DamageVariance; }
+            set { AceObject.DamageVariance = value; }
+        }
+        public virtual double? MaximumVelocity
+        {
+            get { return AceObject.MaximumVelocity; }
+            set { AceObject.MaximumVelocity = value; }
+        }
+        public double? WeaponDefense
+        {
+            get { return AceObject.WeaponDefense; }
+            set { AceObject.WeaponDefense = value; }
+        }
+        public double? WeaponOffense
+        {
+            get { return AceObject.WeaponOffense; }
+            set { AceObject.WeaponOffense = value; }
+        }
+        public double? DamageMod
+        {
+            get { return AceObject.DamageMod; }
+            set { AceObject.DamageMod = value; }
+        }
+
+            public int? AppraisalLongDescDecoration
+        {
+            get { return AceObject.AppraisalLongDescDecoration; }
+            set { AceObject.AppraisalLongDescDecoration = value; }
+        }
+
+        public int? GemCount
+        {
+            get { return AceObject.GemCount; }
+            set { AceObject.GemCount = value; }
+        }
+
+        public int? GemType
+        {
+            get { return AceObject.GemType; }
+            set { AceObject.GemType = value; }
+        }
+
+        public int? WeaponSkill
+        {
+            get { return AceObject.WeaponSkill; }
+            set { AceObject.WeaponSkill = value; }
+        }
+
+        public virtual int? WeaponTime
+        {
+            get { return AceObject.WeaponTime; }
+            set { AceObject.WeaponTime = value; }
+        }
+
+        public int? WieldDifficulty
+        {
+            get { return AceObject.WieldDifficulty; }
+            set { AceObject.WieldDifficulty = value; }
+        }
+
+        public int? WieldRequirements
+        {
+            get { return AceObject.WieldRequirements; }
+            set { AceObject.WieldRequirements = value; }
+        }
+
+        public int? WieldSkilltype
+        {
+            get { return AceObject.WieldSkilltype; }
+            set { AceObject.WieldSkilltype = value; } 
+        }
+
+        public int? Damage
+        {
+            get { return AceObject.Damage; }
+            set { AceObject.Damage = value; }
+        }
+
+        public virtual int? DamageType
+        {
+            get { return AceObject.Damage; }
+            set { AceObject.Damage = value; }
+        }
+
+        public double? ArmorModVsSlash
+        {
+            get { return AceObject.ArmorModVsSlash; }
+            set { AceObject.ArmorModVsSlash = value; }
+        }
+
+        public double? ArmorModVsPierce
+        {
+            get { return AceObject.ArmorModVsPierce; }
+            set { AceObject.ArmorModVsPierce = value; }
+        }
+
+        public double? ArmorModVsBludgeon
+        {
+            get { return AceObject.ArmorModVsBludgeon; }
+            set { AceObject.ArmorModVsBludgeon = value; }
+        }
+
+        public double? ArmorModVsCold
+        {
+            get { return AceObject.ArmorModVsCold; }
+            set { AceObject.ArmorModVsCold = value; }
+        }
+
+        public double? ArmorModVsFire
+        {
+            get { return AceObject.ArmorModVsFire; }
+            set { AceObject.ArmorModVsFire = value; }
+        }
+
+        public double? ArmorModVsAcid
+        {
+            get { return AceObject.ArmorModVsAcid; }
+            set { AceObject.ArmorModVsAcid = value; }
+        }
+
+        public double? ArmorModVsElectric
+        {
+            get { return AceObject.ArmorModVsElectric; }
+            set { AceObject.ArmorModVsElectric = value; }
+        }
+
+        public double? ArmorModVsNether
+        {
+            get { return AceObject.ArmorModVsNether; }
+            set { AceObject.ArmorModVsNether = value; }
+        }
+
+        public double? ManaConversionMod
+        {
+            get { return AceObject.ManaConversionMod; }
+            set { AceObject.ManaConversionMod = value; }
+        }
+
+        public virtual int? ArmorLevel
+        {
+            get { return AceObject.ArmorLevel; }
+            set { AceObject.ArmorLevel = value; }
+        }
+
+        public uint? Setup
+        {
+            get { return AceObject.Setup; }
+            set { AceObject.Setup = value; }
+        }
+
+        public string ShortDesc
+        {
+            get { return AceObject.ShortDesc; }
+            set { AceObject.ShortDesc = value; }
+        }
+
         public bool? AdvocateState
         {
             get { return AceObject.AdvocateState; }
@@ -1500,12 +1676,12 @@ namespace ACE.Entity
             get { return ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius); }
         }
 
-    public bool IsWithinUseRadiusOf(WorldObject wo)
-    {
-        if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+        public bool IsWithinUseRadiusOf(WorldObject wo)
+        {
+            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
                 return false;
-        return true;
-    }
+            return true;
+        }
 
         public string LongDesc
         {
@@ -1567,7 +1743,7 @@ namespace ACE.Entity
             set { AceObject.Boost = value; }
         }
 
-        public uint? SpellDID
+        public virtual uint? SpellDID
         {
             get { return AceObject.SpellDID ?? null; }
             set { AceObject.SpellDID = value; }
@@ -2131,17 +2307,22 @@ namespace ACE.Entity
 
         public void QueryHealth(Session examiner)
         {
+            Console.Write("Inside QueryHealth ");
             float healthPercentage = 1f;
 
             if (Guid.IsPlayer())
             {
                 Player tmpTarget = (Player)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                Console.Write("Player percent health is: " + healthPercentage);
+                Console.WriteLine();
             }
             else if (Guid.IsCreature())
             {
                 Creature tmpTarget = (Creature)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
+                Console.Write("Player percent health is: " + healthPercentage);
+                Console.WriteLine();
             }
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
