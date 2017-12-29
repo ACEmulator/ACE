@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using ACE.Common;
-using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
@@ -193,37 +194,32 @@ namespace ACE.Entity
                 await player.DoMoveTo(this);
             else
             {
-                ActionChain checkDoorChain = new ActionChain();
-
-                checkDoorChain.AddAction(this, () =>
+                if (!IsLocked)
                 {
-                    if (!IsLocked)
+                    if (!IsOpen)
                     {
-                        if (!IsOpen)
-                        {
-                            Open(playerId);
-                        }
-                        else
-                        {
-                            Close(playerId);
-                        }
-
-                            // Create Door auto close timer
-                            ActionChain autoCloseTimer = new ActionChain();
-                        autoCloseTimer.AddDelaySeconds(ResetInterval);
-                        autoCloseTimer.AddAction(this, () => Reset());
-                        autoCloseTimer.EnqueueChain();
+                        Open(playerId);
                     }
                     else
                     {
-                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                        Close(playerId);
                     }
 
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                });
+                    // Create Door auto close timer
+                    // XXX: tmp keeps the compiler from giving a no wait warning...
+                    Task tmp = WorldManager.StartGameTask(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(ResetInterval));
+                        Reset();
+                    });
+                }
+                else
+                {
+                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                }
 
-                checkDoorChain.EnqueueChain();
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
             }
         }
 

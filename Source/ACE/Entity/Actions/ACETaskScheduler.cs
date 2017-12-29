@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using log4net;
+
 namespace ACE.Entity.Actions
 {
     /// <summary>
@@ -12,6 +14,8 @@ namespace ACE.Entity.Actions
     /// </summary>
     public class ACETaskScheduler : TaskScheduler
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Protected by lock(tasks)
         /// </summary>
@@ -41,12 +45,6 @@ namespace ACE.Entity.Actions
             foreach (Task t in tmp)
             {
                 base.TryExecuteTask(t);
-
-                // FIXME(ddevec): Need to find a way to better report exceptions :(
-                if (t.IsFaulted)
-                {
-                    throw t.Exception;
-                }
             }
         }
 
@@ -64,7 +62,12 @@ namespace ACE.Entity.Actions
                 }
             }
 
-            return base.TryExecuteTask(task);
+            bool ret = base.TryExecuteTask(task);
+            if (ret == false)
+            {
+                log.Error("Failed to execute inline after trying?");
+            }
+            return ret;
         }
 
         public sealed override int MaximumConcurrencyLevel => 1;

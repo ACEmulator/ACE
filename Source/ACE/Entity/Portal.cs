@@ -287,7 +287,7 @@ namespace ACE.Entity
                     usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                     player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
-                    player.Session.Player.Teleport(portalDest);
+                    await player.Session.Player.Teleport(portalDest);
                     // If the portal just used is able to be recalled to,
                     // save the destination coordinates to the LastPortal character position save table
                     if (IsRecallable)

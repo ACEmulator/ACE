@@ -23,10 +23,12 @@ namespace ACE.Network.Handlers
     public static class CharacterHandler
     {
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
-        public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task CharacterEnterWorldRequest(ClientMessage message, Session session)
         {
             session.Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
+        #pragma warning restore 1998
 
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
         public static async Task CharacterEnterWorld(ClientMessage message, Session session)

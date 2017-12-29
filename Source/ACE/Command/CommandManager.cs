@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Managers;
 using ACE.Network;
 
 namespace ACE.Command
@@ -72,8 +73,11 @@ namespace ACE.Command
                 CommandHandlerInfo commandHandler;
                 if (GetCommandHandler(null, command, parameters, out commandHandler) == CommandHandlerResponse.Ok)
                 {
-                    // Add command to world manager's main thread...
-                    ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                    WorldManager.StartGameTask(async () =>
+                    {
+                        // Add command to world manager's main thread...
+                        await ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                    });
                 }
             }
         }

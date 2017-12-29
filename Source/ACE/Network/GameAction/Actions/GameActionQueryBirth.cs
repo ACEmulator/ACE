@@ -1,6 +1,7 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
+
 using ACE.Common.Extensions;
-using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
@@ -8,7 +9,8 @@ namespace ACE.Network.GameAction.Actions
     public static class GameActionQueryBirth
     {
         [GameAction(GameActionType.QueryBirth)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
@@ -18,5 +20,6 @@ namespace ACE.Network.GameAction.Actions
 
             session.Network.EnqueueSend(dobEvent);
         }
+        #pragma warning restore 1998
     }
 }

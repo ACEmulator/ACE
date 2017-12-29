@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ACE.Network.GameAction.Actions
@@ -9,7 +5,8 @@ namespace ACE.Network.GameAction.Actions
     public static class GameActionConfirmation
     {
         [GameAction(GameActionType.ConfirmationResponse)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             int confirmType = message.Payload.ReadInt32();
             uint context = message.Payload.ReadUInt32();
@@ -17,5 +14,6 @@ namespace ACE.Network.GameAction.Actions
 
             // TODO: do something
         }
+        #pragma warning restore 1998
     }
 }

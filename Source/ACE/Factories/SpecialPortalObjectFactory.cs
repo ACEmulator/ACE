@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using ACE.Managers;
@@ -36,13 +37,11 @@ namespace ACE.Factories
 
             portal.Guid = GuidManager.NewItemGuid();
 
-            LandblockManager.AddObject(portal);
+            await LandblockManager.AddObject(portal);
 
             // Create portal decay
-            ActionChain despawnChain = new ActionChain();
-            despawnChain.AddDelaySeconds(despawnTime);
-            despawnChain.AddAction(portal, () => portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false));
-            despawnChain.EnqueueChain();
+            await Task.Delay(TimeSpan.FromSeconds(despawnTime));
+            portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false);
         }
     }
 }

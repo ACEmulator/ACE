@@ -42,7 +42,7 @@ namespace ACE.Database
         /// </summary>
         Task<List<WeenieSearchResult>> SearchWeenies(SearchWeeniesCriteria criteria);
 
-        Task<bool> UserModifiedFlagPresent();
+        bool UserModifiedFlagPresent();
 
         /// <summary>
         /// does a full object replacement, deleting all properties prior to insertion

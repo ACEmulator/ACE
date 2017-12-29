@@ -48,7 +48,7 @@ namespace ACE.Entity
             else
                 buffType = Entity.Player.ConsumableBuffType.Spell;
 
-            session.Player.ApplyComsumable(Name, SolidOrLiquid(), buffType, (uint)Boost, SpellDID);
+            await session.Player.ApplyComsumable(Name, SolidOrLiquid(), buffType, (uint)Boost, SpellDID);
 
             await session.Player.RemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
 

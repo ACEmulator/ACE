@@ -1,4 +1,6 @@
-﻿using ACE.Network.Enum;
+using System.Threading.Tasks;
+
+using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.Managers;
 
@@ -22,7 +24,8 @@ namespace ACE.Network.GameAction
         public abstract void Handle();
 
         [GameMessageAttribute(GameMessageOpcode.GameAction, SessionState.WorldConnected)]
-        public static void HandleGameAction(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task HandleGameAction(ClientMessage message, Session session)
         {
             // TODO: verify sequence
             uint sequence = message.Payload.ReadUInt32();
@@ -30,5 +33,6 @@ namespace ACE.Network.GameAction
 
             InboundMessageManager.HandleGameAction((GameActionType)opcode, message, session);
         }
+        #pragma warning restore 1998
     }
 }

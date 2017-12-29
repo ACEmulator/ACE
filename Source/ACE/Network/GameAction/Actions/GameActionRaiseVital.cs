@@ -1,12 +1,14 @@
-﻿using ACE.Entity.Enum;
-using ACE.Network.Enum;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionRaiseVital
     {
         [GameAction(GameActionType.RaiseVital)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var vital = (Vital)message.Payload.ReadUInt32();
             var xpSpent = message.Payload.ReadUInt32();
@@ -30,5 +32,6 @@ namespace ACE.Network.GameAction.Actions
 
             session.Player.SpendXp(ability, xpSpent);
         }
+        #pragma warning restore 1998
     }
 }

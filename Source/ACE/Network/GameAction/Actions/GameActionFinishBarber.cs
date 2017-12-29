@@ -1,13 +1,15 @@
-﻿using ACE.Entity.Actions;
+using System.Threading.Tasks;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionFinishBarber
     {
         [GameAction(GameActionType.FinishBarber)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
-            session.Player.HandleActionFinishBarber(message);
+            session.Player.FinishBarber(message);
         }
+        #pragma warning restore 1998
     }
 }

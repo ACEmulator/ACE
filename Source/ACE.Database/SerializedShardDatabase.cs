@@ -6,10 +6,14 @@ using ACE.Entity.Enum;
 using System.Collections.Concurrent;
 using System.Threading;
 
+using log4net;
+
 namespace ACE.Database
 {
     public class SerializedShardDatabase : ISerializedShardDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private IShardDatabase _wrappedDatabase;
 
         private BlockingCollection<Task> _queue = new BlockingCollection<Task>();
@@ -46,10 +50,12 @@ namespace ACE.Database
                         t.Start();
                         t.Wait();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         // log eventually, perhaps add failure callbacks?
                         // swallow for now.  can't block other db work because 1 fails.
+                        log.Error("DB Task failure!" + ex.Message);
+                        log.Error("  AT:" + ex.StackTrace);
                     }
                 }
                 catch (ObjectDisposedException)

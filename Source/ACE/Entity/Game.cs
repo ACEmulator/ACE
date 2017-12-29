@@ -48,89 +48,89 @@ namespace ACE.Entity
 
             var drudgeRook1 = await WorldObjectFactory.CreateNewWorldObject(14343) as GamePiece;
             drudgeRook1.Location = new Position(Location.Cell, Location.PositionX - 3.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09788f, 0, 0, 0, 1);
-            drudgeRook1.EnterWorld();
+            await drudgeRook1.EnterWorld();
 
             var drudgeKnight1 = await WorldObjectFactory.CreateNewWorldObject(14344) as GamePiece;
             drudgeKnight1.Location = new Position(Location.Cell, Location.PositionX - 2.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09771f, 0, 0, 0, 1);
-            drudgeKnight1.EnterWorld();
+            await drudgeKnight1.EnterWorld();
 
             var drudgeBishop1 = await WorldObjectFactory.CreateNewWorldObject(14345) as GamePiece;
             drudgeBishop1.Location = new Position(Location.Cell, Location.PositionX - 1.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09753f, 0, 0, 0, 1);
-            drudgeBishop1.EnterWorld();
+            await drudgeBishop1.EnterWorld();
 
             var drudgeQueen = await WorldObjectFactory.CreateNewWorldObject(14346) as GamePiece;
             drudgeQueen.Location = new Position(Location.Cell, Location.PositionX - 0.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09735f, 0, 0, 0, 1);
-            drudgeQueen.EnterWorld();
+            await drudgeQueen.EnterWorld();
 
             var drudgeKing = await WorldObjectFactory.CreateNewWorldObject(14347) as GamePiece;
             drudgeKing.Location = new Position(Location.Cell, Location.PositionX + 0.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09718f, 0, 0, 0, 1);
-            drudgeKing.EnterWorld();
+            await drudgeKing.EnterWorld();
 
             var drudgeBishop2 = await WorldObjectFactory.CreateNewWorldObject(14345) as GamePiece;
             drudgeBishop2.Location = new Position(Location.Cell, Location.PositionX + 1.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09753f, 0, 0, 0, 1);
-            drudgeBishop2.EnterWorld();
+            await drudgeBishop2.EnterWorld();
 
             var drudgeKnight2 = await WorldObjectFactory.CreateNewWorldObject(14344) as GamePiece;
             drudgeKnight2.Location = new Position(Location.Cell, Location.PositionX + 2.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09771f, 0, 0, 0, 1);
-            drudgeKnight2.EnterWorld();
+            await drudgeKnight2.EnterWorld();
 
             var drudgeRook2 = await WorldObjectFactory.CreateNewWorldObject(14343) as GamePiece;
             drudgeRook2.Location = new Position(Location.Cell, Location.PositionX + 3.5f, Location.PositionY - 3.5f, Location.PositionZ - 0.09788f, 0, 0, 0, 1);
-            drudgeRook2.EnterWorld();
+            await drudgeRook2.EnterWorld();
 
             var drudgePawn1 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn1.Location = new Position(Location.Cell, Location.PositionX - 3.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09788f, 0, 0, 0, 1);
-            drudgePawn1.EnterWorld();
+            await drudgePawn1.EnterWorld();
 
             var drudgePawn2 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn2.Location = new Position(Location.Cell, Location.PositionX - 2.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09771f, 0, 0, 0, 1);
-            drudgePawn2.EnterWorld();
+            await drudgePawn2.EnterWorld();
 
             var drudgePawn3 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn3.Location = new Position(Location.Cell, Location.PositionX - 1.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09753f, 0, 0, 0, 1);
-            drudgePawn3.EnterWorld();
+            await drudgePawn3.EnterWorld();
 
             var drudgePawn4 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn4.Location = new Position(Location.Cell, Location.PositionX - 0.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09735f, 0, 0, 0, 1);
-            drudgePawn4.EnterWorld();
+            await drudgePawn4.EnterWorld();
 
             var drudgePawn5 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn5.Location = new Position(Location.Cell, Location.PositionX + 0.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09718f, 0, 0, 0, 1);
-            drudgePawn5.EnterWorld();
+            await drudgePawn5.EnterWorld();
 
             var drudgePawn6 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn6.Location = new Position(Location.Cell, Location.PositionX + 1.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09753f, 0, 0, 0, 1);
-            drudgePawn6.EnterWorld();
+            await drudgePawn6.EnterWorld();
 
             var drudgePawn7 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn7.Location = new Position(Location.Cell, Location.PositionX + 2.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09771f, 0, 0, 0, 1);
-            drudgePawn7.EnterWorld();
+            await drudgePawn7.EnterWorld();
 
             var drudgePawn8 = await WorldObjectFactory.CreateNewWorldObject(14342) as GamePiece;
             drudgePawn8.Location = new Position(Location.Cell, Location.PositionX + 3.5f, Location.PositionY - 2.5f, Location.PositionZ - 0.09788f, 0, 0, 0, 1);
-            drudgePawn8.EnterWorld();
+            await drudgePawn8.EnterWorld();
 
             // Nobody ever actually started a game so the database is currently missing the mosswart versions of the above pieces. :(
 
             // For HellsWrath...
             await Task.Delay(TimeSpan.FromSeconds(5));
-            drudgeRook1.Kill();
-            drudgeBishop1.Kill();
-            drudgeKnight1.Kill();
-            drudgeQueen.Kill();
-            drudgeKing.Kill();
-            drudgeBishop2.Kill();
-            drudgeKnight2.Kill();
-            drudgeRook2.Kill();
+            await drudgeRook1.Kill();
+            await drudgeBishop1.Kill();
+            await drudgeKnight1.Kill();
+            await drudgeQueen.Kill();
+            await drudgeKing.Kill();
+            await drudgeBishop2.Kill();
+            await drudgeKnight2.Kill();
+            await drudgeRook2.Kill();
 
-            drudgePawn1.Kill();
-            drudgePawn2.Kill();
-            drudgePawn3.Kill();
-            drudgePawn4.Kill();
-            drudgePawn5.Kill();
-            drudgePawn6.Kill();
-            drudgePawn7.Kill();
-            drudgePawn8.Kill();
+            await drudgePawn1.Kill();
+            await drudgePawn2.Kill();
+            await drudgePawn3.Kill();
+            await drudgePawn4.Kill();
+            await drudgePawn5.Kill();
+            await drudgePawn6.Kill();
+            await drudgePawn7.Kill();
+            await drudgePawn8.Kill();
 
             var msgGameOver = new GameEventGameOver(player.Session, Guid.Full, 0);
             player.Session.Network.EnqueueSend(msgGameOver);

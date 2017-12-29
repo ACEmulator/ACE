@@ -21,6 +21,12 @@ namespace ACE.Entity
 
         private bool inventoryloaded = false;
 
+        public WorldObject CurrencyTemplate
+        {
+            get;
+            private set;
+        }
+
         // todo : SO : Turning to player movement states  - looks at @og
         public Vendor()
         {
@@ -29,6 +35,12 @@ namespace ACE.Entity
         protected override async Task Init(AceObject aceO)
         {
             await base.Init(aceO);
+
+            /* FIXME(ddevec): for some reason this freezes the server
+            AceObject currencyObj = await Database.DatabaseManager.World.GetAceObjectByWeenie((uint)AlternateCurrencyDID);
+
+            CurrencyTemplate = await WorldObjectFactory.CreateWorldObject(currencyObj);
+            */
         }
 
         #region General Vendor functions

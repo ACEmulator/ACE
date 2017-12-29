@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using ACE.Entity.Enum;
 using ACE.Network;
@@ -11,7 +12,7 @@ namespace ACE.Command.Handlers
     {
         // acehelp (command)
         [CommandHandler("acehelp", AccessLevel.Player, CommandHandlerFlag.None, 0, "Displays help.", "(command)")]
-        public static void HandleACEHelp(Session session, params string[] parameters)
+        public static async Task HandleACEHelp(Session session, params string[] parameters)
         {         
             if (parameters?.Length <= 0)
             {
@@ -33,7 +34,7 @@ namespace ACE.Command.Handlers
 
             if (parameters?[0] == "commands") // Mimick @help commands command
             {
-                HandleACECommands(session, parameters);
+                await HandleACECommands(session, parameters);
                 return;
             }
                 
@@ -70,12 +71,12 @@ namespace ACE.Command.Handlers
             else
                 Console.WriteLine($"Unknown command: {parameters[0]}");
 
-            return;
         }
 
         // acecommands
         [CommandHandler("acecommands", AccessLevel.Player, CommandHandlerFlag.None, 0, "Lists all commands.")]
-        public static void HandleACECommands(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleACECommands(Session session, params string[] parameters)
         {
             List<String> commandList = new List<string>();
 
@@ -118,5 +119,6 @@ namespace ACE.Command.Handlers
                     Console.WriteLine(message);
             }
         }
+        #pragma warning restore 1998
     }
 }

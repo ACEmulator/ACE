@@ -40,7 +40,6 @@ namespace ACE.Network.GameMessages.Messages
 
             // --- FellowInfo ---
 
-            ActionChain fellowChain = new ActionChain();
             foreach (Player fellow in fellowship.FellowshipMembers)
             {
                 // Write data associated with each fellowship member

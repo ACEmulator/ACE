@@ -94,15 +94,14 @@ namespace ACE.Managers
                 }
             }
 
-            // logout each player
             List<Task> logoffTasks = new List<Task>();
+            // logout each player
             foreach (var player in WorldManager.GetAll(false))
             {
                 // FIXME(ddevec) -- needs to spawn on the correct thread
-                player.LogOffPlayer();
+                logoffTasks.Add(player.LogOffPlayer());
             }
 
-            // wait 6 seconds for log-off
             Task.WaitAll(logoffTasks.ToArray());
 
             // TODO: Make sure that the landblocks unloads properly.
@@ -111,6 +110,7 @@ namespace ACE.Managers
 
             // disabled thread update loop and halt application
             WorldManager.StopWorld();
+
             // wait for world to end
             while (WorldManager.WorldActive)
             {

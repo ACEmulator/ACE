@@ -32,7 +32,8 @@ namespace ACE.Command.Handlers
             "Send text back to yourself.",
             "\"text to send back to yourself\" [ChatMessageType]\n" +
             "ChatMessageType can be a uint or enum name")]
-        public static void HandleDebugEcho(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleDebugEcho(Session session, params string[] parameters)
         {
             try
             {
@@ -48,12 +49,14 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, parameters[0], ChatMessageType.Broadcast);
             }
         }
+        #pragma warning restore 1998
 
         // echoflags [flagtype] [int]
         [CommandHandler("echoflags", AccessLevel.Developer, CommandHandlerFlag.None, 2,
             "Echo flags back to you",
             "[type to test] [int]\n")]
-        public static void HandleDebugEchoFlags(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleDebugEchoFlags(Session session, params string[] parameters)
         {
             try
             {
@@ -166,22 +169,25 @@ namespace ACE.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
             }
         }
+        #pragma warning restore 1998
 
         // gps
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Display location.")]
-        public static void HandleDebugGPS(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Location;
             ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
         }
+        #pragma warning disable 1998
 
         // telexyz cell x y z qx qy qz qw
         [CommandHandler("telexyz", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 8,
             "Teleport to a location.",
             "cell x y z qx qy qz qw\n" +
             "all parameters must be specified and cell must be in decimal form")]
-        public static void HandleDebugTeleportXYZ(Session session, params string[] parameters)
+        public static async Task HandleDebugTeleportXYZ(Session session, params string[] parameters)
         {
             uint cell;
             if (!uint.TryParse(parameters[0], out cell))
@@ -197,15 +203,16 @@ namespace ACE.Command.Handlers
                 positionData[i] = position;
             }
 
-            session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
+            await session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
         // portalrecall
         [CommandHandler("portalrecall", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Recalls the last portal used.")]
-        public static void HandleDebugPortalRecall(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleDebugPortalRecall(Session session, params string[] parameters)
         {
-            if (!session.Player.TeleToPosition(PositionType.LastPortal))
+            if (!await session.Player.TeleToPosition(PositionType.LastPortal))
             // On error
             {
                 // You are too powerful to interact with that portal!
@@ -213,13 +220,15 @@ namespace ACE.Command.Handlers
                 session.Network.EnqueueSend(portalRecallMessage);
             }
         }
+        #pragma warning restore 1998
 
         // grantxp ulong
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Give XP to yourself.",
             "ulong\n" +
             "@grantxp 191226310247 is max level 275")]
-        public static void HandleGrantXp(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleGrantXp(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
             {
@@ -235,10 +244,12 @@ namespace ACE.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
             return;
         }
+        #pragma warning restore 1998
 
         [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
-        public static void HandleContract(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleContract(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0)) return;
             uint contractId;
@@ -260,12 +271,14 @@ namespace ACE.Command.Handlers
             session.Network.EnqueueSend(contractMsg);
             ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
+        #pragma warning restore 1998
 
         // grantxp ulong
         [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "sets your current health to a specific value.",
             "ushort")]
-        public static void HandleSetHealth(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleSetHealth(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
             {
@@ -282,6 +295,7 @@ namespace ACE.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /sethealth 200 (max Max Health)", ChatMessageType.Broadcast);
             return;
         }
+        #pragma warning restore 1998
 
         // playsound [Sound] (volumelevel)
         [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
@@ -289,7 +303,8 @@ namespace ACE.Command.Handlers
             "sound (float)\n" +
             "Sound can be uint or enum name" +
             "float is volume level")]
-        public static void HandlePlaySound(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandlePlaySound(Session session, params string[] parameters)
         {
             try
             {
@@ -312,7 +327,7 @@ namespace ACE.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.HandleActionApplySoundEffect(sound);
+                        session.Player.ApplySoundEffect(sound);
                     }
                 }
 
@@ -324,6 +339,7 @@ namespace ACE.Command.Handlers
                 // Do Nothing
             }
         }
+        #pragma warning restore 1998
 
         // effect [Effect] (scale)
         [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
@@ -331,7 +347,8 @@ namespace ACE.Command.Handlers
             "effect (float)\n" +
             "Effect can be uint or enum name" +
             "float is scale level")]
-        public static void HandlePlayEffect(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandlePlayEffect(Session session, params string[] parameters)
         {
             try
             {
@@ -363,21 +380,25 @@ namespace ACE.Command.Handlers
                 // Do Nothing
             }
         }
+        #pragma warning restore 1998
 
         [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Spews 1000 lines of text to you.")]
-        public static void ChatDump(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task ChatDump(Session session, params string[] parameters)
         {
             for (int i = 0; i < 1000; i++)
             {
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
             }
         }
+        #pragma warning restore 1998
 
         [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Sends a MovementEvent to you.",
             "uint\n")]
-        public static void Animation(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task Animation(Session session, params string[] parameters)
         {
             uint animationId;
             try
@@ -392,11 +413,13 @@ namespace ACE.Command.Handlers
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
             session.Player.HandleActionMotion(motion);
         }
+        #pragma warning restore 1998
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Movement testing command, to be removed soon")]
-        public static void Movement(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task Movement(Session session, params string[] parameters)
         {
             ushort forwardCommand = 24;
             if ((parameters?.Length > 0))
@@ -413,12 +436,14 @@ namespace ACE.Command.Handlers
                                                                     session.Player.Sequences,
                                                                     movement));
         }
+#pragma warning restore 1998
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
              "Used to test the MoveToObject message.   It will spawn a training wand in front of you and then move to that object.",
             "moveto\n" +
             "optional parameter distance if omitted 10f")]
+#pragma warning disable 1998
         public static async Task MoveTo(Session session, params string[] parameters)
         {
             var distance = 10.0f;
@@ -426,10 +451,11 @@ namespace ACE.Command.Handlers
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
             WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
+            await LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
 
             await session.Player.PutItemInContainer(loot.Guid, session.Player.Guid);
         }
+        #pragma warning restore 1998
 
         // This function
         [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
@@ -440,7 +466,8 @@ namespace ACE.Command.Handlers
             "    stamina, stam, sp\n" +
             "    mana, mp\n" +
             "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
-        public static void SetVital(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task SetVital(Session session, params string[] parameters)
         {
             string paramVital = parameters[0].ToLower();
             string paramValue = parameters[1];
@@ -483,6 +510,7 @@ namespace ACE.Command.Handlers
                 session.Player.DeltaVital(vital, value);
             }
         }
+        #pragma warning restore 1998
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
@@ -566,7 +594,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("createcreature", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Debug command to spawn a creature in front of the player and save it as a static spawn if the static option is specified.",
             "weenieClassId")]
-        public static void CreateStaticCreature(Session session, params string[] parameters)
+        public static async Task CreateStaticCreature(Session session, params string[] parameters)
         {
             Creature newC = null;
 
@@ -650,7 +678,8 @@ namespace ACE.Command.Handlers
             "Saves the supplied character position type to the database.",
             "uint 1-27\n" +
             "@setposition 1")]
-        public static void HandleSetPosition(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleSetPosition(Session session, params string[] parameters)
         {
             if (parameters?.Length == 1)
             {
@@ -677,6 +706,7 @@ namespace ACE.Command.Handlers
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Debug command to teleport a player to a saved position, if the position type exists within the database.
@@ -686,7 +716,8 @@ namespace ACE.Command.Handlers
             "Teleport to a saved character position.",
             "uint 0-22\n" +
             "@teletype 1")]
-        public static void HandleTeleType(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleTeleType(Session session, params string[] parameters)
         {
             PositionType positionType = new PositionType();
             if (parameters?.Length > 0)
@@ -695,7 +726,7 @@ namespace ACE.Command.Handlers
 
                 if (Enum.TryParse(parsePositionString, out positionType))
                 {
-                    if (session.Player.TeleToPosition(positionType))
+                    if (await session.Player.TeleToPosition(positionType))
                     {
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location.ToString()}", ChatMessageType.Broadcast));
                     }
@@ -706,6 +737,7 @@ namespace ACE.Command.Handlers
                 }
             }
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Debug command to print out all of the saved character positions.
@@ -713,7 +745,8 @@ namespace ACE.Command.Handlers
         [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Displays all available saved character positions from the database.",
             "@listpositions")]
-        public static void HandleListPositions(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleListPositions(Session session, params string[] parameters)
         {
             // Build a string message containing all available character positions and send as a System Chat message
             string message = $"Saved character positions:\n";
@@ -728,13 +761,15 @@ namespace ACE.Command.Handlers
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Debug command to test the ObjDescEvent message.
         /// </summary>
         [CommandHandler("equiptest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Simulates equipping a new item to your character, replacing all other items.")]
-        public static void EquipTest(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task EquipTest(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))
             {
@@ -776,6 +811,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C", ChatMessageType.Broadcast);
             }
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Debug command to print out all of the active players connected too the server.
@@ -783,7 +819,8 @@ namespace ACE.Command.Handlers
         [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0,
             "Displays all of the active players connected too the server.",
             "")]
-        public static void HandleListPlayers(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleListPlayers(Session session, params string[] parameters)
         {
             uint playerCounter = 0;
             // Build a string message containing all available characters and send as a System Chat message
@@ -802,6 +839,7 @@ namespace ACE.Command.Handlers
             else
                 Console.WriteLine(message);
         }
+        #pragma warning restore 1998
 
         // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
@@ -844,21 +882,22 @@ namespace ACE.Command.Handlers
 
             foreach (uint weenieId in weaponsTest)
             {
+                // Create/Initialize loot
                 WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
                 loot.Placement = 0;
+
+                // Add to player
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
-                ActionChain chain = new ActionChain();
-                chain.AddDelaySeconds(0.25);
-                ////session.Player.UpdatePlayerBurden();
-                chain.AddAction(session.Player, () =>
-                {
-                    session.Network.EnqueueSend(
-                        new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-                });
-                chain.EnqueueChain();
+
+                // Wait a bit
+                await Task.Delay(TimeSpan.FromSeconds(0.25));
+
+                // Notify client
+                session.Network.EnqueueSend(
+                    new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
             }
         }
 
@@ -886,7 +925,8 @@ namespace ACE.Command.Handlers
 
         [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
         "Set Coin display debug only usage")]
-        public static void HandleSetCoin(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleSetCoin(Session session, params string[] parameters)
         {
             int coins;
             try
@@ -901,6 +941,7 @@ namespace ACE.Command.Handlers
             session.Player.CoinValue = coins;
             session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player.Sequences, PropertyInt.CoinValue, coins));
         }
+        #pragma warning restore 1998
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
@@ -936,25 +977,28 @@ namespace ACE.Command.Handlers
         /// Debug command to spawn the Barber UI
         /// </summary>
         [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void BarberShop(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task BarberShop(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameEventStartBarber(session));
         }
+        #pragma warning restore 1998
 
         // addspell <spell>
         [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Adds the specified spell to your own spellbook.",
             "<spellid>")]
-        public static void HandleAddSpell(Session session, params string[] parameters)
+        public static async Task HandleAddSpell(Session session, params string[] parameters)
         {
-            AdminCommands.HandleAdd(session, parameters);
+            await AdminCommands.HandleAdd(session, parameters);
         }
 
         /// <summary>
         /// Debug console command to test the GetSpellFormula function.
         /// </summary>
         [CommandHandler("getspellformula", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
-        public static void GetSpellFormula(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task GetSpellFormula(Session session, params string[] parameters)
         {
             if (parameters?.Length != 2)
             {
@@ -980,16 +1024,19 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine();
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Debug command to set player vitals to 1
         /// </summary>
         [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void HarmSelf(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HarmSelf(Session session, params string[] parameters)
         {
             session.Player.UpdateVital(session.Player.Health, 1);
             session.Player.UpdateVital(session.Player.Stamina, 1);
             session.Player.UpdateVital(session.Player.Mana, 1);
         }
+        #pragma warning restore 1998
     }
 }

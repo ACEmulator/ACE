@@ -1,17 +1,18 @@
-﻿using ACE.Common.Extensions;
+using System.Threading.Tasks;
+
+using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionTell
     {
         [GameAction(GameActionType.Tell)]
-        public static void Handle(ClientMessage clientMessage, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage clientMessage, Session session)
         {
             var message = clientMessage.Payload.ReadString16L(); // The client seems to do the trimming for us
             var target = clientMessage.Payload.ReadString16L(); // Needs to be trimmed because it may contain white spaces after the name and before the ,
@@ -32,5 +33,6 @@ namespace ACE.Network.GameAction.Actions
                 targetsession.Network.EnqueueSend(tell);
             }
         }
+        #pragma warning restore 1998
     }
 }

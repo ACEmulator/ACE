@@ -20,7 +20,7 @@ using System.Reflection;
 
 namespace ACE.Entity
 {
-    public abstract class WorldObject : IActor
+    public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1316,8 +1316,6 @@ namespace ACE.Entity
             protected set { AceObject.WeenieType = (int)value; }
         }
 
-        public IActor CurrentParent { get; private set; }
-
         public Position ForcedLocation { get; private set; }
 
         public Position RequestedLocation { get; private set; }
@@ -1327,7 +1325,8 @@ namespace ACE.Entity
         /// </summary>
         public Landblock CurrentLandblock
         {
-            get { return CurrentParent as Landblock; }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -1339,8 +1338,6 @@ namespace ACE.Entity
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
-
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
         /// <summary>
         /// tick-stamp for the last time a movement update was sent
@@ -1595,7 +1592,7 @@ namespace ACE.Entity
         {
         }
 
-        private void Init(ObjectGuid guid)
+        protected void Init(ObjectGuid guid)
         {
             AceObject = new AceObject { AceObjectId = guid.Full };
             Guid = guid;
@@ -1635,10 +1632,11 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
         }
 
-        private void Init(ObjectGuid guid, AceObject aceObject)
+        protected virtual void Init(ObjectGuid guid, AceObject aceObject)
         {
+            Init(guid);
+
             AceObject = aceObject;
-            Guid = guid;
 
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
@@ -1690,6 +1688,11 @@ namespace ACE.Entity
             T res = new T();
             await res.Init(ao);
             return res;
+        }
+
+        public void SetParent(Landblock lb)
+        {
+            CurrentLandblock = lb;
         }
 
         internal void SetInventoryForVendor(WorldObject inventoryItem)
@@ -2607,34 +2610,6 @@ namespace ACE.Entity
             RequestedLocation = null;
         }
 
-        /// <summary>
-        /// Manages action/broadcast infrastructure
-        /// </summary>
-        /// <param name="parent"></param>
-        public void SetParent(IActor parent)
-        {
-            CurrentParent = parent;
-            actionQueue.RemoveParent();
-            actionQueue.SetParent(parent);
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
-        {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        /// <param name="node"></param>
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
         public AceObject NewAceObjectFromCopy()
         {
             return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
@@ -2651,14 +2626,6 @@ namespace ACE.Entity
         public void InitializeAceObjectForSave()
         {
             AceObject.SetDirtyFlags();
-        }
-
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        public void RunActions()
-        {
-            actionQueue.RunActions();
         }
 
         private PhysicsDescriptionFlag SetPhysicsDescriptionFlag()

@@ -859,45 +859,37 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
 
-        public override void DoOnKill(Session killerSession)
+        public override async Task DoOnKill(Session killerSession)
         {
             // First do on-kill
             OnKill(killerSession);
             // Then get onKill from our parent
-            ActionChain killChain = base.OnKillInternal(killerSession);
+            await base.DoOnKill(killerSession);
 
             // Send the teleport out after we animate death
-            killChain.AddAction(this, () =>
+            // teleport to sanctuary or best location
+            Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
+
+            // Enqueue a teleport action, followed by Stand-up
+            // Queue the teleport to lifestone
+            await Teleport(newPosition);
+
+            // Regenerate/ressurect?
+            UpdateVitalInternal(Health, 5);
+
+            // Stand back up
+            DoMotion(new UniversalMotion(MotionStance.Standing));
+
+            // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
+            // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
+            // AddToActionQueue(addCorpse);
+            // If the player is outside of the landblock we just died in, then reboadcast the death for
+            // the players at the lifestone.
+            if (Positions.ContainsKey(PositionType.LastOutsideDeath) && Positions[PositionType.LastOutsideDeath].Cell != newPosition.Cell)
             {
-                // teleport to sanctuary or best location
-                Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
-
-                // Enqueue a teleport action, followed by Stand-up
-                // Queue the teleport to lifestone
-                ActionChain teleportChain = GetTeleportChain(newPosition);
-
-                teleportChain.AddAction(this, () =>
-                {
-                    // Regenerate/ressurect?
-                    UpdateVitalInternal(Health, 5);
-
-                    // Stand back up
-                    DoMotion(new UniversalMotion(MotionStance.Standing));
-
-                    // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
-                    // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-                    // AddToActionQueue(addCorpse);
-                    // If the player is outside of the landblock we just died in, then reboadcast the death for
-                    // the players at the lifestone.
-                    if (Positions.ContainsKey(PositionType.LastOutsideDeath) && Positions[PositionType.LastOutsideDeath].Cell != newPosition.Cell)
-                    {
-                        string currentDeathMessage = $"died to {killerSession.Player.Name}.";
-                        ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerSession.Player.Guid);
-                    }
-                });
-                teleportChain.EnqueueChain();
-            });
-            killChain.EnqueueChain();
+                string currentDeathMessage = $"died to {killerSession.Player.Name}.";
+                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerSession.Player.Guid);
+            }
         }
 
         /// <summary>
@@ -1688,29 +1680,7 @@ namespace ACE.Entity
             SendContractTrackerTable();
         }
 
-        public void Teleport(Position newPosition)
-        {
-            ActionChain chain = GetTeleportChain(newPosition);
-            chain.EnqueueChain();
-        }
-
-        private ActionChain GetTeleportChain(Position newPosition)
-        {
-            ActionChain teleportChain = new ActionChain();
-
-            teleportChain.AddAction(this, () => TeleportInternal(newPosition));
-
-            teleportChain.AddDelaySeconds(3);
-            // Once back in world we can start listening to the game's request for positions
-            teleportChain.AddAction(this, () =>
-            {
-                InWorld = true;
-            });
-
-            return teleportChain;
-        }
-
-        private void TeleportInternal(Position newPosition)
+        public async Task Teleport(Position newPosition)
         {
             if (!InWorld)
                 return;
@@ -1728,6 +1698,10 @@ namespace ACE.Entity
             {
                 clientObjectList.Clear();
             }
+
+            await Task.Delay(TimeSpan.FromSeconds(3));
+            // Once back in world we can start listening to the game's request for positions
+            InWorld = true;
         }
 
         public void RequestUpdatePosition(Position pos)
@@ -1737,7 +1711,7 @@ namespace ACE.Entity
 
         public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
         {
-            new ActionChain(this, () =>
+            if (CurrentLandblock != null)
             {
                 // Update our current style
                 if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
@@ -1758,7 +1732,7 @@ namespace ACE.Entity
                 // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
                 newMotion.Commands.AddRange(commands);
                 CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
-            }).EnqueueChain();
+            }
         }
 
         private void ExternalUpdatePosition(Position newPosition)
@@ -1910,16 +1884,6 @@ namespace ACE.Entity
 
         public void HandleMRT()
         {
-            ActionChain mrtChain = new ActionChain();
-
-            // Handle MRT Toggle internal must decide what to do next...
-            mrtChain.AddAction(this, new ActionEventDelegate(() => HandleMRTToggleInternal()));
-
-            mrtChain.EnqueueChain();
-        }
-
-        private void HandleMRTToggleInternal()
-        {
             // This requires the Admin flag set on ObjectDescriptionFlags
             // I would expect this flag to be set in Admin.cs which would be a subclass of Player
             // FIXME: maybe move to Admin class?
@@ -1953,12 +1917,12 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="position">PositionType to be teleported to</param>
         /// <returns>true on success (position is set) false otherwise</returns>
-        public bool TeleToPosition(PositionType position)
+        public async Task<bool> TeleToPosition(PositionType position)
         {
             if (Positions.ContainsKey(position))
             {
                 Position dest = Positions[position];
-                Teleport(dest);
+                await Teleport(dest);
                 return true;
             }
             else
@@ -1970,7 +1934,7 @@ namespace ACE.Entity
         /// <summary>
         /// Handles teleporting a player to the lifestone (/ls or /lifestone command)
         /// </summary>
-        public void TeleToLifestone()
+        public async Task TeleToLifestone()
         {
             if (Positions.ContainsKey(PositionType.Sanctuary))
             {
@@ -1990,14 +1954,12 @@ namespace ACE.Entity
                 DoMotion(motionLifestoneRecall);
 
                 // Wait for animation
-                ActionChain lifestoneChain = new ActionChain();
                 float lifestoneAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LifestoneRecall);
 
                 // Then do teleport
-                lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);
-                lifestoneChain.AddChain(GetTeleportChain(Positions[PositionType.Sanctuary]));
+                await Task.Delay(TimeSpan.FromSeconds(lifestoneAnimationLength));
 
-                lifestoneChain.EnqueueChain();
+                await Teleport(Positions[PositionType.Sanctuary]);
             }
             else
             {
@@ -2005,7 +1967,7 @@ namespace ACE.Entity
             }
         }
 
-        public void TeleToMarketplace()
+        public async Task TeleToMarketplace()
         {
             string message = $"{Name} is recalling to the marketplace.";
 
@@ -2026,24 +1988,13 @@ namespace ACE.Entity
             // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
             // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
             // mpChain.AddDelaySeconds(mpAnimationLength);
-            ActionChain mpChain = new ActionChain();
-            mpChain.AddDelaySeconds(14);
+            await Task.Delay(TimeSpan.FromSeconds(14));
 
             // Then do teleport
-            mpChain.AddChain(GetTeleportChain(MarketplaceDrop));
-
-            // Set the chain to run
-            mpChain.EnqueueChain();
+            await Teleport(MarketplaceDrop);
         }
 
-        public void HandleActionFinishBarber(ClientMessage message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoFinishBarber(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoFinishBarber(ClientMessage message)
+        public void FinishBarber(ClientMessage message)
         {
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
@@ -2115,19 +2066,14 @@ namespace ACE.Entity
         ///  Sends object description if the client requests it
         /// </summary>
         /// <param name="item"></param>
-        public void HandleActionForceObjDescSend(ObjectGuid item)
+        public void ForceObjDescSend(ObjectGuid item)
         {
-            ActionChain objDescChain = new ActionChain();
-            objDescChain.AddAction(this, () =>
-            {
-                WorldObject wo = GetInventoryItem(item);
-                if (wo != null)
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageObjDescEvent(wo));
-                else
-                    log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
-            });
-            objDescChain.EnqueueChain();
+            WorldObject wo = GetInventoryItem(item);
+            if (wo != null)
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                    new GameMessageObjDescEvent(wo));
+            else
+                log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
         }
 
         protected override void SendUpdatePosition()
@@ -2249,18 +2195,15 @@ namespace ACE.Entity
             item.ContainerId = container.Guid.Full;
             item.Placement = placement;
 
-            ActionChain inContainerChain = new ActionChain();
-            inContainerChain.AddAction(this, () =>
+            if (container.Guid != Guid)
             {
-                if (container.Guid != Guid)
-                {
-                    container.AddToInventory(item, placement);
-                    Burden += item.Burden;
-                }
-                else
-                    AddToInventory(item, placement);
-            });
-            inContainerChain.EnqueueChain();
+                container.AddToInventory(item, placement);
+                Burden += item.Burden;
+            }
+            else
+            {
+                AddToInventory(item, placement);
+            }
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                             new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, new ObjectGuid(0)),
@@ -2787,13 +2730,13 @@ namespace ACE.Entity
                         switch ((EquipMask)placement)
                         {
                             case EquipMask.MissileWeapon:
-                                SetCombatMode(CombatMode.Missile);
+                                await SetCombatMode(CombatMode.Missile);
                                 break;
                             case EquipMask.Held:
-                                SetCombatMode(CombatMode.Magic);
+                                await SetCombatMode(CombatMode.Magic);
                                 break;
                             default:
-                                SetCombatMode(CombatMode.Melee);
+                                await SetCombatMode(CombatMode.Melee);
                                 break;
                         }
                     }
@@ -2921,7 +2864,7 @@ namespace ACE.Entity
             item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-            CurrentLandblock.AddWorldObject(item);
+            await CurrentLandblock.AddWorldObject(item);
 
             // Ok we have handed off to the landblock, let's clean up the shard database.
             await DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject());
@@ -2987,54 +2930,51 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="itemGuid">This is the object that we are trying to inscribe</param>
         /// <param name="inscriptionText">This is our inscription</param>
-        public void HandleActionSetInscription(ObjectGuid itemGuid, string inscriptionText)
+        public void SetInscription(ObjectGuid itemGuid, string inscriptionText)
         {
-            new ActionChain(this, () =>
+            WorldObject iwo = GetInventoryItem(itemGuid);
+            if (iwo == null)
             {
-                WorldObject iwo = GetInventoryItem(itemGuid);
-                if (iwo == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (iwo.Inscribable && iwo.ScribeName != "prewritten")
+            if (iwo.Inscribable && iwo.ScribeName != "prewritten")
+            {
+                if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
                 {
-                    if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
-                    {
-                        ChatPacket.SendServerMessage(Session,
-                            "Only the original scribe may alter this without the use of an uninscription stone.",
-                            ChatMessageType.Broadcast);
-                    }
-                    else
-                    {
-                        if (inscriptionText != "")
-                        {
-                            iwo.Inscription = inscriptionText;
-                            iwo.ScribeName = this.Name;
-                            iwo.ScribeAccount = Session.SubscriptionId.ToString();
-                            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
-                                iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
-                        }
-                        else
-                        {
-                            iwo.Inscription = null;
-                            iwo.ScribeName = null;
-                            iwo.ScribeAccount = null;
-                        }
-                    }
+                    ChatPacket.SendServerMessage(Session,
+                        "Only the original scribe may alter this without the use of an uninscription stone.",
+                        ChatMessageType.Broadcast);
                 }
                 else
                 {
-                    // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
-                    // I could not find a pcap of a failed inscription. Og II
-                    ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
+                    if (inscriptionText != "")
+                    {
+                        iwo.Inscription = inscriptionText;
+                        iwo.ScribeName = this.Name;
+                        iwo.ScribeAccount = Session.SubscriptionId.ToString();
+                        Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
+                            iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
+                    }
+                    else
+                    {
+                        iwo.Inscription = null;
+                        iwo.ScribeName = null;
+                        iwo.ScribeAccount = null;
+                    }
                 }
-            }).EnqueueChain();
+            }
+            else
+            {
+                // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
+                // I could not find a pcap of a failed inscription. Og II
+                ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
+            }
         }
 
-        public void HandleActionApplySoundEffect(Sound sound)
+        public void ApplySoundEffect(Sound sound)
         {
-            new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
+            PlaySound(sound, Guid);
         }
 
         public async Task<bool> MoveTo(WorldObject wo, float? useRadius = null)
@@ -3095,7 +3035,7 @@ namespace ACE.Entity
                 Creature smitee = (await CurrentLandblock.GetObject(toSmite)) as Creature;
                 if (smitee != null)
                 {
-                    smitee.DoOnKill(Session);
+                    await smitee.DoOnKill(Session);
                 }
             }
         }
@@ -3223,7 +3163,7 @@ namespace ACE.Entity
             Creature c = await CurrentLandblock.GetObject(toSmite) as Creature;
             if (c != null)
             {
-                c.DoOnKill(Session);
+                await c.DoOnKill(Session);
             }
         }
 
@@ -3290,35 +3230,14 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleActionTalk(string message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoTalk(message));
-            chain.EnqueueChain();
-        }
-
         public void DoTalk(string message)
         {
             CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
         }
 
-        public void HandleActionEmote(string message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoEmote(message));
-            chain.EnqueueChain();
-        }
-
         public void DoEmote(string message)
         {
             CurrentLandblock.EnqueueBroadcastLocalChatEmote(this, message);
-        }
-
-        public void HandleActionSoulEmote(string message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoSoulEmote(message));
-            chain.EnqueueChain();
         }
 
         public void DoSoulEmote(string message)
@@ -3422,7 +3341,7 @@ namespace ACE.Entity
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
         /// <param name="spellId">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyComsumable(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public async Task ApplyComsumable(string consumableName, Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
             GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
@@ -3486,13 +3405,12 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(soundEvent, buffMessage);
 
             // Wait for animation
-            ActionChain motionChain = new ActionChain();
             float motionAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Eat);
-            motionChain.AddDelaySeconds(motionAnimationLength);
+
+            await Task.Delay(TimeSpan.FromSeconds(motionAnimationLength));
 
             // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.Standing)));
-            motionChain.EnqueueChain();
+            DoMotion(new UniversalMotion(MotionStance.Standing));
         }
     }
 }

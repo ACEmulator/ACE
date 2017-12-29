@@ -1,15 +1,15 @@
-﻿using ACE.Common.Extensions;
-using ACE.Entity;
+using System.Threading.Tasks;
+
 using ACE.Entity.Enum;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionChannelList
     {
         [GameAction(GameActionType.ListChannels)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var chatChannelID = (GroupChatType)message.Payload.ReadUInt32();
             // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
@@ -18,5 +18,6 @@ namespace ACE.Network.GameAction.Actions
 
             session.Network.EnqueueSend(new GameEventChannelList(session, chatChannelID));
         }
+        #pragma warning restore 1998
     }
 }

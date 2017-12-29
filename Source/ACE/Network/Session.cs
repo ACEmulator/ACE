@@ -17,7 +17,7 @@ using log4net;
 
 namespace ACE.Network
 {
-    public class Session : IActor
+    public class Session
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -37,12 +37,6 @@ namespace ACE.Network
 
         public Player Player { get; private set; }
 
-        private DateTime logOffRequestTime;
-
-        private DateTime lastSaveTime;
-
-        private DateTime lastAgeIntUpdateTime;
-        private DateTime lastSendAgeIntUpdateTime;
         private bool bootSession = false;
 
         private ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
@@ -55,16 +49,10 @@ namespace ACE.Network
 
         public NetworkSession Network { get; set; }
 
-        /// <summary>
-        /// This actionQueue forces network packets on to the main thread off the network thread, to avoid concurrency errors
-        /// </summary>
-        private NestedActionQueue actionQueue = new NestedActionQueue();
-
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
             Network = new NetworkSession(this, clientId, serverId);
-            actionQueue.SetParent(WorldManager.ActionQueue);
         }
 
         public void WaitForPlayer()
@@ -94,24 +82,62 @@ namespace ACE.Network
 
         public void SetPlayer(Player player)
         {
-            playerWaitLock.EnterWriteLock();
-            Player = player;
             // NOTE(ddevec): Once again -- no reader-writer lock and Monitor support in c# -- ventring frustration now --  asa;gklkfj;kl
             //  -- This should be a rare operation, so we don't really care about the stupid double locking, as long as its done right for no deadlocks
+            playerWaitLock.EnterWriteLock();
+            Player = player;
+
             lock (playerSync)
             {
                 Monitor.PulseAll(playerSync);
             }
             playerWaitLock.ExitWriteLock();
+
+            // FIXME(ddevec): These need to be managed better, but this hack is good enough for now.
+            WorldManager.StartGameTask(async () =>
+            {
+                // FIXME: Need to kill this task at some point :-/
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(5));
+                    if (Player == null)
+                    {
+                        break;
+                    }
+                    await SaveSession();
+                }
+            });
+
+            WorldManager.StartGameTask(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    if (Player == null)
+                    {
+                        break;
+                    }
+                    Player.UpdateAge();
+                }
+            });
+
+            WorldManager.StartGameTask(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(7));
+                    if (Player == null)
+                    {
+                        break;
+                    }
+                    Player.SendAgeInt();
+                }
+            });
         }
 
         public void InitSessionForWorldLogin()
         {
             CharacterRequested = null;
-
-            lastSaveTime = DateTime.MinValue;
-            lastAgeIntUpdateTime = DateTime.MinValue;
-            lastSendAgeIntUpdateTime = DateTime.MinValue;
 
             GameEventSequence = 0;
         }
@@ -155,7 +181,7 @@ namespace ACE.Network
             }
         }
 
-        public async Task Update(double lastTick, long currentTimeTick)
+        public void Update(double lastTick, long currentTimeTick)
         {
             // Checks if the session has stopped responding.
             if (currentTimeTick >= Network.TimeoutTick)
@@ -166,46 +192,12 @@ namespace ACE.Network
 
             Network.Update(lastTick);
 
-            // FIXME(ddevec): Most of the following work can probably be integrated into the player's action queue, or an action queue strucutre
-
-            // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
-            // This could be made 0 for instant logoffs.
-            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
-            {
-                logOffRequestTime = DateTime.MinValue;
-                await SendFinalLogOffMessages();
-            }
+            // FIXME(ddevec): Most of the following work can probably be integrated into the player's work structure
 
             // Check if the player has been booted
             if (bootSession != false)
             {
                 SendFinalBoot();
-            }
-
-            if (Player != null)
-            {
-                if (lastSaveTime == DateTime.MinValue)
-                    lastSaveTime = DateTime.UtcNow;
-                if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
-                {
-                    await SaveSession();
-                    lastSaveTime = DateTime.UtcNow;
-                }
-
-                if (lastAgeIntUpdateTime == DateTime.MinValue)
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-                {
-                    Player.UpdateAge();
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                }
-                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-                {
-                    Player.SendAgeInt();
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }
             }
         }
 
@@ -273,7 +265,11 @@ namespace ACE.Network
             await Player.SaveCharacter();
             await Player.Logout();
 
-            logOffRequestTime = DateTime.UtcNow;
+            // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
+            // This could be made 0 for instant logoffs.
+            await Task.Delay(TimeSpan.FromSeconds(6));
+
+            await SendFinalLogOffMessages();
         }
 
         public void BootPlayer()
@@ -313,22 +309,6 @@ namespace ACE.Network
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
             Network.EnqueueSend(worldBroadcastMessage);
-        }
-
-        /// Boilerplate Action/Actor stuff
-        public LinkedListNode<IAction> EnqueueAction(IAction act)
-        {
-            return actionQueue.EnqueueAction(act);
-        }
-
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
         }
     }
 }

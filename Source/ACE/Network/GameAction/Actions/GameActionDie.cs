@@ -1,12 +1,14 @@
-﻿namespace ACE.Network.GameAction.Actions
+using System.Threading.Tasks;
+
+namespace ACE.Network.GameAction.Actions
 {
     // Death feels is less morbid then suicide as a human, used "Die" instead.
     public static class GameActionDie
     {
         [GameAction(GameActionType.Suicide)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
-            session.Player.HandleActionKill(session.Player.Guid);
+            await session.Player.HandleActionKill(session.Player.Guid);
         }
     }
 }

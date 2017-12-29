@@ -1,7 +1,8 @@
+using System;
 using System.Threading.Tasks;
 
 using ACE.Entity.Enum;
-using ACE.Entity.Actions;
+using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
 using ACE.Common;
@@ -28,20 +29,28 @@ namespace ACE.Entity
         private double? ResetTimestamp
         {
             get { return resetTimestamp; }
-            set { resetTimestamp = Time.GetTimestamp(); }
         }
 
         private double? useTimestamp;
         private double? UseTimestamp
         {
             get { return useTimestamp; }
-            set { useTimestamp = Time.GetTimestamp(); }
         }
 
         private uint? AllowedActivator
         {
             get;
             set;
+        }
+
+        public void UpdateUseTimestamp()
+        {
+            useTimestamp = Time.GetTimestamp();
+        }
+
+        public void UpdateResetTimestamp()
+        {
+            resetTimestamp = Time.GetTimestamp();
         }
 
         public override async Task ActOnUse(ObjectGuid playerId)
@@ -78,23 +87,26 @@ namespace ACE.Entity
             AllowedActivator = activator.Full;
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionTipRight);
-            
+
             // Stamp Cow tipping quest here;
 
-            ActionChain autoResetTimer = new ActionChain();
-            autoResetTimer.AddDelaySeconds(4);
-            autoResetTimer.AddAction(this, () => Reset());
-            autoResetTimer.EnqueueChain();
+            WorldManager.StartGameTask(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(4));
+                Reset();
+            });
 
             if (activator.Full > 0)
-                UseTimestamp++;
+            {
+                UpdateUseTimestamp();
+            }
         }
 
         private void Reset()
         {
             AllowedActivator = null;
 
-            ResetTimestamp++;
+            UpdateResetTimestamp();
         }
     }
 }

@@ -48,7 +48,7 @@ namespace ACE.Managers
 
             Landblock block = GetLandblock(c.Location.LandblockId, true);
             // Must enqueue add world object -- this is called from a message handler context
-            block.AddWorldObject(session.Player);
+            await block.AddWorldObject(session.Player);
 
             session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat("  powered by ACEmulator  ", ChatMessageType.Broadcast));
@@ -56,10 +56,10 @@ namespace ACE.Managers
             session.Network.EnqueueSend(new GameMessageSystemChat("For more information on commands supported by this server, type @acehelp", ChatMessageType.Broadcast));
         }
 
-        public static void AddObject(WorldObject worldObject)
+        public static async Task AddObject(WorldObject worldObject)
         {
             var block = GetLandblock(worldObject.Location.LandblockId, true);
-            block.AddWorldObject(worldObject);
+            await block.AddWorldObject(worldObject);
         }
 
         // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
@@ -73,7 +73,7 @@ namespace ACE.Managers
         /// <summary>
         /// Relocates an object to the appropriate landblock -- Should only be called from physics/worldmanager -- not player!
         /// </summary>
-        public static void RelocateObjectForPhysics(WorldObject worldObject)
+        public static async Task RelocateObjectForPhysics(WorldObject worldObject)
         {
             var oldBlock = worldObject.CurrentLandblock;
             var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
@@ -83,7 +83,7 @@ namespace ACE.Managers
                 oldBlock.RemoveWorldObject(worldObject.Guid, true);
             }
             // Add to the new landblock
-            newBlock.AddWorldObjectForPhysics(worldObject);
+            await newBlock.AddWorldObject(worldObject);
         }
 
         /// <summary>

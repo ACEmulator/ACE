@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using ACE.Command;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
@@ -8,7 +10,7 @@ namespace ACE.Network.GameAction.Actions
     public static class GameActionTalk
     {
         [GameAction(GameActionType.Talk)]
-        public static void Handle(ClientMessage clientMessage, Session session)
+        public static async Task Handle(ClientMessage clientMessage, Session session)
         {
             var message = clientMessage.Payload.ReadString16L();
             
@@ -21,14 +23,14 @@ namespace ACE.Network.GameAction.Actions
                 CommandHandlerInfo commandHandler;
                 var response = CommandManager.GetCommandHandler(session, command, parameters, out commandHandler);
                 if (response == CommandHandlerResponse.Ok)
-                    ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
+                    await ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
                 else if (response == CommandHandlerResponse.SudoOk)
                 {
                     string[] sudoParameters = new string[parameters.Length - 1];
                     for (int i = 1; i < parameters.Length; i++)
                         sudoParameters[i - 1] = parameters[i];
 
-                    ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
+                    await ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
                 }
                 else
                 {
@@ -49,7 +51,7 @@ namespace ACE.Network.GameAction.Actions
             }
             else
             {
-                session.Player.HandleActionTalk(message);
+                session.Player.DoTalk(message);
             }
         }
     }

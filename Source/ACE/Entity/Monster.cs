@@ -1,17 +1,18 @@
-﻿using ACE.Entity.Enum;
-using ACE.Factories;
+using System.Threading.Tasks;
+
 using ACE.Managers;
-using ACE.Network.Enum;
-using ACE.Network.Motion;
-using System;
 
 namespace ACE.Entity
 {
     public class Monster : Creature
     {
-        public Monster(AceObject aceO)
-          : base(aceO)
+        public Monster()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
             Guid = GuidManager.NewNonStaticGuid();
             IsAlive = true;
             SetupVitals();

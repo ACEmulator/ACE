@@ -85,6 +85,7 @@ namespace ACE.Database
                 {
                     return _wrappedDatabase.GetAceObjectByWeenie(wcId);
                 });
+
             res = (AceObject)res.Clone();
 
             return res;
@@ -242,12 +243,9 @@ namespace ACE.Database
             });
         }
 
-        public async Task<bool> UserModifiedFlagPresent()
+        public bool UserModifiedFlagPresent()
         {
-            return await Task.Run(() =>
-            {
-                return _wrappedDatabase.UserModifiedFlagPresent();
-            });
+            return _wrappedDatabase.UserModifiedFlagPresent();
         }
 
         public async Task<bool> ReplaceObject(AceObject aceObject)

@@ -14,14 +14,23 @@ namespace ACE.Factories
         {
             var results = new List<WorldObject>();
 
+            int count = 0;
+            int count2 = 0;
             foreach (var aceO in sourceObjects)
             {
+                count++;
+                if (count > 15)
+                {
+                    count2++;
+                }
                 // FIXME: This generator part is all wrong. Needs overhaul.
                 if (aceO.GeneratorStatus ?? false)  // Generator
                 {
                     aceO.Location = aceO.Location.InFrontOf(-2.0);
                     aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
-                    results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
+                    Generator g = new Generator();
+                    g.GeneratorInit(new ObjectGuid(aceO.AceObjectId), aceO);
+                    results.Add(g);
                     aceO.GeneratorEnteredWorld = true;
                     var objectList = await GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
                     objectList.ForEach(o => results.Add(o));

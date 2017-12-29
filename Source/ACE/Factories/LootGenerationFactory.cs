@@ -13,13 +13,13 @@ namespace ACE.Factories
     {
         // This is throw away code to understand the world object creation process.
 
-        public static void Spawn(WorldObject inventoryItem, Position position)
+        public static async Task Spawn(WorldObject inventoryItem, Position position)
         {
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
             inventoryItem.Location = position.InFrontOf(1.00f);
             inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            LandblockManager.AddObject(inventoryItem);
+            await LandblockManager.AddObject(inventoryItem);
         }
 
         public static async Task CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)

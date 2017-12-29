@@ -1,18 +1,18 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
 
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionChatChannel
     {
         [GameAction(GameActionType.ChatChannel)]
-        public static void Handle(ClientMessage clientMessage, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage clientMessage, Session session)
         {
             var groupChatType = (GroupChatType)clientMessage.Payload.ReadUInt32();
             var message = clientMessage.Payload.ReadString16L();
@@ -193,5 +193,6 @@ namespace ACE.Network.GameAction.Actions
                     break;
             }
         }
+        #pragma warning restore 1998
     }
 }
