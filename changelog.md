@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2017-12-29
+[ddevec]
+* Replaced Actions/ActionChains with Coroutines
+  * Coroutines are implemented with task structure
+  * I use a custom TaskScheduler to ensure corotuines are run synchronously
+* Database Loading now no longer blocks main thread
+* TODO: Task-based work management -- kill tasks when landblocks/creatures/players become inactive
+
 ### 2017-12-11
 [ddevec]
 * More updates to parallelism structure
