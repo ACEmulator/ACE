@@ -19,12 +19,10 @@ namespace ACE.Tests
 
         private static readonly ACETaskScheduler scheduler = new ACETaskScheduler();
 
-        private static readonly TaskFactory myTaskFactory = new TaskFactory(scheduler);
-        /*
         private static readonly TaskFactory myTaskFactory = new TaskFactory(
-            CancellationToken.None, TaskCreationOptions.None,
-            TaskContinuationOptions.None, scheduler);
-        */
+            CancellationToken.None,
+            TaskCreationOptions.AttachedToParent,
+            TaskContinuationOptions.AttachedToParent, scheduler);
         
         public async Task<string> Coroutine2(string input, double waitSecs = 0)
         {
@@ -36,7 +34,7 @@ namespace ACE.Tests
         public async Task<string> Coroutine1()
         {
             string s1 = await Coroutine2(res1);
-            Assert.Equals(res1, s1);
+            Assert.AreEqual(res1, s1);
 
             string s2 = await Coroutine2(res2);
             Assert.AreEqual(res2, s2);

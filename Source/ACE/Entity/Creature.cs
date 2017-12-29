@@ -128,11 +128,6 @@ namespace ACE.Entity
 
         public virtual async Task DoOnKill(Session killerSession)
         {
-            await OnKillInternal(killerSession);
-        }
-
-        protected async Task OnKillInternal(Session killerSession)
-        {
             // Will start death animation
             OnKill(killerSession);
 
