@@ -1,14 +1,16 @@
-﻿using ACE.Entity;
+using System.Threading.Tasks;
+
+using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionUseItem
     {
         [GameAction(GameActionType.Use)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             uint fullId = message.Payload.ReadUInt32();
-            session.Player.HandleActionUse(new ObjectGuid(fullId));
+            await session.Player.ActionUse(new ObjectGuid(fullId));
         }
     }
 }

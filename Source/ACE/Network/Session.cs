@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net;
 
@@ -11,6 +12,7 @@ using ACE.Entity.Enum;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages.Messages;
 using ACE.Managers;
+
 using log4net;
 
 namespace ACE.Network
@@ -123,7 +125,7 @@ namespace ACE.Network
             AccessLevel = sub.AccessLevel;
         }
 
-        public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
+        public async Task UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
         {
             AccountCharacters.Clear();
             byte slot = 0;
@@ -134,17 +136,16 @@ namespace ACE.Network
                     if (Time.GetUnixTime() > character.DeleteTime)
                     {
                         character.Deleted = true;
-                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, deleteSuccess =>
+                        bool deleteSuccess = await DatabaseManager.Shard.DeleteCharacter(character.Guid.Full);
+                        if (deleteSuccess)
                         {
-                            if (deleteSuccess)
-                            {
-                                log.Info($"Character {character.Guid.Full:X} successfully marked as deleted");
-                            }
-                            else
-                            {
-                                log.Error($"Unable to mark character {character.Guid.Full:X} as deleted");
-                            }
-                        });
+                            log.Info($"Character {character.Guid.Full:X} successfully marked as deleted");
+                        }
+                        else
+                        {
+                            log.Error($"Unable to mark character {character.Guid.Full:X} as deleted");
+                        }
+
                         continue;
                     }
                 }
@@ -154,7 +155,7 @@ namespace ACE.Network
             }
         }
 
-        public void Update(double lastTick, long currentTimeTick)
+        public async Task Update(double lastTick, long currentTimeTick)
         {
             // Checks if the session has stopped responding.
             if (currentTimeTick >= Network.TimeoutTick)
@@ -172,7 +173,7 @@ namespace ACE.Network
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
             {
                 logOffRequestTime = DateTime.MinValue;
-                SendFinalLogOffMessages();
+                await SendFinalLogOffMessages();
             }
 
             // Check if the player has been booted
@@ -187,7 +188,7 @@ namespace ACE.Network
                     lastSaveTime = DateTime.UtcNow;
                 if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
                 {
-                    SaveSession();
+                    await SaveSession();
                     lastSaveTime = DateTime.UtcNow;
                 }
 
@@ -208,11 +209,11 @@ namespace ACE.Network
             }
         }
 
-        public void SaveSession()
+        public async Task SaveSession()
         {
             if (this.Player != null)
             {
-                this.Player.HandleActionSaveCharacter();
+                await this.Player.SaveCharacter();
             }
         }
 
@@ -240,7 +241,7 @@ namespace ACE.Network
             return true;
         }
 
-        public void ProcessPacket(ClientPacket packet)
+        public async Task ProcessPacket(ClientPacket packet)
         {
             if (!CheckState(packet))
             {
@@ -252,27 +253,25 @@ namespace ACE.Network
                 Network.ProcessPacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse();
+                await HandleDisconnectResponse();
         }
 
-        private void HandleDisconnectResponse()
+        private async Task HandleDisconnectResponse()
         {
             if (Player != null)
             {
-                SaveSession();
-                Player.HandleActionLogout(true);
+                await SaveSession();
+                await Player.Logout(true);
             }
 
             WorldManager.RemoveSession(this);
         }
 
-        public void LogOffPlayer()
+        public async Task LogOffPlayer()
         {
             // First save, then logout
-            ActionChain logoutChain = new ActionChain();
-            logoutChain.AddChain(Player.GetSaveChain());
-            logoutChain.AddChain(Player.GetLogoutChain());
-            logoutChain.EnqueueChain();
+            await Player.SaveCharacter();
+            await Player.Logout();
 
             logOffRequestTime = DateTime.UtcNow;
         }
@@ -282,22 +281,20 @@ namespace ACE.Network
             bootSession = true;
         }
 
-        private void SendFinalLogOffMessages()
+        private async Task SendFinalLogOffMessages()
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(SubscriptionId, ((List<CachedCharacter> result) =>
-            {
-                UpdateCachedCharacters(result);
-                Network.EnqueueSend(new GameMessageCharacterList(result, ClientAccountString));
+            List<CachedCharacter> result = await DatabaseManager.Shard.GetCharacters(SubscriptionId);
+            await UpdateCachedCharacters(result);
+            Network.EnqueueSend(new GameMessageCharacterList(result, ClientAccountString));
 
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-                Network.EnqueueSend(serverNameMessage);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+            Network.EnqueueSend(serverNameMessage);
 
-                State = SessionState.AuthConnected;
+            State = SessionState.AuthConnected;
 
-                Player = null;
-            }));
+            Player = null;
         }
 
         private void SendFinalBoot()

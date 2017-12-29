@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ACE.Entity;
@@ -63,174 +63,204 @@ namespace ACE.Database
             }
         }
 
-        public void AddFriend(uint characterId, uint friendCharacterId, Action callback)
+        public async Task AddFriend(uint characterId, uint friendCharacterId)
         {
-            _queue.Add(new Task(() =>
+            Task t = new Task(() =>
             {
                 _wrappedDatabase.AddFriend(characterId, friendCharacterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            });
+            _queue.Add(t);
+            await t;
         }
 
-        public void DeleteFriend(uint characterId, uint friendCharacterId, Action callback)
+        public async Task DeleteFriend(uint characterId, uint friendCharacterId)
         {
-            _queue.Add(new Task(() =>
+            Task t = new Task(() =>
             {
                 _wrappedDatabase.DeleteFriend(characterId, friendCharacterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            });
+
+            _queue.Add(t);
+            await t;
         }
 
-        public void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback)
+        public async Task<bool> DeleteOrRestore(ulong unixTime, uint id)
         {
-            _queue.Add(new Task(() =>
+            Task<bool> t = new Task<bool>(() =>
             {
                 var result = _wrappedDatabase.DeleteOrRestore(unixTime, id);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void DeleteCharacter(uint id, Action<bool> callback)
+        public async Task<bool> DeleteCharacter(uint id)
         {
-            _queue.Add(new Task(() =>
+            Task<bool> t = new Task<bool>(() =>
             {
                 var result = _wrappedDatabase.DeleteCharacter(id);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+            _queue.Add(t);
+            return await t;
         }
 
-        public void GetCharacter(uint id, Action<AceCharacter> callback)
+        public async Task<AceCharacter> GetCharacter(uint id)
         {
-            _queue.Add(new Task(() =>
+            Task<AceCharacter> t = new Task<AceCharacter>(() =>
             {
                 var c = _wrappedDatabase.GetCharacter(id);
-                if (callback != null)
-                    callback.Invoke(c);
-            }));
+                return c;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
+        public async Task<List<CachedCharacter>> GetCharacters(uint subscriptionId)
         {
-            _queue.Add(new Task(() =>
+            Task<List<CachedCharacter>> t = new Task<List<CachedCharacter>>(() =>
             {
                 var result = _wrappedDatabase.GetCharacters(subscriptionId);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void GetObject(uint aceObjectId, Action<AceObject> callback)
+        public async Task<AceObject> GetObject(uint aceObjectId)
         {
-            _queue.Add(new Task(() =>
+            Task<AceObject> t = new Task<AceObject>(() =>
             {
                 var result = _wrappedDatabase.GetObject(aceObjectId);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void GetObjectInfoByName(string name, Action<ObjectInfo> callback)
+        public async Task<ObjectInfo> GetObjectInfoByName(string name)
         {
-            _queue.Add(new Task(() =>
+            Task<ObjectInfo> t = new Task<ObjectInfo>(() =>
             {
                 var result = _wrappedDatabase.GetObjectInfoByName(name);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void GetObjectsByLandblock(ushort landblock, Action<List<AceObject>> callback)
+        public async Task<List<AceObject>> GetObjectsByLandblock(ushort landblock)
         {
-            _queue.Add(new Task(() =>
+            Task<List<AceObject>> t = new Task<List<AceObject>>(() =>
             {
                 var result = _wrappedDatabase.GetObjectsByLandblock(landblock);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void IsCharacterNameAvailable(string name, Action<bool> callback)
+        public async Task<bool> IsCharacterNameAvailable(string name)
         {
-            _queue.Add(new Task(() =>
+            Task<bool> t = new Task<bool>(() =>
             {
                 var result = _wrappedDatabase.IsCharacterNameAvailable(name);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void RemoveAllFriends(uint characterId, Action callback)
+        public async Task RemoveAllFriends(uint characterId)
         {
-            _queue.Add(new Task(() =>
+            Task t = new Task(() =>
             {
                 _wrappedDatabase.RemoveAllFriends(characterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            });
+
+            _queue.Add(t);
+
+            await t;
         }
 
-        public void RenameCharacter(string currentName, string newName, Action<uint> callback)
+        public async Task<uint> RenameCharacter(string currentName, string newName)
         {
-            _queue.Add(new Task(() =>
+            Task<uint> t = new Task<uint>(() =>
             {
                 var result = _wrappedDatabase.RenameCharacter(currentName, newName);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void SaveObject(AceObject aceObject, Action<bool> callback)
+        public async Task<bool> SaveObject(AceObject aceObject)
         {
-            _queue.Add(new Task(() =>
+            Task<bool> t = new Task<bool>(() =>
             {
                 var result = _wrappedDatabase.SaveObject(aceObject);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void DeleteObject(AceObject aceObject, Action<bool> callback)
+        public async Task<bool> DeleteObject(AceObject aceObject)
         {
-            _queue.Add(new Task(() =>
+            Task<bool> t = new Task<bool>(() =>
             {
                 var result = _wrappedDatabase.DeleteObject(aceObject);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void GetCurrentId(uint min, uint max, Action<uint> callback)
+        public async Task<uint> GetCurrentId(uint min, uint max)
         {
-            _queue.Add(new Task(() =>
+            Task<uint> t = new Task<uint>(() =>
             {
                 var result = _wrappedDatabase.GetCurrentId(min, max);
-                callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
+        public async Task<uint> SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
         {
-            _queue.Add(new Task(() =>
+            Task<uint> t = new Task<uint>(() =>
             {
                 var result = _wrappedDatabase.SetCharacterAccessLevelByName(name, accessLevel);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+                return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
 
-        public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
+        public async Task<bool> DeleteContract(AceContractTracker contract)
         {
-            _queue.Add(new Task(() =>
+            Task<bool> t = new Task<bool>(() =>
                 {
                     bool result = _wrappedDatabase.DeleteContract(contract);
-                    if (callback != null)
-                        callback.Invoke(result);
-            }));
-            return true;
+                    return result;
+            });
+
+            _queue.Add(t);
+            return await t;
         }
     }
 }

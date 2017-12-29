@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace ACE.Network.GameAction.Actions
 {
     /// <summary>
@@ -8,11 +10,11 @@ namespace ACE.Network.GameAction.Actions
     public static class GameActionAbandonContract
     {
         [GameAction(GameActionType.AbandonContract)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             // Read in the applicable data.
             uint contractId = message.Payload.ReadUInt32();
-            session.Player.AbandonContract(contractId);
+            await session.Player.AbandonContract(contractId);
         }
     }
 }

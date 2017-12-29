@@ -1,14 +1,16 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
-using System.Collections.Generic;
 
 namespace ACE.Factories
 {
     public class WorldObjectFactory
     {
-        public static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
+        public static async Task<List<WorldObject>> CreateWorldObjects(List<AceObject> sourceObjects)
         {
             var results = new List<WorldObject>();
 
@@ -21,20 +23,20 @@ namespace ACE.Factories
                     aceO.Location.PositionZ = aceO.Location.PositionZ - 0.5f;
                     results.Add(new Generator(new ObjectGuid(aceO.AceObjectId), aceO));
                     aceO.GeneratorEnteredWorld = true;
-                    var objectList = GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
+                    var objectList = await GeneratorFactory.CreateWorldObjectsFromGenerator(aceO) ?? new List<WorldObject>();
                     objectList.ForEach(o => results.Add(o));
                     continue;
                 }
 
                 if (aceO.Location != null)
                 {
-                    WorldObject wo = CreateWorldObject(aceO);
+                    WorldObject wo = await CreateWorldObject(aceO);
                     if (wo != null)
                         results.Add(wo);
                     // TODO: this is a hack job. Remove this and do it right. 
                     foreach (var item in wo.WieldList)
                     {
-                        WorldObject wo2 = CreateNewWorldObject(item.WeenieClassId);
+                        WorldObject wo2 = await CreateNewWorldObject(item.WeenieClassId);
                         wo2.Location = wo.Location;
                         wo2.CurrentWieldedLocation = wo.ValidLocations;
                         wo2.WielderId = wo.Guid.Full;
@@ -45,65 +47,65 @@ namespace ACE.Factories
             return results;
         }
 
-        public static WorldObject CreateWorldObject(AceObject aceO)
+        public static async Task<WorldObject> CreateWorldObject(AceObject aceO)
         {
             WeenieType objWeenieType = (WeenieType?)aceO.WeenieType ?? WeenieType.Generic;
 
             switch (objWeenieType)
             {
                 case WeenieType.LifeStone:
-                    return new Lifestone(aceO);
+                    return await WorldObject.CreateWorldObject<Lifestone>(aceO);
                 case WeenieType.Door:
-                    return new Door(aceO);
+                    return await WorldObject.CreateWorldObject<Door>(aceO);
                 case WeenieType.Portal:
-                    return new Portal(aceO);
+                    return await WorldObject.CreateWorldObject<Portal>(aceO);
                 case WeenieType.Book:
-                    return new Book(aceO);
+                    return await WorldObject.CreateWorldObject<Book>(aceO);
                 // case WeenieType.PKModifier:
                 //    return new PKModifier(aceO);
                 case WeenieType.Cow:
-                    return new Cow(aceO);
+                    return await WorldObject.CreateWorldObject<Cow>(aceO);
                 case WeenieType.Creature:
-                    return new Creature(aceO);
+                    return await WorldObject.CreateWorldObject<Creature>(aceO);
                 case WeenieType.Container:
-                    return new Container(aceO);
+                    return await WorldObject.CreateWorldObject<Container>(aceO);
                 case WeenieType.Scroll:
-                    return new Scroll(aceO);
+                    return await WorldObject.CreateWorldObject<Scroll>(aceO);
                 case WeenieType.Vendor:
-                    return new Vendor(aceO);
+                    return await WorldObject.CreateWorldObject<Vendor>(aceO);
                 case WeenieType.Coin:
-                    return new Coin(aceO);
+                    return await WorldObject.CreateWorldObject<Coin>(aceO);
                 case WeenieType.Key:
-                    return new Key(aceO);
+                    return await WorldObject.CreateWorldObject<Key>(aceO);
                 case WeenieType.Food:
-                    return new Food(aceO);
+                    return await WorldObject.CreateWorldObject<Food>(aceO);
                 case WeenieType.Gem:
-                    return new Gem(aceO);
+                    return await WorldObject.CreateWorldObject<Gem>(aceO);
                 case WeenieType.Game:
-                    return new Game(aceO);
+                    return await WorldObject.CreateWorldObject<Game>(aceO);
                 case WeenieType.GamePiece:
-                    return new GamePiece(aceO);
+                    return await WorldObject.CreateWorldObject<GamePiece>(aceO);
                 default:
-                    return new GenericObject(aceO);
+                    return await WorldObject.CreateWorldObject<GenericObject>(aceO);
             }
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId)
+        public static async Task<WorldObject> CreateWorldObject(uint weenieId)
         {
-            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
+            AceObject aceObject = await DatabaseManager.World.GetAceObjectByWeenie(weenieId);
 
-            return CreateWorldObject(aceObject);
+            return await CreateWorldObject(aceObject);
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
+        public static async Task<WorldObject> CreateWorldObject(uint weenieId, ObjectGuid guid)
         {
-            AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
-            return CreateWorldObject(aceObject);
+            AceObject aceObject = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(weenieId)).Clone(guid.Full);
+            return await CreateWorldObject(aceObject);
         }
 
-        public static WorldObject CreateNewWorldObject(uint weenieId)
+        public static async Task<WorldObject> CreateNewWorldObject(uint weenieId)
         {
-            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
+            WorldObject wo = await CreateWorldObject(weenieId, GuidManager.NewItemGuid());
             return wo;
         }
     }

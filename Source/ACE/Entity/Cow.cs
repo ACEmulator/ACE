@@ -1,12 +1,9 @@
-﻿using ACE.Entity.Enum;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
 using ACE.Entity.Actions;
-using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Motion;
-using ACE.Entity.Enum.Properties;
-using System;
-using ACE.DatLoader.FileTypes;
-using ACE.Network.GameMessages.Messages;
 using ACE.Common;
 
 namespace ACE.Entity
@@ -15,9 +12,13 @@ namespace ACE.Entity
     {
         private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.TippedRight));
 
-        public Cow(AceObject aceO)
-            : base(aceO)
+        public Cow()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
             UseRadius = 1;
             IsAlive = true;
             SetupVitals();
@@ -43,9 +44,9 @@ namespace ACE.Entity
             set;
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -59,7 +60,7 @@ namespace ACE.Entity
             ////}
 
             if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
+                await player.DoMoveTo(this);
             else
             {
                 if (AllowedActivator == null)

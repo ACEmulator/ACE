@@ -1,6 +1,7 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using log4net;
 using ACE.Factories;
 using System.Diagnostics;
@@ -52,29 +53,35 @@ namespace ACE.Entity
         /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
         /// </summary>
         /// <param name="aceObject"></param>
-        public Container(AceObject aceObject)
-            : base(aceObject)
+        public Container()
         {
+        }
+
+        protected override async Task Init(AceObject aceObject)
+        {
+            await base.Init(aceObject);
+
             CoinValue = 0;
             log.Debug($"{aceObject.Name} CoinValue initialized to {CoinValue}");
 
             Burden = 0;
             log.Debug($"{aceObject.Name} Burden initialized to {Burden}");
 
-            Burden += Weenie.EncumbranceVal ?? 0;
-            log.Debug($"{aceObject.Name}'s weenie id is {Weenie.WeenieClassId} and its base burden is {Weenie.EncumbranceVal}, added to burden, Burden = {Burden}");
+            AceObject weenie = Weenie;
+            Burden += weenie.EncumbranceVal ?? 0;
+            log.Debug($"{aceObject.Name}'s weenie id is {weenie.WeenieClassId} and its base burden is {weenie.EncumbranceVal}, added to burden, Burden = {Burden}");
 
             Value = 0;
-            Value += Weenie.Value ?? 0;
+            Value += weenie.Value ?? 0;
 
             WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
             foreach (var wieldedItem in WieldedItems)
             {
                 ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
+                WieldedObjects.Add(woGuid, await WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
 
                 Burden += wieldedItem.Value.EncumbranceVal;
-                log.Debug($"{aceObject.Name} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
+                log.Debug($"{AceObject.Name} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
 
                 Value += wieldedItem.Value.Value;
             }
@@ -83,14 +90,14 @@ namespace ACE.Entity
             foreach (var inventoryItem in Inventory)
             {
                 ObjectGuid woGuid = new ObjectGuid(inventoryItem.Value.AceObjectId);
-                WorldObject wo = WorldObjectFactory.CreateWorldObject(inventoryItem.Value);
+                WorldObject wo = await WorldObjectFactory.CreateWorldObject(inventoryItem.Value);
                 InventoryObjects.Add(woGuid, wo);
 
                 if (wo.WeenieType == WeenieType.Coin)
                     CoinValue += wo.Value ?? 0;
 
                 Burden += wo.Burden ?? 0;
-                log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
+                log.Debug($"{AceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
             }
         }
 
@@ -337,17 +344,24 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="session">Session is used for sequence and target</param>
         /// <param name="fromWo">World object of the item are we merging from that needs to be destroyed.</param>
-        public void RemoveWorldObject(Session session, WorldObject fromWo)
+        public async Task RemoveWorldObject(Session session, WorldObject fromWo)
         {
             if (HasItem(fromWo.Guid))
+            {
                 session.Player.RemoveWorldObjectFromInventory(fromWo.Guid);
+            }
             else
-               session.Player.RemoveFromWieldedObjects(fromWo.Guid);
+            {
+                session.Player.RemoveFromWieldedObjects(fromWo.Guid);
+            }
+
             GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);
 
             if (fromWo.SnapShotOfAceObject().HasEverBeenSavedToDatabase)
-                DatabaseManager.Shard.DeleteObject(fromWo.SnapShotOfAceObject(), null);
+            {
+                await DatabaseManager.Shard.DeleteObject(fromWo.SnapShotOfAceObject());
+            }
         }
 
         /// <summary>
@@ -357,46 +371,43 @@ namespace ACE.Entity
         /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
         /// <param name="mergeToGuid">Guid of the item we are merging into</param>
         /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
-        public void HandleActionStackableMerge(Session session, ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
+        public async Task StackableMerge(Session session, ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
         {
-            new ActionChain(this, () =>
+            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+            if (!HasItem(mergeFromGuid))
             {
-                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                if (!HasItem(mergeFromGuid))
-                {
-                    // This is a pickup into our main pack.
-                    session.Player.PutItemInContainer(mergeFromGuid, session.Player.Guid);
-                }
+                // This is a pickup into our main pack.
+                await session.Player.PutItemInContainer(mergeFromGuid, session.Player.Guid);
+            }
 
-                WorldObject fromWo = GetInventoryItem(mergeFromGuid);
-                WorldObject toWo = GetInventoryItem(mergeToGuid);
+            WorldObject fromWo = GetInventoryItem(mergeFromGuid);
+            WorldObject toWo = GetInventoryItem(mergeToGuid);
 
-                if (fromWo == null || toWo == null) return;
+            if (fromWo == null || toWo == null) return;
 
-                // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
-                // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
-                if (toWo.MaxStackSize == toWo.StackSize)
-                    return;
+            // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
+            // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
+            if (toWo.MaxStackSize == toWo.StackSize)
+                return;
 
-                Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
-                if (toWo.MaxStackSize >= (ushort)(toWo.StackSize + amount))
-                {
-                    UpdateToStack(session, fromWo, toWo, amount);
-                    // Ok did we merge it all?   If so, let's destroy the from item.
-                    if (fromWo.StackSize == amount)
-                        RemoveWorldObject(session, fromWo);
-                    else
-                        UpdateFromStack(session, fromWo, amount);
-                }
+            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
+            if (toWo.MaxStackSize >= (ushort)(toWo.StackSize + amount))
+            {
+                UpdateToStack(session, fromWo, toWo, amount);
+                // Ok did we merge it all?   If so, let's destroy the from item.
+                if (fromWo.StackSize == amount)
+                    await RemoveWorldObject(session, fromWo);
                 else
-                {
-                    // ok we have more than the max stack size on the to object, just add what we can and adjust both.
-                    Debug.Assert(toWo.MaxStackSize != null, "toWo.MaxStackSize != null");
-                    int amtToFill = (int)(toWo.MaxStackSize - toWo.StackSize);
-                    UpdateToStack(session, fromWo, toWo, amtToFill);
-                    UpdateFromStack(session, toWo, amtToFill);
-                }
-            }).EnqueueChain();
+                    UpdateFromStack(session, fromWo, amount);
+            }
+            else
+            {
+                // ok we have more than the max stack size on the to object, just add what we can and adjust both.
+                Debug.Assert(toWo.MaxStackSize != null, "toWo.MaxStackSize != null");
+                int amtToFill = (int)(toWo.MaxStackSize - toWo.StackSize);
+                UpdateToStack(session, fromWo, toWo, amtToFill);
+                UpdateFromStack(session, toWo, amtToFill);
+            }
         }
     }
 }

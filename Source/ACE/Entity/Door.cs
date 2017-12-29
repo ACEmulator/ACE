@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
-using ACE.Entity.Enum.Properties;
-using ACE.Entity.Enum;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using ACE.Common;
 using ACE.Entity.Actions;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Common;
 
 namespace ACE.Entity
 {
@@ -32,9 +34,13 @@ namespace ACE.Entity
         private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
-        public Door(AceObject aceO)
-            : base(aceO)
+        public Door()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
             // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
             // PhysicsState = 0;
             // ReportCollision = true;
@@ -168,9 +174,9 @@ namespace ACE.Entity
             set;
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -184,7 +190,7 @@ namespace ACE.Entity
             ////}
 
             if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
+                await player.DoMoveTo(this);
             else
             {
                 ActionChain checkDoorChain = new ActionChain();

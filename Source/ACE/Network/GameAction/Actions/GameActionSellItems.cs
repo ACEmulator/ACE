@@ -1,20 +1,14 @@
-﻿using ACE.Common.Extensions;
-using ACE.Database;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Managers;
-using ACE.Network.GameEvent;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionSellItems
     {
         [GameAction(GameActionType.Sell)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             ObjectGuid vendorId = new ObjectGuid(message.Payload.ReadUInt32());
             uint itemcount = message.Payload.ReadUInt32();
@@ -36,7 +30,7 @@ namespace ACE.Network.GameAction.Actions
             // uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.SellToVendor(items, vendorId);
+            await session.Player.SellToVendor(items, vendorId);
         }
     }
 }

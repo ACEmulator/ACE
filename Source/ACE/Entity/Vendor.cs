@@ -1,15 +1,7 @@
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.Network.GameEvent.Events;
-using ACE.Network.Motion;
-using ACE.Entity.Enum.Properties;
 using System;
-using ACE.DatLoader.FileTypes;
-using ACE.Network.GameMessages.Messages;
-using ACE.Common;
 using System.Collections.Generic;
-using ACE.Database;
+using System.Threading.Tasks;
+
 using ACE.Factories;
 
 namespace ACE.Entity
@@ -30,9 +22,13 @@ namespace ACE.Entity
         private bool inventoryloaded = false;
 
         // todo : SO : Turning to player movement states  - looks at @og
-        public Vendor(AceObject aceO)
-            : base(aceO)
+        public Vendor()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
         }
 
         #region General Vendor functions
@@ -41,19 +37,19 @@ namespace ACE.Entity
         /// Fired when Client clicks on the Vendor World Object
         /// </summary>
         /// <param name="playerId"></param>
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
             }
 
             if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
+                await player.MoveTo(Guid, UseRadius ?? 0.2f);
             else
             {
-                LoadInventory();
+                await LoadInventory();
                 ApproachVendor(player);
             }
         }
@@ -61,14 +57,14 @@ namespace ACE.Entity
         /// <summary>
         /// Load Inventory for default items from database table / assignes default objects.
         /// </summary>
-        private void LoadInventory()
+        private async Task LoadInventory()
         {
             // Load Vendor Inventory from database.
             if (!inventoryloaded)
             {
                 foreach (AceObjectInventory item in ShopList)
                 {
-                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+                    WorldObject wo = await WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
                     if (wo != null)
                     {
                         wo.ContainerId = Guid.Full;
@@ -82,12 +78,12 @@ namespace ACE.Entity
         /// <summary>
         /// Used to convert Weenie based objects / not used for unique items
         /// </summary>
-        private List<WorldObject> ItemProfileToWorldObjects(ItemProfile itemprofile)
+        private async Task<List<WorldObject>> ItemProfileToWorldObjects(ItemProfile itemprofile)
         {
             List<WorldObject> worldobjects = new List<WorldObject>();
             while (itemprofile.Amount > 0)
             {
-                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(itemprofile.WeenieClassId);
+                WorldObject wo = await WorldObjectFactory.CreateNewWorldObject(itemprofile.WeenieClassId);
                 // can we stack this ?
                 if (wo.MaxStackSize.HasValue)
                 {
@@ -152,7 +148,7 @@ namespace ACE.Entity
         /// <param name="vendorid">GUID of Vendor</param>
         /// <param name="items">Item Profile, Ammount and ID</param>
         /// <param name="player"></param>
-        public void BuyValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public async Task BuyValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
             // que transactions.
             List<ItemProfile> filteredlist = new List<ItemProfile>();
@@ -185,7 +181,7 @@ namespace ACE.Entity
             // convert profile to wold objects / stack logic does not include unique items.
             foreach (ItemProfile fitem in filteredlist)
             {
-                genlist.AddRange(ItemProfileToWorldObjects(fitem));
+                genlist.AddRange(await ItemProfileToWorldObjects(fitem));
             }
 
             // calculate price. (both unique and item profile)
@@ -204,7 +200,7 @@ namespace ACE.Entity
             }
 
             // send transaction to player for further processing and.
-            player.FinalizeBuyTransaction(this, uqlist, genlist, true, goldcost);
+            await player.FinalizeBuyTransaction(this, uqlist, genlist, true, goldcost);
         }
 
         /// <summary>
@@ -229,7 +225,7 @@ namespace ACE.Entity
 
         #region Sell Transactions
 
-        public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
+        public async Task SellItemsValidateTransaction(Player player, List<WorldObject> items)
         {
             // todo: filter rejected / accepted send item spec result back to player
             uint payout = 0;
@@ -257,7 +253,7 @@ namespace ACE.Entity
             }
 
             ApproachVendor(player);
-            player.FinalizeSellTransaction(this, true, accepted, payout);
+            await player.FinalizeSellTransaction(this, true, accepted, payout);
         }
 
         #endregion

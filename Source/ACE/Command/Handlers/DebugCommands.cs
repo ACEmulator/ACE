@@ -1,18 +1,19 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
+using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Factories;
 using ACE.Network.Motion;
-using ACE.DatLoader.FileTypes;
-using System.Linq;
-using System.Collections.Generic;
-using ACE.DatLoader.Entity;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
@@ -418,16 +419,16 @@ namespace ACE.Command.Handlers
              "Used to test the MoveToObject message.   It will spawn a training wand in front of you and then move to that object.",
             "moveto\n" +
             "optional parameter distance if omitted 10f")]
-        public static void MoveTo(Session session, params string[] parameters)
+        public static async Task MoveTo(Session session, params string[] parameters)
         {
             var distance = 10.0f;
             ushort trainingWandTarget = 12748;
             if ((parameters?.Length > 0))
                 distance = Convert.ToInt16(parameters[0]);
-            WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
+            WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
 
-            session.Player.PutItemInContainer(loot.Guid, session.Player.Guid);
+            await session.Player.PutItemInContainer(loot.Guid, session.Player.Guid);
         }
 
         // This function
@@ -485,9 +486,9 @@ namespace ACE.Command.Handlers
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Creates a portal in front of you.")]
-        public static void CreatePortal(Session session, params string[] parameters)
+        public static async Task CreatePortal(Session session, params string[] parameters)
         {
-            SpecialPortalObjectFactory.SpawnPortal(SpecialPortalObjectFactory.PortalWcid.HummingCrystal, session.Player.Location.InFrontOf(3.0f), 15.0f);
+            await SpecialPortalObjectFactory.SpawnPortal(SpecialPortalObjectFactory.PortalWcid.HummingCrystal, session.Player.Location.InFrontOf(3.0f), 15.0f);
         }
 
         /// <summary>
@@ -496,9 +497,9 @@ namespace ACE.Command.Handlers
         /// <remarks>Added a quick way to invoke the character save routine.</remarks>
         [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Saves your session.")]
-        public static void HandleSaveNow(Session session, params string[] parameters)
+        public static async Task HandleSaveNow(Session session, params string[] parameters)
         {
-            session.SaveSession();
+            await session.SaveSession();
         }
 
         /// <summary>
@@ -507,16 +508,19 @@ namespace ACE.Command.Handlers
         /// <remarks>Added a quick way to access the player GUID.</remarks>
         [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
             "Shows you your GUIDs.")]
-        public static void HandleWhoAmI(Session session, params string[] parameters)
+        // Disabling for interface compatibility
+        #pragma warning disable 1998
+        public static async Task HandleWhoAmI(Session session, params string[] parameters)
         {
             ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
         }
+        #pragma warning restore 1998
 
         // Kill a player - equivalent to legal virtual murder, by admin
         // TODO: Migrate this code into "smite" Admin command
         [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1,
             "See @smite")]
-        public static void HandleSendKill(Session session, params string[] parameters)
+        public static async Task HandleSendKill(Session session, params string[] parameters)
         {
             // lame checks on first parameter
             if (parameters?.Length > 0)
@@ -545,7 +549,7 @@ namespace ACE.Command.Handlers
                 // playerSession will be null when the character is not found
                 if (playerSession != null)
                 {
-                    playerSession.Player.HandleActionKill(playerSession.Player.Guid);
+                    await playerSession.Player.HandleActionKill(playerSession.Player.Guid);
                     return;
                 }
             }
@@ -610,9 +614,9 @@ namespace ACE.Command.Handlers
         /// Debug command to kill a targeted creature so it drops a corpse.
         /// </summary>
         [CommandHandler("testcorpsedrop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void TestCorpse(Session session, params string[] parameters)
+        public static async Task TestCorpse(Session session, params string[] parameters)
         {
-            session.Player.HandleActionTestCorpseDrop();
+            await session.Player.HandleActionTestCorpseDrop();
         }
 
         /// <summary>
@@ -620,7 +624,8 @@ namespace ACE.Command.Handlers
         /// </summary>
         [CommandHandler("readgenerators", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
             "Debug command to read the Generators from the DatFile 0x0E00000D in portal.dat")]
-        public static void Treadgenerators(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task Treadgenerators(Session session, params string[] parameters)
         {
             var generators = GeneratorTable.ReadFromDat();
 
@@ -635,6 +640,7 @@ namespace ACE.Command.Handlers
                 }
             });
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Debug command to save the player's current location as sepecific position type.
@@ -800,7 +806,7 @@ namespace ACE.Command.Handlers
         // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Creates testing items in your inventory.")]
-        public static void HandleWeapons(Session session, params string[] parameters)
+        public static async Task HandleWeapons(Session session, params string[] parameters)
         {
             HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
 
@@ -810,7 +816,7 @@ namespace ACE.Command.Handlers
             ////                                                  (uint)TestWeenieClassIds.ColoBackpack };
             foreach (uint weenieId in weaponsTest)
             {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+                WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
                 loot.Placement = 0;
                 // TODO: Og II
@@ -832,13 +838,13 @@ namespace ACE.Command.Handlers
         // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
         [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
         "Creates sample items, foci and containers in your inventory.")]
-        public static void HandleInv(Session session, params string[] parameters)
+        public static async Task HandleInv(Session session, params string[] parameters)
         {
             HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46, 15268, 15269, 15270, 15271, 12748, 5893, 136 };
 
             foreach (uint weenieId in weaponsTest)
             {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+                WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(weenieId);
                 loot.ContainerId = session.Player.Guid.Full;
                 loot.Placement = 0;
                 session.Player.AddToInventory(loot);
@@ -858,13 +864,13 @@ namespace ACE.Command.Handlers
 
         [CommandHandler("splits", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Creates some stackable items in your inventory for testing.")]
-        public static void HandleSplits(Session session, params string[] parameters)
+        public static async Task HandleSplits(Session session, params string[] parameters)
         {
             HashSet<uint> splitsTest = new HashSet<uint>() { 237, 300, 690, 20630, 20631, 37155, 31198 };
 
             foreach (uint weenieId in splitsTest)
             {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+                WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(weenieId);
                 var valueEach = loot.Value / loot.StackSize;
                 loot.StackSize = loot.MaxStackSize;
                 loot.Value = loot.StackSize * valueEach;
@@ -898,7 +904,7 @@ namespace ACE.Command.Handlers
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
-        public static void HandleCIRandom(Session session, params string[] parameters)
+        public static async Task HandleCIRandom(Session session, params string[] parameters)
         {
             uint typeId;
             byte numItems = 10;
@@ -923,7 +929,7 @@ namespace ACE.Command.Handlers
                     return;
                 }
             }
-            LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems);
+            await LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems);
         }
 
         /// <summary>

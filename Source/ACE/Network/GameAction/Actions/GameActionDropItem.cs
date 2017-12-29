@@ -1,7 +1,6 @@
-﻿using ACE.Entity;
-using ACE.Entity.Enum.Properties;
-using ACE.Network.Enum;
-using ACE.Network.GameMessages.Messages;
+using System.Threading.Tasks;
+
+using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
 {
@@ -9,10 +8,10 @@ namespace ACE.Network.GameAction.Actions
     {
         [GameAction(GameActionType.DropItem)]
 
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var objectGuid = new ObjectGuid(message.Payload.ReadUInt32());
-            session.Player.HandleActionDropItem(objectGuid);
+            await session.Player.HandleActionDropItem(objectGuid);
         }
     }
 }

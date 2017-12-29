@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using ACE.Common;
 using ACE.Common.Cryptography;
@@ -185,26 +185,24 @@ namespace ACE.Network.Handlers
             session.State = SessionState.AuthConnectResponse;
         }
 
-        public static void HandleConnectResponse(ClientPacket packet, Session session)
+        public static async Task HandleConnectResponse(ClientPacket packet, Session session)
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
             log.Debug($"Getting characters for subscription id {session.SubscriptionId}");
-            DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
-            {
-                result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
-                session.UpdateCachedCharacters(result);
+            List<CachedCharacter> result = await DatabaseManager.Shard.GetCharacters(session.SubscriptionId);
+            result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
+            await session.UpdateCachedCharacters(result);
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.ClientAccountString);
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
-                GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
+            GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.ClientAccountString);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-                log.Debug($"sending {result.Count} characters to {session.ClientAccountString} for {ConfigManager.Config.Server.WorldName}");
-                session.Network.EnqueueSend(characterListMessage, serverNameMessage);
-                session.Network.EnqueueSend(dddInterrogation);
+            log.Debug($"sending {result.Count} characters to {session.ClientAccountString} for {ConfigManager.Config.Server.WorldName}");
+            session.Network.EnqueueSend(characterListMessage, serverNameMessage);
+            session.Network.EnqueueSend(dddInterrogation);
 
-                session.State = SessionState.AuthConnected;
-            }));
+            session.State = SessionState.AuthConnected;
         }
     }
 }

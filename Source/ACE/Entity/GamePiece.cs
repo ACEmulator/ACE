@@ -1,19 +1,19 @@
-using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
-using ACE.Entity.Enum;
+using System.Threading.Tasks;
+
 using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
 using ACE.Managers;
 
 namespace ACE.Entity
 {
     public class GamePiece : Creature
     {
-        public GamePiece(AceObject aceO)
-            : base(aceO)
+        public GamePiece()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
         }
 
         ////public override void ActOnUse(ObjectGuid playerId)

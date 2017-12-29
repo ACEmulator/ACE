@@ -1,4 +1,6 @@
-﻿using ACE.DatLoader.Entity;
+using System.Threading.Tasks;
+
+using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
@@ -21,9 +23,13 @@ namespace ACE.Entity
             set { AceObject.UseCreateContractId = value; }
         }
 
-        public Gem(AceObject aceObject)
-            : base(aceObject)
+        public Gem()
         {
+        }
+
+        protected override async Task Init(AceObject aceObject)
+        {
+            await base.Init(aceObject);
         }
 
         /// <summary>
@@ -33,7 +39,7 @@ namespace ACE.Entity
         /// quest or how much longer we have to complete it in the case of at timed quest.   Og II
         /// </summary>
         /// <param name="session">Pass the session variable so we will have access to player and the correct sequences</param>
-        public override void OnUse(Session session)
+        public override async Task OnUse(Session session)
         {
             if (UseCreateContractId == null) return;
             ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, session.Player.Guid.Full)
@@ -91,15 +97,17 @@ namespace ACE.Entity
                     Duration = CooldownDuration.Value,
                     DegradeModifier = 0,
                     DegradeLimit = -666
-            };
+                };
                 session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase, layer, spellCategory, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
-                session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);
+                await session.Player.RemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);
             }
             else
+            {
                 ChatPacket.SendServerMessage(session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
+            }
 
             // No mater any condition we need to send the use done event to clear the hour glass from the client.
             session.Player.SendUseDoneEvent();

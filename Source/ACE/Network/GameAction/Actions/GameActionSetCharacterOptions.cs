@@ -1,5 +1,6 @@
-﻿using ACE.Network.Enum;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 
@@ -15,7 +16,7 @@ namespace ACE.Network.GameAction.Actions
     public static class GameActionSetCharacterOptions
     {
         [GameAction(GameActionType.SetCharacterOptions)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             int characterOptions1Flag = 0;
             int characterOptions2Flag = 0;
@@ -153,7 +154,7 @@ namespace ACE.Network.GameAction.Actions
             // TODO: Set other options from the packet
 
             // Save the options
-            session.Player.HandleActionSaveCharacter();
+            await session.Player.SaveCharacter();
         }
     }
 }

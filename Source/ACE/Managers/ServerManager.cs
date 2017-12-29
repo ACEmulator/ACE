@@ -1,7 +1,11 @@
-﻿using ACE.Common;
-using log4net;
 using System;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+
+using ACE.Common;
+
+using log4net;
 
 namespace ACE.Managers
 {
@@ -91,13 +95,15 @@ namespace ACE.Managers
             }
 
             // logout each player
+            List<Task> logoffTasks = new List<Task>();
             foreach (var player in WorldManager.GetAll(false))
             {
+                // FIXME(ddevec) -- needs to spawn on the correct thread
                 player.LogOffPlayer();
             }
 
             // wait 6 seconds for log-off
-            Thread.Sleep(6000);
+            Task.WaitAll(logoffTasks.ToArray());
 
             // TODO: Make sure that the landblocks unloads properly.
 

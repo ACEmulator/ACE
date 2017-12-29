@@ -1,10 +1,16 @@
-﻿namespace ACE.Entity
+using System.Threading.Tasks;
+
+namespace ACE.Entity
 {
     public class GenericObject : WorldObject
     {
-        public GenericObject(AceObject aceObject)
-            : base(aceObject)
+        public GenericObject()
         {
+        }
+
+        protected override async Task Init(AceObject aceObject)
+        {
+            await base.Init(aceObject);
         }
 
         ////public GenericObject(ObjectGuid guid, AceObject aceObject)

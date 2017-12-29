@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -60,14 +60,14 @@ namespace ACE.Managers
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
+        public static async Task ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 log.DebugFormat("Login Request from {0}", endPoint);
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
-                    session.ProcessPacket(packet);
+                    await session.ProcessPacket(packet);
             }
             else if (sessionMap.Length > packet.Header.Id)
             {
@@ -75,9 +75,13 @@ namespace ACE.Managers
                 if (session != null)
                 {
                     if (session.EndPoint.Equals(endPoint))
-                        session.ProcessPacket(packet);
+                    {
+                        await session.ProcessPacket(packet);
+                    }
                     else
+                    {
                         log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    }
                 }
                 else
                 {

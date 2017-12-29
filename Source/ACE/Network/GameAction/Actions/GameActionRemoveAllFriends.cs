@@ -1,11 +1,13 @@
-﻿namespace ACE.Network.GameAction.Actions
+using System.Threading.Tasks;
+
+namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionRemoveAllFriends
     {
         [GameAction(GameActionType.RemoveAllFriends)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
-            session.Player.RemoveAllFriends();
+            await session.Player.RemoveAllFriends();
         }
     }
 }

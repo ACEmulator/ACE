@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using ACE.Common;
 using ACE.Common.Extensions;
@@ -28,7 +29,7 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
-        public static void CharacterEnterWorld(ClientMessage message, Session session)
+        public static async Task CharacterEnterWorld(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -53,11 +54,11 @@ namespace ACE.Network.Handlers
 
             session.State = SessionState.WorldConnected;
 
-            LandblockManager.PlayerEnterWorld(session, cachedCharacter.Guid);
+            await LandblockManager.PlayerEnterWorld(session, cachedCharacter.Guid);
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
-        public static void CharacterDelete(ClientMessage message, Session session)
+        public static async Task CharacterDelete(ClientMessage message, Session session)
         {
             string clientString = message.Payload.ReadString16L();
             uint characterSlot = message.Payload.ReadUInt32();
@@ -79,25 +80,22 @@ namespace ACE.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full, ((bool deleteOrRestoreSuccess) =>
+            bool deleteOrRestoreSuccess = await DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full);
+            if (deleteOrRestoreSuccess)
             {
-                if (deleteOrRestoreSuccess)
-                {
-                    DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
-                    {
-                        session.UpdateCachedCharacters(result);
-                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.ClientAccountString));
-                    }));
-                }
-                else
-                {
-                    session.SendCharacterError(CharacterError.Delete);
-                }
-            }));
+                List<CachedCharacter> result = await DatabaseManager.Shard.GetCharacters(session.SubscriptionId);
+
+                await session.UpdateCachedCharacters(result);
+                session.Network.EnqueueSend(new GameMessageCharacterList(result, session.ClientAccountString));
+            }
+            else
+            {
+                session.SendCharacterError(CharacterError.Delete);
+            }
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static void CharacterRestore(ClientMessage message, Session session)
+        public static async Task CharacterRestore(ClientMessage message, Session session)
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
@@ -105,27 +103,27 @@ namespace ACE.Network.Handlers
             if (cachedCharacter == null)
                 return;
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, ((bool isAvailable) =>
+            bool isAvailable = await DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name);
+            if (!isAvailable)
             {
-                if (!isAvailable)
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+            }
+            else
+            {
+                bool deleteOrRestoreSuccess = await DatabaseManager.Shard.DeleteOrRestore(0, cachedCharacter.Guid.Full);
+                if (deleteOrRestoreSuccess)
                 {
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                    session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
                 }
                 else
                 {
-                    DatabaseManager.Shard.DeleteOrRestore(0, cachedCharacter.Guid.Full, ((bool deleteOrRestoreSuccess) =>
-                    {
-                        if (deleteOrRestoreSuccess)
-                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
-                        else
-                            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
-                    }));
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                 }
-            }));
+            }
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
-        public static void CharacterCreate(ClientMessage message, Session session)
+        public static async Task CharacterCreate(ClientMessage message, Session session)
         {
             string clientString = message.Payload.ReadString16L();
             if (clientString != session.ClientAccountString)
@@ -133,10 +131,10 @@ namespace ACE.Network.Handlers
 
             uint id = GuidManager.NewPlayerGuid().Full;
 
-            CharacterCreateEx(message, session, id);
+            await CharacterCreateEx(message, session, id);
         }
 
-        private static void CharacterCreateEx(ClientMessage message, Session session, uint id)
+        private static async Task CharacterCreateEx(ClientMessage message, Session session, uint id)
         {
             CharGen cg = CharGen.ReadFromDat();
             var reader = message.Payload;
@@ -200,12 +198,12 @@ namespace ACE.Network.Handlers
             character.EyesPalette = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
 
             if (appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
-            {
+            { 
                 uint headgearWeenie = sex.GetHeadgearWeenie(appearance.HeadgearStyle);
                 ClothingTable headCT = ClothingTable.ReadFromDat(sex.GetHeadgearClothingTable(appearance.HeadgearStyle));
                 uint headgearIconId = headCT.GetIcon(appearance.HeadgearColor);
 
-                var hat = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(headgearWeenie).Clone(GuidManager.NewItemGuid().Full);
+                var hat = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(headgearWeenie)).Clone(GuidManager.NewItemGuid().Full);
                 hat.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
                 hat.TextureOverrides = new List<TextureMapOverride>();
                 hat.AnimationOverrides = new List<AnimationOverride>();
@@ -270,7 +268,7 @@ namespace ACE.Network.Handlers
             ClothingTable shirtCT = ClothingTable.ReadFromDat(sex.GetShirtClothingTable(appearance.ShirtStyle));
             uint shirtIconId = shirtCT.GetIcon(appearance.ShirtColor);
 
-            var shirt = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(shirtWeenie).Clone(GuidManager.NewItemGuid().Full);
+            var shirt = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(shirtWeenie)).Clone(GuidManager.NewItemGuid().Full);
             shirt.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
             shirt.TextureOverrides = new List<TextureMapOverride>();
             shirt.AnimationOverrides = new List<AnimationOverride>();
@@ -339,7 +337,7 @@ namespace ACE.Network.Handlers
             ClothingTable pantsCT = ClothingTable.ReadFromDat(sex.GetPantsClothingTable(appearance.PantsStyle));
             uint pantsIconId = pantsCT.GetIcon(appearance.PantsColor);
 
-            var pants = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(pantsWeenie).Clone(GuidManager.NewItemGuid().Full);
+            var pants = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(pantsWeenie)).Clone(GuidManager.NewItemGuid().Full);
             pants.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
             pants.TextureOverrides = new List<TextureMapOverride>();
             pants.AnimationOverrides = new List<AnimationOverride>();
@@ -403,7 +401,7 @@ namespace ACE.Network.Handlers
             ClothingTable footwearCT = ClothingTable.ReadFromDat(sex.GetFootwearClothingTable(appearance.FootwearStyle));
             uint footwearIconId = footwearCT.GetIcon(appearance.FootwearColor);
 
-            var shoes = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(footwearWeenie).Clone(GuidManager.NewItemGuid().Full);
+            var shoes = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(footwearWeenie)).Clone(GuidManager.NewItemGuid().Full);
             shoes.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
             shoes.TextureOverrides = new List<TextureMapOverride>();
             shoes.AnimationOverrides = new List<AnimationOverride>();
@@ -552,7 +550,7 @@ namespace ACE.Network.Handlers
                             continue;
                         }
 
-                        var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
+                        var loot = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId)).Clone(GuidManager.NewItemGuid().Full);
                         loot.Placement = 0;
                         loot.ContainerIID = id;
                         loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
@@ -575,7 +573,7 @@ namespace ACE.Network.Handlers
                                 continue;
                             }
 
-                            var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
+                            var loot = (AceObject)(await DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId)).Clone(GuidManager.NewItemGuid().Full);
                             loot.Placement = 0;
                             loot.ContainerIID = id;
                             loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
@@ -600,36 +598,32 @@ namespace ACE.Network.Handlers
             character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
             character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(character.Name, ((bool isAvailable) =>
+            bool isAvailable = await DatabaseManager.Shard.IsCharacterNameAvailable(character.Name);
+            if (!isAvailable)
             {
-                if (!isAvailable)
-                {
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
-                    return;
-                }
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                return;
+            }
 
-                character.SubscriptionId = session.SubscriptionId;
+            character.SubscriptionId = session.SubscriptionId;
 
-                CharacterCreateSetDefaultCharacterOptions(character);
-                CharacterCreateSetDefaultCharacterPositions(character, startArea);
+            CharacterCreateSetDefaultCharacterOptions(character);
+            CharacterCreateSetDefaultCharacterPositions(character, startArea);
 
-                // We must await here -- 
-                DatabaseManager.Shard.SaveObject(character, ((bool saveSuccess) =>
-                {
-                    if (!saveSuccess)
-                    {
-                        SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
-                        return;
-                    }
-                    // DatabaseManager.Shard.SaveCharacterOptions(character);
-                    // DatabaseManager.Shard.InitCharacterPositions(character);
+            // We must await here -- 
+            bool saveSuccess = await DatabaseManager.Shard.SaveObject(character);
+            if (!saveSuccess)
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
+                return;
+            }
+            // DatabaseManager.Shard.SaveCharacterOptions(character);
+            // DatabaseManager.Shard.InitCharacterPositions(character);
 
-                    var guid = new ObjectGuid(character.AceObjectId);
-                    session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
+            var guid = new ObjectGuid(character.AceObjectId);
+            session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
 
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
-                }));
-            }));
+            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
         }
 
         /// <summary>
@@ -677,9 +671,9 @@ namespace ACE.Network.Handlers
         }
 
         [GameMessageAttribute(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
-        public static void CharacterLogOff(ClientMessage message, Session session)
+        public static async Task CharacterLogOff(ClientMessage message, Session session)
         {
-            session.LogOffPlayer();
+            await session.LogOffPlayer();
         }
     }
 }

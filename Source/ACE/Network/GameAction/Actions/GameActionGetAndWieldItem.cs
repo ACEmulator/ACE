@@ -1,13 +1,15 @@
-﻿namespace ACE.Network.GameAction.Actions
+using System.Threading.Tasks;
+
+namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionGetAndWieldItem
     {
         [GameAction(GameActionType.GetAndWieldItem)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             uint itemGuid = message.Payload.ReadUInt32();
             int location = message.Payload.ReadInt32();
-            session.Player.HandleActionWieldItem(session.Player, itemGuid, location);
+            await session.Player.WeildItem(session.Player, itemGuid, location);
         }
     }
 }

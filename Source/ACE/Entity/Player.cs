@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Linq;
 using ACE.Database;
 using ACE.Factories;
@@ -21,7 +22,7 @@ using System.Diagnostics;
 
 namespace ACE.Entity
 {
-    public sealed class Player : Creature, IPlayer
+    public sealed class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -302,10 +303,20 @@ namespace ACE.Entity
             set { Character.TotalLogins = value; }
         }
 
-        public Player(Session session, AceCharacter character)
-            : base(character)
+        public Player(Session session)
         {
             Session = session;
+        }
+
+        public async Task DoInit(AceCharacter c)
+        {
+            await Init(c);
+        }
+
+        protected override async Task Init(AceObject ao)
+        {
+            await base.Init(ao);
+
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -932,7 +943,7 @@ namespace ACE.Entity
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
         }
 
-        public void ExamineObject(ObjectGuid examinationId)
+        public async Task ExamineObject(ObjectGuid examinationId)
         {
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
 
@@ -967,11 +978,11 @@ namespace ACE.Entity
             else
             {
                 // examine item on land block
-                CurrentLandblock.GetObject(examinationId).Examine(Session);
+                (await CurrentLandblock.GetObject(examinationId)).Examine(Session);
             }
         }
 
-        public void QueryHealth(ObjectGuid queryId)
+        public async Task QueryHealth(ObjectGuid queryId)
         {
             if (queryId.Full == 0)
             {
@@ -982,7 +993,7 @@ namespace ACE.Entity
 
             // Remember the selected Target
             selectedTarget = queryId;
-            CurrentLandblock.GetObject(queryId).QueryHealth(Session);
+            (await CurrentLandblock.GetObject(queryId)).QueryHealth(Session);
         }
 
         public void QueryItemMana(ObjectGuid queryId)
@@ -1020,7 +1031,7 @@ namespace ACE.Entity
             }
         }
 
-        public void ReadBookPage(ObjectGuid bookId, uint pageNum)
+        public async Task ReadBookPage(ObjectGuid bookId, uint pageNum)
         {
             // TODO: Do we want to throttle this request, like appraisals?
             // The object can be in two spots... on the player or on the landblock
@@ -1033,7 +1044,7 @@ namespace ACE.Entity
             }
             else
             {
-                CurrentLandblock.GetObject(bookId).ReadBookPage(Session, pageNum);
+                (await CurrentLandblock.GetObject(bookId)).ReadBookPage(Session, pageNum);
             }
         }
 
@@ -1053,10 +1064,10 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="vendorId"></param>
         /// <param name="items"></param>
-        public void BuyFromVendor(ObjectGuid vendorId, List<ItemProfile> items)
+        public async Task BuyFromVendor(ObjectGuid vendorId, List<ItemProfile> items)
         {
-            Vendor vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
-            vendor.BuyValidateTransaction(vendorId, items, this);
+            Vendor vendor = (await CurrentLandblock.GetObject(vendorId)) as Vendor;
+            await vendor.BuyValidateTransaction(vendorId, items, this);
         }
 
         /// <summary>
@@ -1066,13 +1077,13 @@ namespace ACE.Entity
         /// <param name="purchaselist"></param>
         /// <param name="valid"></param>
         /// <param name="goldcost"></param>
-        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
+        public async Task FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
         {
             // todo research packets more for both buy and sell. ripley thinks buy is update..
             // vendor accepted the transaction
             if (valid)
             {
-                if (SpendCurrency(goldcost, WeenieType.Coin))
+                if (await SpendCurrency(goldcost, WeenieType.Coin))
                 {
                     foreach (WorldObject wo in uqlist)
                     {
@@ -1099,7 +1110,7 @@ namespace ACE.Entity
         /// </summary>
         /// <param name="items"></param>
         /// <param name="vendorId"></param>
-        public void SellToVendor(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
+        public async Task SellToVendor(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
         {
             List<WorldObject> purchaselist = new List<WorldObject>();
             foreach (ItemProfile profile in itemprofiles)
@@ -1132,32 +1143,32 @@ namespace ACE.Entity
                 SetInventoryForVendor(item);
 
                 // clean up the shard database.
-                DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                await DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject());
 
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
                 purchaselist.Add(item);
             }
 
-            Vendor vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
-            vendor.SellItemsValidateTransaction(this, purchaselist);
+            Vendor vendor = await CurrentLandblock.GetObject(vendorId) as Vendor;
+            await vendor.SellItemsValidateTransaction(this, purchaselist);
         }
 
-        public void FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
+        public async Task FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
         {
             // pay player in voinds
             if (valid)
             {
-                CreateCurrency(WeenieType.Coin, payout);
+                await CreateCurrency(WeenieType.Coin, payout);
             }
         }
         #endregion
 
-        public bool CreateCurrency(WeenieType type, uint amount)
+        public async Task<bool> CreateCurrency(WeenieType type, uint amount)
         {
             // todo: we need to look up this object to understand it by its weenie id.
             // todo: support more then hard coded coin.
             const uint coinWeenieId = 273;
-            WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+            WorldObject wochk = await WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
             ushort maxstacksize = wochk.MaxStackSize.Value;
             wochk = null;
 
@@ -1165,7 +1176,7 @@ namespace ACE.Entity
 
             while (amount > 0)
             {
-                WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+                WorldObject currancystack = await WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
                 // payment contains a max stack
                 if (maxstacksize <= amount)
                 {
@@ -1205,7 +1216,7 @@ namespace ACE.Entity
             CoinValue = coins;
         }
 
-        private bool SpendCurrency(uint amount, WeenieType type)
+        private async Task<bool> SpendCurrency(uint amount, WeenieType type)
         {
             if (CoinValue - amount >= 0)
             {
@@ -1216,7 +1227,7 @@ namespace ACE.Entity
                 List<WorldObject> cost = new List<WorldObject>();
                 uint payment = 0;
 
-                WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject(273);
+                WorldObject changeobj = await WorldObjectFactory.CreateNewWorldObject(273);
                 uint change = 0;
 
                 foreach (WorldObject wo in currency)
@@ -1253,7 +1264,7 @@ namespace ACE.Entity
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
 
                     // clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
+                    await DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject());
                     Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
                 }
 
@@ -1309,9 +1320,9 @@ namespace ACE.Entity
         /// while they are plaplayerying.  this calls all the necessary helper functions to have the item be tracked and sent to the client.
         /// </summary>
         /// <returns>the object created</returns>
-        public WorldObject AddNewItemToInventory(uint weenieClassId)
+        public async Task<WorldObject> AddNewItemToInventory(uint weenieClassId)
         {
-            var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+            WorldObject wo = await Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             wo.ContainerId = Guid.Full;
             wo.Placement = 0;
             AddToInventory(wo);
@@ -1430,7 +1441,7 @@ namespace ACE.Entity
         /// Adds a friend and updates the database.
         /// </summary>
         /// <param name="friendName">The name of the friend that is being added.</param>
-        public void AddFriend(string friendName)
+        public async Task AddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
@@ -1441,35 +1452,32 @@ namespace ACE.Entity
 
             // TODO: check if player is online first to avoid database hit??
             // Get character record from DB
-            DatabaseManager.Shard.GetObjectInfoByName(friendName, ((ObjectInfo friendInfo) =>
+            ObjectInfo friendInfo = await DatabaseManager.Shard.GetObjectInfoByName(friendName);
+            if (friendInfo == null)
             {
-                if (friendInfo == null)
-                {
-                    ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
-                    return;
-                }
+                ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
+                return;
+            }
 
-                Friend newFriend = new Friend();
-                newFriend.Name = friendInfo.Name;
-                newFriend.Id = new ObjectGuid(friendInfo.Guid);
+            Friend newFriend = new Friend();
+            newFriend.Name = friendInfo.Name;
+            newFriend.Id = new ObjectGuid(friendInfo.Guid);
 
-                // Save to DB, assume success
-                DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low, (() =>
-                {
-                    // Add to character object
-                    Character.AddFriend(newFriend);
+            // Save to DB, assume success
+            await DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low);
 
-                    // Send packet
-                    Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
-                }));
-            }));
+            // Add to character object
+            Character.AddFriend(newFriend);
+
+            // Send packet
+            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
         }
 
         /// <summary>
         /// Remove a single friend and update the database.
         /// </summary>
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public void RemoveFriend(ObjectGuid friendId)
+        public async Task RemoveFriend(ObjectGuid friendId)
         {
             Friend friendToRemove = Character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
 
@@ -1481,23 +1489,22 @@ namespace ACE.Entity
             }
 
             // Remove from DB
-            DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low, (() =>
-            {
-                // Remove from character object
-                Character.RemoveFriend(friendId.Low);
+            await DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low);
 
-                // Send packet
-                Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
-            }));
+            // Remove from character object
+            Character.RemoveFriend(friendId.Low);
+
+            // Send packet
+            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
         }
 
         /// <summary>
         /// Delete all friends and update the database.
         /// </summary>
-        public void RemoveAllFriends()
+        public async Task RemoveAllFriends()
         {
             // Remove all from DB
-            DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
+            await DatabaseManager.Shard.RemoveAllFriends(Guid.Low);
 
             // Remove from character object
             Character.RemoveAllFriends();
@@ -1541,18 +1548,6 @@ namespace ACE.Entity
             }
 
             Positions[type] = newPosition;
-        }
-
-        // Just preps the character to save
-        public void HandleActionSaveCharacter()
-        {
-            GetSaveChain().EnqueueChain();
-        }
-
-        // Gets the ActionChain to save a character
-        public ActionChain GetSaveChain()
-        {
-            return new ActionChain(this, SaveCharacter);
         }
 
         /// <summary>
@@ -1601,7 +1596,7 @@ namespace ACE.Entity
         /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
         /// </summary>
-        private void SaveCharacter()
+        public async Task SaveCharacter()
         {
             if (Character != null)
             {
@@ -1613,7 +1608,7 @@ namespace ACE.Entity
                 SnapshotInventoryItems();
                 SnapShotTrackedContracts();
 
-                DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
+                await DatabaseManager.Shard.SaveObject(GetSavableCharacter());
 
                 AceObject.ClearDirtyFlags();
 
@@ -1851,22 +1846,15 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
+        public async Task Logout(bool clientSessionTerminatedAbruptly = false)
         {
-            GetLogoutChain().EnqueueChain();
-        }
-
-        public ActionChain GetLogoutChain(bool clientSessionTerminatedAbruptly = false)
-        {
-            ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
+            LogoutInternal(clientSessionTerminatedAbruptly);
 
             float logoutAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LogOut);
-            logoutChain.AddDelaySeconds(logoutAnimationLength);
+            await Task.Delay(TimeSpan.FromSeconds(logoutAnimationLength));
 
             // remove the player from landblock management -- after the animation has run
-            logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
-
-            return logoutChain;
+            CurrentLandblock.RemoveWorldObject(Guid, false);
         }
 
         /// <summary>
@@ -2297,7 +2285,7 @@ namespace ACE.Entity
         /// <param name="item">the item we are moving</param>
         /// <param name="container">what container are we going in</param>
         /// <param name="placement">what is my slot position within that container</param>
-        private void HandleMove(ref WorldObject item, Container container, int placement)
+        private async Task HandleMove(WorldObject item, Container container, int placement)
         {
             RemoveWorldObjectFromInventory(item.Guid);
 
@@ -2317,7 +2305,7 @@ namespace ACE.Entity
                 new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container,
                     container.Guid));
 
-            Session.SaveSession();
+            await Session.SaveSession();
         }
 
         /// <summary>
@@ -2331,68 +2319,63 @@ namespace ACE.Entity
         /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
         /// <returns></returns>
 
-        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int place, ushort amount)
+        public async Task StackableSplitToContainer(uint stackId, uint containerId, int place, ushort amount)
         {
             // TODO: add the complementary method to combine items Og II
-            ActionChain splitItemsChain = new ActionChain();
-            splitItemsChain.AddAction(this, () =>
+            Container container;
+            if (containerId == Guid.Full)
             {
-                Container container;
-                if (containerId == Guid.Full)
-                {
-                    container = this;
-                }
-                else
-                {
-                    container = (Container)GetInventoryItem(new ObjectGuid(containerId));
-                }
+                container = this;
+            }
+            else
+            {
+                container = (Container)GetInventoryItem(new ObjectGuid(containerId));
+            }
 
-                if (container == null)
-                {
-                    log.InfoFormat("Asked to split stack {0} in container {1} - the container was not found",
-                        stackId,
-                        containerId);
-                    return;
-                }
-                WorldObject stack = container.GetInventoryItem(new ObjectGuid(stackId));
-                if (stack == null)
-                {
-                    log.InfoFormat("Asked to split stack {0} in container {1} - the stack item was not found",
-                        stackId,
-                        containerId);
-                    return;
-                }
-                if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
-                {
-                    log.InfoFormat(
-                        "Asked to split stack {0} in container {1} - with amount of {2} but there is not enough to split",
-                        stackId, containerId, amount);
-                    return;
-                }
+            if (container == null)
+            {
+                log.InfoFormat("Asked to split stack {0} in container {1} - the container was not found",
+                    stackId,
+                    containerId);
+                return;
+            }
+            WorldObject stack = container.GetInventoryItem(new ObjectGuid(stackId));
+            if (stack == null)
+            {
+                log.InfoFormat("Asked to split stack {0} in container {1} - the stack item was not found",
+                    stackId,
+                    containerId);
+                return;
+            }
+            if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
+            {
+                log.InfoFormat(
+                    "Asked to split stack {0} in container {1} - with amount of {2} but there is not enough to split",
+                    stackId, containerId, amount);
+                return;
+            }
 
-                // Ok we are in business
+            // Ok we are in business
 
-                WorldObject newStack = WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
-                container.AddToInventory(newStack);
+            WorldObject newStack = await WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
+            container.AddToInventory(newStack);
 
-                ushort oldStackSize = (ushort)stack.StackSize;
-                stack.StackSize = (ushort)(oldStackSize - amount);
+            ushort oldStackSize = (ushort)stack.StackSize;
+            stack.StackSize = (ushort)(oldStackSize - amount);
 
-                newStack.StackSize = amount;
+            newStack.StackSize = amount;
 
-                GameMessagePutObjectInContainer msgPutObjectInContainer =
-                    new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
-                GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
-                    stack.Guid, (int)stack.StackSize, (int)stack.Value);
-                GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
+            GameMessagePutObjectInContainer msgPutObjectInContainer =
+                new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
+            GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences,
+                stack.Guid, (int)stack.StackSize, (int)stack.Value);
+            GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
 
-                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
+            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
 
-                if (stack.WeenieType == WeenieType.Coin)
-                    UpdateCurrencyClientCalculations(WeenieType.Coin);
-            });
-            splitItemsChain.EnqueueChain();
+            if (stack.WeenieType == WeenieType.Coin)
+                UpdateCurrencyClientCalculations(WeenieType.Coin);
         }
 
         /// <summary>
@@ -2401,7 +2384,7 @@ namespace ACE.Entity
         /// response to the client to remove the item from the quest panel. Og II
         /// </summary>
         /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
-        public void AbandonContract(uint contractId)
+        public async Task AbandonContract(uint contractId)
         {
             ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
             {
@@ -2422,13 +2405,12 @@ namespace ACE.Entity
             LastUseTracker.Remove((int)contractId);
             AceObject.TrackedContracts.Remove(contractId);
 
-            DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
-            {
-                if (deleteSuccess)
-                    log.Info($"ContractId {contractId:X} successfully deleted");
-                else
-                    log.Error($"Unable to delete contractId {contractId:X} ");
-            });
+            bool deleteSuccess = await DatabaseManager.Shard.DeleteContract(contract);
+
+            if (deleteSuccess)
+                log.Info($"ContractId {contractId:X} successfully deleted");
+            else
+                log.Error($"Unable to delete contractId {contractId:X} ");
 
             Session.Network.EnqueueSend(contractMsg);
         }
@@ -2440,60 +2422,57 @@ namespace ACE.Entity
         /// <param name="stackId">Guid.Full of the stacked item</param>
         /// <param name="containerId">Guid.Full of the container that contains the item</param>
         /// <param name="amount">Amount taken out of the stack</param>
-        public void HandleActionRemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
+        public async Task RemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
         {
             // FIXME: This method has been morphed into doing a few things we either need to rename it or
             // something.   This may or may not remove item from inventory.
-            ActionChain removeItemsChain = new ActionChain();
-            removeItemsChain.AddAction(this, () =>
+            Container container;
+            if (containerId == Guid.Full)
+                container = this;
+            else
+                container = (Container)GetInventoryItem(new ObjectGuid(containerId));
+
+            if (container == null)
             {
-                Container container;
-                if (containerId == Guid.Full)
-                    container = this;
-                else
-                    container = (Container)GetInventoryItem(new ObjectGuid(containerId));
+                log.InfoFormat("Asked to remove an item {0} in container {1} - the container was not found",
+                    stackId,
+                    containerId);
+                return;
+            }
 
-                if (container == null)
-                {
-                    log.InfoFormat("Asked to remove an item {0} in container {1} - the container was not found",
-                        stackId,
-                        containerId);
-                    return;
-                }
+            WorldObject item = container.GetInventoryItem(new ObjectGuid(stackId));
+            if (item == null)
+            {
+                log.InfoFormat("Asked to remove an item {0} in container {1} - the item was not found",
+                    stackId,
+                    containerId);
+                return;
+            }
 
-                WorldObject item = container.GetInventoryItem(new ObjectGuid(stackId));
-                if (item == null)
-                {
-                    log.InfoFormat("Asked to remove an item {0} in container {1} - the item was not found",
-                        stackId,
-                        containerId);
-                    return;
-                }
+            if (amount >= item.StackSize)
+                amount = (ushort)item.StackSize;
 
-                if (amount >= item.StackSize)
-                    amount = (ushort)item.StackSize;
+            ushort oldStackSize = (ushort)item.StackSize;
+            ushort newStackSize = (ushort)(oldStackSize - amount);
 
-                ushort oldStackSize = (ushort)item.StackSize;
-                ushort newStackSize = (ushort)(oldStackSize - amount);
+            if (newStackSize < 1)
+                newStackSize = 0;
 
-                if (newStackSize < 1)
-                    newStackSize = 0;
+            item.StackSize = newStackSize;
 
-                item.StackSize = newStackSize;
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, (int)item.Value));
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(item.Sequences, item.Guid, (int)item.StackSize, (int)item.Value));
-
-                if (newStackSize < 1)
-                {
-                    // Remove item from inventory
-                    DestroyInventoryItem(item);
-                    // Clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-                }
-                else
-                    Burden = (ushort)(Burden - (item.StackUnitBurden * amount));
-            });
-            removeItemsChain.EnqueueChain();
+            if (newStackSize < 1)
+            {
+                // Remove item from inventory
+                DestroyInventoryItem(item);
+                // Clean up the shard database.
+                await DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject());
+            }
+            else
+            {
+                Burden = (ushort)(Burden - (item.StackUnitBurden * amount));
+            }
         }
 
         /// <summary>
@@ -2506,7 +2485,7 @@ namespace ACE.Entity
         /// <param name="itemGuid"></param>
         /// <param name="placement"></param>
         /// <param name="iidPropertyId"></param>
-        private void HandlePickupItem(Container container, ObjectGuid itemGuid, int placement, PropertyInstanceId iidPropertyId)
+        private async Task HandlePickupItem(Container container, ObjectGuid itemGuid, int placement, PropertyInstanceId iidPropertyId)
         {
             // Logical operations:
             // !! FIXME: How to handle repeat on condition?
@@ -2516,114 +2495,106 @@ namespace ACE.Entity
             // Try acquire from landblock
             // if acquire successful:
             //   add to container
-            ActionChain pickUpItemChain = new ActionChain();
 
             // Move to the object
-            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
+            await MoveTo(itemGuid, PickUpDistance);
 
             // Pick up the object
             // Start pickup animation
-            pickUpItemChain.AddAction(this, () =>
-            {
-                var motion = new UniversalMotion(MotionStance.Standing);
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                    new GameMessageUpdatePosition(this),
-                    new GameMessageUpdateMotion(Guid,
-                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                        Sequences, motion));
-            });
+            var motion = new UniversalMotion(MotionStance.Standing);
+            motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                new GameMessageUpdatePosition(this),
+                new GameMessageUpdateMotion(Guid,
+                    Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                    Sequences, motion));
+
             // Wait for animation to progress
             float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
-            pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
+            await Task.Delay(TimeSpan.FromSeconds(pickupAnimationLength));
 
             // Ask landblock to transfer item
             // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
+            // FIXME(ddevec): This seems messy, like we should clean...
             if (container.Guid.IsPlayer())
-                CurrentLandblock.QueueItemTransfer(pickUpItemChain, itemGuid, container.Guid);
+                await CurrentLandblock.QueueItemTransfer(itemGuid, container.Guid);
             else
-                CurrentLandblock.ScheduleItemTransferInContainer(pickUpItemChain, itemGuid, (Container)GetInventoryItem(container.Guid));
+                await CurrentLandblock.ItemTransferInContainer(itemGuid, (Container)GetInventoryItem(container.Guid));
 
-            // Finish pickup animation
-            pickUpItemChain.AddAction(this, () =>
+            // If success, the item is in our inventory:
+            WorldObject item = GetInventoryItem(itemGuid);
+
+            if (item.ContainerId != Guid.Full)
             {
-                // If success, the item is in our inventory:
-                WorldObject item = GetInventoryItem(itemGuid);
+                Burden += item.Burden ?? 0;
 
-                if (item.ContainerId != Guid.Full)
+                if (item.WeenieType == WeenieType.Coin)
                 {
-                    Burden += item.Burden ?? 0;
-
-                    if (item.WeenieType == WeenieType.Coin)
-                    {
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                    }
+                    UpdateCurrencyClientCalculations(WeenieType.Coin);
                 }
+            }
 
-                if (item.WeenieType == WeenieType.Container)
+            if (item.WeenieType == WeenieType.Container)
+            {
+                Session.Network.EnqueueSend(new GameEventViewContents(Session, item.SnapShotOfAceObject()));
+                foreach (var packItem in item.InventoryObjects)
                 {
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, item.SnapShotOfAceObject()));
-                    foreach (var packItem in item.InventoryObjects)
-                    {
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                    }
+                    Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                    UpdateCurrencyClientCalculations(WeenieType.Coin);
                 }
+            }
 
-                // Update all our stuff if we succeeded
-                if (item != null)
+            // Update all our stuff if we succeeded
+            if (item != null)
+            {
+                SetInventoryForContainer(item, placement);
+                // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
+                motion = new UniversalMotion(MotionStance.Standing);
+                if (iidPropertyId == PropertyInstanceId.Container)
                 {
-                    SetInventoryForContainer(item, placement);
-                    // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
-                    var motion = new UniversalMotion(MotionStance.Standing);
-                    if (iidPropertyId == PropertyInstanceId.Container)
-                    {
-                        Session.Network.EnqueueSend(
-                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
-                            new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
-                            new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
-                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
-                    }
-                    else
-                    {
-                        AddToWieldedObjects(ref item, container, (EquipMask)placement);
-                        UpdateAppearance(container);
-                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                                    new GameMessageObjDescEvent(this),
-                                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                                    new GameEventWieldItem(Session, itemGuid.Full, placement));
-                    }
-
-                    CurrentLandblock.EnqueueBroadcast(
-                        Location,
-                        Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(
-                            Guid,
-                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                            Sequences,
-                            motion),
-                        new GameMessagePickupEvent(item));
-
-                    if (iidPropertyId == PropertyInstanceId.Wielder)
-                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
-
-                    // TODO: Og II - check this later to see if it is still required.
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                    Session.Network.EnqueueSend(
+                        ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
+                        new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                        new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
+                        new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
                 }
-                // If we didn't succeed, just stand up and be ashamed of ourself
                 else
                 {
-                    var motion = new UniversalMotion(MotionStance.Standing);
-
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(Guid,
-                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                            Sequences, motion));
-                    // CurrentLandblock.EnqueueBroadcast(self shame);
+                    AddToWieldedObjects(ref item, container, (EquipMask)placement);
+                    UpdateAppearance(container);
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                new GameMessageObjDescEvent(this),
+                                                new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                                                new GameEventWieldItem(Session, itemGuid.Full, placement));
                 }
-            });
-            // Set chain to run
-            pickUpItemChain.EnqueueChain();
+
+                CurrentLandblock.EnqueueBroadcast(
+                    Location,
+                    Landblock.MaxObjectRange,
+                    new GameMessageUpdateMotion(
+                        Guid,
+                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                        Sequences,
+                        motion),
+                    new GameMessagePickupEvent(item));
+
+                if (iidPropertyId == PropertyInstanceId.Wielder)
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+
+                // TODO: Og II - check this later to see if it is still required.
+                Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+            }
+            // If we didn't succeed, just stand up and be ashamed of ourself
+            else
+            {
+                motion = new UniversalMotion(MotionStance.Standing);
+
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                    new GameMessageUpdateMotion(Guid,
+                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                        Sequences, motion));
+                // CurrentLandblock.EnqueueBroadcast(self shame);
+            }
         }
 
         /// <summary>
@@ -2756,102 +2727,97 @@ namespace ACE.Entity
             item.AnimationFrame = placementId;
         }
 
-        public void HandleActionWieldItem(Container container, uint itemId, int placement)
+        public async Task WeildItem(Container container, uint itemId, int placement)
         {
-            ActionChain wieldChain = new ActionChain();
-            wieldChain.AddAction(this, () =>
+            ObjectGuid itemGuid = new ObjectGuid(itemId);
+            WorldObject item = GetInventoryItem(itemGuid);
+            WorldObject packItem;
+
+            if (item != null)
             {
-                ObjectGuid itemGuid = new ObjectGuid(itemId);
-                WorldObject item = GetInventoryItem(itemGuid);
-                WorldObject packItem;
-
-                if (item != null)
+                ObjectGuid containerGuid = ObjectGuid.Invalid;
+                var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                foreach (var subpack in containers)
                 {
-                    ObjectGuid containerGuid = ObjectGuid.Invalid;
-                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-                    foreach (var subpack in containers)
+                    if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
                     {
-                        if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
-                        {
-                            containerGuid = subpack.Value.Guid;
-                            break;
-                        }
+                        containerGuid = subpack.Value.Guid;
+                        break;
                     }
+                }
 
-                    Container pack;
-                    if (item != null && containerGuid != ObjectGuid.Invalid)
-                    {
-                        pack = (Container)GetInventoryItem(containerGuid);
+                Container pack;
+                if (item != null && containerGuid != ObjectGuid.Invalid)
+                {
+                    pack = (Container)GetInventoryItem(containerGuid);
 
+                    RemoveWorldObjectFromInventory(itemGuid);
+                }
+                else
+                {
+                    if (item != null)
                         RemoveWorldObjectFromInventory(itemGuid);
-                    }
-                    else
+                }
+
+                AddToWieldedObjects(ref item, container, (EquipMask)placement);
+
+                if ((EquipMask)placement == EquipMask.MissileAmmo)
+                    Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement),
+                                                new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
+                else
+                {
+                    if (((EquipMask)placement & EquipMask.Selectable) != 0)
                     {
-                        if (item != null)
-                            RemoveWorldObjectFromInventory(itemGuid);
-                    }
+                        int placementId;
+                        int childLocation;
+                        SetChild(container, item, placement, out placementId, out childLocation);
 
-                    AddToWieldedObjects(ref item, container, (EquipMask)placement);
+                        UpdateAppearance(container);
 
-                    if ((EquipMask)placement == EquipMask.MissileAmmo)
-                        Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
-                    else
-                    {
-                        if (((EquipMask)placement & EquipMask.Selectable) != 0)
-                        {
-                            int placementId;
-                            int childLocation;
-                            SetChild(container, item, placement, out placementId, out childLocation);
-
-                            UpdateAppearance(container);
-
-                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                                            new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
-                                                            new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
-                                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement));
-
-                            if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                                return;
-                            switch ((EquipMask)placement)
-                            {
-                                case EquipMask.MissileWeapon:
-                                    SetCombatMode(CombatMode.Missile);
-                                    break;
-                                case EquipMask.Held:
-                                    SetCombatMode(CombatMode.Magic);
-                                    break;
-                                default:
-                                    SetCombatMode(CombatMode.Melee);
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            UpdateAppearance(container);
-
-                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                        new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                                         new GameEventWieldItem(Session, itemGuid.Full, placement),
                                                         new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                         new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
                                                         new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
-                                                        new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement),
-                                                        new GameMessageObjDescEvent(container));
+                                                        new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement));
+
+                        if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
+                            return;
+                        switch ((EquipMask)placement)
+                        {
+                            case EquipMask.MissileWeapon:
+                                SetCombatMode(CombatMode.Missile);
+                                break;
+                            case EquipMask.Held:
+                                SetCombatMode(CombatMode.Magic);
+                                break;
+                            default:
+                                SetCombatMode(CombatMode.Melee);
+                                break;
                         }
                     }
+                    else
+                    {
+                        UpdateAppearance(container);
+
+                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                                    new GameEventWieldItem(Session, itemGuid.Full, placement),
+                                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                    new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
+                                                    new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, container.Guid),
+                                                    new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, placement),
+                                                    new GameMessageObjDescEvent(container));
+                    }
                 }
-                else
-                {
-                    HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Wielder);
-                }
-            });
-            wieldChain.EnqueueChain();
+            }
+            else
+            {
+                await HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Wielder);
+            }
         }
 
-        public void PutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
+        public async Task PutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
         {
             Container container;
 
@@ -2869,7 +2835,7 @@ namespace ACE.Entity
             if (!HasItem(itemGuid))
             {
                 // This is a pickup into our main pack.
-                HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                await HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
                 return;
             }
 
@@ -2888,7 +2854,7 @@ namespace ACE.Entity
             }
 
             // if were are still here, this needs to do a pack pack or main pack move.
-            HandleMove(ref item, container, placement);
+            await HandleMove(item, container, placement);
         }
 
         /// <summary>
@@ -2901,138 +2867,118 @@ namespace ACE.Entity
             ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
 
-        public void HandleActionDropItem(ObjectGuid itemGuid)
+        public async Task HandleActionDropItem(ObjectGuid itemGuid)
         {
-            ActionChain dropChain = new ActionChain();
-
             // Goody Goody -- lets build  drop chain
             // First start drop animation
-            dropChain.AddAction(this, () =>
+            // check packs of item.
+            WorldObject item = GetInventoryItem(itemGuid);
+            if (item == null)
             {
-                // check packs of item.
-                WorldObject item = GetInventoryItem(itemGuid);
-                if (item == null)
+                // check to see if this item is wielded
+                item = GetWieldedItem(itemGuid);
+                if (item != null)
                 {
-                    // check to see if this item is wielded
-                    item = GetWieldedItem(itemGuid);
-                    if (item != null)
-                    {
-                        RemoveFromWieldedObjects(itemGuid);
-                        UpdateAppearance(this);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
-                    }
+                    RemoveFromWieldedObjects(itemGuid);
+                    UpdateAppearance(this);
+                    Session.Network.EnqueueSend(
+                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                        new GameMessageObjDescEvent(this),
+                        new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                 }
-                else
-                {
-                    RemoveWorldObjectFromInventory(itemGuid);
-                    if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                }
+            }
+            else
+            {
+                RemoveWorldObjectFromInventory(itemGuid);
+                if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
+                    UpdateCurrencyClientCalculations(WeenieType.Coin);
+            }
 
-                SetInventoryForWorld(item);
+            SetInventoryForWorld(item);
 
-                UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+            UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
+            motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+            Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
-                // Set drop motion
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            // Set drop motion
+            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
 
-                // Now wait for Drop Motion to finish -- use ActionChain
-                ActionChain chain = new ActionChain();
 
-                // Wait for drop animation
-                float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
-                chain.AddDelaySeconds(pickupAnimationLength);
+            // Wait for drop animation
+            float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
+            await Task.Delay((int)(pickupAnimationLength * 1000));
 
-                // Play drop sound
-                // Put item on landblock
-                chain.AddAction(this, () =>
-                {
-                    motion = new UniversalMotion(MotionStance.Standing);
-                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
-                    new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                    new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+            // Play drop sound
+            // Put item on landblock
+            motion = new UniversalMotion(MotionStance.Standing);
+            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
+            new GameMessagePutObjectIn3d(Session, this, itemGuid),
+            new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    Debug.Assert(item != null, "item != null");
-                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                    item.Sequences.GetNextSequence(SequenceType.ObjectVector);
+            // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+            Debug.Assert(item != null, "item != null");
+            item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                    CurrentLandblock.AddWorldObject(item);
+            CurrentLandblock.AddWorldObject(item);
 
-                    // Ok we have handed off to the landblock, let's clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+            // Ok we have handed off to the landblock, let's clean up the shard database.
+            await DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject());
 
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                });
+            Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
 
-                chain.EnqueueChain();
-                // Removed SaveSession - this was causing items that were dropped to not be removed
-                // from inventory.   If this causes a problem with vendor, we need to fix vendor.  Og II
-            });
-
-            dropChain.EnqueueChain();
+            // Removed SaveSession - this was causing items that were dropped to not be removed
+            // from inventory.   If this causes a problem with vendor, we need to fix vendor.  Og II
         }
 
-        public void HandleActionUseOnTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
+        public async Task UseOnTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
         {
-            ActionChain chain = new ActionChain(this, () =>
-            {
-                WorldObject invSource = GetInventoryItem(sourceObjectId);
-                WorldObject invTarget = GetInventoryItem(targetObjectId);
+            WorldObject invSource = GetInventoryItem(sourceObjectId);
+            WorldObject invTarget = GetInventoryItem(targetObjectId);
 
-                if (invTarget != null)
-                {
-                    // inventory on inventory, we can do this now
-                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
-                }
-                else if (invSource.WeenieType == WeenieType.Key)
-                {
-                    WorldObject theTarget = CurrentLandblock.GetObject(targetObjectId);
-                    Key key = invSource as Key;
-                    key.HandleActionUseOnTarget(this, theTarget);
-                }
-                else if (targetObjectId == Guid)
-                {
-                    // using something on ourselves
-                    RecipeManager.UseObjectOnTarget(this, invSource, this);
-                }
-                else
-                {
-                    WorldObject theTarget = CurrentLandblock.GetObject(targetObjectId);
-                    RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
-                }
-            });
-            chain.EnqueueChain();
+            if (invTarget != null)
+            {
+                // inventory on inventory, we can do this now
+                await RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
+            }
+            else if (invSource.WeenieType == WeenieType.Key)
+            {
+                WorldObject theTarget = await CurrentLandblock.GetObject(targetObjectId);
+                Key key = invSource as Key;
+                await key.HandleActionUseOnTarget(this, theTarget);
+            }
+            else if (targetObjectId == Guid)
+            {
+                // using something on ourselves
+                await RecipeManager.UseObjectOnTarget(this, invSource, this);
+            }
+            else
+            {
+                WorldObject theTarget = await CurrentLandblock.GetObject(targetObjectId);
+                await RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
+            }
         }
 
-        public void HandleActionUse(ObjectGuid usedItemId)
+        public async Task ActionUse(ObjectGuid usedItemId)
         {
-            new ActionChain(this, () =>
+            WorldObject iwo = GetInventoryItem(usedItemId);
+            if (iwo != null)
             {
-                WorldObject iwo = GetInventoryItem(usedItemId);
-                if (iwo != null)
+                await iwo.OnUse(Session);
+            }
+            else
+            {
+                if (CurrentLandblock != null)
                 {
-                    iwo.OnUse(Session);
-                }
-                else
-                {
-                    if (CurrentLandblock != null)
+                    // Just forward our action to the appropriate user...
+                    WorldObject wo = await CurrentLandblock.GetObject(usedItemId);
+                    if (wo != null)
                     {
-                        // Just forward our action to the appropriate user...
-                        WorldObject wo = CurrentLandblock.GetObject(usedItemId);
-                        if (wo != null)
-                        {
-                            wo.ActOnUse(Guid);
-                        }
+                        await wo.ActOnUse(Guid);
                     }
                 }
-            }).EnqueueChain();
+            }
         }
 
         /// <summary>
@@ -3091,95 +3037,83 @@ namespace ACE.Entity
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }
 
-        public ActionChain CreateMoveToChain(ObjectGuid target, float distance)
+        public async Task<bool> MoveTo(WorldObject wo, float? useRadius = null)
         {
-            ActionChain moveToChain = new ActionChain();
-            // While !at(thing) moveToThing
-            ActionChain moveToBody = new ActionChain();
-            moveToChain.AddAction(this, () =>
+            return await MoveTo(wo.Guid, wo.UseRadius ?? .2f);
+        }
+
+        public async Task<bool> MoveTo(ObjectGuid target, float distance)
+        {
+            Position dest = await CurrentLandblock.GetPosition(target);
+            if (dest == null)
             {
-                Position dest = CurrentLandblock.GetPosition(target);
-                if (dest == null)
-                {
-                    log.Error("FIXME: Need the ability to cancel actions on error");
-                    return;
-                }
+                throw new Exception("Destination unknown?");
+            }
 
-                if (CurrentLandblock.GetWeenieType(target) == WeenieType.Portal)
-                {
-                    OnAutonomousMove(CurrentLandblock.GetPosition(target),
-                                            Sequences, MovementTypes.MoveToPosition, target);
-                }
-                else
-                {
-                    OnAutonomousMove(CurrentLandblock.GetPosition(target),
-                                            Sequences, MovementTypes.MoveToObject, target);
-                }
-            });
-
-            // poll for arrival every .1 seconds
-            moveToBody.AddDelaySeconds(.1);
-
-            moveToChain.AddLoop(this, () =>
+            if (CurrentLandblock.GetWeenieType(target) == WeenieType.Portal)
             {
-                bool valid;
-                float outdistance;
+                OnAutonomousMove(await CurrentLandblock.GetPosition(target),
+                                        Sequences, MovementTypes.MoveToPosition, target);
+            }
+            else
+            {
+                OnAutonomousMove(await CurrentLandblock.GetPosition(target),
+                                        Sequences, MovementTypes.MoveToObject, target);
+            }
+
+            // FIXME: poll for arrival every .1 seconds?  Should we have physics do this?
+
+            bool valid;
+            float outdistance;
+            bool inDistance = CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out valid);
+            while (valid && !inDistance)
+            {
+                await Task.Delay(100);
+
                 // Break loop if CurrentLandblock == null (we portaled or logged out), or if we arrive at the item
                 if (CurrentLandblock == null)
                 {
                     return false;
                 }
 
-                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out valid);
-                if (!valid)
-                {
-                    // If one of the items isn't on a landblock
-                    ret = false;
-                }
-                return ret;
-            }, moveToBody);
+                inDistance = CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out valid);
+            }
 
-            return moveToChain;
+            return valid;
         }
 
-        public void HandleActionSmiteAllNearby()
+        public async Task SmiteAllNearby()
         {
             // Create smite action chain... then send it
-            new ActionChain(this, () =>
+            if (CurrentLandblock == null)
             {
-                if (CurrentLandblock == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                foreach (ObjectGuid toSmite in GetKnownCreatures())
+            foreach (ObjectGuid toSmite in GetKnownCreatures())
+            {
+                Creature smitee = (await CurrentLandblock.GetObject(toSmite)) as Creature;
+                if (smitee != null)
                 {
-                    Creature smitee = CurrentLandblock.GetObject(toSmite) as Creature;
-                    if (smitee != null)
-                    {
-                        smitee.DoOnKill(Session);
-                    }
+                    smitee.DoOnKill(Session);
                 }
-            }).EnqueueChain();
+            }
         }
 
-        public void HandleActionSmiteSelected()
+        public async Task SmiteSelected()
         {
-            new ActionChain(this, () =>
+            if (selectedTarget != ObjectGuid.Invalid)
             {
-                if (selectedTarget != ObjectGuid.Invalid)
+                var target = selectedTarget;
+                if (target.IsCreature() || target.IsPlayer())
                 {
-                    var target = selectedTarget;
-                    if (target.IsCreature() || target.IsPlayer())
-                    {
-                        HandleActionKill(target);
-                    }
+                    await HandleActionKill(target);
                 }
-                else
-                {
-                    ChatPacket.SendServerMessage(Session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
-                }
-            }).EnqueueChain();
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(Session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
+            }
         }
 
         public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
@@ -3265,38 +3199,32 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleActionTestCorpseDrop()
+        public async Task HandleActionTestCorpseDrop()
         {
-            new ActionChain(this, () =>
+            if (selectedTarget != ObjectGuid.Invalid)
             {
-                if (selectedTarget != ObjectGuid.Invalid)
-                {
-                    // FIXME(ddevec): This is wrong
-                    var target = selectedTarget;
+                // FIXME(ddevec): This is wrong
+                var target = selectedTarget;
 
-                    if (target.IsCreature())
-                    {
-                        HandleActionKill(target);
-                    }
-                }
-                else
+                if (target.IsCreature())
                 {
-                    ChatPacket.SendServerMessage(Session, "No creature selected.", ChatMessageType.Broadcast);
+                    await HandleActionKill(target);
                 }
-            }).EnqueueChain();
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(Session, "No creature selected.", ChatMessageType.Broadcast);
+            }
         }
 
-        public void HandleActionKill(ObjectGuid toSmite)
+        public async Task HandleActionKill(ObjectGuid toSmite)
         {
             // Create smite action chain... then send it
-            new ActionChain(this, () =>
+            Creature c = await CurrentLandblock.GetObject(toSmite) as Creature;
+            if (c != null)
             {
-                Creature c = CurrentLandblock.GetObject(toSmite) as Creature;
-                if (c != null)
-                {
-                    c.DoOnKill(Session);
-                }
-            }).EnqueueChain();
+                c.DoOnKill(Session);
+            }
         }
 
         // FIXME(ddevec): Copy pasted code for prototyping -- clean later
@@ -3398,16 +3326,12 @@ namespace ACE.Entity
             CurrentLandblock.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
 
-        public void DoMoveTo(WorldObject wo)
+        public async Task DoMoveTo(WorldObject wo)
         {
-            ActionChain moveToObjectChain = new ActionChain();
+            await MoveTo(wo.Guid, 0.2f);
+            await Task.Delay(500);
 
-            moveToObjectChain.AddChain(CreateMoveToChain(wo.Guid, 0.2f));
-            moveToObjectChain.AddDelaySeconds(0.50);
-
-            moveToObjectChain.AddAction(wo, () => wo.ActOnUse(Guid));
-
-            moveToObjectChain.EnqueueChain();
+            await wo.ActOnUse(Guid);
         }
 
         private const uint magicSkillCheckMargin = 50;

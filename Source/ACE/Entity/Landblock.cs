@@ -63,6 +63,8 @@ namespace ACE.Entity
         private NestedActionQueue actionQueue;
         private NestedActionQueue motionQueue;
 
+        public bool Loaded { get; private set; } = false;
+
         public LandblockId Id
         {
             get { return id; }
@@ -88,18 +90,47 @@ namespace ACE.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
+        }
+
+        public void Unload()
+        {
+            if (!Loaded)
+            {
+                return;
+            }
+
+            foreach (WorldObject wo in worldObjects.Values)
+            {
+                wo.SetParent(null);
+            }
+
+            worldObjects.Clear(); ;
+
+            motionQueue.SetParent(null);
+            motionQueue = null;
+
+            Loaded = false;
+        }
+
+        public async Task Load()
+        {
+            if (Loaded)
+            {
+                return;
+            }
+
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
             //   2. terrain data
             // TODO: Load portal.dat contents (as/if needed)
             // TODO: Load spawn data
 
-            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
+            var objects = await DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
             // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense
             //        I don't know for sure however that it does yet. More research on them is required -Ripley
-            objects.AddRange(DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
+            objects.AddRange(await DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
 
-            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = await WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))
@@ -115,6 +146,8 @@ namespace ACE.Entity
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
 
             motionQueue = new NestedActionQueue(WorldManager.MotionQueue);
+
+            Loaded = true;
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -226,31 +259,6 @@ namespace ACE.Entity
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
-        {
-            ActionChain removeChain = GetRemoveWorldObjectChain(objectId, adjacencyMove);
-            if (removeChain != null)
-            {
-                removeChain.EnqueueChain();
-            }
-        }
-
-        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove)
-        {
-            Landblock owner = GetOwner(objectId);
-            if (owner != null)
-            {
-                ActionChain chain = new ActionChain(owner, new ActionEventDelegate(() => RemoveWorldObjectInternal(objectId, adjacencyMove)));
-                return chain;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Should only be called by physics/relocation engines -- not from player
-        /// </summary>
-        /// <param name="objectId"></param>
-        /// <param name="adjacencyMove"></param>
-        public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
@@ -722,7 +730,7 @@ namespace ACE.Entity
             return GetWorldObjectsInRange(wo, distance);
         }
 
-        private Landblock GetOwner(ObjectGuid guid)
+        private async Task<Landblock> GetOwner(ObjectGuid guid)
         {
             if (worldObjects.ContainsKey(guid))
             {
@@ -733,6 +741,10 @@ namespace ACE.Entity
             {
                 if (lb != null && lb.worldObjects.ContainsKey(guid))
                 {
+                    if (!lb.Loaded)
+                    {
+                        await lb.Load();
+                    }
                     return lb;
                 }
             }
@@ -740,9 +752,9 @@ namespace ACE.Entity
             return null;
         }
 
-        public WorldObject GetObject(ObjectGuid guid)
+        public async Task<WorldObject> GetObject(ObjectGuid guid)
         {
-            Landblock lb = GetOwner(guid);
+            Landblock lb = await GetOwner(guid);
             if (lb == null)
             {
                 return null;
@@ -750,19 +762,9 @@ namespace ACE.Entity
             return lb.worldObjects[guid];
         }
 
-        public IActor GetActor(ObjectGuid guid)
+        public async Task<Position> GetPosition(ObjectGuid guid)
         {
-            Landblock lb = GetOwner(guid);
-            if (lb == null)
-            {
-                return null;
-            }
-            return lb.worldObjects[guid];
-        }
-
-        public Position GetPosition(ObjectGuid guid)
-        {
-            Landblock lb = GetOwner(guid);
+            Landblock lb = await GetOwner(guid);
             if (lb == null)
             {
                 return null;
@@ -795,14 +797,14 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         /// <param name="container"></param>
         /// <param name="placeent"></param>
-        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container, uint placeent = 0)
+        public async Task ItemTransferInContainer(ObjectGuid wo, Container container, uint placeent = 0)
         {
             // Find owner of wo
-            Landblock lb = GetOwner(wo);
+            Landblock lb = await GetOwner(wo);
 
             if (lb != null)
             {
-                chain.AddAction(lb.motionQueue, () => ItemTransferContainerInternal(wo, container));
+                await ItemTransferContainerInternal(wo, container);
             }
             else
             {
@@ -811,14 +813,14 @@ namespace ACE.Entity
             }
         }
 
-        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, int placement = 0)
+        public async Task QueueItemTransfer(ObjectGuid wo, ObjectGuid container, int placement = 0)
         {
             // Find owner of wo
-            Landblock lb = GetOwner(wo);
+            Landblock lb = await GetOwner(wo);
 
             if (lb != null)
             {
-                chain.AddAction(lb.motionQueue, () => ItemTransferInternal(wo, container, placement));
+                await ItemTransferInternal(wo, container, placement);
             }
             else
             {
@@ -827,9 +829,9 @@ namespace ACE.Entity
             }
         }
 
-        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container, int placement = 0)
+        private async Task ItemTransferContainerInternal(ObjectGuid woGuid, Container container, int placement = 0)
         {
-            WorldObject wo = GetObject(woGuid);
+            WorldObject wo = await GetObject(woGuid);
 
             if (container == null || wo == null)
             {
@@ -845,11 +847,11 @@ namespace ACE.Entity
             container.AddToInventory(wo, placement);
         }
 
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
+        private async Task ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
         {
-            Container container = GetObject(containerGuid) as Container;
+            Container container = await GetObject(containerGuid) as Container;
 
-            ItemTransferContainerInternal(woGuid, container, placement);
+            await ItemTransferContainerInternal(woGuid, container, placement);
         }
 
         private void Log(string message)

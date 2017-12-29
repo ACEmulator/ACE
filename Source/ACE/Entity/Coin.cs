@@ -1,10 +1,11 @@
-﻿// WeenieType.Coin
-
-using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+// WeenieType.Coin
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
@@ -27,9 +28,13 @@ namespace ACE.Entity
             }
         }
 
-        public Coin(AceObject aceObject)
-            : base(aceObject)
+        public Coin()
         {
+        }
+
+        protected override async Task Init(AceObject aceObject)
+        {
+            await base.Init(aceObject);
             CoinPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
 

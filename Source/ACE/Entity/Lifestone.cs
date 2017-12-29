@@ -1,24 +1,28 @@
-﻿using ACE.Network.GameEvent.Events;
+using System.Threading.Tasks;
+
+using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
     public class Lifestone : WorldObject
     {
-        public Lifestone(AceObject aceO)
-            : base(aceO)
+        public Lifestone()
         {
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
+        }
+
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
             // All data on a lifestone is constant -- therefore we just run in context of player
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             string serverMessage = null;
             // validate within use range, taking into account the radius of the model itself, as well
             SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);

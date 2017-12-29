@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -693,7 +694,7 @@ namespace ACE.Command.Handlers
 
         // smite [all]
         [CommandHandler("smite", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleSmite(Session session, params string[] parameters)
+        public static async Task HandleSmite(Session session, params string[] parameters)
         {
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
 
@@ -701,7 +702,7 @@ namespace ACE.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    session.Player.HandleActionSmiteAllNearby();
+                    await session.Player.SmiteAllNearby();
                 }
                 else
                 {
@@ -710,7 +711,7 @@ namespace ACE.Command.Handlers
             }
             else
             {
-                session.Player.HandleActionSmiteSelected();
+                await session.Player.SmiteSelected();
             }
         }
 
@@ -972,7 +973,8 @@ namespace ACE.Command.Handlers
 
         // copychar < character name >, < copy name >
         [CommandHandler("copychar", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
-        public static void HandleCopychar(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleCopychar(Session session, params string[] parameters)
         {
             // usage: @copychar < character name >, < copy name >
             // Given the name of an existing character "character name", this command makes a copy of that character with the name "copy name" and places it into your character list.
@@ -980,11 +982,12 @@ namespace ACE.Command.Handlers
 
             // TODO: output
         }
+        #pragma warning restore 1998
 
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an object in the world.", "wclassid(string or number)")]
-        public static void HandleCreate(Session session, params string[] parameters)
+        public static async Task HandleCreate(Session session, params string[] parameters)
         {
             ushort weenieId;
             try
@@ -996,7 +999,7 @@ namespace ACE.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+            var loot = await WorldObjectFactory.CreateNewWorldObject(weenieId);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
         }
@@ -1004,7 +1007,7 @@ namespace ACE.Command.Handlers
         // ci wclassid (number)
         [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an object in your inventory.", "wclassid (string or number)")]
-        public static void HandleCI(Session session, params string[] parameters)
+        public static async Task HandleCI(Session session, params string[] parameters)
         {
             // TODO and FIXME: move to Player (eventually Admin) class, wrap in actionchain
             ushort weenieId;
@@ -1018,7 +1021,7 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+            WorldObject loot = await WorldObjectFactory.CreateNewWorldObject(weenieId);
             loot.ContainerId = session.Player.Guid.Full;
             loot.Placement = 0;
             session.Player.AddToInventory(loot);
@@ -1279,7 +1282,7 @@ namespace ACE.Command.Handlers
         [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.None, 2,
             "Rename a character. (Do NOT include +'s for admin names)",
             "< Current Name > < New Name >")]
-        public static void HandleRename(Session session, params string[] parameters)
+        public static async Task HandleRename(Session session, params string[] parameters)
         {
             // @rename <Current Name>, <New Name> - Rename a character. (Do NOT include +'s for admin names)
 
@@ -1297,21 +1300,25 @@ namespace ACE.Command.Handlers
 
             string message = "";
 
-            DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName, ((uint charId) =>
+            uint charId = await DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName);
+            if (charId > 0)
             {
-                if (charId > 0)
-                    message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
-                else
-                    message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
+                message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
+            }
+            else
+            {
+                message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
+            }
 
-                if (session == null)
-                    Console.WriteLine(message);
-                else
-                {
-                    var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
-                    session.Network.EnqueueSend(sysChatMsg);
-                }
-            }));
+            if (session == null)
+            {
+                Console.WriteLine(message);
+            }
+            else
+            {
+                var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
+                session.Network.EnqueueSend(sysChatMsg);
+            }
         }
 
         // setadvclass

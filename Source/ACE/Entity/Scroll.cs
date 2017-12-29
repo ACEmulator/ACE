@@ -1,4 +1,4 @@
-﻿// WeenieType.Scroll
+// WeenieType.Scroll
 
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
@@ -11,6 +11,7 @@ using ACE.Network.Motion;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ACE.Entity
 {
@@ -30,9 +31,14 @@ namespace ACE.Entity
 
         private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.IntStatsTable | IdentifyResponseFlags.StringStatsTable | IdentifyResponseFlags.SpellBook;
 
-        public Scroll(AceObject aceObject)
-            : base(aceObject)
+        public Scroll()
         {
+        }
+
+        protected override async Task Init(AceObject aceObject)
+        {
+            await base.Init(aceObject);
+
             SpellTable table = SpellTable.ReadFromDat();
 
             Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
@@ -135,7 +141,7 @@ namespace ACE.Entity
             set;
         }
 
-        public override void OnUse(Session session)
+        public override async Task OnUse(Session session)
         {
             bool success = true;
             string failReason = "You are unable to read the scroll.";
@@ -167,29 +173,27 @@ namespace ACE.Entity
                 failReason = "You already know the spell inscribed upon this scroll.";
             }
 
-            ActionChain readScrollChain = new ActionChain();
-            readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading));
-            readScrollChain.AddDelaySeconds(2);
+            session.Player.HandleActionMotion(motionReading);
+            await Task.Delay(2000);
 
             if (success)
             {
-                readScrollChain.AddAction(session.Player, () => session.Player.LearnSpell(SpellId));
-                readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
+                session.Player.LearnSpell(SpellId);
+                session.Player.HandleActionMotion(motionReady);
                 var removeObjMessage = new GameMessageRemoveObject(this);
                 var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(destroyMessage, removeObjMessage));
-                readScrollChain.AddAction(session.Player, () => session.Player.RemoveWorldObjectFromInventory(Guid));
+                session.Network.EnqueueSend(destroyMessage, removeObjMessage);
+                session.Player.RemoveWorldObjectFromInventory(Guid);
             }
             else
             {
-                readScrollChain.AddDelaySeconds(2);
-                readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
+                await Task.Delay(2000);
+                session.Player.HandleActionMotion(motionReady);
                 var failMessage = new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic);
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(failMessage));
+                session.Network.EnqueueSend(failMessage);
             }
             var sendUseDoneEvent = new GameEventUseDone(session.Player.Session);
-            readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(sendUseDoneEvent));
-            readScrollChain.EnqueueChain();
+            session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

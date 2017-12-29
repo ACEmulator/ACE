@@ -1,18 +1,20 @@
-using ACE.Entity.Enum;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
 using ACE.Entity.Actions;
-using ACE.Factories;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Managers;
 using ACE.Network;
-using ACE.Entity.Enum.Properties;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Motion;
-using System;
-using log4net;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
 using ACE.Network.Sequence;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
+
+using log4net;
 
 namespace ACE.Entity
 {
@@ -109,9 +111,14 @@ namespace ACE.Entity
             }
         }
 
-        public Creature(AceObject baseObject)
-            : base(baseObject)
+        public Creature()
         {
+        }
+            
+        protected override async Task Init(AceObject baseObject)
+        {
+            await base.Init(baseObject);
+
             if (Attackable == false)
             {
                 if (RadarColor != Enum.RadarColor.Yellow || (RadarColor == Enum.RadarColor.Yellow && CreatureType == null))
@@ -678,9 +685,9 @@ namespace ACE.Entity
         ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
         /// </summary>
         /// <param name="playerId">Identity of the player we are interacting with</param>
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -688,7 +695,7 @@ namespace ACE.Entity
 
             if (!player.IsWithinUseRadiusOf(this))
             {
-                player.DoMoveTo(this);
+                await player.DoMoveTo(this);
             }
             else
             {
