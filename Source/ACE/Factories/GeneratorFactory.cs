@@ -1,13 +1,11 @@
-﻿using ACE.Common;
-using ACE.Database;
-using ACE.DatLoader.FileTypes;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Managers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+
+using ACE.Common;
+using ACE.Database;
+using ACE.Entity;
+using ACE.Managers;
 
 // TODO: Refactor into Generator.cs?
 namespace ACE.Factories
@@ -45,7 +43,7 @@ namespace ACE.Factories
         /// </summary>
         /// <param name="generatorObject"></param>
         /// <returns>List of created WorldObjects</returns>
-        public static List<WorldObject> CreateWorldObjectsFromGenerator(AceObject generator)
+        public static async Task<List<WorldObject>> CreateWorldObjectsFromGenerator(AceObject generator)
         {
             List<WorldObject> results = new List<WorldObject>();
             DerethDateTime currentTime = new DerethDateTime(WorldManager.PortalYearTicks);
@@ -93,7 +91,10 @@ namespace ACE.Factories
                     // Spawn this generator if it's not the top-level generator
                     if (generator.GeneratorIID != null)
                     {
-                        results.Add(new Generator(GuidManager.NewGeneratorGuid(), generator));
+                        //results.Add(new Generator(GuidManager.NewGeneratorGuid(), generator));
+                        Generator g = new Generator();
+                        g.GeneratorInit(GuidManager.NewGeneratorGuid(), generator);
+                        results.Add(g);
                         generator.GeneratorEnteredWorld = true;
                     }
 
@@ -101,7 +102,7 @@ namespace ACE.Factories
                     if (generator.GeneratorLinks.Count == 0)
                         return null;
                     uint linkId = GetRandomGeneratorIdFromGeneratorList(random, generator.GeneratorLinks);
-                    AceObject newGen = DatabaseManager.World.GetAceObjectByWeenie(linkId);
+                    AceObject newGen = await DatabaseManager.World.GetAceObjectByWeenie(linkId);
 
                     // The linked generator is at the same location as the top generator and references its parent
                     newGen.Location = pos;
@@ -109,14 +110,14 @@ namespace ACE.Factories
                     newGen.GeneratorEnteredWorld = true;
 
                     // Recursively call this method again with the just read generatorObject
-                    List<WorldObject> objectList = CreateWorldObjectsFromGenerator(newGen);
+                    List<WorldObject> objectList = await CreateWorldObjectsFromGenerator(newGen);
                     objectList?.ForEach(o => results.Add(o));
                 }
                 // else spawn the objects directly from this generator
                 else
                 {
                     // TODO: Re-evaluate guid assignment here, is it a bad thing items and creatures are in the same pool? Probably.
-                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)generator.ActivationCreateClass);
+                    WorldObject wo = await WorldObjectFactory.CreateNewWorldObject((uint)generator.ActivationCreateClass);
 
                     if (wo != null)
                     {

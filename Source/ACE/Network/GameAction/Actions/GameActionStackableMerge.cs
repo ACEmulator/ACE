@@ -1,4 +1,5 @@
-﻿using ACE.Common.Extensions;
+using System.Threading.Tasks;
+
 using ACE.Entity;
 
 namespace ACE.Network.GameAction.Actions
@@ -10,12 +11,12 @@ namespace ACE.Network.GameAction.Actions
     public static class GameActionStackableMerge
     {
         [GameAction(GameActionType.StackableMerge)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             uint mergeFromId = message.Payload.ReadUInt32();
             uint mergeToId = message.Payload.ReadUInt32();
             int amount = message.Payload.ReadInt32();
-            session.Player.HandleActionStackableMerge(session, new ObjectGuid(mergeFromId), new ObjectGuid(mergeToId), amount);
+            await session.Player.StackableMerge(session, new ObjectGuid(mergeFromId), new ObjectGuid(mergeToId), amount);
         }
     }
 }

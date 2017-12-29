@@ -1,47 +1,48 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ACE.Database
 {
     public interface ISerializedShardDatabase
     {
-        void GetObjectsByLandblock(ushort landblock, Action<List<AceObject>> callback);
+        Task<List<AceObject>> GetObjectsByLandblock(ushort landblock);
 
-        void GetObject(uint aceObjectId, Action<AceObject> callback);
+        Task<AceObject> GetObject(uint aceObjectId);
 
-        void SaveObject(AceObject aceObject, Action<bool> callback);
+        Task<bool> SaveObject(AceObject aceObject);
 
-        void DeleteObject(AceObject aceObject, Action<bool> callback);
+        Task<bool> DeleteObject(AceObject aceObject);
 
-        void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback);
+        Task<List<CachedCharacter>> GetCharacters(uint subscriptionId);
 
         /// <summary>
         /// Loads an object by name.  Primary use case: characters.
         /// </summary>
-        void GetObjectInfoByName(string name, Action<ObjectInfo> callback);
+        Task<ObjectInfo> GetObjectInfoByName(string name);
 
-        void DeleteFriend(uint characterId, uint friendCharacterId, Action callback);
+        Task DeleteFriend(uint characterId, uint friendCharacterId);
 
-        bool DeleteContract(AceContractTracker contract, Action<bool> callback);
+        Task<bool> DeleteContract(AceContractTracker contract);
 
-        void AddFriend(uint characterId, uint friendCharacterId, Action callback);
+        Task AddFriend(uint characterId, uint friendCharacterId);
 
-        void RemoveAllFriends(uint characterId, Action callback);
+        Task RemoveAllFriends(uint characterId);
 
-        void IsCharacterNameAvailable(string name, Action<bool> callback);
+        Task<bool> IsCharacterNameAvailable(string name);
 
-        void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback);
+        Task<bool> DeleteOrRestore(ulong unixTime, uint id);
 
-        void DeleteCharacter(uint id, Action<bool> callback);
+        Task<bool> DeleteCharacter(uint id);
 
-        void GetCurrentId(uint min, uint max, Action<uint> callback);
+        Task<uint> GetCurrentId(uint min, uint max);
 
-        void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback);
+        Task<uint> SetCharacterAccessLevelByName(string name, AccessLevel accessLevel);
 
-        void RenameCharacter(string currentName, string newName, Action<uint> callback);
+        Task<uint> RenameCharacter(string currentName, string newName);
 
-        void GetCharacter(uint id, Action<AceCharacter> callback);
+        Task<AceCharacter> GetCharacter(uint id);
     }
 }

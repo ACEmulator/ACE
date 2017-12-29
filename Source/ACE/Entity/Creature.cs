@@ -1,18 +1,20 @@
-using ACE.Entity.Enum;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
 using ACE.Entity.Actions;
-using ACE.Factories;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Managers;
 using ACE.Network;
-using ACE.Entity.Enum.Properties;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Motion;
-using System;
-using log4net;
 using ACE.Network.GameMessages.Messages;
+using ACE.Network.Motion;
 using ACE.Network.Sequence;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
+
+using log4net;
 
 namespace ACE.Entity
 {
@@ -109,9 +111,14 @@ namespace ACE.Entity
             }
         }
 
-        public Creature(AceObject baseObject)
-            : base(baseObject)
+        public Creature()
         {
+        }
+            
+        protected override async Task Init(AceObject baseObject)
+        {
+            await base.Init(baseObject);
+
             if (Attackable == false)
             {
                 if (RadarColor != Enum.RadarColor.Yellow || (RadarColor == Enum.RadarColor.Yellow && CreatureType == null))
@@ -119,22 +126,14 @@ namespace ACE.Entity
             }
         }
 
-        public virtual void DoOnKill(Session killerSession)
-        {
-            OnKillInternal(killerSession).EnqueueChain();
-        }
-
-        protected ActionChain OnKillInternal(Session killerSession)
+        public virtual async Task DoOnKill(Session killerSession)
         {
             // Will start death animation
             OnKill(killerSession);
 
             // Wait, then run kill animation
-            ActionChain onKillChain = new ActionChain();
-            onKillChain.AddDelaySeconds(2);
-            onKillChain.AddChain(GetCreateCorpseChain());
-
-            return onKillChain;
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            CreateCorpse();
         }
 
         protected virtual float GetCorpseSpawnTime()
@@ -142,31 +141,27 @@ namespace ACE.Entity
             return 60;
         }
 
-        public ActionChain GetCreateCorpseChain()
+        public void CreateCorpse()
         {
-            ActionChain createCorpseChain = new ActionChain(this, () =>
-            {
-                ////// Create Corspe and set a location on the ground
-                ////// TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-                ////var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                ////// FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
-                ////corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
-                ////corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
+            ////// Create Corspe and set a location on the ground
+            ////// TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
+            ////var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+            ////// FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
+            ////corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
+            ////corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
 
-                ////// Corpses stay on the ground for 5 * player level but minimum 1 hour
-                ////// corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-                ////// corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-                ////float despawnTime = GetCorpseSpawnTime();
+            ////// Corpses stay on the ground for 5 * player level but minimum 1 hour
+            ////// corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+            ////// corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+            ////float despawnTime = GetCorpseSpawnTime();
 
-                ////// Create corpse
-                ////CurrentLandblock.AddWorldObject(corpse);
-                ////// Create corpse decay
-                ////ActionChain despawnChain = new ActionChain();
-                ////despawnChain.AddDelaySeconds(despawnTime);
-                ////despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
-                ////despawnChain.EnqueueChain();
-            });
-            return createCorpseChain;
+            ////// Create corpse
+            ////CurrentLandblock.AddWorldObject(corpse);
+            ////// Create corpse decay
+            ////ActionChain despawnChain = new ActionChain();
+            ////despawnChain.AddDelaySeconds(despawnTime);
+            ////despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
+            ////despawnChain.EnqueueChain();
         }
 
         private void OnKill(Session session)
@@ -200,12 +195,12 @@ namespace ACE.Entity
         /// </summary>
         public void UpdateVital(CreatureVital vital, uint newVal)
         {
-            EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
+            UpdateVitalInternal(vital, newVal);
         }
 
         public void DeltaVital(CreatureVital vital, long delta)
         {
-            EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
+            DeltaVitalInternal(vital, delta);
         }
 
         private void DeltaVitalInternal(CreatureVital vital, long delta)
@@ -228,6 +223,7 @@ namespace ACE.Entity
             UpdateVitalInternal(vital, absVal);
         }
 
+        List<Task> vitalTasks = new List<Task>();
         private void VitalTick(CreatureVital vital)
         {
             double tickTime = vital.NextTickTime;
@@ -241,10 +237,13 @@ namespace ACE.Entity
             }
 
             // Set up our next tick
-            ActionChain tickChain = new ActionChain();
-            tickChain.AddDelayTicks(tickTime);
-            tickChain.AddAction(this, () => VitalTickInternal(vital));
-            tickChain.EnqueueChain();
+            var t = WorldManager.StartGameTask(async () => {
+                if (tickTime > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(tickTime));
+                }
+                VitalTickInternal(vital);
+            });
         }
 
         protected virtual void VitalTickInternal(CreatureVital vital)
@@ -336,7 +335,7 @@ namespace ACE.Entity
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
         }
 
-        public void HandleSwitchToMissileCombatMode(ActionChain combatModeChain)
+        public async Task HandleSwitchToMissileCombatMode()
         {
             // TODO and FIXME: GetInventoryItem doesn't work for this so this function is effectively broke
             HeldItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
@@ -390,14 +389,15 @@ namespace ACE.Entity
                     SetMotionState(this, mm);
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
-                    combatModeChain.AddDelaySeconds(0.25);
-                    // System.Threading.Thread.Sleep(250); // used for debugging
+                    await Task.Delay(TimeSpan.FromSeconds(0.25));
+
                     mm.MovementData.ForwardCommand = (ushort)MotionCommand.Invalid;
                     SetMotionState(this, mm);
+
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
-                    combatModeChain.AddDelaySeconds(0.40);
-                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
-                    // CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)); // used for debugging
+                    await Task.Delay(TimeSpan.FromSeconds(0.40));
+
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1));
                 }
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (int)CombatMode.Missile));
             }
@@ -529,35 +529,30 @@ namespace ACE.Entity
                 log.InfoFormat("Changing combat mode for {0} - wielded item {1} has not be assigned a default combat style", Guid, mEquipedMelee?.Guid ?? mEquipedTwoHanded?.Guid);
         }
 
-        public void SetCombatMode(CombatMode newCombatMode)
+        public async Task SetCombatMode(CombatMode newCombatMode)
         {
             log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
 
-            ActionChain combatModeChain = new ActionChain();
-            combatModeChain.AddAction(this, () =>
-                {
-                    CombatMode oldCombatMode = CombatMode;
-                    CombatMode = newCombatMode;
-                    switch (CombatMode)
-                    {
-                        case CombatMode.NonCombat:
-                            HandleSwitchToPeaceMode(oldCombatMode);
-                            break;
-                        case CombatMode.Melee:
-                            HandleSwitchToMeleeCombatMode(oldCombatMode);
-                            break;
-                        case CombatMode.Magic:
-                            HandleSwitchToMagicCombatMode();
-                            break;
-                        case CombatMode.Missile:
-                            HandleSwitchToMissileCombatMode(combatModeChain);
-                            break;
-                        default:
-                            log.InfoFormat("Changing combat mode for {0} - something has gone wrong", Guid);
-                            break;
-                    }
-                });
-            combatModeChain.EnqueueChain();
+            CombatMode oldCombatMode = CombatMode;
+            CombatMode = newCombatMode;
+            switch (CombatMode)
+            {
+                case CombatMode.NonCombat:
+                    HandleSwitchToPeaceMode(oldCombatMode);
+                    break;
+                case CombatMode.Melee:
+                    HandleSwitchToMeleeCombatMode(oldCombatMode);
+                    break;
+                case CombatMode.Magic:
+                    HandleSwitchToMagicCombatMode();
+                    break;
+                case CombatMode.Missile:
+                    await HandleSwitchToMissileCombatMode();
+                    break;
+                default:
+                    log.InfoFormat("Changing combat mode for {0} - something has gone wrong", Guid);
+                    break;
+            }
         }
 
         public void SetMotionState(WorldObject obj, MotionState motionState)
@@ -583,7 +578,7 @@ namespace ACE.Entity
             if (old == vital.MaxValue && vital.Current != vital.MaxValue)
             {
                 // Start up a vital ticker
-                new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
+                VitalTickInternal(vital);
             }
         }
 
@@ -638,11 +633,9 @@ namespace ACE.Entity
             }
         }
 
-        public void HandleActionWorldBroadcast(string message, ChatMessageType messageType)
+        public void WorldBroadcast(string message, ChatMessageType messageType)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoWorldBroadcast(message, messageType));
-            chain.EnqueueChain();
+            DoWorldBroadcast(message, messageType);
         }
 
         public void DoWorldBroadcast(string message, ChatMessageType messageType)
@@ -678,9 +671,9 @@ namespace ACE.Entity
         ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
         /// </summary>
         /// <param name="playerId">Identity of the player we are interacting with</param>
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -688,7 +681,7 @@ namespace ACE.Entity
 
             if (!player.IsWithinUseRadiusOf(this))
             {
-                player.DoMoveTo(this);
+                await player.DoMoveTo(this);
             }
             else
             {
@@ -699,11 +692,11 @@ namespace ACE.Entity
             }
         }       
 
-        public void EnterWorld()
+        public async Task EnterWorld()
         {
             if (Location != null)
             {
-                LandblockManager.AddObject(this);
+                await LandblockManager.AddObject(this);
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(Enum.PlayScript.Create);
             }

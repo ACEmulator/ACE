@@ -1,15 +1,14 @@
-﻿using ACE.Common.Extensions;
-using ACE.Entity;
-using ACE.Entity.Enum;
+using System.Threading.Tasks;
+
 using ACE.Network.GameEvent.Events;
-using ACE.Network.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionChannelIndex
     {
         [GameAction(GameActionType.IndexChannels)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
             if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
@@ -17,5 +16,6 @@ namespace ACE.Network.GameAction.Actions
 
             session.Network.EnqueueSend(new GameEventChannelIndex(session));
         }
+        #pragma warning restore 1998
     }
 }

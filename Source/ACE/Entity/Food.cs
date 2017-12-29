@@ -1,4 +1,6 @@
-﻿using ACE.Entity.Enum;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
 
@@ -6,9 +8,13 @@ namespace ACE.Entity
 {
     public class Food : WorldObject
     {
-        public Food(AceObject aceObject)
-            : base(aceObject)
+        public Food()
         {
+        }
+
+        protected override async Task Init(AceObject aceObject)
+        {
+            await base.Init(aceObject);
             StackSize = (base.StackSize ?? 1);
 
             if (StackSize == null)
@@ -20,7 +26,7 @@ namespace ACE.Entity
                 BoostEnum = 0;
         }
 
-        public override void OnUse(Session session)
+        public override async Task OnUse(Session session)
         {
             Entity.Player.ConsumableBuffType buffType;
 
@@ -42,9 +48,9 @@ namespace ACE.Entity
             else
                 buffType = Entity.Player.ConsumableBuffType.Spell;
 
-            session.Player.ApplyComsumable(Name, SolidOrLiquid(), buffType, (uint)Boost, SpellDID);
+            await session.Player.ApplyComsumable(Name, SolidOrLiquid(), buffType, (uint)Boost, SpellDID);
 
-            session.Player.HandleActionRemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
+            await session.Player.RemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
 
             var sendUseDoneEvent = new GameEventUseDone(session);
             session.Network.EnqueueSend(sendUseDoneEvent);

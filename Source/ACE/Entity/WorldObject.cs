@@ -15,11 +15,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Reflection;
 
 namespace ACE.Entity
 {
-    public abstract class WorldObject : IActor
+    public abstract class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -99,6 +100,8 @@ namespace ACE.Entity
         {
             get { return AceObject.BookProperties; }
         }
+
+        public AceObject Weenie { get; private set; }
 
         #region ObjDesc
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
@@ -1313,8 +1316,6 @@ namespace ACE.Entity
             protected set { AceObject.WeenieType = (int)value; }
         }
 
-        public IActor CurrentParent { get; private set; }
-
         public Position ForcedLocation { get; private set; }
 
         public Position RequestedLocation { get; private set; }
@@ -1324,7 +1325,8 @@ namespace ACE.Entity
         /// </summary>
         public Landblock CurrentLandblock
         {
-            get { return CurrentParent as Landblock; }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -1336,8 +1338,6 @@ namespace ACE.Entity
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
-
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
         /// <summary>
         /// tick-stamp for the last time a movement update was sent
@@ -1481,11 +1481,6 @@ namespace ACE.Entity
             set { AceObject.CreatureType = (int)value; }
         }
 
-        public AceObject Weenie
-        {
-            get { return Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId); }
-        }
-
         public SetupModel CSetup
         {
             get { return SetupModel.ReadFromDat(SetupTableId.Value); }
@@ -1500,12 +1495,12 @@ namespace ACE.Entity
             get { return ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius); }
         }
 
-    public bool IsWithinUseRadiusOf(WorldObject wo)
-    {
-        if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+        public bool IsWithinUseRadiusOf(WorldObject wo)
+        {
+            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
                 return false;
-        return true;
-    }
+            return true;
+        }
 
         public string LongDesc
         {
@@ -1591,9 +1586,13 @@ namespace ACE.Entity
             set { AceObject.CoinValue = value; }
         }
 
-        public SequenceManager Sequences { get; }
+        public SequenceManager Sequences { get; private set; }
 
-        protected WorldObject(ObjectGuid guid)
+        protected WorldObject()
+        {
+        }
+
+        protected void Init(ObjectGuid guid)
         {
             AceObject = new AceObject { AceObjectId = guid.Full };
             Guid = guid;
@@ -1633,10 +1632,39 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
         }
 
-        protected WorldObject(AceObject aceObject)
-                : this(new ObjectGuid(aceObject.AceObjectId))
+        protected virtual void Init(ObjectGuid guid, AceObject aceObject)
         {
+            Init(guid);
+
             AceObject = aceObject;
+
+            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
+            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+
+            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
+                CurrentMotionState = null;
+            else
+                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+
+            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+        }
+
+        /// <summary>
+        /// Overwritten for async loading components...
+        /// </summary>
+        #pragma warning disable 1998
+        protected virtual async Task Init(AceObject aceObject)
+        {
+            Init(new ObjectGuid(aceObject.AceObjectId));
+
+
+            AceObject = aceObject;
+
+            Weenie = await Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId);
+
             SetWeenieHeaderFlag();
             SetWeenieHeaderFlag2();
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
@@ -1652,25 +1680,19 @@ namespace ACE.Entity
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
         }
+        #pragma warning restore 1998
 
-        protected WorldObject(ObjectGuid guid, AceObject aceObject)
-            : this(guid)
+        public static async Task<T> CreateWorldObject<T>(AceObject ao)
+            where T : WorldObject, new()
         {
-            AceObject = aceObject;
-            Guid = guid;
+            T res = new T();
+            await res.Init(ao);
+            return res;
+        }
 
-            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
-
-            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
-
-            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
-                CurrentMotionState = null;
-            else
-                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
-            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
-            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+        public void SetParent(Landblock lb)
+        {
+            CurrentLandblock = lb;
         }
 
         internal void SetInventoryForVendor(WorldObject inventoryItem)
@@ -2588,34 +2610,6 @@ namespace ACE.Entity
             RequestedLocation = null;
         }
 
-        /// <summary>
-        /// Manages action/broadcast infrastructure
-        /// </summary>
-        /// <param name="parent"></param>
-        public void SetParent(IActor parent)
-        {
-            CurrentParent = parent;
-            actionQueue.RemoveParent();
-            actionQueue.SetParent(parent);
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
-        {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        /// <param name="node"></param>
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
         public AceObject NewAceObjectFromCopy()
         {
             return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
@@ -2632,14 +2626,6 @@ namespace ACE.Entity
         public void InitializeAceObjectForSave()
         {
             AceObject.SetDirtyFlags();
-        }
-
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        public void RunActions()
-        {
-            actionQueue.RunActions();
         }
 
         private PhysicsDescriptionFlag SetPhysicsDescriptionFlag()
@@ -2995,12 +2981,12 @@ namespace ACE.Entity
                 Frozen = true;
         }
 
-        public virtual void ActOnUse(ObjectGuid playerId)
+        public virtual async Task ActOnUse(ObjectGuid playerId)
         {
             // Do Nothing by default
             if (CurrentLandblock != null)
             {
-                Player player = CurrentLandblock.GetObject(playerId) as Player;
+                Player player = await CurrentLandblock.GetObject(playerId) as Player;
                 if (player == null)
                 {
                     return;
@@ -3016,7 +3002,9 @@ namespace ACE.Entity
             }
         }
 
-        public virtual void OnUse(Session session)
+        // Disable async warning, we're matching an interface...
+        #pragma warning disable 1998
+        public virtual async Task OnUse(Session session)
         {
             // Do Nothing by default
 #if DEBUG
@@ -3027,11 +3015,16 @@ namespace ACE.Entity
             var sendUseDoneEvent = new GameEventUseDone(session);
             session.Network.EnqueueSend(sendUseDoneEvent);
         }
+        #pragma warning restore 1998
 
-        public virtual void HandleActionOnCollide(ObjectGuid playerId)
+
+        // Disable async warning, we're matching an interface...
+        #pragma warning disable 1998
+        public virtual async Task OnCollide(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.
         }
+        #pragma warning restore 1998
 
         public int? ChessGamesLost
         {

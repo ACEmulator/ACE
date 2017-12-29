@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
+using ACE.Managers;
 using ACE.Network.GameAction;
 using ACE.Network.GameMessages;
-using ACE.Entity.Actions;
 using log4net;
 
 namespace ACE.Network.Managers
@@ -24,9 +25,9 @@ namespace ACE.Network.Managers
             public GameActionAttribute Attribute { get; set; }
         }
 
-        public delegate void MessageHandler(ClientMessage message, Session session);
+        public delegate Task MessageHandler(ClientMessage message, Session session);
 
-        public delegate void ActionHandler(ClientMessage message, Session session);
+        public delegate Task ActionHandler(ClientMessage message, Session session);
 
         private static Dictionary<GameMessageOpcode, MessageHandlerInfo> messageHandlers;
 
@@ -95,10 +96,10 @@ namespace ACE.Network.Managers
                 {
                     if (messageHandlerInfo.Attribute.State == session.State)
                     {
-                        session.EnqueueAction(new ActionEventDelegate(() =>
+                        WorldManager.StartGameTask(async () =>
                         {
-                            messageHandlerInfo.Handler.Invoke(message, session);
-                        }));
+                            await messageHandlerInfo.Handler.Invoke(message, session);
+                        });
                     }
                 }
             }
@@ -113,9 +114,10 @@ namespace ACE.Network.Managers
                 ActionHandlerInfo actionHandlerInfo;
                 if (actionHandlers.TryGetValue(opcode, out actionHandlerInfo))
                 {
-                    session.EnqueueAction(new ActionEventDelegate(() => {
-                        actionHandlerInfo.Handler.Invoke(message, session);
-                    }));
+                    WorldManager.StartGameTask(async () =>
+                    {
+                        await actionHandlerInfo.Handler.Invoke(message, session);
+                    });
                 }
             }
         }

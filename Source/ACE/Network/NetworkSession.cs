@@ -262,7 +262,10 @@ namespace ACE.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
             {
                 sendResync = true;
-                AuthenticationHandler.HandleConnectResponse(packet, session);
+                WorldManager.StartGameTask(async () =>
+                {
+                    await AuthenticationHandler.HandleConnectResponse(packet, session);
+                });
                 return;
             }
 

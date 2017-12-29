@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 
 namespace ACE.Database
 {
@@ -10,7 +10,7 @@ namespace ACE.Database
 
         public static ISerializedShardDatabase Shard { get; set; }
 
-        public static IWorldDatabase World { get; set; }
+        public static IWorldCachedDatabase World { get; set; }
 
         public static void Initialize(bool autoRetry = true)
         {

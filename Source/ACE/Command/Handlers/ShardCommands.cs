@@ -1,17 +1,10 @@
-﻿using System;
-using ACE.Entity;
+using System;
+using System.Threading.Tasks;
+
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
-using ACE.Common;
-using ACE.Database;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
-using ACE.Factories;
-using System.Collections.Generic;
-using ACE.Entity.Enum.Properties;
-using log4net;
 
 namespace ACE.Command.Handlers
 {
@@ -30,10 +23,12 @@ namespace ACE.Command.Handlers
         [CommandHandler("cancel-shutdown", AccessLevel.Admin, CommandHandlerFlag.None, 0,
             "Stops an active server shutdown.",
             "")]
-        public static void HandleCancelShutdown(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleCancelShutdown(Session session, params string[] parameters)
         {
             ServerManager.CancelShutdown();
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Increase or decrease the server shutdown interval in seconds
@@ -41,7 +36,8 @@ namespace ACE.Command.Handlers
         [CommandHandler("set-shutdown-interval", AccessLevel.Admin, CommandHandlerFlag.None, 1,
             "Changes the delay before the server will shutdown.",
             "< 0-99999 >")]
-        public static void HandleSetShutdownInterval(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleSetShutdownInterval(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
             {
@@ -64,6 +60,7 @@ namespace ACE.Command.Handlers
             }
             ChatPacket.SendServerMessage(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Immediately begins the shutdown process by setting the shutdown interval to 0 before executing the shutdown method
@@ -71,10 +68,10 @@ namespace ACE.Command.Handlers
         [CommandHandler("stop-now", AccessLevel.Admin, CommandHandlerFlag.None, -1,
             "Shuts the server down, immediately!",
             "\nThis command will attempt to safely logoff all players, before shutting down the server.")]
-        public static void ShutdownServerNow(Session session, params string[] parameters)
+        public static async Task ShutdownServerNow(Session session, params string[] parameters)
         {
             ServerManager.SetShutdownInterval(0);
-            ShutdownServer(session, parameters);
+            await ShutdownServer(session, parameters);
         }
 
         /// <summary>
@@ -85,7 +82,8 @@ namespace ACE.Command.Handlers
             "< Optional Shutdown Message >\n" +
             "\tUse @cancel-shutdown too abort an active shutdown!\n" +
             "\tSet the shutdown delay with @set-shutdown-interval < 0-99999 >")]
-        public static void ShutdownServer(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task ShutdownServer(Session session, params string[] parameters)
         {
             // inform the world that a shutdown is about to take place
             string shutdownInitiator = (session == null ? "Server" : session.Player.Name.ToString());
@@ -127,5 +125,6 @@ namespace ACE.Command.Handlers
             }
             ServerManager.BeginShutdown();
         }
+        #pragma warning restore 1998
     }
 }

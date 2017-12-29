@@ -1,15 +1,16 @@
-﻿using ACE.Common.Extensions;
-using ACE.Entity.Enum;
+using System.Threading.Tasks;
+
+using ACE.Common.Extensions;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionAddFriend
     {
         [GameAction(GameActionType.AddFriend)]
-        public static void Handle(ClientMessage message, Session session)
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var friendName = message.Payload.ReadString16L().Trim();
-            session.Player.AddFriend(friendName);
+            await session.Player.AddFriend(friendName);
         }
     }
 }

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using ACE.Entity;
 
@@ -34,21 +35,9 @@ namespace ACE.Managers
                 // Read current value out of ShardDatabase
                 lock (this)
                 {
-                    bool done = false;
-                    Database.DatabaseManager.Shard.GetCurrentId(min, max, (dbVal) =>
-                    {
-                        lock (this)
-                        {
-                            current = dbVal;
-                            done = true;
-                            Monitor.Pulse(this);
-                        }
-                    });
-
-                    while (!done)
-                    {
-                        Monitor.Wait(this);
-                    }
+                    Task<uint> task = Database.DatabaseManager.Shard.GetCurrentId(min, max);
+                    task.Wait();
+                    current = task.Result;
 
                     if (current == InvalidGuid)
                     {
@@ -67,7 +56,10 @@ namespace ACE.Managers
                 }
 
                 // Now read current from WorldDatabase
-                uint worldMax = Database.DatabaseManager.World.GetCurrentId(min, max);
+                var worldMaxTask = Database.DatabaseManager.World.GetCurrentId(min, max);
+                worldMaxTask.Wait();
+
+                uint worldMax = worldMaxTask.Result;
                 if (worldMax != InvalidGuid && worldMax >= current)
                 {
                     current = worldMax + 1;

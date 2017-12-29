@@ -7,7 +7,7 @@ namespace ACE.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, WorldObject vendor, List<WorldObject> items)
+        public GameEventApproachVendor(Session session, Vendor vendor, List<WorldObject> items)
             : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
         {        
             Writer.Write(vendor.Guid.Full); // merchant id
@@ -22,7 +22,7 @@ namespace ACE.Network.GameEvent.Events
             Writer.Write(vendor.AlternateCurrencyDID ?? 0u); // trade id .. wcid of currency vendor uses
             if (vendor.AlternateCurrencyDID > 0)
             {
-                var currency = WorldObjectFactory.CreateWorldObject(Database.DatabaseManager.World.GetAceObjectByWeenie((uint)vendor.AlternateCurrencyDID));
+                var currency = vendor.CurrencyTemplate;
                 string fixedPlural = currency.NamePlural;
                 if (fixedPlural == null)
                 {

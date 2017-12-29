@@ -1,11 +1,14 @@
-﻿using ACE.Entity;
+using System.Threading.Tasks;
+
+using ACE.Entity;
 
 namespace ACE.Network.GameAction
 {
     public static class GameActionAutonomousPosition
     {
         [GameAction(GameActionType.AutonomousPosition)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var position = new Position(message.Payload);
             var instanceTimestamp = message.Payload.ReadUInt16();
@@ -19,5 +22,6 @@ namespace ACE.Network.GameAction
                 session.Player.UpdateAutonomousMove();
             */
         }
+        #pragma warning restore 1998
     }
 }

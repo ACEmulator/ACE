@@ -1,11 +1,14 @@
-﻿using ACE.Entity.Enum.Properties;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionRaiseAbility
     {
         [GameAction(GameActionType.RaiseAbility)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             Entity.Enum.Ability ability = Entity.Enum.Ability.None;
             var networkAbility = (PropertyAttribute)message.Payload.ReadUInt32();
@@ -35,5 +38,6 @@ namespace ACE.Network.GameAction.Actions
             var xpSpent = message.Payload.ReadUInt32();
             session.Player.SpendXp(ability, xpSpent);
         }
+        #pragma warning restore 1998
     }
 }

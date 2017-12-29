@@ -9,126 +9,238 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class CachingWorldDatabase : IWorldDatabase
+    public class CachingWorldDatabase : IWorldCachedDatabase
     {
         /// <summary>
         /// wrapper to the the world database that actually does the lifting
         /// </summary>
         private IWorldDatabase _wrappedDatabase;
 
+        private class CacheResult
+        {
+            public CacheResult(Task t)
+            {
+                FetchingTask = t;
+            }
+
+            public Task FetchingTask;
+
+            public async Task Run()
+            {
+                await FetchingTask;
+            } 
+        }
+
+        private class CacheResult<T> : CacheResult
+        {
+            public CacheResult(Task<T> t) : base(t)
+            {
+            }
+
+            public Task<T> ResultTask
+            {
+                get
+                {
+                    return FetchingTask as Task<T>;
+                }
+            }
+
+            public async Task<T> GetResult()
+            {
+                await Run();
+                return ResultTask.Result;
+            }
+        }
+
         /// <summary>
         /// so, caches are fun.  we have to be especially careful that we never hand out the same instance
         /// twice.  in order to do that, we always clone objects coming out of the cache and return the
         /// clone instead of the actual cached object.
         /// </summary>
-        private ConcurrentDictionary<uint, AceObject> _weenieCache = new ConcurrentDictionary<uint, AceObject>();
+        private ConcurrentDictionary<uint, CacheResult<AceObject>> _weenieCache = new ConcurrentDictionary<uint, CacheResult<AceObject>>();
+
+        private async Task<V> GetCacheResult<K,V>(ConcurrentDictionary<K, CacheResult<V>> cache, K key, Func<K, V> filler)
+        {
+            CacheResult<V> res = cache.GetOrAdd(key, (keyId) =>
+            {
+                Task<V> t = Task<V>.Run(() =>
+                {
+                    return filler(keyId);
+                });
+                return new CacheResult<V>(t);
+            });
+
+            return await res.GetResult();
+        }
 
         public CachingWorldDatabase(IWorldDatabase wrappedDatabase)
         {
             _wrappedDatabase = wrappedDatabase;
         }
 
-        public AceObject GetAceObjectByWeenie(uint weenieClassId)
+        public async Task<AceObject> GetAceObjectByWeenie(uint weenieClassId)
         {
-            return (AceObject)_weenieCache.GetOrAdd(weenieClassId, (wcId) => _wrappedDatabase.GetAceObjectByWeenie(wcId)).Clone();
+            AceObject res = await GetCacheResult<uint, AceObject>(_weenieCache, weenieClassId,
+                (wcId) =>
+                {
+                    return _wrappedDatabase.GetAceObjectByWeenie(wcId);
+                });
+
+            res = (AceObject)res.Clone();
+
+            return res;
         }
 
-        public AceObject GetObject(uint aceObjectId)
+        public async Task<AceObject> GetObject(uint aceObjectId)
         {
             // if they're asking for a weenie, just give them the weenie.
             if (aceObjectId <= AceObject.WEENIE_MAX)
             {
-                return GetAceObjectByWeenie(aceObjectId);
+                return await GetAceObjectByWeenie(aceObjectId);
             }
 
-            return _wrappedDatabase.GetObject(aceObjectId);
+            return await Task.Run(() => { return _wrappedDatabase.GetObject(aceObjectId); });
         }
 
-        public List<AceObject> GetObjectsByLandblock(ushort landblock)
+        public async Task<List<AceObject>> GetObjectsByLandblock(ushort landblock)
         {
-            return _wrappedDatabase.GetObjectsByLandblock(landblock);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetObjectsByLandblock(landblock);
+            });
         }
 
-        public List<AceObject> GetWeenieInstancesByLandblock(ushort landblock)
+        public async Task<List<AceObject>> GetWeenieInstancesByLandblock(ushort landblock)
         {
-            return _wrappedDatabase.GetWeenieInstancesByLandblock(landblock);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetWeenieInstancesByLandblock(landblock);
+            });
         }
 
-        public List<TeleportLocation> GetPointsOfInterest()
+        public async Task<List<TeleportLocation>> GetPointsOfInterest()
         {
-            return _wrappedDatabase.GetPointsOfInterest();
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetPointsOfInterest();
+            });
         }
 
-        public List<CachedWeenieClass> GetRandomWeeniesOfType(uint typeId, uint numWeenies)
+        public async Task<List<CachedWeenieClass>> GetRandomWeeniesOfType(uint typeId, uint numWeenies)
         {
-            return _wrappedDatabase.GetRandomWeeniesOfType(typeId, numWeenies);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetRandomWeeniesOfType(typeId, numWeenies);
+            });
         }
 
-        public uint GetCurrentId(uint min, uint max)
+        public async Task<uint> GetCurrentId(uint min, uint max)
         {
-            return _wrappedDatabase.GetCurrentId(min, max);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetCurrentId(min, max);
+            });
         }
 
-        public List<Recipe> GetAllRecipes()
+        public async Task<List<Recipe>> GetAllRecipes()
         {
-            return _wrappedDatabase.GetAllRecipes();
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetAllRecipes();
+            });
         }
 
-        public void CreateRecipe(Recipe recipe)
+        public async Task CreateRecipe(Recipe recipe)
         {
-            _wrappedDatabase.CreateRecipe(recipe);
+            await Task.Run(() =>
+            {
+                _wrappedDatabase.CreateRecipe(recipe);
+            });
         }
 
-        public void UpdateRecipe(Recipe recipe)
+        public async Task UpdateRecipe(Recipe recipe)
         {
-            _wrappedDatabase.UpdateRecipe(recipe);
+            await Task.Run(() =>
+            {
+                _wrappedDatabase.UpdateRecipe(recipe);
+            });
         }
 
-        public void DeleteRecipe(Guid recipeGuid)
+        public async Task DeleteRecipe(Guid recipeGuid)
         {
-            _wrappedDatabase.DeleteRecipe(recipeGuid);
+            await Task.Run(() =>
+            {
+                _wrappedDatabase.DeleteRecipe(recipeGuid);
+            });
         }
 
-        public List<Content> GetAllContent()
+        public async Task<List<Content>> GetAllContent()
         {
-            return _wrappedDatabase.GetAllContent();
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.GetAllContent();
+            });
         }
 
-        public void CreateContent(Content content)
+        public async Task CreateContent(Content content)
         {
-            _wrappedDatabase.CreateContent(content);
+            await Task.Run(() =>
+            {
+                _wrappedDatabase.CreateContent(content);
+            });
         }
 
-        public void UpdateContent(Content content)
+        public async Task UpdateContent(Content content)
         {
-            _wrappedDatabase.UpdateContent(content);
+            await Task.Run(() =>
+            {
+                _wrappedDatabase.UpdateContent(content);
+            });
         }
 
-        public void DeleteContent(Guid contentGuid)
+        public async Task DeleteContent(Guid contentGuid)
         {
-            _wrappedDatabase.DeleteContent(contentGuid);
+            await Task.Run(() =>
+            {
+                _wrappedDatabase.DeleteContent(contentGuid);
+            });
         }
 
-        public bool SaveObject(AceObject weenie)
+        public async Task<bool> SaveObject(AceObject weenie)
         {
             if (_weenieCache.ContainsKey(weenie.WeenieClassId))
-                _weenieCache[weenie.WeenieClassId] = weenie;
+            {
+                _weenieCache[weenie.WeenieClassId] = new CacheResult<AceObject>(
+                    Task.Run(() =>
+                    {
+                        return weenie;
+                    }));
+            }
 
-            return _wrappedDatabase.SaveObject(weenie);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.SaveObject(weenie);
+            });
         }
         
-        public bool DeleteObject(AceObject aceObject)
+        public async Task<bool> DeleteObject(AceObject aceObject)
         {
-            AceObject weenie;
+            CacheResult<AceObject> weenie;
             if (_weenieCache.ContainsKey(aceObject.WeenieClassId))
                 _weenieCache.TryRemove(aceObject.WeenieClassId, out weenie);
 
-            return _wrappedDatabase.DeleteObject(aceObject);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.DeleteObject(aceObject);
+            });
         }
 
-        public List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria)
+        public async Task<List<WeenieSearchResult>> SearchWeenies(SearchWeeniesCriteria criteria)
         {
-            return _wrappedDatabase.SearchWeenies(criteria);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.SearchWeenies(criteria);
+            });
         }
 
         public bool UserModifiedFlagPresent()
@@ -136,12 +248,18 @@ namespace ACE.Database
             return _wrappedDatabase.UserModifiedFlagPresent();
         }
 
-        public bool ReplaceObject(AceObject aceObject)
+        public async Task<bool> ReplaceObject(AceObject aceObject)
         {
             if (_weenieCache.ContainsKey(aceObject.WeenieClassId))
-                _weenieCache[aceObject.WeenieClassId] = aceObject;
+                _weenieCache[aceObject.WeenieClassId] = new CacheResult<AceObject>(Task.Run(() =>
+                {
+                    return aceObject;
+                }));
 
-            return _wrappedDatabase.ReplaceObject(aceObject);
+            return await Task.Run(() =>
+            {
+                return _wrappedDatabase.ReplaceObject(aceObject);
+            });
         }
     }
 }

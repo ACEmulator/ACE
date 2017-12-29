@@ -1,19 +1,20 @@
-using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages.Messages;
-using ACE.Network.Motion;
-using ACE.Entity.Enum;
+using System;
+using System.Threading.Tasks;
+
 using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
 using ACE.Managers;
 
 namespace ACE.Entity
 {
     public class GamePiece : Creature
     {
-        public GamePiece(AceObject aceO)
-            : base(aceO)
+        public GamePiece()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
         }
 
         ////public override void ActOnUse(ObjectGuid playerId)
@@ -21,24 +22,17 @@ namespace ACE.Entity
 
         ////}
 
-        public void Kill()
+        public async Task Kill()
         {
-            ActionChain killChain = new ActionChain();
-            killChain.AddAction(this, () =>
-            {
-                HandleActionMotion(MotionDeath);
-            });
-            killChain.AddDelaySeconds(5);
-            killChain.AddAction(this, () =>
-            {
-                ApplyVisualEffects(Enum.PlayScript.Destroy);
-            });
-            killChain.AddDelaySeconds(1);
-            killChain.AddAction(this, () =>
-            {
-               LandblockManager.RemoveObject(this);
-            });
-            killChain.EnqueueChain();
+            HandleActionMotion(MotionDeath);
+
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
+            ApplyVisualEffects(Enum.PlayScript.Destroy);
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+           LandblockManager.RemoveObject(this);
         }
     }
 }

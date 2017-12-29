@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -28,6 +28,9 @@ namespace ACE.Managers
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
 
+        private static Thread taskChecker;
+        private static BlockingCollection<Task> runningTasks = new BlockingCollection<Task>();
+
         /// <summary>
         /// Seconds until a session will timeout. 
         /// Raising this value allows connections to remain active for a longer period of time. 
@@ -40,17 +43,17 @@ namespace ACE.Managers
         private static volatile bool pendingWorldStop;
         public static bool WorldActive { get; private set; }
 
+        public static ACETaskScheduler TaskScheduler { get; } = new ACETaskScheduler();
+        private static TaskFactory aceTaskFactory = new TaskFactory(CancellationToken.None,
+            TaskCreationOptions.AttachedToParent | TaskCreationOptions.PreferFairness,
+            TaskContinuationOptions.AttachedToParent | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler);
+
         public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
 
         public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
 
         public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
-
-        public static readonly ActionQueue ActionQueue = new ActionQueue();
-        public static readonly ActionQueue MotionQueue = new ActionQueue();
-        public static readonly ActionQueue BroadcastQueue = new ActionQueue();
-
-        public static readonly DelayManager DelayManager = new DelayManager();
 
         public static void Initialize()
         {
@@ -60,14 +63,14 @@ namespace ACE.Managers
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
+        public static async Task ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 log.DebugFormat("Login Request from {0}", endPoint);
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
-                    session.ProcessPacket(packet);
+                    await session.ProcessPacket(packet);
             }
             else if (sessionMap.Length > packet.Header.Id)
             {
@@ -75,9 +78,13 @@ namespace ACE.Managers
                 if (session != null)
                 {
                     if (session.EndPoint.Equals(endPoint))
-                        session.ProcessPacket(packet);
+                    {
+                        await session.ProcessPacket(packet);
+                    }
                     else
+                    {
                         log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    }
                 }
                 else
                 {
@@ -254,6 +261,10 @@ namespace ACE.Managers
         /// </summary>
         private static void UpdateWorld()
         {
+            // FIXME(ddevec): For debugging only -- used to get exceptions passed out of async threads
+            taskChecker = new Thread(taskDebug);
+            taskChecker.Start();
+
             log.DebugFormat("Starting UpdateWorld thread");
             double lastTick = 0d;
             WorldActive = true;
@@ -261,9 +272,6 @@ namespace ACE.Managers
             while (!pendingWorldStop)
             {
                 worldTickTimer.Restart();
-
-                // Handle time-based timeouts
-                DelayManager.RunActions();
 
                 // Sequences of update thread:
                 // Update positions based on new tick
@@ -278,16 +286,21 @@ namespace ACE.Managers
                     if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock.Id)
                     {
                         // NOTE: We are moving the objects on behalf of the physics 
-                        LandblockManager.RelocateObjectForPhysics(wo);
+                        // FIXME(ddevec): Will be fixing this when I redo tracking too...
+                        var blergTmp = LandblockManager.RelocateObjectForPhysics(wo);
+                        blergTmp.Wait();
                     }
                 }
 
                 // FIXME(ddevec): This O(n^2) tracking loop is a remenant of the old structure -- we should probably come up with a more efficient tracking scheme
-                Parallel.ForEach(movedObjects, mo =>
+                foreach (var mo in movedObjects)
                 {
                     // detect all world objects in ghost range
                     List<WorldObject> woproxghost = new List<WorldObject>();
-                    woproxghost.AddRange(mo.CurrentLandblock.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
+                    // FIXME(ddevec): Will be removed on tracking update -- tracking is currently our lragest CPU use component)
+                    var blergTask = mo.CurrentLandblock.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange);
+                    blergTask.Wait();
+                    woproxghost.AddRange(blergTask.Result);
 
                     // for all objects in range of this moving object or in ghost range of moving object update them.
                     Parallel.ForEach(woproxghost, gwo =>
@@ -311,30 +324,21 @@ namespace ACE.Managers
                             }
                         }
                     });
-                });
+                }
 
-                // Process between landblock object motions sequentially
-                // Currently only used for picking items up off a landblock
-                MotionQueue.RunActions();
-
-                // Now, update actions within landblocks
-                //   This is responsible for updating all "actors" residing within the landblock. 
-                //   Objects and landblocks are "actors"
-                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
-                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
-                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                ActionQueue.RunActions();
-
-                // Handles sending out all per-landblock broadcasts -- This may rework when we rework tracking -- tbd
-                BroadcastQueue.RunActions();
+                // Actually run the tasks
+                TaskScheduler.DoWork();
 
                 // XXX(ddevec): Should this be its own step in world-update thread?
                 sessionLock.EnterReadLock();
                 try
                 {
                     // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
+                    //Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
+                    foreach (Session s in sessions)
+                    {
+                        s.Update(lastTick, DateTime.UtcNow.Ticks);
+                    }
                 }
                 finally
                 {
@@ -359,37 +363,86 @@ namespace ACE.Managers
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
             // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
-            Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+            //Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+            foreach (Landblock landblock in LandblockManager.ActiveLandblocks)
             {
-                foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+                if (landblock.Loaded)
                 {
-                    Position newPosition = wo.Location;
-                    if (wo.ForcedLocation != null)
+                    foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                     {
-                        newPosition = wo.ForcedLocation;
-                        movedObjects.Enqueue(wo);
-                    }
-                    else if (wo.RequestedLocation != null)
-                    {
-                        newPosition = wo.RequestedLocation;
-                        movedObjects.Enqueue(wo);
-                    }
+                        Position newPosition = wo.Location;
+                        if (wo.ForcedLocation != null)
+                        {
+                            newPosition = wo.ForcedLocation;
+                            movedObjects.Enqueue(wo);
+                        }
+                        else if (wo.RequestedLocation != null)
+                        {
+                            newPosition = wo.RequestedLocation;
+                            movedObjects.Enqueue(wo);
+                        }
 
-                    if (newPosition != wo.Location)
-                    {
-                        wo.PhysicsUpdatePosition(newPosition);
-                    }
+                        if (newPosition != wo.Location)
+                        {
+                            wo.PhysicsUpdatePosition(newPosition);
+                        }
 
-                    wo.ClearRequestedPositions();
+                        wo.ClearRequestedPositions();
+                    }
                 }
-            });
+            }
 
             return movedObjects;
         }
 
-        public static double SecondsToTicks(double elapsedTimeSeconds)
+        public static Task StartGameTask(Func<Task> func)
         {
-            return elapsedTimeSeconds;
+            Task ret = aceTaskFactory.StartNew(func).Unwrap();
+            runningTasks.Add(ret);
+            return ret;
+        }
+
+        public static Task<T> StartGameTask<T>(Func<Task<T>> func)
+        {
+            Task<T> ret = aceTaskFactory.StartNew(func).Unwrap();
+            runningTasks.Add(ret);
+            return ret;
+        }
+
+        private static void taskDebug()
+        {
+            while (!runningTasks.IsAddingCompleted)
+            {
+                try
+                {
+                    Task t = runningTasks.Take();
+
+                    t.Wait(TimeSpan.FromMilliseconds(50));
+                    /*
+                    try
+                    {
+                        t.Wait(TimeSpan.FromMilliseconds(50));
+                    }
+                    catch (AggregateException ex)
+                    {
+                        throw ex.Flatten();
+                    }
+                    */
+
+                    if (!t.IsCompleted)
+                    {
+                        runningTasks.Add(t);
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                    // the _queue has been disposed, we're good
+                }
+                catch (InvalidOperationException)
+                {
+                    // _queue is empty and CompleteForAdding has been called -- we're done here
+                }
+            }
         }
     }
 }

@@ -1,17 +1,23 @@
+using System.Threading.Tasks;
+
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Network.Enum;
-using ACE.Network.Motion;
-using System;
-using System.Diagnostics;
 
 namespace ACE.Entity
 {
     public class Generator : WorldObject
     {
-        public Generator(ObjectGuid guid, AceObject baseAceObject)
-            : base(guid, baseAceObject)
+        public Generator()
         {
+        }
+
+        public void GeneratorInit(ObjectGuid guid, AceObject baseAceObject)
+        {
+            Init(guid, baseAceObject);
+        }
+
+        protected override void Init(ObjectGuid guid, AceObject baseAceObject)
+        {
+            base.Init(guid, baseAceObject);
             DescriptionFlags = ObjectDescriptionFlag.None;
             Stuck = true; Attackable = true; HiddenAdmin = true;
             IgnoreCollision = true; Hidden = true; Ethereal = true;

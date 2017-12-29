@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
-using ACE.Entity.Enum.Properties;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using ACE.Common;
 using ACE.Entity.Enum;
-using ACE.Entity.Actions;
+using ACE.Entity.Enum.Properties;
+using ACE.Managers;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Common;
 
 namespace ACE.Entity
 {
@@ -32,9 +35,13 @@ namespace ACE.Entity
         private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
-        public Door(AceObject aceO)
-            : base(aceO)
+        public Door()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
             // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
             // PhysicsState = 0;
             // ReportCollision = true;
@@ -168,9 +175,9 @@ namespace ACE.Entity
             set;
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -184,40 +191,35 @@ namespace ACE.Entity
             ////}
 
             if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
+                await player.DoMoveTo(this);
             else
             {
-                ActionChain checkDoorChain = new ActionChain();
-
-                checkDoorChain.AddAction(this, () =>
+                if (!IsLocked)
                 {
-                    if (!IsLocked)
+                    if (!IsOpen)
                     {
-                        if (!IsOpen)
-                        {
-                            Open(playerId);
-                        }
-                        else
-                        {
-                            Close(playerId);
-                        }
-
-                            // Create Door auto close timer
-                            ActionChain autoCloseTimer = new ActionChain();
-                        autoCloseTimer.AddDelaySeconds(ResetInterval);
-                        autoCloseTimer.AddAction(this, () => Reset());
-                        autoCloseTimer.EnqueueChain();
+                        Open(playerId);
                     }
                     else
                     {
-                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                        Close(playerId);
                     }
 
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                });
+                    // Create Door auto close timer
+                    // XXX: tmp keeps the compiler from giving a no wait warning...
+                    Task tmp = WorldManager.StartGameTask(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(ResetInterval));
+                        Reset();
+                    });
+                }
+                else
+                {
+                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                }
 
-                checkDoorChain.EnqueueChain();
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
             }
         }
 

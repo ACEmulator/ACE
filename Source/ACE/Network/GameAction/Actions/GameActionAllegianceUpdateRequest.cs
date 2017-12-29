@@ -1,13 +1,14 @@
-﻿using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessages;
-using ACE.Network.Managers;
+using System.Threading.Tasks;
+
+using ACE.Network.GameEvent.Events;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionAllegianceUpdateRequest
     {
         [GameAction(GameActionType.AllegianceUpdateRequest)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var unknown1 = message.Payload.ReadUInt32();
             // TODO
@@ -16,5 +17,6 @@ namespace ACE.Network.GameAction.Actions
 
             session.Network.EnqueueSend(allegianceUpdate);
         }
+        #pragma warning restore 1998
     }
 }

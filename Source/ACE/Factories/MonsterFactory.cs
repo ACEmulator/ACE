@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Database;
 using System;
 using System.Collections.Generic;
@@ -15,9 +15,9 @@ namespace ACE.Factories
         /// <summary>
         /// Create a new monster at the specified position
         /// </summary>
-        public static Monster SpawnMonster(AceObject aceO, Position position)
+        public static async Task<Monster> SpawnMonster(AceObject aceO, Position position)
         {
-            Monster newMonster = new Monster(aceO);
+            Monster newMonster = await WorldObject.CreateWorldObject<Monster>(aceO);
             newMonster.Location = position;
             newMonster.GeneratorId = aceO.GeneratorIID;
 

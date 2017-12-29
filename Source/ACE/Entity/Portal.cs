@@ -1,10 +1,9 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity
 {
@@ -100,14 +99,19 @@ namespace ACE.Entity
             HoltburgOCLanding = 0x860302c3
         }
 
-        public Portal(AceObject aceO)
-            : base(aceO)
+        public Portal()
         {
-            var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
+
+            var weenie = await Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             // check to see if this ace object has a destination.  if so, defer to it.
-            if (aceO.Destination != null)
+            if (AceObject.Destination != null)
             {
-                Destination = aceO.Destination;
+                Destination = AceObject.Destination;
             }
             else
             {
@@ -126,21 +130,25 @@ namespace ACE.Entity
         public string AppraisalPortalDestination
         {
             get;
+            private set;
         }
 
         public bool PortalShowDestination
         {
             get;
+            private set;
         }
 
         public int MinimumLevel
         {
             get;
+            private set;
         }
 
         public int MaximumLevel
         {
             get;
+            private set;
         }
 
         public int SocietyId
@@ -151,11 +159,13 @@ namespace ACE.Entity
         public bool IsTieable
         {
             get;
+            private set;
         }
 
         public bool IsSummonable
         {
             get;
+            private set;
         }
 
         public bool IsRecallable
@@ -163,11 +173,11 @@ namespace ACE.Entity
             get { return IsTieable; }
         }
 
-        public override void HandleActionOnCollide(ObjectGuid playerId)
+        public override async Task OnCollide(ObjectGuid playerId)
         {
             string serverMessage;
 
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -277,7 +287,7 @@ namespace ACE.Entity
                     usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                     player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
-                    player.Session.Player.Teleport(portalDest);
+                    await player.Session.Player.Teleport(portalDest);
                     // If the portal just used is able to be recalled to,
                     // save the destination coordinates to the LastPortal character position save table
                     if (IsRecallable)
@@ -304,20 +314,20 @@ namespace ACE.Entity
             }
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
             }
 
             if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
+                await player.DoMoveTo(this);
             else
             {
                 // TODO: to be removed once physics collisions are implemented
-                HandleActionOnCollide(playerId);
+                await OnCollide(playerId);
                 // always send useDone event
                 var sendUseDoneEvent = new GameEventUseDone(player.Session);
                 player.Session.Network.EnqueueSend(sendUseDoneEvent);

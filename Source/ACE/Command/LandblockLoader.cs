@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -13,20 +13,19 @@ namespace ACE.Command
     {
         private volatile static bool processLandblockLoading = false;
 
-        public static void StartLoading()
+        public static async Task StartLoading()
         {
-            Thread loadthread = new Thread(new ThreadStart(LoadAllLandblocks));
-            loadthread.Start();
+            await LoadAllLandblocks();
         }
 
-        public static void LoadAllLandblocks()
+        public static async Task LoadAllLandblocks()
         {
             ushort block = 0;
             processLandblockLoading = true;
 
             while (processLandblockLoading && block <= 0xFE01)
             {
-                LoadLandblock(block++);
+                await LoadLandblock(block++);
             }
 
             processLandblockLoading = false;
@@ -38,9 +37,9 @@ namespace ACE.Command
             processLandblockLoading = false;
         }
 
-        public static void LoadLandblock(ushort block)
+        public static async Task LoadLandblock(ushort block)
         {
-            LandblockManager.ForceLoadLandBlock(new LandblockId(((uint)block) << 16));
+            await LandblockManager.ForceLoadLandBlock(new LandblockId(((uint)block) << 16));
         }
     }
 }

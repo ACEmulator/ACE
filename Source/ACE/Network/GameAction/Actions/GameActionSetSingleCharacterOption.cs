@@ -1,12 +1,14 @@
-﻿using ACE.Entity.Enum;
-using ACE.Network.Enum;
+using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionSetSingleCharacterOption
     {
         [GameAction(GameActionType.SetSingleCharacterOption)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             var option = (CharacterOption)message.Payload.ReadUInt32();
             var optionValue = message.Payload.ReadUInt32() == 0 ? false : true;
@@ -21,5 +23,6 @@ namespace ACE.Network.GameAction.Actions
                     break;
             }
         }
+        #pragma warning restore 1998
     }
 }

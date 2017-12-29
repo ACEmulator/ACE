@@ -88,7 +88,10 @@ namespace ACE.Network
                 }
 
                 var packet = new ClientPacket(data);
-                WorldManager.ProcessPacket(packet, ipEndpoint);
+                WorldManager.StartGameTask(async () =>
+                {
+                    await WorldManager.ProcessPacket(packet, ipEndpoint);
+                });
             }
             catch (SocketException socketException)
             {

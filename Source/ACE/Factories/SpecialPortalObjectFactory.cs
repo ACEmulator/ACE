@@ -1,4 +1,7 @@
-﻿using ACE.Managers;
+using System;
+using System.Threading.Tasks;
+
+using ACE.Managers;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -24,23 +27,21 @@ namespace ACE.Factories
         /// <summary>
         /// creates a portal of the specified weenie at the position provided
         /// </summary>
-        public static void SpawnPortal(PortalWcid weenieClassId, Position newPosition, float despawnTime)
+        public static async Task SpawnPortal(PortalWcid weenieClassId, Position newPosition, float despawnTime)
         {
-            AceObject aceO = DatabaseManager.World.GetAceObjectByWeenie((ushort)weenieClassId);
+            AceObject aceO = await DatabaseManager.World.GetAceObjectByWeenie((ushort)weenieClassId);
 
             aceO.AceObjectPropertiesPositions.Add(PositionType.Location, newPosition);
 
-            WorldObject portal = new Portal(aceO);
+            Portal portal = await WorldObject.CreateWorldObject<Portal>(aceO);
 
             portal.Guid = GuidManager.NewItemGuid();
 
-            LandblockManager.AddObject(portal);
+            await LandblockManager.AddObject(portal);
 
             // Create portal decay
-            ActionChain despawnChain = new ActionChain();
-            despawnChain.AddDelaySeconds(despawnTime);
-            despawnChain.AddAction(portal, () => portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false));
-            despawnChain.EnqueueChain();
+            await Task.Delay(TimeSpan.FromSeconds(despawnTime));
+            portal.CurrentLandblock.RemoveWorldObject(portal.Guid, false);
         }
     }
 }

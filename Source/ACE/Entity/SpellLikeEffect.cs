@@ -1,4 +1,4 @@
-﻿using ACE.Network.Enum;
+using ACE.Network.Enum;
 using ACE.Entity.Enum;
 using log4net;
 using ACE.Network.GameMessages.Messages;
@@ -22,8 +22,10 @@ namespace ACE.Entity
             Spell spellId,
             uint modelId,
             uint soundTableId,
-            uint physicsTableId) : base(guid)
+            uint physicsTableId)
         {
+            Init(guid);
+
             Name = name;
             DescriptionFlags = descriptionFlag;
             WeenieFlags = weenieFlag;

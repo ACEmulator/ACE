@@ -1,11 +1,17 @@
-﻿using System;
-using System.IO;
+using System;
+using System.Threading.Tasks;
 
-using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Network;
+
+
+// This pragma disables the warning for async mtheods that don't await.
+// FIXME(ddevec): Right now we don't await in most methods (async to match handler interface),
+//   so I just disable for the file.
+//   This may change, then we should disable only for those methods (via disable then restore 1998)
+#pragma warning disable 1998
 
 namespace ACE.Command.Handlers
 {
@@ -17,7 +23,7 @@ namespace ACE.Command.Handlers
             "username password (accesslevel)\n" +
             "accesslevel can be a number or enum name\n" +
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
-        public static void HandleAccountCreate(Session session, params string[] parameters)
+        public static async Task HandleAccountCreate(Session session, params string[] parameters)
         {
             Account newAccount = new Account();
             newAccount.Name = parameters[0].ToLower();
@@ -55,11 +61,12 @@ namespace ACE.Command.Handlers
         [CommandHandler("accountget", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1,
             "Gets an account.",
             "username")]
-        public static void HandleAccountGet(Session session, params string[] parameters)
+        public static async Task HandleAccountGet(Session session, params string[] parameters)
         {
             var account = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
             Console.WriteLine($"User: {account.Name}, ID: {account.AccountId}");
         }
+        #pragma warning restore 1998
 
         // set-accountaccess accountname (accesslevel)
         [CommandHandler("set-accountaccess", AccessLevel.Admin, CommandHandlerFlag.None, 1, 
@@ -67,7 +74,8 @@ namespace ACE.Command.Handlers
             "accountname (accesslevel)\n" +
             "accesslevel can be a number or enum name\n" +
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
-        public static void HandleAccountUpdateAccessLevel(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task HandleAccountUpdateAccessLevel(Session session, params string[] parameters)
         {
             uint accountId      = 0;
             string accountName  = parameters[0].ToLower();
@@ -112,5 +120,6 @@ namespace ACE.Command.Handlers
             else
                 ChatPacket.SendServerMessage(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
         }
+        #pragma warning restore 1998
     }
 }

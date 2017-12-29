@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Threading.Tasks;
+
 using ACE.Entity;
 using ACE.Network.Motion;
 
-using log4net;
 using ACE.Entity.Enum;
 
 namespace ACE.Network.GameAction.Actions
@@ -76,7 +77,8 @@ namespace ACE.Network.GameAction.Actions
         }
 
         [GameAction(GameActionType.MoveToState)]
-        public static void Handle(ClientMessage message, Session session)
+        #pragma warning disable 1998
+        public static async Task Handle(ClientMessage message, Session session)
         {
             Position position;
             uint currentHoldkey = 0;
@@ -119,5 +121,6 @@ namespace ACE.Network.GameAction.Actions
 
             session.Player.RequestUpdatePosition(position);
         }
+        #pragma warning restore 1998
     }
 }

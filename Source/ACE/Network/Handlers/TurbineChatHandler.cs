@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Text;
+using System.Threading.Tasks;
 
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -13,7 +14,8 @@ namespace ACE.Network.Handlers
     public static class TurbineChatHandler
     {
         [GameMessage(GameMessageOpcode.TurbineChat, SessionState.WorldConnected)]
-        public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
+        #pragma warning disable 1998
+        public static async Task TurbineChatReceived(ClientMessage clientMessage, Session session)
         {
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
             var turbineChatType = (TurbineChatType)clientMessage.Payload.ReadUInt32();
@@ -56,5 +58,6 @@ namespace ACE.Network.Handlers
             else
                 Console.WriteLine($"Unhandled TurbineChatHandler TurbineChatType: 0x{(uint)turbineChatType:X4}");
         }
+        #pragma warning restore 1998
     }
 }

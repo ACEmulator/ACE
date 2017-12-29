@@ -1,25 +1,30 @@
-﻿// WeenieType.Book
+// WeenieType.Book
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
+using ACE.Network;
 using ACE.Network.GameEvent.Events;
 using ACE.Entity.Actions;
-using System.Collections.Generic;
-using ACE.Network;
 
 namespace ACE.Entity
 {
     public sealed class Book : WorldObject
     {
-        public Book(AceObject aceO)
-            : base(aceO)
+        public Book()
         {
+        }
+
+        protected override async Task Init(AceObject aceO)
+        {
+            await base.Init(aceO);
             Pages = (int)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
             MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc
-        public override void ActOnUse(ObjectGuid playerId)
+        public override async Task ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = await CurrentLandblock.GetObject(playerId) as Player;
             if (player == null)
             {
                 return;
@@ -27,7 +32,7 @@ namespace ACE.Entity
 
             // Make sure player is within the use radius of the item.
             if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
+                await player.MoveTo(this);
             else
             {
                 BookUseHandler(player.Session);
@@ -35,9 +40,12 @@ namespace ACE.Entity
         }
 
         // Called when the items is in a player's inventory
-        public override void OnUse(Session session) {
+        // Diable warning, matching OnUse Task interface
+        #pragma warning disable 1998
+        public override async Task OnUse(Session session) {
             BookUseHandler(session);
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// One function to handle both Player.OnUse and Landblock.HandleACtionOnUse functions

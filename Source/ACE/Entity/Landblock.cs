@@ -24,7 +24,7 @@ namespace ACE.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    public class Landblock : IActor
+    public class Landblock
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -40,17 +40,6 @@ namespace ACE.Entity
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
-        /// <summary>
-        /// Special needs-broadcast flag.  Cleared in broadcast, but set in other phases.
-        /// Must be treated exceptionally carefully to avoid races.  Don't touch unless you /really/ know what your doing
-        /// </summary>
-        private int broadcastQueued = 0;
-
-        // Can be appeneded concurrently, will be sent serially
-        // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
-        //    -- Therefore broadcasting between landblocks doesn't require locking O_o
-        private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
-
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
         // private byte cellGridMaxY = 8; // todo: load from cell.dat
 
@@ -60,8 +49,7 @@ namespace ACE.Entity
 
         public LandBlockStatus Status = new LandBlockStatus();
 
-        private NestedActionQueue actionQueue;
-        private NestedActionQueue motionQueue;
+        public bool Loaded { get; private set; } = false;
 
         public LandblockId Id
         {
@@ -85,8 +73,26 @@ namespace ACE.Entity
             adjacencies.Add(Adjacency.NorthWest, null);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
+        }
 
-            actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
+        public void Unload()
+        {
+            if (!Loaded)
+            {
+                return;
+            }
+
+            worldObjects.Clear(); ;
+
+            Loaded = false;
+        }
+
+        public async Task Load()
+        {
+            if (Loaded)
+            {
+                return;
+            }
 
             // TODO: Load cell.dat contents
             //   1. landblock cell structure
@@ -94,12 +100,12 @@ namespace ACE.Entity
             // TODO: Load portal.dat contents (as/if needed)
             // TODO: Load spawn data
 
-            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
+            var objects = await DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
             // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense
             //        I don't know for sure however that it does yet. More research on them is required -Ripley
-            objects.AddRange(DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
+            objects.AddRange(await DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
 
-            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = await WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))
@@ -111,10 +117,7 @@ namespace ACE.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
-            // FIXME(ddevec): Goal: get rid of UseTime() function...
-            actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
-
-            motionQueue = new NestedActionQueue(WorldManager.MotionQueue);
+            Loaded = true;
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -186,33 +189,25 @@ namespace ACE.Entity
             });
         }
 
-        public void AddWorldObject(WorldObject wo)
+        public async Task AddWorldObject(WorldObject wo)
         {
-            // EnqueueAction(new ActionEventDelegate(() => AddWorldObjectInternal(wo)));
-            AddWorldObjectInternal(wo);
+            await AddWorldObjectInternal(wo);
         }
 
-        public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)
-        {
-            return new Actions.ActionChain(this, () => AddWorldObjectInternal(wo));
-        }
-
-        public void AddWorldObjectForPhysics(WorldObject wo)
-        {
-            AddWorldObjectInternal(wo);
-        }
-
-        private void AddWorldObjectInternal(WorldObject wo)
+        private async Task AddWorldObjectInternal(WorldObject wo)
         {
             Log($"adding {wo.Guid.Full.ToString("X")}");
+
+            if (!Loaded)
+            {
+                await Load();
+            }
 
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
 
             wo.SetParent(this);
 
-            // var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
-            // Broadcast(args, true, Quadrant.All);
             // Alert all nearby players of the object
             EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.TrackObject(wo));
 
@@ -220,37 +215,12 @@ namespace ACE.Entity
             if (wo is Player)
             {
                 List<WorldObject> wolist = null;
-                wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
+                wolist = await GetWorldObjectsInRange(wo, MaxObjectRange);
                 AddPlayerTracking(wolist, (wo as Player));
             }
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
-        {
-            ActionChain removeChain = GetRemoveWorldObjectChain(objectId, adjacencyMove);
-            if (removeChain != null)
-            {
-                removeChain.EnqueueChain();
-            }
-        }
-
-        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove)
-        {
-            Landblock owner = GetOwner(objectId);
-            if (owner != null)
-            {
-                ActionChain chain = new ActionChain(owner, new ActionEventDelegate(() => RemoveWorldObjectInternal(objectId, adjacencyMove)));
-                return chain;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Should only be called by physics/relocation engines -- not from player
-        /// </summary>
-        /// <param name="objectId"></param>
-        /// <param name="adjacencyMove"></param>
-        public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
@@ -279,10 +249,6 @@ namespace ACE.Entity
             // close enough.
             if (!adjacencyMove && id.MapScope == Enum.MapScope.Outdoors && wo != null)
             {
-                /*
-                var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
-                Broadcast(args, true, Quadrant.All);
-                */
                 EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
             }
         }
@@ -328,7 +294,6 @@ namespace ACE.Entity
         private void UseTimeWrapper()
         {
             UseTime(WorldManager.PortalYearTicks);
-            actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
         }
 
         /// <summary>
@@ -345,9 +310,6 @@ namespace ACE.Entity
             allplayers = allworldobj.OfType<Player>().ToList();
 
             UpdateStatus(allplayers.Count);
-
-            // Handle broadcasts
-            SendBroadcasts();
         }
 
         /// <summary>
@@ -491,16 +453,23 @@ namespace ACE.Entity
         /// <param name="msg"></param>
         public void EnqueueBroadcast(Position pos, float distance, params GameMessage[] msgs)
         {
-            // Atomically checks and sets the broadcastQueued bit --
-            //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
-            if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
-            {
-                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
-            }
+            SendBroadcast(pos, distance, msgs);
+        }
 
-            foreach (GameMessage msg in msgs)
+        // FIXME(ddevec): Remove this after I fix tracking...
+        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> act)
+        {
+            List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
+            foreach (Landblock lb in landblocksInRange)
             {
-                broadcastQueue.Enqueue(new Tuple<Position, float, GameMessage>(pos, distance, msg));
+                List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
+                foreach (Player p in allPlayers)
+                {
+                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
+                    {
+                        act(p);
+                    }
+                }
             }
         }
 
@@ -542,7 +511,7 @@ namespace ACE.Entity
                     sound,
                     volume));
         }
-        
+
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
         /// </summary>
@@ -618,71 +587,12 @@ namespace ACE.Entity
         /// <summary>
         /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
         /// </summary>
-        private void SendBroadcasts()
+        private void SendBroadcast(Position pos, float distance, GameMessage[] msgs)
         {
-            while (!broadcastQueue.IsEmpty)
-            {
-                Tuple<Position, float, GameMessage> tuple;
-                bool success = broadcastQueue.TryDequeue(out tuple);
-                if (!success)
-                {
-                    log.Error("Unexpected TryDequeue Failure!");
-                    break;
-                }
-                Position pos = tuple.Item1;
-                float distance = tuple.Item2;
-                GameMessage msg = tuple.Item3;
+            // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
+            // foreach player within range, do send
 
-                // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
-                // foreach player within range, do send
-
-                List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-                foreach (Landblock lb in landblocksInRange)
-                {
-                    List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
-                    foreach (Player p in allPlayers)
-                    {
-                        if (p.Location.SquaredDistanceTo(pos) < distance * distance)
-                        {
-                            p.Session.Network.EnqueueSend(msg);
-                        }
-                    }
-                }
-            }
-
-            // Sets broadcastQueued to 0, so we're ready to re-queue broadcasts later
-            broadcastQueued = 0;
-        }
-
-        // Wrappers so landblocks can be treated as actors and actions
-        // FIXME(ddevec): Once cludgy UseTime function removed, I can probably remove the action interface from landblock...?
-        public LinkedListNode<IAction> EnqueueAction(IAction actn)
-        {
-            // Ugh enqueue stuff...
-            return actionQueue.EnqueueAction(actn);
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-        // End wrappers
-
-        /// <summary>
-        /// Runs an action on all players within a certain distance from a point.
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="distance"></param>
-        /// <param name="delegateAction"></param>
-        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> delegateAction)
-        {
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-
             foreach (Landblock lb in landblocksInRange)
             {
                 List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
@@ -690,59 +600,73 @@ namespace ACE.Entity
                 {
                     if (p.Location.SquaredDistanceTo(pos) < distance * distance)
                     {
-                        p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
+                        p.Session.Network.EnqueueSend(msgs);
                     }
                 }
             }
         }
 
-        private List<WorldObject> GetWorldObjectsInRange(Position pos, float distance)
+        private async Task<List<WorldObject>> GetWorldObjectsInRange(Position pos, float distance)
         {
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
 
             List<WorldObject> ret = new List<WorldObject>();
             foreach (Landblock lb in landblocksInRange)
             {
+                if (!lb.Loaded)
+                {
+                    await lb.Load();
+                }
+
                 ret.AddRange(lb.worldObjects.Values.Where(x => x.Location.SquaredDistanceTo(pos) < distance * distance).ToList());
             }
 
             return ret;
         }
 
-        private List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float distance)
+        private async Task<List<WorldObject>> GetWorldObjectsInRange(WorldObject wo, float distance)
         {
-            return GetWorldObjectsInRange(wo.Location, distance);
+            return await GetWorldObjectsInRange(wo.Location, distance);
         }
 
         /// <summary>
         /// Should only be called by the physics engine / WorldManager!
         /// </summary>
-        public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance)
+        public async Task<List<WorldObject>> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance)
         {
-            return GetWorldObjectsInRange(wo, distance);
+            return await GetWorldObjectsInRange(wo, distance);
         }
 
-        private Landblock GetOwner(ObjectGuid guid)
+        private async Task<Landblock> GetOwner(ObjectGuid guid)
         {
+            Landblock ret = null;
             if (worldObjects.ContainsKey(guid))
             {
-                return this;
+                ret = this;
             }
-
-            foreach (Landblock lb in adjacencies.Values)
+            else
             {
-                if (lb != null && lb.worldObjects.ContainsKey(guid))
+                foreach (Landblock lb in adjacencies.Values)
                 {
-                    return lb;
+                    if (lb != null && lb.worldObjects.ContainsKey(guid))
+                    {
+                        ret = lb;
+                        break;
+                    }
                 }
             }
 
-            return null;
+            if (ret != null && !ret.Loaded)
+            {
+                await ret.Load();
+            }
+
+            return ret;
         }
 
-        public WorldObject GetObject(ObjectGuid guid)
+        public async Task<WorldObject> GetObject(ObjectGuid guid)
         {
-            Landblock lb = GetOwner(guid);
+            Landblock lb = await GetOwner(guid);
             if (lb == null)
             {
                 return null;
@@ -750,19 +674,9 @@ namespace ACE.Entity
             return lb.worldObjects[guid];
         }
 
-        public IActor GetActor(ObjectGuid guid)
+        public async Task<Position> GetPosition(ObjectGuid guid)
         {
-            Landblock lb = GetOwner(guid);
-            if (lb == null)
-            {
-                return null;
-            }
-            return lb.worldObjects[guid];
-        }
-
-        public Position GetPosition(ObjectGuid guid)
-        {
-            Landblock lb = GetOwner(guid);
+            Landblock lb = await GetOwner(guid);
             if (lb == null)
             {
                 return null;
@@ -795,14 +709,14 @@ namespace ACE.Entity
         /// <param name="wo"></param>
         /// <param name="container"></param>
         /// <param name="placeent"></param>
-        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container, uint placeent = 0)
+        public async Task ItemTransferInContainer(ObjectGuid wo, Container container, uint placeent = 0)
         {
             // Find owner of wo
-            Landblock lb = GetOwner(wo);
+            Landblock lb = await GetOwner(wo);
 
             if (lb != null)
             {
-                chain.AddAction(lb.motionQueue, () => ItemTransferContainerInternal(wo, container));
+                await ItemTransferContainerInternal(wo, container);
             }
             else
             {
@@ -811,14 +725,14 @@ namespace ACE.Entity
             }
         }
 
-        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, int placement = 0)
+        public async Task QueueItemTransfer(ObjectGuid wo, ObjectGuid container, int placement = 0)
         {
             // Find owner of wo
-            Landblock lb = GetOwner(wo);
+            Landblock lb = await GetOwner(wo);
 
             if (lb != null)
             {
-                chain.AddAction(lb.motionQueue, () => ItemTransferInternal(wo, container, placement));
+                await ItemTransferInternal(wo, container, placement);
             }
             else
             {
@@ -827,9 +741,9 @@ namespace ACE.Entity
             }
         }
 
-        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container, int placement = 0)
+        private async Task ItemTransferContainerInternal(ObjectGuid woGuid, Container container, int placement = 0)
         {
-            WorldObject wo = GetObject(woGuid);
+            WorldObject wo = await GetObject(woGuid);
 
             if (container == null || wo == null)
             {
@@ -845,11 +759,11 @@ namespace ACE.Entity
             container.AddToInventory(wo, placement);
         }
 
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
+        private async Task ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
         {
-            Container container = GetObject(containerGuid) as Container;
+            Container container = await GetObject(containerGuid) as Container;
 
-            ItemTransferContainerInternal(woGuid, container, placement);
+            await ItemTransferContainerInternal(woGuid, container, placement);
         }
 
         private void Log(string message)

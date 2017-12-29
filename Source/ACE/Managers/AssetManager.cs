@@ -13,9 +13,13 @@ namespace ACE.Managers
 
         public static void Initialize()
         {
-            var locations = DatabaseManager.World.GetPointsOfInterest();
+            var locTask = DatabaseManager.World.GetPointsOfInterest();
+            locTask.Wait();
+            var locations = locTask.Result;
             foreach (var loc in locations)
+            {
                 teleportLocations.Add(loc.Location, loc.Position);
+            }
         }
 
         public static Position GetTeleport(string location) { return teleportLocations.SingleOrDefault(t => string.Equals(t.Key, location, StringComparison.OrdinalIgnoreCase)).Value; }

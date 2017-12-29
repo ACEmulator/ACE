@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Threading.Tasks;
 
 using ACE.Common.Cryptography;
 using ACE.Database;
@@ -17,7 +18,7 @@ namespace ACE.Command.Handlers
             "charactername (accesslevel)\n" +
             "accesslevel can be a number or enum name\n" +
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
-        public static void HandleCharacterTokenization(Session session, params string[] parameters)
+        public static async Task HandleCharacterTokenization(Session session, params string[] parameters)
         {
             string characterName = parameters[0];
 
@@ -27,27 +28,26 @@ namespace ACE.Command.Handlers
                     if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
                         accessLevel = AccessLevel.Player;
 
-            DatabaseManager.Shard.SetCharacterAccessLevelByName(characterName.ToLower(), accessLevel, ((uint characterId) =>
-            {
-                if (characterId > 0)
-                {
-                    string articleAorAN = "a";
-                    if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
-                        articleAorAN = "an";
+            uint characterId = await DatabaseManager.Shard.SetCharacterAccessLevelByName(characterName.ToLower(), accessLevel);
 
-                    if (session == null)
-                        Console.WriteLine("Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
-                    else
-                        ChatPacket.SendServerMessage(session, "Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
-                }
+            if (characterId > 0)
+            {
+                string articleAorAN = "a";
+                if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
+                    articleAorAN = "an";
+
+                if (session == null)
+                    Console.WriteLine("Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
                 else
-                {
-                    if (session == null)
-                        Console.WriteLine("There is no character by the name of " + characterName + " found in the database. Has it been deleted?");
-                    else
-                        ChatPacket.SendServerMessage(session, "There is no character by the name of " + characterName + " found in the database. Has it been deleted?", ChatMessageType.Broadcast);
-                }
-            }));
+                    ChatPacket.SendServerMessage(session, "Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
+            }
+            else
+            {
+                if (session == null)
+                    Console.WriteLine("There is no character by the name of " + characterName + " found in the database. Has it been deleted?");
+                else
+                    ChatPacket.SendServerMessage(session, "There is no character by the name of " + characterName + " found in the database. Has it been deleted?", ChatMessageType.Broadcast);
+            }
         }
     }
 }

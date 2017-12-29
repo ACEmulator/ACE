@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -12,7 +14,8 @@ namespace ACE.Command.Handlers
     public static class ConsoleCommands
     {
         [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of CELL DAT file.", "<export-directory-without-spaces>")]
-        public static void ExportCellDatContents(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task ExportCellDatContents(Session session, params string[] parameters)
         {
             if (parameters?.Length != 1)
                 Console.WriteLine("cell-export <export-directory-without-spaces>");
@@ -23,9 +26,11 @@ namespace ACE.Command.Handlers
             DatManager.CellDat.ExtractLandblockContents(exportDir);
             Console.WriteLine($"Export of cell.dat to {exportDir} complete.");
         }
+        #pragma warning restore 1998
 
         [CommandHandler("portal-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of PORTAL DAT file.", "<export-directory-without-spaces>")]
-        public static void ExportPortalDatContents(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task ExportPortalDatContents(Session session, params string[] parameters)
         {
             if (parameters?.Length != 1)
                 Console.WriteLine("portal-export <export-directory-without-spaces>");
@@ -36,30 +41,35 @@ namespace ACE.Command.Handlers
             DatManager.PortalDat.ExtractCategorizedContents(exportDir);
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
+        #pragma warning restore 1998
 
         [CommandHandler("loadALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ Landblocks, Caution.. it takes a very long time")]
-        public static void LoadLALB(Session session, params string[] parameters)
+        #pragma warning restore 1998
+        public static async Task LoadLALB(Session session, params string[] parameters)
         {
             Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortALB to stop");
-            LandblockLoader.StartLoading();
+            await LandblockLoader.StartLoading();
         }
+        #pragma warning disable 1998
 
         [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL Landblock loading process")]
-        public static void AbortLL(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task AbortLL(Session session, params string[] parameters)
         {
             Console.WriteLine($"Landblock load aborting");
             LandblockLoader.StopLoading();
         }
+        #pragma warning restore 1998
 
         [CommandHandler("loadLB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Loads Landblock by LandblockId")]
-        public static void LoadLandBlock(Session session, params string[] parameters)
+        public static async Task LoadLandBlock(Session session, params string[] parameters)
         {
             try
             {
                 uint rawid;
                 if (!uint.TryParse(parameters[0], out rawid))
                     return;
-                LandblockManager.ForceLoadLandBlock(new LandblockId((rawid) << 16));
+                await LandblockManager.ForceLoadLandBlock(new LandblockId((rawid) << 16));
             }
             catch
             {
@@ -68,7 +78,8 @@ namespace ACE.Command.Handlers
         }
 
         [CommandHandler("diag", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Launches Landblock Diagnostic Monitor")]
-        public static void Diag(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task Diag(Session session, params string[] parameters)
         {
             // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
             // TODO: We need a better way to expose diagnostic information moving forward.
@@ -76,12 +87,14 @@ namespace ACE.Command.Handlers
             // Diagnostics.Diagnostics.LandBlockDiag = true;
             // Diagnostics.Common.Monitor.ShowDialog();
         }
+        #pragma warning restore 1998
 
         /// <summary>
         /// Export all wav files to a specific directory.
         /// </summary>
         [CommandHandler("wave-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Export Wave Files")]
-        public static void CMT(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task CMT(Session session, params string[] parameters)
         {
             if (parameters?.Length != 1)
             {
@@ -101,9 +114,11 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine($"Export to {exportDir} complete.");
         }
+        #pragma warning restore 1998
 
         [CommandHandler("redeploy-world", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 1, "Download and redeploy the world content, from github.")]
-        public static void RedeployWorld(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task RedeployWorld(Session session, params string[] parameters)
         {
             bool forceRedploy = false;
             var sourceSelection = new SourceSelectionOption();
@@ -142,11 +157,13 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine("User created content has been detected in the database. Please export the current database or include the 'force' parameter with this command.");
         }
+        #pragma warning restore 1998
 
         [CommandHandler("redeploy", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 2,
             "Downloads and redeploys database content from github. WARNING: THIS CAN WIPE DATA!",
             "<datbase selection> <source selection> <force>\n\nYou must pass in a database selection and a source selection, but the force string is optional.\nDatabase Selection Options include: None, Authentication, Shard, World, All.\nSource Selections include: LocalDisk and Github.\n\nWARNING: THIS COMMAND MAY RESULT IN LOST DATA!")]
-        public static void RedeployAllDatabases(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task RedeployAllDatabases(Session session, params string[] parameters)
         {
             if (parameters?.Length < 2 && parameters?.Length > 3)
             {
@@ -202,13 +219,16 @@ namespace ACE.Command.Handlers
             }
             Console.WriteLine("User modified objects were found in the database.\nYou must also pass the 'force' parameter with this command, to start the database reset process.");
         }
+        #pragma warning restore 1998
 
         [CommandHandler("download-github-content", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0,
             "Downloads content from github.",
             "")]
-        public static void DownloadGithubContent(Session session, params string[] parameters)
+        #pragma warning disable 1998
+        public static async Task DownloadGithubContent(Session session, params string[] parameters)
         {
             Database.Redeploy.GetDataFiles(SourceSelectionOption.Github);
         }
+        #pragma warning restore 1998
     }
 }
