@@ -26,6 +26,7 @@ namespace ACE.Database
             GetItemsByTypeId,
             GetAceObject,
             GetAceObjectGeneratorLinks,
+            GetAceObjectGeneratorProfiles,
             GetAceObjectInventory,
             GetMaxId,
 
@@ -84,6 +85,8 @@ namespace ACE.Database
             ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
             
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
+
+            ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorProfiles, typeof(AceObjectGeneratorProfile), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
 
@@ -161,6 +164,7 @@ namespace ACE.Database
         {
             base.LoadIntoObject(aceObject);
             aceObject.GeneratorLinks = GetAceObjectGeneratorLinks(aceObject.AceObjectId);
+            aceObject.GeneratorProfiles = GetAceObjectGeneratorProfiles(aceObject.AceObjectId);
             aceObject.CreateList = GetAceObjectInventory(aceObject.AceObjectId);
         }
 
@@ -178,10 +182,19 @@ namespace ACE.Database
                 ao.Location = new Position(instance.LandblockRaw, instance.PositionX, instance.PositionY, instance.PositionZ, instance.RotationX, instance.RotationY, instance.RotationZ, instance.RotationW);
 
                 // Use the guid recorded by the PCAP.
-                // This step could eventually be removed if we want to let the GuidManager handle assigning guids for static objects, ignoring the recorded guids.
+                // Cloning the CurrentMotionState would likely be removed at some point as it is mainly useful for examining objects as recorded at time of pcap.
                 string cmsClone = ao.CurrentMotionState; // Make a copy of the CurrentMotionState for cloning
-                ao = (AceObject)ao.Clone(instance.PreassignedGuid); // Clone AceObject and assign the recorded Guid
+
+                // Clone AceObject and assign the recorded Guid
+                ao = (AceObject)ao.Clone(instance.PreassignedGuid); // Use recorded guid
+
                 ao.CurrentMotionState = cmsClone; // Restore CurrentMotionState from original weenie
+
+                // If instance has linking data add it to the object
+                if (instance.LinkSlot > 0)
+                    ao.LinkSlot = instance.LinkSlot;
+                if (instance.LinkSource == 1)
+                    ao.LinkSource = true;
 
                 ret.Add(ao);
             });
@@ -199,6 +212,13 @@ namespace ACE.Database
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
             var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectInventory>(WorldPreparedStatement.GetAceObjectInventory, criteria);
+            return objects;
+        }
+
+        private List<AceObjectGeneratorProfile> GetAceObjectGeneratorProfiles(uint aceObjectId)
+        {
+            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorProfile>(WorldPreparedStatement.GetAceObjectGeneratorProfiles, criteria);
             return objects;
         }
 

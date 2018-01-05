@@ -1,5 +1,20 @@
 # ACEmulator Change Log
 
+### 2017-12-21
+[Ripley]
+* Added Placement Enum.
+* Swapped storage of Placement data with PlacementPosition data.
+* Removed AnimationFrame and linked it with Placement.
+
+### 2017-12-19
+[Ripley]
+* Overhauled Generator system to bring it more in line with how it operated on retail servers.
+  * You'll need to load some test data included with this update in the Updates/World folder for this code to work.
+  * Locations of the test generators are below. The creature generators do not support regeneration, while the item generators will regenerate.
+  * /teleloc 0x7f0301ad [12.319899559021 -28.482000350952 0.0049999998882413] 0.33894598484039 0 0 0.94080585241318
+  * /telepoi Holtburg
+* Added @adminvision command, use it to see the generators (and eventually other unsendable things).
+
 ### 2017-12-11
 [ddevec]
 * More updates to parallelism structure

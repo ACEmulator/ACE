@@ -1,10 +1,17 @@
-﻿namespace ACE.Entity
+using ACE.Entity.Actions;
+using ACE.Factories;
+using System;
+using System.Collections.Generic;
+
+namespace ACE.Entity
 {
     public class GenericObject : WorldObject
     {
         public GenericObject(AceObject aceObject)
             : base(aceObject)
         {
+            if (Placement == null)
+                Placement = Enum.Placement.Resting;
         }
 
         ////public GenericObject(ObjectGuid guid, AceObject aceObject)
@@ -25,6 +32,6 @@
         ////public override void OnUse(Session session)
         ////{
         ////    // TODO: Implement
-        ////}
+        ////}        
     }
 }

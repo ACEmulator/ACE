@@ -245,12 +245,12 @@ namespace ACE.Entity
                 {
                     wo.Location = null;
                     wo.ContainerId = Guid.Full;
-                    wo.Placement = null;
+                    wo.PlacementPosition = null;
                     wo.WielderId = null;
                     wo.CurrentWieldedLocation = null;
                     // TODO: create enum for this once we understand this better.
                     // This is needed to make items lay flat on the ground.
-                    wo.AnimationFrame = 0x65;
+                    wo.Placement = Enum.Placement.Resting;
                     uniqueItemsForSale.Add(wo.Guid, wo);
                 }
                 accepted.Add(wo);
