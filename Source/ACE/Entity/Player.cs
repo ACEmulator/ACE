@@ -1077,7 +1077,7 @@ namespace ACE.Entity
                     foreach (WorldObject wo in uqlist)
                     {
                         wo.ContainerId = Guid.Full;
-                        wo.Placement = 0;
+                        wo.PlacementPosition = 0;
                         AddToInventory(wo);
                         Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                         Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
@@ -1313,7 +1313,7 @@ namespace ACE.Entity
         {
             var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             wo.ContainerId = Guid.Full;
-            wo.Placement = 0;
+            wo.PlacementPosition = 0;
             AddToInventory(wo);
             TrackObject(wo);
             return wo;
@@ -1818,6 +1818,10 @@ namespace ACE.Entity
             if (worldObject.Guid == this.Guid)
                 return;
 
+            // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
+            if ((worldObject.Visibility ?? false) && !Adminvision)
+                return;
+
             lock (clientObjectList)
             {
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
@@ -1844,10 +1848,6 @@ namespace ACE.Entity
             else
             {
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
-                ////if (worldObject.SuppressGenerateEffect != true)
-                ////    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, Enum.PlayScript.Create));
-                if (worldObject.DefaultScriptId != null)
-                    Session.Network.EnqueueSend(new GameMessageScript(worldObject.Guid, (PlayScript)worldObject.DefaultScriptId));
             }
         }
 
@@ -2159,7 +2159,7 @@ namespace ACE.Entity
         private void AddToWieldedObjects(ref WorldObject item, WorldObject wielder, EquipMask currentWieldedLocation)
         {
             // Unset container fields
-            item.Placement = null;
+            item.PlacementPosition = null;
             item.ContainerId = null;
             // Set fields needed to be wielded.
             item.WielderId = wielder.Guid.Full;
@@ -2259,7 +2259,7 @@ namespace ACE.Entity
 
             // Set the container stuff
             item.ContainerId = container.Guid.Full;
-            item.Placement = placement;
+            item.PlacementPosition = placement;
 
             ActionChain inContainerChain = new ActionChain();
             inContainerChain.AddAction(this, () =>
@@ -2302,7 +2302,7 @@ namespace ACE.Entity
             RemoveWorldObjectFromInventory(item.Guid);
 
             item.ContainerId = container.Guid.Full;
-            item.Placement = placement;
+            item.PlacementPosition = placement;
 
             container.AddToInventory(item, placement);
 
@@ -2753,7 +2753,7 @@ namespace ACE.Entity
                 container.Children.Add(new HeldItem(item.Guid.Full, childLocation, (EquipMask)item.CurrentWieldedLocation));
             item.ParentLocation = childLocation;
             item.Location = Location;
-            item.AnimationFrame = placementId;
+            item.Placement = (Placement)placementId;
         }
 
         public void HandleActionWieldItem(Container container, uint itemId, int placement)
@@ -3569,6 +3569,43 @@ namespace ACE.Entity
             // Return to standing position after the animation delay
             motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.Standing)));
             motionChain.EnqueueChain();
+        }
+
+        public bool Adminvision = false;
+
+        public void HandleAdminvisionToggle(int choice)
+        {
+            bool oldState = Adminvision;
+
+            switch (choice)
+            {
+                case -1:
+                    // Do nothing
+                     break;
+                case 0:
+                    Adminvision = false;
+                    break;
+                case 1:
+                    Adminvision = true;                    
+                    break;
+                case 2:
+                    if (Adminvision)
+                        Adminvision = false;
+                    else
+                        Adminvision = true;
+                    break;
+            }
+
+            if (Adminvision)
+                CurrentLandblock.ResendObjectsInRange(this);
+
+            string state = Adminvision ? "enabled" : "disabled";
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));
+
+            if (oldState != Adminvision && !Adminvision)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
+            }
         }
     }
 }

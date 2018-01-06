@@ -92,12 +92,8 @@ namespace ACE.Entity
             //   1. landblock cell structure
             //   2. terrain data
             // TODO: Load portal.dat contents (as/if needed)
-            // TODO: Load spawn data
 
             var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
-            // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense
-            //        I don't know for sure however that it does yet. More research on them is required -Ripley
-            objects.AddRange(DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
 
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
@@ -843,6 +839,18 @@ namespace ACE.Entity
             wo.Location = null;
             wo.InitializeAceObjectForSave();
             container.AddToInventory(wo, placement);
+
+            // Was Item controlled by a generator?
+            // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
+
+            if (wo.GeneratorId > 0)
+            {
+                WorldObject generator = GetObject(new ObjectGuid((uint)wo.GeneratorId));
+
+                wo.GeneratorId = null;
+
+                generator.NotifyGeneratorOfPickup(wo.Guid.Full);
+            }
         }
 
         private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
@@ -855,6 +863,13 @@ namespace ACE.Entity
         private void Log(string message)
         {
             log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
+        }
+
+        public void ResendObjectsInRange(WorldObject wo)
+        {
+            List<WorldObject> wolist = null;
+            wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
+            AddPlayerTracking(wolist, (wo as Player));
         }
     }
 }
