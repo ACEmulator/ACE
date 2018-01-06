@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
@@ -115,23 +115,23 @@ namespace ACE.Entity
             {
                 // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
                 if (inventoryItem.UseBackpackSlot)
-                    InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].Placement != null &&
-                                         i.Value.Placement > (uint)InventoryObjects[inventoryItem.Guid].Placement &&
-                                         i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement--);
+                    InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].PlacementPosition != null &&
+                                         i.Value.PlacementPosition > (uint)InventoryObjects[inventoryItem.Guid].PlacementPosition &&
+                                         i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition--);
                 else
-                    InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].Placement != null &&
-                                         i.Value.Placement > (uint)InventoryObjects[inventoryItem.Guid].Placement &&
-                                         !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement--);
+                    InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].PlacementPosition != null &&
+                                         i.Value.PlacementPosition > (uint)InventoryObjects[inventoryItem.Guid].PlacementPosition &&
+                                         !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition--);
 
                 InventoryObjects.Remove(inventoryItem.Guid);
             }
             // If not going on the very end (next open slot), make a hole.
             if (inventoryItem.UseBackpackSlot)
-                InventoryObjects.Where(i => i.Value.Placement >= placement && i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
+                InventoryObjects.Where(i => i.Value.PlacementPosition >= placement && i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition++);
             else
-                InventoryObjects.Where(i => i.Value.Placement >= placement && !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.Placement++);
+                InventoryObjects.Where(i => i.Value.PlacementPosition >= placement && !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition++);
 
-            inventoryItem.Placement = placement;
+            inventoryItem.PlacementPosition = placement;
             inventoryItem.Location = null;
             InventoryObjects.Add(inventoryItem.Guid, inventoryItem);
         }
@@ -152,14 +152,14 @@ namespace ACE.Entity
             if (InventoryObjects.ContainsKey(objectguid))
             {
                 // defrag the pack
-                int placement = InventoryObjects[objectguid].Placement ?? 0;
-                InventoryObjects.Where(i => i.Value.Placement > placement).ToList().ForEach(i => --i.Value.Placement);
+                int placement = InventoryObjects[objectguid].PlacementPosition ?? 0;
+                InventoryObjects.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
 
                 // todo calculate burdon / value / container properly
 
                 // clear objects out maybe for db ?
                 InventoryObjects[objectguid].ContainerId = null;
-                InventoryObjects[objectguid].Placement = null;
+                InventoryObjects[objectguid].PlacementPosition = null;
 
                 Burden -= InventoryObjects[objectguid].Burden;
 
@@ -290,7 +290,7 @@ namespace ACE.Entity
 
             // Build the needed messages to the client.
             GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
-            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.Placement ?? 0);
+            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.PlacementPosition ?? 0);
             Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
             GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
 

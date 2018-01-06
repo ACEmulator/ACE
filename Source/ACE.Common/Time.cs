@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Common
 {
@@ -9,6 +9,14 @@ namespace ACE.Common
         public static double GetTimestamp()
         {
             TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+            double timestamp = span.TotalSeconds;
+
+            return timestamp;
+        }
+
+        public static double GetFutureTimestamp(double seconds)
+        {
+            TimeSpan span = (DateTime.UtcNow.AddSeconds(seconds) - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
             double timestamp = span.TotalSeconds;
 
             return timestamp;

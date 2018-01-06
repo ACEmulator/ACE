@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using ACE.Factories;
 
 namespace ACE.Entity
 {
@@ -235,10 +236,10 @@ namespace ACE.Entity
             set { AceObject.Elasticity = value; }
         }
 
-        public int? AnimationFrame
+        public Placement? Placement // Sometimes known as AnimationFrame
         {
-            get { return AceObject.PlacementPosition; }
-            set { AceObject.PlacementPosition = value; }
+            get { return (Placement?)AceObject.Placement; }
+            set { AceObject.Placement = (int?)value; }
         }
 
         public AceVector3 Acceleration { get; set; }
@@ -447,10 +448,10 @@ namespace ACE.Entity
             set { AceObject.ContainerIID = value; }
         }
 
-        public int? Placement
+        public int? PlacementPosition
         {
-            get { return AceObject.Placement; }
-            set { AceObject.Placement = value; }
+            get { return AceObject.PlacementPosition; }
+            set { AceObject.PlacementPosition = value; }
         }
 
         public uint? WielderId
@@ -1593,10 +1594,10 @@ namespace ACE.Entity
 
         public SequenceManager Sequences { get; }
 
-        protected WorldObject(ObjectGuid guid)
+        protected WorldObject(AceObject aceObject)
         {
-            AceObject = new AceObject { AceObjectId = guid.Full };
-            Guid = guid;
+            AceObject = aceObject;
+            Guid = new ObjectGuid(aceObject.AceObjectId);
 
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
@@ -1631,33 +1632,6 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
 
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
-        }
-
-        protected WorldObject(AceObject aceObject)
-                : this(new ObjectGuid(aceObject.AceObjectId))
-        {
-            AceObject = aceObject;
-            SetWeenieHeaderFlag();
-            SetWeenieHeaderFlag2();
-            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
-
-            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
-
-            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
-                CurrentMotionState = null;
-            else
-                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
-            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
-            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-        }
-
-        protected WorldObject(ObjectGuid guid, AceObject aceObject)
-            : this(guid)
-        {
-            AceObject = aceObject;
-            Guid = guid;
 
             RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
@@ -1671,6 +1645,13 @@ namespace ACE.Entity
             aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
             aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
             aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+
+
+            SelectGeneratorProfiles();
+            UpdateGeneratorInts();
+            QueueGenerator();
+
+            QueueNextHeartBeat();
         }
 
         internal void SetInventoryForVendor(WorldObject inventoryItem)
@@ -1678,12 +1659,12 @@ namespace ACE.Entity
             inventoryItem.Location = null;
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             inventoryItem.ContainerId = null;
-            inventoryItem.Placement = null;
+            inventoryItem.PlacementPosition = null;
             inventoryItem.WielderId = null;
             inventoryItem.CurrentWieldedLocation = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
-            inventoryItem.AnimationFrame = 0x65;
+            inventoryItem.Placement = Enum.Placement.Resting;
         }
 
         internal void SetInventoryForWorld(WorldObject inventoryItem)
@@ -1695,12 +1676,12 @@ namespace ACE.Entity
                                          | UpdatePositionFlag.ZeroQx;
 
             inventoryItem.ContainerId = null;
-            inventoryItem.Placement = null;
+            inventoryItem.PlacementPosition = null;
             inventoryItem.WielderId = null;
             inventoryItem.CurrentWieldedLocation = null;
             // TODO: create enum for this once we understand this better.
             // This is needed to make items lay flat on the ground.
-            inventoryItem.AnimationFrame = 0x65;
+            inventoryItem.Placement = Enum.Placement.Resting;
         }
 
         internal void SetInventoryForContainer(WorldObject inventoryItem, int placement)
@@ -1709,8 +1690,8 @@ namespace ACE.Entity
                 LandblockManager.RemoveObject(inventoryItem);
             inventoryItem.PositionFlag = UpdatePositionFlag.None;
             // TODO: Create enums for this.
-            inventoryItem.AnimationFrame = 1;
-            inventoryItem.Placement = placement;
+            inventoryItem.Placement = Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
+            inventoryItem.PlacementPosition = placement;
             inventoryItem.Location = null;
             inventoryItem.ParentLocation = null;
             inventoryItem.CurrentWieldedLocation = null;
@@ -2530,7 +2511,7 @@ namespace ACE.Entity
         public void WriteUpdatePositionPayload(BinaryWriter writer)
         {
             writer.WriteGuid(Guid);
-            Location.Serialize(writer, PositionFlag, this.AnimationFrame ?? 0);
+            Location.Serialize(writer, PositionFlag, (int)(Placement ?? Enum.Placement.Default));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
@@ -2651,7 +2632,7 @@ namespace ACE.Entity
             if (CurrentMotionState != null && movementData.Length > 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if (AnimationFrame != null)
+            if (Placement != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
             if (Location != null)
@@ -2740,7 +2721,7 @@ namespace ACE.Entity
                 }
             }
             else if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
-                writer.Write((AnimationFrame ?? 0));
+                writer.Write(((uint)(Placement ?? Enum.Placement.Default)));
             // TODO: Keep an eye on this, are we sure the client does not just ignore it?   I would think they way it reads by buffer length that this would blow up.
             // probably an edge case - just watch this - Og II
 
@@ -3144,6 +3125,231 @@ namespace ACE.Entity
         {
             get { return AceObject.AlternateCurrencyDID; }
             set { AceObject.AlternateCurrencyDID = value; }
+        }
+
+        public List<AceObjectGeneratorProfile> GeneratorProfiles
+        {
+            get { return AceObject.GeneratorProfiles; }
+        }
+
+        public double? HeartbeatInterval
+        {
+            get { return AceObject.HeartbeatInterval; }
+            set { AceObject.HeartbeatInterval = (double)value; }
+        }
+
+        public void EnterWorld()
+        {
+            if (Location != null)
+            {
+                LandblockManager.AddObject(this);
+                if (SuppressGenerateEffect != true)
+                    ApplyVisualEffects(Enum.PlayScript.Create);
+            }
+        }
+
+        public Dictionary<uint, GeneratorRegistryNode> GeneratorRegistry = new Dictionary<uint, GeneratorRegistryNode>();
+
+        public List<GeneratorQueueNode> GeneratorQueue = new List<GeneratorQueueNode>();
+
+        public int? InitGeneratedObjects
+        {
+            get { return AceObject.InitGeneratedObjects; }
+            set { AceObject.InitGeneratedObjects = value; }
+        }
+
+        public int? MaxGeneratedObjects
+        {
+            get { return AceObject.MaxGeneratedObjects; }
+            set { AceObject.MaxGeneratedObjects = value; }
+        }
+
+        public double? RegenerationInterval
+        {
+            get { return AceObject.RegenerationInterval; }
+            set { AceObject.RegenerationInterval = (double)value; }
+        }
+
+        public bool? GeneratorEnteredWorld
+        {
+            get { return AceObject.GeneratorEnteredWorld; }
+            set { AceObject.GeneratorEnteredWorld = value; }
+        }
+
+        public virtual void HeartBeat()
+        {
+            // Do Stuff
+
+            if (GeneratorQueue.Count > 0)
+                ProcessGeneratorQueue();
+
+            QueueNextHeartBeat();
+        }
+
+        public void QueueNextHeartBeat()
+        {
+            ActionChain nextHeartBeat = new ActionChain();
+            nextHeartBeat.AddDelaySeconds(HeartbeatInterval ?? 5);
+            nextHeartBeat.AddAction(this, () => HeartBeat());
+            nextHeartBeat.EnqueueChain();
+        }
+
+        public List<int> GeneratorProfilesActive = new List<int>();
+
+        public void SelectGeneratorProfiles()
+        {
+            GeneratorProfilesActive.Clear();
+
+            Random random = new Random((int)DateTime.UtcNow.Ticks);
+
+            if (GeneratorProfiles.Count > 0)
+            {
+                foreach (var profile in GeneratorProfiles)
+                {
+                    int slot = GeneratorProfiles.IndexOf(profile);
+
+                    if (random.NextDouble() < profile.Probability)
+                    {
+                        GeneratorProfilesActive.Add(slot);
+                    }
+                }
+
+            }
+        }
+
+        public void UpdateGeneratorInts()
+        {
+            bool initZero = (InitGeneratedObjects == 0);
+            bool maxZero = (MaxGeneratedObjects == 0);
+
+            foreach (int slot in GeneratorProfilesActive)
+            {
+                if (initZero)
+                {
+                    InitGeneratedObjects += (int?)GeneratorProfiles[slot].InitCreate;
+                }
+
+                if (maxZero)
+                {
+                    MaxGeneratedObjects += (int?)GeneratorProfiles[slot].MaxCreate;
+                }
+            }
+        }
+
+        public void QueueGenerator()
+        {
+            foreach(int slot in GeneratorProfilesActive)
+            {
+                bool slotInUse = false;
+                foreach (var obj in GeneratorRegistry)
+                {
+                    if (obj.Value.Slot == slot)
+                    {
+                        slotInUse = true;
+                        break;
+                    }
+                }
+
+                foreach (var obj in GeneratorQueue)
+                {
+                    if (obj.Slot == slot)
+                    {
+                        slotInUse = true;
+                        break;
+                    }
+                }
+
+                if (slotInUse)
+                    continue;
+
+                var queue = new GeneratorQueueNode();
+
+                queue.Slot = (uint)slot;
+                double when = Common.Time.GetFutureTimestamp((RegenerationInterval ?? 0) + GeneratorProfiles[slot].Delay);
+
+                if (GeneratorRegistry.Count < InitGeneratedObjects && !(GeneratorEnteredWorld ?? false))
+                    when = Common.Time.GetTimestamp();
+
+                queue.When = when;
+
+                System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
+                GeneratorQueue.Add(queue);
+
+                if (GeneratorQueue.Count >= InitGeneratedObjects)
+                    GeneratorEnteredWorld = true;
+            }
+        }
+
+        public void ProcessGeneratorQueue()
+        {
+            var index = 0;
+            while (index < GeneratorQueue.Count)
+            {
+                double ts = Common.Time.GetTimestamp();
+                if (ts >= GeneratorQueue[index].When)
+                {
+                    if (GeneratorRegistry.Count >= MaxGeneratedObjects)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
+                        System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                        GeneratorQueue.RemoveAt(index);
+                        index++;
+                        continue;
+                    }
+                    var profile = GeneratorProfiles[(int)GeneratorQueue[index].Slot];
+
+                    var rNode = new GeneratorRegistryNode();
+
+                    rNode.WeenieClassId = profile.WeenieClassId;
+                    rNode.Timestamp = Common.Time.GetTimestamp();
+                    rNode.Slot = GeneratorQueue[index].Slot;
+
+                    var wo = WorldObjectFactory.CreateNewWorldObject(profile.WeenieClassId);
+
+                    switch (profile.WhereCreate)
+                    {
+                        case 4:
+                            wo.Location = new Position(profile.LandblockRaw,
+                                profile.PositionX, profile.PositionY, profile.PositionZ,
+                                profile.RotationX, profile.RotationY, profile.RotationZ, profile.RotationW);
+                            break;
+                        default:
+                            wo.Location = Location;
+                            break;
+                    }
+
+                    wo.GeneratorId = Guid.Full;
+
+                    System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
+                    GeneratorRegistry.Add(wo.Guid.Full, rNode);
+                    System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
+                    wo.EnterWorld();
+                    System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                    GeneratorQueue.RemoveAt(index);
+                }
+                else
+                    index++;
+            }
+        }
+
+        public void NotifyGeneratorOfPickup(uint guid)
+        {
+            if (GeneratorRegistry.ContainsKey(guid))
+            {
+                int slot = (int)GeneratorRegistry[guid].Slot;
+
+                if (GeneratorProfiles[slot].WhenCreate == (uint)RegenerationType.PickUp)
+                {
+                    GeneratorRegistry.Remove(guid);
+                    QueueGenerator();
+                }
+            }
+        }
+
+        public bool? Visibility
+        {
+            get { return AceObject.Visibility; }
+            set { AceObject.Visibility = value; }
         }
     }
 }
