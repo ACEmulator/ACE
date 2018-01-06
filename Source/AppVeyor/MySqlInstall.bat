@@ -11,14 +11,13 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 
 REM execute Update Scripts for Shard Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\changeme.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2017-12-21-00-placement-update.sql
 
 REM Download latest ACE-World database, extract and import it
-appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.3.1/ACE-World-db-v0.3.1.sql.zip
-7z x ACE-World-db-v0.3.1.sql.zip
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-db-v0.3.1.sql
+appveyor DownloadFile https://github.com/ACEmulator/ACE-World-16PY/releases/download/v0.0.2/ACE-World-16PY-db-v0.0.2.sql.zip
+7z x ACE-World-16PY-db-v0.0.2.sql.zip
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-16PY-db-v0.0.2.sql
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-12-19-00-generator-test-data.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2017-12-21-00-placement-update.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-06-00-generator-profiles-table.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-06-01-landblock-links.sql
