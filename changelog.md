@@ -2,7 +2,7 @@
 
 ### 2018-01-09
 [Ripley]
-** Changes based on 16PY database, may cause problems with ACE-World. **
+**Changes based on 16PY database, may cause problems with ACE-World.**
 * Corrected issue with objects spawning at xxxx0000 in landblock.
 * Added expected object flags to currently implemented WeenieType classes.
 * Adjusted Bool recalls for WorldObjects.
