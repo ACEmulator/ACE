@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
@@ -35,10 +35,15 @@ namespace ACE.Entity
         public Door(AceObject aceO)
             : base(aceO)
         {
+            Door = true;
+            Stuck = true; Attackable = true;
+
+            SetObjectDescriptionBools();
+
             // Set PhysicsState defaults.. Leaving commented for now to read in what was pcapped
             // PhysicsState = 0;
             // ReportCollision = true;
-            // HasPhysicsBsp = true;
+            HasPhysicsBsp = true;
 
             if (!DefaultOpen)
             {

@@ -1,3 +1,5 @@
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
 using ACE.Factories;
 using System;
@@ -5,17 +7,22 @@ using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    public class GenericObject : WorldObject
+    public class Bindstone : WorldObject
     {
-        public GenericObject(AceObject aceObject)
+        public Bindstone(AceObject aceObject)
             : base(aceObject)
         {
             Stuck = true; Attackable = true;
 
-            SetObjectDescriptionBools();            
+            SetObjectDescriptionBools();
+
+            RadarBehavior = Enum.RadarBehavior.ShowAlways;
+            RadarColor = Enum.RadarColor.LifeStone;
+
+            //GetClothingBase();
         }
 
-        ////public GenericObject(ObjectGuid guid, AceObject aceObject)
+        ////public Bindstone(ObjectGuid guid, AceObject aceObject)
         ////    : base(guid, aceObject)
         ////{
         ////}
@@ -33,6 +40,6 @@ namespace ACE.Entity
         ////public override void OnUse(Session session)
         ////{
         ////    // TODO: Implement
-        ////}        
+        ////}
     }
 }

@@ -1,4 +1,4 @@
-﻿using ACE.Network.GameEvent.Events;
+using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
 using ACE.Entity.Enum;
@@ -13,6 +13,12 @@ namespace ACE.Entity
         public Lifestone(AceObject aceO)
             : base(aceO)
         {
+            LifeStone = true;
+            Stuck = true; Attackable = true;
+
+            SetObjectDescriptionBools();
+
+            RadarColor = Enum.RadarColor.LifeStone;
         }
 
         public override void ActOnUse(ObjectGuid playerId)

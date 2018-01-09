@@ -1814,6 +1814,20 @@ namespace ACE.Entity
             set { SetDoubleProperty(PropertyDouble.RegenerationInterval, value); }
         }
 
+        [JsonIgnore]
+        public int? PaletteTemplate
+        {
+            get { return GetIntProperty(PropertyInt.PaletteTemplate); }
+            set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
+        }
+
+        [JsonIgnore]
+        public double? Shade
+        {
+            get { return GetDoubleProperty(PropertyDouble.Shade); }
+            set { SetDoubleProperty(PropertyDouble.Shade, value); }
+        }
+
         #region Chess
         [JsonIgnore]
         public int? ChessGamesLost

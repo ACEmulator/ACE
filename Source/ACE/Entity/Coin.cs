@@ -1,4 +1,4 @@
-﻿// WeenieType.Coin
+// WeenieType.Coin
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -29,7 +29,11 @@ namespace ACE.Entity
 
         public Coin(AceObject aceObject)
             : base(aceObject)
-        {
+        {            
+            Attackable = true;
+
+            SetObjectDescriptionBools();
+
             CoinPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
 

@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ACE.Factories;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Entity
 {
@@ -1633,25 +1634,36 @@ namespace ACE.Entity
 
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
 
-            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
-            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+            #region ACE-World initalizing.. to be removed later
+            //RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
-            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
-                CurrentMotionState = null;
-            else
-                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+            //RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
 
-            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
-            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
-            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            ////if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
+            ////    CurrentMotionState = null;
+            ////else
+            ////    CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
 
+            //aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            //aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            //aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            #endregion
+
+            SetPhysicsStateBools();
+
+            if (Placement == null)
+                Placement = Enum.Placement.Resting;
+
+            GetClothingBase();
 
             SelectGeneratorProfiles();
             UpdateGeneratorInts();
             QueueGenerator();
 
             QueueNextHeartBeat();
+
+            GenerateWieldList();
         }
 
         internal void SetInventoryForVendor(WorldObject inventoryItem)
@@ -1958,6 +1970,9 @@ namespace ACE.Entity
                         break;
                     case "radarcolor":
                         debugOutput += $"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")" + "\n";
+                        break;
+                    case "location":
+                        debugOutput += $"{prop.Name} = {obj.Location.ToLOCString()}" + "\n";
                         break;
                     default:
                         debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
@@ -3272,7 +3287,7 @@ namespace ACE.Entity
 
                 queue.When = when;
 
-                System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
+                // System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
                 GeneratorQueue.Add(queue);
 
                 if (GeneratorQueue.Count >= InitGeneratedObjects)
@@ -3290,8 +3305,8 @@ namespace ACE.Entity
                 {
                     if (GeneratorRegistry.Count >= MaxGeneratedObjects)
                     {
-                        System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
-                        System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                        // System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
+                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
                         GeneratorQueue.RemoveAt(index);
                         index++;
                         continue;
@@ -3306,26 +3321,34 @@ namespace ACE.Entity
 
                     var wo = WorldObjectFactory.CreateNewWorldObject(profile.WeenieClassId);
 
-                    switch (profile.WhereCreate)
+                    if (wo != null)
                     {
-                        case 4:
-                            wo.Location = new Position(profile.LandblockRaw,
-                                profile.PositionX, profile.PositionY, profile.PositionZ,
-                                profile.RotationX, profile.RotationY, profile.RotationZ, profile.RotationW);
-                            break;
-                        default:
-                            wo.Location = Location;
-                            break;
+                        switch (profile.WhereCreate)
+                        {
+                            case 4:
+                                wo.Location = new Position(profile.LandblockRaw,
+                                    profile.PositionX, profile.PositionY, profile.PositionZ,
+                                    profile.RotationX, profile.RotationY, profile.RotationZ, profile.RotationW);
+                                break;
+                            default:
+                                wo.Location = Location;
+                                break;
+                        }
+
+                        wo.GeneratorId = Guid.Full;
+
+                        // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
+                        GeneratorRegistry.Add(wo.Guid.Full, rNode);
+                        // System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
+                        wo.EnterWorld();
+                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                        GeneratorQueue.RemoveAt(index);
                     }
-
-                    wo.GeneratorId = Guid.Full;
-
-                    System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
-                    GeneratorRegistry.Add(wo.Guid.Full, rNode);
-                    System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
-                    wo.EnterWorld();
-                    System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
-                    GeneratorQueue.RemoveAt(index);
+                    else
+                    {
+                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full} because wcid {rNode.WeenieClassId} is not in the database");
+                        GeneratorQueue.RemoveAt(index);                        
+                    }
                 }
                 else
                     index++;
@@ -3350,6 +3373,612 @@ namespace ACE.Entity
         {
             get { return AceObject.Visibility; }
             set { AceObject.Visibility = value; }
+        }
+
+        public void SetObjectDescriptionBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+            ////None                   = 0x00000000,
+            ////Openable               = 0x00000001,
+            // if (AceObject.Openable ?? false)
+            //    Openable = true;
+            ////Inscribable            = 0x00000002,
+            if (AceObject.Inscribable.HasValue)
+                Inscribable = (bool)AceObject.Inscribable;
+            ////Stuck                  = 0x00000004,
+            if (AceObject.Stuck.HasValue)
+                Stuck = (bool)AceObject.Stuck;
+            ////Player                 = 0x00000008,
+            // if (AceObject.Player ?? false)
+            //    Player = true;
+            ////Attackable             = 0x00000010,
+            if (AceObject.Attackable.HasValue)
+                Attackable = (bool)AceObject.Attackable;
+            ////PlayerKiller           = 0x00000020,
+            // if (AceObject.PlayerKiller ?? false)
+            //    PlayerKiller = true;
+            ////HiddenAdmin            = 0x00000040,
+            if (AceObject.HiddenAdmin.HasValue)
+                HiddenAdmin = (bool)AceObject.HiddenAdmin;
+            ////UiHidden               = 0x00000080,
+            if (AceObject.UiHidden.HasValue)
+                UiHidden = (bool)AceObject.UiHidden;
+            ////Book                   = 0x00000100,
+            // if (AceObject.Book ?? false)
+            //    Book = true;
+            ////Vendor                 = 0x00000200,
+            // if (AceObject.Vendor ?? false)
+            //    Vendor = true;
+            ////PkSwitch               = 0x00000400,
+            // if (AceObject.PkSwitch ?? false)
+            //    PkSwitch = true;
+            ////NpkSwitch              = 0x00000800,
+            // if (AceObject.NpkSwitch ?? false)
+            //    NpkSwitch = true;
+            ////Door                   = 0x00001000,
+            // if (AceObject.Door ?? false)
+            //    Door = true;
+            ////Corpse                 = 0x00002000,
+            // if (AceObject.Corpse ?? false)
+            //    Corpse = true;
+            ////LifeStone              = 0x00004000,
+            // if (AceObject.LifeStone ?? false)
+            //    LifeStone = true;
+            ////Food                   = 0x00008000,
+            // if (AceObject.Food ?? false)
+            //    Food = true;
+            ////Healer                 = 0x00010000,
+            // if (AceObject.Healer ?? false)
+            //    Healer = true;
+            ////Lockpick               = 0x00020000,
+            // if (AceObject.Lockpick ?? false)
+            //    Lockpick = true;
+            ////Portal                 = 0x00040000,
+            // if (AceObject.Portal ?? false)
+            //    Portal = true;
+            ////Admin                  = 0x00100000,
+            // if (AceObject.Admin ?? false)
+            //    Admin = true;
+            ////FreePkStatus           = 0x00200000,
+            // if (AceObject.FreePkStatus ?? false)
+            //    FreePkStatus = true;
+            ////ImmuneCellRestrictions = 0x00400000,
+            if (AceObject.IgnoreHouseBarriers.HasValue)
+                ImmuneCellRestrictions = (bool)AceObject.IgnoreHouseBarriers;
+            ////RequiresPackSlot       = 0x00800000,
+            if (AceObject.RequiresBackpackSlot.HasValue)
+                RequiresPackSlot = (bool)AceObject.RequiresBackpackSlot;
+            ////Retained               = 0x01000000,
+            if (AceObject.Retained.HasValue)
+                Retained = (bool)AceObject.Retained;
+            ////PkLiteStatus           = 0x02000000,
+            // if (AceObject.PkLiteStatus ?? false)
+            //    PkLiteStatus = true;
+            ////IncludesSecondHeader   = 0x04000000,
+            // if (AceObject.IncludesSecondHeader ?? false)
+            //    IncludesSecondHeader = true;
+            ////BindStone              = 0x08000000,
+            // if (AceObject.BindStone ?? false)
+            //    BindStone = true;
+            ////VolatileRare           = 0x10000000,
+            // if (AceObject.VolatileRare ?? false)
+            //    VolatileRare = true;
+            ////WieldOnUse             = 0x20000000,
+            if (AceObject.WieldOnUse.HasValue)
+                WieldOnUse = (bool)AceObject.WieldOnUse;
+            ////WieldLeft              = 0x40000000,
+            if (AceObject.AutowieldLeft.HasValue)
+                WieldLeft = (bool)AceObject.AutowieldLeft;
+        }
+
+        private void SetPhysicsStateBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+
+            ////Static                      = 0x00000001,
+            // if (AceObject.Static ?? false)
+            //    Static = true;
+            ////Unused1                     = 0x00000002,
+            ////Ethereal                    = 0x00000004,
+            if (AceObject.Ethereal.HasValue)
+                Ethereal = (bool)AceObject.Ethereal;
+            ////ReportCollision             = 0x00000008,
+            if (AceObject.ReportCollisions.HasValue)
+                ReportCollision = (bool)AceObject.ReportCollisions;
+            ////IgnoreCollision             = 0x00000010,
+            if (AceObject.IgnoreCollisions.HasValue)
+                IgnoreCollision = (bool)AceObject.IgnoreCollisions;
+            ////NoDraw                      = 0x00000020,
+            if (AceObject.NoDraw.HasValue)
+                NoDraw = (bool)AceObject.NoDraw;
+            ////Missile                     = 0x00000040,
+            // if (AceObject.Missile ?? false)
+            //    Missile = true;
+            ////Pushable                    = 0x00000080,
+            // if (AceObject.Pushable ?? false)
+            //    Pushable = true;
+            ////AlignPath                   = 0x00000100,
+            // if (AceObject.AlignPath ?? false)
+            //    AlignPath = true;
+            ////PathClipped                 = 0x00000200,
+            // if (AceObject.PathClipped ?? false)
+            //    PathClipped = true;
+            ////Gravity                     = 0x00000400,
+            if (AceObject.GravityStatus.HasValue)
+                Gravity = (bool)AceObject.GravityStatus;
+            ////LightingOn                  = 0x00000800,
+            if (AceObject.LightsStatus.HasValue)
+                LightingOn = (bool)AceObject.LightsStatus;
+            ////ParticleEmitter             = 0x00001000,
+            // if (AceObject.ParticleEmitter ?? false)
+            //    ParticleEmitter = true;
+            ////Unused2                     = 0x00002000,
+            ////Hidden                      = 0x00004000,
+            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
+            //    Hidden = true;
+            ////ScriptedCollision           = 0x00008000,
+            if (AceObject.ScriptedCollision.HasValue)
+                ScriptedCollision = (bool)AceObject.ScriptedCollision;
+            ////HasPhysicsBsp               = 0x00010000,
+            // if (AceObject.HasPhysicsBsp ?? false)
+            //    HasPhysicsBsp = true;
+            ////Inelastic                   = 0x00020000,
+            if (AceObject.Inelastic.HasValue)
+                Inelastic = (bool)AceObject.Inelastic;
+            ////HasDefaultAnim              = 0x00040000,
+            // if (AceObject.HasDefaultAnim ?? false)
+            //    HasDefaultAnim = true;
+            ////HasDefaultScript            = 0x00080000,
+            // if (AceObject.HasDefaultScript ?? false) // Probably based on PhysicsDescriptionFlag
+            //    HasDefaultScript = true;
+            ////Cloaked                     = 0x00100000,
+            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
+            //    Cloaked = true;
+            ////ReportCollisionAsEnviroment = 0x00200000,
+            if (AceObject.ReportCollisionsAsEnvironment.HasValue)
+                ReportCollisionAsEnviroment = (bool)AceObject.ReportCollisionsAsEnvironment;
+            ////EdgeSlide                   = 0x00400000,
+            if (AceObject.AllowEdgeSlide.HasValue)
+                EdgeSlide = (bool)AceObject.AllowEdgeSlide;
+            ////Sledding                    = 0x00800000,
+            // if (AceObject.Sledding ?? false)
+            //    Sledding = true;
+            ////Frozen                      = 0x01000000,
+            if (AceObject.IsFrozen.HasValue)
+                Frozen = (bool)AceObject.IsFrozen;
+        }
+
+        public int? PaletteTemplate
+        {
+            get { return AceObject.PaletteTemplate; }
+            set { AceObject.PaletteTemplate = value; }
+        }
+
+        public double? Shade
+        {
+            get { return AceObject.Shade; }
+            set { AceObject.Shade = value; }
+        }
+
+        public void GetClothingBase()
+        {
+            ClothingTable item;
+            if (ClothingBase.HasValue)
+                item = ClothingTable.ReadFromDat((uint)ClothingBase);
+            else
+            {
+                return;
+            }
+
+            if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+            // Check if the player model has data. Gear Knights, this is usually you.
+            {
+                // Add the model and texture(s)
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                {
+                    byte partNum = (byte)t.Index;
+                    AddModel((byte)t.Index, (ushort)t.ModelId);
+                    // coverage.Add(partNum);
+                    foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                        AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                }
+
+                //foreach (ModelPalette p in w.Value.GetPalettes)
+                //    AddPalette(p.PaletteId, p.Offset, p.Length);
+
+                // Apply an appropriate palette. We'll just pick a random one if not specificed--it's a surprise every time!
+                // For actual equipment, these should just be stored in the ace_object palette_change table and loaded from there
+                if (item.ClothingSubPalEffects.Count > 0)
+                {
+                    int size = item.ClothingSubPalEffects.Count;
+                    int palCount = size;
+
+                    CloSubPalEffect itemSubPal;
+                    int palOption = 0;
+                    if (PaletteTemplate.HasValue)
+                        palOption = (int)PaletteTemplate;
+                    // Generate a random index if one isn't provided
+                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                    {
+                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                    }
+                    else
+                    {
+                       itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
+                    }
+
+                    if (itemSubPal.Icon > 0)
+                        IconId = itemSubPal.Icon;
+
+                    float shade = 0;
+                    if (Shade.HasValue)
+                        shade = (float)Shade;
+                    for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+
+                        for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                }
+            }
+        }
+
+        // protected internal Dictionary<ObjectGuid, WorldObject> TestWieldedObjects { get; set; }
+        protected internal Dictionary<int, WorldObject> TestCloPriority { get; set; }
+
+        public void GenerateWieldList()
+        {
+            foreach (var item in WieldList)
+            {
+                if (WieldedObjects == null)
+                    WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
+
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId, item.Palette, item.Shade);
+                // wo.Location = Location;
+                wo.CurrentWieldedLocation = wo.ValidLocations;
+                wo.WielderId = Guid.Full;
+
+                // LandblockManager.AddObject(wo);
+                WieldedObjects.Add(wo.guid, wo);
+
+                if ((wo.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                {
+                    if (TestCloPriority == null)
+                        TestCloPriority = new Dictionary<int, WorldObject>();
+                    TestCloPriority.Add((int)wo.Priority, wo);
+                }
+            }
+
+            if (TestCloPriority != null)
+                UpdateBaseAppearance();
+        }
+
+        /// <summary>
+        /// This method was developed by OptimShi.   It looks at currently wielded items and does the appropriate
+        /// model replacements.   It then sends all uncovered  body parts. Og II
+        /// </summary>
+        /// <param name="container"></param>
+        public void UpdateBaseAppearance()
+        {
+            ClearObjDesc();
+            AddBaseModelData(); // Add back in the facial features, hair and skin palette
+
+            var coverage = new List<uint>();
+
+            //foreach (var w in WieldedObjects)
+            foreach (var w in TestCloPriority.OrderBy(i => i.Key))
+            {
+                // We can wield things that are not part of our model, only use those items that can cover our model.
+                if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                {
+                    ClothingTable item;
+                    if (w.Value.ClothingBase != null)
+                        item = ClothingTable.ReadFromDat((uint)w.Value.ClothingBase);
+                    else
+                    {
+                        return;
+                    }
+
+                    if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+                    // Check if the player model has data. Gear Knights, this is usually you.
+                    {
+                        // Add the model and texture(s)
+                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                        foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                        {
+                            byte partNum = (byte)t.Index;
+                            AddModel((byte)t.Index, (ushort)t.ModelId);
+                            coverage.Add(partNum);
+                            foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                                AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                        }
+
+                        //foreach (ModelPalette p in w.Value.GetPalettes)
+                        //    AddPalette(p.PaletteId, p.Offset, p.Length);
+
+                        if (item.ClothingSubPalEffects.Count > 0)
+                        {
+                            int size = item.ClothingSubPalEffects.Count;
+                            int palCount = size;
+
+                            CloSubPalEffect itemSubPal;
+                            int palOption = 0;
+                            if (w.Value.PaletteTemplate.HasValue)
+                                palOption = (int)w.Value.PaletteTemplate;
+                            // Generate a random index if one isn't provided
+                            if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                            {
+                                itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                            }
+                            else
+                            {
+                                itemSubPal = item.ClothingSubPalEffects[0];
+                            }
+
+                            float shade = 0;
+                            if (w.Value.Shade.HasValue)
+                                shade = (float)w.Value.Shade;
+                            for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                            {
+                                PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                                ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+
+                                for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                {
+                                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                    AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Add the "naked" body parts. These are the ones not already covered.
+            if (SetupTableId != null)
+            {
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
+                for (byte i = 0; i < baseSetup.Parts.Count; i++)
+                {
+                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                        AddModel(i, baseSetup.Parts[i]);
+                }
+            }
+        }
+
+        public int? Heritage
+        {
+            get { return AceObject.Heritage; }
+            set { AceObject.Heritage = value; }
+        }
+
+        public int? Gender
+        {
+            get { return AceObject.Gender; }
+            set { AceObject.Gender = value; }
+        }
+
+        public string HeritageGroup
+        {
+            get { return AceObject.HeritageGroup; }
+            set { AceObject.HeritageGroup = value; }
+        }
+
+        public string Sex
+        {
+            get { return AceObject.Sex; }
+            set { AceObject.Sex = value; }
+        }
+
+        private void AddBaseModelData()
+        {
+            if (WeenieType == WeenieType.Creature || WeenieType == WeenieType.Vendor)
+                if (CreatureType == Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
+                    RandomizeFace();
+
+            if (PaletteBaseId == null)
+                PaletteBaseId = 0x0400007e; // Default BasePalette
+        }
+
+        public uint? HeadObjectDID
+        {
+            get { return AceObject.HeadObjectDID ?? null; }
+            set { AceObject.HeadObjectDID = value; }
+        }
+
+        public uint? HairTextureDID
+        {
+            get { return AceObject.HairTextureDID ?? null; }
+            set { AceObject.HairTextureDID = value; }
+        }
+
+        public uint? DefaultHairTextureDID
+        {
+            get { return AceObject.DefaultHairTextureDID ?? null; }
+            set { AceObject.DefaultHairTextureDID = value; }
+        }
+
+        public uint? HairPaletteDID
+        {
+            get { return AceObject.HairPaletteDID ?? null; }
+            set { AceObject.HairPaletteDID = value; }
+        }
+
+        public uint? SkinPaletteDID
+        {
+            get { return AceObject.SkinPaletteDID ?? null; }
+            set { AceObject.SkinPaletteDID = value; }
+        }
+
+        public uint? EyesPaletteDID
+        {
+            get { return AceObject.EyesPaletteDID ?? null; }
+            set { AceObject.EyesPaletteDID = value; }
+        }
+
+        public uint? EyesTextureDID
+        {
+            get { return AceObject.EyesTextureDID ?? null; }
+            set { AceObject.EyesTextureDID = value; }
+        }
+
+        public uint? DefaultEyesTextureDID
+        {
+            get { return AceObject.DefaultEyesTextureDID ?? null; }
+            set { AceObject.DefaultEyesTextureDID = value; }
+        }
+
+        public uint? NoseTextureDID
+        {
+            get { return AceObject.NoseTextureDID ?? null; }
+            set { AceObject.NoseTextureDID = value; }
+        }
+
+        public uint? DefaultNoseTextureDID
+        {
+            get { return AceObject.DefaultNoseTextureDID ?? null; }
+            set { AceObject.DefaultNoseTextureDID = value; }
+        }
+
+        public uint? MouthTextureDID
+        {
+            get { return AceObject.MouthTextureDID ?? null; }
+            set { AceObject.MouthTextureDID = value; }
+        }
+
+        public uint? DefaultMouthTextureDID
+        {
+            get { return AceObject.DefaultMouthTextureDID ?? null; }
+            set { AceObject.DefaultMouthTextureDID = value; }
+        }
+
+        public void RandomizeFace()
+        {
+            CharGen cg = CharGen.ReadFromDat();
+
+            if (!Heritage.HasValue)
+            {
+                if (HeritageGroup != "")
+                {
+                    HeritageGroup parsed = (HeritageGroup)System.Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
+                    if (parsed != 0)
+                        Heritage = (int)parsed;
+                }
+            }
+
+            if (!Gender.HasValue)
+            {
+                if (Sex != "")
+                {
+                    Gender parsed = (Gender)System.Enum.Parse(typeof(Gender), Sex);
+                    if (parsed != 0)
+                        Gender = (int)parsed;
+                }
+            }
+
+            SexCG sex = cg.HeritageGroups[(int)Heritage].SexList[(int)Gender];
+
+            PaletteBaseId = sex.BasePalette;          
+
+            Appearance appearance = new Appearance();
+
+            appearance.HairStyle = 1;
+            appearance.HairColor = 1;
+            appearance.HairHue = 1;
+
+            appearance.EyeColor = 1;
+            appearance.Eyes = 1;
+
+            appearance.Mouth = 1;
+            appearance.Nose = 1;
+
+            appearance.SkinHue = 1;
+
+            // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+            int size = sex.HairStyleList.Count / 3; // Why divide by 4 you ask? Because AC runtime generated characters didn't have much range in hairstyles.
+            Random rand = new Random();
+            appearance.HairStyle = (uint)rand.Next(size);
+
+            HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
+            bool isBald = hairstyle.Bald;
+
+            size = sex.HairColorList.Count;
+            appearance.HairColor = (uint)rand.Next(size);
+            appearance.HairHue = rand.NextDouble();
+
+            size = sex.EyeColorList.Count;
+            appearance.EyeColor = (uint)rand.Next(size);
+            size = sex.EyeStripList.Count();
+            appearance.Eyes = (uint)rand.Next(size);
+
+            size = sex.MouthStripList.Count();
+            appearance.Mouth = (uint)rand.Next(size);
+
+            size = sex.NoseStripList.Count();
+            appearance.Nose = (uint)rand.Next(size);
+
+            appearance.SkinHue = rand.NextDouble();
+
+            //// Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+            ////if (hairstyle.AlternateSetup > 0)
+            ////    character.SetupTableId = hairstyle.AlternateSetup;
+
+            if (!EyesTextureDID.HasValue)
+                EyesTextureDID = sex.GetEyeTexture(appearance.Eyes, isBald);
+            if (!DefaultEyesTextureDID.HasValue)
+                DefaultEyesTextureDID = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
+            if (!NoseTextureDID.HasValue)
+                NoseTextureDID = sex.GetNoseTexture(appearance.Nose);
+            if (!DefaultNoseTextureDID.HasValue)
+                DefaultNoseTextureDID = sex.GetDefaultNoseTexture(appearance.Nose);
+            if (!MouthTextureDID.HasValue)
+                MouthTextureDID = sex.GetMouthTexture(appearance.Mouth);
+            if (!DefaultMouthTextureDID.HasValue)
+                DefaultMouthTextureDID = sex.GetDefaultMouthTexture(appearance.Mouth);
+            if (!HairTextureDID.HasValue)
+                HairTextureDID = sex.GetHairTexture(appearance.HairStyle);
+            if (!DefaultHairTextureDID.HasValue)
+                DefaultHairTextureDID = sex.GetDefaultHairTexture(appearance.HairStyle);
+            if (!HeadObjectDID.HasValue)
+                HeadObjectDID = sex.GetHeadObject(appearance.HairStyle);
+
+            // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
+            if (!SkinPaletteDID.HasValue)
+                SkinPaletteDID = skinPalSet.GetPaletteID(appearance.SkinHue);
+
+            // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
+            if (!HairPaletteDID.HasValue)
+                HairPaletteDID = hairPalSet.GetPaletteID(appearance.HairHue);
+
+            // Eye Color
+            if (!EyesPaletteDID.HasValue)
+                EyesPaletteDID = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
+
+            // Hair/head
+            AddModel(0x10, (uint)HeadObjectDID);
+            AddTexture(0x10, (uint)DefaultHairTextureDID, (uint)HairTextureDID);
+            AddPalette((uint)HairPaletteDID, 0x18, 0x8);
+
+            // Skin
+            //// PaletteBaseId = Character.PaletteId;
+            AddPalette((uint)SkinPaletteDID, 0x0, 0x18);
+
+            // Eyes
+            AddTexture(0x10, (uint)DefaultEyesTextureDID, (uint)EyesTextureDID);
+            AddPalette((uint)EyesPaletteDID, 0x20, 0x8);
+
+            // Nose & Mouth
+            AddTexture(0x10, (uint)DefaultNoseTextureDID, (uint)NoseTextureDID);
+            AddTexture(0x10, (uint)DefaultMouthTextureDID, (uint)MouthTextureDID);
         }
     }
 }

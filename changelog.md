@@ -1,5 +1,17 @@
 # ACEmulator Change Log
 
+### 2018-01-09
+[Ripley]
+** Changes based on 16PY database, may cause problems with ACE-World. **
+* Corrected issue with objects spawning at xxxx0000 in landblock.
+* Added expected object flags to currently implemented WeenieType classes.
+* Adjusted Bool recalls for WorldObjects.
+* Added Shade (and TryToBond, which appears unimportant) to Inventory.
+* Added Shade and palette to create command for testing.
+* Added ClothingBase and Palette lookup for object spawning so they look correct.
+* Added proper wielding for clothing on weenies and fixed clothing priority for them.
+* Added face randomization for Human based NPCs.
+
 ### 2017-12-21
 [Ripley]
 * Added Placement Enum.

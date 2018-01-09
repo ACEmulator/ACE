@@ -13,6 +13,8 @@ using ACE.Network.Sequence;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using ACE.DatLoader.FileTypes;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Entity
 {
@@ -112,11 +114,9 @@ namespace ACE.Entity
         public Creature(AceObject baseObject)
             : base(baseObject)
         {
-            if (Attackable == false)
-            {
-                if (RadarColor != Enum.RadarColor.Yellow || (RadarColor == Enum.RadarColor.Yellow && CreatureType == null))
-                        NpcLooksLikeObject = true;
-            }
+            Stuck = true; Attackable = true;
+
+            SetObjectDescriptionBools();
         }
 
         public virtual void DoOnKill(Session killerSession)
@@ -699,6 +699,6 @@ namespace ACE.Entity
             }
         }       
 
-        protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+        protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));        
     }
 }

@@ -50,15 +50,6 @@ namespace ACE.Factories
                     if (wo != null)
                         results.Add(wo);
 
-                    // TODO: this is a hack job. Remove this and do it right. 
-                    foreach (var item in wo.WieldList)
-                    {
-                        WorldObject wo2 = CreateNewWorldObject(item.WeenieClassId);
-                        wo2.Location = wo.Location;
-                        wo2.CurrentWieldedLocation = wo.ValidLocations;
-                        wo2.WielderId = wo.Guid.Full;
-                        results.Add(wo2);
-                    }
                 }
             }
 
@@ -104,15 +95,15 @@ namespace ACE.Factories
                 if (wo != null)
                     results.Add(wo);
 
-                // TODO: this is a hack job. Remove this and do it right. 
-                foreach (var item in wo.WieldList)
-                {
-                    WorldObject wo2 = CreateNewWorldObject(item.WeenieClassId);
-                    wo2.Location = wo.Location;
-                    wo2.CurrentWieldedLocation = wo.ValidLocations;
-                    wo2.WielderId = wo.Guid.Full;
-                    results.Add(wo2);
-                }
+                //// TODO: this is a hack job. Remove this and do it right. 
+                //foreach (var item in wo.WieldList)
+                //{
+                //    WorldObject wo2 = CreateNewWorldObject(item.WeenieClassId);
+                //    wo2.Location = wo.Location;
+                //    wo2.CurrentWieldedLocation = wo.ValidLocations;
+                //    wo2.WielderId = wo.Guid.Full;
+                //    results.Add(wo2);
+                //}
             }
             return results;
         }
@@ -155,27 +146,49 @@ namespace ACE.Factories
                     return new Game(aceO);
                 case WeenieType.GamePiece:
                     return new GamePiece(aceO);
+                case WeenieType.AllegianceBindstone:
+                    return new Bindstone(aceO);
+                case WeenieType.Clothing:
+                    return new Clothing(aceO);
                 default:
                     return new GenericObject(aceO);
             }
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId)
+        public static WorldObject CreateWorldObject(uint weenieId, int palette = 0, float shade = 0)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
 
+            if (palette > 0)
+                aceObject.PaletteTemplate = palette;
+            if (shade > 0)
+                aceObject.Shade = shade;
+
             return CreateWorldObject(aceObject);
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
+        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid, int palette = 0, float shade = 0)
         {
-            AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
-            return CreateWorldObject(aceObject);
+            try
+            {
+                AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
+
+                if (palette > 0)
+                    aceObject.PaletteTemplate = palette;
+                if (shade > 0)
+                    aceObject.Shade = shade;
+
+                return CreateWorldObject(aceObject);
+            }
+            catch (NullReferenceException)
+            {
+                return null;
+            }
         }
 
-        public static WorldObject CreateNewWorldObject(uint weenieId)
+        public static WorldObject CreateNewWorldObject(uint weenieId, int palette = 0, float shade = 0)
         {
-            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
+            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid(), palette, shade);
             return wo;
         }
     }

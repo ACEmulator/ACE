@@ -33,6 +33,10 @@ namespace ACE.Entity
         public Vendor(AceObject aceO)
             : base(aceO)
         {
+            Vendor = true;
+            Stuck = true; Attackable = true;
+
+            SetObjectDescriptionBools();
         }
 
         #region General Vendor functions
