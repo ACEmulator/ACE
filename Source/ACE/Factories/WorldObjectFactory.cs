@@ -94,16 +94,6 @@ namespace ACE.Factories
 
                 if (wo != null)
                     results.Add(wo);
-
-                //// TODO: this is a hack job. Remove this and do it right. 
-                //foreach (var item in wo.WieldList)
-                //{
-                //    WorldObject wo2 = CreateNewWorldObject(item.WeenieClassId);
-                //    wo2.Location = wo.Location;
-                //    wo2.CurrentWieldedLocation = wo.ValidLocations;
-                //    wo2.WielderId = wo.Guid.Full;
-                //    results.Add(wo2);
-                //}
             }
             return results;
         }
