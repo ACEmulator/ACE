@@ -3902,7 +3902,7 @@ namespace ACE.Entity
             appearance.SkinHue = 1;
 
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-            int size = sex.HairStyleList.Count / 3; // Why divide by 4 you ask? Because AC runtime generated characters didn't have much range in hairstyles.
+            int size = sex.HairStyleList.Count / 3; // Why divide by 3 you ask? Because AC runtime generated characters didn't have much range in hairstyles.
             Random rand = new Random();
             appearance.HairStyle = (uint)rand.Next(size);
 

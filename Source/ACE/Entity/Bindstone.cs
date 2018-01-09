@@ -19,7 +19,6 @@ namespace ACE.Entity
             RadarBehavior = Enum.RadarBehavior.ShowAlways;
             RadarColor = Enum.RadarColor.LifeStone;
 
-            //GetClothingBase();
         }
 
         ////public Bindstone(ObjectGuid guid, AceObject aceObject)
