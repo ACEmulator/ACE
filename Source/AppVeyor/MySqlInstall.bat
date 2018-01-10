@@ -19,9 +19,9 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-07-00-inventory-shade.sql
 
 REM Download latest ACE-World database, extract and import it
-appveyor DownloadFile https://github.com/ACEmulator/ACE-World-16PY/releases/download/v0.0.2/ACE-World-16PY-db-v0.0.2.sql.zip
-7z x ACE-World-16PY-db-v0.0.2.sql.zip
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-16PY-db-v0.0.2.sql
+appveyor DownloadFile https://github.com/ACEmulator/ACE-World/releases/download/v0.3.1/ACE-World-db-v0.3.2.sql.zip
+7z x ACE-World-db-v0.3.2.sql.zip
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-db-v0.3.2.sql
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
