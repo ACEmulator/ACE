@@ -33,5 +33,23 @@ namespace ACE.Factories
             }
             player.HandleAddNewWorldObjectsToInventory(items);
         }
+        public static void CreatePyrealStack(Player player, ushort coin)
+        {
+            List<WorldObject> items = new List<WorldObject>();
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(273);
+            wo.StackSize = coin;
+            items.Add(wo);
+            player.HandleAddNewWorldObjectsToInventory(items);
+        }
+        public static void CreateMultipleWorldObjects(Player player, uint type, uint numItems)
+        {
+            List<WorldObject> items = new List<WorldObject>();
+            for (int i = 0; i < numItems; i++)
+            {
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(type);
+                items.Add(wo);
+            }
+            player.HandleAddNewWorldObjectsToInventory(items);
+        }
     }
 }
