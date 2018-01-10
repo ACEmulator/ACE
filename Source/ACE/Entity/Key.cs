@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -19,6 +19,10 @@ namespace ACE.Entity
         public Key(AceObject aceO)
             : base(aceO)
         {
+            Attackable = true;
+
+            SetObjectDescriptionBools();
+
             KeyCode = AceObject.KeyCode ?? "";
             Structure = AceObject.Structure ?? AceObject.MaxStructure;
         }

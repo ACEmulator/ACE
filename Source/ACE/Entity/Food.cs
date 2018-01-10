@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
 
@@ -9,6 +9,11 @@ namespace ACE.Entity
         public Food(AceObject aceObject)
             : base(aceObject)
         {
+            Food = true;
+            Attackable = true;
+
+            SetObjectDescriptionBools();
+
             StackSize = (base.StackSize ?? 1);
 
             if (StackSize == null)

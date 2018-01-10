@@ -1,4 +1,4 @@
-﻿// WeenieType.Scroll
+// WeenieType.Scroll
 
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
@@ -33,6 +33,10 @@ namespace ACE.Entity
         public Scroll(AceObject aceObject)
             : base(aceObject)
         {
+            Attackable = true;
+
+            SetObjectDescriptionBools();
+
             SpellTable table = SpellTable.ReadFromDat();
 
             Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";

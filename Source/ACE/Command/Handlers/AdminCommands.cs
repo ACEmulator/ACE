@@ -1008,10 +1008,18 @@ namespace ACE.Command.Handlers
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 0 - {uint.MaxValue}", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 0 - {AceObject.WEENIE_MAX}", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+
+            int palette = 0;
+            float shade = 0;
+            if (parameters.Length > 1)
+                palette = Convert.ToInt32(parameters[1]);
+            if (parameters.Length > 2)
+                shade = (float)Convert.ToDouble(parameters[2]);
+
+            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId, palette, shade);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
         }

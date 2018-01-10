@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum;
 
 namespace ACE.Entity
@@ -79,7 +79,7 @@ namespace ACE.Entity
         /// <summary>
         /// This is only used to calclate LandcellX and LandcellY - it has no other function.
         /// </summary>
-        private ushort Landcell
+        public ushort Landcell
         {
             get { return (byte)((rawValue & 0x3F) - 1); }
         }

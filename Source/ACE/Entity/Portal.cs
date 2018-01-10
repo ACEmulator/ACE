@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Entity.Enum;
@@ -103,6 +103,11 @@ namespace ACE.Entity
         public Portal(AceObject aceO)
             : base(aceO)
         {
+            Portal = true;
+            Stuck = true; Attackable = true;
+
+            SetObjectDescriptionBools();
+
             var weenie = Database.DatabaseManager.World.GetAceObjectByWeenie(AceObject.WeenieClassId);
             // check to see if this ace object has a destination.  if so, defer to it.
             if (aceO.Destination != null)

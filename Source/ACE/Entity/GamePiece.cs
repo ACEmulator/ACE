@@ -14,6 +14,9 @@ namespace ACE.Entity
         public GamePiece(AceObject aceO)
             : base(aceO)
         {
+            Stuck = true; Attackable = true;
+
+            SetObjectDescriptionBools();
         }
 
         ////public override void ActOnUse(ObjectGuid playerId)

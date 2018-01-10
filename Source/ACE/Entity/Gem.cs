@@ -1,4 +1,4 @@
-﻿using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
@@ -24,6 +24,9 @@ namespace ACE.Entity
         public Gem(AceObject aceObject)
             : base(aceObject)
         {
+            Attackable = true;
+
+            SetObjectDescriptionBools();
         }
 
         /// <summary>
