@@ -1,3 +1,4 @@
+using ACE.Entity;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace ACE.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint newLeaderID = message.Payload.ReadUInt32();
-            FellowshipManager.AssignNewLeader(session.Player.Fellowship, newLeaderID);
+            Player newLeader = WorldManager.GetPlayerByGuidId(newLeaderID);
+            session.Player.FellowshipNewLeader(newLeader);
         }
     }
 }

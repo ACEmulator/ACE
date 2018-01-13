@@ -1,3 +1,4 @@
+using ACE.Entity;
 using ACE.Managers;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,11 @@ namespace ACE.Network.GameAction.Actions
         [GameAction(GameActionType.FellowshipDismiss)]
         public static void Handle(ClientMessage message, Session session)
         {
-            if (session.Player.Fellowship != 0)
+            uint playerIdToDismiss = message.Payload.ReadUInt32();
+            Player playerToDismiss = WorldManager.GetPlayerByGuidId(playerIdToDismiss);
+            if (session.Player.Fellowship != null)
             {
-                FellowshipManager.DismissPlayer(session.Player.Fellowship, session.Player);
+                session.Player.FellowshipDismissPlayer(playerToDismiss);
             }
         }
     }

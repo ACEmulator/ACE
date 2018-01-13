@@ -16,15 +16,8 @@ namespace ACE.Network.GameAction.Actions
         {
             bool disbandFellowship = message.Payload.ReadUInt32() > 0;
 
-            if (disbandFellowship && session.Player.Guid.Full == session.Player.Fellowship)
-            {
-                FellowshipManager.Disband(session.Player.Fellowship);
-            }
-            else
-            {
-                FellowshipManager.QuitFellowship(session.Player.Fellowship, session.Player);
-            }
-            
+            session.Player.FellowshipQuit(disbandFellowship);
+            session.Player.Fellowship = null;
         }
     }
 }
