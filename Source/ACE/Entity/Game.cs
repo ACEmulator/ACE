@@ -18,6 +18,10 @@ namespace ACE.Entity
         public Game(AceObject aceO)
             : base(aceO)
         {
+            Stuck = true; Attackable = true;
+            
+            SetObjectDescriptionBools();
+
             // Setup game variables...
             // TODO: so much more than what's here now.
         }

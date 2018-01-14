@@ -155,6 +155,10 @@ namespace ACE.Factories
                     return new Game(aceO);
                 case WeenieType.GamePiece:
                     return new GamePiece(aceO);
+                case WeenieType.AllegianceBindstone:
+                    return new Bindstone(aceO);
+                case WeenieType.Clothing:
+                    return new Clothing(aceO);
                 default:
                     return new GenericObject(aceO);
             }

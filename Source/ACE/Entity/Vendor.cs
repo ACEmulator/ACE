@@ -22,7 +22,7 @@ namespace ACE.Entity
     /// ** Sell Data Flow **
     /// Player.HandleActionSell->Vendor.SellItemsValidateTransaction->Player.HandleActionSellFinalTransaction->Vendor.SellItemsFinalTransaction
     /// </summary>
-    public class Vendor : WorldObject
+    public class Vendor : Creature
     {
         private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
         private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
@@ -33,6 +33,10 @@ namespace ACE.Entity
         public Vendor(AceObject aceO)
             : base(aceO)
         {
+            Vendor = true;
+            Stuck = true; Attackable = true;
+            
+            SetObjectDescriptionBools();
         }
 
         #region General Vendor functions

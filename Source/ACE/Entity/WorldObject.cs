@@ -1633,19 +1633,25 @@ namespace ACE.Entity
 
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
 
-            RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+            #region ACE-World initalizing.. to be removed later
+            ////RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
 
-            RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+            ////RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
 
-            if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
-                CurrentMotionState = null;
-            else
-                CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+            ////if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
+            ////    CurrentMotionState = null;
+            ////else
+            ////    CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
 
-            aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
-            aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
-            aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            ////aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            ////aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            ////aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            #endregion
 
+            SetPhysicsStateBools();
+
+            if (Placement == null)
+                Placement = Enum.Placement.Resting;
 
             SelectGeneratorProfiles();
             UpdateGeneratorInts();
@@ -1958,6 +1964,9 @@ namespace ACE.Entity
                         break;
                     case "radarcolor":
                         debugOutput += $"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")" + "\n";
+                        break;
+                    case "location":
+                        debugOutput += $"{prop.Name} = {obj.Location.ToLOCString()}" + "\n";
                         break;
                     default:
                         debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
@@ -3272,7 +3281,7 @@ namespace ACE.Entity
 
                 queue.When = when;
 
-                System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
+                // System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
                 GeneratorQueue.Add(queue);
 
                 if (GeneratorQueue.Count >= InitGeneratedObjects)
@@ -3290,8 +3299,8 @@ namespace ACE.Entity
                 {
                     if (GeneratorRegistry.Count >= MaxGeneratedObjects)
                     {
-                        System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
-                        System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                        // System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
+                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
                         GeneratorQueue.RemoveAt(index);
                         index++;
                         continue;
@@ -3322,11 +3331,11 @@ namespace ACE.Entity
 
                         wo.GeneratorId = Guid.Full;
 
-                        System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
+                        // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
                         GeneratorRegistry.Add(wo.Guid.Full, rNode);
-                        System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
+                        // System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
                         wo.EnterWorld();
-                        System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
                         GeneratorQueue.RemoveAt(index);
                     }
                     else
@@ -3358,6 +3367,179 @@ namespace ACE.Entity
         {
             get { return AceObject.Visibility; }
             set { AceObject.Visibility = value; }
+        }
+
+        public void SetObjectDescriptionBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+            ////None                   = 0x00000000,
+            ////Openable               = 0x00000001,
+            // if (AceObject.Openable ?? false)
+            //    Openable = true;
+            ////Inscribable            = 0x00000002,
+            if (AceObject.Inscribable.HasValue)
+                Inscribable = (bool)AceObject.Inscribable;
+            ////Stuck                  = 0x00000004,
+            if (AceObject.Stuck.HasValue)
+                Stuck = (bool)AceObject.Stuck;
+            ////Player                 = 0x00000008,
+            // if (AceObject.Player ?? false)
+            //    Player = true;
+            ////Attackable             = 0x00000010,
+            if (AceObject.Attackable.HasValue)
+                Attackable = (bool)AceObject.Attackable;
+            ////PlayerKiller           = 0x00000020,
+            // if (AceObject.PlayerKiller ?? false)
+            //    PlayerKiller = true;
+            ////HiddenAdmin            = 0x00000040,
+            if (AceObject.HiddenAdmin.HasValue)
+                HiddenAdmin = (bool)AceObject.HiddenAdmin;
+            ////UiHidden               = 0x00000080,
+            if (AceObject.UiHidden.HasValue)
+                UiHidden = (bool)AceObject.UiHidden;
+            ////Book                   = 0x00000100,
+            // if (AceObject.Book ?? false)
+            //    Book = true;
+            ////Vendor                 = 0x00000200,
+            // if (AceObject.Vendor ?? false)
+            //    Vendor = true;
+            ////PkSwitch               = 0x00000400,
+            // if (AceObject.PkSwitch ?? false)
+            //    PkSwitch = true;
+            ////NpkSwitch              = 0x00000800,
+            // if (AceObject.NpkSwitch ?? false)
+            //    NpkSwitch = true;
+            ////Door                   = 0x00001000,
+            // if (AceObject.Door ?? false)
+            //    Door = true;
+            ////Corpse                 = 0x00002000,
+            // if (AceObject.Corpse ?? false)
+            //    Corpse = true;
+            ////LifeStone              = 0x00004000,
+            // if (AceObject.LifeStone ?? false)
+            //    LifeStone = true;
+            ////Food                   = 0x00008000,
+            // if (AceObject.Food ?? false)
+            //    Food = true;
+            ////Healer                 = 0x00010000,
+            // if (AceObject.Healer ?? false)
+            //    Healer = true;
+            ////Lockpick               = 0x00020000,
+            // if (AceObject.Lockpick ?? false)
+            //    Lockpick = true;
+            ////Portal                 = 0x00040000,
+            // if (AceObject.Portal ?? false)
+            //    Portal = true;
+            ////Admin                  = 0x00100000,
+            // if (AceObject.Admin ?? false)
+            //    Admin = true;
+            ////FreePkStatus           = 0x00200000,
+            // if (AceObject.FreePkStatus ?? false)
+            //    FreePkStatus = true;
+            ////ImmuneCellRestrictions = 0x00400000,
+            if (AceObject.IgnoreHouseBarriers.HasValue)
+                ImmuneCellRestrictions = (bool)AceObject.IgnoreHouseBarriers;
+            ////RequiresPackSlot       = 0x00800000,
+            if (AceObject.RequiresBackpackSlot.HasValue)
+                RequiresPackSlot = (bool)AceObject.RequiresBackpackSlot;
+            ////Retained               = 0x01000000,
+            if (AceObject.Retained.HasValue)
+                Retained = (bool)AceObject.Retained;
+            ////PkLiteStatus           = 0x02000000,
+            // if (AceObject.PkLiteStatus ?? false)
+            //    PkLiteStatus = true;
+            ////IncludesSecondHeader   = 0x04000000,
+            // if (AceObject.IncludesSecondHeader ?? false)
+            //    IncludesSecondHeader = true;
+            ////BindStone              = 0x08000000,
+            // if (AceObject.BindStone ?? false)
+            //    BindStone = true;
+            ////VolatileRare           = 0x10000000,
+            // if (AceObject.VolatileRare ?? false)
+            //    VolatileRare = true;
+            ////WieldOnUse             = 0x20000000,
+            if (AceObject.WieldOnUse.HasValue)
+                WieldOnUse = (bool)AceObject.WieldOnUse;
+            ////WieldLeft              = 0x40000000,
+            if (AceObject.AutowieldLeft.HasValue)
+                WieldLeft = (bool)AceObject.AutowieldLeft;
+        }
+
+        private void SetPhysicsStateBools()
+        {
+            // TODO: More uncommentting and wiring up for other flags
+
+            ////Static                      = 0x00000001,
+            // if (AceObject.Static ?? false)
+            //    Static = true;
+            ////Unused1                     = 0x00000002,
+            ////Ethereal                    = 0x00000004,
+            if (AceObject.Ethereal.HasValue)
+                Ethereal = (bool)AceObject.Ethereal;
+            ////ReportCollision             = 0x00000008,
+            if (AceObject.ReportCollisions.HasValue)
+                ReportCollision = (bool)AceObject.ReportCollisions;
+            ////IgnoreCollision             = 0x00000010,
+            if (AceObject.IgnoreCollisions.HasValue)
+                IgnoreCollision = (bool)AceObject.IgnoreCollisions;
+            ////NoDraw                      = 0x00000020,
+            if (AceObject.NoDraw.HasValue)
+                NoDraw = (bool)AceObject.NoDraw;
+            ////Missile                     = 0x00000040,
+            // if (AceObject.Missile ?? false)
+            //    Missile = true;
+            ////Pushable                    = 0x00000080,
+            // if (AceObject.Pushable ?? false)
+            //    Pushable = true;
+            ////AlignPath                   = 0x00000100,
+            // if (AceObject.AlignPath ?? false)
+            //    AlignPath = true;
+            ////PathClipped                 = 0x00000200,
+            // if (AceObject.PathClipped ?? false)
+            //    PathClipped = true;
+            ////Gravity                     = 0x00000400,
+            if (AceObject.GravityStatus.HasValue)
+                Gravity = (bool)AceObject.GravityStatus;
+            ////LightingOn                  = 0x00000800,
+            if (AceObject.LightsStatus.HasValue)
+                LightingOn = (bool)AceObject.LightsStatus;
+            ////ParticleEmitter             = 0x00001000,
+            // if (AceObject.ParticleEmitter ?? false)
+            //    ParticleEmitter = true;
+            ////Unused2                     = 0x00002000,
+            ////Hidden                      = 0x00004000,
+            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
+            //    Hidden = true;
+            ////ScriptedCollision           = 0x00008000,
+            if (AceObject.ScriptedCollision.HasValue)
+                ScriptedCollision = (bool)AceObject.ScriptedCollision;
+            ////HasPhysicsBsp               = 0x00010000,
+            // if (AceObject.HasPhysicsBsp ?? false)
+            //    HasPhysicsBsp = true;
+            ////Inelastic                   = 0x00020000,
+            if (AceObject.Inelastic.HasValue)
+                Inelastic = (bool)AceObject.Inelastic;
+            ////HasDefaultAnim              = 0x00040000,
+            // if (AceObject.HasDefaultAnim ?? false)
+            //    HasDefaultAnim = true;
+            ////HasDefaultScript            = 0x00080000,
+            // if (AceObject.HasDefaultScript ?? false) // Probably based on PhysicsDescriptionFlag
+            //    HasDefaultScript = true;
+            ////Cloaked                     = 0x00100000,
+            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
+            //    Cloaked = true;
+            ////ReportCollisionAsEnviroment = 0x00200000,
+            if (AceObject.ReportCollisionsAsEnvironment.HasValue)
+                ReportCollisionAsEnviroment = (bool)AceObject.ReportCollisionsAsEnvironment;
+            ////EdgeSlide                   = 0x00400000,
+            if (AceObject.AllowEdgeSlide.HasValue)
+                EdgeSlide = (bool)AceObject.AllowEdgeSlide;
+            ////Sledding                    = 0x00800000,
+            // if (AceObject.Sledding ?? false)
+            //    Sledding = true;
+            ////Frozen                      = 0x01000000,
+            if (AceObject.IsFrozen.HasValue)
+                Frozen = (bool)AceObject.IsFrozen;
         }
     }
 }

@@ -6,6 +6,9 @@
 * Adjusted SQL scripts slightly.
 * Corrected issue with objects spawning at xxxx0000 in landblock.
 * Added null catch for objects that have generator profiles for weenies not found in the database.
+* Added Bindstone and Clothing classes.
+* Added expected object flags to currently implemented WeenieType classes.
+* Adjusted Bool recalls for WorldObjects.
 
 ### 2017-12-21
 [Ripley]

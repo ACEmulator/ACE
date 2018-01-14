@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    public class GenericObject : WorldObject
+    public class Clothing : WorldObject
     {
-        public GenericObject(AceObject aceObject)
+        public Clothing(AceObject aceObject)
             : base(aceObject)
         {
-            Stuck = true; Attackable = true;
+            Attackable = true;
             
             SetObjectDescriptionBools();
         }
