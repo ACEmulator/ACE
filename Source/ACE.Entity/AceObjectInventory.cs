@@ -32,9 +32,9 @@ namespace ACE.Entity
         ////[DbField("shade", (int)MySqlDbType.Float)]
         ////public float Shade { get; set; }
 
-        ////[JsonProperty("tryToBond")]
-        ////[DbField("tryToBond", (int)MySqlDbType.Byte)]
-        ////public sbyte TryToBond { get; set; }
+        [JsonProperty("tryToBond")]
+        [DbField("tryToBond", (int)MySqlDbType.Byte)]
+        public sbyte TryToBond { get; set; }
 
         public object Clone()
         {
