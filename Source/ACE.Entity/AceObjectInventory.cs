@@ -28,9 +28,9 @@ namespace ACE.Entity
         [DbField("palette", (int)MySqlDbType.Byte)]
         public sbyte Palette { get; set; }
 
-        [JsonProperty("shade")]
-        [DbField("shade", (int)MySqlDbType.Float)]
-        public float Shade { get; set; }
+        ////[JsonProperty("shade")]
+        ////[DbField("shade", (int)MySqlDbType.Float)]
+        ////public float Shade { get; set; }
 
         ////[JsonProperty("tryToBond")]
         ////[DbField("tryToBond", (int)MySqlDbType.Byte)]
