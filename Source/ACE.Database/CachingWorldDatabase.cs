@@ -30,7 +30,16 @@ namespace ACE.Database
 
         public AceObject GetAceObjectByWeenie(uint weenieClassId)
         {
-            return (AceObject)_weenieCache.GetOrAdd(weenieClassId, (wcId) => _wrappedDatabase.GetAceObjectByWeenie(wcId)).Clone();
+            AceObject ret;
+            try
+            {
+                ret = (AceObject)_weenieCache.GetOrAdd(weenieClassId, (wcId) => _wrappedDatabase.GetAceObjectByWeenie(wcId)).Clone();
+            }
+            catch (NullReferenceException)
+            {
+                ret = null;
+            }
+            return ret;
         }
 
         public AceObject GetObject(uint aceObjectId)

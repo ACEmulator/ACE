@@ -3306,26 +3306,34 @@ namespace ACE.Entity
 
                     var wo = WorldObjectFactory.CreateNewWorldObject(profile.WeenieClassId);
 
-                    switch (profile.WhereCreate)
+                    if (wo != null)
                     {
-                        case 4:
-                            wo.Location = new Position(profile.LandblockRaw,
-                                profile.PositionX, profile.PositionY, profile.PositionZ,
-                                profile.RotationX, profile.RotationY, profile.RotationZ, profile.RotationW);
-                            break;
-                        default:
-                            wo.Location = Location;
-                            break;
+                        switch (profile.WhereCreate)
+                        {
+                            case 4:
+                                wo.Location = new Position(profile.LandblockRaw,
+                                    profile.PositionX, profile.PositionY, profile.PositionZ,
+                                    profile.RotationX, profile.RotationY, profile.RotationZ, profile.RotationW);
+                                break;
+                            default:
+                                wo.Location = Location;
+                                break;
+                        }
+
+                        wo.GeneratorId = Guid.Full;
+
+                        System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
+                        GeneratorRegistry.Add(wo.Guid.Full, rNode);
+                        System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
+                        wo.EnterWorld();
+                        System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                        GeneratorQueue.RemoveAt(index);
                     }
-
-                    wo.GeneratorId = Guid.Full;
-
-                    System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
-                    GeneratorRegistry.Add(wo.Guid.Full, rNode);
-                    System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
-                    wo.EnterWorld();
-                    System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
-                    GeneratorQueue.RemoveAt(index);
+                    else
+                    {
+                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full} because wcid {rNode.WeenieClassId} is not in the database");
+                        GeneratorQueue.RemoveAt(index);
+                    }
                 }
                 else
                     index++;

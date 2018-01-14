@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2017-01-14
+[Ripley]
+**Changes based on 16PY database, may result in problems when using ACE-World database**
+* Adjusted SQL scripts slightly.
+* Corrected issue with objects spawning at xxxx0000 in landblock.
+* Added null catch for objects that have generator profiles for weenies not found in the database.
+
 ### 2017-12-21
 [Ripley]
 * Added Placement Enum.

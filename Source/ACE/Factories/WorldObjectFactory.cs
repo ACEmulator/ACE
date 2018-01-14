@@ -169,8 +169,16 @@ namespace ACE.Factories
 
         public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
         {
-            AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
-            return CreateWorldObject(aceObject);
+            try
+            {
+                AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
+
+                return CreateWorldObject(aceObject);
+            }
+            catch (NullReferenceException)
+            {
+                return null;
+            }
         }
 
         public static WorldObject CreateNewWorldObject(uint weenieId)
