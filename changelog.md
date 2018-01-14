@@ -9,6 +9,8 @@
 * Added Bindstone and Clothing classes.
 * Added expected object flags to currently implemented WeenieType classes.
 * Adjusted Bool recalls for WorldObjects.
+* Added Shade (and TryToBond, which appears unimportant) to Inventory.
+* Added Shade, Palette and StackSize to create command for testing.
 
 ### 2017-12-21
 [Ripley]

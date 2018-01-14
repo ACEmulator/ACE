@@ -164,18 +164,42 @@ namespace ACE.Factories
             }
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId)
+        public static WorldObject CreateWorldObject(uint weenieId, int palette = 0, float shade = 0, int stackSize = 1)
         {
             AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
+
+            if (palette > 0)
+                aceObject.PaletteTemplate = palette;
+            if (shade > 0)
+                aceObject.Shade = shade;
+            if (aceObject.StackSize.HasValue && aceObject.MaxStackSize.HasValue)
+            {
+                if (stackSize > 1)
+                    aceObject.StackSize = (ushort)stackSize;
+                if (aceObject.StackSize > aceObject.MaxStackSize)
+                    aceObject.StackSize = aceObject.MaxStackSize;
+            }
 
             return CreateWorldObject(aceObject);
         }
 
-        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid)
+        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid, int palette = 0, float shade = 0, int stackSize = 1)
         {
             try
             {
                 AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
+
+                if (palette > 0)
+                    aceObject.PaletteTemplate = palette;
+                if (shade > 0)
+                    aceObject.Shade = shade;
+                if (aceObject.StackSize.HasValue && aceObject.MaxStackSize.HasValue)
+                {
+                    if (stackSize > 1)
+                        aceObject.StackSize = (ushort)stackSize;
+                    if (aceObject.StackSize > aceObject.MaxStackSize)
+                        aceObject.StackSize = aceObject.MaxStackSize;
+                }
 
                 return CreateWorldObject(aceObject);
             }
@@ -185,9 +209,9 @@ namespace ACE.Factories
             }
         }
 
-        public static WorldObject CreateNewWorldObject(uint weenieId)
+        public static WorldObject CreateNewWorldObject(uint weenieId, int palette = 0, float shade = 0, int stackSize = 1)
         {
-            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid());
+            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid(), palette, shade, stackSize);
             return wo;
         }
     }
