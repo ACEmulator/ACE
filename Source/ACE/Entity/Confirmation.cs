@@ -2,6 +2,7 @@ using ACE.Network.Enum;
 using ACE.Network.Sequence;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ACE.Entity
@@ -20,9 +21,9 @@ namespace ACE.Entity
 
         public uint Target { get; set; }
 
-        public Confirmation(ConfirmationType confirmationType, string message, uint initiator, uint confirmationSequence, uint target)
+        public Confirmation(ConfirmationType confirmationType, string message, uint initiator, uint target)
         {
-            ConfirmationID = confirmationSequence;
+            ConfirmationID = GenerateContextId();
             ConfirmationType = confirmationType;
             Message = message;
             Initiator = initiator;
@@ -31,6 +32,22 @@ namespace ACE.Entity
 
         public Confirmation()
         { }
+
+        private uint GenerateContextId()
+        {
+            char[] chars = new char[] {'1','2','3','4','5','6','7','8','9','0' };
+            byte[] data = new byte[1];
+            RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider();
+            crypto.GetNonZeroBytes(data);
+            data = new byte[9];
+            crypto.GetNonZeroBytes(data);
+            StringBuilder sb = new StringBuilder(9);
+            foreach (byte b in data)
+            {
+                sb.Append(chars[b % (chars.Length)]);
+            }
+            return Convert.ToUInt32(sb.ToString());
+        }
 
     }
 }

@@ -46,32 +46,14 @@ namespace ACE.Entity
                 }
                 else
                 {
-
-                    byte[] bytes = inviter.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.Confirmation);
-                    byte[] tempBytes = new byte[4] { 0x0, 0x0, 0x0, 0x0 };
-                    //need to pad if not long enough for uint32
-                    if (bytes.Length < 4)
-                    {
-                        for (int x = 0; x < bytes.Length; x++)
-                        {
-                            tempBytes[4 - (x + 1)] = bytes[x];
-                        }
-                        bytes = tempBytes;
-                    }
-                    if (BitConverter.IsLittleEndian)
-                        Array.Reverse(bytes);
-
-                    uint contextID = BitConverter.ToUInt32(bytes, 0);
-
                     Confirmation confirm = new Confirmation(Network.Enum.ConfirmationType.Fellowship,
                             $"{inviter.Name} invites to you join a fellowship.", inviter.Guid.Full,
-                            contextID
-                            , newMember.Guid.Full);
+                            newMember.Guid.Full);
 
                     ConfirmationManager.AddConfirmation(confirm);
 
                     newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, Network.Enum.ConfirmationType.Fellowship,
-                        contextID, confirm.Message));
+                        confirm.ConfirmationID, confirm.Message));
                 }
                 
             }
@@ -176,6 +158,12 @@ namespace ACE.Entity
             {
                 FellowshipLeaderGuid = p.Guid.Full;
                 newLeaderName = p.Name;
+                Parallel.ForEach(FellowshipMembers, member =>
+                {
+                    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newLeaderName} now leads the fellowship", Enum.ChatMessageType.Fellowship));
+                    member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
+                    member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
+                });
             }
             else
             {
@@ -195,13 +183,13 @@ namespace ACE.Entity
                     int newLeaderIndex = rand.Next(FellowshipMembers.Count);
                     FellowshipLeaderGuid = FellowshipMembers[newLeaderIndex].Guid.Full;
                     newLeaderName = FellowshipMembers[newLeaderIndex].Name;
-
                     Parallel.ForEach(FellowshipMembers, member =>
                     {
                         member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newLeaderName} now leads the fellowship", Enum.ChatMessageType.Fellowship));
                         member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
                         member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
                     });
+
                 }
             }
         }

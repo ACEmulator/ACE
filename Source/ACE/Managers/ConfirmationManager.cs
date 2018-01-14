@@ -27,8 +27,6 @@ namespace ACE.Managers
             if (confirmations.Remove<uint, Confirmation>(contextId, out confirmationToProcess))
             { 
                 Player newMember = WorldManager.GetPlayerByGuidId(confirmationToProcess.Target);
-                //newMember.CompleteConfirmation(isConfirmationInQueue.ConfirmationType,
-                //    isConfirmationInQueue.ConfirmationID);
                 Player player = WorldManager.GetPlayerByGuidId(confirmationToProcess.Initiator);
                 switch (confirmationToProcess.ConfirmationType)
                 {
