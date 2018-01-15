@@ -18,7 +18,7 @@ namespace ACE.Entity
         public bool EvenShare;
         public bool Open; // open fellowship: 0=no, 1=yes
 
-        public List<Player> FellowshipMembers = new List<Player>(10);
+        public List<Player> FellowshipMembers = new List<Player>(9);
 
         private Dictionary<uint, DateTime> oldFellows = new Dictionary<uint, DateTime>();
         
@@ -36,6 +36,11 @@ namespace ACE.Entity
 
         public void AddFellowshipMember(Player inviter, Player newMember)
         {
+            if (FellowshipMembers.Count == 9)
+            {
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"Fellowship is already full", Enum.ChatMessageType.Fellowship));
+                return;
+            }
             if (newMember.Fellowship != null)
             {
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", Enum.ChatMessageType.Fellowship));
@@ -65,15 +70,22 @@ namespace ACE.Entity
         {
             if (response)
             {
-                FellowshipMembers.Add(player);
-                CalculateEvenSplit();
-                Parallel.ForEach(FellowshipMembers, (member) =>
+                if (FellowshipMembers.Count == 9)
                 {
-                    inviter.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(inviter.Session, player, ShareXP));
-                    inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
-                });
-                player.Fellowship = inviter.Fellowship;
-                SendMessageAndUpdate($"{player.Name} joined the fellowship");
+                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", Enum.ChatMessageType.Fellowship));
+                }
+                else
+                {
+                    FellowshipMembers.Add(player);
+                    CalculateEvenSplit();
+                    Parallel.ForEach(FellowshipMembers, (member) =>
+                    {
+                        inviter.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(inviter.Session, player, ShareXP));
+                        inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
+                    });
+                    player.Fellowship = inviter.Fellowship;
+                    SendMessageAndUpdate($"{player.Name} joined the fellowship");
+                }
             }
             else
             {
