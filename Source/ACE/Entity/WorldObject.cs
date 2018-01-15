@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ACE.Factories;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Entity
 {
@@ -1652,6 +1653,8 @@ namespace ACE.Entity
 
             if (Placement == null)
                 Placement = Enum.Placement.Resting;
+
+            GetClothingBase();
 
             SelectGeneratorProfiles();
             UpdateGeneratorInts();
@@ -3540,6 +3543,81 @@ namespace ACE.Entity
             ////Frozen                      = 0x01000000,
             if (AceObject.IsFrozen.HasValue)
                 Frozen = (bool)AceObject.IsFrozen;
+        }
+
+        public int? PaletteTemplate
+        {
+            get { return AceObject.PaletteTemplate; }
+            set { AceObject.PaletteTemplate = value; }
+        }
+
+        public double? Shade
+        {
+            get { return AceObject.Shade; }
+            set { AceObject.Shade = value; }
+        }
+
+        public void GetClothingBase()
+        {
+            ClothingTable item;
+            if (ClothingBase.HasValue)
+                item = ClothingTable.ReadFromDat((uint)ClothingBase);
+            else
+            {
+                return;
+            }
+
+            if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+            // Check if the player model has data. Gear Knights, this is usually you.
+            {
+                // Add the model and texture(s)
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                {
+                    byte partNum = (byte)t.Index;
+                    AddModel((byte)t.Index, (ushort)t.ModelId);
+                    foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                        AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                }
+
+                if (item.ClothingSubPalEffects.Count > 0)
+                {
+                    int size = item.ClothingSubPalEffects.Count;
+                    int palCount = size;
+
+                    CloSubPalEffect itemSubPal;
+                    int palOption = 0;
+                    if (PaletteTemplate.HasValue)
+                        palOption = (int)PaletteTemplate;
+                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                    {
+                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                    }
+                    else
+                    {
+                        itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
+                    }
+
+                    if (itemSubPal.Icon > 0)
+                        IconId = itemSubPal.Icon;
+
+                    float shade = 0;
+                    if (Shade.HasValue)
+                        shade = (float)Shade;
+                    for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                    {
+                        PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+
+                        for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                }
+            }
         }
     }
 }

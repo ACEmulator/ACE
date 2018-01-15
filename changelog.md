@@ -11,6 +11,7 @@
 * Adjusted Bool recalls for WorldObjects.
 * Added Shade (and TryToBond, which appears unimportant) to Inventory.
 * Added Shade, Palette and StackSize to create command for testing.
+* Added Palette and Shade to WorldObject and use them in conjunction with ClothingBaseDID to set ObjDesc.
 
 ### 2017-12-21
 [Ripley]
