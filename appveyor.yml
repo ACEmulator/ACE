@@ -24,8 +24,7 @@ test_script:
 #- cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #
-# REMOVING ACE.Tests until root problem is solved.
-#- cmd: vstest.console "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
+- cmd: vstest.console "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 - cmd: vstest.console "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #
 #
