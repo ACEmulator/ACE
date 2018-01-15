@@ -537,11 +537,36 @@ namespace ACE.Entity
             return obj;
         }
 
+        public void EarnXPFromFellowship(UInt64 amount)
+        {
+            UpdateXpAndLevel(amount);
+        }
+
+        public void EarnXP(UInt64 amount, bool fixedAmount = false, bool sharable = true)
+        {
+            if (sharable && Fellowship != null && Fellowship.ShareXP)
+            {
+                Fellowship.SplitXp(amount, fixedAmount);
+            }
+            else
+            {
+                UpdateXpAndLevel(amount);
+            }
+        }
+
+
         /// <summary>
         /// Raise the available XP by a specified amount
         /// </summary>
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
-        public void GrantXp(ulong amount)
+        public void GrantXp(UInt64 amount)
+        {
+            UpdateXpAndLevel(amount);
+            var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement);
+            Session.Network.EnqueueSend(message);
+        }
+
+        private void UpdateXpAndLevel(UInt64 amount)
         {
             // until we are max level we must make sure that we send
             XpTable xpTable = XpTable.ReadFromDat();
@@ -558,8 +583,7 @@ namespace ACE.Entity
                 CheckForLevelup();
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, Character.TotalExperience);
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
-                var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement);
-                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
         }
 

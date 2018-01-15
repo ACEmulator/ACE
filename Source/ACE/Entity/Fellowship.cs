@@ -18,8 +18,10 @@ namespace ACE.Entity
         public bool EvenShare;
         public bool Open; // open fellowship: 0=no, 1=yes
 
-        public List<Player> FellowshipMembers = new List<Player>(9);
+        public List<Player> FellowshipMembers = new List<Player>(10);
 
+        private Dictionary<uint, DateTime> oldFellows = new Dictionary<uint, DateTime>();
+        
         public Fellowship(Player leader, string fellowshipName, bool shareXP)
         {
             ShareXP = shareXP;
@@ -71,12 +73,7 @@ namespace ACE.Entity
                     inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
                 });
                 player.Fellowship = inviter.Fellowship;
-                Parallel.ForEach(FellowshipMembers, member =>
-                {
-                    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} joined the fellowship", Enum.ChatMessageType.Fellowship));
-                    member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                    member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-                });
+                SendMessageAndUpdate($"{player.Name} joined the fellowship");
             }
             else
             {
@@ -94,8 +91,23 @@ namespace ACE.Entity
             FellowshipMembers.Remove(player);
             player.Fellowship = null;
             CalculateEvenSplit();
+            UpdateAllMembers();
+        }
+
+        private void UpdateAllMembers()
+        {
             Parallel.ForEach(FellowshipMembers, member =>
             {
+                member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
+                member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
+            });
+        }
+
+        private void SendMessageAndUpdate(string message)
+        {
+            Parallel.ForEach(FellowshipMembers, member =>
+            {
+                member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, Enum.ChatMessageType.Fellowship));
                 member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             });
@@ -125,29 +137,21 @@ namespace ACE.Entity
                 else
                 {                 
                     FellowshipMembers.Remove(player);
+                    oldFellows.Add(player.Guid.Full, DateTime.Now);
                     player.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(player.Session, player.Guid.Full));
+                    //member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, player.Guid.Full));
                     CalculateEvenSplit();
                     AssignNewLeader(null);
-                    Parallel.ForEach(FellowshipMembers, member =>
-                    {
-                        member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, player.Guid.Full));
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} left the fellowship", Enum.ChatMessageType.Fellowship));
-                        member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                       // member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-                    });
+                    SendMessageAndUpdate($"{player.Name} left the fellowship");
                 }
             }
             else
             {
                 FellowshipMembers.Remove(player);
+                oldFellows.Add(player.Guid.Full, DateTime.Now);
                 player.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(player.Session, player.Guid.Full));
                 CalculateEvenSplit();
-                Parallel.ForEach(FellowshipMembers, member =>
-                {
-                    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} left the fellowship", Enum.ChatMessageType.Fellowship));
-                    member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                    member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-                });
+                SendMessageAndUpdate($"{player.Name} left the fellowship");
             }
         }
 
@@ -158,24 +162,15 @@ namespace ACE.Entity
             {
                 FellowshipLeaderGuid = p.Guid.Full;
                 newLeaderName = p.Name;
-                Parallel.ForEach(FellowshipMembers, member =>
-                {
-                    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newLeaderName} now leads the fellowship", Enum.ChatMessageType.Fellowship));
-                    member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                    member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-                });
+                SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
+
             }
             else
             {
                 if (p != null && p.Fellowship.FellowshipLeaderGuid == this.FellowshipLeaderGuid)
                 {
                     FellowshipLeaderGuid = p.Guid.Full;
-                    Parallel.ForEach(FellowshipMembers, member =>
-                    {
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{p.Name} now leads the fellowship", Enum.ChatMessageType.Fellowship));
-                        member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                        member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-                    });
+                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
                 }
                 else if (FellowshipMembers.Count > 0)
                 {
@@ -183,13 +178,7 @@ namespace ACE.Entity
                     int newLeaderIndex = rand.Next(FellowshipMembers.Count);
                     FellowshipLeaderGuid = FellowshipMembers[newLeaderIndex].Guid.Full;
                     newLeaderName = FellowshipMembers[newLeaderIndex].Name;
-                    Parallel.ForEach(FellowshipMembers, member =>
-                    {
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newLeaderName} now leads the fellowship", Enum.ChatMessageType.Fellowship));
-                        member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                        member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-                    });
-
+                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
                 }
             }
         }
@@ -198,13 +187,7 @@ namespace ACE.Entity
         {
             Open = isOpen;
             string openness = Open ? "open" : "closed";
-
-            Parallel.ForEach(FellowshipMembers, member =>
-            {
-                member.Session.Network.EnqueueSend(new GameMessageSystemChat($"Fellowship is now {openness}", Enum.ChatMessageType.Fellowship));
-                member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
-                member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-            });
+            SendMessageAndUpdate($"Fellowship is now {openness}");
         }
 
         private void CalculateEvenSplit()
@@ -230,6 +213,91 @@ namespace ACE.Entity
                 }
             }
             EvenShare = true;
+        }
+
+        internal void SplitXp(UInt64 amount, bool fixedAmount)
+        {
+            if (EvenShare)
+            {
+                UInt64 shareAmount = amount;
+
+                if (!fixedAmount)
+                {
+                    shareAmount = (UInt64)((double)shareAmount * GetMemberSharePercent());
+                }
+                else
+                {
+                    shareAmount = (amount / (UInt64)FellowshipMembers.Count);
+                }
+
+                Parallel.ForEach(FellowshipMembers, member =>
+                {
+                    if (!IsPlayerInside(member) && !fixedAmount)
+                    {
+                        shareAmount = (UInt64)(shareAmount * InRangeOfLeader(member));
+                    }
+                    member.EarnXPFromFellowship(shareAmount);
+                    
+                });
+            }
+            else
+            {
+                // Calc distrubtion %
+                double totalLevels = 0;
+                foreach (Player p in FellowshipMembers)
+                {
+                    totalLevels += p.Level;
+                }
+                double percentPerLevel = totalLevels / FellowshipMembers.Count;
+                Parallel.ForEach(FellowshipMembers, member =>
+                {
+                    if (!IsPlayerInside(member))
+                    {
+                        UInt64 playerTotal = (UInt64)(member.Level * percentPerLevel * InRangeOfLeader(member));
+                        member.EarnXPFromFellowship(playerTotal);
+                    }
+                });
+            }
+        }
+
+        internal double GetMemberSharePercent()
+        {
+            switch (FellowshipMembers.Count)
+            {
+                case 1:
+                    return 1.0;
+                case 2:
+                    return .75;
+                case 3:
+                    return .6;
+                case 4:
+                    return .55;
+                case 5:
+                    return .5;
+                case 6:
+                    return .45;
+                case 7:
+                    return .4;
+                case 8:
+                    return .35;
+                case 9:
+                    return .3;
+            }
+            return 1.0;
+        }
+
+        internal double InRangeOfLeader(Player player)
+        {
+            Position leaderPosition = WorldManager.GetPlayerByGuidId(FellowshipLeaderGuid).Location;
+            Position memberPosition = player.Location;
+            return 1-( Math.Abs(memberPosition.DistanceTo(leaderPosition)) / 600);
+        }
+
+        internal bool IsPlayerInside(Player player)
+        {
+            if(player.Location.Indoors)
+                return true;
+            return false;
         }
     }
 }
