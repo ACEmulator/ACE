@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum;
 using ACE.Entity;
 using Newtonsoft.Json;
@@ -102,6 +102,7 @@ namespace ACE.Entity
             Status = status;
             Ranks = ranks;
             ExperienceSpent = xpSpent;
+            SetDirtyFlags();
         }
 
         public CreatureSkill(ICreatureStats character, AceObjectPropertiesSkill skill)
