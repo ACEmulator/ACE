@@ -1,7 +1,9 @@
+using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
+using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.Enum;
@@ -16,8 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using ACE.Factories;
-using ACE.DatLoader.Entity;
 
 namespace ACE.Entity
 {
@@ -1661,6 +1661,8 @@ namespace ACE.Entity
             QueueGenerator();
 
             QueueNextHeartBeat();
+
+            GenerateWieldList();
         }
 
         internal void SetInventoryForVendor(WorldObject inventoryItem)
@@ -3618,6 +3620,342 @@ namespace ACE.Entity
                     }
                 }
             }
+        }
+
+        public void GenerateWieldList()
+        {
+            foreach (var item in WieldList)
+            {
+                if (WieldedObjects == null)
+                    WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
+
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId, item.Palette, item.Shade);
+
+                wo.CurrentWieldedLocation = wo.ValidLocations;
+                wo.WielderId = Guid.Full;
+
+                WieldedObjects.Add(wo.guid, wo);                
+            }
+
+            if (WieldedObjects != null)
+                UpdateBaseAppearance();
+        }
+
+        public void UpdateBaseAppearance()
+        {
+            ClearObjDesc();
+            AddBaseModelData(); // Add back in the facial features, hair and skin palette
+
+            var coverage = new List<uint>();
+
+            var clothing = new Dictionary<int, WorldObject>();
+            foreach (var wo in WieldedObjects.Values)
+            {
+                if ((wo.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                    clothing.Add((int)wo.Priority, wo);
+            }
+            foreach (var w in clothing.OrderBy(i => i.Key))
+            {
+                // We can wield things that are not part of our model, only use those items that can cover our model.
+                if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                {
+                    ClothingTable item;
+                    if (w.Value.ClothingBase != null)
+                        item = ClothingTable.ReadFromDat((uint)w.Value.ClothingBase);
+                    else
+                    {
+                        return;
+                    }
+
+                    if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+                    // Check if the player model has data. Gear Knights, this is usually you.
+                    {
+                        // Add the model and texture(s)
+                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                        foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                        {
+                            byte partNum = (byte)t.Index;
+                            AddModel((byte)t.Index, (ushort)t.ModelId);
+                            coverage.Add(partNum);
+                            foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                                AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                        }
+
+                        if (item.ClothingSubPalEffects.Count > 0)
+                        {
+                            int size = item.ClothingSubPalEffects.Count;
+                            int palCount = size;
+
+                            CloSubPalEffect itemSubPal;
+                            int palOption = 0;
+                            if (w.Value.PaletteTemplate.HasValue)
+                                palOption = (int)w.Value.PaletteTemplate;
+                            if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                            {
+                                itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                            }
+                            else
+                            {
+                                itemSubPal = item.ClothingSubPalEffects[0];
+                            }
+
+                            float shade = 0;
+                            if (w.Value.Shade.HasValue)
+                                shade = (float)w.Value.Shade;
+                            for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                            {
+                                PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                                ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+
+                                for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                {
+                                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                    AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Add the "naked" body parts. These are the ones not already covered.
+            if (SetupTableId != null)
+            {
+                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
+                for (byte i = 0; i < baseSetup.Parts.Count; i++)
+                {
+                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                        AddModel(i, baseSetup.Parts[i]);
+                }
+            }
+        }
+
+        private void AddBaseModelData()
+        {
+            if (WeenieType == WeenieType.Creature || WeenieType == WeenieType.Vendor)
+                if (CreatureType == Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
+                    RandomizeFace();
+
+            if (PaletteBaseId == null)
+                PaletteBaseId = 0x0400007e; // Default BasePalette
+        }
+
+        public int? Heritage
+        {
+            get { return AceObject.Heritage; }
+            set { AceObject.Heritage = value; }
+        }
+
+        public int? Gender
+        {
+            get { return AceObject.Gender; }
+            set { AceObject.Gender = value; }
+        }
+
+        public string HeritageGroup
+        {
+            get { return AceObject.HeritageGroup; }
+            set { AceObject.HeritageGroup = value; }
+        }
+
+        public string Sex
+        {
+            get { return AceObject.Sex; }
+            set { AceObject.Sex = value; }
+        }
+
+        public uint? HeadObjectDID
+        {
+            get { return AceObject.HeadObjectDID ?? null; }
+            set { AceObject.HeadObjectDID = value; }
+        }
+
+        public uint? HairTextureDID
+        {
+            get { return AceObject.HairTextureDID ?? null; }
+            set { AceObject.HairTextureDID = value; }
+        }
+
+        public uint? DefaultHairTextureDID
+        {
+            get { return AceObject.DefaultHairTextureDID ?? null; }
+            set { AceObject.DefaultHairTextureDID = value; }
+        }
+
+        public uint? HairPaletteDID
+        {
+            get { return AceObject.HairPaletteDID ?? null; }
+            set { AceObject.HairPaletteDID = value; }
+        }
+
+        public uint? SkinPaletteDID
+        {
+            get { return AceObject.SkinPaletteDID ?? null; }
+            set { AceObject.SkinPaletteDID = value; }
+        }
+
+        public uint? EyesPaletteDID
+        {
+            get { return AceObject.EyesPaletteDID ?? null; }
+            set { AceObject.EyesPaletteDID = value; }
+        }
+
+        public uint? EyesTextureDID
+        {
+            get { return AceObject.EyesTextureDID ?? null; }
+            set { AceObject.EyesTextureDID = value; }
+        }
+
+        public uint? DefaultEyesTextureDID
+        {
+            get { return AceObject.DefaultEyesTextureDID ?? null; }
+            set { AceObject.DefaultEyesTextureDID = value; }
+        }
+
+        public uint? NoseTextureDID
+        {
+            get { return AceObject.NoseTextureDID ?? null; }
+            set { AceObject.NoseTextureDID = value; }
+        }
+
+        public uint? DefaultNoseTextureDID
+        {
+            get { return AceObject.DefaultNoseTextureDID ?? null; }
+            set { AceObject.DefaultNoseTextureDID = value; }
+        }
+
+        public uint? MouthTextureDID
+        {
+            get { return AceObject.MouthTextureDID ?? null; }
+            set { AceObject.MouthTextureDID = value; }
+        }
+
+        public uint? DefaultMouthTextureDID
+        {
+            get { return AceObject.DefaultMouthTextureDID ?? null; }
+            set { AceObject.DefaultMouthTextureDID = value; }
+        }
+
+        public void RandomizeFace()
+        {
+            CharGen cg = CharGen.ReadFromDat();
+
+            if (!Heritage.HasValue)
+            {
+                if (HeritageGroup != "")
+                {
+                    HeritageGroup parsed = (HeritageGroup)System.Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
+                    if (parsed != 0)
+                        Heritage = (int)parsed;
+                }
+            }
+
+            if (!Gender.HasValue)
+            {
+                if (Sex != "")
+                {
+                    Gender parsed = (Gender)System.Enum.Parse(typeof(Gender), Sex);
+                    if (parsed != 0)
+                        Gender = (int)parsed;
+                }
+            }
+
+            SexCG sex = cg.HeritageGroups[(int)Heritage].SexList[(int)Gender];
+
+            PaletteBaseId = sex.BasePalette;
+
+            Appearance appearance = new Appearance();
+
+            appearance.HairStyle = 1;
+            appearance.HairColor = 1;
+            appearance.HairHue = 1;
+
+            appearance.EyeColor = 1;
+            appearance.Eyes = 1;
+
+            appearance.Mouth = 1;
+            appearance.Nose = 1;
+
+            appearance.SkinHue = 1;
+
+            // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+            int size = sex.HairStyleList.Count / 3; // Why divide by 3 you ask? Because AC runtime generated characters didn't have much range in hairstyles.
+            Random rand = new Random();
+            appearance.HairStyle = (uint)rand.Next(size);
+
+            HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
+            bool isBald = hairstyle.Bald;
+
+            size = sex.HairColorList.Count;
+            appearance.HairColor = (uint)rand.Next(size);
+            appearance.HairHue = rand.NextDouble();
+
+            size = sex.EyeColorList.Count;
+            appearance.EyeColor = (uint)rand.Next(size);
+            size = sex.EyeStripList.Count();
+            appearance.Eyes = (uint)rand.Next(size);
+
+            size = sex.MouthStripList.Count();
+            appearance.Mouth = (uint)rand.Next(size);
+
+            size = sex.NoseStripList.Count();
+            appearance.Nose = (uint)rand.Next(size);
+
+            appearance.SkinHue = rand.NextDouble();
+
+            //// Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+            ////if (hairstyle.AlternateSetup > 0)
+            ////    character.SetupTableId = hairstyle.AlternateSetup;
+
+            if (!EyesTextureDID.HasValue)
+                EyesTextureDID = sex.GetEyeTexture(appearance.Eyes, isBald);
+            if (!DefaultEyesTextureDID.HasValue)
+                DefaultEyesTextureDID = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
+            if (!NoseTextureDID.HasValue)
+                NoseTextureDID = sex.GetNoseTexture(appearance.Nose);
+            if (!DefaultNoseTextureDID.HasValue)
+                DefaultNoseTextureDID = sex.GetDefaultNoseTexture(appearance.Nose);
+            if (!MouthTextureDID.HasValue)
+                MouthTextureDID = sex.GetMouthTexture(appearance.Mouth);
+            if (!DefaultMouthTextureDID.HasValue)
+                DefaultMouthTextureDID = sex.GetDefaultMouthTexture(appearance.Mouth);
+            if (!HairTextureDID.HasValue)
+                HairTextureDID = sex.GetHairTexture(appearance.HairStyle);
+            if (!DefaultHairTextureDID.HasValue)
+                DefaultHairTextureDID = sex.GetDefaultHairTexture(appearance.HairStyle);
+            if (!HeadObjectDID.HasValue)
+                HeadObjectDID = sex.GetHeadObject(appearance.HairStyle);
+
+            // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
+            if (!SkinPaletteDID.HasValue)
+                SkinPaletteDID = skinPalSet.GetPaletteID(appearance.SkinHue);
+
+            // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
+            if (!HairPaletteDID.HasValue)
+                HairPaletteDID = hairPalSet.GetPaletteID(appearance.HairHue);
+
+            // Eye Color
+            if (!EyesPaletteDID.HasValue)
+                EyesPaletteDID = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
+
+            // Hair/head
+            AddModel(0x10, (uint)HeadObjectDID);
+            AddTexture(0x10, (uint)DefaultHairTextureDID, (uint)HairTextureDID);
+            AddPalette((uint)HairPaletteDID, 0x18, 0x8);
+
+            // Skin
+            //// PaletteBaseId = Character.PaletteId;
+            AddPalette((uint)SkinPaletteDID, 0x0, 0x18);
+
+            // Eyes
+            AddTexture(0x10, (uint)DefaultEyesTextureDID, (uint)EyesTextureDID);
+            AddPalette((uint)EyesPaletteDID, 0x20, 0x8);
+
+            // Nose & Mouth
+            AddTexture(0x10, (uint)DefaultNoseTextureDID, (uint)NoseTextureDID);
+            AddTexture(0x10, (uint)DefaultMouthTextureDID, (uint)MouthTextureDID);
         }
     }
 }
