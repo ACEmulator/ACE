@@ -29,5 +29,5 @@ test_script:
 #
 #
 # Alternate test engine:
-- cmd: dotnet test --no-build "Source\ACE.Tests"
-- cmd: dotnet test --no-build "Source\ACE.Database.Tests"
+# - cmd: dotnet test --no-build "Source\ACE.Tests"
+# - cmd: dotnet test --no-build "Source\ACE.Database.Tests"
