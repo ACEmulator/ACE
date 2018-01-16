@@ -18,6 +18,7 @@ using ACE.Network.Motion;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using System.Diagnostics;
+using ACE.Network.Enum;
 
 namespace ACE.Entity
 {
@@ -40,7 +41,7 @@ namespace ACE.Entity
         private static readonly Position MarketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
         private static readonly float PickUpDistance = .75f;
 
-        public Session Session { get; }
+        public Session Session { get; private set; }
 
         /// <summary>
         /// This will be false when in portal space
@@ -92,9 +93,62 @@ namespace ACE.Entity
         public Fellowship Fellowship;
 
         // todo: Figure out if this is the best place to do this, and whether there are concurrency issues associated with it.
-        public void CreateFellowship(string fellowshipName, bool shareXP)
+        public void FellowshipCreate(string fellowshipName, bool shareXP)
         {
             this.Fellowship = new Fellowship(this, fellowshipName, shareXP);
+        }
+
+        public void FellowshipSetOpen(bool openness)
+        {
+            if (Fellowship != null)
+                Fellowship.UpdateOpenness(openness);
+        }
+
+        public void FellowshipQuit(bool disband)
+        {
+            Fellowship.QuitFellowship(this, disband);
+            Fellowship = null;
+        }
+
+        public void FellowshipDismissPlayer(Player player)
+        {
+            if (this.Guid.Full == Fellowship.FellowshipLeaderGuid)
+            {
+                Fellowship.RemoveFellowshipMember(player);
+            }
+            else
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
+            }
+        }
+
+        public void FellowshipRecruit(Player newPlayer)
+        {
+            if (newPlayer.GetCharacterOption(CharacterOption.IgnoreFellowshipRequests))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowing requests.", ChatMessageType.Fellowship));
+            }
+            else if (Fellowship != null)
+            {
+                if (this.Guid.Full == Fellowship.FellowshipLeaderGuid || Fellowship.Open)
+                {
+                    Fellowship.AddFellowshipMember(this, newPlayer);
+                }
+                else
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
+                }
+            }
+        }
+
+        public void FellowshipNewLeader(Player newLeader)
+        {
+            Fellowship.AssignNewLeader(newLeader);
+        }
+
+        public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
+        {
+            Session.Network.EnqueueSend(new GameMessageConfirmationDone(this, confirmationType, contextId));
         }
 
         private AceCharacter Character { get { return AceObject as AceCharacter; } }
@@ -486,11 +540,36 @@ namespace ACE.Entity
             return obj;
         }
 
+        public void EarnXPFromFellowship(UInt64 amount)
+        {
+            UpdateXpAndLevel(amount);
+        }
+
+        public void EarnXP(UInt64 amount, bool fixedAmount = false, bool sharable = true)
+        {
+            if (sharable && Fellowship != null && Fellowship.ShareXP)
+            {
+                Fellowship.SplitXp(amount, fixedAmount);
+            }
+            else
+            {
+                UpdateXpAndLevel(amount);
+            }
+        }
+
+
         /// <summary>
         /// Raise the available XP by a specified amount
         /// </summary>
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
-        public void GrantXp(ulong amount)
+        public void GrantXp(UInt64 amount)
+        {
+            UpdateXpAndLevel(amount);
+            var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement);
+            Session.Network.EnqueueSend(message);
+        }
+
+        private void UpdateXpAndLevel(UInt64 amount)
         {
             // until we are max level we must make sure that we send
             XpTable xpTable = XpTable.ReadFromDat();
@@ -507,8 +586,7 @@ namespace ACE.Entity
                 CheckForLevelup();
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, Character.TotalExperience);
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
-                var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate, message);
+                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
         }
 
@@ -1523,6 +1601,11 @@ namespace ACE.Entity
             Character.SetCharacterOption(option, value);
         }
 
+        public bool GetCharacterOption(CharacterOption option)
+        {
+            return Character.GetCharacterOption(option);
+        }
+
         /// <summary>
         /// Set the currently position of the character, to later save in the database.
         /// </summary>
@@ -1866,8 +1949,11 @@ namespace ACE.Entity
             float logoutAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LogOut);
             logoutChain.AddDelaySeconds(logoutAnimationLength);
 
-            // remove the player from landblock management -- after the animation has run
-            logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
+            if (CurrentLandblock != null)
+            {
+                // remove the player from landblock management -- after the animation has run
+                logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
+            }
 
             return logoutChain;
         }
@@ -1878,6 +1964,11 @@ namespace ACE.Entity
         /// </summary>
         private void LogoutInternal(bool clientSessionTerminatedAbruptly)
         {
+            if (Fellowship != null)
+            {
+                FellowshipQuit(false);
+            }
+
             if (!IsOnline)
                 return;
 

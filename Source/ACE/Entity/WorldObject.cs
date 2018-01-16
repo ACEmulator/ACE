@@ -1633,6 +1633,7 @@ namespace ACE.Entity
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
 
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
 
             #region ACE-World initalizing.. to be removed later
             ////RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them

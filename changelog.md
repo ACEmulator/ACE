@@ -15,6 +15,26 @@
 * Added proper wielding for clothing on weenies and fixed clothing priority for them.
 * Added face randomization for Human based NPCs.
 
+### 2018-01-14
+[Morosity/Spazmodica]
+* Fellowships functionality updated to add Recruit, Dismiss, Disband, Make new leader, Quit, and Openness
+* On leader quit (not disband), random player picked as new leader
+* When limit hit of 9, error message will appear on trying to recruit.
+* Join requests outstanding that could put fellowship above 9 will not get added if accepted
+* Character options of "Ignore" and "Auto accept" fellowship requests saved and read
+* Confirmations added for character with "ignore" and "auto accept" off
+* ConfirmationRequest GameEvent added to send requests to client
+* ConfirmationResponse GameAction added to send responses to server
+* ConfirmationResponse GameAction has handling for other confirmation types
+* Fellowship xp dist handled for both evensplit fellows as well as proportional
+* Fellowship xp dist handled for up to 2.5 coords away with appropriate loss of amount of xp based upon distance
+* EarnXP method added to Player with params of fixedAmount bool and sharable bool
+* FixedAmount does not provide bonus xp when passed to fellowships
+* Sharable provides ability to not share xp reward
+* EarnXPFromFellowship method to bypass loop of trying to split xp through fellowship again
+* Fellowship enums renamed to start with Fellowship for easier location
+* GameActions, GameMessages, and GameEvents for fellowships names updated for easier location
+
 ### 2017-12-21
 [Ripley]
 * Added Placement Enum.
