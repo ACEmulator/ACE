@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Network.Enum;
 
 namespace ACE.Network.GameAction.Actions
@@ -14,6 +14,12 @@ namespace ACE.Network.GameAction.Actions
             {
                 case CharacterOption.AppearOffline:
                     session.Player.AppearOffline(optionValue);
+                    break;
+                case CharacterOption.AutomaticallyAcceptFellowshipRequests:
+                    session.Player.SetCharacterOption(CharacterOption.AutomaticallyAcceptFellowshipRequests, optionValue);
+                    break;
+                case CharacterOption.IgnoreFellowshipRequests:
+                    session.Player.SetCharacterOption(CharacterOption.IgnoreFellowshipRequests, optionValue);
                     break;
 
                 default:

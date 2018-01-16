@@ -5,15 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using ACE.Network.GameMessages.Messages;
 using ACE.Common.Extensions;
+using ACE.Managers;
 
 namespace ACE.Network.GameAction.Actions
 {
-    public class GameActionQuitFellowship
+    public class GameActionFellowshipQuit
     {
-        [GameAction(GameActionType.QuitFellowship)]
+        [GameAction(GameActionType.FellowshipQuit)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Network.EnqueueSend(new GameMessageFellowshipQuit(session));
+            bool disbandFellowship = message.Payload.ReadUInt32() > 0;
+
+            session.Player.FellowshipQuit(disbandFellowship);
+            session.Player.Fellowship = null;
         }
     }
 }

@@ -50,10 +50,9 @@ namespace ACE.Network.GameMessages.Messages
             Writer.WriteString16L(fellowship.FellowshipName);
             Writer.Write(fellowship.FellowshipLeaderGuid);
             Writer.Write(Convert.ToUInt32(fellowship.ShareXP));
+            Writer.Write(Convert.ToUInt32(fellowship.EvenShare));
             Writer.Write(Convert.ToUInt32(fellowship.Open));
 
-            // todo: fellows departed?
-            Writer.Write(0u);
             Writer.Write(0u);
 
             // End of meaningful data?

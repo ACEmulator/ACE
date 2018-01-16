@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using System.Collections.Generic;
@@ -429,6 +429,14 @@ namespace ACE.Entity
                 SetCharacterOptions1((CharacterOptions1)System.Enum.Parse(typeof(CharacterOptions1), option.ToString()), value);
             else
                 SetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
+        }
+
+        public bool GetCharacterOption(CharacterOption option)
+        {
+            if (option.GetCharacterOptions1Attribute() != null)
+                return GetCharacterOptions1((CharacterOptions1)System.Enum.Parse(typeof(CharacterOptions1), option.ToString()));
+            else
+                return GetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()));
         }
 
         /// <summary>
