@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -181,6 +181,22 @@ namespace ACE.Managers
                     return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
 
                 return sessions.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        public static Player GetPlayerByGuidId(uint playerId, bool isOnlineRequired = true)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                if (isOnlineRequired)
+                    return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId).Player;
+
+                return sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId).Player;
             }
             finally
             {

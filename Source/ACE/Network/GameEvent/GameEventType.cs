@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.GameEvent
+namespace ACE.Network.GameEvent
 {
     public enum GameEventType
     {
@@ -41,7 +41,7 @@
         UpdateHealth                           = 0x01C0,
         QueryAgeResponse                       = 0x01C3,
         UseDone                                = 0x01C7,
-        FellowshipFellowupdateDone             = 0x01C9,
+        FellowshipFellowUpdateDone             = 0x01C9,
         FellowshipFellowStatsDone              = 0x01CA,
         ItemAppraiseDone                       = 0x01CB,
         Emote                                  = 0x01E2,
@@ -86,7 +86,7 @@
         Tell                                   = 0x02BD,
         FellowshipFullUpdate                   = 0x02BE,
         FellowshipDisband                      = 0x02BF,
-        FellowshipUpdate                       = 0x02C0,
+        FellowshipUpdateFellow                 = 0x02C0,
         MagicUpdateSpell                       = 0x02C1,
         MagicUpdateEnchantment                 = 0x02C2,
         MagicRemoveEnchantment                 = 0x02C3,
