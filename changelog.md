@@ -4,9 +4,12 @@
 [Cydrith]
 * Changed Licence from GPL V3 to AGPL V3. Additional licence restrictions introduced by AGPL apply from this point forward.
 
+### 2018-01-18
+[Morosity/Spazmodica]
+* Fixed range xp calculation for members based upon distance to leader
+
 ### 2018-01-14
 [Morosity/Spazmodica]
-
 * Fellowships functionality updated to add Recruit, Dismiss, Disband, Make new leader, Quit, and Openness
 * On leader quit (not disband), random player picked as new leader
 * When limit hit of 9, error message will appear on trying to recruit.
