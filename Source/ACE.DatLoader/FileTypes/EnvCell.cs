@@ -84,8 +84,6 @@ namespace ACE.DatLoader.FileTypes
                         cp.EnvironmentId = datReader.ReadUInt16();
                         cp.OtherCellId = datReader.ReadUInt16();
                         cp.OtherPortalId = datReader.ReadUInt16();
-                        cp.ExactMatch = (byte)(cp.Flags & 1);
-                        cp.PortalSide = (byte)(cp.Flags & 2);
                         c.CellPortals.Add(cp);
                     }
 
