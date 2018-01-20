@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
-2018-01-14
+###2018-01-18
+* Fixed range xp calculation for members based upon distance to leader
+
+###2018-01-14
 [Morosity/Spazmodica]
 
 * Fellowships functionality updated to add Recruit, Dismiss, Disband, Make new leader, Quit, and Openness
