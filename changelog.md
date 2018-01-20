@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
-2018-01-14
+### 2018-01-19
+[Cydrith]
+* Changed Licence from GPL V3 to AGPL V3. Additional licence restrictions introduced by AGPL apply from this point forward.
+
+### 2018-01-14
 [Morosity/Spazmodica]
 
 * Fellowships functionality updated to add Recruit, Dismiss, Disband, Make new leader, Quit, and Openness
