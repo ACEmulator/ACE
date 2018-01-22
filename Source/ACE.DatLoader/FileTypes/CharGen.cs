@@ -8,8 +8,7 @@ namespace ACE.DatLoader.FileTypes
     public class CharGen : IUnpackable
     {
         public int Did { get; private set; }
-        public List<List<Loc>> StarterAreas { get; } = new List<List<Loc>>();
-        public List<StarterArea> StarterAreas2 { get; } = new List<StarterArea>();
+        public List<StarterArea> StarterAreas { get; } = new List<StarterArea>();
         public Dictionary<uint, HeritageGroupCG> HeritageGroups { get; } = new Dictionary<uint, HeritageGroupCG>();
 
         public void Unpack(BinaryReader reader)
@@ -17,7 +16,7 @@ namespace ACE.DatLoader.FileTypes
             Did = reader.ReadInt32();
             reader.BaseStream.Position += 4;
 
-            StarterAreas2.UnpackSmartArray(reader);
+            StarterAreas.UnpackSmartArray(reader);
 
             /// HERITAGE GROUPS -- 11 standard player races and 2 Olthoi.
             reader.BaseStream.Position++; // Not sure what this byte 0x01 is indicating, but we'll skip it because we can.
