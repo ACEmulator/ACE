@@ -1,3 +1,4 @@
+
 namespace ACE.DatLoader.Entity
 {
     public class CellPortal

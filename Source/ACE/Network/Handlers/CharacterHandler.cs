@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 
 using ACE.Common;
@@ -144,7 +144,7 @@ namespace ACE.Network.Handlers
 
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = (int)reader.ReadUInt32();
-            character.HeritageGroup = cg.HeritageGroups[(int)character.Heritage].Name;
+            character.HeritageGroup = cg.HeritageGroups[(uint)character.Heritage].Name;
             character.Gender = (int)reader.ReadUInt32();
             if (character.Gender == 1)
                 character.Sex = "Male";
@@ -155,7 +155,7 @@ namespace ACE.Network.Handlers
             // character.IconId = cg.HeritageGroups[(int)character.Heritage].IconImage;
 
             // pull character data from the dat file
-            SexCG sex = cg.HeritageGroups[(int)character.Heritage].SexList[(int)character.Gender];
+            SexCG sex = cg.HeritageGroups[(uint)character.Heritage].Genders[(int)character.Gender];
 
             character.MotionTableId = sex.MotionTable;
             character.SoundTableId = sex.SoundTable;
@@ -465,14 +465,14 @@ namespace ACE.Network.Handlers
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.
             var templateOption = reader.ReadInt32();
-            string templateName = cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Name;
+            string templateName = cg.HeritageGroups[(uint)character.Heritage].Templates[templateOption].Name;
             character.Title = templateName;
             character.Template = templateName;
-            character.CharacterTitleId = (int)cg.HeritageGroups[(int)character.Heritage].TemplateList[templateOption].Title;
+            character.CharacterTitleId = (int)cg.HeritageGroups[(uint)character.Heritage].Templates[templateOption].Title;
             character.NumCharacterTitles = 1;
 
             // stats
-            uint totalAttributeCredits = cg.HeritageGroups[(int)character.Heritage].AttributeCredits;
+            uint totalAttributeCredits = cg.HeritageGroups[(uint)character.Heritage].AttributeCredits;
             uint usedAttributeCredits = 0;
             // Validate this is equal to actual attribute credits (330 for all but "Olthoi", which have 60
             character.StrengthAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
@@ -503,7 +503,7 @@ namespace ACE.Network.Handlers
             character.Mana.Current = character.Mana.MaxValue;
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
-            character.AvailableSkillCredits = (int)cg.HeritageGroups[(int)character.Heritage].SkillCredits;
+            character.AvailableSkillCredits = (int)cg.HeritageGroups[(uint)character.Heritage].SkillCredits;
 
             uint numOfSkills = reader.ReadUInt32();
             Skill skill;
