@@ -8,6 +8,7 @@ namespace ACE.Network.GameMessages
         EmoteText                       = 0x01E0,
         SoulEmote                       = 0x01E2,
         CreatureMessage                 = 0x02BB,
+        HearDirectSpeech                = 0x02BD,
         PrivateUpdatePropertyInt        = 0x02CD,
         PublicUpdatePropertyInt         = 0x02CE,
         PrivateUpdatePropertyInt64      = 0x02CF,

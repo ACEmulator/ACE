@@ -88,6 +88,25 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// This code handle objects between players and other world objects
+        /// </summary>
+        /// <param name="targetID"></param>
+        /// <param name="objectID"></param>
+        /// <param name="amount"></param>
+        public void HandleGiveObjectRequest(uint targetID, uint objectID, uint amount)
+        {
+            ObjectGuid target = new ObjectGuid(targetID);
+            ObjectGuid item = new ObjectGuid(objectID);
+            WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
+            WorldObject itemObject = GetInventoryItem(item);
+            ////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
+            this.Burden -= itemObject.Burden;
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (int)Burden));
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
+            SendUseDoneEvent();
+        }
+
+        /// <summary>
         ///  The fellowship that this player belongs to
         /// </summary>
         public Fellowship Fellowship;
