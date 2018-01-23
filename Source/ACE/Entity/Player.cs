@@ -95,15 +95,13 @@ namespace ACE.Entity
         /// <param name="amount"></param>
         public void HandleGiveObjectRequest(uint targetID, uint objectID, uint amount)
         {
-            ObjectGuid target = new ObjectGuid(targetID);
-            ObjectGuid item = new ObjectGuid(objectID);
-            WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
-            WorldObject itemObject = GetInventoryItem(item);
-            ////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
-            this.Burden -= itemObject.Burden;
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (int)Burden));
-            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
-            SendUseDoneEvent();
+            ////ObjectGuid target = new ObjectGuid(targetID);
+            ////ObjectGuid item = new ObjectGuid(objectID);
+            ////WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
+            ////WorldObject itemObject = GetInventoryItem(item);
+            ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
+            ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
+            ////SendUseDoneEvent();
         }
 
         /// <summary>

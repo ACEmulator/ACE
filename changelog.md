@@ -1,5 +1,20 @@
 # ACEmulator Change Log
 
+### 2018-01-23
+[Ripley]
+* Minor cleanup of PR #595 due to needing to more inventory handling.
+* Added HearDirectSpeech from @dgatewood PR #585.
+
+[Mag-nus]
+* ACE.DatLoader refactoring and cleanup.
+
+[dgatewood]
+* Added GiveObjectRequest and HearDirectSpeech messages.
+
+[Morosity/Spazmodica]
+* Added ActionChain null wrapper added to not crash server if teleporting player disconnects.
+* Work toward resolving #231.
+
 ### 2018-01-19
 [Cydrith]
 * Changed Licence from GPL V3 to AGPL V3. Additional licence restrictions introduced by AGPL apply from this point forward.
