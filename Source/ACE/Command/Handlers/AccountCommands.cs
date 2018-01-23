@@ -40,6 +40,7 @@ namespace ACE.Command.Handlers
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
    
+            // TODO and FIXME: this is not fully correct yet, needs more work. Not thread safe.
             var accountExists = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
 
             if (accountExists != null)
