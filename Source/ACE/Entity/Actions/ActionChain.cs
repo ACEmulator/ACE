@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -76,17 +76,20 @@ namespace ACE.Entity.Actions
 
         public void AddChain(ActionChain chain)
         {
-            // If we have a chain of our own
-            if (lastElement != null)
+            if (chain != null)
             {
-                lastElement.Action.RunOnFinish(chain.FirstElement.Actor, chain.FirstElement.Action);
-                lastElement = chain.lastElement;
-            }
-            // If we're uninit'd, take their data
-            else
-            {
-                FirstElement = chain.FirstElement;
-                lastElement = chain.lastElement;
+                // If we have a chain of our own
+                if (lastElement != null)
+                {
+                    lastElement.Action.RunOnFinish(chain.FirstElement.Actor, chain.FirstElement.Action);
+                    lastElement = chain.lastElement;
+                }
+                // If we're uninit'd, take their data
+                else
+                {
+                    FirstElement = chain.FirstElement;
+                    lastElement = chain.lastElement;
+                }
             }
         }
 
