@@ -3,6 +3,7 @@
 ### 2017-12-06
 [HellsWrath]
 * Fixed an issue with accountcreate command. It did not check if accountname already existed.
+* This does not not fully resolve the issue of accounts being created on other threads.
 
 ### 2017-12-03
 [Mag-nus]
