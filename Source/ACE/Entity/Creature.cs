@@ -699,21 +699,6 @@ namespace ACE.Entity
             }
         }       
 
-        public void EnterWorld()
-        {
-            if (Location != null)
-            {
-                ActionChain spawnChain = new ActionChain();
-                spawnChain.AddChain(LandblockManager.GetAddObjectChain(this));
-                spawnChain.AddAction(this, () =>
-                {
-                    if (SuppressGenerateEffect != true)
-                        HandleActionApplyVisualEffect(Enum.PlayScript.Create);
-                });
-                spawnChain.EnqueueChain();
-            }
-        }
-
         protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
     }
 }

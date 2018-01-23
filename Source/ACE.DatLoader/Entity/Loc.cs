@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
     // TODO: refactor to use existing Position object
-    public class Loc
+    public class Loc : IUnpackable
     {
         public int Cell;
         public float X;
@@ -17,6 +13,10 @@ namespace ACE.DatLoader.Entity
         public float QX;
         public float QY;
         public float QZ;
+
+        public Loc()
+        {
+        }
 
         public Loc(int cell, float x, float y, float z, float qw, float qx, float qy, float qz)
         {
@@ -28,6 +28,20 @@ namespace ACE.DatLoader.Entity
             QX = qx;
             QY = qy;
             QZ = qz;
+        }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Cell = reader.ReadInt32();
+
+            X = reader.ReadSingle();
+            Y = reader.ReadSingle();
+            Z = reader.ReadSingle();
+
+            QW = reader.ReadSingle();
+            QX = reader.ReadSingle();
+            QY = reader.ReadSingle();
+            QZ = reader.ReadSingle();
         }
     }
 }

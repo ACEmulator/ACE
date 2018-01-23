@@ -92,12 +92,8 @@ namespace ACE.Entity
             //   1. landblock cell structure
             //   2. terrain data
             // TODO: Load portal.dat contents (as/if needed)
-            // TODO: Load spawn data
 
             var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
-            // FIXME: Likely the next line should be eliminated after generators have been refactored into the instance structure, if that ends up making the most sense
-            //        I don't know for sure however that it does yet. More research on them is required -Ripley
-            objects.AddRange(DatabaseManager.World.GetObjectsByLandblock(this.id.Landblock)); // Generators
 
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
@@ -188,7 +184,8 @@ namespace ACE.Entity
 
         public void AddWorldObject(WorldObject wo)
         {
-            EnqueueAction(new ActionEventDelegate(() => AddWorldObjectInternal(wo)));
+            // EnqueueAction(new ActionEventDelegate(() => AddWorldObjectInternal(wo)));
+            AddWorldObjectInternal(wo);
         }
 
         public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)
@@ -267,21 +264,9 @@ namespace ACE.Entity
                     worldObjects.Remove(objectId);
             }
 
-            // XXX(ddevec): Should this null check be needed?
             if (wo != null)
             {
                 wo.SetParent(null);
-            }
-
-            // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
-            // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
-            // close enough.
-            if (!adjacencyMove && id.MapScope == Enum.MapScope.Outdoors && wo != null)
-            {
-                /*
-                var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
-                Broadcast(args, true, Quadrant.All);
-                */
                 EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
             }
         }
@@ -687,7 +672,7 @@ namespace ACE.Entity
                 List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
                 foreach (Player p in allPlayers)
                 {
-                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
+                    if (p.Location.DistanceTo(pos) < distance * distance)
                     {
                         p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
                     }
@@ -842,6 +827,18 @@ namespace ACE.Entity
             wo.Location = null;
             wo.InitializeAceObjectForSave();
             container.AddToInventory(wo, placement);
+
+            // Was Item controlled by a generator?
+            // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
+
+            if (wo.GeneratorId > 0)
+            {
+                WorldObject generator = GetObject(new ObjectGuid((uint)wo.GeneratorId));
+
+                wo.GeneratorId = null;
+
+                generator.NotifyGeneratorOfPickup(wo.Guid.Full);
+            }
         }
 
         private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
@@ -854,6 +851,13 @@ namespace ACE.Entity
         private void Log(string message)
         {
             log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
+        }
+
+        public void ResendObjectsInRange(WorldObject wo)
+        {
+            List<WorldObject> wolist = null;
+            wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
+            AddPlayerTracking(wolist, (wo as Player));
         }
     }
 }

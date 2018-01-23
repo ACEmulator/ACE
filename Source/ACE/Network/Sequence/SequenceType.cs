@@ -1,4 +1,4 @@
-﻿namespace ACE.Network.Sequence
+namespace ACE.Network.Sequence
 {
     public enum SequenceType
     {
@@ -33,6 +33,7 @@
         PublicUpdatePropertyInstanceId        = 27,
         PublicUpdatePropertyString            = 28,
 
-        SetStackSize                          = 29
+        SetStackSize                          = 29,
+        Confirmation                          = 30
     }
 }

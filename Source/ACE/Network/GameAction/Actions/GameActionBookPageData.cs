@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 using ACE.Entity;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
@@ -16,7 +16,7 @@ namespace ACE.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(objectId);
 
-            session.Player.HandleActionReadBookPage(guid, pageNum);
+            session.Player.ReadBookPage(guid, pageNum);
         }
     }
 }

@@ -50,7 +50,7 @@ namespace ACE.Network
         {
             uint checksum = 0;
             uint original = Checksum;
-            Checksum = 0x0BADD70DD;
+            Checksum = 0xBADD70DD;
             byte[] rawHeader = GetRaw();
             checksum = Hash32.Calculate(rawHeader, rawHeader.Length);
             Checksum = original;

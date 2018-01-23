@@ -1,21 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.DatLoader
 {
     public class DatDirectory
     {
-        private uint rootSectorOffset;
+        private readonly uint rootSectorOffset;
 
-        private uint fileCount = 0;
+        private uint fileCount;
 
-        private int sectorSize;
+        private readonly int sectorSize;
 
-        public DatDirectory(uint rootSectorOffset, int sectorSize, FileStream stream, DatDatabaseType type)
+        public DatDirectory(uint rootSectorOffset, int sectorSize, DatDatabaseType type, FileStream stream)
         {
             this.rootSectorOffset = rootSectorOffset;
             this.sectorSize = sectorSize;
@@ -23,16 +20,16 @@ namespace ACE.DatLoader
             Read(stream);
         }
 
-        public Dictionary<uint, DatFile> Files { get; private set; } = new Dictionary<uint, DatFile>();
+        public Dictionary<uint, DatFile> Files { get; } = new Dictionary<uint, DatFile>();
 
-        public List<DatDirectory> Directories { get; private set; } = new List<DatDirectory>();
+        public List<DatDirectory> Directories { get; } = new List<DatDirectory>();
 
-        public DatDatabaseType DatType { get; private set; }
+        public DatDatabaseType DatType { get; }
 
         private void Read(FileStream stream)
         {
-            byte[] sectorHeader = new byte[this.sectorSize];
-            stream.Seek(this.rootSectorOffset, SeekOrigin.Begin);
+            byte[] sectorHeader = new byte[sectorSize];
+            stream.Seek(rootSectorOffset, SeekOrigin.Begin);
 
             // read the first sector header, which contains subdirectories and file count
             stream.Read(sectorHeader, 0, sectorHeader.Length);
@@ -58,13 +55,13 @@ namespace ACE.DatLoader
             int arrayUsage = 0;
 
             // maximum size we'll need
-            byte[] sector = new byte[(this.sectorSize - 4) * 7];
+            byte[] sector = new byte[(sectorSize - 4) * 7];
 
             // copy over content from the first sector if it is bigger than just the header (happens in portal.dat, but not cell.dat)
-            if (this.sectorSize > 256)
+            if (sectorSize > 256)
             {
-                Array.Copy(sectorHeader, 256, sector, 0, this.sectorSize - 256);
-                arrayUsage += (this.sectorSize - 256);
+                Array.Copy(sectorHeader, 256, sector, 0, sectorSize - 256);
+                arrayUsage += (sectorSize - 256);
             }
 
             // separate buffer for the next sector location
@@ -79,10 +76,10 @@ namespace ACE.DatLoader
                 stream.Read(nextSectorBuffer, 0, sizeof(uint));
 
                 // read this sector
-                stream.Read(sector, arrayUsage, (this.sectorSize - 4));
+                stream.Read(sector, arrayUsage, (sectorSize - 4));
 
                 // maths for next loop
-                arrayUsage += (this.sectorSize - 4);
+                arrayUsage += (sectorSize - 4);
                 nextSector = BitConverter.ToUInt32(nextSectorBuffer, 0);
                 totalSectors++;
             }
@@ -91,25 +88,23 @@ namespace ACE.DatLoader
             for (int i = 0; i < fileCount; i++)
             {
                 DatFile datfile = DatFile.FromBuffer(sector, i * 6 * sizeof(uint), DatType);
+
                 if (!Files.ContainsKey(datfile.ObjectId))
                     Files.Add(datfile.ObjectId, datfile);
             }
 
             // files done, go back and iterate directories
             foreach (uint directoryOffset in directoryList)
-            {
-                Directories.Add(new DatDirectory(directoryOffset, this.sectorSize, stream, DatType));
-            }
+                Directories.Add(new DatDirectory(directoryOffset, sectorSize, DatType, stream));
         }
 
         public void AddFilesToList(Dictionary<uint, DatFile> dicFiles)
         {
             // files.Union(this.DictionaryFiles);
-            foreach (KeyValuePair<uint, DatFile> item in this.Files)
-            {
+            foreach (KeyValuePair<uint, DatFile> item in Files)
                 dicFiles[item.Key] = item.Value;
-            }
-            this.Directories.ForEach(d => d.AddFilesToList(dicFiles));
+
+            Directories.ForEach(d => d.AddFilesToList(dicFiles));
         }
     }
 }

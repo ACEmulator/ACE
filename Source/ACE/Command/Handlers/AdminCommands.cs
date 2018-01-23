@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
@@ -24,18 +24,33 @@ namespace ACE.Command.Handlers
         // }
 
         // adminvision { on | off | toggle | check}
-        [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Allows the admin to see admin - only visible items.", "{ on | off | toggle | check }\n" +
+            "Controls whether or not the admin can see admin-only visible items. Note that if you turn this feature off, you will need to log out and back in before the visible items become invisible.")]
         public static void HandleAdminvision(Session session, params string[] parameters)
         {
             // @adminvision { on | off | toggle | check}
             // Controls whether or not the admin can see admin-only visible items. Note that if you turn this feature off, you will need to log out and back in before the visible items become invisible.
             // @adminvision - Allows the admin to see admin - only visible items.
 
-            // TODO: output
-
-            // output: Admin Visible is {state}
-
-            ChatPacket.SendServerMessage(session, "Admin Visible is [state]", ChatMessageType.Broadcast);
+            switch (parameters?[0].ToLower())
+            {
+                case "1":
+                case "on":
+                    session.Player.HandleAdminvisionToggle(1);
+                    break;
+                case "0":
+                case "off":
+                    session.Player.HandleAdminvisionToggle(0);
+                    break;
+                case "toggle":
+                    session.Player.HandleAdminvisionToggle(2);
+                    break;
+                case "check":
+                default:
+                    session.Player.HandleAdminvisionToggle(-1);
+                    break;
+            }
         }
 
         // adminui
@@ -422,7 +437,7 @@ namespace ACE.Command.Handlers
                 // If we have the position, teleport the player
                 if (session.Player.Positions.ContainsKey(positionType))
                 {
-                    session.Player.HandleActionTeleToPosition(positionType);
+                    session.Player.TeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
                     return;
@@ -930,7 +945,7 @@ namespace ACE.Command.Handlers
             {
                 if (Enum.IsDefined(typeof(Spell), spellId))
                 {
-                    session.Player.HandleActionLearnSpell((uint)spellId);
+                    session.Player.LearnSpell((uint)spellId);
                 }
             }
         }
@@ -986,14 +1001,14 @@ namespace ACE.Command.Handlers
             "Creates an object in the world.", "wclassid(string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            ushort weenieId;
+            uint weenieId;
             try
             {
-                weenieId = Convert.ToUInt16(parameters[0]);
+                weenieId = Convert.ToUInt32(parameters[0]);
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 0 - {uint.MaxValue}", ChatMessageType.Broadcast);
                 return;
             }
             var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
@@ -1020,7 +1035,7 @@ namespace ACE.Command.Handlers
 
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
             loot.ContainerId = session.Player.Guid.Full;
-            loot.Placement = 0;
+            loot.PlacementPosition = 0;
             session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
             session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),

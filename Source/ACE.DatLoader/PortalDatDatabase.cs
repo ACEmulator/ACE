@@ -1,9 +1,5 @@
-﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.DatLoader
 {
@@ -15,10 +11,10 @@ namespace ACE.DatLoader
 
         public void ExtractCategorizedContents(string path)
         {
-            string thisFolder = null;
-
-            foreach (KeyValuePair<uint, DatFile> entry in this.AllFiles)
+            foreach (KeyValuePair<uint, DatFile> entry in AllFiles)
             {
+                string thisFolder;
+
                 if (entry.Value.GetFileType() != null)
                     thisFolder = Path.Combine(path, entry.Value.GetFileType().ToString());
                 else
@@ -33,7 +29,7 @@ namespace ACE.DatLoader
                 string thisFile = Path.Combine(thisFolder, hex + ".bin");
 
                 // Use the DatReader to get the file data
-                DatReader dr = this.GetReaderForFile(entry.Value.ObjectId);
+                DatReader dr = GetReaderForFile(entry.Value.ObjectId);
                    
                 File.WriteAllBytes(thisFile, dr.Buffer);
             }

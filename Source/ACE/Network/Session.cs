@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Net;
@@ -15,7 +15,7 @@ using log4net;
 
 namespace ACE.Network
 {
-    public class Session
+    public class Session : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -53,10 +53,16 @@ namespace ACE.Network
 
         public NetworkSession Network { get; set; }
 
+        /// <summary>
+        /// This actionQueue forces network packets on to the main thread off the network thread, to avoid concurrency errors
+        /// </summary>
+        private NestedActionQueue actionQueue = new NestedActionQueue();
+
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
             Network = new NetworkSession(this, clientId, serverId);
+            actionQueue.SetParent(WorldManager.ActionQueue);
         }
 
         public void WaitForPlayer()
@@ -310,6 +316,22 @@ namespace ACE.Network
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
             Network.EnqueueSend(worldBroadcastMessage);
+        }
+
+        /// Boilerplate Action/Actor stuff
+        public LinkedListNode<IAction> EnqueueAction(IAction act)
+        {
+            return actionQueue.EnqueueAction(act);
+        }
+
+        public void RunActions()
+        {
+            actionQueue.RunActions();
+        }
+
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace ACE.Entity
             killChain.AddDelaySeconds(5);
             killChain.AddAction(this, () =>
             {
-                HandleActionApplyVisualEffect(Enum.PlayScript.Destroy);
+                ApplyVisualEffects(Enum.PlayScript.Destroy);
             });
             killChain.AddDelaySeconds(1);
             killChain.AddAction(this, () =>

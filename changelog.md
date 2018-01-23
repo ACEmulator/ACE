@@ -1,5 +1,75 @@
 # ACEmulator Change Log
 
+### 2018-01-23
+[Ripley]
+* Minor cleanup of PR #595 due to needing to more inventory handling.
+* Added HearDirectSpeech from @dgatewood PR #585.
+
+[Mag-nus]
+* ACE.DatLoader refactoring and cleanup.
+
+[dgatewood]
+* Added GiveObjectRequest and HearDirectSpeech messages.
+
+[Morosity/Spazmodica]
+* Added ActionChain null wrapper added to not crash server if teleporting player disconnects.
+* Work toward resolving #231.
+
+### 2018-01-19
+[Cydrith]
+* Changed Licence from GPL V3 to AGPL V3. Additional licence restrictions introduced by AGPL apply from this point forward.
+
+### 2018-01-18
+[Morosity/Spazmodica]
+* Fixed range xp calculation for members based upon distance to leader
+
+### 2018-01-14
+[Morosity/Spazmodica]
+* Fellowships functionality updated to add Recruit, Dismiss, Disband, Make new leader, Quit, and Openness
+* On leader quit (not disband), random player picked as new leader
+* When limit hit of 9, error message will appear on trying to recruit.
+* Join requests outstanding that could put fellowship above 9 will not get added if accepted
+* Character options of "Ignore" and "Auto accept" fellowship requests saved and read
+* Confirmations added for character with "ignore" and "auto accept" off
+* ConfirmationRequest GameEvent added to send requests to client
+* ConfirmationResponse GameAction added to send responses to server
+* ConfirmationResponse GameAction has handling for other confirmation types
+* Fellowship xp dist handled for both evensplit fellows as well as proportional
+* Fellowship xp dist handled for up to 2.5 coords away with appropriate loss of amount of xp based upon distance
+* EarnXP method added to Player with params of fixedAmount bool and sharable bool
+* FixedAmount does not provide bonus xp when passed to fellowships
+* Sharable provides ability to not share xp reward
+* EarnXPFromFellowship method to bypass loop of trying to split xp through fellowship again
+* Fellowship enums renamed to start with Fellowship for easier location
+* GameActions, GameMessages, and GameEvents for fellowships names updated for easier location
+
+### 2017-12-21
+[Ripley]
+* Added Placement Enum.
+* Swapped storage of Placement data with PlacementPosition data.
+* Removed AnimationFrame and linked it with Placement.
+
+### 2017-12-19
+[Ripley]
+* Overhauled Generator system to bring it more in line with how it operated on retail servers.
+  * You'll need to load some test data included with this update in the Updates/World folder for this code to work.
+  * Locations of the test generators are below. The creature generators do not support regeneration, while the item generators will regenerate.
+  * /teleloc 0x7f0301ad [12.319899559021 -28.482000350952 0.0049999998882413] 0.33894598484039 0 0 0.94080585241318
+  * /telepoi Holtburg
+* Added @adminvision command, use it to see the generators (and eventually other unsendable things).
+
+### 2017-12-11
+[ddevec]
+* More updates to parallelism structure
+* Network messages are now seralized
+* Removed the vast majority of ActionChain code that was being used for parallelism/thread safety
+
+### 2017-12-10
+[Mag-nus]
+* ACE has been converted from .net framework 4.6.1 to .net core 2.0.
+  * This also involves changing the way databases are loaded to a manual method which is .net core compatible.
+  * This breaks secure auth. That system will need to be reworked by someone more experienced to function properly.
+
 ### 2017-12-06
 [HellsWrath]
 * Fixed an issue with accountcreate command. It did not check if accountname already existed.
