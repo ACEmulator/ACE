@@ -249,6 +249,167 @@ namespace ACE.Entity
             return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
         }
 
+        public void HandleGiveObjectRequest(uint targetID, uint objectID, uint amount)
+        {
+            ////Collector aside, this is decent code to handle giving objects between characters.
+            bool sendSound = false;
+            ObjectGuid target = new ObjectGuid(targetID);
+            ObjectGuid item = new ObjectGuid(objectID);
+            WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
+            WorldObject itemObject = GetInventoryItem(item);
+            ////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
+            this.Burden -= itemObject.Burden;
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (int)Burden));
+            Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
+            SendUseDoneEvent();
+            ////I recognize that this code would be changed completely when emote tables are ready to be integrated, but this is a good start.
+            if (targetObject.Name.Equals("Collector"))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + itemObject.Name, ChatMessageType.Broadcast));
+                int coin = 0;
+                String collectorSays = "";
+                String collectorSays2 = "";
+                String collectorSays3 = "";
+                ulong xp = 0;
+                uint rewardID = 0;
+                int rewardAmount = 0;
+                if (itemObject.Name.Equals("Lucky Gold Letter"))
+                {
+                    xp = 200000;
+                    rewardID = 44716;
+                    rewardAmount = 1;
+                    collectorSays = "An Explorer Society Gold Letter. A real collectors item.";
+                    collectorSays2 = "Here, have this in exchange.";
+                    collectorSays3 = "Collector gives you Mid-Stakes Gambling Token.";
+                }
+                if (itemObject.Name.Equals("Scarlet Red Letter"))
+                {
+                    xp = 100000;
+                    rewardID = 44715;
+                    rewardAmount = 2;
+                    collectorSays = "Hey! I remember my first Red Letter.";
+                    collectorSays2 = "Here, have this in exchange.";
+                    collectorSays3 = "Collector gives you 2 Low-Stakes Gambling Tokens.";
+                }
+                if (itemObject.Name.Equals("Seal"))
+                {
+                    xp = 5000;
+                    coin = 7500;
+                    rewardID = 0;
+                    rewardAmount = 0;
+                    collectorSays = "Ah, the mysterious seal of the undead.";
+                    collectorSays2 = "A pleasure trading with you";
+                    collectorSays3 = "";
+                }
+                if (itemObject.Name.Equals("Telumiat Hollow Minion Essence"))
+                {
+                    xp = 10000;
+                    coin = 0;
+                    rewardID = 25544;
+                    rewardAmount = 1;
+                    collectorSays = "Foul stuff this, but it has a rare quality that Ciandra has found useful. She's still unclear how this all comes together but she has given me a few to start work with.";
+                    collectorSays2 = "";
+                    collectorSays3 = "Collector gives you Potion of Endless Vigor.";
+                }
+                if (itemObject.Name.Equals("Essence of a Phantasm"))
+                {
+                    xp = 10000;
+                    rewardID = 25543;
+                    rewardAmount = 1;
+                    collectorSays = "Where this comes from and how it gets left behind after the defeat of the phantasm remains a mystery. So too, the process for creating this potion. But deep in Xarabydun the potion can be created, and has been. I'd be wary of using such a potion too often.";
+                    collectorSays2 = "";
+                    collectorSays3 = "Collector gives you Potion of Destiny's Wind.";
+                }
+                if (itemObject.Name.Equals("Fenmalain Key"))
+                {
+                    xp = 3750;
+                    coin = 3000;
+                    rewardID = 0;
+                    rewardAmount = 0;
+                    collectorSays = "This is a nice item.";
+                    collectorSays2 = "";
+                    collectorSays3 = "";
+                }
+                if (itemObject.Name.Equals("Caulnalain Key"))
+                {
+                    xp = 7500;
+                    coin = 6000;
+                    rewardID = 0;
+                    rewardAmount = 0;
+                    collectorSays = "Ah, not everyone can battle shadows.Good find, these keys are worth a lot.";
+                    collectorSays2 = "There you go.";
+                    collectorSays3 = "";
+                }
+                if (itemObject.Name.Equals("Shendolain Key"))
+                {
+                    xp = 11250;
+                    rewardID = 2626;
+                    rewardAmount = 1;
+                    collectorSays = "Good find, these keys are worth a lot.";
+                    collectorSays2 = "Here, tradenotes take up less space.";
+                    collectorSays3 = "Collector gives you Trade Note (50,000).";
+                }
+                if (itemObject.Name.Equals("Bronze Armoredillo Spine"))
+                {
+                    xp = 3000;
+                    coin = 1750;
+                    rewardID = 0;
+                    rewardAmount = 0;
+                    collectorSays = "I give you my gratitude.";
+                    collectorSays2 = "I also give you this reward.";
+                    collectorSays3 = "";
+                }
+                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(collectorSays, "Collector", targetObject.Guid.Full, Guid.Full, ChatMessageType.Tell));
+                ////PrivateInt64Update for xp_total
+                ////PrivateInt64Update for xp_available
+                ////GameMessageSystemChat for amount of XP gained from quest
+                GrantXp(xp);
+                if (coin > 0)
+                {
+                    sendSound = true;
+                    ////PrivateInt64Update for pyreals earned
+                    ////GameMessageSystemChat for pyreals gained from quest
+                    ////This should be sent, but not sure if this property exists.
+                    ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalPyreal, Character.TotalPyreal));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Collector gives you " + coin + " Pyreals.", ChatMessageType.Broadcast));
+                    LootGenerationFactory.CreatePyrealStack(this, (ushort)coin);
+
+                }
+
+                ////Message for any objects gained from quest
+                if (rewardAmount > 0)
+                {
+                    sendSound = true;
+                    if (rewardAmount == 1)
+                    {
+                        ////Session.Network.EnqueueSend(new GameMessageSystemChat("Collector gives you " + rewardAmount + " " + trophyName".", ChatMessageType.Broadcast));
+                        LootGenerationFactory.CreateMultipleWorldObjects(this, rewardID, (uint)rewardAmount);
+
+                    }
+                    if (rewardAmount > 1)
+                    {
+                        ////Session.Network.EnqueueSend(new c);
+                        LootGenerationFactory.CreateMultipleWorldObjects(this, rewardID, (uint)rewardAmount);
+                    }
+                }
+                if (sendSound)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
+                }
+                if (collectorSays3.Length > 0)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat(collectorSays3, ChatMessageType.Broadcast));
+                }
+                if (collectorSays2.Length > 0)
+                {
+                    Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(collectorSays2, "Collector", targetObject.Guid.Full, Guid.Full, ChatMessageType.Tell));
+                }
+                ////Inventory_remove_object 
+                ////RemoveWorldObject(Session, itemObject);
+            }
+            SendUseDoneEvent();
+        }
+
         public void MagicRemoveSpellId(uint spellId)
         {
             if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
@@ -2689,7 +2850,7 @@ namespace ACE.Entity
                     if (iidPropertyId == PropertyInstanceId.Container)
                     {
                         Session.Network.EnqueueSend(
-                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
+                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal,  ,),
                             new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                             new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
                             new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
@@ -3691,12 +3852,12 @@ namespace ACE.Entity
             {
                 case -1:
                     // Do nothing
-                     break;
+                    break;
                 case 0:
                     Adminvision = false;
                     break;
                 case 1:
-                    Adminvision = true;                    
+                    Adminvision = true;
                     break;
                 case 2:
                     if (Adminvision)
