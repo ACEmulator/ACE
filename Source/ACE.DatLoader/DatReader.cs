@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace ACE.DatLoader
@@ -6,21 +6,25 @@ namespace ACE.DatLoader
     public class DatReader
     {
         public int Offset { get; set; }
-        public byte[] Buffer { get; private set; }
+
+        public byte[] Buffer { get; }
 
         public DatReader(string datFilePath, uint offset, uint size, uint sectorSize)
         {
             uint nextAddress = 0;
-            FileStream stream = new FileStream(datFilePath, FileMode.Open, FileAccess.Read);
-            using (stream)
+
+            using (var stream = new FileStream(datFilePath, FileMode.Open, FileAccess.Read))
             {
-                this.Buffer = new byte[size];
+                Buffer = new byte[size];
+
                 stream.Seek(offset, SeekOrigin.Begin);
+
                 // Dat "file" is broken up into sectors that are not neccessarily congruous. Next address is stored in first four bytes of each sector.
                 if (size > sectorSize)
-                    nextAddress = this.GetNextAddress(stream, -4);
+                    nextAddress = GetNextAddress(stream, -4);
 
                 int bufferOffset = 0;
+
                 while (size > 0)
                 {
                     if (size < sectorSize)
@@ -37,6 +41,7 @@ namespace ACE.DatLoader
                         size -= (sectorSize - 4); // Decrease this by the amount of data we just read into buffer[] so we know how much more to go
                     }
                 }
+
                 stream.Close();
             }
         }
@@ -45,9 +50,12 @@ namespace ACE.DatLoader
         {
             // The location of the start of the next sector is the first four bytes of the current sector. This should be 0x00000000 if no next sector.
             byte[] nextAddressBytes = new byte[4];
+
             if (relOffset != 0)
                 stream.Seek(relOffset, SeekOrigin.Current); // To be used to back up 4 bytes from the origin at the start
+
             stream.Read(nextAddressBytes, 0, 4);
+
             return BitConverter.ToUInt32(nextAddressBytes, 0);
         }
 
@@ -153,7 +161,7 @@ namespace ACE.DatLoader
         /// </summary>
         public string ReadPString()
         {
-            int stringlength = this.ReadInt16();
+            int stringlength = ReadInt16();
                         
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
@@ -166,7 +174,7 @@ namespace ACE.DatLoader
         /// </summary>
         public string ReadObfuscatedString()
         {
-            int stringlength = this.ReadInt16();
+            int stringlength = ReadInt16();
             byte[] thestring = new byte[stringlength];
             Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             for (var i = 0; i < stringlength; i++)
