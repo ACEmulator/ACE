@@ -264,21 +264,9 @@ namespace ACE.Entity
                     worldObjects.Remove(objectId);
             }
 
-            // XXX(ddevec): Should this null check be needed?
             if (wo != null)
             {
                 wo.SetParent(null);
-            }
-
-            // suppress broadcasting when it's just an adjacency move.  clients will naturally just stop
-            // tracking stuff if they're too far, or the new landblock will broadcast to them if they're
-            // close enough.
-            if (!adjacencyMove && id.MapScope == Enum.MapScope.Outdoors && wo != null)
-            {
-                /*
-                var args = BroadcastEventArgs.CreateAction(BroadcastAction.Delete, wo);
-                Broadcast(args, true, Quadrant.All);
-                */
                 EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
             }
         }
@@ -684,7 +672,7 @@ namespace ACE.Entity
                 List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
                 foreach (Player p in allPlayers)
                 {
-                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
+                    if (p.Location.DistanceTo(pos) < distance * distance)
                     {
                         p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
                     }

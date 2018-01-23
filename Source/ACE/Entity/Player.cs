@@ -1811,7 +1811,7 @@ namespace ACE.Entity
             InWorld = false;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
-
+            CurrentLandblock.RemoveWorldObject(Guid, false);
             lock (clientObjectList)
             {
                 clientObjectList.Clear();
