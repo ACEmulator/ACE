@@ -1,9 +1,10 @@
-﻿using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
+using ACE.Network.GameMessage.Messages;
 
 namespace ACE.Entity
 {
@@ -35,7 +36,24 @@ namespace ACE.Entity
         /// <param name="session">Pass the session variable so we will have access to player and the correct sequences</param>
         public override void OnUse(Session session)
         {
-            if (UseCreateContractId == null) return;
+            if (UseCreateContractId == null)
+            {
+                SpellTable spellTable = SpellTable.ReadFromDat();
+                if (!spellTable.Spells.ContainsKey((uint)SpellDID))
+                {
+                    return;
+                }
+                SpellBase spell = spellTable.Spells[(uint)SpellDID];
+                string castMessage = "The gem casts " + spell.Name + " on you";
+                castMessage += "."; // If not refreshing/surpassing/less than active spell
+                session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
+                session.Player.PlayParticleEffect((PlayScript)spell.TargetEffect, session.Player.Guid); 
+                const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
+                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spell, layer, 1, (uint)0x2009010)); ////The values that are hardcoded are not directly available from spell table, but will be available soon.
+                ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommnted later.
+                session.Player.SendUseDoneEvent();
+                return;
+            }
             ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, session.Player.Guid.Full)
             {
                 Stage = 0,
@@ -92,7 +110,7 @@ namespace ACE.Entity
                     DegradeModifier = 0,
                     DegradeLimit = -666
             };
-                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase, layer, spellCategory, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
+                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, spellBase, layer, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
