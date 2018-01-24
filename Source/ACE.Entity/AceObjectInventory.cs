@@ -28,13 +28,13 @@ namespace ACE.Entity
         [DbField("palette", (int)MySqlDbType.Byte)]
         public sbyte Palette { get; set; }
 
-        [JsonProperty("shade")]
+        // [JsonProperty("shade")]
         [DbField("shade", (int)MySqlDbType.Float)]
         public float Shade { get; set; }
 
-        [JsonProperty("tryToBond")]
-        [DbField("tryToBond", (int)MySqlDbType.Byte)]
-        public sbyte TryToBond { get; set; }
+        // [JsonProperty("tryToBond")]
+        // [DbField("tryToBond", (int)MySqlDbType.Byte)]
+        // public sbyte TryToBond { get; set; }
 
         public object Clone()
         {
