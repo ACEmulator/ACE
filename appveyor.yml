@@ -35,6 +35,6 @@ test_script:
 - cmd: dotnet test --no-build "Source\ACE.Tests" -d:log.txt
 - cmd: dotnet test --no-build "Source\ACE.Database.Tests" -d:log2.txt
 artifacts:
-  - path: '**\*.log'
+  - path: '**\*.txt'
     name: test logs
     type: zip
