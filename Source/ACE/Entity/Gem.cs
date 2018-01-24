@@ -4,7 +4,7 @@ using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Network;
 using ACE.Network.GameEvent.Events;
-using ACE.Network.GameMessage.Messages;
+using ACE.Network.GameMessages.Messages;
 
 namespace ACE.Entity
 {
