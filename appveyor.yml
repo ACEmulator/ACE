@@ -24,10 +24,13 @@ test_script:
 #- cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #
+- cmd: vstest.console /logger:Appveyor "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" -d:log.txt --blame
+- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" -d:log2.txt --blame
+#
 # - cmd: vstest.console "Source\ACE.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 # - cmd: vstest.console "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #
 #
 # Alternate test engine:
-- cmd: dotnet test --no-build "Source\ACE.Tests" -d:log.txt --blame
-- cmd: dotnet test --no-build "Source\ACE.Database.Tests" -d:log2.txt --blame
+- cmd: dotnet test --no-build "Source\ACE.Tests" -d:log.txt
+- cmd: dotnet test --no-build "Source\ACE.Database.Tests" -d:log2.txt
