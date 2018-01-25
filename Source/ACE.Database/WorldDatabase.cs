@@ -201,12 +201,12 @@ namespace ACE.Database
             return ret;
         }
         
-        private List<AceObjectGeneratorLink> GetAceObjectGeneratorLinks(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorLink>(WorldPreparedStatement.GetAceObjectGeneratorLinks, criteria);
-            return objects;
-        }
+        //private List<AceObjectGeneratorLink> GetAceObjectGeneratorLinks(uint aceObjectId)
+        //{
+        //    var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
+        //    var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorLink>(WorldPreparedStatement.GetAceObjectGeneratorLinks, criteria);
+        //    return objects;
+        //}
 
         private List<AceObjectInventory> GetAceObjectInventory(uint aceObjectId)
         {
