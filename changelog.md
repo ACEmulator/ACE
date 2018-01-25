@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-01-15
+### 2017-01-24
 [Ripley]
 **Changes based on 16PY database, may result in problems when using ACE-World database**
 * Adjusted SQL scripts slightly.
@@ -14,6 +14,7 @@
 * Added Palette and Shade to WorldObject and use them in conjunction with ClothingBaseDID to set ObjDesc.
 * Added proper wielding for clothing on weenies and fixed clothing priority for them.
 * Added face randomization for Human based NPCs.
+* Removed GeneratatorLinks and AceObjectGeneratorLinks and cleaned up some AceObject load/clone code.
 
 ### 2018-01-14
 [Morosity/Spazmodica]

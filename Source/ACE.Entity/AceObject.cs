@@ -2242,9 +2242,6 @@ namespace ACE.Entity
         [JsonProperty("bookProperties")]
         public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
 
-        [JsonProperty("generators")]
-        public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
-
         [JsonProperty("generatorProfiles")]
         public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
@@ -2313,7 +2310,6 @@ namespace ACE.Entity
                 DataIdProperties = CloneList(DataIdProperties),
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
-                GeneratorLinks = CloneList(GeneratorLinks),
                 GeneratorProfiles = CloneList(GeneratorProfiles),
                 CreateList = CloneList(CreateList),
                 AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
@@ -2350,9 +2346,7 @@ namespace ACE.Entity
             ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
-            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
             ret.CreateList.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
@@ -2360,8 +2354,6 @@ namespace ACE.Entity
 
             // No need to change Dictionary guids per DDEVEC
             // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
-            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
