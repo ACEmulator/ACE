@@ -105,6 +105,9 @@ namespace ACE.Entity
             RotationY = newRotationY;
             RotationZ = newRotationZ;
             RotationW = newRotationW;
+
+            if (newCell.ToString("X8").EndsWith("0000"))
+                CalculateObjCell(newCell);
         }
 
         public Position(BinaryReader payload)
@@ -327,6 +330,56 @@ namespace ACE.Entity
         public object Clone()
         {
             return MemberwiseClone();
+        }
+
+        // Thank you fellow traveller!
+        private const uint blockid_mask = 0xFFFF0000;
+        private const uint lbi_cell_id = 0x0000FFFE;
+        private const uint block_cell_id = 0x0000FFFF;
+        private const uint first_envcell_id = 0x100;
+        private const uint last_envcell_id = 0xFFFD;
+        private const uint first_lcell_id = 1;
+        private const uint last_lcell_id = 64;
+        private const long max_block_width = 0xFF;
+        private const uint max_block_shift = 8;
+        private const uint blockx_mask = 0xFF00;
+        private const uint blocky_mask = 0x00FF;
+        private const uint block_part_shift = 16;
+        private const uint cellid_mask = 0x0000FFFF;
+        private const uint terrain_byte_offset = 2;
+
+        // Initialized later on.
+        private const long side_vertex_count = 9;
+        private const float half_square_length = 12.0f;
+        private const float square_length = 24.0f;
+        private const float block_length = 192.0f;
+        private const long lblock_shift = 3;
+        private const long lblock_side = 8;
+        private const long lblock_mask = 7;
+        private const long land_width = 0x7F8;
+        private const long land_length = 0x7F8;
+        private const long num_block_length = 0xFF;
+        private const long num_block_width = 0xFF;
+        private const long num_blocks = 0xFF * 0xFF;
+        ////private const float inside_val; // ? ....
+        ////private const float outside_val;
+        ////private const float max_object_height;
+        ////private const float road_width;
+        ////private const float sky_height;
+        private const long vertex_per_cell = 1;
+        private const long polys_per_landcell = 2;
+
+        public void CalculateObjCell(uint newCell)
+        {
+            float X = (((((int)newCell >> (int)block_part_shift) & (int)blockx_mask) >> (int)max_block_shift) << (int)lblock_shift);
+            float Y = ((((int)newCell >> (int)block_part_shift) & (int)blocky_mask) << (int)lblock_shift);
+
+            X += PositionX / square_length;
+            Y += PositionY / square_length;
+
+            Cell = GetCellFromBase((uint)X, (uint)Y);
+            LandblockId = new LandblockId(Cell);
+            // System.Diagnostics.Debug.WriteLine($"Cell came in as {newCell.ToString("X8")}, should be {Cell.ToString("X8")} ");
         }
     }
 }

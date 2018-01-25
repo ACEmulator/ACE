@@ -1,5 +1,21 @@
 # ACEmulator Change Log
 
+### 2018-01-24
+[Ripley]
+**Changes based on 16PY database, may result in problems when using ACE-World database**
+* Adjusted SQL scripts slightly.
+* Corrected issue with objects spawning at xxxx0000 in landblock.
+* Added null catch for objects that have generator profiles for weenies not found in the database.
+* Added Bindstone and Clothing classes.
+* Added expected object flags to currently implemented WeenieType classes.
+* Adjusted Bool recalls for WorldObjects.
+* Added Shade (and TryToBond, which appears unimportant) to Inventory.
+* Added Shade, Palette and StackSize to create command for testing.
+* Added Palette and Shade to WorldObject and use them in conjunction with ClothingBaseDID to set ObjDesc.
+* Added proper wielding for clothing on weenies and fixed clothing priority for them.
+* Added face randomization for Human based NPCs.
+* Removed GeneratatorLinks and AceObjectGeneratorLinks and cleaned up some AceObject load/clone code.
+
 ### 2018-01-23
 [Ripley]
 * Minor cleanup of PR #595 due to needing to more inventory handling.

@@ -1,4 +1,4 @@
-﻿// WeenieType.Book
+// WeenieType.Book
 
 using ACE.Network.GameEvent.Events;
 using ACE.Entity.Actions;
@@ -12,6 +12,11 @@ namespace ACE.Entity
         public Book(AceObject aceO)
             : base(aceO)
         {
+            Book = true;
+            Attackable = true;
+            
+            SetObjectDescriptionBools();
+
             Pages = (int)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
             MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
         }

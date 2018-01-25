@@ -112,11 +112,9 @@ namespace ACE.Entity
         public Creature(AceObject baseObject)
             : base(baseObject)
         {
-            if (Attackable == false)
-            {
-                if (RadarColor != Enum.RadarColor.Yellow || (RadarColor == Enum.RadarColor.Yellow && CreatureType == null))
-                        NpcLooksLikeObject = true;
-            }
+            Stuck = true; Attackable = true;
+            
+            SetObjectDescriptionBools();
         }
 
         public virtual void DoOnKill(Session killerSession)

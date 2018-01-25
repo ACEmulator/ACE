@@ -5,14 +5,17 @@ using System.Collections.Generic;
 
 namespace ACE.Entity
 {
-    public class GenericObject : WorldObject
+    public class Bindstone : WorldObject
     {
-        public GenericObject(AceObject aceObject)
+        public Bindstone(AceObject aceObject)
             : base(aceObject)
         {
             Stuck = true; Attackable = true;
-            
+
             SetObjectDescriptionBools();
+
+            RadarBehavior = Enum.RadarBehavior.ShowAlways;
+            RadarColor = Enum.RadarColor.LifeStone;
         }
 
         ////public GenericObject(ObjectGuid guid, AceObject aceObject)
