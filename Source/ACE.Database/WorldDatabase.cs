@@ -25,7 +25,7 @@ namespace ACE.Database
             GetPortalObjectsByAceObjectId,
             GetItemsByTypeId,
             GetAceObject,
-            GetAceObjectGeneratorLinks,
+            //GetAceObjectGeneratorLinks,
             GetAceObjectGeneratorProfiles,
             GetAceObjectInventory,
             GetMaxId,
@@ -84,11 +84,11 @@ namespace ACE.Database
             HashSet<string> criteria2 = new HashSet<string> { "landblock" };
             ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
             
-            ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
+            //ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorProfiles, typeof(AceObjectGeneratorProfile), ConstructedStatementType.GetList);
 
-            //ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
+            ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
@@ -163,7 +163,7 @@ namespace ACE.Database
         protected override void LoadIntoObject(AceObject aceObject)
         {
             base.LoadIntoObject(aceObject);
-            aceObject.GeneratorLinks = GetAceObjectGeneratorLinks(aceObject.AceObjectId);
+            //aceObject.GeneratorLinks = GetAceObjectGeneratorLinks(aceObject.AceObjectId);
             aceObject.GeneratorProfiles = GetAceObjectGeneratorProfiles(aceObject.AceObjectId);
             aceObject.CreateList = GetAceObjectInventory(aceObject.AceObjectId);
         }
