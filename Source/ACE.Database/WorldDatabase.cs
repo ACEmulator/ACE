@@ -27,7 +27,7 @@ namespace ACE.Database
             GetAceObject,
             GetAceObjectGeneratorLinks,
             GetAceObjectGeneratorProfiles,
-            GetAceObjectInventory=50,
+            GetAceObjectInventory,
             GetMaxId,
 
             GetWeenieInstancesByLandblock,            
@@ -88,7 +88,7 @@ namespace ACE.Database
 
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorProfiles, typeof(AceObjectGeneratorProfile), ConstructedStatementType.GetList);
 
-            ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
+            //ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
 
