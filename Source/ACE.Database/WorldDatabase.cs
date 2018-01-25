@@ -27,7 +27,7 @@ namespace ACE.Database
             GetAceObject,
             GetAceObjectGeneratorLinks,
             GetAceObjectGeneratorProfiles,
-            GetAceObjectInventory,
+            GetAceObjectInventory=50,
             GetMaxId,
 
             GetWeenieInstancesByLandblock,            
