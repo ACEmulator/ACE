@@ -3861,7 +3861,7 @@ namespace ACE.Entity
                 }
             }
 
-            SexCG sex = cg.HeritageGroups[(int)Heritage].SexList[(int)Gender];
+            SexCG sex = cg.HeritageGroups[(uint)Heritage].Genders[(int)Gender];
 
             PaletteBaseId = sex.BasePalette;
 
