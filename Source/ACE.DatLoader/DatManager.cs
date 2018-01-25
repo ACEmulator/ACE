@@ -1,13 +1,13 @@
-﻿using System;
 using System.Linq;
 using System.IO;
 
 using ACE.Common;
+
 using log4net;
 
 namespace ACE.DatLoader
 {
-    public class DatManager
+    public static class DatManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -19,13 +19,14 @@ namespace ACE.DatLoader
 
         private static int count;
 
-        public static CellDatDatabase CellDat { get { return cellDat; } }
+        public static CellDatDatabase CellDat => cellDat;
 
-        public static PortalDatDatabase PortalDat { get { return portalDat; } }
+        public static PortalDatDatabase PortalDat => portalDat;
 
         public static void Initialize()
         {
             var datDir = Path.GetFullPath(Path.Combine(ConfigManager.Config.Server.DatFilesDirectory));
+
             try
             {
                 datFile = Path.Combine(datDir, "client_cell_1.dat");

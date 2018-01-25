@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2017-01-24
+### 2018-01-24
 [Ripley]
 **Changes based on 16PY database, may result in problems when using ACE-World database**
 * Adjusted SQL scripts slightly.
@@ -15,6 +15,29 @@
 * Added proper wielding for clothing on weenies and fixed clothing priority for them.
 * Added face randomization for Human based NPCs.
 * Removed GeneratatorLinks and AceObjectGeneratorLinks and cleaned up some AceObject load/clone code.
+
+### 2018-01-23
+[Ripley]
+* Minor cleanup of PR #595 due to needing to more inventory handling.
+* Added HearDirectSpeech from @dgatewood PR #585.
+
+[Mag-nus]
+* ACE.DatLoader refactoring and cleanup.
+
+[dgatewood]
+* Added GiveObjectRequest and HearDirectSpeech messages.
+
+[Morosity/Spazmodica]
+* Added ActionChain null wrapper added to not crash server if teleporting player disconnects.
+* Work toward resolving #231.
+
+### 2018-01-19
+[Cydrith]
+* Changed Licence from GPL V3 to AGPL V3. Additional licence restrictions introduced by AGPL apply from this point forward.
+
+### 2018-01-18
+[Morosity/Spazmodica]
+* Fixed range xp calculation for members based upon distance to leader
 
 ### 2018-01-14
 [Morosity/Spazmodica]

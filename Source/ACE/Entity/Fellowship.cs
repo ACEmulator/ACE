@@ -302,7 +302,15 @@ namespace ACE.Entity
         {
             Position leaderPosition = WorldManager.GetPlayerByGuidId(FellowshipLeaderGuid).Location;
             Position memberPosition = player.Location;
-            return 1-( Math.Abs(memberPosition.DistanceTo(leaderPosition)) / 600);
+
+            if (Math.Abs(memberPosition.DistanceTo(leaderPosition)) <= 600)
+            {
+                return 1;
+            }
+            else
+            {
+                return 1 - ((Math.Abs(memberPosition.DistanceTo(leaderPosition))-600) / 600);
+            }
         }
 
         internal bool IsPlayerInside(Player player)

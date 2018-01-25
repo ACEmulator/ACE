@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class FaceStripCG
+    public class FaceStripCG : IUnpackable
     {
-        public uint IconImage { get; set; }
-        public ObjDesc ObjDesc { get; set; }
+        public uint IconImage { get; private set; }
+        public ObjDesc ObjDesc { get; } = new ObjDesc();
+
+        public void Unpack(BinaryReader reader)
+        {
+            IconImage = reader.ReadUInt32();
+
+            ObjDesc.Unpack(reader);
+        }
     }
 }

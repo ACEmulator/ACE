@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SkillCG
+    public class SkillCG : IUnpackable
     {
-        public uint SkillNum { get; set; }
-        public uint NormalCost { get; set; }
-        public uint PrimaryCost { get; set; }
+        public uint SkillNum { get; private set; }
+        public uint NormalCost { get; private set; }
+        public uint PrimaryCost { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            SkillNum    = reader.ReadUInt32();
+            NormalCost  = reader.ReadUInt32();
+            PrimaryCost = reader.ReadUInt32();
+        }
     }
 }

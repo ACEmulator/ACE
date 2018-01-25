@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using System.Collections.Generic;
 using ACE.DatLoader.Entity;
 
@@ -99,9 +99,6 @@ namespace ACE.DatLoader.FileTypes
                         {
                             CBldPortal cbp = new CBldPortal();
                             cbp.Flags = datReader.ReadUInt16();
-                            cbp.ExactMatch = (ushort)(cbp.Flags & 1);
-                            cbp.PortalSide = (ushort)((cbp.Flags >> 1) & 1);
-
                             cbp.OtherCellId = (landblockId << 16) + datReader.ReadUInt16();
                             cbp.OtherPortalId = (landblockId << 16) + datReader.ReadUInt16();
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
 namespace ACE.DatLoader
 {
@@ -13,7 +9,7 @@ namespace ACE.DatLoader
 
         public DatFileTypeExtensionAttribute(string fileExtension)
         {
-            this.FileExtension = fileExtension;
+            FileExtension = fileExtension;
         }
     }
 }
