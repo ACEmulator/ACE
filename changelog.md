@@ -4,6 +4,7 @@
 [Ripley]
 * Minor cleanup of PR #595 due to needing to more inventory handling.
 * Added HearDirectSpeech from @dgatewood PR #585.
+* Uncommented Shade and TryToBond in AceObjectInventory to try to solve ACE test failure problem.
 
 [Mag-nus]
 * ACE.DatLoader refactoring and cleanup.

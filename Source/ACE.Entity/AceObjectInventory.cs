@@ -17,24 +17,24 @@ namespace ACE.Entity
         public uint WeenieClassId { get; set; }
 
         [JsonProperty("destinationType")]
-        [DbField("destinationType", (int)MySqlDbType.Byte)]
-        public sbyte DestinationType { get; set; }
+        [DbField("destinationType", (int)MySqlDbType.Int32)]
+        public int DestinationType { get; set; }
 
         [JsonProperty("stackSize")]
         [DbField("stackSize", (int)MySqlDbType.Int32)]
         public int StackSize { get; set; }
 
         [JsonProperty("palette")]
-        [DbField("palette", (int)MySqlDbType.Byte)]
-        public sbyte Palette { get; set; }
+        [DbField("palette", (int)MySqlDbType.Int32)]
+        public int Palette { get; set; }
 
-        // [JsonProperty("shade")]
-        // [DbField("shade", (int)MySqlDbType.Float)]
-        // public float Shade { get; set; }
+        [JsonProperty("shade")]
+        [DbField("shade", (int)MySqlDbType.Float)]
+        public float Shade { get; set; }
 
-        // [JsonProperty("tryToBond")]
-        // [DbField("tryToBond", (int)MySqlDbType.Byte)]
-        // public bool TryToBond { get; set; }
+        [JsonProperty("tryToBond")]
+        [DbField("tryToBond", (int)MySqlDbType.Int32)]
+        public int TryToBond { get; set; }
 
         public object Clone()
         {
