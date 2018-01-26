@@ -867,9 +867,16 @@
 		}, {
 			"id": "52",
 			"name": "Dirty Fighting"
-		}, {
-			"id": "54",
-			"name": "Summoning"
-		}
-	]
+		},{
+            "id": "54",
+            "name": "Summoning",
+            "gear": [
+                {
+                    "weenieId": "48886",
+                    "name": "Mud Golem Essence",
+                    "stacksize": "1"
+                }
+            ]
+        }
+    ]
 }
