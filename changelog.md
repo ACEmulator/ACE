@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-01-26
+[CrimsonMage]
+* Added Summoning to StarterGear (Mud Golem Essence).
+
 ### 2018-01-24
 [Ripley]
 **Changes based on 16PY database, may result in problems when using ACE-World database**
