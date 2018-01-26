@@ -382,6 +382,9 @@ namespace ACE.Entity
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
             Player = true;
+            Stuck = true; Attackable = true;
+            
+            SetObjectDescriptionBools();
 
             // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true,
             // I don't believe both were on at the same time. -Ripley

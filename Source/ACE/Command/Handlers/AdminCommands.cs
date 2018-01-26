@@ -1008,10 +1008,20 @@ namespace ACE.Command.Handlers
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 0 - {uint.MaxValue}", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 0 - {AceObject.WEENIE_MAX}", ChatMessageType.Broadcast);
                 return;
             }
-            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+            int palette = 0;
+            float shade = 0;
+            int stackSize = 1;
+            if (parameters.Length > 1)
+                palette = Convert.ToInt32(parameters[1]);
+            if (parameters.Length > 2)
+                shade = (float)Convert.ToDouble(parameters[2]);
+            if (parameters.Length > 3)
+                stackSize = Convert.ToInt32(parameters[3]);
+
+            var loot = WorldObjectFactory.CreateNewWorldObject(weenieId, palette, shade, stackSize);
 
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
         }
@@ -1022,14 +1032,14 @@ namespace ACE.Command.Handlers
         public static void HandleCI(Session session, params string[] parameters)
         {
             // TODO and FIXME: move to Player (eventually Admin) class, wrap in actionchain
-            ushort weenieId;
+            uint weenieId;
             try
             {
-                weenieId = Convert.ToUInt16(parameters[0]);
+                weenieId = Convert.ToUInt32(parameters[0]);
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, "Not a valid weenie id - must be a number between 0 -65,535 ", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"Not a valid weenie id - must be a number between 1 - {AceObject.WEENIE_MAX}", ChatMessageType.Broadcast);
                 return;
             }
 

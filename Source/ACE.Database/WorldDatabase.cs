@@ -25,7 +25,6 @@ namespace ACE.Database
             GetPortalObjectsByAceObjectId,
             GetItemsByTypeId,
             GetAceObject,
-            GetAceObjectGeneratorLinks,
             GetAceObjectGeneratorProfiles,
             GetAceObjectInventory,
             GetMaxId,
@@ -84,8 +83,6 @@ namespace ACE.Database
             HashSet<string> criteria2 = new HashSet<string> { "landblock" };
             ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
             
-            ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorLinks, typeof(AceObjectGeneratorLink), ConstructedStatementType.GetList);
-
             ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorProfiles, typeof(AceObjectGeneratorProfile), ConstructedStatementType.GetList);
 
             ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
@@ -163,7 +160,6 @@ namespace ACE.Database
         protected override void LoadIntoObject(AceObject aceObject)
         {
             base.LoadIntoObject(aceObject);
-            aceObject.GeneratorLinks = GetAceObjectGeneratorLinks(aceObject.AceObjectId);
             aceObject.GeneratorProfiles = GetAceObjectGeneratorProfiles(aceObject.AceObjectId);
             aceObject.CreateList = GetAceObjectInventory(aceObject.AceObjectId);
         }
@@ -201,13 +197,6 @@ namespace ACE.Database
             return ret;
         }
         
-        private List<AceObjectGeneratorLink> GetAceObjectGeneratorLinks(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorLink>(WorldPreparedStatement.GetAceObjectGeneratorLinks, criteria);
-            return objects;
-        }
-
         private List<AceObjectInventory> GetAceObjectInventory(uint aceObjectId)
         {
             var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };

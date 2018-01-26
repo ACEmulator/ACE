@@ -25,6 +25,9 @@ namespace ACE.Entity
         public Gem(AceObject aceObject)
             : base(aceObject)
         {
+            Attackable = true;
+            
+            SetObjectDescriptionBools();
         }
 
         /// <summary>

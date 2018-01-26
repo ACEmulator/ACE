@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Network.Enum;
 using ACE.Network.GameEvent.Events;
@@ -18,6 +18,10 @@ namespace ACE.Entity
         public Cow(AceObject aceO)
             : base(aceO)
         {
+            Stuck = true; Attackable = true;
+            
+            SetObjectDescriptionBools();
+
             UseRadius = 1;
             IsAlive = true;
             SetupVitals();
