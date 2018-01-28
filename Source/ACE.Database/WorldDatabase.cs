@@ -221,15 +221,6 @@ namespace ACE.Database
             string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v` ";
             string where = null;
 
-            //if (criteria?.ContentGuid != null)
-            //{
-            //    where = where != null ? where + " AND " : "";
-            //    where += "`v`.aceObjectId IN (SELECT weenieId FROM ace_content_weenie WHERE contentGuid = ?)";
-            //    var p = new MySqlParameter("", MySqlDbType.Binary);
-            //    p.Value = criteria.ContentGuid.Value.ToByteArray();
-            //    mysqlParams.Add(p);
-            //}
-
             if (criteria?.ItemType != null)
             {
                 where = where != null ? where + " AND " : "";
@@ -256,15 +247,6 @@ namespace ACE.Database
                 p.Value = (uint)criteria.WeenieClassId.Value;
                 mysqlParams.Add(p);
             }
-
-            //if (criteria?.UserModified != null)
-            //{
-            //    where = where != null ? where + " AND " : "";
-            //    where += "`v`.userModified = ?";
-            //    var p = new MySqlParameter("", MySqlDbType.Bit);
-            //    p.Value = criteria.UserModified.Value;
-            //    mysqlParams.Add(p);
-            //}
 
             if (!string.IsNullOrWhiteSpace(criteria?.PartialName))
             {
@@ -362,16 +344,5 @@ namespace ACE.Database
 
             return results;
         }
-
-        //public bool UserModifiedFlagPresent()
-        //{
-        //    // seach weenies or look for a single user mod flag ?
-        //    SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();
-        //    criteria.UserModified = true;
-        //    var result = SearchWeenies(criteria);
-        //    if (result.Count > 0)
-        //        return true;
-        //    return false;
-        //}
     }
 }
