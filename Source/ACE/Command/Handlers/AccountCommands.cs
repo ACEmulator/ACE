@@ -38,6 +38,8 @@ namespace ACE.Command.Handlers
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
+
+            newAccount.SetAccessLevel(accessLevel);
    
             // TODO and FIXME: this is not fully correct yet, needs more work. Not thread safe.
             var accountExists = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
