@@ -37,7 +37,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Build and run ACE.
 * Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
-* Launch ACClient directly with this command: `acclient.exe -a testaccount -h 127.0.0.1:9000 -glsticketdirect null`
+* Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
 
 ## Contributions
 
