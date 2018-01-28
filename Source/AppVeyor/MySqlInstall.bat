@@ -30,4 +30,4 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-06-00-generator-profiles-table.sql
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-06-01-landblock-links.sql
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-07-00-inventory-shade.sql
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-27-00-drop-content-tables.sql
+REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-27-00-drop-content-tables.sql
