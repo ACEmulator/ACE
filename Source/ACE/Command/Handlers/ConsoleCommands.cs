@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
 using ACE.DatLoader;
-using System.Collections.Generic;
-using ACE.Database;
 
 namespace ACE.Command.Handlers
 {
@@ -95,9 +95,7 @@ namespace ACE.Command.Handlers
             foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
             {
                 if (entry.Value.GetFileType() == DatFileType.Wave)
-                {
                     DatLoader.FileTypes.Wave.ExportWave(entry.Value.ObjectId, exportDir);
-                }
             }
             Console.WriteLine($"Export to {exportDir} complete.");
         }

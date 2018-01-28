@@ -1,23 +1,34 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class LandDefs
+    public class LandDefs : IUnpackable
     {
-        public List<float> LandHeightTable { get; set; } = new List<float>();
+        public int NumBlockLength { get; private set; }
+        public int NumBlockWidth { get; private set; }
+        public float SquareLength { get; private set; }
+        public int LBlockLength { get; private set; }
+        public int VertexPerCell { get; private set; }
+        public float MaxObjHeight { get; private set; }
+        public float SkyHeight { get; private set; }
+        public float RoadWidth { get; private set; }
 
-        public static LandDefs Read(DatReader datReader)
+        public List<float> LandHeightTable { get; } = new List<float>();
+
+        public void Unpack(BinaryReader reader)
         {
-            LandDefs obj = new LandDefs();
+            NumBlockLength  = reader.ReadInt32();
+            NumBlockWidth   = reader.ReadInt32();
+            SquareLength    = reader.ReadSingle();
+            LBlockLength    = reader.ReadInt32();
+            VertexPerCell   = reader.ReadInt32();
+            MaxObjHeight    = reader.ReadSingle();
+            SkyHeight       = reader.ReadSingle();
+            RoadWidth       = reader.ReadSingle();
+
             for (int i = 0; i < 256; i++)
-            {
-                obj.LandHeightTable.Add(datReader.ReadSingle());
-            }
-            return obj;
+                LandHeightTable.Add(reader.ReadSingle());
         }
     }
 }

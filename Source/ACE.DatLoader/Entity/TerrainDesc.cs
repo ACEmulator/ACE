@@ -1,27 +1,17 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class TerrainDesc
+    public class TerrainDesc : IUnpackable
     {
-        public List<TerrainType> TerrainTypes { get; set; } = new List<TerrainType>();
-        public LandSurf LandSurfaces { get; set; }
+        public List<TerrainType> TerrainTypes { get; } = new List<TerrainType>();
+        public LandSurf LandSurfaces { get; } = new LandSurf();
 
-        public static TerrainDesc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            TerrainDesc obj = new TerrainDesc();
-
-            uint num_terrain_types = datReader.ReadUInt32();
-            for (uint i = 0; i < num_terrain_types; i++)
-                obj.TerrainTypes.Add(TerrainType.Read(datReader));
-
-            obj.LandSurfaces = LandSurf.Read(datReader);
-
-            return obj;
+            TerrainTypes.Unpack(reader);
+            LandSurfaces.Unpack(reader);
         }
     }
 }

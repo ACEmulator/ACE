@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -6,37 +6,41 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x0A. All are stored in .WAV data format, though the header slightly different than a .WAV file header.
     /// I'm not sure of an instance where the server would ever need this data, but it's fun nonetheless and included for completion sake.
     /// </summary>
-    public class Wave
+    public class Wave : IUnpackable
     {
-        public uint Id { get; set; }
-        public byte[] Header { get; set; }
-        public byte[] Data { get; set; }
+        public uint Id { get; private set; }
+        public byte[] Header { get; private set; }
+        public byte[] Data { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Id = reader.ReadUInt32();
+
+            int headerSize  = reader.ReadInt32() - 2; // not sure why this is required, it just is.
+            int dataSize    = reader.ReadInt32();
+
+            Header  = reader.ReadBytes(headerSize);
+            Data    = reader.ReadBytes(dataSize);
+        }
 
         public static Wave ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (Wave)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                Wave obj = new Wave();
 
-                obj.Id = datReader.ReadUInt32();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                int headerSize = datReader.ReadInt32() - 2; // not sure why this is required, it just is.
-                int dataSize = datReader.ReadInt32();
+            Wave wave = new Wave();
 
-                obj.Header = datReader.ReadBytes(headerSize);
-                obj.Data = datReader.ReadBytes(dataSize);
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                wave.Unpack(reader);
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = wave;
 
-                return obj;
-            }
+            return wave;
         }
 
         /// <summary>

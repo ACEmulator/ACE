@@ -115,14 +115,6 @@ namespace ACE.DatLoader
             return data;
         }
 
-        public byte[] ReadBytes(int length)
-        {
-            byte[] data = new byte[length];
-            Array.Copy(Buffer, Offset, data, 0, length);
-            Offset += length;
-            return data;
-        }
-
         public float ReadSingle()
         {
             float data = BitConverter.ToSingle(Buffer, Offset);

@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class RoadAlphaMap
+    public class RoadAlphaMap : IUnpackable
     {
-        public uint RCode { get; set; }
-        public uint RoadTexGID { get; set; }
+        public uint RCode { get; private set; }
+        public uint RoadTexGID { get; private set; }
 
-        public static RoadAlphaMap Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            RoadAlphaMap obj = new RoadAlphaMap();
-            obj.RCode = datReader.ReadUInt32();
-            obj.RoadTexGID = datReader.ReadUInt32();
-            return obj;
+            RCode       = reader.ReadUInt32();
+            RoadTexGID  = reader.ReadUInt32();
         }
     }
 }

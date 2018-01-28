@@ -1,30 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SkyObjectReplace
+    public class SkyObjectReplace : IUnpackable
     {
-        public uint ObjectIndex { get; set; }
-        public uint GFXObjId { get; set; }
-        public float Rotate { get; set; }
-        public float Transparent { get; set; }
-        public float Luminosity { get; set; }
-        public float MaxBright { get; set; }
-    
-        public static SkyObjectReplace Read(DatReader datReader)
+        public uint ObjectIndex { get; private set; }
+        public uint GFXObjId { get; private set; }
+        public float Rotate { get; private set; }
+        public float Transparent { get; private set; }
+        public float Luminosity { get; private set; }
+        public float MaxBright { get; private set; }
+
+        public void Unpack(BinaryReader reader)
         {
-            SkyObjectReplace obj = new SkyObjectReplace();
-            obj.ObjectIndex = datReader.ReadUInt32();
-            obj.GFXObjId = datReader.ReadUInt32();
-            obj.Rotate = datReader.ReadSingle();
-            obj.Transparent = datReader.ReadSingle();
-            obj.Luminosity = datReader.ReadSingle();
-            obj.MaxBright = datReader.ReadSingle();
-            return obj;
+            ObjectIndex = reader.ReadUInt32();
+            GFXObjId    = reader.ReadUInt32();
+            Rotate      = reader.ReadSingle();
+            Transparent = reader.ReadSingle();
+            Luminosity  = reader.ReadSingle();
+            MaxBright   = reader.ReadSingle();
+
+            reader.AlignBoundary();
         }
     }
 }
