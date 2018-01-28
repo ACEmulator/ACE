@@ -45,11 +45,6 @@ namespace ACE.Network.Handlers
                     {
                         log.Info($"Auto creating account for: {loginRequest.Account}");
                         // no account, dynamically create one
-                        //   account = new Account();
-                        //   account.SetName(loginRequest.Account);
-                        //   account.SetPassword(loginRequest.Password);
-                        //   account.SetAccessLevel((AccessLevel)ConfigManager.Config.Server.Accounts.DefaultAccessLevel);
-                        //   DatabaseManager.Authentication.CreateAccount(account);
                         string[] parameters = new string[] { loginRequest.Account, loginRequest.Password };
                         AccountCommands.HandleAccountCreate(session, parameters);
                         account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
