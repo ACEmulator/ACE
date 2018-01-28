@@ -19,7 +19,6 @@ namespace ACE.DatLoader.FileTypes
         public void Unpack(BinaryReader reader)
         {
             throw new NotImplementedException();
-
         }
 
         public static XpTable ReadFromDat()
