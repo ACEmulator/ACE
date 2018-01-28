@@ -47,7 +47,7 @@ namespace ACE.Database.Tests
         }
 
         [TestMethod]
-        public void UpdateAccountAccessLevelToSentinel_ReturnsAccount()
+        public void UpdateAccountAccessLevelToSentinelAndBackToPlayer_ReturnsAccount()
         {
             Account newAccount = new Account();
             newAccount.SetName("testaccount1");            
@@ -56,6 +56,11 @@ namespace ACE.Database.Tests
             var results = authDb.GetAccountByName(newAccount.Name);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.AccessLevel == AccessLevel.Sentinel);
+
+            authDb.UpdateAccountAccessLevel(1, AccessLevel.Player);
+            var results2 = authDb.GetAccountByName(newAccount.Name);
+            Assert.IsNotNull(results2);
+            Assert.IsTrue(results2.AccessLevel == AccessLevel.Player);
         }
 
         [TestMethod]
