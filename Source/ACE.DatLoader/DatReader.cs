@@ -66,13 +66,6 @@ namespace ACE.DatLoader
             return data;
         }
 
-        public long ReadInt64()
-        {
-            long data = BitConverter.ToInt64(Buffer, Offset);
-            Offset += 8;
-            return data;
-        }
-
         public uint ReadUInt32()
         {
             uint data = BitConverter.ToUInt32(Buffer, Offset);
@@ -145,18 +138,6 @@ namespace ACE.DatLoader
         }
 
         /// <summary>
-        /// Returns a string as defined by the first byte's length
-        /// </summary>
-        public string ReadPStringBase()
-        {
-            int stringlength = ReadByte();
-            byte[] thestring = new byte[stringlength];
-            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
-            Offset += stringlength;
-            return System.Text.Encoding.Default.GetString(thestring);
-        }
-
-        /// <summary>
         /// Returns a string as defined by the first 2-byte's length
         /// </summary>
         public string ReadPString()
@@ -183,14 +164,6 @@ namespace ACE.DatLoader
                 thestring[i] = (byte)((thestring[i] >> 4) | ((thestring[i] << 4) & 0x00FF));
             }
             
-            Offset += stringlength;
-            return System.Text.Encoding.Default.GetString(thestring);
-        }
-
-        public string ReadString(int stringlength)
-        {
-            byte[] thestring = new byte[stringlength];
-            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
             Offset += stringlength;
             return System.Text.Encoding.Default.GetString(thestring);
         }

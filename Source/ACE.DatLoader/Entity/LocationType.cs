@@ -1,20 +1,18 @@
-﻿using ACE.Entity;
+using System.IO;
+
+using ACE.Entity;
 
 namespace ACE.DatLoader.Entity
 {
-    public class LocationType
+    public class LocationType : IUnpackable
     {
-        public uint PartId;
-        public Position Frame;
+        public uint PartId { get; private set; }
+        public Position Frame { get; } = new Position();
 
-        public static LocationType Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            LocationType obj = new LocationType();
-
-            obj.PartId = datReader.ReadUInt32();
-            obj.Frame = PositionExtensions.ReadPosition(datReader);
-
-            return obj;
+            PartId = reader.ReadUInt32();
+            Frame.Read(reader);
         }
     }
 }

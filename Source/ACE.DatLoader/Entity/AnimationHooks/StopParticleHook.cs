@@ -1,14 +1,16 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class StopParticleHook : IHook
+    public class StopParticleHook : AnimationHook
     {
         public uint EmitterId { get; private set; }
 
-        public static StopParticleHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            StopParticleHook sp = new StopParticleHook();
-            sp.EmitterId = datReader.ReadUInt32();
-            return sp;
+            base.Unpack(reader);
+
+            EmitterId = reader.ReadUInt32();
         }
     }
 }

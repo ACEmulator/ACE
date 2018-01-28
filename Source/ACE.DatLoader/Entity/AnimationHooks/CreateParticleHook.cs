@@ -1,25 +1,24 @@
-﻿using ACE.Entity;
+using System.IO;
+
+using ACE.Entity;
 
 namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class CreateParticleHook : IHook
+    public class CreateParticleHook : AnimationHook
     {
         public uint EmitterInfoId { get; private set; }
         public uint PartIndex { get; private set; }
-        public Position Offset { get; private set; }
+        public Position Offset { get; } = new Position();
         public uint EmitterId { get; private set; }
 
-        public static CreateParticleHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            CreateParticleHook hook = new CreateParticleHook();
-            hook.EmitterInfoId = datReader.ReadUInt32();
+            base.Unpack(reader);
 
-            hook.PartIndex = datReader.ReadUInt32();
-
-            hook.Offset = PositionExtensions.ReadPosition(datReader);
-
-            hook.EmitterId = datReader.ReadUInt32();
-            return hook;
+            EmitterInfoId   = reader.ReadUInt32();
+            PartIndex       = reader.ReadUInt32();
+            Offset.ReadPosition(reader);
+            EmitterId       = reader.ReadUInt32();
         }
     }
 }

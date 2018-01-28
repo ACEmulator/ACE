@@ -1,16 +1,16 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class AttackHook : IHook
+    public class AttackHook : AnimationHook
     {
-        public AttackCone AttackCone { get; private set; }
+        public AttackCone AttackCone { get; } = new AttackCone();
 
-        public static AttackHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            AttackHook a = new AttackHook();
+            base.Unpack(reader);
 
-            a.AttackCone = AttackCone.Read(datReader);
-
-            return a;
+            AttackCone.Unpack(reader);
         }
     }
 }

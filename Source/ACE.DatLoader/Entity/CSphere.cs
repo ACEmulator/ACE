@@ -1,24 +1,22 @@
-﻿using ACE.Entity;
+using System;
+using System.IO;
+
+using ACE.Entity;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CSphere
+    public class CSphere : IUnpackable
     {
-        public AceVector3 Origin { get; set; }
-        public float Radius { get; set; }
+        public AceVector3 Origin { get; private set; } = new AceVector3(0, 0, 0);
+        public float Radius { get; private set; }
 
-        public CSphere()
+        public void Unpack(BinaryReader reader)
         {
-            this.Origin = new AceVector3(0, 0, 0);
-            this.Radius = 0;
+            Origin = new AceVector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+            Radius = reader.ReadSingle();
         }
 
-        public CSphere(AceVector3 origin, float radius)
-        {
-            this.Origin = origin;
-            this.Radius = radius;
-        }
-
+        [Obsolete]
         public static CSphere Read(DatReader datReader)
         {
             CSphere obj = new CSphere();

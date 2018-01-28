@@ -21,9 +21,7 @@ namespace ACE.DatLoader
                     thisFolder = Path.Combine(path, "UnknownType");
 
                 if (!Directory.Exists(thisFolder))
-                {
                     Directory.CreateDirectory(thisFolder);
-                }
 
                 string hex = entry.Value.ObjectId.ToString("X8");
                 string thisFile = Path.Combine(thisFolder, hex + ".bin");

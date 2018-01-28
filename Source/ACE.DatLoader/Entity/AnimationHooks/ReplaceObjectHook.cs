@@ -1,20 +1,16 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class ReplaceObjectHook : IHook
+    public class ReplaceObjectHook : AnimationHook
     {
-        public AnimationPartChange APChange { get; private set; }
+        public AnimationPartChange APChange { get; } = new AnimationPartChange();
 
-        public static ReplaceObjectHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            ReplaceObjectHook r = new ReplaceObjectHook();
+            base.Unpack(reader);
 
-            AnimationPartChange ao = new AnimationPartChange();
-            ao.PartIndex = (byte)datReader.ReadUInt16();
-            ao.PartID = datReader.ReadUInt16();
-
-            r.APChange = ao;
-
-            return r;
+            APChange.Unpack(reader);
         }
     }
 }

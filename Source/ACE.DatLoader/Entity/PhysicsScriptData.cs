@@ -1,24 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class PhysicsScriptData
+    public class PhysicsScriptData : IUnpackable
     {
-        public double StartTime { get; set; }
-        public AnimationHook Hook { get; set; }
+        public double StartTime { get; private set; }
+        public AnimationHook Hook { get; } = new AnimationHook();
 
-        public static PhysicsScriptData Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            PhysicsScriptData obj = new PhysicsScriptData();
+            StartTime = reader.ReadDouble();
 
-            obj.StartTime = datReader.ReadDouble();
-            obj.Hook = AnimationHook.Read(datReader);
-
-            return obj;
+            Hook.Unpack(reader);
         }
     }
 }

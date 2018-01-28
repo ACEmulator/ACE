@@ -30,7 +30,6 @@ namespace ACE.DatLoader.FileTypes
             if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000002))
                 return (CharGen)DatManager.PortalDat.FileCache[0x0E000002];
 
-            // Create the datReader for the proper file
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000002);
 
             CharGen cg = new CharGen();
@@ -41,6 +40,7 @@ namespace ACE.DatLoader.FileTypes
 
             // Store this object in the FileCache
             DatManager.PortalDat.FileCache[0x0E000002] = cg;
+
             return cg;
         }
     }
