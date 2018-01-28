@@ -1,1 +1,0 @@
-﻿DO NOT upgrade Microsoft.AspNet.WebApi.WebHost in Nuget.  It is a breaking non-compatible change intended for .Net Core.

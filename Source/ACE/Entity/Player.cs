@@ -3176,7 +3176,7 @@ namespace ACE.Entity
                         {
                             iwo.Inscription = inscriptionText;
                             iwo.ScribeName = this.Name;
-                            iwo.ScribeAccount = Session.SubscriptionId.ToString();
+                            iwo.ScribeAccount = Session.Account;
                             Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
                                 iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
                         }

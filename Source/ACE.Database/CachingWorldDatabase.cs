@@ -98,26 +98,6 @@ namespace ACE.Database
             _wrappedDatabase.DeleteRecipe(recipeGuid);
         }
 
-        public List<Content> GetAllContent()
-        {
-            return _wrappedDatabase.GetAllContent();
-        }
-
-        public void CreateContent(Content content)
-        {
-            _wrappedDatabase.CreateContent(content);
-        }
-
-        public void UpdateContent(Content content)
-        {
-            _wrappedDatabase.UpdateContent(content);
-        }
-
-        public void DeleteContent(Guid contentGuid)
-        {
-            _wrappedDatabase.DeleteContent(contentGuid);
-        }
-
         public bool SaveObject(AceObject weenie)
         {
             if (_weenieCache.ContainsKey(weenie.WeenieClassId))
@@ -138,11 +118,6 @@ namespace ACE.Database
         public List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria)
         {
             return _wrappedDatabase.SearchWeenies(criteria);
-        }
-
-        public bool UserModifiedFlagPresent()
-        {
-            return _wrappedDatabase.UserModifiedFlagPresent();
         }
 
         public bool ReplaceObject(AceObject aceObject)

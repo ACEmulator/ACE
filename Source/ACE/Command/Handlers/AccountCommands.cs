@@ -20,8 +20,7 @@ namespace ACE.Command.Handlers
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
             Account newAccount = new Account();
-            newAccount.Name         = parameters[0].ToLower();
-            newAccount.DisplayName  = newAccount.Name; // default to this for command-line created accounts
+            newAccount.SetName(parameters[0].ToLower());
             newAccount.SetPassword(parameters[1]);
 
             AccessLevel accessLevel        = AccessLevel.Player;
@@ -50,12 +49,6 @@ namespace ACE.Command.Handlers
             else
             {
                 DatabaseManager.Authentication.CreateAccount(newAccount);
-                // also create a default subscription with new accounts
-                Subscription s = new Subscription();
-                s.AccessLevel = accessLevel;
-                s.AccountGuid = newAccount.AccountGuid;
-                s.Name = "auto";
-                DatabaseManager.Authentication.CreateSubscription(s);
                 Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
             }
         }
@@ -113,7 +106,7 @@ namespace ACE.Command.Handlers
                 return;
             }
             else
-                DatabaseManager.Authentication.UpdateSubscriptionAccessLevel(accountId, accessLevel);
+                DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
 
             if (session == null)
                 Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");

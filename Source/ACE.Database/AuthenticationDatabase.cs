@@ -7,8 +7,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 
 using MySql.Data.MySqlClient;
-using System.Linq;
-using System.Data;
 
 namespace ACE.Database
 {
@@ -20,12 +18,6 @@ namespace ACE.Database
             AccountSelect,
             AccountUpdate,
             AccountSelectByName,
-
-            SubscriptionInsert,
-            SubscriptionSelect,
-            SubscriptionUpdate,
-            SubscriptionGet,
-            SubscriptionGetByAccount
         }
 
         protected override Type PreparedStatementType => typeof(AuthenticationPreparedStatement);
@@ -36,39 +28,19 @@ namespace ACE.Database
             ConstructStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), ConstructedStatementType.Insert);
             ConstructStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), ConstructedStatementType.Update);
             ConstructStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), ConstructedStatementType.Get);
-
-            ConstructStatement(AuthenticationPreparedStatement.SubscriptionInsert, typeof(Subscription), ConstructedStatementType.Insert);
-            ConstructStatement(AuthenticationPreparedStatement.SubscriptionSelect, typeof(Subscription), ConstructedStatementType.Get);
-            ConstructStatement(AuthenticationPreparedStatement.SubscriptionUpdate, typeof(Subscription), ConstructedStatementType.Update);
-            ConstructStatement(AuthenticationPreparedStatement.SubscriptionGet, typeof(Subscription), ConstructedStatementType.Get);
-            ConstructStatement(AuthenticationPreparedStatement.SubscriptionGetByAccount, typeof(Subscription), ConstructedStatementType.GetList);
         }
-        
+
         public void CreateAccount(Account account)
         {
             ExecuteConstructedInsertStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), account);
         }
 
-        public void CreateSubscription(Subscription sub)
+        public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
         {
-            ExecuteConstructedInsertStatement(AuthenticationPreparedStatement.SubscriptionInsert, typeof(Subscription), sub);
-        }
-
-        public void UpdateSubscriptionAccessLevel(uint subscriptionId, AccessLevel accessLevel)
-        {
-            var sub = GetSubscriptionById(subscriptionId);
-            sub.AccessLevel = accessLevel;
-            UpdateSubscription(sub);
-        }
-
-        public void UpdateAccount(Account account)
-        {
-            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), account);
-        }
-
-        public void UpdateSubscription(Subscription sub)
-        {
-            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.SubscriptionUpdate, typeof(Subscription), sub);
+            // ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
+            var account = GetAccountById(accountId);
+            account.SetAccessLevel(accessLevel);
+            UpdateAccount(account);
         }
 
         public Account GetAccountById(uint accountId)
@@ -77,28 +49,6 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "accountId", accountId } };
             bool success = ExecuteConstructedGetStatement<Account, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelect, criteria, ret);
             return ret;
-        }
-
-        public Subscription GetSubscriptionById(uint subscriptionId)
-        {
-            Subscription ret = new Subscription();
-            var criteria = new Dictionary<string, object> { { "subscriptionId", subscriptionId } };
-            bool success = ExecuteConstructedGetStatement<Subscription, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.SubscriptionGet, criteria, ret);
-            return ret;
-        }
-
-        public Subscription GetSubscriptionByGuid(Guid subscriptionGuid)
-        {
-            Dictionary<string, MySqlParameter> criteria = new Dictionary<string, MySqlParameter>();
-            criteria.Add("subscriptionGuid", new MySqlParameter("", MySqlDbType.Binary) { Value = subscriptionGuid.ToByteArray() });
-            return ExecuteDynamicGet<Subscription>(criteria);
-        }
-
-        public List<Subscription> GetSubscriptionsByAccount(Guid accountGuid)
-        {
-            var criteria = new Dictionary<string, object> { { "accountGuid", accountGuid.ToByteArray() } };
-            var result = ExecuteConstructedGetListStatement<AuthenticationPreparedStatement, Subscription>(AuthenticationPreparedStatement.SubscriptionGetByAccount, criteria);
-            return result;
         }
 
         public Account GetAccountByName(string accountName)
@@ -114,13 +64,18 @@ namespace ACE.Database
 
             return null;
         }
-        
+
         public void GetAccountIdByName(string accountName, out uint id)
         {
             AccountByName ret = new AccountByName();
             var criteria = new Dictionary<string, object> { { "accountName", accountName } };
             ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
             id = ret.AccountId;
+        }
+
+        public void UpdateAccount(Account account)
+        {
+            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), account);
         }
     }
 }

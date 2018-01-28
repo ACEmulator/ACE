@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,8 +41,5 @@ namespace ACE.Entity
             get { return (int)ItemType; }
             set { ItemType = (ItemType)value; }
         }
-
-        [DbField("userModified", (int)MySqlDbType.Byte)]
-        public bool UserModified { get; set; }
     }
 }

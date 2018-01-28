@@ -34,7 +34,7 @@ namespace ACE.Network.Handlers
 
             string clientString = message.Payload.ReadString16L();
 
-            if (clientString != session.ClientAccountString)
+            if (clientString != session.Account)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
@@ -62,7 +62,7 @@ namespace ACE.Network.Handlers
             string clientString = message.Payload.ReadString16L();
             uint characterSlot = message.Payload.ReadUInt32();
             
-            if (clientString != session.ClientAccountString)
+            if (clientString != session.Account)
             {
                 session.SendCharacterError(CharacterError.Delete);
                 return;
@@ -83,10 +83,10 @@ namespace ACE.Network.Handlers
             {
                 if (deleteOrRestoreSuccess)
                 {
-                    DatabaseManager.Shard.GetCharacters(session.SubscriptionId, ((List<CachedCharacter> result) =>
+                    DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
                     {
                         session.UpdateCachedCharacters(result);
-                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.ClientAccountString));
+                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
                     }));
                 }
                 else
@@ -128,7 +128,7 @@ namespace ACE.Network.Handlers
         public static void CharacterCreate(ClientMessage message, Session session)
         {
             string clientString = message.Payload.ReadString16L();
-            if (clientString != session.ClientAccountString)
+            if (clientString != session.Account)
                 return;
 
             uint id = GuidManager.NewPlayerGuid().Full;
@@ -608,7 +608,7 @@ namespace ACE.Network.Handlers
                     return;
                 }
 
-                character.SubscriptionId = session.SubscriptionId;
+                character.AccountId = session.Id;
 
                 CharacterCreateSetDefaultCharacterOptions(character);
                 CharacterCreateSetDefaultCharacterPositions(character, startArea);

@@ -32,7 +32,7 @@ namespace ACE.Database.Tests
                           ConfigManager.Config.MySql.World.Database);
         }
 
-        [TestMethod]
+        // [TestMethod]
         public void WeenieSearch_NullCriteria_ReturnsLotsOfWeenies()
         {
             var results = worldDb.SearchWeenies(null);
@@ -48,15 +48,6 @@ namespace ACE.Database.Tests
             var results = worldDb.SearchWeenies(criteria);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.Count > 0);
-        }
-
-        [TestMethod]
-        public void WeenieSearch_ByContent_DoesntExplode()
-        {
-            SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();
-            criteria.ContentGuid = Guid.NewGuid();
-            var results = worldDb.SearchWeenies(criteria);
-            Assert.IsNotNull(results);
         }
 
         [TestMethod]
