@@ -257,14 +257,14 @@ namespace ACE.Database
                 mysqlParams.Add(p);
             }
 
-            if (criteria?.UserModified != null)
-            {
-                where = where != null ? where + " AND " : "";
-                where += "`v`.userModified = ?";
-                var p = new MySqlParameter("", MySqlDbType.Bit);
-                p.Value = criteria.UserModified.Value;
-                mysqlParams.Add(p);
-            }
+            //if (criteria?.UserModified != null)
+            //{
+            //    where = where != null ? where + " AND " : "";
+            //    where += "`v`.userModified = ?";
+            //    var p = new MySqlParameter("", MySqlDbType.Bit);
+            //    p.Value = criteria.UserModified.Value;
+            //    mysqlParams.Add(p);
+            //}
 
             if (!string.IsNullOrWhiteSpace(criteria?.PartialName))
             {
