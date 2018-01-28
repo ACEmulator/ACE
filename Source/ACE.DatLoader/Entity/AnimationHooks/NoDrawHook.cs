@@ -1,14 +1,16 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class NoDrawHook : IHook
+    public class NoDrawHook : AnimationHook
     {
         public uint NoDraw { get; private set; }
 
-        public static NoDrawHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            NoDrawHook nd = new NoDrawHook();
-            nd.NoDraw = datReader.ReadUInt32();
-            return nd;
+            base.Unpack(reader);
+
+            NoDraw = reader.ReadUInt32();
         }
     }
 }

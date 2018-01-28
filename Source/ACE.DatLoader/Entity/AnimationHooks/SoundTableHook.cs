@@ -1,14 +1,16 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class SoundTableHook : IHook
+    public class SoundTableHook : AnimationHook
     {
         public uint SoundType { get; private set; }
 
-        public static SoundTableHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            SoundTableHook s = new SoundTableHook();
-            s.SoundType = datReader.ReadUInt32();
-            return s;
+            base.Unpack(reader);
+
+            SoundType = reader.ReadUInt32();
         }
     }
 }

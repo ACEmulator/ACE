@@ -1,4 +1,6 @@
-﻿using ACE.Entity;
+using System.IO;
+
+using ACE.Entity;
 
 namespace ACE.DatLoader.Entity
 {
@@ -7,6 +9,29 @@ namespace ACE.DatLoader.Entity
     /// </summary>
     public static class PositionExtensions
     {
+        /// <summary>
+        /// Reads a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
+        /// </summary>
+        public static void ReadPosition(this Position position, BinaryReader reader)
+        {
+            position.Read(reader);
+        }
+
+        /// <summary>
+        /// Reads a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
+        /// </summary>
+        public static void Read(this Position p, BinaryReader reader)
+        {
+            p.PositionX = reader.ReadSingle();
+            p.PositionY = reader.ReadSingle();
+            p.PositionZ = reader.ReadSingle();
+            p.RotationW = reader.ReadSingle();
+            p.RotationX = reader.ReadSingle();
+            p.RotationY = reader.ReadSingle();
+            p.RotationZ = reader.ReadSingle();
+        }
+
+
         /// <summary>
         /// Reads and returns a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>

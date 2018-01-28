@@ -1,31 +1,25 @@
-﻿using ACE.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+
+using ACE.Entity;
 
 namespace ACE.DatLoader.Entity
 {
-    public class LightInfo
+    public class LightInfo : IUnpackable
     {
-        public Position ViewerspaceLocation { get; set; }
-        public uint Color { get; set; } // _RGB Color. Red is bytes 3-4, Green is bytes 5-6, Blue is bytes 7-8. Bytes 1-2 are always FF (?)
-        public float Intensity { get; set; }
-        public float Falloff { get; set; }
-        public float ConeAngle { get; set; }
+        public Position ViewerspaceLocation { get; } = new Position();
+        public uint Color { get; private set; } // _RGB Color. Red is bytes 3-4, Green is bytes 5-6, Blue is bytes 7-8. Bytes 1-2 are always FF (?)
+        public float Intensity { get; private set; }
+        public float Falloff { get; private set; }
+        public float ConeAngle { get; private set; }
 
-        public static LightInfo Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            LightInfo obj = new LightInfo();
+            ViewerspaceLocation.Read(reader);
 
-            obj.ViewerspaceLocation = PositionExtensions.ReadPosition(datReader);
-            obj.Color = datReader.ReadUInt32();
-            obj.Intensity = datReader.ReadSingle();
-            obj.Falloff = datReader.ReadSingle();
-            obj.ConeAngle = datReader.ReadSingle();
-
-            return obj;
+            Color       = reader.ReadUInt32();
+            Intensity   = reader.ReadSingle();
+            Falloff     = reader.ReadSingle();
+            ConeAngle   = reader.ReadSingle();
         }
     }
 }

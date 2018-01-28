@@ -1,16 +1,18 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class ScaleHook : IHook
+    public class ScaleHook : AnimationHook
     {
         public float End { get; private set; }
         public float Time { get; private set; }
 
-        public static ScaleHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            ScaleHook s = new ScaleHook();
-            s.End = datReader.ReadSingle();
-            s.Time = datReader.ReadSingle();
-            return s;
+            base.Unpack(reader);
+
+            End     = reader.ReadSingle();
+            Time    = reader.ReadSingle();
         }
     }
 }

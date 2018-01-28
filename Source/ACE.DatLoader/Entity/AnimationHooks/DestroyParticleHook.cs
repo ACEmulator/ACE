@@ -1,14 +1,16 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class DestroyParticleHook : IHook
+    public class DestroyParticleHook : AnimationHook
     {
         public uint EmitterId { get; private set; }
 
-        public static DestroyParticleHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            DestroyParticleHook dp = new DestroyParticleHook();
-            dp.EmitterId = datReader.ReadUInt32();
-            return dp;
+            base.Unpack(reader);
+
+            EmitterId = reader.ReadUInt32();
         }
     }
 }

@@ -1,18 +1,20 @@
-﻿namespace ACE.DatLoader.Entity.AnimationHooks
+using System.IO;
+
+namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class TransparentHook : IHook
+    public class TransparentHook : AnimationHook
     {
         public float Start { get; private set; }
         public float End { get; private set; }
         public float Time { get; private set; }
 
-        public static TransparentHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            TransparentHook tp = new TransparentHook();
-            tp.Start = datReader.ReadSingle();
-            tp.End = datReader.ReadSingle();
-            tp.Time = datReader.ReadSingle();
-            return tp;
+            base.Unpack(reader);
+
+            Start   = reader.ReadSingle();
+            End     = reader.ReadSingle();
+            Time    = reader.ReadSingle();
         }
     }
 }
