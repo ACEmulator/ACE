@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +9,11 @@ namespace ACE.Network.Packets
 {
     public class PacketInboundLoginRequest
     {
-        public uint Timestamp { get; }
+        public uint Timestamp { get; }    
 
-        public string ClientAccountString { get; }
+        public string Account { get; }
 
-        /// <summary>
-        /// formerly the GLS ticket.  We don't have GLS, so we're going to use Jwt.
-        /// </summary>
-        public string JwtToken { get; }
+        public string GlsTicket { get; }
 
         public PacketInboundLoginRequest(ClientPacket packet)
         {
@@ -25,17 +22,17 @@ namespace ACE.Network.Packets
             uint unknown1 = packet.Payload.ReadUInt32();
             uint unknown2 = packet.Payload.ReadUInt32();
             Timestamp = packet.Payload.ReadUInt32();
-            ClientAccountString = packet.Payload.ReadString16L();
+            Account = packet.Payload.ReadString16L();
             string unknown3 = packet.Payload.ReadString16L();
-            
+
             // int consumed = (someString.Length + 2) + 4 * sizeof(uint) + (ClientAccountString.Length + 2) + (unknown3.Length + 2);
-            
+
             // this packet header has 2 bytes that are proving hard to decipher.  sometimes they occur
             // before the length DWORD at the start of the 32L string, sometimes they are after, in which
             // case the string len is increased by 2 and the 2 bytes are prepended to the string (as
             // garbage and possibly invalid input)
 
-            JwtToken = packet.Payload.ReadString32L();
+            GlsTicket = packet.Payload.ReadString32L();
         }
     }
 }

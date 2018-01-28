@@ -18,10 +18,10 @@ namespace ACE.Network
     public class Session : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
-        public uint SubscriptionId { get; private set; }
 
-        public string ClientAccountString { get; private set; }
+        public uint Id { get; private set; }
+
+        public string Account { get; private set; }
 
         public string LoggingIdentifier { get; private set; } = "Unverified";
 
@@ -114,13 +114,11 @@ namespace ACE.Network
             GameEventSequence = 0;
         }
 
-        public void SetSubscription(Subscription sub, string clientAccountString, string loggingIdentifier)
+        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
         {
-            log.Info($"setting subscription information for {sub.SubscriptionGuid}, clientAccountString {clientAccountString}");
-            SubscriptionId = sub.SubscriptionId;
-            ClientAccountString = clientAccountString;
-            LoggingIdentifier = loggingIdentifier;
-            AccessLevel = sub.AccessLevel;
+            Id = accountId;
+            Account = account;
+            AccessLevel = accountAccesslevel;
         }
 
         public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
@@ -286,10 +284,10 @@ namespace ACE.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(SubscriptionId, ((List<CachedCharacter> result) =>
+            DatabaseManager.Shard.GetCharacters(Id, ((List<CachedCharacter> result) =>
             {
                 UpdateCachedCharacters(result);
-                Network.EnqueueSend(new GameMessageCharacterList(result, ClientAccountString));
+                Network.EnqueueSend(new GameMessageCharacterList(result, Account));
 
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
                 Network.EnqueueSend(serverNameMessage);

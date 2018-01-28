@@ -51,15 +51,6 @@ namespace ACE.Database.Tests
         }
 
         [TestMethod]
-        public void WeenieSearch_ByContent_DoesntExplode()
-        {
-            SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();
-            criteria.ContentGuid = Guid.NewGuid();
-            var results = worldDb.SearchWeenies(criteria);
-            Assert.IsNotNull(results);
-        }
-
-        [TestMethod]
         public void WeenieSearch_ByWeenieClassId_DoesntExplode()
         {
             SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();

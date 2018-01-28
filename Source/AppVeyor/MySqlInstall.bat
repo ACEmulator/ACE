@@ -8,9 +8,11 @@ REM execute Base Scripts
 
 REM execute Update Scripts for Authentication Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < database\updates\auth\changeme.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < database\updates\auth\2018-01-27-00-auth-changes.sql
 
 REM execute Update Scripts for Shard Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\changeme.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\2018-01-27-00-auth-changes.sql
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
@@ -28,3 +30,4 @@ REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-06-00-generator-profiles-table.sql
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-06-01-landblock-links.sql
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-07-00-inventory-shade.sql
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\2018-01-27-00-drop-content-tables.sql

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
@@ -58,7 +58,7 @@ namespace ACE.Entity.Enum.Properties
         PetDevice                        = 45,
 
         // values over 9000 are ones that we have added and should not be sent to the client
-        Subscription                     = 9001,
+        Account                          = 9001,
         Friend                           = 9002
     }
 

@@ -646,10 +646,10 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? SubscriptionId
+        public uint? AccountId
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Subscription); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
         }
 
         [JsonIgnore]

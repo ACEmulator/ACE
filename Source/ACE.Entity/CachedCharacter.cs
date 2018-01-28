@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
@@ -24,8 +24,8 @@ namespace ACE.Entity
 
         public byte SlotId { get; set; }
 
-        [DbField("subscriptionId", (int)MySqlDbType.UInt32, ListGet = true)]
-        public uint SubscriptionId { get; set; }
+        [DbField("accountId", (int)MySqlDbType.UInt32, ListGet = true)]
+        public uint AccountId { get; set; }
 
         [DbField("name", (int)MySqlDbType.VarChar, IsCriteria = true)]
         public string Name { get; set; }

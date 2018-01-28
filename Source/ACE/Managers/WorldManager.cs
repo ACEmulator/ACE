@@ -143,12 +143,25 @@ namespace ACE.Managers
             }
         }
 
-        public static Session Find(uint subscriptionId)
+        //public static Session Find(uint subscriptionId)
+        //{
+        //    sessionLock.EnterReadLock();
+        //    try
+        //    {
+        //        return sessions.SingleOrDefault(s => s.SubscriptionId == subscriptionId);
+        //    }
+        //    finally
+        //    {
+        //        sessionLock.ExitReadLock();
+        //    }
+        //}
+
+        public static Session Find(string account)
         {
             sessionLock.EnterReadLock();
             try
             {
-                return sessions.SingleOrDefault(s => s.SubscriptionId == subscriptionId);
+                return sessions.SingleOrDefault(s => s.Account == account);
             }
             finally
             {

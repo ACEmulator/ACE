@@ -27,14 +27,6 @@ namespace ACE.Database
         void UpdateRecipe(Recipe recipe);
 
         void DeleteRecipe(Guid recipeGuid);
-
-        List<Content> GetAllContent();
-        
-        void CreateContent(Content content);
-
-        void UpdateContent(Content content);
-
-        void DeleteContent(Guid contentGuid);
         
         /// <summary>
         /// gets any matching weenie objects, only very shallowly populated.  this is not

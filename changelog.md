@@ -1,12 +1,21 @@
 # ACEmulator Change Log
 
+### 2018-01-27
+[Ripley]
+
+**You will need to delete and recreate your ace_auth and ace_shard databases to proceed**
+
+* Removed API and SecureAuth coding per new license agreement.
+
 ### 2018-01-26
 [CrimsonMage]
 * Added Summoning to StarterGear (Mud Golem Essence).
 
 ### 2018-01-24
 [Ripley]
+
 **Changes based on 16PY database, may result in problems when using ACE-World database**
+
 * Adjusted SQL scripts slightly.
 * Corrected issue with objects spawning at xxxx0000 in landblock.
 * Added null catch for objects that have generator profiles for weenies not found in the database.

@@ -98,26 +98,6 @@ namespace ACE.Database
             _wrappedDatabase.DeleteRecipe(recipeGuid);
         }
 
-        public List<Content> GetAllContent()
-        {
-            return _wrappedDatabase.GetAllContent();
-        }
-
-        public void CreateContent(Content content)
-        {
-            _wrappedDatabase.CreateContent(content);
-        }
-
-        public void UpdateContent(Content content)
-        {
-            _wrappedDatabase.UpdateContent(content);
-        }
-
-        public void DeleteContent(Guid contentGuid)
-        {
-            _wrappedDatabase.DeleteContent(contentGuid);
-        }
-
         public bool SaveObject(AceObject weenie)
         {
             if (_weenieCache.ContainsKey(weenie.WeenieClassId))
