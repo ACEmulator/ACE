@@ -120,11 +120,6 @@ namespace ACE.Database
             return _wrappedDatabase.SearchWeenies(criteria);
         }
 
-        //public bool UserModifiedFlagPresent()
-        //{
-        //    return _wrappedDatabase.UserModifiedFlagPresent();
-        //}
-
         public bool ReplaceObject(AceObject aceObject)
         {
             if (_weenieCache.ContainsKey(aceObject.WeenieClassId))
