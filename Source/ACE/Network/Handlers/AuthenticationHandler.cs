@@ -41,16 +41,19 @@ namespace ACE.Network.Handlers
             {
                 if (loginRequest.NetAuthType == NetAuthType.AccountPassword && loginRequest.Password != "")
                 {
-                    log.Info($"Auto creating account for: {loginRequest.Account}");
-                    // no account, dynamically create one
-                    //   account = new Account();
-                    //   account.SetName(loginRequest.Account);
-                    //   account.SetPassword(loginRequest.Password);
-                    //   account.SetAccessLevel((AccessLevel)ConfigManager.Config.Server.Accounts.DefaultAccessLevel);
-                    //   DatabaseManager.Authentication.CreateAccount(account);
-                    string[] parameters = new string[] { loginRequest.Account, loginRequest.Password };
-                    AccountCommands.HandleAccountCreate(session, parameters);
-                    account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
+                    if (ConfigManager.Config.Server.Accounts.AllowAutoAccountCreation)
+                    {
+                        log.Info($"Auto creating account for: {loginRequest.Account}");
+                        // no account, dynamically create one
+                        //   account = new Account();
+                        //   account.SetName(loginRequest.Account);
+                        //   account.SetPassword(loginRequest.Password);
+                        //   account.SetAccessLevel((AccessLevel)ConfigManager.Config.Server.Accounts.DefaultAccessLevel);
+                        //   DatabaseManager.Authentication.CreateAccount(account);
+                        string[] parameters = new string[] { loginRequest.Account, loginRequest.Password };
+                        AccountCommands.HandleAccountCreate(session, parameters);
+                        account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
+                    }
                 }
             }
 
