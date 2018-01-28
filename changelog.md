@@ -1,11 +1,15 @@
 # ACEmulator Change Log
 
-### 2018-01-27
+### 2018-01-28
 [Ripley]
 
 **You will need to delete and recreate your ace_auth and ace_shard databases to proceed**
 
 * Removed API and SecureAuth coding per new license agreement.
+
+### 2018-01-27
+[Mag-nus]
+* More dat refactoring, this time based on SetupModel and Hooks.
 
 ### 2018-01-26
 [CrimsonMage]
