@@ -1,4 +1,4 @@
-﻿{
+{
   "Server": {
     "WorldName": "ACEmulator",
     "Welcome": "Welcome to this ACE server!\nFor more information visit http://www.acemulator.org.",
@@ -10,26 +10,11 @@
     },
     "Accounts": {
       "OverrideCharacterPermissions": true,
-      "DefaultAccessLevel": 0
+      "DefaultAccessLevel": 0,
+      "AllowAutoAccountCreation": true
     },
     "DatFilesDirectory": "c:\\ACE\\",
-    "ShutdownInterval": "60",
-    "SecureAuthentication": false,
-    "AllowedAuthServers": [
-      "http://localhost:8001",
-      "http://acemulator.org"
-    ]
-  },
-  "ApiServer": {
-    "ListenUrl": "http://*:8000",
-    "PublicUrl": "http://localhost:8000"
-  },
-  "AuthServer": {
-    "ListenUrl": "http://*:8001",
-    "PublicUrl": "http://localhost:8001"
-  },
-  "ContentServer": {
-    "LocalContentPath": "Content\\"
+    "ShutdownInterval": "60"
   },
   "MySql": {
     "Authentication": {

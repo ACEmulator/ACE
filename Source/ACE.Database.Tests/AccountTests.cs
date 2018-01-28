@@ -75,6 +75,22 @@ namespace ACE.Database.Tests
             Assert.IsNotNull(results);
             Assert.IsTrue(results.AccountId == id);
             Assert.IsTrue(results.Name == newAccount.Name);
-        }        
+        }
+
+        [TestMethod]
+        public void GetAccountByName_TestPassword_ReturnsMatch()
+        {
+            var results = authDb.GetAccountByName("testaccount1");
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.PasswordMatches("testpassword1"));
+        }
+
+        [TestMethod]
+        public void GetAccountByName_TestPassword_ReturnsNoMatch()
+        {
+            var results = authDb.GetAccountByName("testaccount1");
+            Assert.IsNotNull(results);
+            Assert.IsFalse(results.PasswordMatches("testpassword2"));
+        }
     }
 }

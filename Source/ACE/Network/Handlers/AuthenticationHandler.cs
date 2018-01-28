@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using ACE.Common;
 using ACE.Common.Cryptography;
@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net;
 using System.Threading.Tasks;
+using ACE.Entity.Enum;
+using ACE.Command.Handlers;
 
 namespace ACE.Network.Handlers
 {
@@ -35,39 +37,55 @@ namespace ACE.Network.Handlers
         {
             var account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
 
-            //if (account == null)
-            //{
-            //    // no account, dynamically create one
-            //    account = new Account();
-            //    account.Name = loginRequest.ClientAccountString;
-            //    account.DisplayName = loginRequest.ClientAccountString;
-            //    account.SetPassword("");
-            //    DatabaseManager.Authentication.CreateAccount(account);
-            //}
+            if (account == null)
+            {
+                if (loginRequest.NetAuthType == NetAuthType.AccountPassword && loginRequest.Password != "")
+                {
+                    if (ConfigManager.Config.Server.Accounts.AllowAutoAccountCreation)
+                    {
+                        log.Info($"Auto creating account for: {loginRequest.Account}");
+                        // no account, dynamically create one
+                        string[] parameters = new string[] { loginRequest.Account, loginRequest.Password };
+                        AccountCommands.HandleAccountCreate(session, parameters);
+                        account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
+                    }
+                }
+            }
 
             try
             {
                 log.Info($"new client connected: {loginRequest.Account}. setting session properties");
-                AccountSelectCallback(account, session);
+                AccountSelectCallback(account, session, loginRequest);
             }
             catch (Exception ex)
             {
-                log.Info("Error in HandleLoginRequest trying to find the subscription.", ex);
-                AccountSelectCallback(null, session);
+                log.Info("Error in HandleLoginRequest trying to find the account.", ex);
+                AccountSelectCallback(null, session, null);
             }
         }
 
 
-        private static void AccountSelectCallback(Account account, Session session)
+        private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
             log.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
             var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
 
             session.Network.EnqueueSend(connectRequest);
 
+            if (loginRequest.NetAuthType < NetAuthType.AccountPassword)
+            {
+                log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
+
+                session.SendCharacterError(CharacterError.AccountInUse);
+                session.State = SessionState.NetworkTimeout;
+
+                return;
+            }
+
             if (account == null)
             {
                 session.SendCharacterError(CharacterError.AccountDoesntExist);
+                session.State = SessionState.NetworkTimeout;
                 return;
             }
 
@@ -76,13 +94,36 @@ namespace ACE.Network.Handlers
                 var foundSession = WorldManager.Find(account.Name);
 
                 if (foundSession.State == SessionState.AuthConnected)
+                {
                     session.SendCharacterError(CharacterError.AccountInUse);
+                    session.State = SessionState.NetworkTimeout;
+                }
                 return;
             }
 
-            /*if (glsTicket != digest)
+            if (loginRequest.NetAuthType == NetAuthType.AccountPassword)
             {
-            }*/
+                if (!account.PasswordMatches(loginRequest.Password))
+                {
+                    log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
+
+                    session.SendCharacterError(CharacterError.AccountInUse);
+                    session.State = SessionState.NetworkTimeout;
+
+                    return;
+                }
+                else
+                    log.Info($"client {loginRequest.Account} connected with verified password");
+            }
+            else if (loginRequest.NetAuthType == NetAuthType.GlsTicket)
+            {
+                log.Info($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
+
+                session.SendCharacterError(CharacterError.AccountInUse);
+                session.State = SessionState.NetworkTimeout;
+
+                return;
+            }
 
             // TODO: check for account bans
 

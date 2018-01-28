@@ -6,6 +6,15 @@
 **You will need to delete and recreate your ace_auth and ace_shard databases to proceed**
 
 * Removed API and SecureAuth coding per new license agreement.
+* Added some simple Authentication database tests.
+* Added NetAuthType checking and password verification.
+* GlsTicketDirect/GlsTicket checking is disabled until it can be reimplented in the future.
+* **New ACClient launch command is in use now!**
+  - ``` acclient.exe -a account_name_here -v password_here -h 127.0.0.1:9000 ```
+  - The old command will not work.
+* Auto Account creation now occurs for any successful connection for an account that does not currently exist. Default AccessLevel is based on config.json setting.
+* Added some account password tests.
+* Added AllowAutoAccountCreation to config.json. Set it to false to disable auto account creation.
 
 ### 2018-01-27
 [Mag-nus]
