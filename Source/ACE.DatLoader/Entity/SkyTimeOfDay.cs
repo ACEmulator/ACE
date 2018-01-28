@@ -1,51 +1,47 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SkyTimeOfDay
+    public class SkyTimeOfDay : IUnpackable
     {
-        public float Begin { get; set; }
-        public float DirBright { get; set; }
-        public float DirHeading { get; set; }
-        public float DirPitch { get; set; }
-        public uint DirColor { get; set; }
+        public float Begin { get; private set; }
 
-        public float AmbBright { get; set; }
-        public uint AmbColor { get; set; }
+        public float DirBright { get; private set; }
+        public float DirHeading { get; private set; }
+        public float DirPitch { get; private set; }
+        public uint DirColor { get; private set; }
 
-        public float MinWorldFog { get; set; }
-        public float MaxWorldFog { get; set; }
-        public uint WorldFogColor { get; set; }
-        public uint WorldFog { get; set; }
+        public float AmbBright { get; private set; }
+        public uint AmbColor { get; private set; }
 
-        public List<SkyObjectReplace> SkyObjReplace { get; set; } = new List<SkyObjectReplace>();
+        public float MinWorldFog { get; private set; }
+        public float MaxWorldFog { get; private set; }
+        public uint WorldFogColor { get; private set; }
+        public uint WorldFog { get; private set; }
 
-        public static SkyTimeOfDay Read(DatReader datReader)
+        public List<SkyObjectReplace> SkyObjReplace { get; } = new List<SkyObjectReplace>();
+
+        public void Unpack(BinaryReader reader)
         {
-            SkyTimeOfDay obj = new SkyTimeOfDay();
-            obj.Begin = datReader.ReadSingle();
-            obj.DirBright = datReader.ReadSingle();
-            obj.DirHeading = datReader.ReadSingle();
-            obj.DirPitch = datReader.ReadSingle();
-            obj.DirColor = datReader.ReadUInt32();
+            Begin       = reader.ReadSingle();
 
-            obj.AmbBright = datReader.ReadSingle();
-            obj.AmbColor = datReader.ReadUInt32();
+            DirBright   = reader.ReadSingle();
+            DirHeading  = reader.ReadSingle();
+            DirPitch    = reader.ReadSingle();
+            DirColor    = reader.ReadUInt32();
 
-            obj.MinWorldFog = datReader.ReadSingle();
-            obj.MaxWorldFog = datReader.ReadSingle();
-            obj.WorldFogColor = datReader.ReadUInt32();
-            obj.WorldFog = datReader.ReadUInt32();
+            AmbBright   = reader.ReadSingle();
+            AmbColor    = reader.ReadUInt32();
 
-            uint num_sky_obj_replace = datReader.ReadUInt32();
-            for (uint i = 0; i < num_sky_obj_replace; i++)
-                obj.SkyObjReplace.Add(SkyObjectReplace.Read(datReader));
+            MinWorldFog     = reader.ReadSingle();
+            MaxWorldFog     = reader.ReadSingle();
+            WorldFogColor   = reader.ReadUInt32();
+            WorldFog        = reader.ReadUInt32();
 
-            return obj;
+            reader.AlignBoundary();
+
+            SkyObjReplace.Unpack(reader);
         }
     }
 }

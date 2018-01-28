@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class Season
+    public class Season : IUnpackable
     {
-        public uint StartDate { get; set; }
-        public string Name { get; set; }
+        public uint StartDate { get; private set; }
+        public string Name { get; private set; }
 
-        public static Season Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            Season obj = new Season();
-            obj.StartDate = datReader.ReadUInt32();
-            obj.Name = datReader.ReadPString();
-            datReader.AlignBoundary();
-            return obj;
+            StartDate = reader.ReadUInt32();
+            Name = reader.ReadPString();
+            reader.AlignBoundary();
         }
     }
 }

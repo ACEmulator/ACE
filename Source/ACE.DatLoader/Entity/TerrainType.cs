@@ -1,31 +1,22 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class TerrainType
+    public class TerrainType : IUnpackable
     {
-        public string TerrainName { get; set; }
-        public uint TerrainColor { get; set; }
-        public List<uint> SceneTypes { get; set; } = new List<uint>();
+        public string TerrainName { get; private set; }
+        public uint TerrainColor { get; private set; }
+        public List<uint> SceneTypes { get; } = new List<uint>();
 
-        public static TerrainType Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            TerrainType obj = new TerrainType();
+            TerrainName = reader.ReadPString();
+            reader.AlignBoundary();
 
-            obj.TerrainName = datReader.ReadPString();
-            datReader.AlignBoundary();
+            TerrainColor = reader.ReadUInt32();
 
-            obj.TerrainColor = datReader.ReadUInt32();
-
-            uint num_stypes = datReader.ReadUInt32();
-            for (uint i = 0; i < num_stypes; i++)
-                obj.SceneTypes.Add(datReader.ReadUInt32());
-
-            return obj;
+            SceneTypes.Unpack(reader);
         }
     }
 }

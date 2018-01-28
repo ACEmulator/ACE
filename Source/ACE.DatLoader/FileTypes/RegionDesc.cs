@@ -1,77 +1,78 @@
-﻿using ACE.DatLoader.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// This is the client_portal.dat file starting with 0x13 -- There is only one of these, which is why REGION_ID is a constant.
     /// </summary>
-    public class RegionDesc
+    public class RegionDesc : IUnpackable
     {
         private const uint REGION_ID = 0x13000000;
 
-        public uint FileId { get; set; }
-        public uint BLoaded { get; set; }
-        public uint TimeStamp { get; set; }
-        public string RegionName { get; set; }
-        public uint PartsMask { get; set; }
-        public LandDefs LandDefs { get; set; }
-        public GameTime GameTime { get; set; }
-        public uint PNext { get; set; }
-        public SkyDesc SkyInfo { get; set; }
-        public SoundDesc SoundInfo { get; set; }
-        public SceneDesc SceneInfo { get; set; }
-        public TerrainDesc TerrainInfo { get; set; }
-        public RegionMisc RegionMisc { get; set; }
+        public uint FileId { get; private set; }
+        public uint RegionNumber { get; private set; }
+        public uint Version { get; private set; }
+        public string RegionName { get; private set; }
+
+        public LandDefs LandDefs { get; } = new LandDefs();
+        public GameTime GameTime { get; } = new GameTime();
+
+        public uint PartsMask { get; private set; }
+
+        public SkyDesc SkyInfo { get; } = new SkyDesc();
+        public SoundDesc SoundInfo { get; } = new SoundDesc();
+        public SceneDesc SceneInfo { get; } = new SceneDesc();
+        public TerrainDesc TerrainInfo { get; } = new TerrainDesc();
+        public RegionMisc RegionMisc { get; } = new RegionMisc();
+
+        public void Unpack(BinaryReader reader)
+        {
+            FileId          = reader.ReadUInt32();
+            RegionNumber    = reader.ReadUInt32();
+            Version         = reader.ReadUInt32();
+            RegionName      = reader.ReadPString(); // "Dereth"
+            reader.AlignBoundary();
+
+            LandDefs.Unpack(reader);
+            GameTime.Unpack(reader);
+
+            PartsMask = reader.ReadUInt32();
+
+            if ((PartsMask & 0x10) != 0)
+                SkyInfo.Unpack(reader);
+
+            if ((PartsMask & 0x01) != 0)
+                SoundInfo.Unpack(reader);
+
+            if ((PartsMask & 0x02) != 0)
+                SceneInfo.Unpack(reader);
+
+            TerrainInfo.Unpack(reader);
+
+            if ((PartsMask & 0x0200) != 0)
+                RegionMisc.Unpack(reader);
+        }
 
         public static RegionDesc ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(REGION_ID))
-            {
                 return (RegionDesc)DatManager.PortalDat.FileCache[REGION_ID];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(REGION_ID);
-                RegionDesc region = new RegionDesc();
 
-                region.FileId = datReader.ReadUInt32();
-                region.BLoaded = datReader.ReadUInt32();
-                region.TimeStamp = datReader.ReadUInt32();
-                region.RegionName = datReader.ReadPString(); // "Dereth"
-                datReader.AlignBoundary();
-                region.PartsMask = datReader.ReadUInt32();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(REGION_ID);
 
-                // There are 7 x 4 byte entries here that are "unknown". We will just skip them.
-                datReader.Offset += (7 * 4);
+            RegionDesc region = new RegionDesc();
 
-                region.LandDefs = LandDefs.Read(datReader);
-                region.GameTime = GameTime.Read(datReader);
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                region.Unpack(reader);
 
-                region.PNext = datReader.ReadUInt32();
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[REGION_ID] = region;
 
-                if ((region.PNext & 0x10) > 0)
-                    region.SkyInfo = SkyDesc.Read(datReader);
-
-                if ((region.PNext & 0x01) > 0)
-                    region.SoundInfo = SoundDesc.Read(datReader);
-
-                if ((region.PNext & 0x02) > 0)
-                    region.SceneInfo = SceneDesc.Read(datReader);
-
-                region.TerrainInfo = TerrainDesc.Read(datReader);
-
-                if ((region.PNext & 0x0200) > 0)
-                    region.RegionMisc = RegionMisc.Read(datReader);
-
-                DatManager.PortalDat.FileCache[REGION_ID] = region;
-                return region;
-            }
+            return region;
         }
     }
 }

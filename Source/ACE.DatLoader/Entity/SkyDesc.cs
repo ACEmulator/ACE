@@ -1,28 +1,22 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SkyDesc
+    public class SkyDesc : IUnpackable
     {
-        public UInt64 TickSize { get; set; }
-        public UInt64 LightTickSize { get; set; }
-        public List<DayGroup> DayGroups { get; set; } = new List<DayGroup>();
+        public double TickSize { get; private set; }
+        public double LightTickSize { get; private set; }
+        public List<DayGroup> DayGroups { get; } = new List<DayGroup>();
 
-        public static SkyDesc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            SkyDesc obj = new SkyDesc();
-            obj.TickSize = datReader.ReadUInt64();
-            obj.LightTickSize = datReader.ReadUInt64();
+            TickSize        = reader.ReadDouble();
+            LightTickSize   = reader.ReadDouble();
 
-            uint numDayGroups = datReader.ReadUInt32();
-            for (uint i = 0; i < numDayGroups; i++)
-                obj.DayGroups.Add(DayGroup.Read(datReader));
+            reader.AlignBoundary();
 
-            return obj;
+            DayGroups.Unpack(reader);
         }
     }
 }

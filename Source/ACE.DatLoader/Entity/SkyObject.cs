@@ -1,37 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SkyObject
+    public class SkyObject : IUnpackable
     {
-        public float BeginTime { get; set; }
-        public float EndTime { get; set; }
-        public float BeginAngle { get; set; }
-        public float EndAngle { get; set; }
-        public float TexVelocityX { get; set; }
-        public float TexVelocityY { get; set; }
-        public float TexVelocityZ { get; set; } = 0;
-        public uint DefaultGFXObjectId { get; set; }
-        public uint DefaultPESObjectId { get; set; }
-        public uint Properties { get; set; }
-        
-        public static SkyObject Read(DatReader datReader)
+        public float BeginTime { get; private set; }
+        public float EndTime { get; private set; }
+        public float BeginAngle { get; private set; }
+        public float EndAngle { get; private set; }
+        public float TexVelocityX { get; private set; }
+        public float TexVelocityY { get; private set; }
+        public float TexVelocityZ { get; } = 0;
+        public uint DefaultGFXObjectId { get; private set; }
+        public uint DefaultPESObjectId { get; private set; }
+        public uint Properties { get; private set; }
+
+        public void Unpack(BinaryReader reader)
         {
-            SkyObject obj = new SkyObject();
-            obj.BeginTime = datReader.ReadSingle();
-            obj.EndTime = datReader.ReadSingle();
-            obj.BeginAngle = datReader.ReadSingle();
-            obj.EndAngle = datReader.ReadSingle();
-            obj.TexVelocityX = datReader.ReadSingle();
-            obj.TexVelocityY = datReader.ReadSingle();
-            obj.DefaultGFXObjectId = datReader.ReadUInt32();
-            obj.DefaultPESObjectId = datReader.ReadUInt32();
-            obj.Properties = datReader.ReadUInt32();
-            return obj;
+            BeginTime           = reader.ReadSingle();
+            EndTime             = reader.ReadSingle();
+            BeginAngle          = reader.ReadSingle();
+            EndAngle            = reader.ReadSingle();
+            TexVelocityX        = reader.ReadSingle();
+            TexVelocityY        = reader.ReadSingle();
+            DefaultGFXObjectId  = reader.ReadUInt32();
+            DefaultPESObjectId  = reader.ReadUInt32();
+            Properties          = reader.ReadUInt32();
+
+            reader.AlignBoundary();
         }
     }
 }

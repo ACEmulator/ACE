@@ -1,30 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class LandSurf
+    public class LandSurf : IUnpackable
     {
-        public uint HasPalShift { get; set; }
-        public TexMerge TexMerge { get; set; }
+        public uint Type { get; private set; }
+        //public PalShift PalShift { get; } = new PalShift(); // This is used if Type == 1 (which we haven't seen yet)
+        public TexMerge TexMerge { get; } = new TexMerge();
 
-        public static LandSurf Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            LandSurf obj = new LandSurf();
+            Type = reader.ReadUInt32(); // This is always 0
 
-            obj.HasPalShift = datReader.ReadUInt32(); // This is always 0
-
-            if (obj.HasPalShift == 1)
-            {
-                // PalShift.Read would go here, if it ever actually existed...which it doesn't.
-            }
+            if (Type == 1)
+                throw new NotImplementedException();
             else
-                obj.TexMerge = TexMerge.Read(datReader);
-
-            return obj;
+                TexMerge.Unpack(reader);
         }
     }
 }

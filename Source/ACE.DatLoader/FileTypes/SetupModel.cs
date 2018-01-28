@@ -120,7 +120,7 @@ namespace ACE.DatLoader.FileTypes
             using (var reader = new BinaryReader(memoryStream))
                 setupModel.Unpack(reader);
 
-             // Store this object in the FileCache
+            // Store this object in the FileCache
             DatManager.PortalDat.FileCache[fileId] = setupModel;
 
             return setupModel;
