@@ -37,7 +37,10 @@ namespace ACE.Database
 
         public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
         {
-            //ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
+            // ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
+            var account = GetAccountById(accountId);
+            account.SetAccessLevel(accessLevel);
+            UpdateAccount(account);
         }
 
         public Account GetAccountById(uint accountId)
@@ -70,26 +73,9 @@ namespace ACE.Database
             id = ret.AccountId;
         }
 
-        //public async Task<Account> GetAccountByName(string accountName)
-        //{
-        //    var result = await SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, accountName);
-
-        //    uint id = result.Read<uint>(0, "id");
-        //    string name = result.Read<string>(0, "account");
-        //    uint accessLevel = result.Read<uint>(0, "accesslevel");
-        //    string password = result.Read<string>(0, "password");
-        //    string salt = result.Read<string>(0, "salt");
-
-        //    Account account = new Account(id, name, (AccessLevel)accessLevel, salt, password);
-        //    return account;
-        //}
-
-        //public void GetAccountIdByName(string accountName, out uint id)
-        //{
-        //    var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountSelect, accountName);
-        //    Debug.Assert(result != null, "Invalid prepared statement value.");
-
-        //    id = result.Read<uint>(0, "id");
-        //}
+        public void UpdateAccount(Account account)
+        {
+            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), account);
+        }
     }
 }

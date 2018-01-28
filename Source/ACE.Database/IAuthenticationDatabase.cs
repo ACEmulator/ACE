@@ -15,10 +15,8 @@ namespace ACE.Database
 
         Account GetAccountById(uint accountId);
 
-        //uint GetMaxId();
-
         void GetAccountIdByName(string accountName, out uint id);
 
-        //void UpdateAccount(Account account);
+        void UpdateAccount(Account account);
     }
 }

@@ -27,7 +27,18 @@ namespace ACE.Entity
             Name = value;
         }
 
-        public AccessLevel AccessLevel { get; private set; }
+        [DbField("accessLevel", (int)MySqlDbType.UInt32)]
+        public uint AccessLevel_Binder { get; private set; }
+
+        public AccessLevel AccessLevel
+        {
+            get { return (AccessLevel)AccessLevel_Binder; }
+        }
+
+        public void SetAccessLevel(AccessLevel value)
+        {
+            AccessLevel_Binder = (uint)value;
+        }
 
         /// <summary>
         /// base64 encoded version of the salt.  salts may not be changed for an account.
@@ -70,16 +81,6 @@ namespace ACE.Entity
             return Convert.ToBase64String(hash);
         }
 
-        //public Account(uint accountId, string name, AccessLevel accessLevel, string salt, string password)
-        //{
-        //    AccountId = accountId;
-        //    Name = name;
-        //    AccessLevel = accessLevel;
-        //    Salt = salt;
-        //    Password = password;
-        //    Digest = SHA2.Hash(SHA2Type.SHA256, password + salt);
-        //}
-
         /// <summary>
         /// creates a new account object and pre-creates a new, random salt
         /// </summary>
@@ -92,7 +93,6 @@ namespace ACE.Entity
             }
 
             Salt = Convert.ToBase64String(salt);
-            // AccountGuid = Guid.NewGuid();
         }
     }
 }
