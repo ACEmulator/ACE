@@ -32,7 +32,7 @@ namespace ACE.Database.Tests
                           ConfigManager.Config.MySql.World.Database);
         }
 
-        [TestMethod]
+        // [TestMethod]
         public void WeenieSearch_NullCriteria_ReturnsLotsOfWeenies()
         {
             var results = worldDb.SearchWeenies(null);
