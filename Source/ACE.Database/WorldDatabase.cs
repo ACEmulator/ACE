@@ -221,14 +221,14 @@ namespace ACE.Database
             string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v` ";
             string where = null;
 
-            if (criteria?.ContentGuid != null)
-            {
-                where = where != null ? where + " AND " : "";
-                where += "`v`.aceObjectId IN (SELECT weenieId FROM ace_content_weenie WHERE contentGuid = ?)";
-                var p = new MySqlParameter("", MySqlDbType.Binary);
-                p.Value = criteria.ContentGuid.Value.ToByteArray();
-                mysqlParams.Add(p);
-            }
+            //if (criteria?.ContentGuid != null)
+            //{
+            //    where = where != null ? where + " AND " : "";
+            //    where += "`v`.aceObjectId IN (SELECT weenieId FROM ace_content_weenie WHERE contentGuid = ?)";
+            //    var p = new MySqlParameter("", MySqlDbType.Binary);
+            //    p.Value = criteria.ContentGuid.Value.ToByteArray();
+            //    mysqlParams.Add(p);
+            //}
 
             if (criteria?.ItemType != null)
             {
