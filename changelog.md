@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-01-29
+[Ripley]
+* Rebased SQL scripts.
+
 ### 2018-01-28
 [Ripley]
 
