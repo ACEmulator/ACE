@@ -4,7 +4,7 @@ USE `ace_shard`;
 --
 -- Host: localhost    Database: ace_shard
 -- ------------------------------------------------------
--- Server version	5.7.19-log
+-- Server version	5.7.20-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -415,6 +415,7 @@ DROP TABLE IF EXISTS `ace_object_properties_spell`;
 CREATE TABLE `ace_object_properties_spell` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `spellId` int(10) unsigned NOT NULL DEFAULT '0',
+  `probability` float NOT NULL DEFAULT '2',
   UNIQUE KEY `ace_object__property_spell_id` (`spellId`,`aceObjectId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Spell_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
@@ -582,8 +583,8 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 /*!50001 CREATE VIEW `vw_ace_character` AS SELECT 
  1 AS `guid`,
- 1 AS `subscriptionId`,
- 1 AS `NAME`,
+ 1 AS `accountId`,
+ 1 AS `name`,
  1 AS `deleted`,
  1 AS `deleteTime`,
  1 AS `weenieClassId`,
@@ -667,7 +668,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `vw_ace_character` AS select `ao`.`aceObjectId` AS `guid`,`aopiidacc`.`propertyValue` AS `subscriptionId`,`aops`.`propertyValue` AS `NAME`,`aopb`.`propertyValue` AS `deleted`,`aopbi`.`propertyValue` AS `deleteTime`,`ao`.`weenieClassId` AS `weenieClassId`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType`,`aopd`.`propertyValue` AS `loginTimestamp` from (((((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_bool` `aopb` on(((`ao`.`aceObjectId` = `aopb`.`aceObjectId`) and (`aopb`.`boolPropertyId` = 9001)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_object_properties_bigint` `aopbi` on(((`ao`.`aceObjectId` = `aopbi`.`aceObjectId`) and (`aopbi`.`bigIntPropertyId` = 9001)))) join `ace_object_properties_iid` `aopiidacc` on(((`ao`.`aceObjectId` = `aopiidacc`.`aceObjectId`) and (`aopiidacc`.`iidPropertyId` = 9001)))) left join `ace_object_properties_double` `aopd` on(((`ao`.`aceObjectId` = `aopd`.`aceObjectId`) and (`aopd`.`dblPropertyId` = 48)))) */;
+/*!50001 VIEW `vw_ace_character` AS select `ao`.`aceObjectId` AS `guid`,`aopiidacc`.`propertyValue` AS `accountId`,`aops`.`propertyValue` AS `name`,`aopb`.`propertyValue` AS `deleted`,`aopbi`.`propertyValue` AS `deleteTime`,`ao`.`weenieClassId` AS `weenieClassId`,`awc`.`weenieClassDescription` AS `weenieClassDescription`,`ao`.`aceObjectDescriptionFlags` AS `aceObjectDescriptionFlags`,`ao`.`physicsDescriptionFlag` AS `physicsDescriptionFlag`,`ao`.`weenieHeaderFlags` AS `weenieHeaderFlags`,`aopi`.`propertyValue` AS `itemType`,`aopd`.`propertyValue` AS `loginTimestamp` from (((((((`ace_object` `ao` join `ace_weenie_class` `awc` on((`ao`.`weenieClassId` = `awc`.`weenieClassId`))) join `ace_object_properties_string` `aops` on(((`ao`.`aceObjectId` = `aops`.`aceObjectId`) and (`aops`.`strPropertyId` = 1)))) join `ace_object_properties_bool` `aopb` on(((`ao`.`aceObjectId` = `aopb`.`aceObjectId`) and (`aopb`.`boolPropertyId` = 9001)))) join `ace_object_properties_int` `aopi` on(((`ao`.`aceObjectId` = `aopi`.`aceObjectId`) and (`aopi`.`intPropertyId` = 1)))) join `ace_object_properties_bigint` `aopbi` on(((`ao`.`aceObjectId` = `aopbi`.`aceObjectId`) and (`aopbi`.`bigIntPropertyId` = 9001)))) join `ace_object_properties_iid` `aopiidacc` on(((`ao`.`aceObjectId` = `aopiidacc`.`aceObjectId`) and (`aopiidacc`.`iidPropertyId` = 9001)))) left join `ace_object_properties_double` `aopd` on(((`ao`.`aceObjectId` = `aopd`.`aceObjectId`) and (`aopd`.`dblPropertyId` = 48)))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -735,4 +736,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-10-29 16:05:06
+-- Dump completed on 2018-01-29 12:29:47
