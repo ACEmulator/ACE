@@ -1,6 +1,6 @@
 # ACEmulator Core Server
 
-Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda31cgu8u59w/branch/master?svg=true)](https://ci.appveyor.com/project/LtRipley36706/ace)
+Build status: [![Windows CI]( https://ci.appveyor.com/api/projects/status/rqebda31cgu8u59w/branch/master?svg=true )](https://ci.appveyor.com/project/LtRipley36706/ace)
 
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
  * MySQL and MariaDB are used as the database engine.
@@ -14,25 +14,25 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 - ACEmulator is not associated or affiliated in any way with Turbine, Inc. or WB Games Inc.
 ***
 ## Recommended Tools
-* SQLYog [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads)
+* SQLYog [on Github]( https://github.com/webyog/sqlyog-community/wiki/Downloads )
 * Hex Editor (Hexplorer or 010 Editor are both good)
-* ACLogView [on Github](https://github.com/ACEmulator/aclogview)
-* StyleCop Visual Studio Extension [on visualstudio.com](https://marketplace.visualstudio.com/items?itemName=ChrisDahlberg.StyleCop)
+* ACLogView [on Github]( https://github.com/ACEmulator/aclogview )
+* StyleCop Visual Studio Extension [on visualstudio.com]( https://marketplace.visualstudio.com/items?itemName=ChrisDahlberg.StyleCop )
 
 ## Getting Started
 
-**For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
+**For a more detailed installation process, please see [this excellent write up]( https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html ) by "Immortus"**
 * Install MySQL
-  - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
-  - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
+  - [MySQL minimum required version - 5.7.17+]( https://dev.mysql.com/downloads/windows/installer/5.7.html )
+  - [MariaDB minimum required version - 10.2+]( https://mariadb.org/download/ )
 * Create two databases named `ace_auth`, `ace_shard`.
 * Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
 * Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest.
 * Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest.
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
-* Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release](https://github.com/ACEmulator/ACE-World-16PY/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE-World-16PY minimum required version - 0.0.3+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
+* Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release]( https://github.com/ACEmulator/ACE-World-16PY/releases/latest ) of world data, extract and load into your ace_world database.
+  - [ACE-World-16PY minimum required version - 0.0.3+]( https://github.com/ACEmulator/ACE-World-16PY/releases/latest )
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Build and run ACE.
@@ -43,19 +43,19 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 
 * Contributions in the form of issues and pull requests are welcomed and encouraged.
 * The preferred way to contribute is to fork the repo and submit a pull request on GitHub.
-* Code style information can be found on the [Wiki](https://github.com/ACEmulator/ACE/wiki/Code-Style).
+* Code style information can be found on the [Wiki]( https://github.com/ACEmulator/ACE/wiki/Code-Style ).
 
-Please note that this project is released with a [Contributor Code of Conduct](https://github.com/ACEmulator/ACE/blob/master/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is released with a [Contributor Code of Conduct]( https://github.com/ACEmulator/ACE/blob/master/CODE_OF_CONDUCT.md ). By participating in this project you agree to abide by its terms.
 
 ## Bug Reports
 
-* Please use the [issue tracker](https://github.com/ACEmulator/ACE/issues) provided by GitHub to send us bug reports.
-* You may also submit bug reports to the [ACEmu Forums](http://acemulator.org/forums).
+* Please use the [issue tracker]( https://github.com/ACEmulator/ACE/issues ) provided by GitHub to send us bug reports.
+* You may also submit bug reports to the [ACEmu Forums]( http://acemulator.org/forums ).
 
 ## Contact
 
-- [Discord Channel](https://discord.gg/mVtGhSv) (best option)
-- [ACEmulator Forums](http://acemulator.org/forums)
+- [Discord Channel]( https://discord.gg/mVtGhSv ) (best option)
+- [ACEmulator Forums]( http://acemulator.org/forums )
 
 ## FAQ
 
@@ -82,7 +82,7 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 > 2) The following projects should have "Start" in the "Action" column: ACE.
 
 ## Other Resources
-* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Out of date currently)
-* [Zegeger Protocol documentation](http://ac.zegeger.net/protocol/) (Recommended)
-* [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php) (outdated)
-* [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)
+* [ACEmulator Protocol documentation]( http://acemulator.org/ProtocolViewer/Protocol.php ) (Out of date currently)
+* [Zegeger Protocol documentation]( http://ac.zegeger.net/protocol/ ) (Recommended)
+* [Skunkworks Protocol documentation]( http://skunkworks.sourceforge.net/protocol/Protocol.php ) (outdated)
+* [Virindi Protocol XML documentation]( http://www.virindi.net/junk/messages_annotated_final.xml )
