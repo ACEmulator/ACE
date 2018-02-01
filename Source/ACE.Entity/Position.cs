@@ -91,7 +91,7 @@ namespace ACE.Entity
             return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
         }
 
-        public Position() : base()
+        public Position()
         {
         }
 

@@ -1,6 +1,7 @@
-﻿using ACE.DatLoader.Entity;
-using System;
 using System.Collections.Generic;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -8,38 +9,36 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x0D. 
     /// These are basically pre-fab regions for things like the interior of a dungeon.
     /// </summary>
-    public class Environment
+    public class Environment : IUnpackable
     {
         public uint Id { get; set; }
         public Dictionary<uint, CellStruct> Cells { get; set; } = new Dictionary<uint, CellStruct>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            Id = reader.ReadUInt32(); // this will match fileId
+
+            Cells.Unpack(reader);
+        }
 
         public static Environment ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (Environment)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                Environment obj = new Environment();
 
-                obj.Id = datReader.ReadUInt32(); // this will match fileId
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                uint numCells = datReader.ReadUInt32();
+            Environment environment = new Environment();
 
-                for (uint i = 0; i < numCells; i++)
-                {
-                    uint cellstuctId = datReader.ReadUInt32();
-                    obj.Cells.Add(cellstuctId, CellStruct.Read(datReader));
-                }
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                environment.Unpack(reader);
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = environment;
 
-                return obj;
-            }
+            return environment;
         }
     }
 }

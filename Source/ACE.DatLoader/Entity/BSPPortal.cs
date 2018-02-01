@@ -1,35 +1,45 @@
-﻿using ACE.Entity.Enum;
+using System;
 using System.Collections.Generic;
+using System.IO;
+
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
     public class BSPPortal : BSPNode
     {
-        public List<PortalPoly> InPortals { get; set; } = new List<PortalPoly>();
+        public List<PortalPoly> InPortals { get; } = new List<PortalPoly>();
 
-        public static BSPPortal ReadPortal(DatReader datReader, BSPType treeType)
+        /// <summary>
+        /// You must use the Unpack(BinaryReader reader, BSPType treeType) method.
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must use the Unpack(BinaryReader reader, BSPType treeType) method.</exception>
+        public override void Unpack(BinaryReader reader)
         {
-            BSPPortal obj = new BSPPortal();
-            obj.Type = 0x504F5254; // PORT
-            obj.SplittingPlane = Plane.Read(datReader);
-            obj.PosNode = BSPNode.Read(datReader, treeType);
-            obj.NegNode = BSPNode.Read(datReader, treeType);
+            throw new NotSupportedException();
+        }
+
+        public override void Unpack(BinaryReader reader, BSPType treeType)
+        {
+            Type = reader.ReadUInt32();
+
+            SplittingPlane.Unpack(reader);
+            PosNode = BSPNode.ReadNode(reader, treeType);
+            NegNode = BSPNode.ReadNode(reader, treeType);
 
             if (treeType == BSPType.Drawing)
             {
-                obj.Sphere = CSphere.Read(datReader);
+                Sphere = new Sphere();
+                Sphere.Unpack(reader);
 
-                uint numPolys = datReader.ReadUInt32();
-                uint numPortals = datReader.ReadUInt32();
+                var numPolys = reader.ReadUInt32();
+                var numPortals = reader.ReadInt32();
 
                 for (uint i = 0; i < numPolys; i++)
-                    obj.InPolys.Add(datReader.ReadUInt16());
+                    InPolys.Add(reader.ReadUInt16());
 
-                for (uint i = 0; i < numPortals; i++)
-                    obj.InPortals.Add(PortalPoly.Read(datReader));
+                InPortals.Unpack(reader, numPortals);
             }
-
-            return obj;
         }
     }
 }

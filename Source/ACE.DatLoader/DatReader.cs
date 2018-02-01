@@ -59,13 +59,6 @@ namespace ACE.DatLoader
             return BitConverter.ToUInt32(nextAddressBytes, 0);
         }
 
-        public ulong ReadUInt64()
-        {
-            ulong data = BitConverter.ToUInt64(Buffer, Offset);
-            Offset += 8;
-            return data;
-        }
-
         public uint ReadUInt32()
         {
             uint data = BitConverter.ToUInt32(Buffer, Offset);
@@ -98,20 +91,6 @@ namespace ACE.DatLoader
         {
             byte data = Buffer[Offset];
             Offset += 1;
-            return data;
-        }
-
-        public short ReadPackedByte()
-        {
-            short data = ReadByte();
-            
-            if ((data & 0x80) > 0)
-            {
-                short lowbyte = ReadByte();
-                short hiByte = (short)((data & 0x7f) << 8);
-                data = (short)(hiByte | lowbyte);
-            }
-
             return data;
         }
 

@@ -1,10 +1,12 @@
-﻿using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
+using System.IO;
+
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
-    public class BSPNode
+    public class BSPNode : IUnpackable
     {
         // These constants are actually strings in the dat file
         private const uint PORT = 1347375700; // 0x504F5254
@@ -16,58 +18,105 @@ namespace ACE.DatLoader.Entity
         private const uint BPIN = 1112557902; // 0x4250494E
         private const uint BPnN = 1112567374; // 0x42506E4E
         
-        public uint Type { get; set; }
-        public Plane SplittingPlane { get; set; }
-        public BSPNode PosNode { get; set; }
-        public BSPNode NegNode { get; set; }
-        public CSphere Sphere { get; set; }
-        public List<ushort> InPolys { get; set; } = new List<ushort>(); // List of PolygonIds
+        public uint Type { get; protected set; }
 
-        public static BSPNode Read(DatReader datReader, BSPType treeType)
+        public Plane SplittingPlane { get; protected set; }
+
+        public BSPNode PosNode { get; protected set; }
+        public BSPNode NegNode { get; protected set; }
+
+        public Sphere Sphere { get; protected set; }
+
+        public List<ushort> InPolys { get; protected set; } // List of PolygonIds
+
+        /// <summary>
+        /// You must use the Unpack(BinaryReader reader, BSPType treeType) method.
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must use the Unpack(BinaryReader reader, BSPType treeType) method.</exception>
+        public virtual void Unpack(BinaryReader reader)
         {
-            BSPNode obj = new BSPNode();
+            throw new NotSupportedException();
+        }
 
-            obj.Type = datReader.ReadUInt32();
+        public virtual void Unpack(BinaryReader reader, BSPType treeType)
+        {
+            Type = reader.ReadUInt32();
             
-            switch (obj.Type)
+            switch (Type)
             {
+                // These types will unpack the data completely, in their own classes
                 case PORT:
-                    return BSPPortal.ReadPortal(datReader, treeType);
                 case LEAF:
-                    return BSPLeaf.ReadLeaf(datReader, treeType);
+                    throw new Exception();
             }
 
-            obj.SplittingPlane = Plane.Read(datReader);
+            SplittingPlane = new Plane();
+            SplittingPlane.Unpack(reader);
 
-            switch (obj.Type)
+            switch (Type)
             {
                 case BPnn:
                 case BPIn:
-                    obj.PosNode = BSPNode.Read(datReader, treeType);
+                    PosNode = BSPNode.ReadNode(reader, treeType);
                     break;
                 case BpIN:
                 case BpnN:
-                    obj.NegNode = BSPNode.Read(datReader, treeType);
+                    NegNode = BSPNode.ReadNode(reader, treeType);
                     break;
                 case BPIN:
                 case BPnN:
-                    obj.PosNode = BSPNode.Read(datReader, treeType);
-                    obj.NegNode = BSPNode.Read(datReader, treeType);
+                    PosNode = BSPNode.ReadNode(reader, treeType);
+                    NegNode = BSPNode.ReadNode(reader, treeType);
                     break;
             }
 
             if (treeType == BSPType.Cell)
-                return obj;
+                return;
 
-            obj.Sphere = CSphere.Read(datReader);
+            Sphere = new Sphere();
+            Sphere.Unpack(reader);
 
             if (treeType == BSPType.Physics)
-                return obj;
+                return;
 
-            uint numPolys = datReader.ReadUInt32();
+            InPolys = new List<ushort>();
+            uint numPolys = reader.ReadUInt32();
             for (uint i = 0; i < numPolys; i++)
-                obj.InPolys.Add(datReader.ReadUInt16());
-            return obj;
+                InPolys.Add(reader.ReadUInt16());
+        }
+
+        public static BSPNode ReadNode(BinaryReader reader, BSPType treeType)
+        {
+            // We peek forward to get the type, then revert our position.
+            var type = reader.ReadUInt32();
+            reader.BaseStream.Position -= 4;
+
+            BSPNode node;
+
+            switch (type)
+            {
+                case PORT:
+                    node = new BSPPortal();
+                    break;
+
+                case LEAF:
+                    node = new BSPLeaf();
+                    break;
+
+                case BPnn:
+                case BPIn:
+                case BpIN:
+                case BpnN:
+                case BPIN:
+                case BPnN:
+                default:
+                    node = new BSPNode();
+                    break;
+            }
+
+            node.Unpack(reader, treeType);
+
+            return node;
         }
     }
 }

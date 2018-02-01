@@ -17,7 +17,7 @@ namespace ACE.DatLoader.Entity.AnimationHooks
 
             EmitterInfoId   = reader.ReadUInt32();
             PartIndex       = reader.ReadUInt32();
-            Offset.ReadPosition(reader);
+            Offset.Read(reader);
             EmitterId       = reader.ReadUInt32();
         }
     }

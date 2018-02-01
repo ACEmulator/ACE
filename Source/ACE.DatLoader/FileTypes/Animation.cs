@@ -31,7 +31,7 @@ namespace ACE.DatLoader.FileTypes
                 {
                     // Origin
                     var position = new Position();
-                    position.ReadPosition(reader);
+                    position.Read(reader);
                     PosFrames.Add(position);
                 }
             }

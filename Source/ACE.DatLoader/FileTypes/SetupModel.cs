@@ -26,13 +26,13 @@ namespace ACE.DatLoader.FileTypes
         public Dictionary<int, LocationType> ConnectionPoints { get; } = new Dictionary<int, LocationType>();
         public Dictionary<int, PlacementType> PlacementFrames { get; } = new Dictionary<int, PlacementType>();
         public List<CylSphere> CylSpheres { get; } = new List<CylSphere>();
-        public List<CSphere> Spheres { get; } = new List<CSphere>();
+        public List<Sphere> Spheres { get; } = new List<Sphere>();
         public float Height { get; private set; }
         public float Radius { get; private set; }
         public float StepDownHeight { get; private set; }
         public float StepUpHeight { get; private set; }
-        public CSphere SortingSphere { get; } = new CSphere();
-        public CSphere SelectionSphere { get; } = new CSphere();
+        public Sphere SortingSphere { get; } = new Sphere();
+        public Sphere SelectionSphere { get; } = new Sphere();
         public Dictionary<int, LightInfo> Lights { get; } = new Dictionary<int, LightInfo>();
         public uint DefaultAnimation { get; private set; }
         public uint DefaultScript { get; private set; }
