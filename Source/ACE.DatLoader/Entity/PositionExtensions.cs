@@ -10,6 +10,16 @@ namespace ACE.DatLoader.Entity
     public static class PositionExtensions
     {
         /// <summary>
+        /// Reads just the X,Y,Z portion of a Position
+        /// </summary>
+        public static void ReadFrameOnly(this Position p, BinaryReader reader)
+        {
+            p.PositionX = reader.ReadSingle();
+            p.PositionY = reader.ReadSingle();
+            p.PositionZ = reader.ReadSingle();
+        }
+
+        /// <summary>
         /// Reads a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
         public static void Read(this Position p, BinaryReader reader)
@@ -24,14 +34,21 @@ namespace ACE.DatLoader.Entity
         }
 
         /// <summary>
-        /// Reads just the X,Y,Z portion of a Position
+        /// Reads the cell ID and the full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
-        public static void ReadFrame(this Position p, BinaryReader reader)
+        public static void ReadWithCell(this Position p, BinaryReader reader)
         {
+            p.Cell      = reader.ReadUInt32();
             p.PositionX = reader.ReadSingle();
             p.PositionY = reader.ReadSingle();
             p.PositionZ = reader.ReadSingle();
+            p.RotationW = reader.ReadSingle();
+            p.RotationX = reader.ReadSingle();
+            p.RotationY = reader.ReadSingle();
+            p.RotationZ = reader.ReadSingle();
         }
+
+
 
 
         /// <summary>

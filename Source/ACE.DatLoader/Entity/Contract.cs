@@ -1,63 +1,65 @@
-﻿using ACE.Entity;
+using System.IO;
+
+using ACE.Entity;
 
 namespace ACE.DatLoader.Entity
 {
-    public class Contract
+    public class Contract : IUnpackable
     {
-        public uint Version { get; set; }
-        public uint ContractId { get; set; }
-        public string ContractName { get; set; }
-        public string Description { get; set; }
-        public string DescriptionProgress { get; set; }
-        public string NameNPCStart { get; set; }
-        public string NameNPCEnd { get; set; }
-        public string QuestflagStamped { get; set; }
-        public string QuestflagStarted { get; set; }
-        public string QuestflagFinished { get; set; }
-        public string QuestflagProgress { get; set; }
-        public string QuestflagTimer { get; set; }
-        public string QuestflagRepeatTime { get; set; }
-        public Position LocationNPCStart { get; set; }
-        public Position LocationNPCEnd { get; set; }
-        public Position LocationQuestArea { get; set; }
+        public uint Version { get; private set; }
+        public uint ContractId { get; private set; }
+        public string ContractName { get; private set; }
 
-        public static Contract Read(DatReader datReader)
+        public string Description { get; private set; }
+        public string DescriptionProgress { get; private set; }
+
+        public string NameNPCStart { get; private set; }
+        public string NameNPCEnd { get; private set; }
+
+        public string QuestflagStamped { get; private set; }
+        public string QuestflagStarted { get; private set; }
+        public string QuestflagFinished { get; private set; }
+        public string QuestflagProgress { get; private set; }
+        public string QuestflagTimer { get; private set; }
+        public string QuestflagRepeatTime { get; private set; }
+
+        public Position LocationNPCStart { get; } = new Position();
+        public Position LocationNPCEnd { get; } = new Position();
+        public Position LocationQuestArea { get; } = new Position();
+
+        public void Unpack(BinaryReader reader)
         {
-            Contract obj = new Contract();
+            Version = reader.ReadUInt32();
+            ContractId = reader.ReadUInt32();
+            ContractName = reader.ReadPString();
+            reader.AlignBoundary();
 
-            obj.Version = datReader.ReadUInt32();
-            obj.ContractId = datReader.ReadUInt32();
-            obj.ContractName = datReader.ReadPString();
-            datReader.AlignBoundary();
+            Description = reader.ReadPString();
+            reader.AlignBoundary();
+            DescriptionProgress = reader.ReadPString();
+            reader.AlignBoundary();
 
-            obj.Description = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.DescriptionProgress = datReader.ReadPString();
-            datReader.AlignBoundary();
+            NameNPCStart = reader.ReadPString();
+            reader.AlignBoundary();
+            NameNPCEnd = reader.ReadPString();
+            reader.AlignBoundary();
 
-            obj.NameNPCStart = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.NameNPCEnd = datReader.ReadPString();
-            datReader.AlignBoundary();
+            QuestflagStamped = reader.ReadPString();
+            reader.AlignBoundary();
+            QuestflagStarted = reader.ReadPString();
+            reader.AlignBoundary();
+            QuestflagFinished = reader.ReadPString();
+            reader.AlignBoundary();
+            QuestflagProgress = reader.ReadPString();
+            reader.AlignBoundary();
+            QuestflagTimer = reader.ReadPString();
+            reader.AlignBoundary();
+            QuestflagRepeatTime = reader.ReadPString();
+            reader.AlignBoundary();
 
-            obj.QuestflagStamped = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.QuestflagStarted = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.QuestflagFinished = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.QuestflagProgress = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.QuestflagTimer = datReader.ReadPString();
-            datReader.AlignBoundary();
-            obj.QuestflagRepeatTime = datReader.ReadPString();
-            datReader.AlignBoundary();
-
-            obj.LocationNPCStart = PositionExtensions.ReadLandblockPosition(datReader);
-            obj.LocationNPCEnd = PositionExtensions.ReadLandblockPosition(datReader);
-            obj.LocationQuestArea = PositionExtensions.ReadLandblockPosition(datReader);
-
-            return obj;
+            LocationNPCStart.ReadWithCell(reader);
+            LocationNPCEnd.ReadWithCell(reader);
+            LocationQuestArea.ReadWithCell(reader);
         }
     }
 }
