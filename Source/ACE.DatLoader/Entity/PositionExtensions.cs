@@ -12,14 +12,6 @@ namespace ACE.DatLoader.Entity
         /// <summary>
         /// Reads a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
-        public static void ReadPosition(this Position position, BinaryReader reader)
-        {
-            position.Read(reader);
-        }
-
-        /// <summary>
-        /// Reads a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
-        /// </summary>
         public static void Read(this Position p, BinaryReader reader)
         {
             p.PositionX = reader.ReadSingle();
@@ -29,6 +21,16 @@ namespace ACE.DatLoader.Entity
             p.RotationX = reader.ReadSingle();
             p.RotationY = reader.ReadSingle();
             p.RotationZ = reader.ReadSingle();
+        }
+
+        /// <summary>
+        /// Reads just the X,Y,Z portion of a Position
+        /// </summary>
+        public static void ReadFrame(this Position p, BinaryReader reader)
+        {
+            p.PositionX = reader.ReadSingle();
+            p.PositionY = reader.ReadSingle();
+            p.PositionZ = reader.ReadSingle();
         }
 
 
@@ -48,7 +50,11 @@ namespace ACE.DatLoader.Entity
         public static Position ReadPositionFrame(DatReader datReader)
         {
             Position p = new Position();
-            p.ReadFrame(datReader);
+
+            p.PositionX = datReader.ReadSingle();
+            p.PositionY = datReader.ReadSingle();
+            p.PositionZ = datReader.ReadSingle();
+
             return p;
         }
 
@@ -63,7 +69,7 @@ namespace ACE.DatLoader.Entity
             return p;
         }
 
-        public static void Read(this Position p, DatReader datReader)
+        private static void Read(this Position p, DatReader datReader)
         {
             p.PositionX = datReader.ReadSingle();
             p.PositionY = datReader.ReadSingle();
@@ -72,13 +78,6 @@ namespace ACE.DatLoader.Entity
             p.RotationX = datReader.ReadSingle();
             p.RotationY = datReader.ReadSingle();
             p.RotationZ = datReader.ReadSingle();
-        }
-
-        public static void ReadFrame(this Position p, DatReader datReader)
-        {
-            p.PositionX = datReader.ReadSingle();
-            p.PositionY = datReader.ReadSingle();
-            p.PositionZ = datReader.ReadSingle();
         }
     }
 }

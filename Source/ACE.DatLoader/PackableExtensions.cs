@@ -48,7 +48,24 @@ namespace ACE.DatLoader
             }
         }
 
-  
+
+        /// <summary>
+        /// A SmartArray uses a Compressed UInt32 for the length.
+        /// </summary>
+        public static void UnpackSmartArray<T>(this Dictionary<ushort, T> value, BinaryReader reader) where T : IUnpackable, new()
+        {
+            var totalObjects = reader.ReadCompressedUInt32();
+
+            for (int i = 0; i < totalObjects; i++)
+            {
+                var key = reader.ReadUInt16();
+
+                var item = new T();
+                item.Unpack(reader);
+                value.Add(key, item);
+            }
+        }
+
         /// <summary>
         /// A SmartArray uses a Compressed UInt32 for the length.
         /// </summary>
@@ -123,6 +140,21 @@ namespace ACE.DatLoader
             }
         }
 
+
+        /// <summary>
+        /// A Dictionary that uses a Int32 for the length.
+        /// </summary>
+        public static void Unpack<T>(this Dictionary<ushort, T> value, BinaryReader reader, int fixedQuantity) where T : IUnpackable, new()
+        {
+            for (int i = 0; i < fixedQuantity; i++)
+            {
+                var key = reader.ReadUInt16();
+
+                var item = new T();
+                item.Unpack(reader);
+                value.Add(key, item);
+            }
+        }
 
         /// <summary>
         /// A Dictionary that uses a Int32 for the length.

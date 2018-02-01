@@ -1,16 +1,26 @@
-﻿using ACE.Entity.Enum;
+using System;
+using System.IO;
+
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
-    public class BSPTree
+    public class BSPTree : IUnpackable
     {
-        public BSPNode RootNode { get; set; }
+        public BSPNode RootNode { get; private set; } = new BSPNode();
 
-        public static BSPTree Read(DatReader datReader, BSPType treeType)
+        /// <summary>
+        /// You must use the Unpack(BinaryReader reader, BSPType treeType) method.
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must use the Unpack(BinaryReader reader, BSPType treeType) method.</exception>
+        public void Unpack(BinaryReader reader)
         {
-            BSPTree obj = new BSPTree();
-            obj.RootNode = BSPNode.Read(datReader, treeType);
-            return (obj);
+            throw new NotSupportedException();
+        }
+
+        public void Unpack(BinaryReader reader, BSPType treeType)
+        {
+            RootNode = BSPNode.ReadNode(reader, treeType);
         }
     }
 }

@@ -1,27 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
     /// <summary>
     /// Info on texture UV mapping
     /// </summary>
-    public class Vec2Duv
+    public class Vec2Duv : IUnpackable
     {
-        public float U { get; set; }
-        public float V { get; set; }
+        public float U { get; private set; }
+        public float V { get; private set; }
 
-        public static Vec2Duv Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            Vec2Duv obj = new Vec2Duv();
-
-            obj.U = datReader.ReadSingle();
-            obj.V = datReader.ReadSingle();
-
-            return obj;
+            U = reader.ReadSingle();
+            V = reader.ReadSingle();
         }
     }
 }

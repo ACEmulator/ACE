@@ -1,54 +1,51 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class Polygon
+    public class Polygon : IUnpackable
     {
-        public byte NumPts { get; set; }
-        public byte Stippling { get; set; } // Whether it has that textured/bumpiness to it
-        public int SidesType { get; set; }
-        public short PosSurface { get; set; }
-        public short NegSurface { get; set; }
-        public List<short> VertexIds { get; set; } = new List<short>(); 
-        public List<byte> PosUVIndices { get; set; } = new List<byte>();
-        public List<byte> NegUVIndices { get; set; } = new List<byte>();
+        public byte NumPts { get; private set; }
+        public byte Stippling { get; private set; } // Whether it has that textured/bumpiness to it
 
-        public static Polygon Read(DatReader datReader)
+        public int SidesType { get; private set; }
+        public short PosSurface { get; private set; }
+        public short NegSurface { get; private set; }
+
+        public List<short> VertexIds { get; } = new List<short>();
+
+        public List<byte> PosUVIndices { get; } = new List<byte>();
+        public List<byte> NegUVIndices { get; private set; } = new List<byte>();
+
+        public void Unpack(BinaryReader reader)
         {
-            Polygon obj = new Polygon();
+            NumPts      = reader.ReadByte();
+            Stippling   = reader.ReadByte();
 
-            obj.NumPts = datReader.ReadByte();
-            obj.Stippling = datReader.ReadByte();
-            obj.SidesType = datReader.ReadInt32();
-            obj.PosSurface = datReader.ReadInt16();
-            obj.NegSurface = datReader.ReadInt16();
+            SidesType   = reader.ReadInt32();
+            PosSurface  = reader.ReadInt16();
+            NegSurface  = reader.ReadInt16();
 
-            for (short i = 0; i < obj.NumPts; i++)
-                obj.VertexIds.Add(datReader.ReadInt16());
+            for (short i = 0; i < NumPts; i++)
+                VertexIds.Add(reader.ReadInt16());
 
-            if ((obj.Stippling & 4) == 0)
+            if ((Stippling & 4) == 0)
             {
-                for (short i = 0; i < obj.NumPts; i++)
-                    obj.PosUVIndices.Add(datReader.ReadByte());
+                for (short i = 0; i < NumPts; i++)
+                    PosUVIndices.Add(reader.ReadByte());
             }
 
-            if (obj.SidesType == 2 && ((obj.Stippling & 8) == 0))
+            if (SidesType == 2 && ((Stippling & 8) == 0))
             {
-                for (short i = 0; i < obj.NumPts; i++)
-                    obj.NegUVIndices.Add(datReader.ReadByte());
+                for (short i = 0; i < NumPts; i++)
+                    NegUVIndices.Add(reader.ReadByte());
             }
 
-            if (obj.SidesType == 1)
+            if (SidesType == 1)
             {
-                obj.NegSurface = obj.PosSurface;
-                obj.NegUVIndices = obj.PosUVIndices;
+                NegSurface = PosSurface;
+                NegUVIndices = PosUVIndices;
             }
-
-            return obj;
         }
     }
 }
