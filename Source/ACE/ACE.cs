@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 
 using ACE.Command;
 using ACE.Common;
@@ -8,6 +7,7 @@ using ACE.Database;
 using ACE.Managers;
 using ACE.Network.Managers;
 using ACE.DatLoader;
+
 using log4net;
 using log4net.Config;
 
@@ -33,7 +33,7 @@ namespace ACE
             AssetManager.Initialize();
             InboundMessageManager.Initialize();
             DatabaseManager.Start();
-            DatManager.Initialize();
+            DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory);
             GuidManager.Initialize();
             SocketManager.Initialize();
             WorldManager.Initialize();

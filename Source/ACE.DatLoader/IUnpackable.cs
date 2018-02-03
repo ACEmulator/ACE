@@ -2,7 +2,7 @@ using System.IO;
 
 namespace ACE.DatLoader
 {
-    interface IUnpackable
+    public interface IUnpackable
     {
         void Unpack(BinaryReader reader);
     }

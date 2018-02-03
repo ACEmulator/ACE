@@ -130,7 +130,7 @@ namespace ACE.DatLoader.Entity
                     break;
 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Hook type: {hookType}");
             }
 
             hook.Unpack(reader);

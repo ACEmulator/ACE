@@ -11,6 +11,7 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x01. 
     /// These are used both on their own for some pre-populated structures in the world (trees, buildings, etc) or make up SetupModel (0x02) objects.
     /// </summary>
+    [DatFileType(DatFileType.GraphicsObject)]
     public class GfxObj : IUnpackable
     {
         public uint Id { get; private set; }

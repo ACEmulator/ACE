@@ -10,6 +10,7 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x03. 
     /// Special thanks to Dan Skorupski for his work on Bael'Zharon's Respite, which helped fill in some of the gaps https://github.com/boardwalk/bzr
     /// </summary>
+    [DatFileType(DatFileType.Animation)]
     public class Animation : IUnpackable
     {
         public uint AnimationId { get; private set; }

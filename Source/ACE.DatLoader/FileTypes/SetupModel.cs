@@ -13,6 +13,7 @@ namespace ACE.DatLoader.FileTypes
     /// <remarks>
     /// A big huge thank you to "Pea" for his trailblazing work on decoding this structure. Without his work on this, we might still be decoding models on cave walls.
     /// </remarks>
+    [DatFileType(DatFileType.Setup)]
     public class SetupModel : IUnpackable
     {
         public uint ModelId { get; private set; }

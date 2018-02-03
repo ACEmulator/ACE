@@ -8,6 +8,7 @@ namespace ACE.DatLoader.FileTypes
     /// <summary>
     /// These are client_portal.dat files starting with 0x33. 
     /// </summary>
+    [DatFileType(DatFileType.PhysicsScript)]
     public class PhysicsScript : IUnpackable
     {
         public uint Id { get; private set; }

@@ -1,8 +1,6 @@
 using System.Linq;
 using System.IO;
 
-using ACE.Common;
-
 using log4net;
 
 namespace ACE.DatLoader
@@ -23,9 +21,9 @@ namespace ACE.DatLoader
 
         public static PortalDatDatabase PortalDat => portalDat;
 
-        public static void Initialize()
+        public static void Initialize(string datFileDirectory)
         {
-            var datDir = Path.GetFullPath(Path.Combine(ConfigManager.Config.Server.DatFilesDirectory));
+            var datDir = Path.GetFullPath(Path.Combine(datFileDirectory));
 
             try
             {

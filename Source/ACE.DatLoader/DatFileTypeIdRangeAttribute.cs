@@ -2,7 +2,7 @@ using System;
 
 namespace ACE.DatLoader
 {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field)]
     public class DatFileTypeIdRangeAttribute : Attribute
     {
         public uint BeginRange { get; set; }
