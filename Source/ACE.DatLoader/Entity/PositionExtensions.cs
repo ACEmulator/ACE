@@ -46,9 +46,7 @@ namespace ACE.DatLoader.Entity
             p.RotationZ = reader.ReadSingle();
         }
 
-
-
-
+      
         /// <summary>
         /// Reads and returns a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
