@@ -80,7 +80,7 @@ namespace ACE.DatLoader
             return data;
         }
 
-        public short ReadInt16()
+        private short ReadInt16()
         {
             short data = BitConverter.ToInt16(Buffer, Offset);
             Offset += 2;
@@ -106,19 +106,6 @@ namespace ACE.DatLoader
             double data = BitConverter.ToDouble(Buffer, Offset);
             Offset += 8;
             return data;
-        }
-
-        /// <summary>
-        /// Returns a string as defined by the first 2-byte's length
-        /// </summary>
-        public string ReadPString()
-        {
-            int stringlength = ReadInt16();
-                        
-            byte[] thestring = new byte[stringlength];
-            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
-            Offset += stringlength;
-            return System.Text.Encoding.Default.GetString(thestring);
         }
 
         /// <summary>

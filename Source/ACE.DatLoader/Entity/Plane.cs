@@ -11,7 +11,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            N.ReadFrame(reader);
+            N.ReadFrameOnly(reader);
             D = reader.ReadSingle();
         }
     }

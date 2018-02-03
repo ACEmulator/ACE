@@ -1,16 +1,23 @@
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CellPortal
+    public class CellPortal : IUnpackable
     {
-        public ushort Flags { get; set; }
+        public ushort Bitfield { get; private set; }
+        public ushort EnvironmentId { get; private set; }
+        public ushort OtherCellId { get; private set; }
+        public ushort OtherPortalId { get; private set; }
 
-        // Not exactly sure what these two are for, but they are from the flags
-        public bool ExactMatch => (Flags & 1) != 0;
-        public bool PortalSide => (Flags & 2) != 0;
+        public bool ExactMatch => (Bitfield & 1) != 0;
+        public bool PortalSide => (Bitfield & 2) == 0;
 
-        public ushort EnvironmentId { get; set; }
-        public ushort OtherCellId { get; set; }
-        public ushort OtherPortalId { get; set; }
+        public void Unpack(BinaryReader reader)
+        {
+            Bitfield        = reader.ReadUInt16();
+            EnvironmentId   = reader.ReadUInt16();
+            OtherCellId     = reader.ReadUInt16();
+            OtherPortalId   = reader.ReadUInt16();
+        }
     }
 }
