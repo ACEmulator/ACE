@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,7 @@ namespace ACE.DatLoader.Entity
             ObjectDesc obj = new ObjectDesc();
 
             obj.ObjId = datReader.ReadUInt32();
-            obj.BaseLoc = PositionExtensions.ReadPosition(datReader);
+            obj.BaseLoc = PositionExtensions.ReadFrame(datReader);
             obj.Freq = datReader.ReadSingle();
             obj.DisplaceX = datReader.ReadSingle();
             obj.DisplaceY = datReader.ReadSingle();

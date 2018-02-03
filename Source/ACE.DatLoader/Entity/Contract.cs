@@ -57,9 +57,9 @@ namespace ACE.DatLoader.Entity
             QuestflagRepeatTime = reader.ReadPString();
             reader.AlignBoundary();
 
-            LocationNPCStart.ReadWithCell(reader);
-            LocationNPCEnd.ReadWithCell(reader);
-            LocationQuestArea.ReadWithCell(reader);
+            LocationNPCStart.ReadPosition(reader);
+            LocationNPCEnd.ReadPosition(reader);
+            LocationQuestArea.ReadPosition(reader);
         }
     }
 }

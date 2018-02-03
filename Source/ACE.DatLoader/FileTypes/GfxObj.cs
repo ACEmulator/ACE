@@ -46,7 +46,7 @@ namespace ACE.DatLoader.FileTypes
                 PhysicsBSP.Unpack(reader, BSPType.Physics);
             }
 
-            SortCenter.ReadFrameOnly(reader);
+            SortCenter.ReadOrigin(reader);
 
             // Has Drawing 
             if ((fields & 2) != 0)

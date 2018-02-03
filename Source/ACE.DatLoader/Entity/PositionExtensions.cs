@@ -10,7 +10,7 @@ namespace ACE.DatLoader.Entity
         /// <summary>
         /// Reads just the X,Y,Z portion of a Position
         /// </summary>
-        public static void ReadFrameOnly(this ACE.Entity.Position p, BinaryReader reader)
+        public static void ReadOrigin(this ACE.Entity.Position p, BinaryReader reader)
         {
             p.PositionX = reader.ReadSingle();
             p.PositionY = reader.ReadSingle();
@@ -20,7 +20,7 @@ namespace ACE.DatLoader.Entity
         /// <summary>
         /// Reads a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
-        public static void Read(this ACE.Entity.Position p, BinaryReader reader)
+        public static void ReadFrame(this ACE.Entity.Position p, BinaryReader reader)
         {
             p.PositionX = reader.ReadSingle();
             p.PositionY = reader.ReadSingle();
@@ -34,7 +34,7 @@ namespace ACE.DatLoader.Entity
         /// <summary>
         /// Reads the cell ID and the full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
-        public static void ReadWithCell(this ACE.Entity.Position p, BinaryReader reader)
+        public static void ReadPosition(this ACE.Entity.Position p, BinaryReader reader)
         {
             p.Cell      = reader.ReadUInt32();
             p.PositionX = reader.ReadSingle();
@@ -46,38 +46,15 @@ namespace ACE.DatLoader.Entity
             p.RotationZ = reader.ReadSingle();
         }
 
-
-
-
+      
         /// <summary>
         /// Reads and returns a full spatial position with X,Y,Z and Quaternion W,X,Y,Z values.
         /// </summary>
         [System.Obsolete]
-        public static ACE.Entity.Position ReadPosition(DatReader datReader)
-        {
-            var p = new ACE.Entity.Position();
-            p.Read(datReader);
-            return p;
-        }
-
-        /// <summary>
-        /// Reads and returns just the X,Y,Z portal of a Position
-        /// </summary>
-        [System.Obsolete]
-        public static ACE.Entity.Position ReadPositionFrame(DatReader datReader)
+        public static ACE.Entity.Position ReadFrame(DatReader datReader)
         {
             var p = new ACE.Entity.Position();
 
-            p.PositionX = datReader.ReadSingle();
-            p.PositionY = datReader.ReadSingle();
-            p.PositionZ = datReader.ReadSingle();
-
-            return p;
-        }
-
-        [System.Obsolete]
-        private static void Read(this ACE.Entity.Position p, DatReader datReader)
-        {
             p.PositionX = datReader.ReadSingle();
             p.PositionY = datReader.ReadSingle();
             p.PositionZ = datReader.ReadSingle();
@@ -85,6 +62,23 @@ namespace ACE.DatLoader.Entity
             p.RotationX = datReader.ReadSingle();
             p.RotationY = datReader.ReadSingle();
             p.RotationZ = datReader.ReadSingle();
+
+            return p;
+        }
+
+        /// <summary>
+        /// Reads and returns just the X,Y,Z portal of a Position
+        /// </summary>
+        [System.Obsolete]
+        public static ACE.Entity.Position ReadOrigin(DatReader datReader)
+        {
+            var p = new ACE.Entity.Position();
+
+            p.PositionX = datReader.ReadSingle();
+            p.PositionY = datReader.ReadSingle();
+            p.PositionZ = datReader.ReadSingle();
+
+            return p;
         }
     }
 }

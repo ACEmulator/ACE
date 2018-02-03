@@ -51,7 +51,7 @@ namespace ACE.DatLoader.FileTypes
 
             CellStructure = reader.ReadUInt16();
 
-            Position.Read(reader);
+            Position.ReadFrame(reader);
 
             CellPortals.Unpack(reader, numPortals);
 
