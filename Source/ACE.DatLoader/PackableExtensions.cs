@@ -141,9 +141,6 @@ namespace ACE.DatLoader
         }
 
 
-        /// <summary>
-        /// A Dictionary that uses a Int32 for the length.
-        /// </summary>
         public static void Unpack<T>(this Dictionary<ushort, T> value, BinaryReader reader, int fixedQuantity) where T : IUnpackable, new()
         {
             for (int i = 0; i < fixedQuantity; i++)

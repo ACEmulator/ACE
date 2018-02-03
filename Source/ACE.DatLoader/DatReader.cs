@@ -80,7 +80,7 @@ namespace ACE.DatLoader
             return data;
         }
 
-        public short ReadInt16()
+        private short ReadInt16()
         {
             short data = BitConverter.ToInt16(Buffer, Offset);
             Offset += 2;
