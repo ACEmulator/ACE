@@ -6,7 +6,7 @@ namespace ACE.DatLoader.Entity
     public class StarterArea : IUnpackable
     {
         public string Name { get; private set; }
-        public List<Loc> Locations { get; } = new List<Loc>();
+        public List<PositionNew> Locations { get; } = new List<PositionNew>();
 
         public void Unpack(BinaryReader reader)
         {
