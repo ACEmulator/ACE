@@ -18,141 +18,6 @@ USE `ace_world`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `ace_content`
---
-
-DROP TABLE IF EXISTS `ace_content`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_content` (
-  `contentGuid` binary(16) NOT NULL,
-  `contentName` text NOT NULL,
-  `contentType` int(3) unsigned DEFAULT NULL COMMENT 'ACE.Entity.Enum.ContentType',
-  `userModified` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`contentGuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `ace_content`
---
-
-LOCK TABLES `ace_content` WRITE;
-/*!40000 ALTER TABLE `ace_content` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ace_content` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ace_content_landblock`
---
-
-DROP TABLE IF EXISTS `ace_content_landblock`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_content_landblock` (
-  `contentLandblockGuid` binary(16) NOT NULL,
-  `contentGuid` binary(16) NOT NULL,
-  `landblockId` int(10) unsigned NOT NULL COMMENT '0x####0000.  lower word should be all 0s.',
-  `comment` text,
-  PRIMARY KEY (`contentLandblockGuid`),
-  KEY `contentGuid` (`contentGuid`,`landblockId`),
-  CONSTRAINT `ace_content_landblock_ibfk_1` FOREIGN KEY (`contentGuid`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `ace_content_landblock`
---
-
-LOCK TABLES `ace_content_landblock` WRITE;
-/*!40000 ALTER TABLE `ace_content_landblock` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ace_content_landblock` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ace_content_link`
---
-
-DROP TABLE IF EXISTS `ace_content_link`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_content_link` (
-  `contentGuid1` binary(16) NOT NULL,
-  `contentGuid2` binary(16) NOT NULL,
-  PRIMARY KEY (`contentGuid1`,`contentGuid2`),
-  KEY `ace_content_link_ibfk_2` (`contentGuid2`),
-  CONSTRAINT `ace_content_link_ibfk_1` FOREIGN KEY (`contentGuid1`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE,
-  CONSTRAINT `ace_content_link_ibfk_2` FOREIGN KEY (`contentGuid2`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `ace_content_link`
---
-
-LOCK TABLES `ace_content_link` WRITE;
-/*!40000 ALTER TABLE `ace_content_link` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ace_content_link` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ace_content_resource`
---
-
-DROP TABLE IF EXISTS `ace_content_resource`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_content_resource` (
-  `contentResourceGuid` binary(16) NOT NULL,
-  `contentGuid` binary(16) NOT NULL,
-  `name` text NOT NULL,
-  `resourceUri` text NOT NULL,
-  `comment` text,
-  PRIMARY KEY (`contentResourceGuid`),
-  KEY `ace_content_resource_ibfk_1` (`contentGuid`),
-  CONSTRAINT `ace_content_resource_ibfk_1` FOREIGN KEY (`contentGuid`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `ace_content_resource`
---
-
-LOCK TABLES `ace_content_resource` WRITE;
-/*!40000 ALTER TABLE `ace_content_resource` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ace_content_resource` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ace_content_weenie`
---
-
-DROP TABLE IF EXISTS `ace_content_weenie`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_content_weenie` (
-  `contentWeenieGuid` binary(16) NOT NULL,
-  `contentGuid` binary(16) NOT NULL,
-  `weenieId` int(10) unsigned NOT NULL,
-  `comment` text,
-  PRIMARY KEY (`contentWeenieGuid`),
-  KEY `ace_content_weenie_ibfk_1` (`contentGuid`),
-  KEY `ace_content_weenie_ibfk_2` (`weenieId`),
-  CONSTRAINT `ace_content_weenie_ibfk_1` FOREIGN KEY (`contentGuid`) REFERENCES `ace_content` (`contentGuid`) ON DELETE CASCADE,
-  CONSTRAINT `ace_content_weenie_ibfk_2` FOREIGN KEY (`weenieId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `ace_content_weenie`
---
-
-LOCK TABLES `ace_content_weenie` WRITE;
-/*!40000 ALTER TABLE `ace_content_weenie` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ace_content_weenie` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `ace_landblock`
 --
 
@@ -172,10 +37,13 @@ CREATE TABLE `ace_landblock` (
   `qX` float NOT NULL,
   `qY` float NOT NULL,
   `qZ` float NOT NULL,
+  `linkSlot` int(5) DEFAULT NULL,
+  `linkSource` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`instanceId`),
   UNIQUE KEY `instanceId_UNIQUE` (`instanceId`),
   UNIQUE KEY `preassignedGuid_UNIQUE` (`preassignedGuid`),
   KEY `fk_lb_weenie_idx` (`weenieClassId`),
+  KEY `linkSlot` (`linkSlot`),
   KEY `fk_lb_idx` (`landblock`),
   CONSTRAINT `fk_weenie_lb` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -247,31 +115,48 @@ LOCK TABLES `ace_object_animation_change` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `ace_object_generator_link`
+-- Table structure for table `ace_object_generator_profile`
 --
 
-DROP TABLE IF EXISTS `ace_object_generator_link`;
+DROP TABLE IF EXISTS `ace_object_generator_profile`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_object_generator_link` (
-  `aceObjectId` int(10) unsigned NOT NULL,
-  `index` tinyint(3) unsigned NOT NULL,
-  `generatorWeenieClassId` int(10) unsigned NOT NULL,
-  `generatorWeight` tinyint(3) unsigned NOT NULL,
-  PRIMARY KEY (`aceObjectId`,`index`),
-  KEY `idx_generator_link__AceObject` (`generatorWeenieClassId`),
-  CONSTRAINT `fk_generator_link__AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
-  CONSTRAINT `fk_generator_link__AceWeenieClass` FOREIGN KEY (`generatorWeenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
+CREATE TABLE `ace_object_generator_profile` (
+  `profileId` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
+  `probability` float NOT NULL DEFAULT '1',
+  `weenieClassId` int(10) unsigned NOT NULL DEFAULT '0',
+  `delay` float DEFAULT '0',
+  `initCreate` int(10) unsigned NOT NULL DEFAULT '1',
+  `maxCreate` int(10) unsigned NOT NULL DEFAULT '1',
+  `whenCreate` int(10) unsigned NOT NULL DEFAULT '2',
+  `whereCreate` int(10) unsigned NOT NULL DEFAULT '4',
+  `stackSize` int(10) DEFAULT NULL,
+  `paletteId` int(10) unsigned DEFAULT NULL,
+  `shade` float DEFAULT NULL,
+  `landblockRaw` int(10) unsigned DEFAULT NULL,
+  `posX` float DEFAULT NULL,
+  `posY` float DEFAULT NULL,
+  `posZ` float DEFAULT NULL,
+  `qW` float DEFAULT NULL,
+  `qX` float DEFAULT NULL,
+  `qY` float DEFAULT NULL,
+  `qZ` float DEFAULT NULL,
+  PRIMARY KEY (`profileId`),
+  KEY `fk_gen_ao_idx` (`aceObjectId`),
+  KEY `fk_gen_weenie_idx` (`weenieClassId`),
+  CONSTRAINT `fk_gen_ao` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
+  CONSTRAINT `fk_gen_weenie` FOREIGN KEY (`weenieClassId`) REFERENCES `ace_weenie_class` (`weenieClassId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `ace_object_generator_link`
+-- Dumping data for table `ace_object_generator_profile`
 --
 
-LOCK TABLES `ace_object_generator_link` WRITE;
-/*!40000 ALTER TABLE `ace_object_generator_link` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ace_object_generator_link` ENABLE KEYS */;
+LOCK TABLES `ace_object_generator_profile` WRITE;
+/*!40000 ALTER TABLE `ace_object_generator_profile` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ace_object_generator_profile` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -287,6 +172,8 @@ CREATE TABLE `ace_object_inventory` (
   `weenieClassId` int(10) unsigned NOT NULL DEFAULT '0',
   `stackSize` int(10) NOT NULL DEFAULT '1',
   `palette` tinyint(5) NOT NULL DEFAULT '0',
+  `shade` float NOT NULL DEFAULT '1',
+  `tryToBond` tinyint(4) NOT NULL DEFAULT '0',
   KEY `fk_Inventory_AceObject_idx` (`aceObjectId`),
   KEY `fk_Inventory_Weenie_idx` (`weenieClassId`),
   CONSTRAINT `fk_Inventory_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE,
@@ -615,6 +502,7 @@ DROP TABLE IF EXISTS `ace_object_properties_spell`;
 CREATE TABLE `ace_object_properties_spell` (
   `aceObjectId` int(10) unsigned NOT NULL DEFAULT '0',
   `spellId` int(10) unsigned NOT NULL DEFAULT '0',
+  `probability` float NOT NULL DEFAULT '2',
   UNIQUE KEY `ace_object__property_spell_id` (`spellId`,`aceObjectId`),
   KEY `aceObjectId` (`aceObjectId`),
   CONSTRAINT `fk_Prop_Spell_AceObject` FOREIGN KEY (`aceObjectId`) REFERENCES `ace_object` (`aceObjectId`) ON DELETE CASCADE
@@ -1038,4 +926,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-11-26 22:59:39
+-- Dump completed on 2018-01-29 12:00:25
