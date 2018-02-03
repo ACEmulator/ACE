@@ -1,4 +1,4 @@
-﻿using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 
@@ -75,13 +75,13 @@ namespace ACE.DatLoader.FileTypes
 
                 obj.SortingSphere = datReader.ReadUInt32();
 
-                obj.OffsetDir = PositionExtensions.ReadPositionFrame(datReader);
+                obj.OffsetDir = PositionExtensions.ReadOrigin(datReader);
                 obj.MinOffset = datReader.ReadSingle();
                 obj.MaxOffset = datReader.ReadSingle();
 
-                obj.A = PositionExtensions.ReadPositionFrame(datReader);
-                obj.B = PositionExtensions.ReadPositionFrame(datReader);
-                obj.C = PositionExtensions.ReadPositionFrame(datReader);
+                obj.A = PositionExtensions.ReadOrigin(datReader);
+                obj.B = PositionExtensions.ReadOrigin(datReader);
+                obj.C = PositionExtensions.ReadOrigin(datReader);
 
                 obj.MinA = datReader.ReadSingle();
                 obj.MaxA = datReader.ReadSingle();

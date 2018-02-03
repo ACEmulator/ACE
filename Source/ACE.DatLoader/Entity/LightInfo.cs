@@ -14,7 +14,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            ViewerspaceLocation.Read(reader);
+            ViewerspaceLocation.ReadFrame(reader);
 
             Color       = reader.ReadUInt32();
             Intensity   = reader.ReadSingle();

@@ -25,7 +25,7 @@ namespace ACE.DatLoader.Entity
             for (uint i = 0; i < numParts; i++)
             {
                 Position position = new Position();
-                position.Read(reader);
+                position.ReadFrame(reader);
                 Locations.Add(position);
             }
 
