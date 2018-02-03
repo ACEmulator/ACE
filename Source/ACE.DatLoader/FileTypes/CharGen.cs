@@ -5,6 +5,7 @@ using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
+    [DatFileType(DatFileType.CharacterGenerator)]
     public class CharGen : IUnpackable
     {
         public int Did { get; private set; }

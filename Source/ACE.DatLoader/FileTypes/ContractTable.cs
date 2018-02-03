@@ -8,6 +8,7 @@ namespace ACE.DatLoader.FileTypes
     /// <summary>
     /// This is the client_portal.dat file 0x0E00001D
     /// </summary>
+    [DatFileType(DatFileType.ContractTable)]
     public class ContractTable : IUnpackable
     {
         private const uint CONTRACT_TABLE_ID = 0x0E00001D;

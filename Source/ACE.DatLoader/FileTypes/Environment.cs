@@ -9,6 +9,7 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x0D. 
     /// These are basically pre-fab regions for things like the interior of a dungeon.
     /// </summary>
+    [DatFileType(DatFileType.Environment)]
     public class Environment : IUnpackable
     {
         public uint Id { get; set; }

@@ -2,7 +2,7 @@ using System;
 
 namespace ACE.DatLoader
 {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field)]
     public class DatDatabaseTypeAttribute : Attribute
     {
         public DatDatabaseType Type { get; set; }

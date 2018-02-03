@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-02-03
+[Mag-nus]
+* ACE.DatLoader DatManager.Initialize() is no longer dependant on ConfigManager.
+* ACE.DatLoader.Tests now include framework for unpack testing objects from the dats.
+
 ### 2018-01-29
 [Ripley]
 * Rebased SQL scripts.

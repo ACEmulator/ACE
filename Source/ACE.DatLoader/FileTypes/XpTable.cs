@@ -7,6 +7,7 @@ namespace ACE.DatLoader.FileTypes
     /// <summary>
     /// Reads and stores the XP Tables from the client_portal.dat (file 0x0E000018).
     /// </summary>
+    [DatFileType(DatFileType.XpTable)]
     public class XpTable : IUnpackable
     {
         public ExperienceExpenditureChart AbilityXpChart { get; } = new ExperienceExpenditureChart();

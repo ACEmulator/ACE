@@ -23,7 +23,9 @@ namespace ACE.DatLoader.Entity
         {
             Type = reader.ReadUInt32();
 
+            SplittingPlane = new Plane();
             SplittingPlane.Unpack(reader);
+
             PosNode = BSPNode.ReadNode(reader, treeType);
             NegNode = BSPNode.ReadNode(reader, treeType);
 
@@ -35,6 +37,7 @@ namespace ACE.DatLoader.Entity
                 var numPolys = reader.ReadUInt32();
                 var numPortals = reader.ReadInt32();
 
+                InPolys = new List<ushort>();
                 for (uint i = 0; i < numPolys; i++)
                     InPolys.Add(reader.ReadUInt16());
 

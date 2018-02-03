@@ -6,6 +6,7 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x0A. All are stored in .WAV data format, though the header slightly different than a .WAV file header.
     /// I'm not sure of an instance where the server would ever need this data, but it's fun nonetheless and included for completion sake.
     /// </summary>
+    [DatFileType(DatFileType.Wave)]
     public class Wave : IUnpackable
     {
         public uint Id { get; private set; }
