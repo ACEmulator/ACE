@@ -1,20 +1,24 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CloSubPalette
+    public class CloSubPalette : IUnpackable
     {
         /// <summary>
         /// Contains a list of valid offsets & color values
         /// </summary>
-        public List<CloSubPalleteRange> Ranges { get; set; } = new List<CloSubPalleteRange>();
+        public List<CloSubPalleteRange> Ranges { get; } = new List<CloSubPalleteRange>();
         /// <summary>
         /// Icon portal.dat 0x0F000000
         /// </summary>
-        public uint PaletteSet { get; set; }
+        public uint PaletteSet { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Ranges.Unpack(reader);
+
+            PaletteSet = reader.ReadUInt32();
+        }
     }
 }

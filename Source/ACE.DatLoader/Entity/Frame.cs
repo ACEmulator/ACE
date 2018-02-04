@@ -3,6 +3,9 @@ using System.Numerics;
 
 namespace ACE.DatLoader.Entity
 {
+    /// <summary>
+    /// Frame consists of a Vector3 Origin and a Quaternion Orientation
+    /// </summary>
     public class Frame : IUnpackable
     {
         public Vector3 Origin { get; private set; }

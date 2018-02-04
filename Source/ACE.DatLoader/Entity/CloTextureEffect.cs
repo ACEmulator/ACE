@@ -1,21 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CloTextureEffect
+    public class CloTextureEffect : IUnpackable
     {
         /// <summary>
         /// Texture portal.dat 0x05000000
         /// </summary>
-        public uint OldTexture { get; set; }
+        public uint OldTexture { get; private set; }
 
         /// <summary>
         /// Texture portal.dat 0x05000000
         /// </summary>
-        public uint NewTexture { get; set; }
+        public uint NewTexture { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            OldTexture = reader.ReadUInt32();
+            NewTexture = reader.ReadUInt32();
+        }
     }
 }

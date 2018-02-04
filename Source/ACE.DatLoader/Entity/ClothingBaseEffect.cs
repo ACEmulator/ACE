@@ -1,12 +1,15 @@
-﻿using ACE.Entity;
-using ACE.DatLoader.Entity;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class ClothingBaseEffect
+    public class ClothingBaseEffect : IUnpackable
     {
-        public uint SetupModel { get; set; }
-        public List<CloObjectEffect> CloObjectEffects { get; set; } = new List<CloObjectEffect>();
+        public List<CloObjectEffect> CloObjectEffects { get; } = new List<CloObjectEffect>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            CloObjectEffects.Unpack(reader);
+        }
     }
 }
