@@ -20,7 +20,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            short numUVs = reader.ReadInt16();
+            var numUVs = reader.ReadUInt16();
 
             X = reader.ReadSingle();
             Y = reader.ReadSingle();

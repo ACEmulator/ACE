@@ -111,7 +111,7 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.DbProperties) continue;
 
                 // These have bugs
-                if (fileType == DatFileType.Animation) continue;
+                if (fileType == DatFileType.Animation && kvp.Value.ObjectId == 0x0300055b) continue; // This one hook seems corrupt
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new {m, a})

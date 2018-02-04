@@ -130,7 +130,7 @@ namespace ACE.DatLoader
             }
         }
 
-        public static void Unpack<T>(this List<T> value, BinaryReader reader, int fixedQuantity) where T : IUnpackable, new()
+        public static void Unpack<T>(this List<T> value, BinaryReader reader, uint fixedQuantity) where T : IUnpackable, new()
         {
             for (int i = 0; i < fixedQuantity; i++)
             {
@@ -141,7 +141,7 @@ namespace ACE.DatLoader
         }
 
 
-        public static void Unpack<T>(this Dictionary<ushort, T> value, BinaryReader reader, int fixedQuantity) where T : IUnpackable, new()
+        public static void Unpack<T>(this Dictionary<ushort, T> value, BinaryReader reader, uint fixedQuantity) where T : IUnpackable, new()
         {
             for (int i = 0; i < fixedQuantity; i++)
             {

@@ -35,7 +35,7 @@ namespace ACE.DatLoader.Entity
                 Sphere.Unpack(reader);
 
                 var numPolys = reader.ReadUInt32();
-                var numPortals = reader.ReadInt32();
+                var numPortals = reader.ReadUInt32();
 
                 InPolys = new List<ushort>();
                 for (uint i = 0; i < numPolys; i++)
