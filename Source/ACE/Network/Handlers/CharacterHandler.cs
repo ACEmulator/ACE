@@ -583,10 +583,25 @@ namespace ACE.Network.Handlers
                             grantedItems.Add(item.WeenieId);
                         }
                     }
-
+                    
                     foreach (var spell in skillGear.Spells)
                     {
-                        character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                        // Olthoi Spitter is a special case
+                        if (character.Heritage == (int)HeritageGroup.OlthoiAcid)
+                        {
+                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                            // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
+                            continue;
+                        }
+
+                        if (charSkill.Status == SkillStatus.Trained && spell.SpecializedOnly == false)
+                        {
+                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                        }
+                        else if (charSkill.Status == SkillStatus.Specialized)
+                        {
+                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                        }
                     }
                 }
             }
