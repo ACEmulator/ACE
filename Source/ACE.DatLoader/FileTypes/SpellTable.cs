@@ -1,143 +1,65 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+
 using ACE.DatLoader.Entity;
-using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
-    public class SpellTable
+    [DatFileType(DatFileType.SpellTable)]
+    public class SpellTable : IUnpackable
     {
-        public uint FileId { get; set; }
-        public ushort SpellBaseHash { get; set; } // not entirely sure what this is
-        public Dictionary<uint, SpellBase> Spells { get; set; } = new Dictionary<uint, SpellBase>();
+        private const uint FILE_ID = 0x0E00000E;
+
+        public ushort SpellBaseHash { get; private set; } // not entirely sure what this is
+        public Dictionary<uint, SpellBase> Spells { get; } = new Dictionary<uint, SpellBase>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
+
+            var spellCount = reader.ReadUInt16();
+            SpellBaseHash = reader.ReadUInt16();
+
+            Spells.Unpack(reader, spellCount);
+        }
 
         public static SpellTable ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E00000E))
-            {
-                return (SpellTable)DatManager.PortalDat.FileCache[0x0E00000E];
-            }
-            else
-            {
-                // Create the datReader for the proper file
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000E);
-                SpellTable spells = new SpellTable();
+            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
+                return (SpellTable)DatManager.PortalDat.FileCache[FILE_ID];
 
-                spells.FileId = datReader.ReadUInt32();
-                uint spellCount = datReader.ReadUInt16();
-                spells.SpellBaseHash = datReader.ReadUInt16(); 
+            // Create the datReader for the proper file
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
-                for (uint i = 0; i < spellCount; i++)
-                {
-                    SpellBase newSpell = new SpellBase();
-                    uint spellId = datReader.ReadUInt32();
-                    newSpell.Name = datReader.ReadObfuscatedString();
-                    datReader.AlignBoundary();
-                    newSpell.Desc = datReader.ReadObfuscatedString();
-                    datReader.AlignBoundary();
-                    newSpell.School = (MagicSchool)datReader.ReadUInt32();
-                    newSpell.Icon = datReader.ReadUInt32();
-                    newSpell.Category = datReader.ReadUInt32();
-                    newSpell.Bitfield = datReader.ReadUInt32();
-                    newSpell.BaseMana = datReader.ReadUInt32();
-                    newSpell.BaseRangeConstant = datReader.ReadSingle();
-                    newSpell.BaseRangeMod = datReader.ReadSingle();
-                    newSpell.Power = datReader.ReadUInt32();
-                    newSpell.SpellEconomyMod = datReader.ReadSingle();
-                    newSpell.FormulaVersion = datReader.ReadUInt32();
-                    newSpell.ComponentLoss = datReader.ReadUInt32();
-                    newSpell.MetaSpellType = (SpellType)datReader.ReadUInt32(); 
-                    newSpell.MetaSpellId = datReader.ReadUInt32();
+            var obj = new SpellTable();
 
-                    switch (newSpell.MetaSpellType)
-                    {
-                        case SpellType.Enchantment:
-                        case SpellType.FellowEnchantment:
-                            {
-                                newSpell.Duration = datReader.ReadDouble();
-                                newSpell.DegradeModifier = datReader.ReadSingle();
-                                newSpell.DegradeLimit = datReader.ReadSingle();
-                                break;
-                            }
-                        case SpellType.PortalSummon:
-                            {
-                                newSpell.PortalLifetime = datReader.ReadDouble();
-                                break;
-                            }
-                    }
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                    // Components : Load them first, then decrypt them. More efficient to hash all at once.
-                    List<uint> rawComps = new List<uint>();
-                    for (uint j = 0; j < 8; j++)
-                    {
-                        uint comp = datReader.ReadUInt32();
-                        // We will only add the comp if it is valid
-                        if (comp > 0)
-                            rawComps.Add(comp);
-                    }
-                    // Get the decryped component values
-                    newSpell.Formula = DecryptFormula(rawComps, newSpell.Name, newSpell.Desc);
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
 
-                    newSpell.CasterEffect = datReader.ReadUInt32();
-                    newSpell.TargetEffect = datReader.ReadUInt32();
-                    newSpell.FizzleEffect = datReader.ReadUInt32();
-                    newSpell.RecoveryInterval = datReader.ReadDouble();
-                    newSpell.RecoveryAmount = datReader.ReadSingle();
-                    newSpell.DisplayOrder = datReader.ReadUInt32();
-                    newSpell.NonComponentTargetType = datReader.ReadUInt32();
-                    newSpell.ManaMod = datReader.ReadUInt32();
-
-                    spells.Spells.Add(spellId, newSpell);
-                }
-
-                DatManager.PortalDat.FileCache[0x0E00000E] = spells;
-                return spells;
-            }
-        }
-
-        private const uint HIGHEST_COMP_ID = 198; // "Essence of Kemeroi", for Void Spells -- not actually ever in game!
-
-        /// <summary>
-        /// Does the math based on the crypto keys (name and description) for the spell formula.
-        /// </summary>
-        private static List<uint> DecryptFormula(List<uint> rawComps, string name, string desc)
-        {
-            List<uint> comps = new List<uint>();
-            // uint testDescHash = ComputeHash(" – 200");
-            uint nameHash = ComputeHash(name);
-            uint descHash = ComputeHash(desc);
-            
-            uint key = (nameHash % 0x12107680) + (descHash % 0xBEADCF45); 
-            for (int i = 0; i < rawComps.Count; i++)
-            {
-                uint comp = (rawComps[i] - key);
-
-                // This seems to correct issues with certain spells with extended characters.
-                if (comp > HIGHEST_COMP_ID) // highest comp ID is 198 - "Essence of Kemeroi", for Void Spells
-                    comp = comp & 0xFF;
-                comps.Add(comp);
-            }
-
-            return comps;
+            return obj;
         }
 
         /// <summary>
         /// Generates a hash based on the string. Used to decrypt spell formulas and calculate taper rotation for players.
         /// </summary>
-        private static uint ComputeHash(string strToHash)
+        internal static uint ComputeHash(string strToHash)
         {
             uint result = 0;
 
             if (strToHash.Length > 0)
             {
                 byte[] str = Encoding.Default.GetBytes(strToHash);
+
                 foreach (byte c in str)                
                 {
                     result = c + (result << 4);
+
                     if ((result & 0xF0000000) != 0)
                         result = (result ^ ((result & 0xF0000000) >> 24)) & 0x0FFFFFFF;
                 }
@@ -211,19 +133,13 @@ namespace ACE.DatLoader.FileTypes
             uint talisman = comps[talisman_index];
 
             if (hasTaper1)
-            {
                 comps[1] = (powder + 2 * herb + potion + talisman + scarab) % 0xC + LOWEST_TAPER_ID;
-            }
 
             if (hasTaper2)
-            {
                 comps[3] = (scarab + herb + talisman + 2 * (powder + potion)) * (seed / (scarab + (powder + potion))) % 0xC + LOWEST_TAPER_ID;
-            }
 
             if (hasTaper3)
-            {
                 comps[6] = (powder + 2 * talisman + potion + herb + scarab) * (seed / (talisman + scarab)) % 0xC + LOWEST_TAPER_ID;
-            }
 
             return comps;
         }

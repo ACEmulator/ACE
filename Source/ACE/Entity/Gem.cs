@@ -124,13 +124,7 @@ namespace ACE.Entity
                 Debug.Assert(CooldownDuration != null, "CooldownDuration != null");
                 const uint layer = 0x10000; // FIXME: we need to track how many layers of the exact same spell we have in effect.
                 const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
-                SpellBase spellBase = new SpellBase
-                {
-                    Power = 0,
-                    Duration = CooldownDuration.Value,
-                    DegradeModifier = 0,
-                    DegradeLimit = -666
-            };
+                SpellBase spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, session.Player, spellBase, layer, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
