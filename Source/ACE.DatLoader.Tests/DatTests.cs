@@ -75,7 +75,6 @@ namespace ACE.DatLoader.Tests
                 // These file types aren't converted yet
                 if (fileType == DatFileType.SurfaceTexture) continue;
                 if (fileType == DatFileType.RenderSurface) continue;
-                if (fileType == DatFileType.Surface) continue;
                 if (fileType == DatFileType.ModelTable) continue;
                 if (fileType == DatFileType.Clothing) continue;
                 if (fileType == DatFileType.DegradeInfo) continue;
