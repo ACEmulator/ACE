@@ -11,9 +11,7 @@ namespace ACE.DatLoader.FileTypes
     {
         public uint Id { get; private set; }
 
-        /// <summary>
-        /// Color data is stored in ARGB format (Alpha, Red, Green, Blue--each are two bytes long)
-        /// </summary>
+        // Color data is stored in ARGB format (Alpha, Red, Green, Blue--each are two bytes long)
         public List<uint> Colors { get; } = new List<uint>();
 
         public void Unpack(BinaryReader reader)
