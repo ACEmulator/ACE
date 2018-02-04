@@ -66,5 +66,21 @@ namespace ACE.DatLoader
 
             return System.Text.Encoding.Default.GetString(thestring);
         }
+
+        /// <summary>
+        /// Returns a string as defined by the first byte's length and removes the obfuscation (upper/lower nibbles swapped)
+        /// </summary>
+        public static string ReadObfuscatedString(this BinaryReader reader)
+        {
+            int stringlength = reader.ReadUInt16();
+
+            byte[] thestring = reader.ReadBytes(stringlength);
+
+            for (var i = 0; i < stringlength; i++)
+                // flip the bytes in the string to undo the obfuscation: i.e. 0xAB => 0xBA
+                thestring[i] = (byte)((thestring[i] >> 4) | (thestring[i] << 4));
+
+            return System.Text.Encoding.Default.GetString(thestring);
+        }
     }
 }

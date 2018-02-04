@@ -11,9 +11,9 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.ContractTable)]
     public class ContractTable : IUnpackable
     {
-        private const uint CONTRACT_TABLE_ID = 0x0E00001D;
+        private const uint FILE_ID = 0x0E00001D;
 
-        public uint Id { get; private set; } // This should match CONTRACT_TABLE_ID
+        public uint Id { get; private set; } // This should match FILE_ID
         public Dictionary<uint, Contract> Contracts { get; } = new Dictionary<uint, Contract>();
 
         public void Unpack(BinaryReader reader)
@@ -37,10 +37,10 @@ namespace ACE.DatLoader.FileTypes
         public static ContractTable ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(CONTRACT_TABLE_ID))
-                return (ContractTable)DatManager.PortalDat.FileCache[CONTRACT_TABLE_ID];
+            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
+                return (ContractTable)DatManager.PortalDat.FileCache[FILE_ID];
 
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(CONTRACT_TABLE_ID);
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
             var obj = new ContractTable();
 
@@ -49,7 +49,7 @@ namespace ACE.DatLoader.FileTypes
                 obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[CONTRACT_TABLE_ID] = obj;
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
 
             return obj;
         }

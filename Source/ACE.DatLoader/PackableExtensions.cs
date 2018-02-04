@@ -186,5 +186,17 @@ namespace ACE.DatLoader
                 value.Add(key, item);
             }
         }
+
+        public static void Unpack<T>(this Dictionary<uint, T> value, BinaryReader reader, uint fixedQuantity) where T : IUnpackable, new()
+        {
+            for (int i = 0; i < fixedQuantity; i++)
+            {
+                var key = reader.ReadUInt32();
+
+                var item = new T();
+                item.Unpack(reader);
+                value.Add(key, item);
+            }
+        }
     }
 }

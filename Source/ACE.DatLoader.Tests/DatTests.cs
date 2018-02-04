@@ -85,7 +85,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.ChatPoseTable) continue;
                 if (fileType == DatFileType.ObjectHierarchy) continue;
                 if (fileType == DatFileType.SpellTable) continue;
-                if (fileType == DatFileType.SpellComponentTable) continue;
                 if (fileType == DatFileType.BadData) continue;
                 if (fileType == DatFileType.TabooTable) continue;
                 if (fileType == DatFileType.NameFilterTable) continue;
