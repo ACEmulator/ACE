@@ -105,7 +105,6 @@ namespace ACE.DatLoader.Tests
                 // These file types aren't converted yet
                 if (fileType == DatFileType.SurfaceTexture) continue;
                 if (fileType == DatFileType.RenderSurface) continue;
-                if (fileType == DatFileType.ModelTable) continue;
                 if (fileType == DatFileType.SecondaryAttributeTable) continue;
                 if (fileType == DatFileType.SkillTable) continue;
                 if (fileType == DatFileType.ChatPoseTable) continue;

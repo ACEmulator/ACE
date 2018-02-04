@@ -218,5 +218,23 @@ namespace ACE.DatLoader
                 value.Add(key, item);
             }
         }
+
+        /// <summary>
+        /// A Dictionary that uses a Int32 for the length.
+        /// </summary>
+        public static void Unpack<T>(this Dictionary<uint, Dictionary<uint, T>> value, BinaryReader reader) where T : IUnpackable, new()
+        {
+            var totalObjects = reader.ReadUInt32();
+
+            for (int i = 0; i < totalObjects; i++)
+            {
+                var key = reader.ReadUInt32();
+
+                var values = new Dictionary<uint, T>();
+                values.Unpack(reader);
+
+                value.Add(key, values);
+            }
+        }
     }
 }

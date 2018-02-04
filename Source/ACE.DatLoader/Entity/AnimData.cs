@@ -1,17 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class AnimData
+    public class AnimData : IUnpackable
     {
-        public uint AnimId { get; set; }
-        public uint LowFrame { get; set; }
-        public uint HighFrame { get; set; }
-        // Negative framerates play animation in reverse
-        public float Framerate { get; set; }
+        public uint AnimId { get; private set; }
+        public uint LowFrame { get; private set; }
+        public uint HighFrame { get; private set; }
+        /// <summary>
+        /// Negative framerates play animation in reverse
+        /// </summary>
+        public float Framerate { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            AnimId      = reader.ReadUInt32();
+            LowFrame    = reader.ReadUInt32();
+            HighFrame   = reader.ReadUInt32();
+            Framerate   = reader.ReadSingle();
+        }
     }
 }
