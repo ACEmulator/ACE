@@ -32,16 +32,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            Wave wave = new Wave();
+            var obj = new Wave();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                wave.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = wave;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return wave;
+            return obj;
         }
 
         /// <summary>

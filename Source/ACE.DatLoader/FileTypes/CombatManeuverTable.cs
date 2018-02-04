@@ -1,43 +1,44 @@
-﻿using ACE.DatLoader.Entity;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x30. 
     /// </summary>
-    public class CombatManeuverTable
+    [DatFileType(DatFileType.CombatTable)]
+    public class CombatManeuverTable : IUnpackable
     {
-        public uint Id { get; set; }
-        public List<CombatManeuver> CMT { get; set; } = new List<CombatManeuver>();
+        public uint Id { get; private set; }
+        public List<CombatManeuver> CMT { get; } = new List<CombatManeuver>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            Id = reader.ReadUInt32(); // This should always equal the fileId
+
+            CMT.Unpack(reader);
+        }
 
         public static CombatManeuverTable ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (CombatManeuverTable)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                CombatManeuverTable obj = new CombatManeuverTable();
 
-                obj.Id = datReader.ReadUInt32(); // This should always equal the fileId
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                uint num_combat_maneuvers = datReader.ReadUInt32();
-                for (uint i = 0; i < num_combat_maneuvers; i++)
-                    obj.CMT.Add(CombatManeuver.Read(datReader));
+            var obj = new CombatManeuverTable();
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                return obj;
-            }
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

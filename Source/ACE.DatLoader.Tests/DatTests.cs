@@ -73,12 +73,9 @@ namespace ACE.DatLoader.Tests
                 Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
 
                 // These file types aren't converted yet
-                if (fileType == DatFileType.Palette) continue;
                 if (fileType == DatFileType.SurfaceTexture) continue;
                 if (fileType == DatFileType.RenderSurface) continue;
-                if (fileType == DatFileType.Surface) continue;
                 if (fileType == DatFileType.ModelTable) continue;
-                if (fileType == DatFileType.PaletteSet) continue;
                 if (fileType == DatFileType.Clothing) continue;
                 if (fileType == DatFileType.DegradeInfo) continue;
                 if (fileType == DatFileType.ParticleEmitter) continue;
@@ -87,15 +84,12 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.ChatPoseTable) continue;
                 if (fileType == DatFileType.ObjectHierarchy) continue;
                 if (fileType == DatFileType.SpellTable) continue;
-                if (fileType == DatFileType.SpellComponentTable) continue;
                 if (fileType == DatFileType.BadData) continue;
                 if (fileType == DatFileType.TabooTable) continue;
                 if (fileType == DatFileType.NameFilterTable) continue;
                 if (fileType == DatFileType.QualityFilter) continue;
-                if (fileType == DatFileType.Scene) continue;
                 if (fileType == DatFileType.STable) continue;
                 if (fileType == DatFileType.EnumMapper) continue;
-                if (fileType == DatFileType.CombatTable) continue;
                 if (fileType == DatFileType.String) continue;
                 if (fileType == DatFileType.KeyMap) continue;
                 if (fileType == DatFileType.RenderTexture) continue;
@@ -105,13 +99,12 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.DidMapper) continue;
                 if (fileType == DatFileType.ActionMap) continue;
                 if (fileType == DatFileType.DualDidMapper) continue;
-                if (fileType == DatFileType.PhysicsScriptTable) continue;
                 if (fileType == DatFileType.Font) continue;
                 if (fileType == DatFileType.MasterProperty) continue;
                 if (fileType == DatFileType.DbProperties) continue;
 
                 // These have bugs
-                if (fileType == DatFileType.Animation) continue;
+                if (fileType == DatFileType.Animation && kvp.Value.ObjectId == 0x0300055b) continue; // This one hook seems corrupt
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new {m, a})

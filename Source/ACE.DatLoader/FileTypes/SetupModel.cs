@@ -115,16 +115,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            SetupModel setupModel = new SetupModel();
+            var obj = new SetupModel();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                setupModel.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = setupModel;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return setupModel;
+            return obj;
         }
     }
 }

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 using ACE.DatLoader.Entity;
-using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
@@ -22,7 +22,7 @@ namespace ACE.DatLoader.FileTypes
         public Dictionary<ushort, Polygon> PhysicsPolygons { get; } = new Dictionary<ushort, Polygon>();
         public BSPTree PhysicsBSP { get; } = new BSPTree();
 
-        public Position SortCenter { get; } = new Position();
+        public Vector3 SortCenter { get; private set; } = new Vector3();
 
         public Dictionary<ushort, Polygon> Polygons { get; } = new Dictionary<ushort, Polygon>();
         public BSPTree DrawingBSP { get; } = new BSPTree();
@@ -47,7 +47,10 @@ namespace ACE.DatLoader.FileTypes
                 PhysicsBSP.Unpack(reader, BSPType.Physics);
             }
 
-            SortCenter.ReadOrigin(reader);
+            var x = reader.ReadSingle();
+            var y = reader.ReadSingle();
+            var z = reader.ReadSingle();
+            SortCenter = new Vector3(x, y, z);
 
             // Has Drawing 
             if ((fields & 2) != 0)
@@ -69,16 +72,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            GfxObj gfxObj = new GfxObj();
+            var obj = new GfxObj();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                gfxObj.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = gfxObj;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return gfxObj;
+            return obj;
         }
     }
 }

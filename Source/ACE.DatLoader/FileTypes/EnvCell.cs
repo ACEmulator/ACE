@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using ACE.DatLoader.Entity;
-using ACE.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -23,7 +22,7 @@ namespace ACE.DatLoader.FileTypes
         // the 0x0D000000 model of the pre-fab dungeon block
         public uint EnvironmentId { get; private set; }
         public ushort CellStructure { get; private set; }
-        public Position Position { get; } = new Position();
+        public Frame Position { get; } = new Frame();
         public List<CellPortal> CellPortals { get; } = new List<CellPortal>();
         public List<ushort> Lights { get; } = new List<ushort>();
         public List<Stab> Stabs { get; } = new List<Stab>();
@@ -51,7 +50,7 @@ namespace ACE.DatLoader.FileTypes
 
             CellStructure = reader.ReadUInt16();
 
-            Position.ReadFrame(reader);
+            Position.Unpack(reader);
 
             CellPortals.Unpack(reader, numPortals);
 
@@ -81,16 +80,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockId);
 
-            EnvCell envCell = new EnvCell();
+            var obj = new EnvCell();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                envCell.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.CellDat.FileCache[landblockId] = envCell;
+            DatManager.CellDat.FileCache[landblockId] = obj;
 
-            return envCell;
+            return obj;
         }
     }
 }

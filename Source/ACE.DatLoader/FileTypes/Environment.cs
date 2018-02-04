@@ -30,16 +30,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            Environment environment = new Environment();
+            var obj = new Environment();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                environment.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = environment;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return environment;
+            return obj;
         }
     }
 }

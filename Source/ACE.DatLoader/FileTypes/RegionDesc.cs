@@ -10,9 +10,8 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Region)]
     public class RegionDesc : IUnpackable
     {
-        private const uint REGION_ID = 0x13000000;
+        private const uint FILE_ID = 0x13000000;
 
-        public uint FileId { get; private set; }
         public uint RegionNumber { get; private set; }
         public uint Version { get; private set; }
         public string RegionName { get; private set; }
@@ -30,7 +29,8 @@ namespace ACE.DatLoader.FileTypes
 
         public void Unpack(BinaryReader reader)
         {
-            FileId          = reader.ReadUInt32();
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
+
             RegionNumber    = reader.ReadUInt32();
             Version         = reader.ReadUInt32();
             RegionName      = reader.ReadPString(); // "Dereth"
@@ -59,21 +59,21 @@ namespace ACE.DatLoader.FileTypes
         public static RegionDesc ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(REGION_ID))
-                return (RegionDesc)DatManager.PortalDat.FileCache[REGION_ID];
+            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
+                return (RegionDesc)DatManager.PortalDat.FileCache[FILE_ID];
 
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(REGION_ID);
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
-            RegionDesc region = new RegionDesc();
+            var obj = new RegionDesc();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                region.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[REGION_ID] = region;
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
 
-            return region;
+            return obj;
         }
     }
 }

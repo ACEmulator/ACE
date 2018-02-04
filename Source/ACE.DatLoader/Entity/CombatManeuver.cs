@@ -1,30 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CombatManeuver
+    public class CombatManeuver : IUnpackable
     {
-        public uint Style { get; set; }
-        public uint AttackHeight { get; set; }
-        public uint AttackType { get; set; }
-        public uint MinSkillLevel { get; set; }
-        public uint Motion { get; set; }
+        public uint Style { get; private set; }
+        public uint AttackHeight { get; private set; }
+        public uint AttackType { get; private set; }
+        public uint MinSkillLevel { get; private set; }
+        public uint Motion { get; private set; }
 
-        public static CombatManeuver Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            CombatManeuver obj = new CombatManeuver();
-
-            obj.Style = datReader.ReadUInt32();
-            obj.AttackHeight = datReader.ReadUInt32();
-            obj.AttackType = datReader.ReadUInt32();
-            obj.MinSkillLevel = datReader.ReadUInt32();
-            obj.Motion = datReader.ReadUInt32();
-
-            return obj;
+            Style           = reader.ReadUInt32();
+            AttackHeight    = reader.ReadUInt32();
+            AttackType      = reader.ReadUInt32();
+            MinSkillLevel   = reader.ReadUInt32();
+            Motion          = reader.ReadUInt32();
         }
     }
 }

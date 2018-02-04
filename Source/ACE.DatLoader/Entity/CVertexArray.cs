@@ -16,7 +16,7 @@ namespace ACE.DatLoader.Entity
         {
             VertexType = reader.ReadInt32();
 
-            int numVertices = reader.ReadInt32();
+            var numVertices = reader.ReadUInt32();
 
             if (VertexType == 1)
                 Vertices.Unpack(reader, numVertices);

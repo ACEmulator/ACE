@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using System.IO;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -6,49 +6,54 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x08.
     /// As the name implies this contains surface info for an object. Either texture reference or color and whatever effects applied to it.
     /// </summary>
-    public class Surface
+    [DatFileType(DatFileType.Surface)]
+    public class Surface : IUnpackable
     {
-        public SurfaceType Type { get; set; }
-        public uint OrigTextureId { get; set; }
-        public uint OrigPaletteId { get; set; }
-        public uint ColorValue { get; set; }
-        public float Translucency { get; set; }
-        public float Luminosity { get; set; }
-        public float Diffuse { get; set; }
+        public uint Type { get; private set; }
+        public uint OrigTextureId { get; private set; }
+        public uint OrigPaletteId { get; private set; }
+        public uint ColorValue { get; private set; }
+        public float Translucency { get; private set; }
+        public float Luminosity { get; private set; }
+        public float Diffuse { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Type = reader.ReadUInt32();
+
+            if ((Type & 6) != 0)
+            {
+                OrigTextureId = reader.ReadUInt32();
+                OrigPaletteId = reader.ReadUInt32();
+            }
+            else
+            {
+                ColorValue = reader.ReadUInt32();
+            }
+
+            Translucency    = reader.ReadSingle();
+            Luminosity      = reader.ReadSingle();
+            Diffuse         = reader.ReadSingle();
+        }
 
         public static Surface ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (Surface)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                Surface obj = new Surface();
 
-                obj.Type = (SurfaceType)datReader.ReadUInt32();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                if (((uint)obj.Type & 6) > 0)
-                {
-                    obj.OrigTextureId = datReader.ReadUInt32();
-                    obj.OrigPaletteId = datReader.ReadUInt32();
-                }
-                else
-                {
-                    obj.ColorValue = datReader.ReadUInt32();
-                }
+            var obj = new Surface();
 
-                obj.Translucency = datReader.ReadSingle();
-                obj.Luminosity = datReader.ReadSingle();
-                obj.Diffuse = datReader.ReadSingle();
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-                return obj;
-            }
+            return obj;
         }
     }
 }

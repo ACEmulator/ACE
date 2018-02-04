@@ -1,7 +1,5 @@
 using System.IO;
 
-using ACE.Entity;
-
 namespace ACE.DatLoader.Entity
 {
     public class Contract : IUnpackable
@@ -23,9 +21,9 @@ namespace ACE.DatLoader.Entity
         public string QuestflagTimer { get; private set; }
         public string QuestflagRepeatTime { get; private set; }
 
-        public Position LocationNPCStart { get; } = new Position();
-        public Position LocationNPCEnd { get; } = new Position();
-        public Position LocationQuestArea { get; } = new Position();
+        public PositionNew LocationNPCStart { get; } = new PositionNew();
+        public PositionNew LocationNPCEnd { get; } = new PositionNew();
+        public PositionNew LocationQuestArea { get; } = new PositionNew();
 
         public void Unpack(BinaryReader reader)
         {
@@ -57,9 +55,9 @@ namespace ACE.DatLoader.Entity
             QuestflagRepeatTime = reader.ReadPString();
             reader.AlignBoundary();
 
-            LocationNPCStart.ReadPosition(reader);
-            LocationNPCEnd.ReadPosition(reader);
-            LocationQuestArea.ReadPosition(reader);
+            LocationNPCStart.Unpack(reader);
+            LocationNPCEnd.Unpack(reader);
+            LocationQuestArea.Unpack(reader);
         }
     }
 }

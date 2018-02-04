@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using ACE.Entity;
-
 namespace ACE.DatLoader.Entity
 {
     public class AnimationFrame : IUnpackable
     {
-        public List<Position> Locations { get; } = new List<Position>();
+        public List<Frame> Frames { get; } = new List<Frame>();
         public List<AnimationHook> Hooks { get; } = new List<AnimationHook>();
 
         /// <summary>
@@ -22,12 +20,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader, uint numParts)
         {
-            for (uint i = 0; i < numParts; i++)
-            {
-                Position position = new Position();
-                position.ReadFrame(reader);
-                Locations.Add(position);
-            }
+            Frames.Unpack(reader, numParts);
 
             uint numHooks = reader.ReadUInt32();
             for (uint i = 0; i < numHooks; i++)

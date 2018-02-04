@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using ACE.DatLoader.Entity;
-using ACE.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -14,34 +13,27 @@ namespace ACE.DatLoader.FileTypes
     public class Animation : IUnpackable
     {
         public uint AnimationId { get; private set; }
+        public uint Bitfield { get; private set; }
         public uint NumParts { get; private set; }
         public uint NumFrames { get; private set; }
-        public List<Position> PosFrames { get; } = new List<Position>();
-        public List<AnimationFrame> Frames { get; } = new List<AnimationFrame>();
+        public List<Frame> PosFrames { get; } = new List<Frame>();
+        public List<AnimationFrame> PartFrames { get; } = new List<AnimationFrame>();
 
         public void Unpack(BinaryReader reader)
         {
             AnimationId = reader.ReadUInt32();
-            var flags   = reader.ReadUInt32();
+            Bitfield    = reader.ReadUInt32();
             NumParts    = reader.ReadUInt32();
             NumFrames   = reader.ReadUInt32();
 
-            if ((flags & 1) != 0)
-            {
-                for (uint i = 0; i < NumFrames; i++)
-                {
-                    // Origin
-                    var position = new Position();
-                    position.ReadFrame(reader);
-                    PosFrames.Add(position);
-                }
-            }
+            if ((Bitfield & 1) != 0)
+                PosFrames.Unpack(reader, NumFrames);
 
             for (uint i = 0; i < NumFrames; i++)
             {
                 var animationFrame = new AnimationFrame();
                 animationFrame.Unpack(reader, NumParts);
-                Frames.Add(animationFrame);
+                PartFrames.Add(animationFrame);
             }
         }
 
@@ -53,16 +45,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            Animation animation = new Animation();
+            var obj = new Animation();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                animation.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = animation;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return animation;
+            return obj;
         }
     }
 }

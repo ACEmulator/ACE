@@ -10,6 +10,8 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.XpTable)]
     public class XpTable : IUnpackable
     {
+        private const uint FILE_ID = 0x0E000018;
+
         public ExperienceExpenditureChart AbilityXpChart { get; } = new ExperienceExpenditureChart();
         public ExperienceExpenditureChart VitalXpChart { get; } = new ExperienceExpenditureChart();
         public ExperienceExpenditureChart TrainedSkillXpChart { get; } = new ExperienceExpenditureChart();
@@ -63,21 +65,21 @@ namespace ACE.DatLoader.FileTypes
         public static XpTable ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000018))
-                return (XpTable)DatManager.PortalDat.FileCache[0x0E000018];
+            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
+                return (XpTable)DatManager.PortalDat.FileCache[FILE_ID];
 
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000018);
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
-            XpTable xpTable = new XpTable();
+            var obj = new XpTable();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                xpTable.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[0x0E000018] = xpTable;
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
 
-            return xpTable;
+            return obj;
         }
 
         /// <summary>
