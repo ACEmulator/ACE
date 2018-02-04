@@ -146,21 +146,28 @@ namespace ACE.Factories
 
         public static WorldObject CreateWorldObject(uint weenieId, int palette = 0, float shade = 0, int stackSize = 1)
         {
-            AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-
-            if (palette > 0)
-                aceObject.PaletteTemplate = palette;
-            if (shade > 0)
-                aceObject.Shade = shade;
-            if (aceObject.StackSize.HasValue && aceObject.MaxStackSize.HasValue)
+            try
             {
-                if (stackSize > 1)
-                    aceObject.StackSize = (ushort)stackSize;
-                if (aceObject.StackSize > aceObject.MaxStackSize)
-                    aceObject.StackSize = aceObject.MaxStackSize;
-            }
+                AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
 
-            return CreateWorldObject(aceObject);
+                if (palette > 0)
+                    aceObject.PaletteTemplate = palette;
+                if (shade > 0)
+                    aceObject.Shade = shade;
+                if (aceObject.StackSize.HasValue && aceObject.MaxStackSize.HasValue)
+                {
+                    if (stackSize > 1)
+                        aceObject.StackSize = (ushort)stackSize;
+                    if (aceObject.StackSize > aceObject.MaxStackSize)
+                        aceObject.StackSize = aceObject.MaxStackSize;
+                }
+
+                return CreateWorldObject(aceObject);
+            }
+            catch (NullReferenceException)
+            {
+                return null;
+            }
         }
 
         public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid, int palette = 0, float shade = 0, int stackSize = 1)
@@ -189,9 +196,22 @@ namespace ACE.Factories
             }
         }
 
-        public static WorldObject CreateNewWorldObject(uint weenieId, int palette = 0, float shade = 0, int stackSize = 1)
+        public static WorldObject CreateNewWorldObject(uint weenieClassId, int palette = 0, float shade = 0, int stackSize = 1)
         {
-            WorldObject wo = CreateWorldObject(weenieId, GuidManager.NewItemGuid(), palette, shade, stackSize);
+            WorldObject wo = CreateWorldObject(weenieClassId, GuidManager.NewItemGuid(), palette, shade, stackSize);
+            return wo;
+        }
+
+        public static WorldObject CreateNewWorldObject(string weenieClassDescription, int palette = 0, float shade = 0, int stackSize = 1)
+        {
+            uint weenieClassId = DatabaseManager.World.GetWeenieClassIdByWeenieClassDescription(weenieClassDescription);
+
+            if (weenieClassId < 1 && weenieClassId > AceObject.WEENIE_MAX)
+            {
+                return null;
+            }
+
+            WorldObject wo = CreateWorldObject(weenieClassId, GuidManager.NewItemGuid(), palette, shade, stackSize);
             return wo;
         }
     }

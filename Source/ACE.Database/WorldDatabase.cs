@@ -52,7 +52,7 @@ namespace ACE.Database
             base.InitializePreparedStatements();
 
             ConstructStatement(WorldPreparedStatement.GetPointsOfInterest, typeof(TeleportLocation), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(AceObject), ConstructedStatementType.Get);
+            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(WeenieClass), ConstructedStatementType.Get);
             HashSet<string> criteria1 = new HashSet<string> { "itemType" };
             ConstructGetListStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(CachedWeenieClass), criteria1);
             HashSet<string> criteria2 = new HashSet<string> { "landblock" };
@@ -164,7 +164,33 @@ namespace ACE.Database
         {
             return GetObject(weenieClassId);
         }
-        
+
+        public AceObject GetAceObjectByWeenie(string weenieClassDescription)
+        {
+            var ret = new WeenieClass();
+            var criteria = new Dictionary<string, object> { { "weenieClassDescription", weenieClassDescription } };
+            bool success = ExecuteConstructedGetStatement<WeenieClass, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, ret);
+            if (!success)
+            {
+                return null;
+            }
+
+            return GetObject(ret.WeenieClassId);
+        }
+
+        public uint GetWeenieClassIdByWeenieClassDescription(string weenieClassDescription)
+        {
+            var ret = new WeenieClass();
+            var criteria = new Dictionary<string, object> { { "weenieClassDescription", weenieClassDescription } };
+            bool success = ExecuteConstructedGetStatement<WeenieClass, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, ret);
+            if (!success)
+            {
+                return 0;
+            }
+
+            return ret.WeenieClassId;
+        }
+
         public List<TeleportLocation> GetPointsOfInterest()
         {
             Dictionary<string, object> criteria = new Dictionary<string, object>();

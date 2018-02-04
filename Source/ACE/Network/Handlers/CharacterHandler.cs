@@ -144,6 +144,15 @@ namespace ACE.Network.Handlers
 
             reader.Skip(4);   /* Unknown constant (1) */
             character.Heritage = (int)reader.ReadUInt32();
+
+            // Disable OlthoiPlay characters for now. They're not implemented yet.
+            // FIXME: Restore OlthoiPlay characters when properly handled.
+            if (character.Heritage == (int)HeritageGroup.Olthoi || character.Heritage == (int)HeritageGroup.OlthoiAcid)
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Pending);
+                return;
+            }
+
             character.HeritageGroup = cg.HeritageGroups[(uint)character.Heritage].Name;
             character.Gender = (int)reader.ReadUInt32();
             if (character.Gender == 1)
@@ -201,266 +210,282 @@ namespace ACE.Network.Handlers
 
             if (appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
             {
-                uint headgearWeenie = sex.GetHeadgearWeenie(appearance.HeadgearStyle);
-                ClothingTable headCT = ClothingTable.ReadFromDat(sex.GetHeadgearClothingTable(appearance.HeadgearStyle));
-                uint headgearIconId = headCT.GetIcon(appearance.HeadgearColor);
+                //uint headgearWeenie = sex.GetHeadgearWeenie(appearance.HeadgearStyle);
+                //ClothingTable headCT = ClothingTable.ReadFromDat(sex.GetHeadgearClothingTable(appearance.HeadgearStyle));
+                //uint headgearIconId = headCT.GetIcon(appearance.HeadgearColor);
 
-                var hat = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(headgearWeenie).Clone(GuidManager.NewItemGuid().Full);
-                hat.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
-                hat.TextureOverrides = new List<TextureMapOverride>();
-                hat.AnimationOverrides = new List<AnimationOverride>();
-                hat.SpellIdProperties = new List<AceObjectPropertiesSpell>();
-                hat.IconDID = headgearIconId;
-                hat.Placement = 0;
-                hat.CurrentWieldedLocation = hat.ValidLocations;
-                hat.WielderIID = id;
+                //var hat = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(headgearWeenie).Clone(GuidManager.NewItemGuid().Full);
+                //hat.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
+                //hat.TextureOverrides = new List<TextureMapOverride>();
+                //hat.AnimationOverrides = new List<AnimationOverride>();
+                //hat.SpellIdProperties = new List<AceObjectPropertiesSpell>();
+                //hat.IconDID = headgearIconId;
+                //hat.Placement = 0;
+                //hat.CurrentWieldedLocation = hat.ValidLocations;
+                //hat.WielderIID = id;
 
-                if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-                {
-                    // Add the model and texture(s)
-                    ClothingBaseEffect headCBE = headCT.ClothingBaseEffects[sex.SetupID];
-                    for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
-                    {
-                        byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
-                        hat.AnimationOverrides.Add(new AnimationOverride()
-                        {
-                            AceObjectId = hat.AceObjectId,
-                            AnimationId = headCBE.CloObjectEffects[i].ModelId,
-                            Index = (byte)headCBE.CloObjectEffects[i].Index
-                        });
+                //if (headCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+                //{
+                //    // Add the model and texture(s)
+                //    ClothingBaseEffect headCBE = headCT.ClothingBaseEffects[sex.SetupID];
+                //    for (int i = 0; i < headCBE.CloObjectEffects.Count; i++)
+                //    {
+                //        byte partNum = (byte)headCBE.CloObjectEffects[i].Index;
+                //        hat.AnimationOverrides.Add(new AnimationOverride()
+                //        {
+                //            AceObjectId = hat.AceObjectId,
+                //            AnimationId = headCBE.CloObjectEffects[i].ModelId,
+                //            Index = (byte)headCBE.CloObjectEffects[i].Index
+                //        });
 
-                        for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                        {
-                            hat.TextureOverrides.Add(new TextureMapOverride()
-                            {
-                                AceObjectId = hat.AceObjectId,
-                                Index = (byte)headCBE.CloObjectEffects[i].Index,
-                                OldId = (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
-                                NewId = (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
-                            });
-                        }
-                    }
+                //        for (int j = 0; j < headCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+                //        {
+                //            hat.TextureOverrides.Add(new TextureMapOverride()
+                //            {
+                //                AceObjectId = hat.AceObjectId,
+                //                Index = (byte)headCBE.CloObjectEffects[i].Index,
+                //                OldId = (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
+                //                NewId = (ushort)headCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
+                //            });
+                //        }
+                //    }
 
-                    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                    CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[appearance.HeadgearColor];
-                    for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
-                    {
-                        PaletteSet headgearPalSet = PaletteSet.ReadFromDat(headSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(appearance.HeadgearHue);
+                //    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+                //    CloSubPalEffect headSubPal = headCT.ClothingSubPalEffects[appearance.HeadgearColor];
+                //    for (int i = 0; i < headSubPal.CloSubPalettes.Count; i++)
+                //    {
+                //        PaletteSet headgearPalSet = PaletteSet.ReadFromDat(headSubPal.CloSubPalettes[i].PaletteSet);
+                //        ushort headgearPal = (ushort)headgearPalSet.GetPaletteID(appearance.HeadgearHue);
 
-                        for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                        {
-                            uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                            uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            hat.PaletteOverrides.Add(new PaletteOverride()
-                            {
-                                AceObjectId = hat.AceObjectId,
-                                SubPaletteId = headgearPal,
-                                Length = (ushort)(numColors),
-                                Offset = (ushort)(palOffset)
-                            });
-                        }
-                    }
-                }
+                //        for (int j = 0; j < headSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                //        {
+                //            uint palOffset = headSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                //            uint numColors = headSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                //            hat.PaletteOverrides.Add(new PaletteOverride()
+                //            {
+                //                AceObjectId = hat.AceObjectId,
+                //                SubPaletteId = headgearPal,
+                //                Length = (ushort)(numColors),
+                //                Offset = (ushort)(palOffset)
+                //            });
+                //        }
+                //    }
+                //}
 
-                character.WieldedItems.Add(new ObjectGuid(hat.AceObjectId), hat);
+                var hat = GetClothingObject(id, sex.GetHeadgearWeenie(appearance.HeadgearStyle), appearance.HeadgearColor, appearance.HeadgearHue);
+                if (hat != null)
+                    character.WieldedItems.Add(new ObjectGuid(hat.AceObjectId), hat);
+                else
+                    CreateIOU(character, sex.GetHeadgearWeenie(appearance.HeadgearStyle));
             }
 
-            uint shirtWeenie = sex.GetShirtWeenie(appearance.ShirtStyle);
-            ClothingTable shirtCT = ClothingTable.ReadFromDat(sex.GetShirtClothingTable(appearance.ShirtStyle));
-            uint shirtIconId = shirtCT.GetIcon(appearance.ShirtColor);
+            //uint shirtWeenie = sex.GetShirtWeenie(appearance.ShirtStyle);
+            //ClothingTable shirtCT = ClothingTable.ReadFromDat(sex.GetShirtClothingTable(appearance.ShirtStyle));
+            //uint shirtIconId = shirtCT.GetIcon(appearance.ShirtColor);
 
-            var shirt = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(shirtWeenie).Clone(GuidManager.NewItemGuid().Full);
-            shirt.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
-            shirt.TextureOverrides = new List<TextureMapOverride>();
-            shirt.AnimationOverrides = new List<AnimationOverride>();
-            shirt.SpellIdProperties = new List<AceObjectPropertiesSpell>();
-            shirt.IconDID = shirtIconId;
-            shirt.Placement = 0;
-            shirt.CurrentWieldedLocation = shirt.ValidLocations;
-            shirt.WielderIID = id;
+            //var shirt = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(shirtWeenie).Clone(GuidManager.NewItemGuid().Full);
+            //shirt.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
+            //shirt.TextureOverrides = new List<TextureMapOverride>();
+            //shirt.AnimationOverrides = new List<AnimationOverride>();
+            //shirt.SpellIdProperties = new List<AceObjectPropertiesSpell>();
+            //shirt.IconDID = shirtIconId;
+            //shirt.Placement = 0;
+            //shirt.CurrentWieldedLocation = shirt.ValidLocations;
+            //shirt.WielderIID = id;
 
-            if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-            {
-                ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
-                for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
-                {
-                    byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
-                    shirt.AnimationOverrides.Add(new AnimationOverride()
-                    {
-                        AceObjectId = shirt.AceObjectId,
-                        AnimationId = shirtCBE.CloObjectEffects[i].ModelId,
-                        Index = (byte)shirtCBE.CloObjectEffects[i].Index
-                    });
+            //if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //{
+            //    ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
+            //    for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
+            //    {
+            //        byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
+            //        shirt.AnimationOverrides.Add(new AnimationOverride()
+            //        {
+            //            AceObjectId = shirt.AceObjectId,
+            //            AnimationId = shirtCBE.CloObjectEffects[i].ModelId,
+            //            Index = (byte)shirtCBE.CloObjectEffects[i].Index
+            //        });
 
-                    for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                    {
-                        shirt.TextureOverrides.Add(new TextureMapOverride()
-                        {
-                            AceObjectId = shirt.AceObjectId,
-                            Index = (byte)shirtCBE.CloObjectEffects[i].Index,
-                            OldId = (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
-                            NewId = (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
-                        });
-                    }
-                }
+            //        for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //        {
+            //            shirt.TextureOverrides.Add(new TextureMapOverride()
+            //            {
+            //                AceObjectId = shirt.AceObjectId,
+            //                Index = (byte)shirtCBE.CloObjectEffects[i].Index,
+            //                OldId = (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
+            //                NewId = (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
+            //            });
+            //        }
+            //    }
 
-                // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                if (shirtCT.ClothingSubPalEffects.ContainsKey(appearance.ShirtColor))
-                {
-                    CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[appearance.ShirtColor];
-                    for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
-                    {
-                        PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(appearance.ShirtHue);
+            //    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //    if (shirtCT.ClothingSubPalEffects.ContainsKey(appearance.ShirtColor))
+            //    {
+            //        CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[appearance.ShirtColor];
+            //        for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
+            //        {
+            //            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
+            //            ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(appearance.ShirtHue);
 
-                        if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
-                        {
-                            for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                            {
-                                uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                                uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                shirt.PaletteOverrides.Add(new PaletteOverride()
-                                {
-                                    AceObjectId = shirt.AceObjectId,
-                                    SubPaletteId = shirtPal,
-                                    Offset = (ushort)palOffset,
-                                    Length = (ushort)numColors
-                                });
-                            }
-                        }
-                    }
-                }
-            }
+            //            if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
+            //            {
+            //                for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //                {
+            //                    uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //                    uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //                    shirt.PaletteOverrides.Add(new PaletteOverride()
+            //                    {
+            //                        AceObjectId = shirt.AceObjectId,
+            //                        SubPaletteId = shirtPal,
+            //                        Offset = (ushort)palOffset,
+            //                        Length = (ushort)numColors
+            //                    });
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
 
-            character.WieldedItems.Add(new ObjectGuid(shirt.AceObjectId), shirt);
+            var shirt = GetClothingObject(id, sex.GetShirtWeenie(appearance.ShirtStyle), appearance.ShirtColor, appearance.ShirtHue);
+            if (shirt != null)
+                character.WieldedItems.Add(new ObjectGuid(shirt.AceObjectId), shirt);
+            else
+                CreateIOU(character, sex.GetShirtWeenie(appearance.ShirtStyle));
 
-            uint pantsWeenie = sex.GetPantsWeenie(appearance.PantsStyle);
-            ClothingTable pantsCT = ClothingTable.ReadFromDat(sex.GetPantsClothingTable(appearance.PantsStyle));
-            uint pantsIconId = pantsCT.GetIcon(appearance.PantsColor);
+            //uint pantsWeenie = sex.GetPantsWeenie(appearance.PantsStyle);
+            //ClothingTable pantsCT = ClothingTable.ReadFromDat(sex.GetPantsClothingTable(appearance.PantsStyle));
+            //uint pantsIconId = pantsCT.GetIcon(appearance.PantsColor);
 
-            var pants = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(pantsWeenie).Clone(GuidManager.NewItemGuid().Full);
-            pants.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
-            pants.TextureOverrides = new List<TextureMapOverride>();
-            pants.AnimationOverrides = new List<AnimationOverride>();
-            pants.SpellIdProperties = new List<AceObjectPropertiesSpell>();
-            pants.IconDID = pantsIconId;
-            pants.Placement = 0;
-            pants.CurrentWieldedLocation = pants.ValidLocations;
-            pants.WielderIID = id;
+            //var pants = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(pantsWeenie).Clone(GuidManager.NewItemGuid().Full);
+            //pants.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
+            //pants.TextureOverrides = new List<TextureMapOverride>();
+            //pants.AnimationOverrides = new List<AnimationOverride>();
+            //pants.SpellIdProperties = new List<AceObjectPropertiesSpell>();
+            //pants.IconDID = pantsIconId;
+            //pants.Placement = 0;
+            //pants.CurrentWieldedLocation = pants.ValidLocations;
+            //pants.WielderIID = id;
 
-            // Get the character's initial pants
-            if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-            {
-                ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
-                for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
-                {
-                    byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
-                    pants.AnimationOverrides.Add(new AnimationOverride()
-                    {
-                        AceObjectId = pants.AceObjectId,
-                        AnimationId = pantsCBE.CloObjectEffects[i].ModelId,
-                        Index = (byte)pantsCBE.CloObjectEffects[i].Index
-                    });
+            //// Get the character's initial pants
+            //if (pantsCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //{
+            //    ClothingBaseEffect pantsCBE = pantsCT.ClothingBaseEffects[sex.SetupID];
+            //    for (int i = 0; i < pantsCBE.CloObjectEffects.Count; i++)
+            //    {
+            //        byte partNum = (byte)pantsCBE.CloObjectEffects[i].Index;
+            //        pants.AnimationOverrides.Add(new AnimationOverride()
+            //        {
+            //            AceObjectId = pants.AceObjectId,
+            //            AnimationId = pantsCBE.CloObjectEffects[i].ModelId,
+            //            Index = (byte)pantsCBE.CloObjectEffects[i].Index
+            //        });
 
-                    for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                    {
-                        pants.TextureOverrides.Add(new TextureMapOverride()
-                        {
-                            AceObjectId = pants.AceObjectId,
-                            Index = (byte)pantsCBE.CloObjectEffects[i].Index,
-                            OldId = (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
-                            NewId = (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
-                        });
-                    }
-                }
+            //        for (int j = 0; j < pantsCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //        {
+            //            pants.TextureOverrides.Add(new TextureMapOverride()
+            //            {
+            //                AceObjectId = pants.AceObjectId,
+            //                Index = (byte)pantsCBE.CloObjectEffects[i].Index,
+            //                OldId = (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
+            //                NewId = (ushort)pantsCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
+            //            });
+            //        }
+            //    }
 
-                // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[appearance.PantsColor];
-                for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
-                {
-                    PaletteSet pantsPalSet = PaletteSet.ReadFromDat(pantsSubPal.CloSubPalettes[i].PaletteSet);
-                    ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(appearance.PantsHue);
+            //    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //    CloSubPalEffect pantsSubPal = pantsCT.ClothingSubPalEffects[appearance.PantsColor];
+            //    for (int i = 0; i < pantsSubPal.CloSubPalettes.Count; i++)
+            //    {
+            //        PaletteSet pantsPalSet = PaletteSet.ReadFromDat(pantsSubPal.CloSubPalettes[i].PaletteSet);
+            //        ushort pantsPal = (ushort)pantsPalSet.GetPaletteID(appearance.PantsHue);
 
-                    for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                    {
-                        uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                        uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                        pants.PaletteOverrides.Add(new PaletteOverride()
-                        {
-                            AceObjectId = pants.AceObjectId,
-                            SubPaletteId = pantsPal,
-                            Offset = (ushort)palOffset,
-                            Length = (ushort)numColors
-                        });
-                    }
-                }
-            } // end pants
+            //        for (int j = 0; j < pantsSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //        {
+            //            uint palOffset = pantsSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //            uint numColors = pantsSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //            pants.PaletteOverrides.Add(new PaletteOverride()
+            //            {
+            //                AceObjectId = pants.AceObjectId,
+            //                SubPaletteId = pantsPal,
+            //                Offset = (ushort)palOffset,
+            //                Length = (ushort)numColors
+            //            });
+            //        }
+            //    }
+            //} // end pants
 
-            character.WieldedItems.Add(new ObjectGuid(pants.AceObjectId), pants);
+            var pants = GetClothingObject(id, sex.GetPantsWeenie(appearance.PantsStyle), appearance.PantsColor, appearance.PantsHue);
+            if (pants != null)
+                character.WieldedItems.Add(new ObjectGuid(pants.AceObjectId), pants);
+            else
+                CreateIOU(character, sex.GetPantsWeenie(appearance.PantsStyle));
 
-            uint footwearWeenie = sex.GetFootwearWeenie(appearance.FootwearStyle);
-            ClothingTable footwearCT = ClothingTable.ReadFromDat(sex.GetFootwearClothingTable(appearance.FootwearStyle));
-            uint footwearIconId = footwearCT.GetIcon(appearance.FootwearColor);
+            //uint footwearWeenie = sex.GetFootwearWeenie(appearance.FootwearStyle);
+            //ClothingTable footwearCT = ClothingTable.ReadFromDat(sex.GetFootwearClothingTable(appearance.FootwearStyle));
+            //uint footwearIconId = footwearCT.GetIcon(appearance.FootwearColor);
 
-            var shoes = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(footwearWeenie).Clone(GuidManager.NewItemGuid().Full);
-            shoes.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
-            shoes.TextureOverrides = new List<TextureMapOverride>();
-            shoes.AnimationOverrides = new List<AnimationOverride>();
-            shoes.SpellIdProperties = new List<AceObjectPropertiesSpell>();
-            shoes.IconDID = footwearIconId;
-            shoes.Placement = 0;
-            shoes.CurrentWieldedLocation = shoes.ValidLocations;
-            shoes.WielderIID = id;
+            //var shoes = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(footwearWeenie).Clone(GuidManager.NewItemGuid().Full);
+            //shoes.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
+            //shoes.TextureOverrides = new List<TextureMapOverride>();
+            //shoes.AnimationOverrides = new List<AnimationOverride>();
+            //shoes.SpellIdProperties = new List<AceObjectPropertiesSpell>();
+            //shoes.IconDID = footwearIconId;
+            //shoes.Placement = 0;
+            //shoes.CurrentWieldedLocation = shoes.ValidLocations;
+            //shoes.WielderIID = id;
 
-            if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
-            {
-                ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
-                for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
-                {
-                    byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
-                    shoes.AnimationOverrides.Add(new AnimationOverride()
-                    {
-                        AceObjectId = shoes.AceObjectId,
-                        AnimationId = footwearCBE.CloObjectEffects[i].ModelId,
-                        Index = (byte)footwearCBE.CloObjectEffects[i].Index
-                    });
+            //if (footwearCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //{
+            //    ClothingBaseEffect footwearCBE = footwearCT.ClothingBaseEffects[sex.SetupID];
+            //    for (int i = 0; i < footwearCBE.CloObjectEffects.Count; i++)
+            //    {
+            //        byte partNum = (byte)footwearCBE.CloObjectEffects[i].Index;
+            //        shoes.AnimationOverrides.Add(new AnimationOverride()
+            //        {
+            //            AceObjectId = shoes.AceObjectId,
+            //            AnimationId = footwearCBE.CloObjectEffects[i].ModelId,
+            //            Index = (byte)footwearCBE.CloObjectEffects[i].Index
+            //        });
 
-                    for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                    {
-                        shoes.TextureOverrides.Add(new TextureMapOverride()
-                        {
-                            AceObjectId = shoes.AceObjectId,
-                            Index = (byte)footwearCBE.CloObjectEffects[i].Index,
-                            OldId = (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
-                            NewId = (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
-                        });
-                    }
-                }
+            //        for (int j = 0; j < footwearCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //        {
+            //            shoes.TextureOverrides.Add(new TextureMapOverride()
+            //            {
+            //                AceObjectId = shoes.AceObjectId,
+            //                Index = (byte)footwearCBE.CloObjectEffects[i].Index,
+            //                OldId = (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
+            //                NewId = (ushort)footwearCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
+            //            });
+            //        }
+            //    }
 
-                // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
-                CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[appearance.FootwearColor];
-                for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
-                {
-                    PaletteSet footwearPalSet = PaletteSet.ReadFromDat(footwearSubPal.CloSubPalettes[i].PaletteSet);
-                    ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(appearance.FootwearHue);
+            //    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //    CloSubPalEffect footwearSubPal = footwearCT.ClothingSubPalEffects[appearance.FootwearColor];
+            //    for (int i = 0; i < footwearSubPal.CloSubPalettes.Count; i++)
+            //    {
+            //        PaletteSet footwearPalSet = PaletteSet.ReadFromDat(footwearSubPal.CloSubPalettes[i].PaletteSet);
+            //        ushort footwearPal = (ushort)footwearPalSet.GetPaletteID(appearance.FootwearHue);
 
-                    for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                    {
-                        uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                        uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                        pants.PaletteOverrides.Add(new PaletteOverride()
-                        {
-                            AceObjectId = shoes.AceObjectId,
-                            SubPaletteId = footwearPal,
-                            Offset = (ushort)palOffset,
-                            Length = (ushort)numColors
-                        });
-                    }
-                }
-            } // end footwear
+            //        for (int j = 0; j < footwearSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //        {
+            //            uint palOffset = footwearSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //            uint numColors = footwearSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //            pants.PaletteOverrides.Add(new PaletteOverride()
+            //            {
+            //                AceObjectId = shoes.AceObjectId,
+            //                SubPaletteId = footwearPal,
+            //                Offset = (ushort)palOffset,
+            //                Length = (ushort)numColors
+            //            });
+            //        }
+            //    }
+            //} // end footwear
 
-            character.WieldedItems.Add(new ObjectGuid(shoes.AceObjectId), shoes);
+            var shoes = GetClothingObject(id, sex.GetFootwearWeenie(appearance.FootwearStyle), appearance.FootwearColor, appearance.FootwearHue);
+            if (shoes != null)
+                character.WieldedItems.Add(new ObjectGuid(shoes.AceObjectId), shoes);
+            else
+                CreateIOU(character, sex.GetFootwearWeenie(appearance.FootwearStyle));
 
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.
@@ -680,6 +705,127 @@ namespace ACE.Network.Handlers
         public static void CharacterLogOff(ClientMessage message, Session session)
         {
             session.LogOffPlayer();
+        }
+
+        private static AceObject GetClothingObject(uint playerIID, uint weenieClassId, uint palette, double shade)
+        {
+            //uint shirtWeenie = sex.GetShirtWeenie(appearance.ShirtStyle);
+
+            AceObject clothingObj;
+
+            try
+            {
+                clothingObj = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieClassId).Clone(GuidManager.NewItemGuid().Full);
+            }
+            catch (NullReferenceException)
+            {
+                return null;
+            }
+
+            //ClothingTable clothingCT = ClothingTable.ReadFromDat(clothingObj.ClothingBaseDID.Value);
+            //uint clothingIconId = clothingCT.GetIcon(palette);
+
+            //shirt.PaletteOverrides = new List<PaletteOverride>(); // wipe any existing overrides
+            //shirt.TextureOverrides = new List<TextureMapOverride>();
+            //shirt.AnimationOverrides = new List<AnimationOverride>();
+            //shirt.SpellIdProperties = new List<AceObjectPropertiesSpell>();
+            //clothingObj.IconDID = clothingIconId;
+            //shirt.Placement = 0;
+
+            clothingObj.IconDID = ClothingTable.ReadFromDat(clothingObj.ClothingBaseDID.Value).GetIcon(palette);
+            clothingObj.PaletteBaseDID = palette;
+            clothingObj.Shade = shade;
+            clothingObj.CurrentWieldedLocation = clothingObj.ValidLocations;
+            clothingObj.WielderIID = playerIID;
+
+            //if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
+            //{
+            //    ClothingBaseEffect shirtCBE = shirtCT.ClothingBaseEffects[sex.SetupID];
+            //    for (int i = 0; i < shirtCBE.CloObjectEffects.Count; i++)
+            //    {
+            //        byte partNum = (byte)shirtCBE.CloObjectEffects[i].Index;
+            //        shirt.AnimationOverrides.Add(new AnimationOverride()
+            //        {
+            //            AceObjectId = shirt.AceObjectId,
+            //            AnimationId = shirtCBE.CloObjectEffects[i].ModelId,
+            //            Index = (byte)shirtCBE.CloObjectEffects[i].Index
+            //        });
+
+            //        for (int j = 0; j < shirtCBE.CloObjectEffects[i].CloTextureEffects.Count; j++)
+            //        {
+            //            shirt.TextureOverrides.Add(new TextureMapOverride()
+            //            {
+            //                AceObjectId = shirt.AceObjectId,
+            //                Index = (byte)shirtCBE.CloObjectEffects[i].Index,
+            //                OldId = (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].OldTexture,
+            //                NewId = (ushort)shirtCBE.CloObjectEffects[i].CloTextureEffects[j].NewTexture
+            //            });
+            //        }
+            //    }
+
+            //    // Apply the proper palette(s). Unlike character skin/hair, clothes can have several palette ranges!
+            //    if (shirtCT.ClothingSubPalEffects.ContainsKey(appearance.ShirtColor))
+            //    {
+            //        CloSubPalEffect shirtSubPal = shirtCT.ClothingSubPalEffects[appearance.ShirtColor];
+            //        for (int i = 0; i < shirtSubPal.CloSubPalettes.Count; i++)
+            //        {
+            //            PaletteSet shirtPalSet = PaletteSet.ReadFromDat(shirtSubPal.CloSubPalettes[i].PaletteSet);
+            //            ushort shirtPal = (ushort)shirtPalSet.GetPaletteID(appearance.ShirtHue);
+
+            //            if (shirtPal > 0) // shirtPal will be 0 if the palette set is empty/not found
+            //            {
+            //                for (int j = 0; j < shirtSubPal.CloSubPalettes[i].Ranges.Count; j++)
+            //                {
+            //                    uint palOffset = shirtSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+            //                    uint numColors = shirtSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+            //                    shirt.PaletteOverrides.Add(new PaletteOverride()
+            //                    {
+            //                        AceObjectId = shirt.AceObjectId,
+            //                        SubPaletteId = shirtPal,
+            //                        Offset = (ushort)palOffset,
+            //                        Length = (ushort)numColors
+            //                    });
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+
+            return clothingObj;
+        }
+
+        private static void CreateIOU(AceCharacter character, uint missingWeenieId)
+        {
+            var iouObj = (AceObject)DatabaseManager.World.GetAceObjectByWeenie("parchment").Clone(GuidManager.NewItemGuid().Full);
+
+            iouObj.Name = "IOU";
+            iouObj.EncumbranceVal = 0;
+            iouObj.Value = 0;            
+            iouObj.ShortDesc = "An IOU for a missing database object.";
+            iouObj.Inscription = "Sorry about that chief...";
+            iouObj.ScribeName = "Ripley";
+            iouObj.ScribeAccount = "prewritten";
+            iouObj.IgnoreAuthor = false;
+            iouObj.AppraisalPages = 1;
+            iouObj.AppraisalMaxPages = 1;
+
+            iouObj.ContainerIID = character.AceObjectId;
+
+            // FIXME: This is wrong and should also be unnecessary but we're not handling storing and reading back object placement within a container correctly so this is here to make it work.
+            // TODO: fix placement (order or slot) issues within containers.
+            iouObj.Placement = 0;
+
+            var bookProperties = new AceObjectPropertiesBook();
+            bookProperties.AceObjectId = iouObj.AceObjectId;
+            bookProperties.AuthorName = "Ripley";
+            bookProperties.AuthorAccount = "prewritten";
+            bookProperties.Page = 0;
+            bookProperties.PageText = $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.";
+
+            iouObj.BookProperties.Add(bookProperties.Page, bookProperties);
+
+            if (iouObj != null)
+                character.Inventory.Add(new ObjectGuid(iouObj.AceObjectId), iouObj);
         }
     }
 }
