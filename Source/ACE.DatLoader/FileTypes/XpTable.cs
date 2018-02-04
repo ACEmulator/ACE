@@ -10,6 +10,8 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.XpTable)]
     public class XpTable : IUnpackable
     {
+        private const uint FILE_ID = 0x0E000018;
+
         public ExperienceExpenditureChart AbilityXpChart { get; } = new ExperienceExpenditureChart();
         public ExperienceExpenditureChart VitalXpChart { get; } = new ExperienceExpenditureChart();
         public ExperienceExpenditureChart TrainedSkillXpChart { get; } = new ExperienceExpenditureChart();
@@ -63,10 +65,10 @@ namespace ACE.DatLoader.FileTypes
         public static XpTable ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E000018))
-                return (XpTable)DatManager.PortalDat.FileCache[0x0E000018];
+            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
+                return (XpTable)DatManager.PortalDat.FileCache[FILE_ID];
 
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000018);
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
             var obj = new XpTable();
 
@@ -75,7 +77,7 @@ namespace ACE.DatLoader.FileTypes
                 obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[0x0E000018] = obj;
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
 
             return obj;
         }

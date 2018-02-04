@@ -13,12 +13,11 @@ namespace ACE.DatLoader.FileTypes
     {
         private const uint FILE_ID = 0x0E00001D;
 
-        public uint Id { get; private set; } // This should match FILE_ID
         public Dictionary<uint, Contract> Contracts { get; } = new Dictionary<uint, Contract>();
 
         public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
             ushort num_contracts = reader.ReadUInt16();
             ushort table_size = reader.ReadUInt16(); // We don't need this since C# handles it's own memory

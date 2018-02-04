@@ -10,12 +10,11 @@ namespace ACE.DatLoader.FileTypes
     {
         private const uint FILE_ID = 0x0E00000F;
 
-        public uint Id { get; private set; } // This should match FILE_ID
         public Dictionary<uint, SpellComponentBase> SpellComponents { get; } = new Dictionary<uint, SpellComponentBase>();
 
         public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
             uint numComps = reader.ReadUInt16(); // Should be 163 or 0xA3
             reader.AlignBoundary();
@@ -30,7 +29,7 @@ namespace ACE.DatLoader.FileTypes
                 return (SpellComponentsTable)DatManager.PortalDat.FileCache[FILE_ID];
 
             // Create the datReader for the proper file
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000F);
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
             var obj = new SpellComponentsTable();
 
