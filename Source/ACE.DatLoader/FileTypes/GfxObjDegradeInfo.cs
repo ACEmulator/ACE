@@ -1,9 +1,7 @@
-﻿using ACE.DatLoader.Entity;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -11,34 +9,37 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x11. 
     /// Contains info on what objects to display at what distance to help with render performance (e.g. low-poly very far away, but high-poly when close)
     /// </summary>
-    public class GfxObjDegradeInfo
+    [DatFileType(DatFileType.DegradeInfo)]
+    public class GfxObjDegradeInfo : IUnpackable
     {
-        public uint Id { get; set; }
-        public List<GfxObjInfo> Degrades { get; set; } = new List<GfxObjInfo>();
+        public uint Id { get; private set; }
+        public List<GfxObjInfo> Degrades { get; } = new List<GfxObjInfo>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            Id = reader.ReadUInt32();
+
+            Degrades.Unpack(reader);
+        }
 
         public static GfxObjDegradeInfo ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (GfxObjDegradeInfo)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                GfxObjDegradeInfo obj = new GfxObjDegradeInfo();
 
-                obj.Id = datReader.ReadUInt32();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                uint num_degrades = datReader.ReadUInt32();
-                for (uint i = 0; i < num_degrades; i++)
-                    obj.Degrades.Add(GfxObjInfo.Read(datReader));
+            var obj = new GfxObjDegradeInfo();
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                return obj;
-            }
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }
