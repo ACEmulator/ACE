@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -7,33 +8,37 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x0F. 
     /// They contain, as the name may imply, a set of palettes (0x04 files)
     /// </summary>
-    public class PaletteSet
+    [DatFileType(DatFileType.PaletteSet)]
+    public class PaletteSet : IUnpackable
     {
-        public uint PaletteSetId { get; set; }
-        public List<uint> PaletteList { get; set; } = new List<uint>();
+        public uint PaletteSetId { get; private set; }
+        public List<uint> PaletteList { get; } = new List<uint>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            PaletteSetId = reader.ReadUInt32();
+
+            PaletteList.Unpack(reader);
+        }
 
         public static PaletteSet ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (PaletteSet)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                PaletteSet p = new PaletteSet();
-                p.PaletteSetId = datReader.ReadUInt32();
 
-                uint numpalettesets = datReader.ReadUInt32();
-                for (int i = 0; i < numpalettesets; i++)
-                    p.PaletteList.Add(datReader.ReadUInt32());
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = p;
+            var obj = new PaletteSet();
 
-                return p;
-            }
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
 
         /// <summary>
@@ -44,17 +49,19 @@ namespace ACE.DatLoader.FileTypes
         public uint GetPaletteID(double hue)
         {
             // Make sure the PaletteList has valid data and the hue is within valid ranges
-            if (this.PaletteList.Count == 0 || hue < 0 || hue > 1)
+            if (PaletteList.Count == 0 || hue < 0 || hue > 1)
                 return 0;
 
             // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-            int palIndex = Convert.ToInt32(Convert.ToDouble(this.PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
+            int palIndex = Convert.ToInt32(Convert.ToDouble(PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
                                                                                                        // Since the hue numbers are a little odd, make sure we're in the bounds.
             if (palIndex < 0)
                 palIndex = 0;
-            if (palIndex > this.PaletteList.Count - 1)
-                palIndex = this.PaletteList.Count - 1;
-            return this.PaletteList[palIndex];
+
+            if (palIndex > PaletteList.Count - 1)
+                palIndex = PaletteList.Count - 1;
+
+            return PaletteList[palIndex];
         }
     }
 }

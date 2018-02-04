@@ -77,7 +77,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.RenderSurface) continue;
                 if (fileType == DatFileType.Surface) continue;
                 if (fileType == DatFileType.ModelTable) continue;
-                if (fileType == DatFileType.PaletteSet) continue;
                 if (fileType == DatFileType.Clothing) continue;
                 if (fileType == DatFileType.DegradeInfo) continue;
                 if (fileType == DatFileType.ParticleEmitter) continue;
