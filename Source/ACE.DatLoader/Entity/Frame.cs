@@ -10,10 +10,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            var x = reader.ReadSingle();
-            var y = reader.ReadSingle();
-            var z = reader.ReadSingle();
-            Origin = new Vector3(x, y, z);
+            Origin = reader.ReadVector3();
 
             var qw = reader.ReadSingle();
             var qx = reader.ReadSingle();

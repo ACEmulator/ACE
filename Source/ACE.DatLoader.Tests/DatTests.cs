@@ -108,7 +108,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.ModelTable) continue;
                 if (fileType == DatFileType.Clothing) continue;
                 if (fileType == DatFileType.DegradeInfo) continue;
-                if (fileType == DatFileType.ParticleEmitter) continue;
                 if (fileType == DatFileType.SecondaryAttributeTable) continue;
                 if (fileType == DatFileType.SkillTable) continue;
                 if (fileType == DatFileType.ChatPoseTable) continue;

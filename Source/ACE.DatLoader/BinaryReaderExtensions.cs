@@ -1,4 +1,5 @@
 using System.IO;
+using System.Numerics;
 
 namespace ACE.DatLoader
 {
@@ -81,6 +82,18 @@ namespace ACE.DatLoader
                 thestring[i] = (byte)((thestring[i] >> 4) | (thestring[i] << 4));
 
             return System.Text.Encoding.Default.GetString(thestring);
+        }
+
+        /// <summary>
+        /// Returns a Vector3 object read out as 3 floats, x y z
+        /// </summary>
+        public static Vector3 ReadVector3(this BinaryReader reader)
+        {
+            var x = reader.ReadSingle();
+            var y = reader.ReadSingle();
+            var z = reader.ReadSingle();
+
+            return new Vector3(x, y, z);
         }
     }
 }
