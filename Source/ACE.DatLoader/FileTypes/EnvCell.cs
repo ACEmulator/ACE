@@ -13,6 +13,7 @@ namespace ACE.DatLoader.FileTypes
     /// <remarks>
     /// Very special thanks again to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
     /// </remarks>
+    [DatFileType(DatFileType.Cell)]
     public class EnvCell : IUnpackable
     {
         public uint CellId { get; private set; }
