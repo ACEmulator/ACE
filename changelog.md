@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-04
+[Slushnas]
+* Added support for all starter spells during character creation.
+
 ### 2018-02-03
 [Mag-nus]
 * ACE.DatLoader DatManager.Initialize() is no longer dependant on ConfigManager.

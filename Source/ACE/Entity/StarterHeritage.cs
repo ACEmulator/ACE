@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +20,11 @@ namespace ACE.Entity
 
         [JsonProperty("gear")]
         public List<StarterItem> Gear { get; set; } = new List<StarterItem>();
+
+        /// <summary>
+        /// Only needed to give an Olthoi Spitter starter spells.
+        /// </summary>
+        [JsonProperty("spells")]
+        public List<StarterSpell> Spells { get; set; } = new List<StarterSpell>();
     }
 }
