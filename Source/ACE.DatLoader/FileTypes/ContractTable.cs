@@ -20,7 +20,7 @@ namespace ACE.DatLoader.FileTypes
             reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
             ushort num_contracts = reader.ReadUInt16();
-            ushort table_size = reader.ReadUInt16(); // We don't need this since C# handles it's own memory
+            /*ushort table_size = */reader.ReadUInt16(); // We don't need this since C# handles it's own memory
 
             for (ushort i = 0; i < num_contracts; i++)
             {

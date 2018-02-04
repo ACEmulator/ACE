@@ -66,13 +66,6 @@ namespace ACE.DatLoader
             return data;
         }
 
-        public int ReadInt32()
-        {
-            int data = BitConverter.ToInt32(Buffer, Offset);
-            Offset += 4;
-            return data;
-        }
-
         public ushort ReadUInt16()
         {
             ushort data = BitConverter.ToUInt16(Buffer, Offset);
