@@ -1,17 +1,20 @@
 using System.IO;
-
-using ACE.Entity;
+using System.Numerics;
 
 namespace ACE.DatLoader.Entity
 {
     public class Plane : IUnpackable
     {
-        public Position N { get; } = new Position();
+        public Vector3 N { get; private set; } = new Vector3();
         public float D { get; private set; }
 
         public void Unpack(BinaryReader reader)
         {
-            N.ReadOrigin(reader);
+            var x = reader.ReadSingle();
+            var y = reader.ReadSingle();
+            var z = reader.ReadSingle();
+            N = new Vector3(x, y, z);
+
             D = reader.ReadSingle();
         }
     }
