@@ -92,7 +92,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.QualityFilter) continue;
                 if (fileType == DatFileType.STable) continue;
                 if (fileType == DatFileType.EnumMapper) continue;
-                if (fileType == DatFileType.CombatTable) continue;
                 if (fileType == DatFileType.String) continue;
                 if (fileType == DatFileType.KeyMap) continue;
                 if (fileType == DatFileType.RenderTexture) continue;
