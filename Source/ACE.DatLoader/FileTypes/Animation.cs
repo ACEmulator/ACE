@@ -45,16 +45,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            Animation animation = new Animation();
+            var obj = new Animation();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                animation.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = animation;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return animation;
+            return obj;
         }
     }
 }

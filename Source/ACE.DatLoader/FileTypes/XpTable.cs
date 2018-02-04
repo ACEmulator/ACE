@@ -68,16 +68,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000018);
 
-            XpTable xpTable = new XpTable();
+            var obj = new XpTable();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                xpTable.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[0x0E000018] = xpTable;
+            DatManager.PortalDat.FileCache[0x0E000018] = obj;
 
-            return xpTable;
+            return obj;
         }
 
         /// <summary>

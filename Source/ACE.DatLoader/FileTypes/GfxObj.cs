@@ -69,16 +69,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            GfxObj gfxObj = new GfxObj();
+            var obj = new GfxObj();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                gfxObj.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = gfxObj;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return gfxObj;
+            return obj;
         }
     }
 }

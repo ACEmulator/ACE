@@ -29,16 +29,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-            PhysicsScript physicsScript = new PhysicsScript();
+            var obj = new PhysicsScript();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                physicsScript.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = physicsScript;
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-            return physicsScript;
+            return obj;
         }
     }
 }

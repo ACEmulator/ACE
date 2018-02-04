@@ -64,16 +64,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(REGION_ID);
 
-            RegionDesc region = new RegionDesc();
+            var obj = new RegionDesc();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                region.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[REGION_ID] = region;
+            DatManager.PortalDat.FileCache[REGION_ID] = obj;
 
-            return region;
+            return obj;
         }
     }
 }

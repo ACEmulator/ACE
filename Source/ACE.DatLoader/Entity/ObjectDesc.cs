@@ -1,47 +1,46 @@
-using ACE.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class ObjectDesc
+    public class ObjectDesc : IUnpackable
     {
-        public uint ObjId { get; set; }
-        public Position BaseLoc { get; set; }
-        public float Freq { get; set; }
-        public float DisplaceX { get; set; }
-        public float DisplaceY { get; set; }
-        public float MinScale { get; set; }
-        public float MaxScale { get; set; }
-        public float MaxRotation { get; set; }
-        public float MinSlope { get; set; }
-        public float MaxSlope { get; set; }
-        public uint Align { get; set; }
-        public uint Orient { get; set; }
-        public uint WeenieObj { get; set; }
+        public uint ObjId { get; private set; }
+        public Frame BaseLoc { get; } = new Frame();
+        public float Freq { get; private set; }
+        public float DisplaceX { get; private set; }
+        public float DisplaceY { get; private set; }
+        public float MinScale { get; private set; }
+        public float MaxScale { get; private set; }
+        public float MaxRotation { get; private set; }
+        public float MinSlope { get; private set; }
+        public float MaxSlope { get; private set; }
+        public uint Align { get; private set; }
+        public uint Orient { get; private set; }
+        public uint WeenieObj { get; private set; }
 
-        public static ObjectDesc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            ObjectDesc obj = new ObjectDesc();
+            ObjId       = reader.ReadUInt32();
 
-            obj.ObjId = datReader.ReadUInt32();
-            obj.BaseLoc = PositionExtensions.ReadFrame(datReader);
-            obj.Freq = datReader.ReadSingle();
-            obj.DisplaceX = datReader.ReadSingle();
-            obj.DisplaceY = datReader.ReadSingle();
-            obj.MinScale = datReader.ReadSingle();
-            obj.MaxScale = datReader.ReadSingle();
-            obj.MaxRotation = datReader.ReadSingle();
-            obj.MinSlope = datReader.ReadSingle();
-            obj.MaxSlope = datReader.ReadSingle();
-            obj.Align = datReader.ReadUInt32();
-            obj.Orient = datReader.ReadUInt32();
-            obj.WeenieObj = datReader.ReadUInt32();
+            BaseLoc.Unpack(reader);
 
-            return obj;
+            Freq        = reader.ReadSingle();
+
+            DisplaceX   = reader.ReadSingle();
+            DisplaceY   = reader.ReadSingle();
+
+            MinScale    = reader.ReadSingle();
+            MaxScale    = reader.ReadSingle();
+
+            MaxRotation = reader.ReadSingle();
+
+            MinSlope    = reader.ReadSingle();
+            MaxSlope    = reader.ReadSingle();
+
+            Align       = reader.ReadUInt32();
+            Orient      = reader.ReadUInt32();
+
+            WeenieObj   = reader.ReadUInt32();
         }
     }
 }

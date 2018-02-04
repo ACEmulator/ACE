@@ -92,7 +92,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.TabooTable) continue;
                 if (fileType == DatFileType.NameFilterTable) continue;
                 if (fileType == DatFileType.QualityFilter) continue;
-                if (fileType == DatFileType.Scene) continue;
                 if (fileType == DatFileType.STable) continue;
                 if (fileType == DatFileType.EnumMapper) continue;
                 if (fileType == DatFileType.CombatTable) continue;

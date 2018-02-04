@@ -81,16 +81,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockId);
 
-            EnvCell envCell = new EnvCell();
+            var obj = new EnvCell();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                envCell.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.CellDat.FileCache[landblockId] = envCell;
+            DatManager.CellDat.FileCache[landblockId] = obj;
 
-            return envCell;
+            return obj;
         }
     }
 }

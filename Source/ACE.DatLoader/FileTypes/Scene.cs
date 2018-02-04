@@ -1,44 +1,44 @@
-﻿using ACE.DatLoader.Entity;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x12. 
     /// </summary>
-    public class Scene
+    [DatFileType(DatFileType.Scene)]
+    public class Scene : IUnpackable
     {
-        public uint SceneId { get; set; }
-        public List<ObjectDesc> Objects { get; set; } = new List<ObjectDesc>();
+        public uint SceneId { get; private set; }
+        public List<ObjectDesc> Objects { get; } = new List<ObjectDesc>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            SceneId = reader.ReadUInt32();
+
+            Objects.Unpack(reader);
+        }
 
         public static Scene ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (Scene)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                Scene obj = new Scene();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                obj.SceneId = datReader.ReadUInt32();
+            var obj = new Scene();
 
-                uint num_objects = datReader.ReadUInt32();
-                for (uint i = 0; i < num_objects; i++)
-                    obj.Objects.Add(ObjectDesc.Read(datReader));
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-                return obj;
-            }
+            return obj;
         }
     }
 }

@@ -33,16 +33,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E000002);
 
-            CharGen cg = new CharGen();
+            var obj = new CharGen();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                cg.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[0x0E000002] = cg;
+            DatManager.PortalDat.FileCache[0x0E000002] = obj;
 
-            return cg;
+            return obj;
         }
     }
 }

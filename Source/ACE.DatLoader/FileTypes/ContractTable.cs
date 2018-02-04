@@ -42,16 +42,16 @@ namespace ACE.DatLoader.FileTypes
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(CONTRACT_TABLE_ID);
 
-            ContractTable contractTable = new ContractTable();
+            var obj = new ContractTable();
 
             using (var memoryStream = new MemoryStream(datReader.Buffer))
             using (var reader = new BinaryReader(memoryStream))
-                contractTable.Unpack(reader);
+                obj.Unpack(reader);
 
             // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[CONTRACT_TABLE_ID] = contractTable;
+            DatManager.PortalDat.FileCache[CONTRACT_TABLE_ID] = obj;
 
-            return contractTable;
+            return obj;
         }
     }
 }
