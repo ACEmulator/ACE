@@ -102,6 +102,26 @@ namespace ACE.DatLoader
 
 
         /// <summary>
+        /// A PackedHashTable uses a UInt16 for length, and a UInt16 for bucket size.
+        /// I don't know what the bucket size is actually usd for.
+        /// </summary>
+        public static void UnpackPackedHashTable<T>(this Dictionary<uint, T> value, BinaryReader reader) where T : IUnpackable, new()
+        {
+            var totalObjects = reader.ReadUInt16();
+            /*var bucketSize = */reader.ReadUInt16();
+
+            for (int i = 0; i < totalObjects; i++)
+            {
+                var key = reader.ReadUInt32();
+
+                var item = new T();
+                item.Unpack(reader);
+                value.Add(key, item);
+            }
+        }
+
+
+        /// <summary>
         /// A list that uses a Int32 for the length.
         /// </summary>
         public static void Unpack(this List<uint> value, BinaryReader reader)
@@ -196,6 +216,24 @@ namespace ACE.DatLoader
                 var item = new T();
                 item.Unpack(reader);
                 value.Add(key, item);
+            }
+        }
+
+        /// <summary>
+        /// A Dictionary that uses a Int32 for the length.
+        /// </summary>
+        public static void Unpack<T>(this Dictionary<uint, Dictionary<uint, T>> value, BinaryReader reader) where T : IUnpackable, new()
+        {
+            var totalObjects = reader.ReadUInt32();
+
+            for (int i = 0; i < totalObjects; i++)
+            {
+                var key = reader.ReadUInt32();
+
+                var values = new Dictionary<uint, T>();
+                values.Unpack(reader);
+
+                value.Add(key, values);
             }
         }
     }

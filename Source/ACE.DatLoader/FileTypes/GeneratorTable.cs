@@ -1,6 +1,7 @@
-﻿using ACE.DatLoader.Entity;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -9,47 +10,50 @@ namespace ACE.DatLoader.FileTypes
     /// Thanks alot Widgeon of Leafcull for his ACDataTools which helped understanding this structure.
     /// And thanks alot to Pea as well whos hard work surely helped in the creation of those Tools too.
     /// </summary>
-    public static class GeneratorTable
+    [DatFileType(DatFileType.ObjectHierarchy)]
+    public class GeneratorTable : IUnpackable
     {
+        private const uint FILE_ID = 0x0E00000D;
+
+        public Generator Generators { get; } = new Generator();
+
+        /// <summary>
+        /// This is just a shortcut to Generators.Items[0].Items
+        /// </summary>
+        public List<Generator> PlayDayItems { get; private set; } = new List<Generator>();
+        /// <summary>
+        /// This is just a shortcut to Generators.Items[1].Items
+        /// </summary>
+        public List<Generator> WeenieObjectsItems { get; private set; } = new List<Generator>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
+
+            Generators.Unpack(reader);
+
+            PlayDayItems = Generators.Items[0].Items;
+            WeenieObjectsItems = Generators.Items[1].Items;
+        }
+
         public static Generator ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E00000D))
-            {
-                return (Generator)DatManager.PortalDat.FileCache[0x0E00000D];
-            }
-            else
-            {
-                Generator gen = new Generator();
+            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
+                return (Generator)DatManager.PortalDat.FileCache[FILE_ID];
 
-                // Create the datReader for the proper file
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 
-                gen.Id = datReader.ReadInt32();
-                gen.Name = "0E00000D";
-                gen.Count = 2;
-                datReader.Offset = 16;
+            var obj = new Generator();
 
-                Generator playDay = new Generator();
-                Generator weenieObjects = new Generator();
-                gen.Items.Add(playDay.GetNextGenerator(datReader)); // Parse and add PlayDay hierarchy
-                gen.Items.Add(weenieObjects.GetNextGenerator(datReader)); // Parse and add WeenieObjects hierarchy
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[0x0E00000D] = gen;
-                return gen;
-            }
-        }
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
 
-        public static IEnumerable<Generator> ReadItems(this Generator root)
-        {
-            var nodes = new Stack<Generator>(new[] { root });
-            while (nodes.Any())
-            {
-                Generator node = nodes.Pop();
-                yield return node;
-                foreach (var n in node.Items) nodes.Push(n);
-            }
+            return obj;
         }
     }
 }

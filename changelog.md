@@ -7,6 +7,9 @@
 * Update Create and CI commands to support id or name search.
 * Added catch for missing database objects in CharGen and IOU object creation for those missing.
 
+[Slushnas]
+* Added support for all starter spells during character creation.
+
 [Mag-nus]
 * ACE.DatLoader more IUnpackable refactoring
 

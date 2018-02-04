@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CloSubPalleteRange
+    public class CloSubPalleteRange : IUnpackable
     {
-        public uint Offset { get; set; }
-        public uint NumColors { get; set; }
+        public uint Offset { get; private set; }
+        public uint NumColors { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Offset      = reader.ReadUInt32();
+            NumColors   = reader.ReadUInt32();
+        }
     }
 }

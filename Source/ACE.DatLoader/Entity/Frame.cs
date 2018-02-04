@@ -3,6 +3,9 @@ using System.Numerics;
 
 namespace ACE.DatLoader.Entity
 {
+    /// <summary>
+    /// Frame consists of a Vector3 Origin and a Quaternion Orientation
+    /// </summary>
     public class Frame : IUnpackable
     {
         public Vector3 Origin { get; private set; }
@@ -10,10 +13,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            var x = reader.ReadSingle();
-            var y = reader.ReadSingle();
-            var z = reader.ReadSingle();
-            Origin = new Vector3(x, y, z);
+            Origin = reader.ReadVector3();
 
             var qw = reader.ReadSingle();
             var qx = reader.ReadSingle();
