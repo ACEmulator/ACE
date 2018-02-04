@@ -1,18 +1,16 @@
-﻿namespace ACE.DatLoader.Entity
+using System.IO;
+
+namespace ACE.DatLoader.Entity
 {
-    public class ScriptAndModData
+    public class ScriptAndModData : IUnpackable
     {
-        public float Mod { get; set; }
-        public uint ScriptId { get; set; }
+        public float Mod { get; private set; }
+        public uint ScriptId { get; private set; }
 
-        public static ScriptAndModData Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            ScriptAndModData obj = new ScriptAndModData();
-
-            obj.Mod = datReader.ReadSingle();
-            obj.ScriptId = datReader.ReadUInt32();
-
-            return obj;
+            Mod         = reader.ReadSingle();
+            ScriptId    = reader.ReadUInt32();
         }
     }
 }

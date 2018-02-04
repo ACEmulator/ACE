@@ -101,7 +101,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.DidMapper) continue;
                 if (fileType == DatFileType.ActionMap) continue;
                 if (fileType == DatFileType.DualDidMapper) continue;
-                if (fileType == DatFileType.PhysicsScriptTable) continue;
                 if (fileType == DatFileType.Font) continue;
                 if (fileType == DatFileType.MasterProperty) continue;
                 if (fileType == DatFileType.DbProperties) continue;
