@@ -22,7 +22,7 @@ namespace ACE.DatLoader.FileTypes
         public Dictionary<ushort, Polygon> PhysicsPolygons { get; } = new Dictionary<ushort, Polygon>();
         public BSPTree PhysicsBSP { get; } = new BSPTree();
 
-        public Vector3 SortCenter { get; private set; } = new Vector3();
+        public Vector3 SortCenter { get; private set; }
 
         public Dictionary<ushort, Polygon> Polygons { get; } = new Dictionary<ushort, Polygon>();
         public BSPTree DrawingBSP { get; } = new BSPTree();
@@ -47,10 +47,7 @@ namespace ACE.DatLoader.FileTypes
                 PhysicsBSP.Unpack(reader, BSPType.Physics);
             }
 
-            var x = reader.ReadSingle();
-            var y = reader.ReadSingle();
-            var z = reader.ReadSingle();
-            SortCenter = new Vector3(x, y, z);
+            SortCenter = reader.ReadVector3();
 
             // Has Drawing 
             if ((fields & 2) != 0)

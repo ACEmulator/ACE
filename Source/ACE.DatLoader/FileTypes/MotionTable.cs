@@ -1,74 +1,57 @@
-﻿using ACE.DatLoader.Entity;
-using ACE.Entity.Enum;
 using System;
 using System.Collections.Generic;
+using System.IO;
+
+using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
-    public class MotionTable
+    [DatFileType(DatFileType.ModelTable)]
+    public class MotionTable : IUnpackable
     {
-        public uint Id { get; set; }
-        public uint DefaultStyle { get; set; }
-        public Dictionary<uint, uint> StyleDefaults { get; set; } = new Dictionary<uint, uint>();
-        public Dictionary<uint, MotionData> Cycles { get; set; } = new Dictionary<uint, MotionData>();
-        public Dictionary<uint, MotionData> Modifiers { get; set; } = new Dictionary<uint, MotionData>();
-        public Dictionary<uint, Dictionary<uint, MotionData>> Links { get; set; } = new Dictionary<uint, Dictionary<uint, MotionData>>();
+        public uint Id { get; private set; }
+        public uint DefaultStyle { get; private set; }
+        public Dictionary<uint, uint> StyleDefaults { get; } = new Dictionary<uint, uint>();
+        public Dictionary<uint, MotionData> Cycles { get; } = new Dictionary<uint, MotionData>();
+        public Dictionary<uint, MotionData> Modifiers { get; } = new Dictionary<uint, MotionData>();
+        public Dictionary<uint, Dictionary<uint, MotionData>> Links { get; } = new Dictionary<uint, Dictionary<uint, MotionData>>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            Id = reader.ReadUInt32();
+
+            DefaultStyle = reader.ReadUInt32();
+
+            uint numStyleDefaults = reader.ReadUInt32();
+            for (uint i = 0; i < numStyleDefaults; i++)
+                StyleDefaults.Add(reader.ReadUInt32(), reader.ReadUInt32());
+
+            Cycles.Unpack(reader);
+
+            Modifiers.Unpack(reader);
+
+            Links.Unpack(reader);
+        }
 
         public static MotionTable ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
             if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
                 return (MotionTable)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                MotionTable m = new MotionTable();
-                m.Id = datReader.ReadUInt32();
 
-                m.DefaultStyle = datReader.ReadUInt32();
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
-                uint numStyleDefaults = datReader.ReadUInt32();
-                for (uint i = 0; i < numStyleDefaults; i++)
-                    m.StyleDefaults.Add(datReader.ReadUInt32(), datReader.ReadUInt32());
+            var obj = new MotionTable();
 
-                uint numCycles = datReader.ReadUInt32();
-                for (uint i = 0; i < numCycles; i++)
-                {
-                    uint key = datReader.ReadUInt32();
-                    MotionData md = MotionData.Read(datReader);
-                    m.Cycles.Add(key, md);
-                }
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
 
-                uint numModifiers = datReader.ReadUInt32();
-                for (uint i = 0; i < numModifiers; i++)
-                {
-                    uint key = datReader.ReadUInt32();
-                    MotionData md = MotionData.Read(datReader);
-                    m.Modifiers.Add(key, md);
-                }
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
 
-                uint numLinks = datReader.ReadUInt32();
-                for (uint i = 0; i < numLinks; i++)
-                {
-                    uint firstKey = datReader.ReadUInt32();
-                    uint numSubLinks = datReader.ReadUInt32();
-                    Dictionary<uint, MotionData> links = new Dictionary<uint, MotionData>();
-                    for (uint j = 0; j < numSubLinks; j++)
-                    {
-                        uint subKey = datReader.ReadUInt32();
-                        MotionData md = MotionData.Read(datReader);
-                        links.Add(subKey, md);
-                    }
-                    m.Links.Add(firstKey, links);
-                }
-
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = m;
-
-                return m;
-            }
+            return obj;
         }
 
         /// <summary>
@@ -101,8 +84,8 @@ namespace ACE.DatLoader.FileTypes
         {
             if (StyleDefaults.ContainsKey((uint)style))
                 return (MotionCommand)StyleDefaults[(uint)style];
-            else
-                return MotionCommand.Invalid;
+
+            return MotionCommand.Invalid;
         }
 
         public float GetAnimationLength(MotionCommand motion)
@@ -126,16 +109,20 @@ namespace ACE.DatLoader.FileTypes
             float length = 0; // init our length var...will return as 0 if not found
 
             uint motionHash = ((uint)currentMotionState & 0xFFFFFF) | ((uint)style << 16);
+
             if (Links.ContainsKey(motionHash))
             {
                 Dictionary<uint, MotionData> links = Links[motionHash];
+
                 if (links.ContainsKey((uint)motion))
                 {
                     // loop through all that animations to get our total count
                     for (int i = 0; i < links[(uint)motion].Anims.Count; i++)
                     {
                         AnimData anim = links[(uint)motion].Anims[i];
-                        uint numFrames = 0;
+
+                        uint numFrames;
+
                         // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
                         if ((anim.LowFrame == 0) && (anim.HighFrame == 0xFFFFFFFF))
                         {

@@ -1,45 +1,22 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class Generator
+    public class Generator : IUnpackable
     {
-        public int Id { get; set; }
+        public string Name { get; private set; }
+        public uint Id { get; private set; }
+        public List<Generator> Items { get; } = new List<Generator>();
 
-        public int Count { get; set; }
-
-        public string Name { get; set; }
-
-        public List<Generator> Items;
-
-        public Generator()
+        public void Unpack(BinaryReader reader)
         {
-            Id = 0;
-            Count = 0;
-            Name = "";
-            Items = new List<Generator>();
-        }
+            Name = reader.ReadObfuscatedString();
+            reader.AlignBoundary();
 
-        public Generator GetNextGenerator(DatReader datReader)
-        {
-            Name = datReader.ReadObfuscatedString();
-            datReader.AlignBoundary();
-            Id = datReader.ReadInt32();
-            Count = datReader.ReadInt32();
-                
-            // Console.WriteLine($"{Id:X8} {Count:X8} {Name}");
+            Id = reader.ReadUInt32();
 
-            for (var i = 0; i < Count; i++)
-            {
-                var child = new Generator();
-                child = child.GetNextGenerator(datReader);
-                Items.Add(child);
-            }
-            return this;
+            Items.Unpack(reader);
         }
     }
 }
