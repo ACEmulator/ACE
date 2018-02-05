@@ -11,12 +11,12 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.PaletteSet)]
     public class PaletteSet : IUnpackable
     {
-        public uint PaletteSetId { get; private set; }
+        public uint Id { get; private set; }
         public List<uint> PaletteList { get; } = new List<uint>();
 
         public void Unpack(BinaryReader reader)
         {
-            PaletteSetId = reader.ReadUInt32();
+            Id = reader.ReadUInt32();
 
             PaletteList.Unpack(reader);
         }

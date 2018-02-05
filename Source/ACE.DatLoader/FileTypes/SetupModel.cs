@@ -16,7 +16,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Setup)]
     public class SetupModel : IUnpackable
     {
-        public uint ModelId { get; private set; }
+        public uint Id { get; private set; }
         public uint Bitfield { get; private set; }
         public bool AllowFreeHeading { get; private set; }
         public bool HasPhysicsBSP { get; private set; }
@@ -43,7 +43,7 @@ namespace ACE.DatLoader.FileTypes
 
         public void Unpack(BinaryReader reader)
         {
-            ModelId = reader.ReadUInt32();
+            Id = reader.ReadUInt32();
 
             Bitfield = reader.ReadUInt32();
 

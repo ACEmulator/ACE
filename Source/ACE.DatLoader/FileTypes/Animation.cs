@@ -12,7 +12,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Animation)]
     public class Animation : IUnpackable
     {
-        public uint AnimationId { get; private set; }
+        public uint Id { get; private set; }
         public uint Bitfield { get; private set; }
         public uint NumParts { get; private set; }
         public uint NumFrames { get; private set; }
@@ -21,7 +21,7 @@ namespace ACE.DatLoader.FileTypes
 
         public void Unpack(BinaryReader reader)
         {
-            AnimationId = reader.ReadUInt32();
+            Id = reader.ReadUInt32();
             Bitfield    = reader.ReadUInt32();
             NumParts    = reader.ReadUInt32();
             NumFrames   = reader.ReadUInt32();

@@ -16,7 +16,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Cell)]
     public class EnvCell : IUnpackable
     {
-        public uint CellId { get; private set; }
+        public uint Id { get; private set; }
         public UInt32 Bitfield { get; private set; }
         // 0x08000000 surfaces (which contains degrade/quality info to reference the specific 0x06000000 graphics)
         public List<uint> Shadows { get; } = new List<uint>();
@@ -33,7 +33,7 @@ namespace ACE.DatLoader.FileTypes
 
         public void Unpack(BinaryReader reader)
         {
-            CellId = reader.ReadUInt32();
+            Id = reader.ReadUInt32();
 
             Bitfield = reader.ReadUInt32();
 
@@ -68,27 +68,26 @@ namespace ACE.DatLoader.FileTypes
         /// <summary>
         /// Load the EnvCell (Dungeon/Interior Block) from the client_cell.dat
         /// </summary>
-        /// <param name="landblockId">The full int32/dword landblock value as reported by the @loc command (e.g. 0x12345678)</param>
-        public static EnvCell ReadFromDat(uint landblockId)
+        /// <param name="fileId">The full int32/dword landblock value as reported by the @loc command (e.g. 0x12345678)</param>
+        public static EnvCell ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.CellDat.FileCache.ContainsKey(landblockId))
-                return (EnvCell)DatManager.CellDat.FileCache[landblockId];
+            if (DatManager.CellDat.FileCache.ContainsKey(fileId))
+                return (EnvCell)DatManager.CellDat.FileCache[fileId];
 
-            // Cell does not exist in the dat? Is this possible?
-            if (!DatManager.CellDat.AllFiles.ContainsKey(landblockId))
-                return new EnvCell();;
-
-            DatReader datReader = DatManager.CellDat.GetReaderForFile(landblockId);
+            DatReader datReader = DatManager.CellDat.GetReaderForFile(fileId);
 
             var obj = new EnvCell();
 
-            using (var memoryStream = new MemoryStream(datReader.Buffer))
-            using (var reader = new BinaryReader(memoryStream))
-                obj.Unpack(reader);
+            if (datReader != null)
+            {
+                using (var memoryStream = new MemoryStream(datReader.Buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                    obj.Unpack(reader);
+            }
 
             // Store this object in the FileCache
-            DatManager.CellDat.FileCache[landblockId] = obj;
+            DatManager.CellDat.FileCache[fileId] = obj;
 
             return obj;
         }

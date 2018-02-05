@@ -8,13 +8,13 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.CharacterGenerator)]
     public class CharGen : IUnpackable
     {
-        public int Did { get; private set; }
+        public int Id { get; private set; }
         public List<StarterArea> StarterAreas { get; } = new List<StarterArea>();
         public Dictionary<uint, HeritageGroupCG> HeritageGroups { get; } = new Dictionary<uint, HeritageGroupCG>();
 
         public void Unpack(BinaryReader reader)
         {
-            Did = reader.ReadInt32();
+            Id = reader.ReadInt32();
             reader.BaseStream.Position += 4;
 
             StarterAreas.UnpackSmartArray(reader);
