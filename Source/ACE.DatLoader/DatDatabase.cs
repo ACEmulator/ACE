@@ -12,7 +12,7 @@ namespace ACE.DatLoader
 
         public DatDirectory RootDirectory { get; }
 
-        public Dictionary<uint, DatFile> AllFiles { get; }
+        public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
 
         // So we can cache the read files. The read methods in the FileTypes will handle the caching and casting.
         public Dictionary<uint, object> FileCache { get; } = new Dictionary<uint, object>();
@@ -46,7 +46,6 @@ namespace ACE.DatLoader
                 RootDirectory = new DatDirectory(firstDirectoryOffset, Convert.ToInt32(SectorSize), DatType, stream);
             }
 
-            AllFiles = new Dictionary<uint, DatFile>();
             RootDirectory.AddFilesToList(AllFiles);
         }
 

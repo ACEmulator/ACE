@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-05
+[Mag-nus]
+* ACE.DatLoader full conversion to the IUnpackable interface completed.
+
 ### 2018-02-04
 [Slushnas]
 * Added support for all starter spells during character creation.

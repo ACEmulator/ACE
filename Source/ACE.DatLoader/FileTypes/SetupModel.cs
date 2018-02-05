@@ -80,13 +80,7 @@ namespace ACE.DatLoader.FileTypes
                 PlacementFrames.Add(key, placementType);
             }
 
-            int cylinderSphereCount = reader.ReadInt32();
-            for (int i = 0; i < cylinderSphereCount; i++)
-            {
-                // Sphere is a Vector3 origin + float radius
-                AceVector3 origin = new AceVector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                CylSpheres.Add(new CylSphere(origin, reader.ReadSingle(), reader.ReadSingle()));
-            }
+            CylSpheres.Unpack(reader);
 
             Spheres.Unpack(reader);
 
