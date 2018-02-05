@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ACE.DatLoader
 {
-    static class PackableExtensions
+    static class UnpackableExtensions
     {
         /// <summary>
         /// A SmartArray uses a Compressed UInt32 for the length.
