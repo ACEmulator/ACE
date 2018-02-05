@@ -42,6 +42,18 @@ namespace ACE.Database
             return ret;
         }
 
+        public AceObject GetAceObjectByWeenie(string weenieClassDescription)
+        {
+            uint weenieClassId = GetWeenieClassIdByWeenieClassDescription(weenieClassDescription);
+
+            return GetAceObjectByWeenie(weenieClassId);
+        }
+
+        public uint GetWeenieClassIdByWeenieClassDescription(string weenieClassDescription)
+        {
+            return _wrappedDatabase.GetWeenieClassIdByWeenieClassDescription(weenieClassDescription);
+        }
+
         public AceObject GetObject(uint aceObjectId)
         {
             // if they're asking for a weenie, just give them the weenie.

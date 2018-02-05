@@ -48,10 +48,12 @@ namespace ACE.Managers
                 // Must enqueue add world object -- this is called from a message handler context
                 block.AddWorldObject(session.Player);
 
-                session.Network.EnqueueSend(new GameMessageSystemChat("Welcome to Asheron's Call", ChatMessageType.Broadcast));
-                session.Network.EnqueueSend(new GameMessageSystemChat("  powered by ACEmulator  ", ChatMessageType.Broadcast));
-                session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.Broadcast));
-                session.Network.EnqueueSend(new GameMessageSystemChat("For more information on commands supported by this server, type @acehelp", ChatMessageType.Broadcast));
+                string welcomeMsg = "Welcome to Asheron's Call" + "\n";
+                welcomeMsg += "  powered by ACEmulator  " + "\n"; ;
+                welcomeMsg += "" + "\n";
+                welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
+
+                session.Network.EnqueueSend(new GameMessageSystemChat(welcomeMsg, ChatMessageType.Broadcast));
             }));
         }
 

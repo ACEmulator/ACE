@@ -5,13 +5,33 @@
 * ACE.DatLoader full conversion to the IUnpackable interface completed.
 
 ### 2018-02-04
+[Ripley]
+* Disable OlthoiPlay character creation for now. They're not really implemented yet.
+* Add Database lookup by WeenieClassDescription.
+* Update Create and CI commands to support id or name search.
+* Added catch for missing database objects in CharGen and IOU object creation for those missing.
+
 [Slushnas]
 * Added support for all starter spells during character creation.
+
+[Mag-nus]
+* ACE.DatLoader more IUnpackable refactoring
 
 ### 2018-02-03
 [Mag-nus]
 * ACE.DatLoader DatManager.Initialize() is no longer dependant on ConfigManager.
 * ACE.DatLoader.Tests now include framework for unpack testing objects from the dats.
+
+[dgatewood]
+* Updated GameEventMagicUpdateEnchantment
+* Hardcoded some test functionality in Gem.
+
+### 2018-01-31
+[Mag-nus]
+* ACE.DatLoader more IUnpackable work
+  * ACE.DatLoader: XpTable updated
+
+  * ACE.DatLoader physics and environment using new unpack pattern
 
 ### 2018-01-29
 [Ripley]

@@ -105,5 +105,23 @@ namespace ACE.Database.Tests
 
             worldDb.SaveObject(mote);
         }
+
+        [TestMethod]
+        public void GetWeenie_Pyreal_ById_ReturnsObject()
+        {
+            var results = worldDb.GetAceObjectByWeenie(273);
+
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.Name == "Pyreal");
+        }
+
+        [TestMethod]
+        public void GetWeenie_Pyreal_ByName_ReturnsObject()
+        {
+            var results = worldDb.GetAceObjectByWeenie("coinstack");
+
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.Name == "Pyreal");
+        }
     }
 }
