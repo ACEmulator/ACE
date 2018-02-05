@@ -54,6 +54,8 @@ namespace ACE.DatLoader.FileTypes
                 var height = reader.ReadByte();
                 Height.Add(height);
             }
+
+            reader.AlignBoundary();
         }
 
         /// <summary>
