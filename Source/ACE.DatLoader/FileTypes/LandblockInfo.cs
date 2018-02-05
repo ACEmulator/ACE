@@ -55,12 +55,6 @@ namespace ACE.DatLoader.FileTypes
 
             Buildings.Unpack(reader, numBuildings);
 
-            if (Buildings.Count > 5)
-                ;
-
-            if (PackMask > 3)
-                ;
-
             if ((PackMask & 1) == 1)
                 RestrictionTables.UnpackPackedHashTable(reader);
         }
