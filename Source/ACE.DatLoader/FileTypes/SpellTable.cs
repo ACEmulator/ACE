@@ -11,17 +11,16 @@ namespace ACE.DatLoader.FileTypes
     {
         private const uint FILE_ID = 0x0E00000E;
 
-        public ushort SpellBaseHash { get; private set; } // not entirely sure what this is
         public Dictionary<uint, SpellBase> Spells { get; } = new Dictionary<uint, SpellBase>();
 
         public void Unpack(BinaryReader reader)
         {
             reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
-            var spellCount = reader.ReadUInt16();
-            SpellBaseHash = reader.ReadUInt16();
+            Spells.UnpackPackedHashTable(reader);
 
-            Spells.Unpack(reader, spellCount);
+            // TODO: I don't know why, but the reader doesn't align properly with the length here
+            reader.BaseStream.Position = reader.BaseStream.Length;
         }
 
         public static SpellTable ReadFromDat()

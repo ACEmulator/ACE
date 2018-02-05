@@ -11,6 +11,11 @@ namespace ACE.DatLoader.Entity
         public AnimationHookType HookType { get; private set; }
         public uint Direction { get; private set; }
 
+        /// <summary>
+        /// WARNING: If you're reading a hook from the dat, you should use AnimationHook.ReadHook(reader).
+        /// If you read a hook from the dat using this function, it is likely you will not read all the data correctly.
+        /// </summary>
+        /// <param name="reader"></param>
         public virtual void Unpack(BinaryReader reader)
         {
             HookType    = (AnimationHookType)reader.ReadUInt32();
@@ -119,13 +124,15 @@ namespace ACE.DatLoader.Entity
                     hook = new SetLightHook();
                     break;
 
+                case AnimationHookType.CreateBlockingParticle:
+                    hook = new CreateBlockingParticle();
+                    break;
+
                 // The following HookTypes have no additional properties:
                 // AnimationHookType.AnimationDone
                 // AnimationHookType.DefaultScript
-                // AnimationHookType.CreateBlockingParticle
                 case AnimationHookType.AnimationDone:
                 case AnimationHookType.DefaultScript:
-                case AnimationHookType.CreateBlockingParticle:
                     hook = new AnimationHook();
                     break;
 

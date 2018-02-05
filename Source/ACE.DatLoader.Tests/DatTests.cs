@@ -85,7 +85,7 @@ namespace ACE.DatLoader.Tests
                 {
                     unpackable.Unpack(reader);
 
-                    if (memoryStream.Position < (kvp.Value.FileSize - 3) || memoryStream.Position > kvp.Value.FileSize)
+                    if (memoryStream.Position != kvp.Value.FileSize)
                         throw new Exception($"Failed to parse all bytes for fileType: {fileType}, ObjectId: 0x{kvp.Value.ObjectId:X8}. Bytes parsed: {memoryStream.Position} of {kvp.Value.FileSize}");
                 }
             }
@@ -163,7 +163,7 @@ namespace ACE.DatLoader.Tests
                 {
                     unpackable.Unpack(reader);
 
-                    if (memoryStream.Position < (kvp.Value.FileSize - 3) || memoryStream.Position > kvp.Value.FileSize)
+                    if (memoryStream.Position != kvp.Value.FileSize)
                         throw new Exception($"Failed to parse all bytes for fileType: {fileType}, ObjectId: 0x{kvp.Value.ObjectId:X8}. Bytes parsed: {memoryStream.Position} of {kvp.Value.FileSize}");
                 }
             }

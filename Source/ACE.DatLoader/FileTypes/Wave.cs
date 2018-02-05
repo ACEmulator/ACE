@@ -22,6 +22,9 @@ namespace ACE.DatLoader.FileTypes
 
             Header  = reader.ReadBytes(headerSize);
             Data    = reader.ReadBytes(dataSize);
+
+            // TODO: I don't know why, but the reader doesn't align properly with the length here
+            reader.BaseStream.Position = reader.BaseStream.Length;
         }
 
         public static Wave ReadFromDat(uint fileId)
