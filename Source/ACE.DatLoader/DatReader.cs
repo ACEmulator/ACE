@@ -5,8 +5,6 @@ namespace ACE.DatLoader
 {
     public class DatReader
     {
-        public int Offset { get; set; }
-
         public byte[] Buffer { get; }
 
         public DatReader(string datFilePath, uint offset, uint size, uint sectorSize)
@@ -57,37 +55,6 @@ namespace ACE.DatLoader
             stream.Read(nextAddressBytes, 0, 4);
 
             return BitConverter.ToUInt32(nextAddressBytes, 0);
-        }
-
-        public uint ReadUInt32()
-        {
-            uint data = BitConverter.ToUInt32(Buffer, Offset);
-            Offset += 4;
-            return data;
-        }
-
-        public ushort ReadUInt16()
-        {
-            ushort data = BitConverter.ToUInt16(Buffer, Offset);
-            Offset += 2;
-            return data;
-        }
-
-        public float ReadSingle()
-        {
-            float data = BitConverter.ToSingle(Buffer, Offset);
-            Offset += 4;
-            return data;
-        }
-
-        public void AlignBoundary()
-        {
-            // Aligns the DatReader to the next DWORD boundary.
-            long alignDelta = Offset % 4;
-            if (alignDelta != 0)
-            {
-                Offset += ((int)(4 - alignDelta));
-            }
         }
     }
 }

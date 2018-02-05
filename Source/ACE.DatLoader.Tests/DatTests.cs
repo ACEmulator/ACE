@@ -54,13 +54,12 @@ namespace ACE.DatLoader.Tests
 
                 var fileType = kvp.Value.GetFileType();
 
-                if (fileType == null && (kvp.Key & 0xFFFF) == 0xFFFF) fileType = DatFileType.LandBlock;
+                if ((kvp.Key & 0xFFFF) == 0xFFFE) fileType = DatFileType.LandBlockInfo;
+                if ((kvp.Key & 0xFFFF) == 0xFFFF) fileType = DatFileType.LandBlock;
 
-                if (fileType == null) // these should be LandBlockInfo
+                if (fileType == null) // What are these?
                     continue;
                 //Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
-
-                if (fileType == DatFileType.Cell && (kvp.Key & 0xFFFF) >= 0xFFFE) continue; // These don't parse, I don't know why.
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new { m, a })
@@ -133,7 +132,7 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.DbProperties) continue;
 
                 // These have bugs
-                if (fileType == DatFileType.Animation && kvp.Value.ObjectId == 0x0300055b) continue; // This one hook seems corrupt
+                if (fileType == DatFileType.Animation && kvp.Value.ObjectId == 0x0300055b) continue; // This one seems corrupt
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new {m, a})

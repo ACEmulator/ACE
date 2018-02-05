@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-05
+[Mag-nus]
+* ACE.DatLoader full conversion to the IUnpackable interface completed.
+
 ### 2018-02-03
 [Mag-nus]
 * ACE.DatLoader DatManager.Initialize() is no longer dependant on ConfigManager.

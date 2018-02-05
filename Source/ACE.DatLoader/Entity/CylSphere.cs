@@ -1,18 +1,23 @@
-﻿using ACE.Entity;
+using System.IO;
+using System.Numerics;
 
 namespace ACE.DatLoader.Entity
 {
-    public class CylSphere
+    public class CylSphere : IUnpackable
     {
-        public AceVector3 Origin { get; set; }
-        public float Radius { get; set; }
-        public float Height { get; set; }
+        public Vector3 Origin { get; private set; }
+        public float Radius { get; private set; }
+        public float Height { get; private set; }
 
-        public CylSphere(AceVector3 origin, float radius, float height)
+        public void Unpack(BinaryReader reader)
         {
-            this.Origin = origin;
-            this.Radius = radius;
-            this.Height = height;
+            var x = reader.ReadSingle();
+            var y = reader.ReadSingle();
+            var z = reader.ReadSingle();
+            Origin = new Vector3(x, y, z);
+
+            Radius = reader.ReadSingle();
+            Height = reader.ReadSingle();
         }
     }
 }
