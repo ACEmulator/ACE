@@ -779,7 +779,7 @@ namespace ACE.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
-                var cellLandblock = CellLandblock.ReadFromDat(position.Cell);
+                var cellLandblock = CellLandblock.ReadFromDatUsingLandblock(position.Cell);
                 position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)

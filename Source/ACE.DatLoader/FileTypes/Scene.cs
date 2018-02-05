@@ -11,12 +11,12 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Scene)]
     public class Scene : IUnpackable
     {
-        public uint SceneId { get; private set; }
+        public uint Id { get; private set; }
         public List<ObjectDesc> Objects { get; } = new List<ObjectDesc>();
 
         public void Unpack(BinaryReader reader)
         {
-            SceneId = reader.ReadUInt32();
+            Id = reader.ReadUInt32();
 
             Objects.Unpack(reader);
         }

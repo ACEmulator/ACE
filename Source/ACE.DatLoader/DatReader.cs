@@ -73,50 +73,11 @@ namespace ACE.DatLoader
             return data;
         }
 
-        private short ReadInt16()
-        {
-            short data = BitConverter.ToInt16(Buffer, Offset);
-            Offset += 2;
-            return data;
-        }
-
-        public byte ReadByte()
-        {
-            byte data = Buffer[Offset];
-            Offset += 1;
-            return data;
-        }
-
         public float ReadSingle()
         {
             float data = BitConverter.ToSingle(Buffer, Offset);
             Offset += 4;
             return data;
-        }
-
-        public double ReadDouble()
-        {
-            double data = BitConverter.ToDouble(Buffer, Offset);
-            Offset += 8;
-            return data;
-        }
-
-        /// <summary>
-        /// Returns a string as defined by the first byte's length and removes the obfuscation
-        /// </summary>
-        public string ReadObfuscatedString()
-        {
-            int stringlength = ReadInt16();
-            byte[] thestring = new byte[stringlength];
-            Array.Copy(Buffer, Offset, thestring, 0, stringlength);
-            for (var i = 0; i < stringlength; i++)
-            {
-                // flip the bytes in the string to undo the obfuscation: i.e. 0xAB => 0xBA
-                thestring[i] = (byte)((thestring[i] >> 4) | ((thestring[i] << 4) & 0x00FF));
-            }
-            
-            Offset += stringlength;
-            return System.Text.Encoding.Default.GetString(thestring);
         }
 
         public void AlignBoundary()
