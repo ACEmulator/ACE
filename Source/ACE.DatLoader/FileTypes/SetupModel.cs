@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
-using ACE.Entity;
 using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
@@ -22,7 +22,7 @@ namespace ACE.DatLoader.FileTypes
         public bool HasPhysicsBSP { get; private set; }
         public List<uint> Parts { get; } = new List<uint>();
         public List<uint> ParentIndex { get; } = new List<uint>();
-        public List<AceVector3> DefaultScale { get; } = new List<AceVector3>();
+        public List<Vector3> DefaultScale { get; } = new List<Vector3>();
         public Dictionary<int, LocationType> HoldingLocations { get; } = new Dictionary<int, LocationType>();
         public Dictionary<int, LocationType> ConnectionPoints { get; } = new Dictionary<int, LocationType>();
         public Dictionary<int, PlacementType> PlacementFrames { get; } = new Dictionary<int, PlacementType>();
@@ -64,7 +64,7 @@ namespace ACE.DatLoader.FileTypes
             if ((Bitfield & 2) != 0)
             {
                 for (int i = 0; i < numParts; i++)
-                    DefaultScale.Add(new AceVector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()));
+                    DefaultScale.Add(reader.ReadVector3());
             }
 
             HoldingLocations.Unpack(reader);
