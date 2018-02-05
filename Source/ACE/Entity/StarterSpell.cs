@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,5 +17,8 @@ namespace ACE.Entity
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("specializedOnly")]
+        public bool SpecializedOnly { get; set; }
     }
 }
