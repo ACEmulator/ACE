@@ -45,7 +45,7 @@ namespace ACE.Entity
             LongDesc = "Use this item to attempt to learn its spell.";
 
             Power = table.Spells[SpellId].Power;
-            School = (MagicSchool)table.Spells[SpellId].School;
+            School = table.Spells[SpellId].School;
 
             Burden = 30;
 
