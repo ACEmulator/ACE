@@ -15,8 +15,8 @@ namespace ACE.DatLoader
             {
                 string thisFolder;
 
-                if (entry.Value.GetFileType() != null)
-                    thisFolder = Path.Combine(path, entry.Value.GetFileType().ToString());
+                if (entry.Value.GetFileType(DatDatabaseType.Portal) != null)
+                    thisFolder = Path.Combine(path, entry.Value.GetFileType(DatDatabaseType.Portal).ToString());
                 else
                     thisFolder = Path.Combine(path, "UnknownType");
 

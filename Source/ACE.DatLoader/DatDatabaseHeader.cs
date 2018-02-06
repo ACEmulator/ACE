@@ -2,6 +2,9 @@ using System.IO;
 
 namespace ACE.DatLoader
 {
+    /// <summary>
+    /// DiskFileInfo_t in the client
+    /// </summary>
     public class DatDatabaseHeader : IUnpackable
     {
         public uint FileType { get; private set; }

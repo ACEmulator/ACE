@@ -94,7 +94,7 @@ namespace ACE.Command.Handlers
             Console.WriteLine($"Exporting portal.dat WAV files to {exportDir}.  This may take a while.");
             foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
             {
-                if (entry.Value.GetFileType() == DatFileType.Wave)
+                if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Wave)
                     DatLoader.FileTypes.Wave.ExportWave(entry.Value.ObjectId, exportDir);
             }
             Console.WriteLine($"Export to {exportDir} complete.");

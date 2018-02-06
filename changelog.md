@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-06
+[Mag-nus]
+* ACE.DatLoader DatDirectory reading code cleaned up.
+
 ### 2018-02-05
 [Mag-nus]
 * ACE.DatLoader now reads the full header. FileType is no longer passed as an arg and pulled from the file headers.
