@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
@@ -9,7 +10,7 @@ namespace ACE.DatLoader.Entity
     {
         public string Name { get; private set; }
         public string Desc { get; private set; }
-        public uint School { get; private set; }
+        public MagicSchool School { get; private set; }
         public uint Icon { get; private set; }
         public uint Category { get; private set; } // All related levels of the same spell. Same category spells will not stack. (Strength Self I & Strength Self II)
         public uint Bitfield { get; private set; }
@@ -20,7 +21,7 @@ namespace ACE.DatLoader.Entity
         public float SpellEconomyMod { get; private set; } // A legacy of a bygone era
         public uint FormulaVersion { get; private set; }
         public uint ComponentLoss { get; private set; } // Burn rate
-        public uint MetaSpellType { get; private set; }
+        public SpellType MetaSpellType { get; private set; }
         public uint MetaSpellId { get; private set; } // Just the spell id again
         
         // Only on EnchantmentSpell/FellowshipEnchantmentSpells
@@ -60,7 +61,7 @@ namespace ACE.DatLoader.Entity
             reader.AlignBoundary();
             Desc = reader.ReadObfuscatedString();
             reader.AlignBoundary();
-            School = reader.ReadUInt32();
+            School = (MagicSchool)reader.ReadUInt32();
             Icon = reader.ReadUInt32();
             Category = reader.ReadUInt32();
             Bitfield = reader.ReadUInt32();
@@ -71,18 +72,18 @@ namespace ACE.DatLoader.Entity
             SpellEconomyMod = reader.ReadSingle();
             FormulaVersion = reader.ReadUInt32();
             ComponentLoss = reader.ReadUInt32();
-            MetaSpellType = reader.ReadUInt32();
+            MetaSpellType = (SpellType)reader.ReadUInt32();
             MetaSpellId = reader.ReadUInt32();
 
             switch (MetaSpellType)
             {
-                case 1:     // SpellType.Enchantment
-                case 12:    // SpellType.FellowEnchantment
+                case SpellType.Enchantment:
+                case SpellType.FellowEnchantment:
                     Duration = reader.ReadDouble();
                     DegradeModifier = reader.ReadSingle();
                     DegradeLimit = reader.ReadSingle();
                     break;
-                case 7:     // SpellType.PortalSummon
+                case SpellType.PortalSummon:
                     PortalLifetime = reader.ReadDouble();
                     break;
             }
