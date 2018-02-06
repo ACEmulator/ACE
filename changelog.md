@@ -2,6 +2,7 @@
 
 ### 2018-02-05
 [Mag-nus]
+* ACE.DatLoader now reads the full header. FileType is no longer passed as an arg and pulled from the file headers.
 * ACE.DatLoader full conversion to the IUnpackable interface completed.
 
 ### 2018-02-04

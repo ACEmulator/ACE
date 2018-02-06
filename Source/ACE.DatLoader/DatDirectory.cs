@@ -6,16 +6,16 @@ namespace ACE.DatLoader
 {
     public class DatDirectory
     {
-        private readonly uint rootSectorOffset;
+        private uint rootSectorOffset { get; }
 
-        private uint fileCount;
+        private uint blockSize { get; }
 
-        private readonly int sectorSize;
+        public DatDatabaseType DatType { get; }
 
-        public DatDirectory(uint rootSectorOffset, int sectorSize, DatDatabaseType type, FileStream stream)
+        public DatDirectory(uint rootSectorOffset, uint blockSize, DatDatabaseType type, FileStream stream)
         {
             this.rootSectorOffset = rootSectorOffset;
-            this.sectorSize = sectorSize;
+            this.blockSize = blockSize;
             DatType = type;
             Read(stream);
         }
@@ -24,18 +24,16 @@ namespace ACE.DatLoader
 
         public List<DatDirectory> Directories { get; } = new List<DatDirectory>();
 
-        public DatDatabaseType DatType { get; }
-
         private void Read(FileStream stream)
         {
-            byte[] sectorHeader = new byte[sectorSize];
+            byte[] sectorHeader = new byte[blockSize];
             stream.Seek(rootSectorOffset, SeekOrigin.Begin);
 
             // read the first sector header, which contains subdirectories and file count
             stream.Read(sectorHeader, 0, sectorHeader.Length);
 
             uint nextSector = BitConverter.ToUInt32(sectorHeader, 0);
-            fileCount = BitConverter.ToUInt32(sectorHeader, 252);
+            var fileCount = BitConverter.ToUInt32(sectorHeader, 252);
 
             // directory is allowed to have files + 1 subdirectories
             int directories = 0;
@@ -51,23 +49,22 @@ namespace ACE.DatLoader
 
             // directories done, on to files
 
-            int totalSectors = 1;
-            int arrayUsage = 0;
+            uint arrayUsage = 0;
 
             // maximum size we'll need
-            byte[] sector = new byte[(sectorSize - 4) * 7];
+            byte[] sector = new byte[(blockSize - 4) * 7];
 
             // copy over content from the first sector if it is bigger than just the header (happens in portal.dat, but not cell.dat)
-            if (sectorSize > 256)
+            if (blockSize > 256)
             {
-                Array.Copy(sectorHeader, 256, sector, 0, sectorSize - 256);
-                arrayUsage += (sectorSize - 256);
+                Array.Copy(sectorHeader, 256, sector, 0, blockSize - 256);
+                arrayUsage += (blockSize - 256);
             }
 
             // separate buffer for the next sector location
             byte[] nextSectorBuffer = new byte[4];
 
-            while (nextSector > 0 && totalSectors < 6)
+            while (nextSector > 0)
             {
                 // go to this sector
                 stream.Seek(nextSector, SeekOrigin.Begin);
@@ -76,12 +73,11 @@ namespace ACE.DatLoader
                 stream.Read(nextSectorBuffer, 0, sizeof(uint));
 
                 // read this sector
-                stream.Read(sector, arrayUsage, (sectorSize - 4));
+                stream.Read(sector, (int)arrayUsage, (int)(blockSize - 4));
 
                 // maths for next loop
-                arrayUsage += (sectorSize - 4);
+                arrayUsage += (blockSize - 4);
                 nextSector = BitConverter.ToUInt32(nextSectorBuffer, 0);
-                totalSectors++;
             }
 
             // sector has all the daters
@@ -95,7 +91,7 @@ namespace ACE.DatLoader
 
             // files done, go back and iterate directories
             foreach (uint directoryOffset in directoryList)
-                Directories.Add(new DatDirectory(directoryOffset, sectorSize, DatType, stream));
+                Directories.Add(new DatDirectory(directoryOffset, blockSize, DatType, stream));
         }
 
         public void AddFilesToList(Dictionary<uint, DatFile> dicFiles)

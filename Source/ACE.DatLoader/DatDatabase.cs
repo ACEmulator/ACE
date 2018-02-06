@@ -10,6 +10,14 @@ namespace ACE.DatLoader
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static readonly uint DAT_HEADER_OFFSET = 0x140;
+
+
+        public string FilePath { get; }
+
+
+        public DatDatabaseHeader Header { get; } = new DatDatabaseHeader();
+
         public DatDirectory RootDirectory { get; }
 
         public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
@@ -17,47 +25,35 @@ namespace ACE.DatLoader
         // So we can cache the read files. The read methods in the FileTypes will handle the caching and casting.
         public Dictionary<uint, object> FileCache { get; } = new Dictionary<uint, object>();
 
-        public DatDatabaseType DatType { get; }
 
-        public string FilePath { get; }
-
-        public uint SectorSize { get; }
-
-        public DatDatabase(string filePath, DatDatabaseType type)
+        public DatDatabase(string filePath)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException(filePath);
 
             FilePath = filePath;
-            DatType = type;
 
             using (FileStream stream = new FileStream(filePath, FileMode.Open))
             {
-                byte[] sectorSizeBuffer = new byte[4];
-                stream.Seek(0x144u, SeekOrigin.Begin);
-                stream.Read(sectorSizeBuffer, 0, sizeof(uint));
-                SectorSize = BitConverter.ToUInt32(sectorSizeBuffer, 0);
+                stream.Seek(DAT_HEADER_OFFSET, SeekOrigin.Begin);
+                using (var reader = new BinaryReader(stream, System.Text.Encoding.Default, true))
+                    Header.Unpack(reader);
 
-                stream.Seek(0x160u, SeekOrigin.Begin);
-                byte[] firstDirBuffer = new byte[4];
-                stream.Read(firstDirBuffer, 0, sizeof(uint));
-                uint firstDirectoryOffset = BitConverter.ToUInt32(firstDirBuffer, 0);
-
-                RootDirectory = new DatDirectory(firstDirectoryOffset, Convert.ToInt32(SectorSize), DatType, stream);
+                RootDirectory = new DatDirectory(Header.BTree, Header.BlockSize, Header.DataSet, stream);
             }
 
             RootDirectory.AddFilesToList(AllFiles);
         }
 
-        public DatReader GetReaderForFile(uint object_id)
+        public DatReader GetReaderForFile(uint fileId)
         {
-            if (AllFiles.ContainsKey(object_id))
+            if (AllFiles.ContainsKey(fileId))
             {
-                DatReader dr = new DatReader(FilePath, AllFiles[object_id].FileOffset, AllFiles[object_id].FileSize, SectorSize);
+                DatReader dr = new DatReader(FilePath, AllFiles[fileId].FileOffset, AllFiles[fileId].FileSize, Header.BlockSize);
                 return dr;                    
             }
 
-            log.InfoFormat("Unable to find object_id {0} in {1}", object_id, Enum.GetName(typeof(DatDatabaseType), DatType));
+            log.InfoFormat("Unable to find object_id {0} in {1}", fileId, Enum.GetName(typeof(DatDatabaseType), Header.DataSet));
             return null;
         }
     }

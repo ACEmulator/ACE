@@ -20,7 +20,7 @@ namespace ACE.DatLoader.Tests
         [TestMethod]
         public void LoadCellDat_NoExceptions()
         {
-            DatDatabase dat = new DatDatabase(cellDatLocation, DatDatabaseType.Cell);
+            DatDatabase dat = new DatDatabase(cellDatLocation);
             int count = dat.AllFiles.Count();
             //Assert.AreEqual(ExpectedCellDatFileCount, count);
             Assert.IsTrue(expectedCellDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedCellDatFileCount}, Actual: {count}");
@@ -29,7 +29,7 @@ namespace ACE.DatLoader.Tests
         [TestMethod]
         public void LoadPortalDat_NoExceptions()
         {
-            DatDatabase dat = new DatDatabase(portalDatLocation, DatDatabaseType.Portal);
+            DatDatabase dat = new DatDatabase(portalDatLocation);
             int count = dat.AllFiles.Count();
             //Assert.AreEqual(expectedPortalDatFileCount, count);
             Assert.IsTrue(expectedPortalDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedPortalDatFileCount}, Actual: {count}");
@@ -45,7 +45,7 @@ namespace ACE.DatLoader.Tests
             if (types.Count == 0)
                 throw new Exception("Failed to locate any types with DatFileTypeAttribute.");
 
-            DatDatabase dat = new DatDatabase(cellDatLocation, DatDatabaseType.Cell);
+            DatDatabase dat = new DatDatabase(cellDatLocation);
 
             foreach (var kvp in dat.AllFiles)
             {
@@ -78,7 +78,7 @@ namespace ACE.DatLoader.Tests
                 if (unpackable == null)
                     throw new Exception($"Class for fileType: {fileType} does not implement IUnpackable.");
 
-                var datReader = new DatReader(cellDatLocation, kvp.Value.FileOffset, kvp.Value.FileSize, dat.SectorSize);
+                var datReader = new DatReader(cellDatLocation, kvp.Value.FileOffset, kvp.Value.FileSize, dat.Header.BlockSize);
 
                 using (var memoryStream = new MemoryStream(datReader.Buffer))
                 using (var reader = new BinaryReader(memoryStream))
@@ -100,7 +100,7 @@ namespace ACE.DatLoader.Tests
             if (types.Count == 0)
                 throw new Exception("Failed to locate any types with DatFileTypeAttribute.");
 
-            DatDatabase dat = new DatDatabase(portalDatLocation, DatDatabaseType.Portal);
+            DatDatabase dat = new DatDatabase(portalDatLocation);
 
             foreach (var kvp in dat.AllFiles)
             {
@@ -156,7 +156,7 @@ namespace ACE.DatLoader.Tests
                 if (unpackable == null)
                     throw new Exception($"Class for fileType: {fileType} does not implement IUnpackable.");
 
-                var datReader = new DatReader(portalDatLocation, kvp.Value.FileOffset, kvp.Value.FileSize, dat.SectorSize);
+                var datReader = new DatReader(portalDatLocation, kvp.Value.FileOffset, kvp.Value.FileSize, dat.Header.BlockSize);
 
                 using (var memoryStream = new MemoryStream(datReader.Buffer))
                 using (var reader = new BinaryReader(memoryStream))
