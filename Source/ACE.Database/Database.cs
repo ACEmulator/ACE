@@ -1191,14 +1191,6 @@ namespace ACE.Database
                 else
                     RunQuery(query, databaseName);
             }
-            catch (SqlException ex)
-            {
-                var errMsg = $"SQL Error in the downloaded data: {ex.Message}";
-#if DEBUG
-                Console.WriteLine(errMsg);
-#endif
-                return errMsg;
-            }
             catch (MySqlException ex)
             {
                 var errMsg = "Error: ";
