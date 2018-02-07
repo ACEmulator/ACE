@@ -1,23 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+
+using log4net;
+
 using ACE.Database;
-using ACE.Factories;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum.Properties;
+using ACE.Factories;
 using ACE.Network;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
 using ACE.Managers;
-using log4net;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
-using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using System.Diagnostics;
 using ACE.Network.Enum;
 
 namespace ACE.Entity
@@ -590,15 +592,16 @@ namespace ACE.Entity
         {
             // until we are max level we must make sure that we send
             XpTable xpTable = XpTable.ReadFromDat();
-            var chart = xpTable.LevelingXpChart;
-            CharacterLevel maxLevel = chart.Levels.Last();
-            if (Character.Level != maxLevel.Level)
+
+            var maxLevel = xpTable.CharacterLevelXPList.Count;
+            var maxLevelXp = xpTable.CharacterLevelXPList.Last();
+
+            if (Character.Level != maxLevel)
             {
-                ulong amountLeftToEnd = maxLevel.TotalXp - Character.TotalExperience;
+                ulong amountLeftToEnd = maxLevelXp - Character.TotalExperience;
                 if (amount > amountLeftToEnd)
-                {
                     amount = amountLeftToEnd;
-                }
+
                 Character.GrantXp(amount);
                 CheckForLevelup();
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, Character.TotalExperience);
@@ -663,27 +666,29 @@ namespace ACE.Entity
             //           GrantXp()
             //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
             //           XP Updates?
-            var startingLevel = Character.Level;
             XpTable xpTable = XpTable.ReadFromDat();
-            var chart = xpTable.LevelingXpChart;
-            CharacterLevel maxLevel = chart.Levels.Last();
+
+            var startingLevel = Character.Level;
+            var maxLevel = xpTable.CharacterLevelXPList.Count;
             bool creditEarned = false;
-            if (Character.Level == maxLevel.Level) return;
+
+            if (Character.Level == maxLevel) return;
 
             // increases until the correct level is found
-            while (chart.Levels[Convert.ToInt32(Character.Level)].TotalXp <= Character.TotalExperience)
+            while (xpTable.CharacterLevelXPList[Character.Level + 1] <= Character.TotalExperience)
             {
                 Character.Level++;
-                CharacterLevel newLevel = chart.Levels.FirstOrDefault(item => item.Level == Character.Level);
+
                 // increase the skill credits if the chart allows this level to grant a credit
-                if (newLevel.GrantsSkillPoint)
+                if (xpTable.CharacterLevelSkillCreditList[Character.Level] > 0)
                 {
-                    Character.AvailableSkillCredits++;
-                    Character.TotalSkillCredits++;
+                    Character.AvailableSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Character.Level];
+                    Character.TotalSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Character.Level];
                     creditEarned = true;
                 }
+
                 // break if we reach max
-                if (Character.Level == maxLevel.Level)
+                if (Character.Level == maxLevel)
                 {
                     PlayParticleEffect(Enum.PlayScript.WeddingBliss, Guid);
                     break;
@@ -696,14 +701,25 @@ namespace ACE.Entity
                 string skillCredits = $"{Character.AvailableSkillCredits}";
                 string xpAvailable = $"{Character.AvailableExperience:#,###0}";
                 var levelUp = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Level, Character.Level);
-                string levelUpMessageText = (Character.Level == maxLevel.Level) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
+                string levelUpMessageText = (Character.Level == maxLevel) ? $"You have reached the maximum level of {level}!" : $"You are now level {level}!";
                 var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
                 string xpUpdateText = (Character.AvailableSkillCredits > 0) ? $"You have {xpAvailable} experience points and {skillCredits} skill credits available to raise skills and attributes." : $"You have {xpAvailable} experience points available to raise skills and attributes.";
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
                 var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
-                if (Character.Level != maxLevel.Level && !creditEarned)
+
+                if (Character.Level != maxLevel && !creditEarned)
                 {
-                    string nextCreditAtText = $"You will earn another skill credit at {chart.Levels.Where(item => item.Level > Character.Level).OrderBy(item => item.Level).First(item => item.GrantsSkillPoint).Level}";
+                    var nextLevelWithCredits = 0;
+                    for (int i = Character.Level + 1; i <= maxLevel; i++)
+                    {
+                        if (xpTable.CharacterLevelSkillCreditList[i] > 0)
+                        {
+                            nextLevelWithCredits = i;
+                            break;
+                        }
+                    }
+
+                    string nextCreditAtText = $"You will earn another skill credit at {nextLevelWithCredits}";
                     var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
                 }
@@ -711,6 +727,7 @@ namespace ACE.Entity
                 {
                     Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
                 }
+
                 // play level up effect
                 PlayParticleEffect(Enum.PlayScript.LevelUp, Guid);
             }
@@ -805,38 +822,40 @@ namespace ACE.Entity
         private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
         {
             uint result = 0;
-            ExperienceExpenditureChart chart;
+
+            List<uint> xpList;
             XpTable xpTable = XpTable.ReadFromDat();
+
             switch (ability.Ability)
             {
-                case Enum.Ability.Health:
-                case Enum.Ability.Stamina:
-                case Enum.Ability.Mana:
-                    chart = xpTable.VitalXpChart;
+                case Ability.Health:
+                case Ability.Stamina:
+                case Ability.Mana:
+                    xpList = xpTable.VitalXpList;
                     break;
                 default:
-                    chart = xpTable.AbilityXpChart;
+                    xpList = xpTable.AbilityXpList;
                     break;
             }
 
             // do not advance if we cannot spend xp to rank up our skill by 1 point
-            if (ability.Ranks >= (chart.Ranks.Count - 1))
+            if (ability.Ranks >= (xpList.Count - 1))
                 return result;
 
             uint rankUps = 0u;
-            uint currentXp = chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
-            uint rank1 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 1].XpFromPreviousRank;
-            uint rank10 = 0u;
+            uint currentRankXp = xpList[Convert.ToInt32(ability.Ranks)];
+            uint rank1 = xpList[Convert.ToInt32(ability.Ranks) + 1] - currentRankXp;
+            uint rank10;
             int rank10Offset = 0;
 
-            if (ability.Ranks + 10 >= (chart.Ranks.Count))
+            if (ability.Ranks + 10 >= (xpList.Count))
             {
-                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (chart.Ranks.Count - 1));
-                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (xpList.Count - 1));
+                rank10 = xpList[Convert.ToInt32(ability.Ranks) + rank10Offset] - currentRankXp;
             }
             else
             {
-                rank10 = chart.Ranks[Convert.ToInt32(ability.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(ability.Ranks)].TotalXp;
+                rank10 = xpList[Convert.ToInt32(ability.Ranks) + 10] - currentRankXp;
             }
 
             if (amount == rank1)
@@ -844,13 +863,9 @@ namespace ACE.Entity
             else if (amount == rank10)
             {
                 if (rank10Offset > 0u)
-                {
                     rankUps = Convert.ToUInt32(rank10Offset);
-                }
                 else
-                {
                     rankUps = 10u;
-                }
             }
 
             if (rankUps > 0)
@@ -872,18 +887,18 @@ namespace ACE.Entity
         /// <returns>Returns true if ability is max rank; false if ability is below max rank</returns>
         private bool IsAbilityMaxRank(uint rank, bool isAbilityVitals)
         {
-            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+            List<uint> xpList;
             XpTable xpTable = XpTable.ReadFromDat();
 
             if (isAbilityVitals)
-                xpChart = xpTable.VitalXpChart;
+                xpList = xpTable.VitalXpList;
             else
-                xpChart = xpTable.AbilityXpChart;
+                xpList = xpTable.AbilityXpList;
 
-            if (rank == (xpChart.Ranks.Count - 1))
+            if (rank == (xpList.Count - 1))
                 return true;
-            else
-                return false;
+
+            return false;
         }
 
         /// <summary>
@@ -892,18 +907,20 @@ namespace ACE.Entity
         /// <returns>Returns true if skill is max rank; false if skill is below max rank</returns>
         private bool IsSkillMaxRank(uint rank, SkillStatus status)
         {
-            ExperienceExpenditureChart xpChart = new ExperienceExpenditureChart();
+            List<uint> xpList;
             XpTable xpTable = XpTable.ReadFromDat();
 
             if (status == SkillStatus.Trained)
-                xpChart = xpTable.TrainedSkillXpChart;
+                xpList = xpTable.TrainedSkillXpList;
             else if (status == SkillStatus.Specialized)
-                xpChart = xpTable.SpecializedSkillXpChart;
-
-            if (rank == (xpChart.Ranks.Count - 1))
-                return true;
+                xpList = xpTable.SpecializedSkillXpList;
             else
-                return false;
+                throw new Exception();
+
+            if (rank == (xpList.Count - 1))
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -1450,34 +1467,35 @@ namespace ACE.Entity
         private uint SpendSkillXp(CreatureSkill skill, uint amount)
         {
             uint result = 0u;
-            ExperienceExpenditureChart chart;
+
+            List<uint> xpList;
             XpTable xpTable = XpTable.ReadFromDat();
 
             if (skill.Status == SkillStatus.Trained)
-                chart = xpTable.TrainedSkillXpChart;
+                xpList = xpTable.TrainedSkillXpList;
             else if (skill.Status == SkillStatus.Specialized)
-                chart = xpTable.SpecializedSkillXpChart;
+                xpList = xpTable.SpecializedSkillXpList;
             else
                 return result;
 
             // do not advance if we cannot spend xp to rank up our skill by 1 point
-            if (skill.Ranks >= (chart.Ranks.Count - 1))
+            if (skill.Ranks >= (xpList.Count - 1))
                 return result;
 
             uint rankUps = 0u;
-            uint currentXp = chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
-            uint rank1 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 1].XpFromPreviousRank;
-            uint rank10 = 0u;
+            uint currentRankXp = xpList[Convert.ToInt32(skill.Ranks)];
+            uint rank1 = xpList[Convert.ToInt32(skill.Ranks) + 1] - currentRankXp;
+            uint rank10;
             int rank10Offset = 0;
 
-            if (skill.Ranks + 10 >= (chart.Ranks.Count))
+            if (skill.Ranks + 10 >= (xpList.Count))
             {
-                rank10Offset = 10 - (Convert.ToInt32(skill.Ranks + 10) - (chart.Ranks.Count - 1));
-                rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + rank10Offset].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+                rank10Offset = 10 - (Convert.ToInt32(skill.Ranks + 10) - (xpList.Count - 1));
+                rank10 = xpList[Convert.ToInt32(skill.Ranks) + rank10Offset] - currentRankXp;
             }
             else
             {
-                rank10 = chart.Ranks[Convert.ToInt32(skill.Ranks) + 10].TotalXp - chart.Ranks[Convert.ToInt32(skill.Ranks)].TotalXp;
+                rank10 = xpList[Convert.ToInt32(skill.Ranks) + 10] - currentRankXp;
             }
 
             if (amount == rank1)
