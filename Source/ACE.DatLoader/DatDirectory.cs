@@ -14,11 +14,6 @@ namespace ACE.DatLoader
 
         public List<DatDirectory> Directories { get; } = new List<DatDirectory>();
 
-        /// <summary>
-        /// This is just "wrapper" around DatDirectoryHeader.Entries limited by DatDirectoryHeader.EntryCount
-        /// </summary>
-        public Dictionary<uint, DatFile> Files { get; } = new Dictionary<uint, DatFile>();
-
 
         public DatDirectory(uint rootSectorOffset, uint blockSize)
         {
@@ -44,17 +39,14 @@ namespace ACE.DatLoader
                     Directories.Add(directory);
                 }
             }
-
-            for (int i = 0; i < DatDirectoryHeader.EntryCount; i++)
-                Files.Add(DatDirectoryHeader.Entries[i].ObjectId, DatDirectoryHeader.Entries[i]);
         }
 
         public void AddFilesToList(Dictionary<uint, DatFile> dicFiles)
         {
             Directories.ForEach(d => d.AddFilesToList(dicFiles));
 
-            foreach (KeyValuePair<uint, DatFile> item in Files)
-                dicFiles[item.Key] = item.Value;
+            for (int i = 0; i < DatDirectoryHeader.EntryCount; i++)
+                dicFiles[DatDirectoryHeader.Entries[i].ObjectId] = DatDirectoryHeader.Entries[i];
         }
     }
 }
