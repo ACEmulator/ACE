@@ -60,8 +60,8 @@ namespace ACE.DatLoader.FileTypes
         public static XpTable ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
-                return (XpTable)DatManager.PortalDat.FileCache[FILE_ID];
+            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
+                return (XpTable)result;
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
 

@@ -49,9 +49,9 @@ namespace ACE.DatLoader
 
         public DatReader GetReaderForFile(uint fileId)
         {
-            if (AllFiles.ContainsKey(fileId))
+            if (AllFiles.TryGetValue(fileId, out var file))
             {
-                DatReader dr = new DatReader(FilePath, AllFiles[fileId].FileOffset, AllFiles[fileId].FileSize, Header.BlockSize);
+                DatReader dr = new DatReader(FilePath, file.FileOffset, file.FileSize, Header.BlockSize);
                 return dr;                    
             }
 

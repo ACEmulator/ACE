@@ -30,8 +30,8 @@ namespace ACE.DatLoader.FileTypes
         public static Wave ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-                return (Wave)DatManager.PortalDat.FileCache[fileId];
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (Wave)result;
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 

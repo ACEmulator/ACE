@@ -72,8 +72,8 @@ namespace ACE.DatLoader.FileTypes
         public static EnvCell ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.CellDat.FileCache.ContainsKey(fileId))
-                return (EnvCell)DatManager.CellDat.FileCache[fileId];
+            if (DatManager.CellDat.FileCache.TryGetValue(fileId, out var result))
+                return (EnvCell)result;
 
             DatReader datReader = DatManager.CellDat.GetReaderForFile(fileId);
 
