@@ -89,8 +89,8 @@ namespace ACE.DatLoader.FileTypes
         public static CellLandblock ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.CellDat.FileCache.ContainsKey(fileId))
-                return (CellLandblock)DatManager.CellDat.FileCache[fileId];
+            if (DatManager.CellDat.FileCache.TryGetValue(fileId, out var result))
+                return (CellLandblock)result;
 
             DatReader datReader = DatManager.CellDat.GetReaderForFile(fileId);
 

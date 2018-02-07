@@ -26,8 +26,8 @@ namespace ACE.DatLoader.FileTypes
         public static SpellTable ReadFromDat()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(FILE_ID))
-                return (SpellTable)DatManager.PortalDat.FileCache[FILE_ID];
+            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
+                return (SpellTable)result;
 
             // Create the datReader for the proper file
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);

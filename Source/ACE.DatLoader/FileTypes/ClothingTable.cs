@@ -37,8 +37,8 @@ namespace ACE.DatLoader.FileTypes
         public static ClothingTable ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-                return (ClothingTable)DatManager.PortalDat.FileCache[fileId];
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (ClothingTable)result;
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
@@ -56,8 +56,8 @@ namespace ACE.DatLoader.FileTypes
 
         public uint GetIcon(uint palEffectIdx)
         {
-            if (ClothingSubPalEffects.ContainsKey(palEffectIdx))
-                return (ClothingSubPalEffects[palEffectIdx].Icon);
+            if (ClothingSubPalEffects.TryGetValue(palEffectIdx, out CloSubPalEffect result))
+                return result.Icon;
 
             return 0;
         }

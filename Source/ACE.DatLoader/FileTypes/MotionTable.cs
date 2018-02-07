@@ -37,8 +37,8 @@ namespace ACE.DatLoader.FileTypes
         public static MotionTable ReadFromDat(uint fileId)
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-                return (MotionTable)DatManager.PortalDat.FileCache[fileId];
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (MotionTable)result;
 
             DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
 
