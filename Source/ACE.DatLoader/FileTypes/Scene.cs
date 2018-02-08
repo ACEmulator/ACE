@@ -9,15 +9,36 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x12. 
     /// </summary>
     [DatFileType(DatFileType.Scene)]
-    public class Scene : FileType
+    public class Scene : IUnpackable
     {
+        public uint Id { get; private set; }
         public List<ObjectDesc> Objects { get; } = new List<ObjectDesc>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
             Objects.Unpack(reader);
+        }
+
+        public static Scene ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (Scene)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new Scene();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

@@ -6,20 +6,41 @@ using ACE.DatLoader.Entity;
 namespace ACE.DatLoader.FileTypes
 {
     [DatFileType(DatFileType.SpellComponentTable)]
-    public class SpellComponentsTable : FileType
+    public class SpellComponentsTable : IUnpackable
     {
-        internal const uint FILE_ID = 0x0E00000F;
+        private const uint FILE_ID = 0x0E00000F;
 
         public Dictionary<uint, SpellComponentBase> SpellComponents { get; } = new Dictionary<uint, SpellComponentBase>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
             uint numComps = reader.ReadUInt16(); // Should be 163 or 0xA3
             reader.AlignBoundary();
 
             SpellComponents.Unpack(reader, numComps);
+        }
+
+        public static SpellComponentsTable ReadFromDat()
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
+                return (SpellComponentsTable)result;
+
+            // Create the datReader for the proper file
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
+
+            var obj = new SpellComponentsTable();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
+
+            return obj;
         }
 
         // TODO - Complete this function.

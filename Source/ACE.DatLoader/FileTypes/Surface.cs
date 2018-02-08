@@ -7,8 +7,9 @@ namespace ACE.DatLoader.FileTypes
     /// As the name implies this contains surface info for an object. Either texture reference or color and whatever effects applied to it.
     /// </summary>
     [DatFileType(DatFileType.Surface)]
-    public class Surface : FileType
+    public class Surface : IUnpackable
     {
+        public uint Type { get; private set; }
         public uint OrigTextureId { get; private set; }
         public uint OrigPaletteId { get; private set; }
         public uint ColorValue { get; private set; }
@@ -16,11 +17,11 @@ namespace ACE.DatLoader.FileTypes
         public float Luminosity { get; private set; }
         public float Diffuse { get; private set; }
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            Type = reader.ReadUInt32();
 
-            if ((Id & 6) != 0)
+            if ((Type & 6) != 0)
             {
                 OrigTextureId = reader.ReadUInt32();
                 OrigPaletteId = reader.ReadUInt32();
@@ -33,6 +34,26 @@ namespace ACE.DatLoader.FileTypes
             Translucency    = reader.ReadSingle();
             Luminosity      = reader.ReadSingle();
             Diffuse         = reader.ReadSingle();
+        }
+
+        public static Surface ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (Surface)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new Surface();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

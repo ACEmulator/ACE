@@ -13,8 +13,9 @@ namespace ACE.DatLoader.FileTypes
     /// Thanks to Steven Nygard and his work on the Mac program ACDataTools that were used to help debug & verify some of this data.
     /// </remarks>
     [DatFileType(DatFileType.Clothing)]
-    public class ClothingTable : FileType
+    public class ClothingTable : IUnpackable
     {
+        public uint Id { get; private set; }
         /// <summary>
         /// Key is the setup model id
         /// </summary>
@@ -24,13 +25,33 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public Dictionary<uint, CloSubPalEffect> ClothingSubPalEffects { get; } = new Dictionary<uint, CloSubPalEffect>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
             ClothingBaseEffects.UnpackPackedHashTable(reader);
 
             ClothingSubPalEffects.UnpackPackedHashTable(reader);
+        }
+
+        public static ClothingTable ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (ClothingTable)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new ClothingTable();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
 
         public uint GetIcon(uint palEffectIdx)

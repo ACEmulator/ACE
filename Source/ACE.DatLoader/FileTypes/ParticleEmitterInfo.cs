@@ -7,8 +7,9 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x32. 
     /// </summary>
     [DatFileType(DatFileType.ParticleEmitter)]
-    public class ParticleEmitterInfo : FileType
+    public class ParticleEmitterInfo : IUnpackable
     {
+        public uint Id { get; private set; }
         public int EmitterType { get; private set; }
         public int ParticleType { get; private set; }
         public uint GfxObjId { get; private set; }
@@ -40,7 +41,7 @@ namespace ACE.DatLoader.FileTypes
         public float StartTrans { get; private set; }
         public float FinalTrans { get; private set; }
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
@@ -85,6 +86,26 @@ namespace ACE.DatLoader.FileTypes
             TransRand   = reader.ReadSingle();
             StartTrans  = reader.ReadSingle();
             FinalTrans  = reader.ReadSingle();
+        }
+
+        public static ParticleEmitterInfo ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (ParticleEmitterInfo)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new ParticleEmitterInfo();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

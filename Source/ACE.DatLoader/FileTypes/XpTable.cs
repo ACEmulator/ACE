@@ -7,9 +7,9 @@ namespace ACE.DatLoader.FileTypes
     /// Reads and stores the XP Tables from the client_portal.dat (file 0x0E000018).
     /// </summary>
     [DatFileType(DatFileType.XpTable)]
-    public class XpTable : FileType
+    public class XpTable : IUnpackable
     {
-        internal const uint FILE_ID = 0x0E000018;
+        private const uint FILE_ID = 0x0E000018;
 
         public List<uint> AbilityXpList { get; } = new List<uint>();
         public List<uint> VitalXpList { get; } = new List<uint>();
@@ -26,9 +26,9 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public List<uint> CharacterLevelSkillCreditList { get; } = new List<uint>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
             // The counts for each "Table" are at the top of the file.
             int abilityCount            = reader.ReadInt32();
@@ -55,6 +55,26 @@ namespace ACE.DatLoader.FileTypes
 
             for (int i = 0; i <= levelCount; i++)
                 CharacterLevelSkillCreditList.Add(reader.ReadUInt32());
+        }
+
+        public static XpTable ReadFromDat()
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
+                return (XpTable)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
+
+            var obj = new XpTable();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
+
+            return obj;
         }
     }
 }

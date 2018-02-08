@@ -9,15 +9,14 @@ namespace ACE.DatLoader.FileTypes
     /// <summary>
     /// This reads an "indoor" cell from the client_cell.dat. This is mostly dungeons, but can also be a building interior.
     /// An EnvCell is designated by starting 0x0100 (whereas all landcells are in the 0x0001 - 0x003E range.
-    /// <para />
-    /// The fileId is the full int32/dword landblock value as reported by the @loc command (e.g. 0x12345678)
     /// </summary>
     /// <remarks>
     /// Very special thanks again to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
     /// </remarks>
     [DatFileType(DatFileType.Cell)]
-    public class EnvCell : FileType
+    public class EnvCell : IUnpackable
     {
+        public uint Id { get; private set; }
         public UInt32 Bitfield { get; private set; }
         // 0x08000000 surfaces (which contains degrade/quality info to reference the specific 0x06000000 graphics)
         public List<uint> Shadows { get; } = new List<uint>();
@@ -32,7 +31,7 @@ namespace ACE.DatLoader.FileTypes
 
         public bool SeenOutside => (Bitfield & 1) != 0;
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
@@ -64,6 +63,33 @@ namespace ACE.DatLoader.FileTypes
 
             if ((Bitfield & 8) != 0)
                 RestrictionObj = reader.ReadUInt32();
+        }
+
+        /// <summary>
+        /// Load the EnvCell (Dungeon/Interior Block) from the client_cell.dat
+        /// </summary>
+        /// <param name="fileId">The full int32/dword landblock value as reported by the @loc command (e.g. 0x12345678)</param>
+        public static EnvCell ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.CellDat.FileCache.TryGetValue(fileId, out var result))
+                return (EnvCell)result;
+
+            DatReader datReader = DatManager.CellDat.GetReaderForFile(fileId);
+
+            var obj = new EnvCell();
+
+            if (datReader != null)
+            {
+                using (var memoryStream = new MemoryStream(datReader.Buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                    obj.Unpack(reader);
+            }
+
+            // Store this object in the FileCache
+            DatManager.CellDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

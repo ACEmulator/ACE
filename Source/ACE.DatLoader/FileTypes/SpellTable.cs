@@ -7,20 +7,41 @@ using ACE.DatLoader.Entity;
 namespace ACE.DatLoader.FileTypes
 {
     [DatFileType(DatFileType.SpellTable)]
-    public class SpellTable : FileType
+    public class SpellTable : IUnpackable
     {
-        internal const uint FILE_ID = 0x0E00000E;
+        private const uint FILE_ID = 0x0E00000E;
 
         public Dictionary<uint, SpellBase> Spells { get; } = new Dictionary<uint, SpellBase>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
 
             Spells.UnpackPackedHashTable(reader);
 
             // TODO: I don't know why, but the reader doesn't align properly with the length here
             reader.BaseStream.Position = reader.BaseStream.Length;
+        }
+
+        public static SpellTable ReadFromDat()
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
+                return (SpellTable)result;
+
+            // Create the datReader for the proper file
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
+
+            var obj = new SpellTable();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
+
+            return obj;
         }
 
         /// <summary>
@@ -51,9 +72,13 @@ namespace ACE.DatLoader.FileTypes
         /// <summary>
         /// Returns the correct spell formula, which is hashed from a player's account name
         /// </summary>
-        public static List<uint> GetSpellFormula(SpellTable spellTable, uint spellId, string accountName)
+        /// <param name="spellId"></param>
+        /// <param name="accountName"></param>
+        /// <returns>A list of spellcomp ids</returns>
+        public static List<uint> GetSpellFormula(uint spellId, string accountName)
         {
-            SpellBase spell = spellTable.Spells[spellId];
+            SpellTable s = ReadFromDat();
+            SpellBase spell = s.Spells[spellId];
            
             switch (spell.FormulaVersion)
             {

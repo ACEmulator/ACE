@@ -10,15 +10,36 @@ namespace ACE.DatLoader.FileTypes
     /// These are basically pre-fab regions for things like the interior of a dungeon.
     /// </summary>
     [DatFileType(DatFileType.Environment)]
-    public class Environment : FileType
+    public class Environment : IUnpackable
     {
+        public uint Id { get; set; }
         public Dictionary<uint, CellStruct> Cells { get; set; } = new Dictionary<uint, CellStruct>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32(); // this will match fileId
 
             Cells.Unpack(reader);
+        }
+
+        public static Environment ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (Environment)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new Environment();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

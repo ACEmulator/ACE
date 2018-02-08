@@ -12,15 +12,15 @@ namespace ACE.DatLoader.FileTypes
     /// 0,0 is the bottom left corner of the landblock. 
     /// 
     /// Height 0-9 is Western most edge. 10-18 is S-to-N strip just to the East. And so on.
-    /// <para />
-    /// The fileId is CELL + 0xFFFF. e.g. a cell of 1234, the file index would be 0x1234FFFF.
     /// </summary>
     /// <remarks>
     /// Very special thanks to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
     /// </remarks>
     [DatFileType(DatFileType.LandBlock)]
-    public class CellLandblock : FileType
+    public class CellLandblock : IUnpackable
     {
+        public uint Id { get; private set; }
+
         /// <summary>
         /// Places in the inland sea, for example, are false. Should denote presence of xxxxFFFE (where xxxx is the cell).
         /// </summary>
@@ -33,7 +33,7 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public List<byte> Height { get; } = new List<byte>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
@@ -56,6 +56,57 @@ namespace ACE.DatLoader.FileTypes
             }
 
             reader.AlignBoundary();
+        }
+
+        /// <summary>
+        /// Loads the structure of a CellLandblock from the client_cell.dat
+        /// </summary>
+        /// <param name="landblockId">Either a full int of the landblock or just the short of the cell itself</param>
+        public static CellLandblock ReadFromDatUsingLandblock(uint landblockId)
+        {
+            // Check if landblockId is a full dword. We just need the hiword for the landblockId
+            if ((landblockId >> 16) != 0)
+                landblockId = landblockId >> 16;
+
+            return ReadFromDatUsingCell((ushort)landblockId);
+        }
+
+        /// <summary>
+        /// Loads the structure of a CellLandblock from the client_cell.dat
+        /// </summary>
+        public static CellLandblock ReadFromDatUsingCell(ushort cellId)
+        {
+            // The file index is CELL + 0xFFFF. e.g. a cell of 1234, the file index would be 0x1234FFFF.
+            uint fileId = (uint)((cellId << 16) | 0xFFFF);
+
+            return ReadFromDat(fileId);
+        }
+
+        /// <summary>
+        /// Loads the structure of a CellLandblock from the client_cell.dat
+        /// The file index is CELL + 0xFFFF. e.g. a cell of 1234, the file index would be 0x1234FFFF.
+        /// </summary>
+        public static CellLandblock ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.CellDat.FileCache.TryGetValue(fileId, out var result))
+                return (CellLandblock)result;
+
+            DatReader datReader = DatManager.CellDat.GetReaderForFile(fileId);
+
+            var obj = new CellLandblock();
+
+            if (datReader != null)
+            {
+                using (var memoryStream = new MemoryStream(datReader.Buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                    obj.Unpack(reader);
+            }
+
+            // Store this object in the FileCache
+            DatManager.CellDat.FileCache[fileId] = obj;
+
+            return obj;
         }
 
         /// <summary>

@@ -9,15 +9,36 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x33. 
     /// </summary>
     [DatFileType(DatFileType.PhysicsScript)]
-    public class PhysicsScript : FileType
+    public class PhysicsScript : IUnpackable
     {
+        public uint Id { get; private set; }
         public List<PhysicsScriptData> ScriptData { get; } = new List<PhysicsScriptData>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
             ScriptData.Unpack(reader);
+        }
+
+        public static PhysicsScript ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (PhysicsScript)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new PhysicsScript();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

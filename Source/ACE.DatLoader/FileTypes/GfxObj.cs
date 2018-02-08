@@ -12,8 +12,10 @@ namespace ACE.DatLoader.FileTypes
     /// These are used both on their own for some pre-populated structures in the world (trees, buildings, etc) or make up SetupModel (0x02) objects.
     /// </summary>
     [DatFileType(DatFileType.GraphicsObject)]
-    public class GfxObj : FileType
+    public class GfxObj : IUnpackable
     {
+        public uint Id { get; private set; }
+
         public List<uint> Surfaces { get; } = new List<uint>(); // also referred to as m_rgSurfaces in the client
         public CVertexArray VertexArray { get; } = new CVertexArray();
 
@@ -27,7 +29,7 @@ namespace ACE.DatLoader.FileTypes
 
         public uint DIDDegrade { get; private set; }
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
@@ -57,6 +59,26 @@ namespace ACE.DatLoader.FileTypes
 
             if ((fields & 8) != 0)
                 DIDDegrade = reader.ReadUInt32();
+        }
+
+        public static GfxObj ReadFromDat(uint fileId)
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
+                return (GfxObj)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
+
+            var obj = new GfxObj();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[fileId] = obj;
+
+            return obj;
         }
     }
 }

@@ -6,16 +6,17 @@ using ACE.DatLoader.Entity;
 namespace ACE.DatLoader.FileTypes
 {
     [DatFileType(DatFileType.CharacterGenerator)]
-    public class CharGen : FileType
+    public class CharGen : IUnpackable
     {
-        internal const uint FILE_ID = 0x0E000002;
+        private const uint FILE_ID = 0x0E000002;
 
+        public int Id { get; private set; }
         public List<StarterArea> StarterAreas { get; } = new List<StarterArea>();
         public Dictionary<uint, HeritageGroupCG> HeritageGroups { get; } = new Dictionary<uint, HeritageGroupCG>();
 
-        public override void Unpack(BinaryReader reader)
+        public void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            Id = reader.ReadInt32();
             reader.BaseStream.Position += 4;
 
             StarterAreas.UnpackSmartArray(reader);
@@ -24,6 +25,26 @@ namespace ACE.DatLoader.FileTypes
             reader.BaseStream.Position++; // Not sure what this byte 0x01 is indicating, but we'll skip it because we can.
 
             HeritageGroups.UnpackSmartArray(reader);
+        }
+
+        public static CharGen ReadFromDat()
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
+                return (CharGen)result;
+
+            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
+
+            var obj = new CharGen();
+
+            using (var memoryStream = new MemoryStream(datReader.Buffer))
+            using (var reader = new BinaryReader(memoryStream))
+                obj.Unpack(reader);
+
+            // Store this object in the FileCache
+            DatManager.PortalDat.FileCache[FILE_ID] = obj;
+
+            return obj;
         }
     }
 }
