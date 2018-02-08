@@ -9,36 +9,15 @@ namespace ACE.DatLoader.FileTypes
     /// These are client_portal.dat files starting with 0x30. 
     /// </summary>
     [DatFileType(DatFileType.CombatTable)]
-    public class CombatManeuverTable : IUnpackable
+    public class CombatManeuverTable : FileType
     {
-        public uint Id { get; private set; }
         public List<CombatManeuver> CMT { get; } = new List<CombatManeuver>();
 
-        public void Unpack(BinaryReader reader)
+        public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32(); // This should always equal the fileId
 
             CMT.Unpack(reader);
-        }
-
-        public static CombatManeuverTable ReadFromDat(uint fileId)
-        {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
-                return (CombatManeuverTable)result;
-
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-
-            var obj = new CombatManeuverTable();
-
-            using (var memoryStream = new MemoryStream(datReader.Buffer))
-            using (var reader = new BinaryReader(memoryStream))
-                obj.Unpack(reader);
-
-            // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = obj;
-
-            return obj;
         }
     }
 }
