@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace ACE.Entity
 {
     public class CharacterPositionExtensions

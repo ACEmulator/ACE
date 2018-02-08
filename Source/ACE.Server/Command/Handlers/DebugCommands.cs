@@ -942,7 +942,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             DatLoader.FileTypes.SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
-            DatLoader.FileTypes.SpellTable spellTable = DatManager.PortalDat.SpellTable;;
+            DatLoader.FileTypes.SpellTable spellTable = DatManager.PortalDat.SpellTable;
             string spellName = spellTable.Spells[spellid].Name;
             var formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
             Console.WriteLine("Formula for " + spellName);

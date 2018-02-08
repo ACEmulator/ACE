@@ -48,7 +48,7 @@ namespace ACE.Server.Managers
                 block.AddWorldObject(session.Player);
 
                 string welcomeMsg = "Welcome to Asheron's Call" + "\n";
-                welcomeMsg += "  powered by ACEmulator  " + "\n"; ;
+                welcomeMsg += "  powered by ACEmulator  " + "\n";
                 welcomeMsg += "" + "\n";
                 welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
 

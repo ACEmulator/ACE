@@ -1,5 +1,4 @@
-﻿using ACE.Common;
-using ACE.Common.Cryptography;
+using ACE.Common;
 using ACE.Entity.Enum;
 
 using MySql.Data.MySqlClient;

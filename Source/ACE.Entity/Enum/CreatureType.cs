@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace ACE.Entity.Enum
 {
     public enum CreatureType : uint
