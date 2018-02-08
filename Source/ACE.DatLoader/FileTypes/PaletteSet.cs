@@ -9,36 +9,15 @@ namespace ACE.DatLoader.FileTypes
     /// They contain, as the name may imply, a set of palettes (0x04 files)
     /// </summary>
     [DatFileType(DatFileType.PaletteSet)]
-    public class PaletteSet : IUnpackable
+    public class PaletteSet : FileType
     {
-        public uint Id { get; private set; }
         public List<uint> PaletteList { get; } = new List<uint>();
 
-        public void Unpack(BinaryReader reader)
+        public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
             PaletteList.Unpack(reader);
-        }
-
-        public static PaletteSet ReadFromDat(uint fileId)
-        {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
-                return (PaletteSet)result;
-
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-
-            var obj = new PaletteSet();
-
-            using (var memoryStream = new MemoryStream(datReader.Buffer))
-            using (var reader = new BinaryReader(memoryStream))
-                obj.Unpack(reader);
-
-            // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = obj;
-
-            return obj;
         }
 
         /// <summary>

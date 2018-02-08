@@ -23,8 +23,7 @@ namespace ACE.DatLoader
         public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
 
 
-        // So we can cache the read files. The read methods in the FileTypes will handle the caching and casting.
-        public Dictionary<uint, object> FileCache { get; } = new Dictionary<uint, object>();
+        public Dictionary<uint, IUnpackable> FileCache { get; } = new Dictionary<uint, IUnpackable>();
 
 
         public DatDatabase(string filePath)
@@ -45,6 +44,32 @@ namespace ACE.DatLoader
             }
 
             RootDirectory.AddFilesToList(AllFiles);
+        }
+
+        /// <summary>
+        /// This will try to find the object for the given fileId in local cache. If the object was not found, it will be read from the dat and cached.
+        /// </summary>
+        public T ReadFromDat<T>(uint fileId) where T : IUnpackable, new()
+        {
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (FileCache.TryGetValue(fileId, out IUnpackable result))
+                return (T)result;
+
+            var datReader = GetReaderForFile(fileId);
+
+            var obj = new T();
+
+            if (datReader != null)
+            {
+                using (var memoryStream = new MemoryStream(datReader.Buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                    obj.Unpack(reader);
+            }
+
+            // Store this object in the FileCache
+            FileCache[fileId] = obj;
+
+            return obj;
         }
 
         public DatReader GetReaderForFile(uint fileId)

@@ -8,16 +8,15 @@ using ACE.Entity.Enum;
 namespace ACE.DatLoader.FileTypes
 {
     [DatFileType(DatFileType.ModelTable)]
-    public class MotionTable : IUnpackable
+    public class MotionTable : FileType
     {
-        public uint Id { get; private set; }
         public uint DefaultStyle { get; private set; }
         public Dictionary<uint, uint> StyleDefaults { get; } = new Dictionary<uint, uint>();
         public Dictionary<uint, MotionData> Cycles { get; } = new Dictionary<uint, MotionData>();
         public Dictionary<uint, MotionData> Modifiers { get; } = new Dictionary<uint, MotionData>();
         public Dictionary<uint, Dictionary<uint, MotionData>> Links { get; } = new Dictionary<uint, Dictionary<uint, MotionData>>();
 
-        public void Unpack(BinaryReader reader)
+        public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
@@ -34,46 +33,23 @@ namespace ACE.DatLoader.FileTypes
             Links.Unpack(reader);
         }
 
-        public static MotionTable ReadFromDat(uint fileId)
-        {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.TryGetValue(fileId, out var result))
-                return (MotionTable)result;
-
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-
-            var obj = new MotionTable();
-
-            using (var memoryStream = new MemoryStream(datReader.Buffer))
-            using (var reader = new BinaryReader(memoryStream))
-                obj.Unpack(reader);
-
-            // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[fileId] = obj;
-
-            return obj;
-        }
-
         /// <summary>
         /// This is the simplest of uses to get the length of an animation.
         /// Usage: MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand)
         /// </summary>
-        public static float GetAnimationLength(uint motionTableId, MotionCommand motion)
+        public static float GetAnimationLength(MotionTable motionTable, MotionCommand motion)
         {
-            MotionTable mt = ReadFromDat(motionTableId);
-            return mt.GetAnimationLength(motion);
+            return motionTable.GetAnimationLength(motion);
         }
 
-        public static float GetAnimationLength(uint motionTableId, MotionStance style, MotionCommand motion)
+        public static float GetAnimationLength(MotionTable motionTable, MotionStance style, MotionCommand motion)
         {
-            MotionTable mt = ReadFromDat(motionTableId);
-            return mt.GetAnimationLength(style, motion);
+            return motionTable.GetAnimationLength(style, motion);
         }
 
-        public static float GetAnimationLength(uint motionTableId, MotionCommand currentMotionState, MotionStance style, MotionCommand motion)
+        public static float GetAnimationLength(MotionTable motionTable, MotionCommand currentMotionState, MotionStance style, MotionCommand motion)
         {
-            MotionTable mt = ReadFromDat(motionTableId);
-            return mt.GetAnimationLength(currentMotionState, style, motion);
+            return motionTable.GetAnimationLength(currentMotionState, style, motion);
         }
 
         /// <summary>
@@ -126,7 +102,7 @@ namespace ACE.DatLoader.FileTypes
                         // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
                         if ((anim.LowFrame == 0) && (anim.HighFrame == 0xFFFFFFFF))
                         {
-                            Animation animation = Animation.ReadFromDat(anim.AnimId);
+                            var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
                             numFrames = animation.NumFrames;
                         }
                         else

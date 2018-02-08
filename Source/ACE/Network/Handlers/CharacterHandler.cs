@@ -1,21 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
+using ACE.DatLoader.FileTypes;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Factories;
 using ACE.Network.Enum;
 using ACE.Network.GameMessages;
 using ACE.Network.GameMessages.Messages;
-using ACE.Network.GameEvent.Events;
 using ACE.Managers;
-using ACE.Entity.Enum.Properties;
-using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using System.Collections.Generic;
-using ACE.Factories;
 
 namespace ACE.Network.Handlers
 {
@@ -138,7 +137,7 @@ namespace ACE.Network.Handlers
 
         private static void CharacterCreateEx(ClientMessage message, Session session, uint id)
         {
-            CharGen cg = CharGen.ReadFromDat();
+            var cg = DatManager.PortalDat.CharGen;
             var reader = message.Payload;
             AceCharacter character = new AceCharacter(id);
 
@@ -198,12 +197,12 @@ namespace ACE.Network.Handlers
             character.HeadObject = sex.GetHeadObject(appearance.HairStyle);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
+            var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
             character.SkinPalette = skinPalSet.GetPaletteID(appearance.SkinHue);
             character.Shade = appearance.SkinHue;
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
+            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
             character.HairPalette = hairPalSet.GetPaletteID(appearance.HairHue);
 
             // Eye Color
@@ -484,7 +483,7 @@ namespace ACE.Network.Handlers
                 return null;
             }
 
-            clothingObj.IconDID = ClothingTable.ReadFromDat(clothingObj.ClothingBaseDID.Value).GetIcon(palette);
+            clothingObj.IconDID = DatManager.PortalDat.ReadFromDat<ClothingTable>(clothingObj.ClothingBaseDID.Value).GetIcon(palette);
             clothingObj.PaletteBaseDID = palette;
             clothingObj.Shade = shade;
             clothingObj.CurrentWieldedLocation = clothingObj.ValidLocations;

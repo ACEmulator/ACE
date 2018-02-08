@@ -1,4 +1,4 @@
-﻿using ACE.DatLoader.FileTypes;
+using ACE.DatLoader;
 
 namespace ACE.Entity
 {
@@ -104,7 +104,7 @@ namespace ACE.Entity
         public DatLoader.Entity.Contract GetContractDetails()
         {
             DatLoader.Entity.Contract contractData;
-            ContractTable contractTable = ContractTable.ReadFromDat();
+            var contractTable = DatManager.PortalDat.ContractTable;
             return contractTable.Contracts.TryGetValue(ContractId, out contractData) ? contractData : null;
         }
 

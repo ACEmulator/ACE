@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
 
+using ACE.DatLoader.FileTypes;
+
 namespace ACE.DatLoader
 {
     public class PortalDatDatabase : DatDatabase
@@ -8,6 +10,22 @@ namespace ACE.DatLoader
         public PortalDatDatabase(string filename) : base(filename)
         {
         }
+
+
+        public ContractTable ContractTable => ReadFromDat<ContractTable>(ContractTable.FILE_ID);
+
+        public CharGen CharGen => ReadFromDat<CharGen>(CharGen.FILE_ID);
+
+        public GeneratorTable GeneratorTable => ReadFromDat<GeneratorTable>(GeneratorTable.FILE_ID);
+
+        public RegionDesc RegionDesc => ReadFromDat<RegionDesc>(RegionDesc.FILE_ID);
+
+        public SpellComponentsTable SpellComponentsTable => ReadFromDat<SpellComponentsTable>(SpellComponentsTable.FILE_ID);
+
+        public SpellTable SpellTable => ReadFromDat<SpellTable>(SpellTable.FILE_ID);
+
+        public XpTable XpTable => ReadFromDat<XpTable>(XpTable.FILE_ID);
+
 
         public void ExtractCategorizedContents(string path)
         {

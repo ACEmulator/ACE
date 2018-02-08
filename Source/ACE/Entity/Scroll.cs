@@ -1,6 +1,8 @@
-// WeenieType.Scroll
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
-using ACE.DatLoader.FileTypes;
+using ACE.DatLoader;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -8,9 +10,6 @@ using ACE.Network;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace ACE.Entity
 {
@@ -37,7 +36,7 @@ namespace ACE.Entity
             
             SetObjectDescriptionBools();
 
-            SpellTable table = SpellTable.ReadFromDat();
+            var table = DatManager.PortalDat.SpellTable;
 
             Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
             Use += $"{table.Spells[SpellId].Desc}";

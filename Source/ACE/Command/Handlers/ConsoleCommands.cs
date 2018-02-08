@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Managers;
 using ACE.Network;
-using ACE.DatLoader;
 
 namespace ACE.Command.Handlers
 {
@@ -95,7 +96,11 @@ namespace ACE.Command.Handlers
             foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
             {
                 if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Wave)
-                    DatLoader.FileTypes.Wave.ExportWave(entry.Value.ObjectId, exportDir);
+                {
+                    var wave = DatManager.PortalDat.ReadFromDat<Wave>(entry.Value.ObjectId);
+
+                    Wave.ExportWave(wave, entry.Value.ObjectId, exportDir);
+                }
             }
             Console.WriteLine($"Export to {exportDir} complete.");
         }

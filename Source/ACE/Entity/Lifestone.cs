@@ -1,10 +1,9 @@
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Entity.Enum;
-using ACE.Entity.Actions;
-using ACE.Network.Enum;
-using ACE.DatLoader.FileTypes;
 
 namespace ACE.Entity
 {
@@ -27,7 +26,7 @@ namespace ACE.Entity
             Player player = CurrentLandblock.GetObject(playerId) as Player;
             string serverMessage = null;
             // validate within use range, taking into account the radius of the model itself, as well
-            SetupModel csetup = SetupModel.ReadFromDat(SetupTableId.Value);
+            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId.Value);
             float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
 
             // Run this animation...

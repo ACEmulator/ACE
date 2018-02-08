@@ -4,17 +4,20 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ACE.Managers;
+
 using log4net;
+
 using ACE.Database;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum;
+using ACE.Entity.Actions;
+using ACE.Factories;
+using ACE.Managers;
 using ACE.Network.GameMessages;
 using ACE.Network.Sequence;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using ACE.Factories;
-using ACE.Entity.Enum;
-using ACE.DatLoader.FileTypes;
-using ACE.Entity.Actions;
 
 namespace ACE.Entity
 {
@@ -302,7 +305,7 @@ namespace ACE.Entity
 
             WorldObject wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             if (wo?.SetupTableId == null) return 0.00f;
-            SetupModel csetup = SetupModel.ReadFromDat(wo.SetupTableId.Value);
+            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(wo.SetupTableId.Value);
             if (wo.UseRadius != null)
                 return (float)Math.Pow(wo.UseRadius.Value + csetup.Radius + 1.5, 2);
             return (float)Math.Pow(0.25 + csetup.Radius + 1.5, 2);

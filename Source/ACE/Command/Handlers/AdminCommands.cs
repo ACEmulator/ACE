@@ -1,16 +1,19 @@
 using System;
+
+using log4net;
+
+using ACE.Common;
+using ACE.Database;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
-using ACE.Common;
-using ACE.Database;
-using ACE.DatLoader.FileTypes;
-using ACE.Factories;
-using ACE.Entity.Enum.Properties;
 using ACE.Network.Enum;
-using log4net;
 
 namespace ACE.Command.Handlers
 {
@@ -779,7 +782,7 @@ namespace ACE.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
-                var cellLandblock = CellLandblock.ReadFromDatUsingLandblock(position.Cell);
+                var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(position.Cell);
                 position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)
