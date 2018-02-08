@@ -5,7 +5,7 @@ namespace ACE.DatLoader.Entity
     /// <summary>
     /// Position consists of a CellID + a Frame (Origin + Orientation)
     /// </summary>
-    public class Position : IUnpackable // Rename this to Position after migration is complete
+    public class Position : IUnpackable
     {
         public uint ObjCellID { get; private set; }
 
