@@ -20,7 +20,7 @@ namespace ACE.Database.Tests
         public static void TestSetup(TestContext context)
         {
             // copy config.json
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.json"), ".\\Config.json", true);
 
             ConfigManager.Initialize();
             authDb = new AuthenticationDatabase();
