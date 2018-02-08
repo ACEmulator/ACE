@@ -1,6 +1,6 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
-namespace ACE.Network.GameAction
+namespace ACE.Network.GameAction.Actions
 {
     public static class GameActionAutonomousPosition
     {
