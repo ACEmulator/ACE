@@ -13,7 +13,7 @@ namespace ACE.Tests
         [TestMethod]
         public void CanParseStarterGearJson()
         {
-            string contents = File.ReadAllText("../../../../../ACE/starterGear.json");
+            string contents = File.ReadAllText("../../../../../ACE.Server/starterGear.json");
 
             StarterGearConfiguration config = JsonConvert.DeserializeObject<StarterGearConfiguration>(contents);
         }
