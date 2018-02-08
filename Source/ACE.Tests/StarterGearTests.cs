@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using ACE.Entity;
+using ACE.Server.Entity;
 using Newtonsoft.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

@@ -41,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database.Tests", "ACE.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database", "ACE.Database\ACE.Database.csproj", "{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE", "ACE\ACE.csproj", "{943276B8-1DCC-48C6-A98D-692D60F53E43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\ACE.Server.csproj", "{943276B8-1DCC-48C6-A98D-692D60F53E43}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
