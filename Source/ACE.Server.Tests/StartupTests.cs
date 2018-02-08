@@ -1,11 +1,13 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ACE.Common;
 using System.IO;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using ACE.Common;
 using ACE.Database;
 using ACE.Server.Managers;
 
-namespace ACE.Tests
+namespace ACE.Server.Tests
 {
     [TestClass]
     public class StartupTests

@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.DatLoader", "ACE.DatLoa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.DatLoader.Tests", "ACE.DatLoader.Tests\ACE.DatLoader.Tests.csproj", "{ECB8AA6F-61A5-430D-A698-8C9233AF8B27}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Tests", "ACE.Tests\ACE.Tests.csproj", "{3FA44AE5-D8A9-46BC-9052-B4737F5634AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server.Tests", "ACE.Server.Tests\ACE.Server.Tests.csproj", "{3FA44AE5-D8A9-46BC-9052-B4737F5634AB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database.Tests", "ACE.Database.Tests\ACE.Database.Tests.csproj", "{95628269-1C41-45D5-A6F5-018A1E49C501}"
 EndProject

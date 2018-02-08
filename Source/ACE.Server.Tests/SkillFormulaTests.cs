@@ -1,8 +1,8 @@
-﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ACE.Entity;
 
-namespace ACE.Tests
+namespace ACE.Server.Tests
 {
     [TestClass]
     public class SkillFormulaTests
