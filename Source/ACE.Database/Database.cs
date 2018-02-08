@@ -11,7 +11,6 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using System.Reflection;
-using System.Data.SqlClient;
 using ACE.Database.Extensions;
 
 namespace ACE.Database

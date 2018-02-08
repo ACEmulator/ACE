@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-08
+[Mag-nus]
+* ACE project renamed to ACE.Server
+
 ### 2018-02-07
 [Mag-nus]
 * ACE.DatLoader caching and ReadFromDat code refactored. No more static method/object messes. DatLoading is now done through DatManager and DatDatabases.
