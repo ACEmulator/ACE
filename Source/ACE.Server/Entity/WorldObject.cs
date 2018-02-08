@@ -1859,7 +1859,7 @@ namespace ACE.Server.Entity
         {
             string debugOutput = "ACE Debug Output:\n";
             debugOutput += "ACE Class File: " + type.Name + ".cs" + "\n";
-            debugOutput += "AceObjectId: " + obj.Guid.Full.ToString() + " (0x" + obj.Guid.Full.ToString("X") + ")" + "\n";
+            debugOutput += "AceObjectId: " + obj.Guid.Full + " (0x" + obj.Guid.Full.ToString("X") + ")" + "\n";
 
             debugOutput += "-Private Fields-\n";
             foreach (var prop in obj.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
@@ -1879,7 +1879,7 @@ namespace ACE.Server.Entity
                 switch (prop.Name.ToLower())
                 {
                     case "guid":
-                        debugOutput += $"{prop.Name} = {obj.Guid.Full.ToString()} (GuidType.{obj.guid.Type.ToString()})" + "\n";
+                        debugOutput += $"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.guid.Type.ToString()})" + "\n";
                         break;
                     case "descriptionflags":
                         debugOutput += $"{prop.Name} = {obj.DescriptionFlags.ToString()}" + " (" + (uint)obj.DescriptionFlags + ")" + "\n";

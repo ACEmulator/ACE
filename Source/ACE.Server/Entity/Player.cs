@@ -3389,8 +3389,8 @@ namespace ACE.Server.Entity
                 var objDescEvent = new GameMessageObjDescEvent(this);
                 session.Network.EnqueueSend(objDescEvent);
                 ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") +
-                                                      ", Applying palette index " + palOption.ToString() + " of " + palCount.ToString() +
-                                                      " with a shade value of " + shade.ToString() + ".", ChatMessageType.Broadcast);
+                                                      ", Applying palette index " + palOption + " of " + palCount +
+                                                      " with a shade value of " + shade + ".", ChatMessageType.Broadcast);
             }
             else
             {

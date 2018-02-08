@@ -641,7 +641,7 @@ namespace ACE.Server.Command.Handlers
                         session.Player.SetCharacterPosition(positionType, playerPosition);
 
                         // Report changes to client
-                        var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                        var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                         session.Network.EnqueueSend(positionMessage);
                         return;
                     }
@@ -669,7 +669,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     if (session.Player.TeleToPosition(positionType))
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location.ToString()}", ChatMessageType.Broadcast));
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
                     }
                     else
                     {
@@ -693,10 +693,10 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var posPair in posDict)
             {
-                message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value.ToString() + "\n";
+                message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value + "\n";
             }
 
-            message += $"Total positions: " + posDict.Count.ToString() + "\n";
+            message += $"Total positions: " + posDict.Count + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }

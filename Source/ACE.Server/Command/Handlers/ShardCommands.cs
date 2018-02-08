@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -79,7 +79,7 @@ namespace ACE.Server.Command.Handlers
         public static void ShutdownServer(Session session, params string[] parameters)
         {
             // inform the world that a shutdown is about to take place
-            string shutdownInitiator = (session == null ? "Server" : session.Player.Name.ToString());
+            string shutdownInitiator = (session == null ? "Server" : session.Player.Name);
             string shutdownText = "";
             string adminShutdownText = "";
             TimeSpan timeTillShutdown = TimeSpan.FromSeconds(ServerManager.ShutdownInterval);

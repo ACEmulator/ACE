@@ -668,7 +668,7 @@ namespace ACE.Server.Command.Handlers
                 // Save the position
                 session.Player.SetCharacterPosition(positionType, (Position)playerPosition.Clone());
                 // Report changes to client
-                var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
                 return;
             }
@@ -882,8 +882,8 @@ namespace ACE.Server.Command.Handlers
             // @time - Displays the server's current game time.
 
             DerethDateTime currentPYtime = new DerethDateTime(WorldManager.PortalYearTicks);
-            String messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow.ToString();
-            String messagePY = "The current server time in DerethDateTime is: " + currentPYtime.ToString();
+            String messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow;
+            String messagePY = "The current server time in DerethDateTime is: " + currentPYtime;
 
             var chatSysMessageUTC = new GameMessageSystemChat(messageUTC, ChatMessageType.WorldBroadcast);
             var chatSysMessagePY = new GameMessageSystemChat(messagePY, ChatMessageType.WorldBroadcast);
