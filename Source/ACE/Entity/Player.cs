@@ -7,6 +7,7 @@ using System.Linq;
 using log4net;
 
 using ACE.Database;
+using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -264,7 +265,7 @@ namespace ACE.Entity
 
         public void LearnSpell(uint spellId)
         {
-            SpellTable spells = SpellTable.ReadFromDat();
+            var spells = DatManager.PortalDat.SpellTable;
             if (!spells.Spells.ContainsKey(spellId))
             {
                 GameMessageSystemChat errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
@@ -591,7 +592,7 @@ namespace ACE.Entity
         private void UpdateXpAndLevel(UInt64 amount)
         {
             // until we are max level we must make sure that we send
-            XpTable xpTable = XpTable.ReadFromDat();
+            var xpTable = DatManager.PortalDat.XpTable;
 
             var maxLevel = xpTable.CharacterLevelXPList.Count;
             var maxLevelXp = xpTable.CharacterLevelXPList.Last();
@@ -666,7 +667,7 @@ namespace ACE.Entity
             //           GrantXp()
             //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
             //           XP Updates?
-            XpTable xpTable = XpTable.ReadFromDat();
+            var xpTable = DatManager.PortalDat.XpTable;
 
             var startingLevel = Character.Level;
             var maxLevel = xpTable.CharacterLevelXPList.Count;
@@ -824,7 +825,7 @@ namespace ACE.Entity
             uint result = 0;
 
             List<uint> xpList;
-            XpTable xpTable = XpTable.ReadFromDat();
+            var xpTable = DatManager.PortalDat.XpTable;
 
             switch (ability.Ability)
             {
@@ -888,7 +889,7 @@ namespace ACE.Entity
         private bool IsAbilityMaxRank(uint rank, bool isAbilityVitals)
         {
             List<uint> xpList;
-            XpTable xpTable = XpTable.ReadFromDat();
+            var xpTable = DatManager.PortalDat.XpTable;
 
             if (isAbilityVitals)
                 xpList = xpTable.VitalXpList;
@@ -908,7 +909,7 @@ namespace ACE.Entity
         private bool IsSkillMaxRank(uint rank, SkillStatus status)
         {
             List<uint> xpList;
-            XpTable xpTable = XpTable.ReadFromDat();
+            var xpTable = DatManager.PortalDat.XpTable;
 
             if (status == SkillStatus.Trained)
                 xpList = xpTable.TrainedSkillXpList;
@@ -1469,7 +1470,7 @@ namespace ACE.Entity
             uint result = 0u;
 
             List<uint> xpList;
-            XpTable xpTable = XpTable.ReadFromDat();
+            var xpTable = DatManager.PortalDat.XpTable;
 
             if (skill.Status == SkillStatus.Trained)
                 xpList = xpTable.TrainedSkillXpList;
@@ -1981,7 +1982,8 @@ namespace ACE.Entity
         {
             ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
 
-            float logoutAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LogOut);
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
+            float logoutAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.LogOut);
             logoutChain.AddDelaySeconds(logoutAnimationLength);
 
             if (CurrentLandblock != null)
@@ -2132,7 +2134,8 @@ namespace ACE.Entity
 
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
-                float lifestoneAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.LifestoneRecall);
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
+                float lifestoneAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.LifestoneRecall);
 
                 // Then do teleport
                 lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);
@@ -2663,7 +2666,8 @@ namespace ACE.Entity
                         Sequences, motion));
             });
             // Wait for animation to progress
-            float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
+            var pickupAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.Pickup);
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
             // Ask landblock to transfer item
@@ -2774,7 +2778,7 @@ namespace ACE.Entity
                 {
                     ClothingTable item;
                     if (w.Value.ClothingBase != null)
-                        item = ClothingTable.ReadFromDat((uint)w.Value.ClothingBase);
+                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.Value.ClothingBase);
                     else
                     {
                         ChatPacket.SendServerMessage(
@@ -2806,7 +2810,7 @@ namespace ACE.Entity
             // Add the "naked" body parts. These are the ones not already covered.
             if (SetupTableId != null)
             {
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
+                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
@@ -3074,7 +3078,8 @@ namespace ACE.Entity
                 ActionChain chain = new ActionChain();
 
                 // Wait for drop animation
-                float pickupAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Pickup);
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
+                var pickupAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.Pickup);
                 chain.AddDelaySeconds(pickupAnimationLength);
 
                 // Play drop sound
@@ -3317,7 +3322,7 @@ namespace ACE.Entity
             // ClothingTable item = ClothingTable.ReadFromDat(0x10000867); // Cloak
             // ClothingTable item = ClothingTable.ReadFromDat(0x10000008); // Gloves
             // ClothingTable item = ClothingTable.ReadFromDat(0x100000AD); // Heaume
-            ClothingTable item = ClothingTable.ReadFromDat(modelId);
+            var item = DatManager.PortalDat.ReadFromDat<ClothingTable>(modelId);
 
             int palCount = 0;
 
@@ -3361,7 +3366,7 @@ namespace ACE.Entity
 
                     for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                     {
-                        PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                        var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
                         ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
 
                         for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
@@ -3374,7 +3379,7 @@ namespace ACE.Entity
                 }
 
                 // Add the "naked" body parts. These are the ones not already covered.
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
+                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
@@ -3691,8 +3696,9 @@ namespace ACE.Entity
             Session.Network.EnqueueSend(soundEvent, buffMessage);
 
             // Wait for animation
-            ActionChain motionChain = new ActionChain();
-            float motionAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.Eat);
+            var motionChain = new ActionChain();
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
+            var motionAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.Eat);
             motionChain.AddDelaySeconds(motionAnimationLength);
 
             // Return to standing position after the animation delay

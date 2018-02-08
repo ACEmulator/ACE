@@ -9,15 +9,15 @@ namespace ACE.DatLoader.FileTypes
     /// This is the client_portal.dat file 0x0E00001D
     /// </summary>
     [DatFileType(DatFileType.ContractTable)]
-    public class ContractTable : IUnpackable
+    public class ContractTable : FileType
     {
-        private const uint FILE_ID = 0x0E00001D;
+        internal const uint FILE_ID = 0x0E00001D;
 
         public Dictionary<uint, Contract> Contracts { get; } = new Dictionary<uint, Contract>();
 
-        public void Unpack(BinaryReader reader)
+        public override void Unpack(BinaryReader reader)
         {
-            reader.BaseStream.Position += 4; // Skip the ID. We know what it is.
+            Id = reader.ReadUInt32();
 
             ushort num_contracts = reader.ReadUInt16();
             /*ushort table_size = */reader.ReadUInt16(); // We don't need this since C# handles it's own memory
@@ -31,26 +31,6 @@ namespace ACE.DatLoader.FileTypes
 
                 Contracts.Add(key, value);
             }
-        }
-
-        public static ContractTable ReadFromDat()
-        {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.TryGetValue(FILE_ID, out var result))
-                return (ContractTable)result;
-
-            DatReader datReader = DatManager.PortalDat.GetReaderForFile(FILE_ID);
-
-            var obj = new ContractTable();
-
-            using (var memoryStream = new MemoryStream(datReader.Buffer))
-            using (var reader = new BinaryReader(memoryStream))
-                obj.Unpack(reader);
-
-            // Store this object in the FileCache
-            DatManager.PortalDat.FileCache[FILE_ID] = obj;
-
-            return obj;
         }
     }
 }

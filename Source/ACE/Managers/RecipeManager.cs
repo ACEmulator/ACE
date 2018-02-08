@@ -1,17 +1,16 @@
-﻿using ACE.DatLoader.FileTypes;
+using System;
+using System.Collections.Generic;
+
+using log4net;
+
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Network.GameEvent.Events;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.Motion;
-using log4net;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Managers
 {
@@ -73,7 +72,8 @@ namespace ACE.Managers
 
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.ClapHands));
             craftChain.AddAction(player, () => player.HandleActionMotion(motion));
-            float craftAnimationLength = MotionTable.GetAnimationLength((uint)player.MotionTableId, MotionCommand.ClapHands);
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)player.MotionTableId);
+            var craftAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.ClapHands);
             craftChain.AddDelaySeconds(craftAnimationLength);
             // craftChain.AddDelaySeconds(0.5);
 

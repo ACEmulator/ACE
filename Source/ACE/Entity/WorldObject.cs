@@ -1,3 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+
+using log4net;
+
+using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -12,12 +21,6 @@ using ACE.Network.GameMessages;
 using ACE.Network.GameEvent.Events;
 using ACE.Network.Sequence;
 using ACE.Network.Motion;
-using log4net;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace ACE.Entity
 {
@@ -1490,7 +1493,7 @@ namespace ACE.Entity
 
         public SetupModel CSetup
         {
-            get { return SetupModel.ReadFromDat(SetupTableId.Value); }
+            get { return DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId.Value); }
         }
 
         /// <summary>
@@ -3564,7 +3567,7 @@ namespace ACE.Entity
         {
             ClothingTable item;
             if (ClothingBase.HasValue)
-                item = ClothingTable.ReadFromDat((uint)ClothingBase);
+                item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
             else
             {
                 return;
@@ -3609,7 +3612,7 @@ namespace ACE.Entity
                         shade = (float)Shade;
                     for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                     {
-                        PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                        var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
                         ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
 
                         for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
@@ -3662,7 +3665,7 @@ namespace ACE.Entity
                 {
                     ClothingTable item;
                     if (w.Value.ClothingBase != null)
-                        item = ClothingTable.ReadFromDat((uint)w.Value.ClothingBase);
+                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.Value.ClothingBase);
                     else
                     {
                         return;
@@ -3705,7 +3708,7 @@ namespace ACE.Entity
                                 shade = (float)w.Value.Shade;
                             for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                             {
-                                PaletteSet itemPalSet = PaletteSet.ReadFromDat(itemSubPal.CloSubPalettes[i].PaletteSet);
+                                var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
                                 ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
 
                                 for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
@@ -3722,7 +3725,7 @@ namespace ACE.Entity
             // Add the "naked" body parts. These are the ones not already covered.
             if (SetupTableId != null)
             {
-                SetupModel baseSetup = SetupModel.ReadFromDat((uint)SetupTableId);
+                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
@@ -3839,7 +3842,7 @@ namespace ACE.Entity
 
         public void RandomizeFace()
         {
-            CharGen cg = CharGen.ReadFromDat();
+            var cg = DatManager.PortalDat.CharGen;
 
             if (!Heritage.HasValue)
             {
@@ -3928,12 +3931,12 @@ namespace ACE.Entity
                 HeadObjectDID = sex.GetHeadObject(appearance.HairStyle);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            PaletteSet skinPalSet = PaletteSet.ReadFromDat(sex.SkinPalSet);
+            var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
             if (!SkinPaletteDID.HasValue)
                 SkinPaletteDID = skinPalSet.GetPaletteID(appearance.SkinHue);
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            PaletteSet hairPalSet = PaletteSet.ReadFromDat(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
+            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
             if (!HairPaletteDID.HasValue)
                 HairPaletteDID = hairPalSet.GetPaletteID(appearance.HairHue);
 

@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Actions;
+using ACE.Factories;
 using ACE.Managers;
 using ACE.Network;
 using ACE.Network.GameMessages.Messages;
 using ACE.Network.GameEvent.Events;
-using ACE.Factories;
 using ACE.Network.Motion;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Command.Handlers
 {
@@ -940,14 +941,14 @@ namespace ACE.Command.Handlers
                 return;
             }
 
-            DatLoader.FileTypes.SpellComponentsTable comps = DatLoader.FileTypes.SpellComponentsTable.ReadFromDat();
-            DatLoader.FileTypes.SpellTable spellTable = DatLoader.FileTypes.SpellTable.ReadFromDat();
+            DatLoader.FileTypes.SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
+            DatLoader.FileTypes.SpellTable spellTable = DatManager.PortalDat.SpellTable;;
             string spellName = spellTable.Spells[spellid].Name;
-            System.Collections.Generic.List<uint> formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(spellid, parameters[0]);
+            var formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
             Console.WriteLine("Formula for " + spellName);
             for (int i = 0; i < formula.Count; i++)
             {
-                Console.WriteLine("Comp " + i.ToString() + ": " + comps.SpellComponents[formula[i]].Name);
+                Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
             }
             Console.WriteLine();
         }

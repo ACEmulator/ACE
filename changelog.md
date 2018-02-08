@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-07
+[Mag-nus]
+* ACE.DatLoader caching and ReadFromDat code refactored. No more static method/object messes. DatLoading is now done through DatManager and DatDatabases.
+
 ### 2018-02-06
 [Mag-nus]
 * ACE.DatLoader DatDirectory reading code cleaned up.
