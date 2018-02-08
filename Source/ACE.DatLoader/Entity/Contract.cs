@@ -21,9 +21,9 @@ namespace ACE.DatLoader.Entity
         public string QuestflagTimer { get; private set; }
         public string QuestflagRepeatTime { get; private set; }
 
-        public PositionNew LocationNPCStart { get; } = new PositionNew();
-        public PositionNew LocationNPCEnd { get; } = new PositionNew();
-        public PositionNew LocationQuestArea { get; } = new PositionNew();
+        public Position LocationNPCStart { get; } = new Position();
+        public Position LocationNPCEnd { get; } = new Position();
+        public Position LocationQuestArea { get; } = new Position();
 
         public void Unpack(BinaryReader reader)
         {

@@ -4,6 +4,8 @@ using System.IO;
 
 using log4net;
 
+using ACE.DatLoader.FileTypes;
+
 namespace ACE.DatLoader
 {
     public class DatDatabase
@@ -23,7 +25,7 @@ namespace ACE.DatLoader
         public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
 
 
-        public Dictionary<uint, IUnpackable> FileCache { get; } = new Dictionary<uint, IUnpackable>();
+        public Dictionary<uint, FileType> FileCache { get; } = new Dictionary<uint, FileType>();
 
 
         public DatDatabase(string filePath)
@@ -49,10 +51,10 @@ namespace ACE.DatLoader
         /// <summary>
         /// This will try to find the object for the given fileId in local cache. If the object was not found, it will be read from the dat and cached.
         /// </summary>
-        public T ReadFromDat<T>(uint fileId) where T : IUnpackable, new()
+        public T ReadFromDat<T>(uint fileId) where T : FileType, new()
         {
             // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (FileCache.TryGetValue(fileId, out IUnpackable result))
+            if (FileCache.TryGetValue(fileId, out FileType result))
                 return (T)result;
 
             var datReader = GetReaderForFile(fileId);
