@@ -125,8 +125,6 @@ namespace ACE.Database
                 }
 
                 queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
-
-                return;
             }
 
             public void AddPreparedUpdateStatement<T1, T2>(T1 id, T2 instance)
@@ -146,8 +144,6 @@ namespace ACE.Database
                 object[] parameters = p.ToArray();
 
                 queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
-
-                return;
             }
 
             public void AddPreparedDeleteStatement<T1, T2>(T1 id, object instance)

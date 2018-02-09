@@ -231,7 +231,6 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
-            return;
         }
 
         [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
@@ -278,7 +277,6 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             ChatPacket.SendServerMessage(session, "Usage: /sethealth 200 (max Max Health)", ChatMessageType.Broadcast);
-            return;
         }
 
         // playsound [Sound] (volumelevel)

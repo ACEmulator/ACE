@@ -63,8 +63,6 @@ namespace ACE.Server.Command.Handlers
             }
             else
                 Console.WriteLine($"Unknown command: {parameters[0]}");
-
-            return;
         }
 
         // acecommands

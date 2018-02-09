@@ -675,7 +675,6 @@ namespace ACE.Server.Command.Handlers
             // Error parsing the text input, from parameter[0]
             var positionErrorMessage = new GameMessageSystemChat("Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionErrorMessage);
-            return;
         }
 
         // serverlist
