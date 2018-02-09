@@ -6,7 +6,7 @@ namespace ACE.Server.Command
 {
     public static class LandblockLoader
     {
-        private volatile static bool processLandblockLoading;
+        private static volatile bool processLandblockLoading;
 
         public static void StartLoading()
         {

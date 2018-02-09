@@ -20,7 +20,7 @@ namespace ACE.Server.Managers
         private static readonly object landblockMutex = new object();
 
         // FIXME(ddevec): Does making this volatile really make double-check locking safe?
-        private volatile static Landblock[,] landblocks = new Landblock[256, 256];
+        private static volatile Landblock[,] landblocks = new Landblock[256, 256];
 
         /// <summary>
         /// This list of all currently active landblocks may only be accessed externally from locations in which the landblocks /CANNOT/ be concurrently modified
