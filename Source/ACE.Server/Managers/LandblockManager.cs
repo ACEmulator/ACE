@@ -184,8 +184,8 @@ namespace ACE.Server.Managers
             Stopwatch sw = Stopwatch.StartNew();
             GetLandblock(blockid, false);
             sw.Stop();
-            log.DebugFormat("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
-            Console.WriteLine("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
+            log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
+            Console.WriteLine("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
         }
 
         public static void FinishedForceLoading()

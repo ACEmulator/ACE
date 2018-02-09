@@ -49,7 +49,7 @@ namespace ACE.Server.Entity
             //      I'm basically just converting based on analyzing packet stuffs, no idea where the magic #'s come from
             if (holdKey != ((uint)MotionCommand.Invalid & 0xFFFF) && holdKey != ((uint)MotionCommand.HoldSidestep & 0xFFFF))
             {
-                log.WarnFormat("Unexpected hold key: {0}", holdKey.ToString("X"));
+                log.WarnFormat("Unexpected hold key: {0:X}", holdKey);
             }
 
             if ((movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
@@ -144,7 +144,7 @@ namespace ACE.Server.Entity
                 // Unknown turn command?
                 else
                 {
-                    log.WarnFormat("Unexpected SideStep command: {0}", SideStepCommand.ToString("X"));
+                    log.WarnFormat("Unexpected SideStep command: {0:X}", SideStepCommand);
                 }
             }
 

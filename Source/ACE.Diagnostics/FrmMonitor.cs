@@ -275,7 +275,7 @@ namespace ACE.Diagnostics
             // this is used for unloaded and loaded landblocks
             LandblockId landblockid = new LandblockId((byte)selrow, (byte)selcol);
 
-            txtDetail.Text = $"Landblock: {landblockid.Raw.ToString("X")} ";
+            txtDetail.Text = $"Landblock: {landblockid.Raw:X} ";
 
             // this only works if the landblock is loaded..
             LandBlockStatus status = new LandBlockStatus();
