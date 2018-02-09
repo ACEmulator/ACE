@@ -3896,13 +3896,13 @@ namespace ACE.Server.Entity
 
             size = sex.EyeColorList.Count;
             appearance.EyeColor = (uint)rand.Next(size);
-            size = sex.EyeStripList.Count();
+            size = sex.EyeStripList.Count;
             appearance.Eyes = (uint)rand.Next(size);
 
-            size = sex.MouthStripList.Count();
+            size = sex.MouthStripList.Count;
             appearance.Mouth = (uint)rand.Next(size);
 
-            size = sex.NoseStripList.Count();
+            size = sex.NoseStripList.Count;
             appearance.Nose = (uint)rand.Next(size);
 
             appearance.SkinHue = rand.NextDouble();

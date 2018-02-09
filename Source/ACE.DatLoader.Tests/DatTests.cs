@@ -21,7 +21,7 @@ namespace ACE.DatLoader.Tests
         public void LoadCellDat_NoExceptions()
         {
             DatDatabase dat = new DatDatabase(cellDatLocation);
-            int count = dat.AllFiles.Count();
+            int count = dat.AllFiles.Count;
             //Assert.AreEqual(ExpectedCellDatFileCount, count);
             Assert.IsTrue(expectedCellDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedCellDatFileCount}, Actual: {count}");
         }
@@ -30,7 +30,7 @@ namespace ACE.DatLoader.Tests
         public void LoadPortalDat_NoExceptions()
         {
             DatDatabase dat = new DatDatabase(portalDatLocation);
-            int count = dat.AllFiles.Count();
+            int count = dat.AllFiles.Count;
             //Assert.AreEqual(expectedPortalDatFileCount, count);
             Assert.IsTrue(expectedPortalDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedPortalDatFileCount}, Actual: {count}");
         }
