@@ -5,16 +5,16 @@ namespace ACE.Entity
 {
     public struct LandblockId
     {
-        private uint rawValue;
+        public uint Raw { get; }
 
         public LandblockId(uint raw)
         {
-            rawValue = raw;
+            Raw = raw;
         }
 
         public LandblockId(byte x, byte y)
         {
-            rawValue = (uint)x << 24 | (uint)y << 16;
+            Raw = (uint)x << 24 | (uint)y << 16;
         }
 
         public LandblockId East
@@ -57,31 +57,26 @@ namespace ACE.Entity
             get { return new LandblockId(Convert.ToByte(LandblockX - 1), Convert.ToByte(LandblockY - 1)); }
         }
 
-        public uint Raw
-        {
-            get { return rawValue; }
-        }
-
         public ushort Landblock
         {
-            get { return (ushort)((rawValue >> 16) & 0xFFFF); }
+            get { return (ushort)((Raw >> 16) & 0xFFFF); }
         }
 
         public byte LandblockX
         {
-            get { return (byte)((rawValue >> 24) & 0xFF); }
+            get { return (byte)((Raw >> 24) & 0xFF); }
         }
 
         public byte LandblockY
         {
-            get { return (byte)((rawValue >> 16) & 0xFF); }
+            get { return (byte)((Raw >> 16) & 0xFF); }
         }
         /// <summary>
         /// This is only used to calclate LandcellX and LandcellY - it has no other function.
         /// </summary>
         public ushort Landcell
         {
-            get { return (byte)((rawValue & 0x3F) - 1); }
+            get { return (byte)((Raw & 0x3F) - 1); }
         }
 
         public byte LandcellX
@@ -96,7 +91,7 @@ namespace ACE.Entity
 
         public MapScope MapScope
         {
-            get { return (MapScope)((rawValue & 0x0F00) >> 8); }
+            get { return (MapScope)((Raw & 0x0F00) >> 8); }
         }
 
         public static bool operator ==(LandblockId c1, LandblockId c2)

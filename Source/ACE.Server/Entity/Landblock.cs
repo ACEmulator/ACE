@@ -37,8 +37,6 @@ namespace ACE.Server.Entity
         public static float MaxObjectRange { get; } = 192f;
         public static float MaxObjectGhostRange { get; } = 250f;
 
-        private LandblockId id;
-
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
@@ -65,14 +63,11 @@ namespace ACE.Server.Entity
         private NestedActionQueue actionQueue;
         private NestedActionQueue motionQueue;
 
-        public LandblockId Id
-        {
-            get { return id; }
-        }
+        public LandblockId Id { get; }
 
         public Landblock(LandblockId id)
         {
-            this.id = id;
+            this.Id = id;
 
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
@@ -95,7 +90,7 @@ namespace ACE.Server.Entity
             //   2. terrain data
             // TODO: Load portal.dat contents (as/if needed)
 
-            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
+            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.Id.Landblock); // Instances
 
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
@@ -852,7 +847,7 @@ namespace ACE.Server.Entity
 
         private void Log(string message)
         {
-            log.Debug($"LB {id.Landblock:X}: {message}");
+            log.Debug($"LB {Id.Landblock:X}: {message}");
         }
 
         public void ResendObjectsInRange(WorldObject wo)
