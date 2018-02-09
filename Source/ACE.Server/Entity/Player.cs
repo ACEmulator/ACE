@@ -1772,7 +1772,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool GetVirtualOnlineStatus()
         {
-            if (Character.CharacterOptions[CharacterOption.AppearOffline] == true)
+            if (Character.CharacterOptions[CharacterOption.AppearOffline])
                 return false;
 
             return IsOnline;

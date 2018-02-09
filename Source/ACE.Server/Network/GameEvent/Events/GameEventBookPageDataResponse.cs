@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
@@ -18,7 +18,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.WriteString16L("Password is cheese");
             Writer.Write(0xFFFF0002); // flags
             Writer.Write(1); // textIncluded - Will also be the case, even if we are sending an empty string.
-            if (pageData.IgnoreAuthor == true)
+            if (pageData.IgnoreAuthor)
                 Writer.Write(1); // ignoreAuthor
             else
                 Writer.Write(0); // ignoreAuthor

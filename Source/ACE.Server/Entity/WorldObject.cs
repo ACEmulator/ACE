@@ -610,7 +610,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Openable); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Openable;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Openable;
@@ -623,7 +623,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Inscribable); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Inscribable;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Inscribable;
@@ -636,7 +636,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Stuck); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Stuck;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Stuck;
@@ -649,7 +649,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Player); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Player;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Player;
@@ -662,7 +662,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Attackable); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Attackable;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Attackable;
@@ -675,7 +675,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PlayerKiller); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.PlayerKiller;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.PlayerKiller;
@@ -688,7 +688,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.HiddenAdmin); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.HiddenAdmin;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.HiddenAdmin;
@@ -701,7 +701,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.UiHidden); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.UiHidden;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
@@ -714,7 +714,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Book); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Book;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Book;
@@ -727,7 +727,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Vendor); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Vendor;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Vendor;
@@ -740,7 +740,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkSwitch); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.PkSwitch;
@@ -753,7 +753,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.NpkSwitch); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.NpkSwitch;
@@ -766,7 +766,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Door); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Door;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Door;
@@ -779,7 +779,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Corpse); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Corpse;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Corpse;
@@ -792,7 +792,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.LifeStone); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.LifeStone;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.LifeStone;
@@ -805,7 +805,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Food); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Food;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Food;
@@ -818,7 +818,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Healer); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Healer;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Healer;
@@ -831,7 +831,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Lockpick); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Lockpick;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Lockpick;
@@ -844,7 +844,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Portal); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Portal;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Portal;
@@ -857,7 +857,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Admin); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Admin;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Admin;
@@ -870,7 +870,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.FreePkStatus); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.FreePkStatus;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.FreePkStatus;
@@ -883,7 +883,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.ImmuneCellRestrictions;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
@@ -896,7 +896,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.RequiresPackSlot); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.RequiresPackSlot;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.RequiresPackSlot;
@@ -915,7 +915,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Retained); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.Retained;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.Retained;
@@ -928,7 +928,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkLiteStatus); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.PkLiteStatus;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.PkLiteStatus;
@@ -941,7 +941,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.IncludesSecondHeader); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.IncludesSecondHeader;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.IncludesSecondHeader;
@@ -954,7 +954,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.BindStone); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.BindStone;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.BindStone;
@@ -967,7 +967,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.VolatileRare); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.VolatileRare;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.VolatileRare;
@@ -980,7 +980,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldOnUse); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.WieldOnUse;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.WieldOnUse;
@@ -993,7 +993,7 @@ namespace ACE.Server.Entity
             get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldLeft); }
             set
             {
-                if (value == true)
+                if (value)
                     DescriptionFlags |= ObjectDescriptionFlag.WieldLeft;
                 else
                     DescriptionFlags &= ~ObjectDescriptionFlag.WieldLeft;
@@ -1009,7 +1009,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Static); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Static;
                 else
                     PhysicsState &= ~PhysicsState.Static;
@@ -1023,7 +1023,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Ethereal); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Ethereal;
                 else
                     PhysicsState &= ~PhysicsState.Ethereal;
@@ -1036,7 +1036,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.ReportCollision); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.ReportCollision;
                 else
                     PhysicsState &= ~PhysicsState.ReportCollision;
@@ -1049,7 +1049,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.IgnoreCollision); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.IgnoreCollision;
                 else
                     PhysicsState &= ~PhysicsState.IgnoreCollision;
@@ -1062,7 +1062,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.NoDraw); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.NoDraw;
                 else
                     PhysicsState &= ~PhysicsState.NoDraw;
@@ -1075,7 +1075,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Missile); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Missile;
                 else
                     PhysicsState &= ~PhysicsState.Missile;
@@ -1088,7 +1088,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Pushable); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Pushable;
                 else
                     PhysicsState &= ~PhysicsState.Pushable;
@@ -1101,7 +1101,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.AlignPath); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.AlignPath;
                 else
                     PhysicsState &= ~PhysicsState.AlignPath;
@@ -1114,7 +1114,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.PathClipped); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.PathClipped;
                 else
                     PhysicsState &= ~PhysicsState.PathClipped;
@@ -1127,7 +1127,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Gravity); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Gravity;
                 else
                     PhysicsState &= ~PhysicsState.Gravity;
@@ -1140,7 +1140,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.LightingOn); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.LightingOn;
                 else
                     PhysicsState &= ~PhysicsState.LightingOn;
@@ -1153,7 +1153,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.ParticleEmitter); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.ParticleEmitter;
                 else
                     PhysicsState &= ~PhysicsState.ParticleEmitter;
@@ -1167,7 +1167,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Hidden); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Hidden;
                 else
                     PhysicsState &= ~PhysicsState.Hidden;
@@ -1180,7 +1180,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.ScriptedCollision); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.ScriptedCollision;
                 else
                     PhysicsState &= ~PhysicsState.ScriptedCollision;
@@ -1193,7 +1193,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.HasPhysicsBsp); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.HasPhysicsBsp;
                 else
                     PhysicsState &= ~PhysicsState.HasPhysicsBsp;
@@ -1206,7 +1206,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Inelastic); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Inelastic;
                 else
                     PhysicsState &= ~PhysicsState.Inelastic;
@@ -1219,7 +1219,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.HasDefaultAnim); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.HasDefaultAnim;
                 else
                     PhysicsState &= ~PhysicsState.HasDefaultAnim;
@@ -1232,7 +1232,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.HasDefaultScript); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.HasDefaultScript;
                 else
                     PhysicsState &= ~PhysicsState.HasDefaultScript;
@@ -1245,7 +1245,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Cloaked); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Cloaked;
                 else
                     PhysicsState &= ~PhysicsState.Cloaked;
@@ -1258,7 +1258,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.ReportCollisionAsEnviroment;
                 else
                     PhysicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
@@ -1271,7 +1271,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.EdgeSlide); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.EdgeSlide;
                 else
                     PhysicsState &= ~PhysicsState.EdgeSlide;
@@ -1284,7 +1284,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Sledding); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Sledding;
                 else
                     PhysicsState &= ~PhysicsState.Sledding;
@@ -1297,7 +1297,7 @@ namespace ACE.Server.Entity
             get { return PhysicsState.HasFlag(PhysicsState.Frozen); }
             set
             {
-                if (value == true)
+                if (value)
                     PhysicsState |= PhysicsState.Frozen;
                 else
                     PhysicsState &= ~PhysicsState.Frozen;

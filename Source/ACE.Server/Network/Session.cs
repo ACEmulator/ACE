@@ -174,7 +174,7 @@ namespace ACE.Server.Network
             }
 
             // Check if the player has been booted
-            if (bootSession != false)
+            if (bootSession)
             {
                 SendFinalBoot();
             }

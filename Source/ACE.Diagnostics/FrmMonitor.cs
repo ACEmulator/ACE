@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using System;
 using System.ComponentModel;
@@ -59,7 +59,7 @@ namespace ACE.Diagnostics
             if (!Diagnostics.LandBlockDiag)
                 worker.CancelAsync();
 
-            if (worker.CancellationPending == true)
+            if (worker.CancellationPending)
                 e.Cancel = true;
             else
                 UpdateLandBlockDiag();

@@ -30,7 +30,7 @@ namespace ACE.Server.Entity
         {
             global::ACE.Server.Entity.Player.ConsumableBuffType buffType;
 
-            if (Food == true)
+            if (Food)
             {
                 switch (BoostEnum)
                 {
