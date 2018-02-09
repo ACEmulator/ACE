@@ -467,9 +467,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Enqueues a message for broadcast, thread safe
         /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="distance"></param>
-        /// <param name="msg"></param>
         public void EnqueueBroadcast(Position pos, float distance, params GameMessage[] msgs)
         {
             // Atomically checks and sets the broadcastQueued bit --

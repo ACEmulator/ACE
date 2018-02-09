@@ -206,8 +206,6 @@ namespace ACE.Server.Entity
         /// Handles the final phase of the transaction.. removing unique items and updating players local
         /// from vendors items list.
         /// </summary>
-        /// <param name="player"></param>
-        /// <param name="items"></param>
         public void BuyItemsFinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
         {
             if (!valid) // re-add unique temp stock items.

@@ -1142,10 +1142,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Vendor has validated the transactions and sent a list of items for processing.
         /// </summary>
-        /// <param name="vendor"></param>
-        /// <param name="purchaselist"></param>
-        /// <param name="valid"></param>
-        /// <param name="goldcost"></param>
         public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
         {
             // todo research packets more for both buy and sell. ripley thinks buy is update..
@@ -1177,8 +1173,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Client Calls this when Sell is clicked.
         /// </summary>
-        /// <param name="items"></param>
-        /// <param name="vendorId"></param>
         public void SellToVendor(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
         {
             List<WorldObject> purchaselist = new List<WorldObject>();
@@ -1353,7 +1347,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Call this to add any new World Objects to inventory
         /// </summary>
-        /// <param name="wo"></param>
         public void HandleAddNewWorldObjectsToInventory(List<WorldObject> wolist)
         {
             foreach (WorldObject wo in wolist)
@@ -2330,10 +2323,6 @@ namespace ACE.Server.Entity
         /// and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
         /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
         /// </summary>
-        /// <param name="container"></param>
-        /// <param name="item"></param>
-        /// <param name="placement"></param>
-        /// <param name="inContainerChain"></param>
         private void HandleUnwieldItem(Container container, WorldObject item, int placement)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
@@ -3593,7 +3582,7 @@ namespace ACE.Server.Entity
         /// <param name="sound">Either Sound.Eat1 or Sound.Drink1</param>
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
-        /// <param name="spellId">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
+        /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyComsumable(string consumableName, global::ACE.Entity.Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
             GameMessageSystemChat buffMessage;
