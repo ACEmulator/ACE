@@ -1,6 +1,7 @@
-﻿using ACE.Entity;
-using ACE.Entity.Enum;
 using System.Collections.Generic;
+
+using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {

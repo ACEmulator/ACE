@@ -1,16 +1,16 @@
-﻿using ACE.Common;
+using ACE.Common;
 
 namespace ACE.Database
 {
-    public class DatabaseManager
+    public static class DatabaseManager
     {
         private static SerializedShardDatabase serializedShardDb;
 
-        public static IAuthenticationDatabase Authentication { get; set; }
+        public static IAuthenticationDatabase Authentication { get; private set; }
 
-        public static ISerializedShardDatabase Shard { get; set; }
+        public static ISerializedShardDatabase Shard { get; private set; }
 
-        public static IWorldDatabase World { get; set; }
+        public static IWorldDatabase World { get; private set; }
 
         public static void Initialize(bool autoRetry = true)
         {

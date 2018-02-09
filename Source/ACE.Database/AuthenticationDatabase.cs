@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 
@@ -53,9 +54,7 @@ namespace ACE.Database
             bool success = ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
 
             if (success)
-            {
                 return GetAccountById(ret.AccountId);
-            }
 
             return null;
         }

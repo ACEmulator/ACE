@@ -1,18 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using ACE.Entity;
-using ACE.Entity.Enum;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
+
+using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
     public class SerializedShardDatabase : ISerializedShardDatabase
     {
-        private IShardDatabase _wrappedDatabase;
+        private readonly IShardDatabase _wrappedDatabase;
 
-        private BlockingCollection<Task> _queue = new BlockingCollection<Task>();
+        private readonly BlockingCollection<Task> _queue = new BlockingCollection<Task>();
 
         private Thread _workerThread;
 

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+
 using MySql.Data.MySqlClient;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 
@@ -41,8 +43,7 @@ namespace ACE.Database
         private void ConstructMaxQueryStatement(WorldPreparedStatement id, string tableName, string columnName)
         {
             // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
-            AddPreparedStatement(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?",
-                MySqlDbType.UInt32, MySqlDbType.UInt32);
+            AddPreparedStatement(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?", MySqlDbType.UInt32, MySqlDbType.UInt32);
         }
 
         protected override void InitializePreparedStatements()
@@ -169,9 +170,7 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "weenieClassDescription", weenieClassDescription } };
             bool success = ExecuteConstructedGetStatement<WeenieClass, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, ret);
             if (!success)
-            {
                 return null;
-            }
 
             return GetObject(ret.WeenieClassId);
         }
@@ -182,9 +181,7 @@ namespace ACE.Database
             var criteria = new Dictionary<string, object> { { "weenieClassDescription", weenieClassDescription } };
             bool success = ExecuteConstructedGetStatement<WeenieClass, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, ret);
             if (!success)
-            {
                 return 0;
-            }
 
             return ret.WeenieClassId;
         }
@@ -202,9 +199,7 @@ namespace ACE.Database
             var res = SelectPreparedStatement<WorldPreparedStatement>(id, critera);
             var ret = res.Rows[0][0];
             if (ret is DBNull)
-            {
                 return uint.MaxValue;
-            }
 
             return (uint)res.Rows[0][0];
         }
@@ -247,7 +242,7 @@ namespace ACE.Database
 
             if (criteria?.ItemType != null)
             {
-                where = where != null ? where + " AND " : "";
+                where = "";
                 where += "`itemType` = ?";
                 var p = new MySqlParameter("", MySqlDbType.Int32);
                 p.Value = (int)criteria.ItemType.Value;
@@ -332,9 +327,6 @@ namespace ACE.Database
 
                         case AceObjectPropertyType.PropertyPosition:
                             // TODO: implement.  this will look up the static weenie mappings of where things are supposed to be spawned
-                            break;
-
-                        default:
                             break;
                     }
 

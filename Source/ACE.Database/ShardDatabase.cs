@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using MySql.Data.MySqlClient;
+
+using log4net;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
-using MySql.Data.MySqlClient;
-using log4net;
-// ReSharper disable InconsistentNaming
 
 namespace ACE.Database
 {
