@@ -384,7 +384,7 @@ namespace ACE.Server.Command.Handlers
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
@@ -550,7 +550,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Did not find a player
-            Console.WriteLine($"Error locating the player.");
+            Console.WriteLine("Error locating the player.");
         }
 
         // TODO: Replace later with a command to spawn a generator at the player's location
@@ -647,7 +647,7 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat("Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -688,7 +688,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleListPositions(Session session, params string[] parameters)
         {
             // Build a string message containing all available character positions and send as a System Chat message
-            string message = $"Saved character positions:\n";
+            string message = "Saved character positions:\n";
             var posDict = session.Player.Positions;
 
             foreach (var posPair in posDict)
@@ -696,7 +696,7 @@ namespace ACE.Server.Command.Handlers
                 message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value + "\n";
             }
 
-            message += $"Total positions: " + posDict.Count + "\n";
+            message += "Total positions: " + posDict.Count + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }

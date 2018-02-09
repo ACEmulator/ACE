@@ -3727,7 +3727,7 @@ namespace ACE.Server.Entity
 
             if (oldState != Adminvision && !Adminvision)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
             }
         }
     }

@@ -38,7 +38,7 @@ namespace ACE.Server.Entity
         {
             if (FellowshipMembers.Count == 9)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"Fellowship is already full", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
                 return;
             }
             if (newMember.Fellowship != null)

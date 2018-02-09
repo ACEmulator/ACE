@@ -206,7 +206,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Did not find a player
-            string errorText = $"Error locating the player or account to boot.";
+            string errorText = "Error locating the player or account to boot.";
             // Send the error to a player or the console
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat(errorText, ChatMessageType.Broadcast));
@@ -446,7 +446,7 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             // Invalid character was receieved in the input (it was not 0-9)
-            var homeErrorMessage = new GameMessageSystemChat($"Could not find a valid recall position.", ChatMessageType.Broadcast);
+            var homeErrorMessage = new GameMessageSystemChat("Could not find a valid recall position.", ChatMessageType.Broadcast);
             session.Network.EnqueueSend(homeErrorMessage);
         }
 
@@ -673,7 +673,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             // Error parsing the text input, from parameter[0]
-            var positionErrorMessage = new GameMessageSystemChat($"Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
+            var positionErrorMessage = new GameMessageSystemChat("Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionErrorMessage);
             return;
         }
