@@ -37,8 +37,6 @@ namespace ACE.Server.Entity
         public static float MaxObjectRange { get; } = 192f;
         public static float MaxObjectGhostRange { get; } = 250f;
 
-        private LandblockId id;
-
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
@@ -46,7 +44,7 @@ namespace ACE.Server.Entity
         /// Special needs-broadcast flag.  Cleared in broadcast, but set in other phases.
         /// Must be treated exceptionally carefully to avoid races.  Don't touch unless you /really/ know what your doing
         /// </summary>
-        private int broadcastQueued = 0;
+        private int broadcastQueued;
 
         // Can be appeneded concurrently, will be sent serially
         // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
@@ -65,14 +63,11 @@ namespace ACE.Server.Entity
         private NestedActionQueue actionQueue;
         private NestedActionQueue motionQueue;
 
-        public LandblockId Id
-        {
-            get { return id; }
-        }
+        public LandblockId Id { get; }
 
         public Landblock(LandblockId id)
         {
-            this.id = id;
+            this.Id = id;
 
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
@@ -95,7 +90,7 @@ namespace ACE.Server.Entity
             //   2. terrain data
             // TODO: Load portal.dat contents (as/if needed)
 
-            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.id.Landblock); // Instances
+            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.Id.Landblock); // Instances
 
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
@@ -202,7 +197,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            Log($"adding {wo.Guid.Full.ToString("X")}");
+            Log($"adding {wo.Guid.Full:X}");
 
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
@@ -219,7 +214,7 @@ namespace ACE.Server.Entity
             {
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
-                AddPlayerTracking(wolist, (wo as Player));
+                AddPlayerTracking(wolist, ((Player)wo));
             }
         }
 
@@ -472,9 +467,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Enqueues a message for broadcast, thread safe
         /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="distance"></param>
-        /// <param name="msg"></param>
         public void EnqueueBroadcast(Position pos, float distance, params GameMessage[] msgs)
         {
             // Atomically checks and sets the broadcastQueued bit --
@@ -608,8 +600,7 @@ namespace ACE.Server.Entity
         {
             while (!broadcastQueue.IsEmpty)
             {
-                Tuple<Position, float, GameMessage> tuple;
-                bool success = broadcastQueue.TryDequeue(out tuple);
+                bool success = broadcastQueue.TryDequeue(out var tuple);
                 if (!success)
                 {
                     log.Error("Unexpected TryDequeue Failure!");
@@ -852,7 +843,7 @@ namespace ACE.Server.Entity
 
         private void Log(string message)
         {
-            log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
+            log.Debug($"LB {Id.Landblock:X}: {message}");
         }
 
         public void ResendObjectsInRange(WorldObject wo)

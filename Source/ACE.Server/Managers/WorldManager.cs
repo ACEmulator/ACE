@@ -54,7 +54,7 @@ namespace ACE.Server.Managers
         {
             var thread = new Thread(UpdateWorld);
             thread.Start();
-            log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime.ToString());
+            log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
@@ -232,7 +232,7 @@ namespace ACE.Server.Managers
         /// Returns a list of all players currently online
         /// </summary>
         /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
-        /// <returns>List<> of all online players on the server</returns>
+        /// <returns>List of all online players on the server</returns>
         public static List<Session> GetAll(bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();

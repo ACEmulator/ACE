@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Server.Entity.Actions
 {
@@ -28,10 +28,8 @@ namespace ACE.Server.Entity.Actions
             {
                 return new Tuple<IActor, IAction>(TrueChain.FirstElement.Actor, TrueChain.FirstElement.Action);
             }
-            else
-            {
-                return new Tuple<IActor, IAction>(FalseChain.FirstElement.Actor, FalseChain.FirstElement.Action);
-            }
+
+            return new Tuple<IActor, IAction>(FalseChain.FirstElement.Actor, FalseChain.FirstElement.Action);
         }
     }
 }

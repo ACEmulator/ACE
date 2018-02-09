@@ -8,7 +8,7 @@ namespace ACE.Server.Entity
 {
     public class Game : WorldObject
     {
-        private bool active = false;
+        private bool active;
 
         public Game(AceObject aceO)
             : base(aceO)

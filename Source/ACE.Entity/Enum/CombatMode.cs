@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum CombatMode : int
+    public enum CombatMode
     {
         Undef       = 0x00,
         NonCombat   = 0x01,

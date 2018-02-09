@@ -206,7 +206,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Did not find a player
-            string errorText = $"Error locating the player or account to boot.";
+            string errorText = "Error locating the player or account to boot.";
             // Send the error to a player or the console
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat(errorText, ChatMessageType.Broadcast));
@@ -374,9 +374,8 @@ namespace ACE.Server.Command.Handlers
             if (parameters?.Length >= 1)
                 parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
 
-            uint parsedPositionInt = 0;
             // Attempt to parse the integer
-            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            if (uint.TryParse(parsePositionString, out var parsedPositionInt))
             {
                 // parsedPositionInt value should be limited too a value from, 0-9
                 // Create a new position from the current player location
@@ -446,7 +445,7 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             // Invalid character was receieved in the input (it was not 0-9)
-            var homeErrorMessage = new GameMessageSystemChat($"Could not find a valid recall position.", ChatMessageType.Broadcast);
+            var homeErrorMessage = new GameMessageSystemChat("Could not find a valid recall position.", ChatMessageType.Broadcast);
             session.Network.EnqueueSend(homeErrorMessage);
         }
 
@@ -477,7 +476,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @myiid - Displays your Instance ID(IID).
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full.ToString("X")})", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full:X})", ChatMessageType.Broadcast));
         }
 
         // myserver
@@ -602,9 +601,8 @@ namespace ACE.Server.Command.Handlers
             if (parameters?.Length >= 1)
                 parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
 
-            uint parsedPositionInt = 0;
             // Attempt to parse the integer
-            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            if (uint.TryParse(parsePositionString, out var parsedPositionInt))
             {
                 // parsedPositionInt value should be limited too a value from, 0-9
                 // Create a new position from the current player location
@@ -668,14 +666,13 @@ namespace ACE.Server.Command.Handlers
                 // Save the position
                 session.Player.SetCharacterPosition(positionType, (Position)playerPosition.Clone());
                 // Report changes to client
-                var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
                 return;
             }
             // Error parsing the text input, from parameter[0]
-            var positionErrorMessage = new GameMessageSystemChat($"Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
+            var positionErrorMessage = new GameMessageSystemChat("Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionErrorMessage);
-            return;
         }
 
         // serverlist
@@ -758,15 +755,13 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            float coordNS;
-            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out coordNS))
+            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out var coordNS))
             {
                 ChatPacket.SendServerMessage(session, "North/South coordinate is not a valid number.", ChatMessageType.Broadcast);
                 return;
             }
 
-            float coordEW;
-            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out coordEW))
+            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out var coordEW))
             {
                 ChatPacket.SendServerMessage(session, "East/West coordinate is not a valid number.", ChatMessageType.Broadcast);
                 return;
@@ -792,7 +787,7 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: Check if water block?
 
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
 
             session.Player.Teleport(position);
         }
@@ -854,8 +849,7 @@ namespace ACE.Server.Command.Handlers
                 var positionData = new float[7];
                 for (uint i = 0u; i < 7u; i++)
                 {
-                    float position;
-                    if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out position))
+                    if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out var position))
                         return;
 
                     positionData[i] = position;
@@ -882,8 +876,8 @@ namespace ACE.Server.Command.Handlers
             // @time - Displays the server's current game time.
 
             DerethDateTime currentPYtime = new DerethDateTime(WorldManager.PortalYearTicks);
-            String messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow.ToString();
-            String messagePY = "The current server time in DerethDateTime is: " + currentPYtime.ToString();
+            String messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow;
+            String messagePY = "The current server time in DerethDateTime is: " + currentPYtime;
 
             var chatSysMessageUTC = new GameMessageSystemChat(messageUTC, ChatMessageType.WorldBroadcast);
             var chatSysMessagePY = new GameMessageSystemChat(messagePY, ChatMessageType.WorldBroadcast);
@@ -941,9 +935,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @add spell - Adds the specified spell to your own spellbook.
 
-            Spell spellId = 0;
-
-            if (Enum.TryParse(parameters[0], true, out spellId))
+            if (Enum.TryParse(parameters[0], true, out Spell spellId))
             {
                 if (Enum.IsDefined(typeof(Spell), spellId))
                 {
@@ -1292,8 +1284,8 @@ namespace ACE.Server.Command.Handlers
             ObjectGuid nextItemGuid = GuidManager.NextItemGuid();
             ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
 
-            string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full).ToString("X")})\n";
-            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full).ToString("X")})";
+            string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";
+            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full):X})";
             var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
             session.Network.EnqueueSend(sysChatMsg);
         }

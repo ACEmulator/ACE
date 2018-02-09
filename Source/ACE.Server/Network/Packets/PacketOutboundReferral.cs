@@ -1,8 +1,8 @@
-﻿namespace ACE.Server.Network.Packets
+namespace ACE.Server.Network.Packets
 {
     public class PacketOutboundReferral : ServerPacket
     {
-        public PacketOutboundReferral(ulong worldConnectionKey, string[] sessionIPAddress, byte[] host, ushort port, bool sendInternalHostOnLocalNetwork, byte[] internalHost) : base()
+        public PacketOutboundReferral(ulong worldConnectionKey, string[] sessionIPAddress, byte[] host, ushort port, bool sendInternalHostOnLocalNetwork, byte[] internalHost)
         {
             Header.Flags = PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.Referral;
 

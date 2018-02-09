@@ -1,8 +1,8 @@
-﻿namespace ACE.Server.Network.Packets
+namespace ACE.Server.Network.Packets
 {
     public class PacketOutboundConnectRequest : ServerPacket
     {
-        public PacketOutboundConnectRequest(double serverTime, ulong cookie, uint clientId, byte[] isaacServerSeed, byte[] isaacClientSeed) : base()
+        public PacketOutboundConnectRequest(double serverTime, ulong cookie, uint clientId, byte[] isaacServerSeed, byte[] isaacClientSeed)
         {
             this.Header.Flags = PacketHeaderFlags.ConnectRequest;
             BodyWriter.Write(serverTime); // CConnectHeader.ServerTime

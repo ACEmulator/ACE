@@ -38,7 +38,7 @@ namespace ACE.Server.Entity
         {
             if (FellowshipMembers.Count == 9)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"Fellowship is already full", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
                 return;
             }
             if (newMember.Fellowship != null)
@@ -307,10 +307,8 @@ namespace ACE.Server.Entity
             {
                 return 1;
             }
-            else
-            {
-                return 1 - ((Math.Abs(memberPosition.DistanceTo(leaderPosition))-600) / 600);
-            }
+
+            return 1 - ((Math.Abs(memberPosition.DistanceTo(leaderPosition))-600) / 600);
         }
 
         internal bool IsPlayerInside(Player player)

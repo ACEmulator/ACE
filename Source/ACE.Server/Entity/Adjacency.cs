@@ -1,9 +1,9 @@
-﻿namespace ACE.Server.Entity
+namespace ACE.Server.Entity
 {
     /// <summary>
     /// not sure if this is going to be used.  i thought it was, but now i'm not sure
     /// </summary>
-    public enum Adjacency : int
+    public enum Adjacency
     {
         NorthWest       = 0,
         North           = 1,

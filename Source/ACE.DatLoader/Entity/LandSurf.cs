@@ -15,8 +15,7 @@ namespace ACE.DatLoader.Entity
 
             if (Type == 1)
                 throw new NotImplementedException();
-            else
-                TexMerge.Unpack(reader);
+            TexMerge.Unpack(reader);
         }
     }
 }

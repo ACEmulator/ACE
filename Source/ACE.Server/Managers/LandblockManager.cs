@@ -20,7 +20,7 @@ namespace ACE.Server.Managers
         private static readonly object landblockMutex = new object();
 
         // FIXME(ddevec): Does making this volatile really make double-check locking safe?
-        private volatile static Landblock[,] landblocks = new Landblock[256, 256];
+        private static volatile Landblock[,] landblocks = new Landblock[256, 256];
 
         /// <summary>
         /// This list of all currently active landblocks may only be accessed externally from locations in which the landblocks /CANNOT/ be concurrently modified
@@ -48,7 +48,7 @@ namespace ACE.Server.Managers
                 block.AddWorldObject(session.Player);
 
                 string welcomeMsg = "Welcome to Asheron's Call" + "\n";
-                welcomeMsg += "  powered by ACEmulator  " + "\n"; ;
+                welcomeMsg += "  powered by ACEmulator  " + "\n";
                 welcomeMsg += "" + "\n";
                 welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
 
@@ -184,8 +184,8 @@ namespace ACE.Server.Managers
             Stopwatch sw = Stopwatch.StartNew();
             GetLandblock(blockid, false);
             sw.Stop();
-            log.DebugFormat("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
-            Console.WriteLine("Loaded Landblock {0} in {1} milliseconds ", blockid.Landblock.ToString("X4"), sw.ElapsedMilliseconds);
+            log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
+            Console.WriteLine("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
         }
 
         public static void FinishedForceLoading()

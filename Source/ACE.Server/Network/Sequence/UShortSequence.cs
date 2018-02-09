@@ -1,15 +1,14 @@
-﻿using System;
+using System;
 
 namespace ACE.Server.Network.Sequence
 {
     public class UShortSequence : ISequence
     {
-        private ushort value;
         private ushort maxValue = UInt16.MaxValue;
 
         public UShortSequence(ushort startingValue, ushort maxValue = UInt16.MaxValue)
         {
-            value = startingValue;
+            CurrentValue = startingValue;
             this.maxValue = maxValue;
         }
 
@@ -21,45 +20,28 @@ namespace ACE.Server.Network.Sequence
         {
             this.maxValue = maxValue;
             if (clientPrimed)
-                value = 0;
+                CurrentValue = 0;
             else
-                value = maxValue;
+                CurrentValue = maxValue;
         }
 
-        public ushort CurrentValue
-        {
-            get
-            {
-                return value;
-            }
-        }
+        public ushort CurrentValue { get; private set; }
+
         public ushort NextValue
         {
             get
             {
-                if (value == maxValue)
+                if (CurrentValue == maxValue)
                 {
-                    value = 0;
-                    return value;
+                    CurrentValue = 0;
+                    return CurrentValue;
                 }
-                return ++value;
+                return ++CurrentValue;
             }
         }
 
-        public byte[] CurrentBytes
-        {
-            get
-            {
-                return BitConverter.GetBytes(CurrentValue);
-            }
-        }
+        public byte[] CurrentBytes => BitConverter.GetBytes(CurrentValue);
 
-        public byte[] NextBytes
-        {
-            get
-            {
-                return BitConverter.GetBytes(NextValue);
-            }
-        }
+        public byte[] NextBytes => BitConverter.GetBytes(NextValue);
     }
 }

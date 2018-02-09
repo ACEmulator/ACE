@@ -1,15 +1,14 @@
-﻿using System;
+using System;
 
 namespace ACE.Server.Network.Sequence
 {
     public class ByteSequence : ISequence
     {
-        private byte value;
         private byte maxValue = Byte.MaxValue;
 
         public ByteSequence(byte startingValue, byte maxValue = Byte.MaxValue)
         {
-            value = startingValue;
+            CurrentValue = startingValue;
             this.maxValue = maxValue;
         }
 
@@ -21,46 +20,28 @@ namespace ACE.Server.Network.Sequence
         {
             this.maxValue = maxValue;
             if (clientPrimed)
-                value = 0;
+                CurrentValue = 0;
             else
-                value = this.maxValue;
+                CurrentValue = this.maxValue;
         }
 
-        public byte CurrentValue
-        {
-            get
-            {
-                return value;
-            }
-        }
+        public byte CurrentValue { get; private set; }
 
         public byte NextValue
         {
             get
             {
-                if (value == maxValue)
+                if (CurrentValue == maxValue)
                 {
-                    value = 0;
-                    return value;
+                    CurrentValue = 0;
+                    return CurrentValue;
                 }
-                return ++value;
+                return ++CurrentValue;
             }
         }
 
-        public byte[] CurrentBytes
-        {
-            get
-            {
-                return new byte[] { CurrentValue };
-            }
-        }
+        public byte[] CurrentBytes => new byte[] { CurrentValue };
 
-        public byte[] NextBytes
-        {
-            get
-            {
-                return new byte[] { NextValue };
-            }
-        }
+        public byte[] NextBytes => new byte[] { NextValue };
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -23,7 +23,7 @@ namespace ACE.Server.Network.Managers
             }
             catch (Exception ex)
             {
-                log.Error($"Unable to use {ConfigManager.Config.Server.Network.Host} as host due to: {ex.ToString()}");
+                log.Error($"Unable to use {ConfigManager.Config.Server.Network.Host} as host due to: {ex}");
                 log.Error("Using IPAddress.Any as host instead.");
                 host = IPAddress.Any;
             }

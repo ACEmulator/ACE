@@ -15,7 +15,7 @@ namespace ACE.Entity
         [JsonIgnore]
         public LandblockId LandblockId
         {
-            get { return landblockId.Raw != 0 ? landblockId : new LandblockId(Cell); }
+            get => landblockId.Raw != 0 ? landblockId : new LandblockId(Cell);
             set
             {
                 landblockId = value;
@@ -49,10 +49,7 @@ namespace ACE.Entity
 
         private const float xyMidPoint = 96f;
 
-        public bool Indoors
-        {
-            get { return landblockId.MapScope != MapScope.Outdoors; }
-        }
+        public bool Indoors => landblockId.MapScope != MapScope.Outdoors;
 
         public bool IsInQuadrant(Quadrant q)
         {

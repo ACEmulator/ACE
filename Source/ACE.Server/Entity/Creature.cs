@@ -22,69 +22,63 @@ namespace ACE.Server.Entity
 
         public CreatureAbility Strength
         {
-            get { return AceObject.StrengthAbility; }
+            get => AceObject.StrengthAbility;
             set { AceObject.StrengthAbility = value; }
         }
 
         public CombatMode CombatMode { get; private set; }
 
-        public AceObject AceCorpse
-        {
-            get { return AceObject; }
-        }
+        public AceObject AceCorpse => AceObject;
 
         public CreatureAbility Endurance
         {
-            get { return AceObject.EnduranceAbility; }
+            get => AceObject.EnduranceAbility;
             set { AceObject.EnduranceAbility = value; }
         }
 
         public CreatureAbility Coordination
         {
-            get { return AceObject.CoordinationAbility; }
+            get => AceObject.CoordinationAbility;
             set { AceObject.CoordinationAbility = value; }
         }
 
         public CreatureAbility Quickness
         {
-            get { return AceObject.QuicknessAbility; }
+            get => AceObject.QuicknessAbility;
             set { AceObject.QuicknessAbility = value; }
         }
 
         public CreatureAbility Focus
         {
-            get { return AceObject.FocusAbility; }
+            get => AceObject.FocusAbility;
             set { AceObject.FocusAbility = value; }
         }
 
         public CreatureAbility Self
         {
-            get { return AceObject.SelfAbility; }
+            get => AceObject.SelfAbility;
             set { AceObject.SelfAbility = value; }
         }
 
         public CreatureVital Health
         {
-            get { return AceObject.Health; }
+            get => AceObject.Health;
             set { AceObject.Health = value; }
         }
 
         public CreatureVital Stamina
         {
-            get { return AceObject.Stamina; }
+            get => AceObject.Stamina;
             set { AceObject.Stamina = value; }
         }
 
         public CreatureVital Mana
         {
-            get { return AceObject.Mana; }
+            get => AceObject.Mana;
             set { AceObject.Mana = value; }
         }
 
-        public Dictionary<Ability, CreatureVital> Vitals
-        {
-            get { return AceObject.AceObjectPropertiesAttributes2nd; }
-        }
+        public Dictionary<Ability, CreatureVital> Vitals => AceObject.AceObjectPropertiesAttributes2nd;
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
@@ -194,7 +188,7 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Updates a vital, returns true if vital is now < max
+        /// Updates a vital, returns true if vital is now &lt; max
         /// </summary>
         public void UpdateVital(CreatureVital vital, uint newVal)
         {
@@ -216,7 +210,7 @@ namespace ACE.Server.Entity
             }
             else if (delta + vital.Current > vital.MaxValue)
             {
-                absVal = (uint)(vital.MaxValue - vital.Current);
+                absVal = vital.MaxValue - vital.Current;
             }
             else
             {
@@ -302,10 +296,9 @@ namespace ACE.Server.Entity
         public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
         {
             // check wielded objects
-            WorldObject inventoryItem;
             if (WieldedObjects.ContainsKey(objectGuid))
             {
-                if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
+                if (WieldedObjects.TryGetValue(objectGuid, out var inventoryItem))
                     return inventoryItem;
             }
             return null;

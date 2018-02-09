@@ -68,7 +68,7 @@ namespace ACE.Server.Entity
                 session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
                 session.Player.PlayParticleEffect((PlayScript)spell.TargetEffect, session.Player.Guid);
                 const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
-                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, session.Player, spell, layer, 1, (uint)0x2009010)); ////The values that are hardcoded are not directly available from spell table, but will be available soon.
+                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, session.Player, spell, layer, 1, 0x2009010)); ////The values that are hardcoded are not directly available from spell table, but will be available soon.
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
                 session.Player.SendUseDoneEvent();
                 return;
@@ -83,8 +83,7 @@ namespace ACE.Server.Entity
                 SetAsDisplayContract = 1
             };
 
-            DateTime lastUse;
-            if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out lastUse))
+            if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUse))
             {
                 TimeSpan timeRemaining = lastUse.AddSeconds(CooldownDuration ?? 0.00).Subtract(DateTime.Now);
                 if (timeRemaining.Seconds > 0)

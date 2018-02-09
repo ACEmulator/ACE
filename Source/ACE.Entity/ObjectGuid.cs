@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity
+namespace ACE.Entity
 {
     public enum GuidType
     {
@@ -71,16 +71,14 @@
         {
             if (Type == GuidType.Player)
                 return true;
-            else
-                return false;
+            return false;
         }
 
         public bool IsCreature()
         {
             if (Type == GuidType.Creature)
                 return true;
-            else
-                return false;
+            return false;
         }
 
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
@@ -97,8 +95,7 @@
         {
             if (obj is ObjectGuid)
                 return ((ObjectGuid)obj) == this;
-            else
-                return false;
+            return false;
         }
 
         public override int GetHashCode()

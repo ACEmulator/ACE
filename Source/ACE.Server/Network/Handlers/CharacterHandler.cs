@@ -278,14 +278,11 @@ namespace ACE.Server.Network.Handlers
             character.AvailableSkillCredits = (int)cg.HeritageGroups[(uint)character.Heritage].SkillCredits;
 
             uint numOfSkills = reader.ReadUInt32();
-            Skill skill;
-            SkillStatus skillStatus;
-            SkillCostAttribute skillCost;
             for (uint i = 0; i < numOfSkills; i++)
             {
-                skill = (Skill)i;
-                skillCost = skill.GetCost();
-                skillStatus = (SkillStatus)reader.ReadUInt32();
+                var skill = (Skill)i;
+                var skillCost = skill.GetCost();
+                var skillStatus = (SkillStatus)reader.ReadUInt32();
 
                 if (skillStatus == SkillStatus.Specialized)
                 {
@@ -429,8 +426,8 @@ namespace ACE.Server.Network.Handlers
             {
                 return (ushort)(maxAttributes - allAttributes);
             }
-            else
-                return (ushort)attributeValue;
+
+            return (ushort)attributeValue;
         }
 
         private static void CharacterCreateSetDefaultCharacterOptions(AceCharacter character)

@@ -1,4 +1,4 @@
-﻿using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.Network.GameEvent
 {
@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameEvent
 
         protected Session Session { get; private set; }
 
-        public GameEventMessage(GameEventType eventType, GameMessageGroup group, Session session) : base(GameMessageOpcode.GameEvent, group)
+        protected GameEventMessage(GameEventType eventType, GameMessageGroup group, Session session) : base(GameMessageOpcode.GameEvent, group)
         {
             EventType = eventType;
             Session = session;

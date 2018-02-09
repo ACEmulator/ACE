@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var option = (CharacterOption)message.Payload.ReadUInt32();
-            var optionValue = message.Payload.ReadUInt32() == 0 ? false : true;
+            var optionValue = message.Payload.ReadUInt32() != 0;
             switch (option)
             {
                 case CharacterOption.AppearOffline:

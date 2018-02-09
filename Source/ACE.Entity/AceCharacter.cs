@@ -51,7 +51,7 @@ namespace ACE.Entity
 
             SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
             SetIntProperty(PropertyInt.CreationTimestamp, (int)GetDoubleProperty(PropertyDouble.CreationTimestamp));
-            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("dd MMMM yyyy")}");
+            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow:dd MMMM yyyy}");
 
             SetIntProperty(PropertyInt.CreatureType, (int)Enum.CreatureType.Human);
             SetIntProperty(PropertyInt.ChannelsAllowed, (int)Channel.AllChans);
@@ -435,8 +435,7 @@ namespace ACE.Entity
         {
             if (option.GetCharacterOptions1Attribute() != null)
                 return GetCharacterOptions1((CharacterOptions1)System.Enum.Parse(typeof(CharacterOptions1), option.ToString()));
-            else
-                return GetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()));
+            return GetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()));
         }
 
         /// <summary>
@@ -495,7 +494,8 @@ namespace ACE.Entity
                 SetSkillProperty(skill, newSkill);
                 return true;
             }
-            else if (cs != null && cs.Status == SkillStatus.Trained)
+
+            if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 RefundXp(cs.ExperienceSpent);
                 var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);

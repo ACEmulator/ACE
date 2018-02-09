@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Server.Managers;
 
 namespace ACE.Server.Entity.Actions
@@ -14,9 +14,9 @@ namespace ACE.Server.Entity.Actions
 
         // For breaking ties on compareto, two actions cannot be equal
         private long sequence;
-        private volatile static uint glblSequence = 0;
+        private static volatile uint glblSequence;
 
-        public DelayAction(double waitTimePortalTickYears) : base()
+        public DelayAction(double waitTimePortalTickYears)
         {
             WaitTime = waitTimePortalTickYears;
             sequence = glblSequence++;

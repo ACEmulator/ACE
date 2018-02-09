@@ -89,8 +89,7 @@ namespace ACE.Server.Network.Managers
                 log.WarnFormat("Received unhandled fragment opcode: 0x{0:X4}", ((uint)opcode));
             else
             {
-                MessageHandlerInfo messageHandlerInfo;
-                if (messageHandlers.TryGetValue(opcode, out messageHandlerInfo))
+                if (messageHandlers.TryGetValue(opcode, out var messageHandlerInfo))
                 {
                     if (messageHandlerInfo.Attribute.State == session.State)
                     {
@@ -109,8 +108,7 @@ namespace ACE.Server.Network.Managers
                 log.WarnFormat("Received unhandled GameActionType: 0x{0:X4}", ((uint)opcode));
             else
             {
-                ActionHandlerInfo actionHandlerInfo;
-                if (actionHandlers.TryGetValue(opcode, out actionHandlerInfo))
+                if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
                 {
                     session.EnqueueAction(new ActionEventDelegate(() => {
                         actionHandlerInfo.Handler.Invoke(message, session);

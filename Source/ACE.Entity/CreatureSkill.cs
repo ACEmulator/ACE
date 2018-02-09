@@ -1,6 +1,5 @@
 using System;
 using ACE.Entity.Enum;
-using ACE.Entity;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -140,7 +139,7 @@ namespace ACE.Entity
 
         public static double GetPercentSuccess(uint skillLevel, uint difficulty)
         {
-            float delta = (float)(skillLevel - difficulty);
+            float delta = skillLevel - difficulty;
             var scalar = 1d + Math.Pow(Math.E, 0.03 * delta);
             var percentSuccess = 1d - (1d / scalar);
             return percentSuccess;

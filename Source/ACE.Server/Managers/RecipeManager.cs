@@ -18,7 +18,7 @@ namespace ACE.Server.Managers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Random _random = new Random();
-        private static RecipeCache _recipeCache = null;
+        private static RecipeCache _recipeCache;
 
         private static List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
 
@@ -184,7 +184,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            Player targetPlayer = target as Player;
+            Player targetPlayer = (Player)target;
             Ability vital = (Ability?)recipe.HealingAttribute ?? Ability.Health;
 
             // there's a skill associated with this

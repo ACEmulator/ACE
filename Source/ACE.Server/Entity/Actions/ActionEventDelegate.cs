@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Server.Entity.Actions
 {
@@ -6,7 +6,7 @@ namespace ACE.Server.Entity.Actions
     {
         private Action action;
 
-        public ActionEventDelegate(Action action) : base()
+        public ActionEventDelegate(Action action)
         {
             this.action = action;
         }

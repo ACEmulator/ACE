@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.Entity;
 
 namespace ACE.Server.Network.GameEvent.Events
@@ -34,7 +34,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 if (pageData[i].PageText != null) // This will always be null for this event.
                 {
                     Writer.Write(1); // Text Included
-                    if (ignoreAuthor == true)
+                    if (ignoreAuthor)
                         Writer.Write(1); // Ignore Author
                     else
                         Writer.Write(0); // Ignore Author

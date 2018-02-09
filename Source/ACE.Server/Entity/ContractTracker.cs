@@ -102,9 +102,8 @@ namespace ACE.Server.Entity
         /// <returns>Contract - this class has all of the information from the dat file about the quest.</returns>
         public DatLoader.Entity.Contract GetContractDetails()
         {
-            DatLoader.Entity.Contract contractData;
             var contractTable = DatManager.PortalDat.ContractTable;
-            return contractTable.Contracts.TryGetValue(ContractId, out contractData) ? contractData : null;
+            return contractTable.Contracts.TryGetValue(ContractId, out var contractData) ? contractData : null;
         }
 
         public AceContractTracker SnapShotOfAceContractTracker()

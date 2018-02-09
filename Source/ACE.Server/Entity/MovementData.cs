@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -18,25 +18,22 @@ namespace ACE.Server.Entity
                 SetMovementStateFlag();
                 return movementStateFlag;
             }
-            private set
-            {
-                movementStateFlag = value;
-            }
+            private set => movementStateFlag = value;
         }
 
-        public uint CurrentStyle { get; set; } = 0;
+        public uint CurrentStyle { get; set; }
 
-        public uint ForwardCommand { get; set; } = 0;
+        public uint ForwardCommand { get; set; }
 
-        public uint SideStepCommand { get; set; } = 0;
+        public uint SideStepCommand { get; set; }
 
-        public uint TurnCommand { get; set; } = 0;
+        public uint TurnCommand { get; set; }
 
-        public float TurnSpeed { get; set; } = 0f;
+        public float TurnSpeed { get; set; }
 
-        public float ForwardSpeed { get; set; } = 0f;
+        public float ForwardSpeed { get; set; }
 
-        public float SideStepSpeed { get; set; } = 0f;
+        public float SideStepSpeed { get; set; }
 
         /// <summary>
         /// This guy is nasty!  The movement commands input by the client are not ACCEPTED by the client!
@@ -52,7 +49,7 @@ namespace ACE.Server.Entity
             //      I'm basically just converting based on analyzing packet stuffs, no idea where the magic #'s come from
             if (holdKey != ((uint)MotionCommand.Invalid & 0xFFFF) && holdKey != ((uint)MotionCommand.HoldSidestep & 0xFFFF))
             {
-                log.WarnFormat("Unexpected hold key: {0}", holdKey.ToString("X"));
+                log.WarnFormat("Unexpected hold key: {0:X}", holdKey);
             }
 
             if ((movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
@@ -147,7 +144,7 @@ namespace ACE.Server.Entity
                 // Unknown turn command?
                 else
                 {
-                    log.WarnFormat("Unexpected SideStep command: {0}", SideStepCommand.ToString("X"));
+                    log.WarnFormat("Unexpected SideStep command: {0:X}", SideStepCommand);
                 }
             }
 

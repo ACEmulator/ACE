@@ -18,7 +18,7 @@ namespace ACE.Server.Entity
         private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
         private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
-        private bool inventoryloaded = false;
+        private bool inventoryloaded;
 
         // todo : SO : Turning to player movement states  - looks at @og
         public Vendor(AceObject aceO)
@@ -168,8 +168,7 @@ namespace ACE.Server.Entity
                 // check unique items / add unique items to purchaselist / remove from vendor list
                 if (uniqueItemsForSale.ContainsKey(item.Guid))
                 {
-                    WorldObject wo;
-                    if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
+                    if (uniqueItemsForSale.TryGetValue(item.Guid, out var wo))
                     {
                         uqlist.Add(wo);
                         uniqueItemsForSale.Remove(item.Guid);
@@ -206,8 +205,6 @@ namespace ACE.Server.Entity
         /// Handles the final phase of the transaction.. removing unique items and updating players local
         /// from vendors items list.
         /// </summary>
-        /// <param name="player"></param>
-        /// <param name="items"></param>
         public void BuyItemsFinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
         {
             if (!valid) // re-add unique temp stock items.

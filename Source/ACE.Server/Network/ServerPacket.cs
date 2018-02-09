@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Common.Cryptography;
 
@@ -8,8 +8,8 @@ namespace ACE.Server.Network
     {
         public BinaryWriter BodyWriter { get; private set; }
 
-        private uint issacXor = 0u;
-        private bool issacXorSet = false;
+        private uint issacXor;
+        private bool issacXorSet;
         public uint IssacXor
         {
             get
@@ -35,7 +35,6 @@ namespace ACE.Server.Network
 
         public byte[] GetPayload()
         {
-            uint headerChecksum = 0u;
             uint bodyChecksum = 0u;
             uint fragmentChecksum = 0u;
 
@@ -57,7 +56,7 @@ namespace ACE.Server.Network
                     }
 
                     Header.Size = (ushort)(stream.Length - PacketHeader.HeaderSize);
-                    headerChecksum = Header.CalculateHash32();
+                    var headerChecksum = Header.CalculateHash32();
                     uint payloadChecksum = bodyChecksum + fragmentChecksum;
                     Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
                     writer.Seek(0, SeekOrigin.Begin);

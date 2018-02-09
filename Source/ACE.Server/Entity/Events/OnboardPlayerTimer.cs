@@ -9,7 +9,6 @@ namespace ACE.Server.Entity.Events
         public List<WorldObject> Objects { get; private set; }
 
         public OnboardPlayerTimer(Player player, List<WorldObject> objects)
-            : base()
         {
             this.Player = player;
             this.Objects = objects;

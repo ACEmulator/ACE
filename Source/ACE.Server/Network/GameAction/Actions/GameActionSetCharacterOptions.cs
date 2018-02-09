@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 
@@ -19,7 +19,6 @@ namespace ACE.Server.Network.GameAction.Actions
             int characterOptions1Flag = 0;
             int characterOptions2Flag = 0;
             uint spellbookFilters = 0;
-            uint[] tab1Spells;
             Dictionary<uint, int> desiredComponents = new Dictionary<uint, int>();
 
             // Thanks to tfarley (aclogview) for guidance on how to parse some of these flags.  The protocol docs are incomplete.
@@ -46,7 +45,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (numTab1Spells > 0)
             {
-                tab1Spells = new uint[numTab1Spells];
+                var tab1Spells = new uint[numTab1Spells];
                 for (int i = 0; i < numTab1Spells; i++)
                     tab1Spells[i] = message.Payload.ReadUInt32();  // SpellID
             }

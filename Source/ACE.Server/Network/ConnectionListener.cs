@@ -81,7 +81,8 @@ namespace ACE.Server.Network
                 if (packetLog.IsDebugEnabled)
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine(String.Format("Received Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", data.Length, ipEndpoint.Address, ipEndpoint.Port, listenerEndpoint.Address, listenerEndpoint.Port));
+                    sb.AppendLine(
+                        $"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
                     packetLog.Debug(sb.ToString());
                 }

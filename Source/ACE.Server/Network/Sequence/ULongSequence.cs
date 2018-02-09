@@ -1,15 +1,14 @@
-﻿using System;
+using System;
 
 namespace ACE.Server.Network.Sequence
 {
     public class ULongSequence : ISequence
     {
-        private ulong value;
         private ulong maxValue = UInt64.MaxValue;
 
         public ULongSequence(ulong startingValue, ulong maxValue = UInt64.MaxValue)
         {
-            value = startingValue;
+            CurrentValue = startingValue;
             this.maxValue = maxValue;
         }
 
@@ -21,46 +20,28 @@ namespace ACE.Server.Network.Sequence
         {
             this.maxValue = maxValue;
             if (clientPrimed)
-                value = 0;
+                CurrentValue = 0;
             else
-                value = maxValue;
+                CurrentValue = maxValue;
         }
 
-        public ulong CurrentValue
-        {
-            get
-            {
-                return value;
-            }
-        }
+        public ulong CurrentValue { get; private set; }
 
         public ulong NextValue
         {
             get
             {
-                if (value == maxValue)
+                if (CurrentValue == maxValue)
                 {
-                    value = 0;
-                    return value;
+                    CurrentValue = 0;
+                    return CurrentValue;
                 }
-                return ++value;
+                return ++CurrentValue;
             }
         }
 
-        public byte[] CurrentBytes
-        {
-            get
-            {
-                return BitConverter.GetBytes(CurrentValue);
-            }
-        }
+        public byte[] CurrentBytes => BitConverter.GetBytes(CurrentValue);
 
-        public byte[] NextBytes
-        {
-            get
-            {
-                return BitConverter.GetBytes(NextValue);
-            }
-        }
+        public byte[] NextBytes => BitConverter.GetBytes(NextValue);
     }
 }

@@ -5,99 +5,50 @@ namespace ACE.Entity
 {
     public struct LandblockId
     {
-        private uint rawValue;
+        public uint Raw { get; }
 
         public LandblockId(uint raw)
         {
-            rawValue = raw;
+            Raw = raw;
         }
 
         public LandblockId(byte x, byte y)
         {
-            rawValue = (uint)x << 24 | (uint)y << 16;
+            Raw = (uint)x << 24 | (uint)y << 16;
         }
 
-        public LandblockId East
-        {
-            get { return new LandblockId(Convert.ToByte(LandblockX + 1), LandblockY); }
-        }
+        public LandblockId East => new LandblockId(Convert.ToByte(LandblockX + 1), LandblockY);
 
-        public LandblockId West
-        {
-            get { return new LandblockId(Convert.ToByte(LandblockX - 1), LandblockY); }
-        }
+        public LandblockId West => new LandblockId(Convert.ToByte(LandblockX - 1), LandblockY);
 
-        public LandblockId North
-        {
-            get { return new LandblockId(LandblockX, Convert.ToByte(LandblockY + 1)); }
-        }
+        public LandblockId North => new LandblockId(LandblockX, Convert.ToByte(LandblockY + 1));
 
-        public LandblockId South
-        {
-            get { return new LandblockId(LandblockX, Convert.ToByte(LandblockY - 1)); }
-        }
+        public LandblockId South => new LandblockId(LandblockX, Convert.ToByte(LandblockY - 1));
 
-        public LandblockId NorthEast
-        {
-            get { return new LandblockId(Convert.ToByte(LandblockX + 1), Convert.ToByte(LandblockY + 1)); }
-        }
+        public LandblockId NorthEast => new LandblockId(Convert.ToByte(LandblockX + 1), Convert.ToByte(LandblockY + 1));
 
-        public LandblockId NorthWest
-        {
-            get { return new LandblockId(Convert.ToByte(LandblockX - 1), Convert.ToByte(LandblockY + 1)); }
-        }
+        public LandblockId NorthWest => new LandblockId(Convert.ToByte(LandblockX - 1), Convert.ToByte(LandblockY + 1));
 
-        public LandblockId SouthEast
-        {
-            get { return new LandblockId(Convert.ToByte(LandblockX + 1), Convert.ToByte(LandblockY - 1)); }
-        }
+        public LandblockId SouthEast => new LandblockId(Convert.ToByte(LandblockX + 1), Convert.ToByte(LandblockY - 1));
 
-        public LandblockId SouthWest
-        {
-            get { return new LandblockId(Convert.ToByte(LandblockX - 1), Convert.ToByte(LandblockY - 1)); }
-        }
+        public LandblockId SouthWest => new LandblockId(Convert.ToByte(LandblockX - 1), Convert.ToByte(LandblockY - 1));
 
-        public uint Raw
-        {
-            get { return rawValue; }
-        }
+        public ushort Landblock => (ushort)((Raw >> 16) & 0xFFFF);
 
-        public ushort Landblock
-        {
-            get { return (ushort)((rawValue >> 16) & 0xFFFF); }
-        }
+        public byte LandblockX => (byte)((Raw >> 24) & 0xFF);
 
-        public byte LandblockX
-        {
-            get { return (byte)((rawValue >> 24) & 0xFF); }
-        }
+        public byte LandblockY => (byte)((Raw >> 16) & 0xFF);
 
-        public byte LandblockY
-        {
-            get { return (byte)((rawValue >> 16) & 0xFF); }
-        }
         /// <summary>
         /// This is only used to calclate LandcellX and LandcellY - it has no other function.
         /// </summary>
-        public ushort Landcell
-        {
-            get { return (byte)((rawValue & 0x3F) - 1); }
-        }
+        public ushort Landcell => (byte)((Raw & 0x3F) - 1);
 
-        public byte LandcellX
-        {
-            get { return Convert.ToByte((Landcell >> 3) & 0x7); }
-        }
+        public byte LandcellX => Convert.ToByte((Landcell >> 3) & 0x7);
 
-        public byte LandcellY
-        {
-            get { return Convert.ToByte(Landcell & 0x7); }
-        }
+        public byte LandcellY => Convert.ToByte(Landcell & 0x7);
 
-        public MapScope MapScope
-        {
-            get { return (MapScope)((rawValue & 0x0F00) >> 8); }
-        }
+        public MapScope MapScope => (MapScope)((Raw & 0x0F00) >> 8);
 
         public static bool operator ==(LandblockId c1, LandblockId c2)
         {
@@ -117,8 +68,7 @@ namespace ACE.Entity
         {
             if (obj is LandblockId)
                 return ((LandblockId)obj) == this;
-            else
-                return false;
+            return false;
         }
 
         public override int GetHashCode()

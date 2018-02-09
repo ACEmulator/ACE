@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using System;
 using System.ComponentModel;
@@ -20,7 +20,7 @@ namespace ACE.Diagnostics
             InitializeComponent(); 
         }
 
-        private bool initdraw = false;
+        private bool initdraw;
         private LandBlockStatusFlag[,] TempLandBlockKeys = new LandBlockStatusFlag[256, 256];
         private BackgroundWorker bwUpdateLandblockGrid = new BackgroundWorker();
 
@@ -40,8 +40,8 @@ namespace ACE.Diagnostics
         private int zoomFactor = 5;
 
         private Color backColor;
-        private int selrow = 0;
-        private int selcol = 0;
+        private int selrow;
+        private int selcol;
 
         private void FrmMonitor_Load(object sender, EventArgs e)
         {
@@ -59,7 +59,7 @@ namespace ACE.Diagnostics
             if (!Diagnostics.LandBlockDiag)
                 worker.CancelAsync();
 
-            if (worker.CancellationPending == true)
+            if (worker.CancellationPending)
                 e.Cancel = true;
             else
                 UpdateLandBlockDiag();
@@ -259,7 +259,7 @@ namespace ACE.Diagnostics
             selrow = e.X;
 
             UpdateZoomedImage(e);
-            lblDetail.Text = string.Format("Landblock Detail: {0}, {1} ", selrow, selcol);
+            lblDetail.Text = $"Landblock Detail: {selrow}, {selcol} ";
         }
 
         private int Reverse(int x)
@@ -275,15 +275,15 @@ namespace ACE.Diagnostics
             // this is used for unloaded and loaded landblocks
             LandblockId landblockid = new LandblockId((byte)selrow, (byte)selcol);
 
-            txtDetail.Text = string.Format("Landblock: {0} ", landblockid.Raw.ToString("X"));
+            txtDetail.Text = $"Landblock: {landblockid.Raw:X} ";
 
             // this only works if the landblock is loaded..
             LandBlockStatus status = new LandBlockStatus();
             status = Diagnostics.GetLandBlockKey(selrow, selcol);
             if (status != null)
             {
-                txtDetail.Text += Environment.NewLine + string.Format("Status:  {0} ", status.LandBlockStatusFlag.ToString());
-                txtDetail.Text += Environment.NewLine + string.Format("Players:  {0} ", status.PlayerCount);
+                txtDetail.Text += Environment.NewLine + $"Status:  {status.LandBlockStatusFlag.ToString()} ";
+                txtDetail.Text += Environment.NewLine + $"Players:  {status.PlayerCount} ";
             }
         }
     }

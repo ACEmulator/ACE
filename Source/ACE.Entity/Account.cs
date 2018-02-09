@@ -1,5 +1,4 @@
-﻿using ACE.Common;
-using ACE.Common.Cryptography;
+using ACE.Common;
 using ACE.Entity.Enum;
 
 using MySql.Data.MySqlClient;
@@ -30,10 +29,7 @@ namespace ACE.Entity
         [DbField("accessLevel", (int)MySqlDbType.UInt32)]
         public uint AccessLevel_Binder { get; private set; }
 
-        public AccessLevel AccessLevel
-        {
-            get { return (AccessLevel)AccessLevel_Binder; }
-        }
+        public AccessLevel AccessLevel => (AccessLevel)AccessLevel_Binder;
 
         public void SetAccessLevel(AccessLevel value)
         {

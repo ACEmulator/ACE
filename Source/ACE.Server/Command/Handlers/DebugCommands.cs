@@ -34,8 +34,7 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                ChatMessageType cmt = ChatMessageType.Broadcast;
-                if (Enum.TryParse(parameters[1], true, out cmt))
+                if (Enum.TryParse(parameters[1], true, out ChatMessageType cmt))
                     if (Enum.IsDefined(typeof(ChatMessageType), cmt))
                         ChatPacket.SendServerMessage(session, parameters[0], cmt);
                     else
@@ -55,9 +54,9 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                string debugOutput = "";
                 if (parameters?.Length == 2)
                 {
+                    var debugOutput = "";
                     switch (parameters[0].ToLower())
                     {
                         case "descriptionflags":
@@ -181,15 +180,13 @@ namespace ACE.Server.Command.Handlers
             "all parameters must be specified and cell must be in decimal form")]
         public static void HandleDebugTeleportXYZ(Session session, params string[] parameters)
         {
-            uint cell;
-            if (!uint.TryParse(parameters[0], out cell))
+            if (!uint.TryParse(parameters[0], out var cell))
                 return;
 
             var positionData = new float[7];
             for (uint i = 0u; i < 7u; i++)
             {
-                float position;
-                if (!float.TryParse(parameters[i + 1], out position))
+                if (!float.TryParse(parameters[i + 1], out var position))
                     return;
 
                 positionData[i] = position;
@@ -221,17 +218,15 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length > 0)
             {
-                ulong xp = 0;
                 string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
                 // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
-                if (ulong.TryParse(xpAmountToParse, out xp))
+                if (ulong.TryParse(xpAmountToParse, out var xp))
                 {
                     session.Player.GrantXp(xp);
                     return;
                 }
             }
             ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
-            return;
         }
 
         [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
@@ -239,8 +234,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleContract(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0)) return;
-            uint contractId;
-            if (!uint.TryParse(parameters[0], out contractId)) return;
+            if (!uint.TryParse(parameters[0], out var contractId)) return;
 
             ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
             {
@@ -267,8 +261,7 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length > 0)
             {
-                ushort health = 0;
-                if (ushort.TryParse(parameters[0], out health))
+                if (ushort.TryParse(parameters[0], out var health))
                 {
                     session.Player.Health.Current = health;
                     var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
@@ -278,7 +271,6 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             ChatPacket.SendServerMessage(session, "Usage: /sethealth 200 (max Max Health)", ChatMessageType.Broadcast);
-            return;
         }
 
         // playsound [Sound] (volumelevel)
@@ -291,7 +283,6 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                Sound sound = Sound.Invalid;
                 string message = "";
                 float volume = 1f;
                 var soundEvent = new GameMessageSound(session.Player.Guid, Sound.Invalid, volume);
@@ -302,7 +293,7 @@ namespace ACE.Server.Command.Handlers
 
                 message = $"Unable to find a sound called {parameters[0]} to play.";
 
-                if (Enum.TryParse(parameters[0], true, out sound))
+                if (Enum.TryParse(parameters[0], true, out Sound sound))
                 {
                     if (Enum.IsDefined(typeof(Sound), sound))
                     {
@@ -333,7 +324,6 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                PlayScript effect = PlayScript.Invalid;
                 string message = "";
                 float scale = 1f;
                 var effectEvent = new GameMessageScript(session.Player.Guid, PlayScript.Invalid);
@@ -344,7 +334,7 @@ namespace ACE.Server.Command.Handlers
 
                 message = $"Unable to find a effect called {parameters[0]} to play.";
 
-                if (Enum.TryParse(parameters[0], true, out effect))
+                if (Enum.TryParse(parameters[0], true, out PlayScript effect))
                 {
                     if (Enum.IsDefined(typeof(PlayScript), effect))
                     {
@@ -384,7 +374,7 @@ namespace ACE.Server.Command.Handlers
             }
             catch (Exception)
             {
-                ChatPacket.SendServerMessage(session, $"Invalid Animation value", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Invalid Animation value", ChatMessageType.Broadcast);
                 return;
             }
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
@@ -444,9 +434,8 @@ namespace ACE.Server.Command.Handlers
             string paramValue = parameters[1];
 
             bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
-            int value = int.MaxValue;
 
-            if (!int.TryParse(paramValue, out value))
+            if (!int.TryParse(paramValue, out var value))
             {
                 ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
                 return;
@@ -550,7 +539,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Did not find a player
-            Console.WriteLine($"Error locating the player.");
+            Console.WriteLine("Error locating the player.");
         }
 
         // TODO: Replace later with a command to spawn a generator at the player's location
@@ -626,11 +615,10 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length == 1)
             {
-                PositionType positionType = new PositionType();
                 string parsePositionString = parameters[0].Length > 19 ? parameters[0].Substring(0, 19) : parameters[0];
                 // The enum labels max character length has been observered as length 19
                 // int value can be: 0-27
-                if (Enum.TryParse(parsePositionString, out positionType))
+                if (Enum.TryParse(parsePositionString, out PositionType positionType))
                 {
                     if (positionType != PositionType.Undef)
                     {
@@ -641,13 +629,13 @@ namespace ACE.Server.Command.Handlers
                         session.Player.SetCharacterPosition(positionType, playerPosition);
 
                         // Report changes to client
-                        var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition.ToString()}", ChatMessageType.Broadcast);
+                        var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                         session.Network.EnqueueSend(positionMessage);
                         return;
                     }
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat("Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -660,16 +648,15 @@ namespace ACE.Server.Command.Handlers
             "@teletype 1")]
         public static void HandleTeleType(Session session, params string[] parameters)
         {
-            PositionType positionType = new PositionType();
             if (parameters?.Length > 0)
             {
                 string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
 
-                if (Enum.TryParse(parsePositionString, out positionType))
+                if (Enum.TryParse(parsePositionString, out PositionType positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location.ToString()}", ChatMessageType.Broadcast));
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
                     }
                     else
                     {
@@ -688,15 +675,15 @@ namespace ACE.Server.Command.Handlers
         public static void HandleListPositions(Session session, params string[] parameters)
         {
             // Build a string message containing all available character positions and send as a System Chat message
-            string message = $"Saved character positions:\n";
+            string message = "Saved character positions:\n";
             var posDict = session.Player.Positions;
 
             foreach (var posPair in posDict)
             {
-                message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value.ToString() + "\n";
+                message += "ID: " + (uint)posPair.Key + " Loc: " + posPair.Value + "\n";
             }
 
-            message += $"Total positions: " + posDict.Count.ToString() + "\n";
+            message += "Total positions: " + posDict.Count + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             session.Network.EnqueueSend(positionMessage);
         }
@@ -715,9 +702,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            uint modelId;
             try
             {
+                uint modelId;
                 if (parameters[0].StartsWith("0x"))
                 {
                     string strippedmodelid = parameters[0].Substring(2);
@@ -762,7 +749,7 @@ namespace ACE.Server.Command.Handlers
             string message = "";
             foreach (Session playerSession in WorldManager.GetAll(false))
             {
-                message += $"{playerSession.Player.Name} : {(uint)playerSession.Id}\n";
+                message += $"{playerSession.Player.Name} : {playerSession.Id}\n";
                 playerCounter++;
             }
             message += $"Total connected Players: {playerCounter}\n";
@@ -934,15 +921,14 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            uint spellid;
-            if (!uint.TryParse(parameters[1], out spellid))
+            if (!uint.TryParse(parameters[1], out var spellid))
             {
                 Console.WriteLine("getspellformula <accountname> <spellid>");
                 return;
             }
 
             DatLoader.FileTypes.SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
-            DatLoader.FileTypes.SpellTable spellTable = DatManager.PortalDat.SpellTable;;
+            DatLoader.FileTypes.SpellTable spellTable = DatManager.PortalDat.SpellTable;
             string spellName = spellTable.Spells[spellid].Name;
             var formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
             Console.WriteLine("Formula for " + spellName);

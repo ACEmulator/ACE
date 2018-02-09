@@ -40,14 +40,14 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("loadALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Loads all 65k+ Landblocks, Caution.. it takes a very long time")]
         public static void LoadLALB(Session session, params string[] parameters)
         {
-            Console.WriteLine($"Loading ALL Landblocks..  This will take a while.  type abortALB to stop");
+            Console.WriteLine("Loading ALL Landblocks..  This will take a while.  type abortALB to stop");
             LandblockLoader.StartLoading();
         }
 
         [CommandHandler("abortALB", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Aborts ALL Landblock loading process")]
         public static void AbortLL(Session session, params string[] parameters)
         {
-            Console.WriteLine($"Landblock load aborting");
+            Console.WriteLine("Landblock load aborting");
             LandblockLoader.StopLoading();
         }
 
@@ -56,14 +56,13 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                uint rawid;
-                if (!uint.TryParse(parameters[0], out rawid))
+                if (!uint.TryParse(parameters[0], out var rawid))
                     return;
                 LandblockManager.ForceLoadLandBlock(new LandblockId((rawid) << 16));
             }
             catch
             {
-                Console.WriteLine($"Invalid LandblockId");
+                Console.WriteLine("Invalid LandblockId");
             }
         }
 

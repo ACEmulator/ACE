@@ -1,13 +1,9 @@
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Database.Tests
 {
@@ -68,8 +64,7 @@ namespace ACE.Database.Tests
             Account newAccount = new Account();
             newAccount.SetName("testaccount1");
 
-            uint id;
-            authDb.GetAccountIdByName(newAccount.Name, out id);
+            authDb.GetAccountIdByName(newAccount.Name, out var id);
             var results = authDb.GetAccountById(id);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.AccountId == id);

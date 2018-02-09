@@ -63,12 +63,9 @@ namespace ACE.Server.Command
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
-                string command;
-                string[] parameters;
-                ParseCommand(commandLine, out command, out parameters);
+                ParseCommand(commandLine, out var command, out var parameters);
 
-                CommandHandlerInfo commandHandler;
-                if (GetCommandHandler(null, command, parameters, out commandHandler) == CommandHandlerResponse.Ok)
+                if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
                 {
                     // Add command to world manager's main thread...
                     ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
@@ -118,7 +115,6 @@ namespace ACE.Server.Command
             if (command.ToLower() == "sudo")
             {
                 string sudoCommand = "";
-                string[] sudoParameters;
                 if (parameters.Length > 0)
                     sudoCommand = parameters[0];
 
@@ -137,7 +133,7 @@ namespace ACE.Server.Command
                 if (isSUDOauthorized)
                 {
                     command = sudoCommand;
-                    sudoParameters = new string[parameters.Length - 1];
+                    var sudoParameters = new string[parameters.Length - 1];
                     for (int i = 1; i < parameters.Length; i++)
                         sudoParameters[i - 1] = parameters[i];
                     parameters = sudoParameters;

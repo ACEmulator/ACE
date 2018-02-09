@@ -1,4 +1,3 @@
-using System.Linq;
 using System.IO;
 
 using log4net;
@@ -9,17 +8,13 @@ namespace ACE.DatLoader
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static CellDatDatabase cellDat;
-
-        private static PortalDatDatabase portalDat;
-
         private static string datFile;
 
         private static int count;
 
-        public static CellDatDatabase CellDat => cellDat;
+        public static CellDatDatabase CellDat { get; private set; }
 
-        public static PortalDatDatabase PortalDat => portalDat;
+        public static PortalDatDatabase PortalDat { get; private set; }
 
         public static void Initialize(string datFileDirectory)
         {
@@ -28,8 +23,8 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_cell_1.dat");
-                cellDat = new CellDatDatabase(datFile);
-                count = cellDat.AllFiles.Count();
+                CellDat = new CellDatDatabase(datFile);
+                count = CellDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
             catch (FileNotFoundException ex)
@@ -41,8 +36,8 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_portal.dat");
-                portalDat = new PortalDatDatabase(datFile);
-                count = portalDat.AllFiles.Count();
+                PortalDat = new PortalDatDatabase(datFile);
+                count = PortalDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
             catch (FileNotFoundException ex)

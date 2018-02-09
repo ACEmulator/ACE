@@ -35,7 +35,7 @@ namespace ACE.Server.Network
 
         // Resync will be started after ConnectResponse, and should immediately be sent then, so no delay here.
         // Fun fact: even though we send the server time in the ConnectRequest, client doesn't seem to use it?  Therefore we must TimeSync early so client doesn't see a skew when we send it later.
-        private bool sendResync = false;
+        private bool sendResync;
         private DateTime nextResync = DateTime.UtcNow;
 
         // Ack should be sent after a 2 second delay, so start enabled with the delay.
@@ -44,7 +44,7 @@ namespace ACE.Server.Network
         private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
         
         private uint lastReceivedPacketSequence = 1;
-        private uint lastReceivedFragmentSequence = 0;
+        private uint lastReceivedFragmentSequence;
 
         /// <summary>
         /// This is referenced from many threads:<para />
@@ -286,8 +286,7 @@ namespace ACE.Server.Network
                 // Packet is split
                 log.DebugFormat("[{0}] Fragment {1} is split, this index {2} of {3} fragments", session.LoggingIdentifier, fragment.Header.Sequence, fragment.Header.Index, fragment.Header.Count);
 
-                MessageBuffer buffer = null;
-                if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
+                if (partialFragments.TryGetValue(fragment.Header.Sequence, out var buffer))
                 {
                     // Existing buffer, add this to it and check if we are finally complete.
                     buffer.AddFragment(fragment);
@@ -351,9 +350,7 @@ namespace ACE.Server.Network
         /// </summary>
         private void CheckOutOfOrderPackets()
         {
-            ClientPacket packet = null;
-
-            while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out packet))
+            while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out var packet))
             {
                 log.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
                 HandlePacket(packet);
@@ -365,8 +362,7 @@ namespace ACE.Server.Network
         /// </summary>
         private void CheckOutOfOrderFragments()
         {
-            ClientMessage message = null;
-            while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out message))
+            while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out var message))
             {
                 log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", session.LoggingIdentifier, lastReceivedFragmentSequence + 1);
                 HandleFragment(message);
@@ -400,9 +396,7 @@ namespace ACE.Server.Network
 
         private void Retransmit(uint sequence)
         {
-            ServerPacket cachedPacket;
-
-            if (cachedPackets.TryGetValue(sequence, out cachedPacket))
+            if (cachedPackets.TryGetValue(sequence, out var cachedPacket))
             {
                 log.DebugFormat("[{0}] Retransmit {1}", session.LoggingIdentifier, sequence);
 
@@ -609,9 +603,9 @@ namespace ACE.Server.Network
             private List<ClientPacketFragment> fragments = new List<ClientPacketFragment>();
 
             public uint Sequence { get; }
-            public int Count { get { return fragments.Count; } }
+            public int Count => fragments.Count;
             public uint TotalFragments { get; }
-            public bool Complete { get { return fragments.Count == TotalFragments; } }
+            public bool Complete => fragments.Count == TotalFragments;
 
             public MessageBuffer(uint sequence, uint totalFragments)
             {
@@ -652,13 +646,7 @@ namespace ACE.Server.Network
 
             public ushort Count { get; set; }
 
-            public uint DataLength
-            {
-                get
-                {
-                    return (uint)Message.Data.Length;
-                }
-            }
+            public uint DataLength => (uint)Message.Data.Length;
 
             public uint DataRemaining { get; private set; }
 
@@ -673,15 +661,9 @@ namespace ACE.Server.Network
                 }
             }
 
-            public uint TailSize
-            {
-                get
-                {
-                    return PacketFragmentHeader.HeaderSize + (DataLength % ServerPacketFragment.MaxFragmentDataSize);
-                }
-            }
+            public uint TailSize => PacketFragmentHeader.HeaderSize + (DataLength % ServerPacketFragment.MaxFragmentDataSize);
 
-            public bool TailSent { get; private set; } = false;
+            public bool TailSent { get; private set; }
 
             public MessageFragment(GameMessage message, uint sequence)
             {
@@ -748,29 +730,18 @@ namespace ACE.Server.Network
 
         private class NetworkBundle
         {
-            private bool propChanged = false;
+            private bool propChanged;
 
-            public bool NeedsSending
-            {
-                get
-                {
-                    return propChanged || messages.Count > 0;
-                }
-            }
-            public bool HasMoreMessages
-            {
-                get
-                {
-                    return messages.Count > 0;
-                }
-            }
+            public bool NeedsSending => propChanged || messages.Count > 0;
+
+            public bool HasMoreMessages => messages.Count > 0;
 
             private Queue<GameMessage> messages = new Queue<GameMessage>();
 
             private float clientTime = -1f;
             public float ClientTime
             {
-                get { return clientTime; }
+                get => clientTime;
                 set
                 {
                     clientTime = value;
@@ -778,10 +749,10 @@ namespace ACE.Server.Network
                 }
             }
 
-            private bool timeSync = false;
+            private bool timeSync;
             public bool TimeSync
             {
-                get { return timeSync; }
+                get => timeSync;
                 set
                 {
                     timeSync = value;
@@ -789,10 +760,10 @@ namespace ACE.Server.Network
                 }
             }
 
-            private bool ackSeq = false;
+            private bool ackSeq;
             public bool SendAck
             {
-                get { return ackSeq; }
+                get => ackSeq;
                 set
                 {
                     ackSeq = value;
@@ -800,13 +771,9 @@ namespace ACE.Server.Network
                 }
             }
 
-            public bool EncryptedChecksum { get; set; } = false;
+            public bool EncryptedChecksum { get; set; }
 
             public int CurrentSize { get; private set; }
-
-            public NetworkBundle()
-            {
-            }
 
             public void Enqueue(GameMessage message)
             {

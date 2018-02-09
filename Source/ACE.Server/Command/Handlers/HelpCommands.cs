@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
@@ -23,10 +23,7 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("You can also use @acecommands to get a complete list of the supported ACEmulator commands available to you.", ChatMessageType.Broadcast));
                     session.Network.EnqueueSend(new GameMessageSystemChat("To get more information about a specific command, use @acehelp command", ChatMessageType.Broadcast));
                 }
-                else
-                {
-                    // TODO: ACEHELP output for console
-                }
+
                 return;
             }
 
@@ -49,15 +46,13 @@ namespace ACE.Server.Command.Handlers
 
                     return;
                 }
-                else
-                {
-                    if (command.Attribute.Flags == CommandHandlerFlag.RequiresWorld)
-                        continue;
-                    Console.WriteLine($"{command.Attribute.Command} - {command.Attribute.Description}");
-                    Console.WriteLine($"Usage: {command.Attribute.Command} {command.Attribute.Usage}");
 
-                    return;
-                }
+                if (command.Attribute.Flags == CommandHandlerFlag.RequiresWorld)
+                    continue;
+                Console.WriteLine($"{command.Attribute.Command} - {command.Attribute.Description}");
+                Console.WriteLine($"Usage: {command.Attribute.Command} {command.Attribute.Usage}");
+
+                return;
             }
 
             if (session != null)
@@ -68,8 +63,6 @@ namespace ACE.Server.Command.Handlers
             }
             else
                 Console.WriteLine($"Unknown command: {parameters[0]}");
-
-            return;
         }
 
         // acecommands

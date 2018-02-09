@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common;
 using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
@@ -17,7 +17,7 @@ namespace ACE.Entity
 
         [JsonProperty("index")]
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
-        public byte Index { get; set; } = 0;
+        public byte Index { get; set; }
 
         [JsonProperty("value")]
         [DbField("propertyValue", (int)MySqlDbType.Int32)]

@@ -145,10 +145,7 @@ namespace ACE.Server.Entity
             get;
         }
 
-        public int SocietyId
-        {
-            get { return 0; }
-        }
+        public int SocietyId => 0;
 
         public bool IsTieable
         {
@@ -160,10 +157,7 @@ namespace ACE.Server.Entity
             get;
         }
 
-        public bool IsRecallable
-        {
-            get { return IsTieable; }
-        }
+        public bool IsRecallable => IsTieable;
 
         public override void HandleActionOnCollide(ObjectGuid playerId)
         {
@@ -187,9 +181,7 @@ namespace ACE.Server.Entity
                     Position portalDest = Destination;
                     switch (WeenieClassId)
                     {
-                        /// <summary>
-                        /// Setup correct racial portal destination for the Central Courtyard in the Training Academy
-                        /// </summary>
+                        // Setup correct racial portal destination for the Central Courtyard in the Training Academy
                         case (ushort)SpecialPortalWCID.CentralCourtyard:
                             {
                                 uint playerLandblockId = player.Location.LandblockId.Raw;
@@ -226,9 +218,7 @@ namespace ACE.Server.Entity
                                 portalDest.RotationW = Destination.RotationW;
                                 break;
                             }
-                        /// <summary>
-                        /// Setup correct racial portal destination for the Outer Courtyard in the Training Academy
-                        /// </summary>
+                        // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
                         case (ushort)SpecialPortalWCID.OuterCourtyard:
                             {
                                 uint playerLandblockId = player.Location.LandblockId.Raw;
@@ -265,9 +255,7 @@ namespace ACE.Server.Entity
                                 portalDest.RotationW = Destination.RotationW;
                                 break;
                             }
-                        /// <summary>
-                        /// All other portals don't need adjustments.
-                        /// </summary>
+                        // All other portals don't need adjustments.
                         default:
                             {
                                 break;

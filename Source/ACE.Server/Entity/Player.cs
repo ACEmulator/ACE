@@ -85,10 +85,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Level of the player
         /// </summary>
-        public int Level
-        {
-            get { return Character.Level; }
-        }
+        public int Level => Character.Level;
 
         /// <summary>
         /// This code handle objects between players and other world objects
@@ -171,14 +168,11 @@ namespace ACE.Server.Entity
             Session.Network.EnqueueSend(new GameMessageConfirmationDone(this, confirmationType, contextId));
         }
 
-        private AceCharacter Character { get { return AceObject as AceCharacter; } }
+        private AceCharacter Character => AceObject as AceCharacter;
 
         public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars
         {
-            get
-            {
-                return AceObject.SpellsInSpellBars;
-            }
+            get => AceObject.SpellsInSpellBars;
             set
             {
                 AceObject.SpellsInSpellBars = value;
@@ -195,10 +189,7 @@ namespace ACE.Server.Entity
             Character.CharacterOptions2Mapping = options2;
         }
 
-        public Dictionary<Skill, CreatureSkill> Skills
-        {
-            get { return AceObject.AceObjectPropertiesSkills; }
-        }
+        public Dictionary<Skill, CreatureSkill> Skills => AceObject.AceObjectPropertiesSkills;
 
         private readonly object clientObjectMutex = new object();
 
@@ -208,10 +199,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
-        public Dictionary<PositionType, Position> Positions
-        {
-            get { return AceObject.AceObjectPropertiesPositions; }
-        }
+        public Dictionary<PositionType, Position> Positions => AceObject.AceObjectPropertiesPositions;
 
         private Position PositionSanctuary
         {
@@ -223,10 +211,7 @@ namespace ACE.Server.Entity
                 }
                 return null;
             }
-            set
-            {
-                Positions[PositionType.Sanctuary] = value;
-            }
+            set => Positions[PositionType.Sanctuary] = value;
         }
 
         private Position PositionLastPortal
@@ -239,10 +224,7 @@ namespace ACE.Server.Entity
                 }
                 return null;
             }
-            set
-            {
-                Positions[PositionType.LastPortal] = value;
-            }
+            set => Positions[PositionType.LastPortal] = value;
         }
 
         public bool UnknownSpell(uint spellId)
@@ -336,43 +318,37 @@ namespace ACE.Server.Entity
             }
         }
 
-        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
-        {
-            get { return Character.CharacterOptions; }
-        }
+        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => Character.CharacterOptions;
 
-        public ReadOnlyCollection<Friend> Friends
-        {
-            get { return Character.Friends; }
-        }
+        public ReadOnlyCollection<Friend> Friends => Character.Friends;
 
         public bool IsAdmin
         {
-            get { return Character.IsAdmin; }
+            get => Character.IsAdmin;
             set { Character.IsAdmin = value; }
         }
 
         public bool IsEnvoy
         {
-            get { return Character.IsEnvoy; }
+            get => Character.IsEnvoy;
             set { Character.IsEnvoy = value; }
         }
 
         public bool IsArch
         {
-            get { return Character.IsArch; }
+            get => Character.IsArch;
             set { Character.IsArch = value; }
         }
 
         public bool IsPsr
         {
-            get { return Character.IsPsr; }
+            get => Character.IsPsr;
             set { Character.IsPsr = value; }
         }
 
         public int TotalLogins
         {
-            get { return Character.TotalLogins; }
+            get => Character.TotalLogins;
             set { Character.TotalLogins = value; }
         }
 
@@ -431,13 +407,11 @@ namespace ACE.Server.Entity
             }
         }
 
-        public bool FirstEnterWorldDone = false;
+        public bool FirstEnterWorldDone;
 
-        public int Age
-        { get { return Character.Age; } }
+        public int Age => Character.Age;
 
-        public uint CreationTimestamp
-        { get { return (uint)Character.CreationTimestamp; } }
+        public uint CreationTimestamp => (uint)Character.CreationTimestamp;
 
         public AceObject GetAceObject()
         {
@@ -640,11 +614,11 @@ namespace ACE.Server.Entity
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
                     trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
-                    trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {Character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {Character.AvailableSkillCredits} credits available.";
                 }
                 else
                 {
-                    trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {Character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"Failed to train {skill.ToSentence()}! You now have {Character.AvailableSkillCredits} credits available.";
                 }
 
                 // create the final game message and send to the client
@@ -738,16 +712,14 @@ namespace ACE.Server.Entity
         {
             bool isSecondary = false;
             ICreatureXpSpendableStat creatureStat;
-            CreatureAbility creatureAbility;
-            bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
+            bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out var creatureAbility);
             if (success)
             {
                 creatureStat = creatureAbility;
             }
             else
             {
-                CreatureVital v;
-                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out v);
+                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var v);
 
                 // Invalid ability
                 if (success)
@@ -765,7 +737,6 @@ namespace ACE.Server.Entity
             uint result = SpendAbilityXp(creatureStat, amount);
             uint ranks = creatureStat.Ranks;
             uint newValue = creatureStat.UnbuffedValue;
-            string messageText = "";
             if (result > 0u)
             {
                 GameMessage abilityUpdate;
@@ -779,6 +750,7 @@ namespace ACE.Server.Entity
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
+                var messageText = "";
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
@@ -1123,16 +1095,6 @@ namespace ACE.Server.Entity
                 {
                     wo.QueryItemMana(Session);
                 }
-                else
-                {
-                    // todo replace with interactive items.... this creates crashing!
-                    // ActionChain idChain = new ActionChain();
-                    // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                    // {
-                    //    cwo.QueryItemMana(Session);
-                    // });
-                    // idChain.EnqueueChain();
-                }
             }
         }
 
@@ -1178,10 +1140,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Vendor has validated the transactions and sent a list of items for processing.
         /// </summary>
-        /// <param name="vendor"></param>
-        /// <param name="purchaselist"></param>
-        /// <param name="valid"></param>
-        /// <param name="goldcost"></param>
         public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
         {
             // todo research packets more for both buy and sell. ripley thinks buy is update..
@@ -1213,8 +1171,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Client Calls this when Sell is clicked.
         /// </summary>
-        /// <param name="items"></param>
-        /// <param name="vendorId"></param>
         public void SellToVendor(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
         {
             List<WorldObject> purchaselist = new List<WorldObject>();
@@ -1382,14 +1338,13 @@ namespace ACE.Server.Entity
                 UpdateCurrencyClientCalculations(WeenieType.Coin);
                 return true;
             }
-            else
-                return false;
+
+            return false;
         }
 
         /// <summary>
         /// Call this to add any new World Objects to inventory
         /// </summary>
-        /// <param name="wo"></param>
         public void HandleAddNewWorldObjectsToInventory(List<WorldObject> wolist)
         {
             foreach (WorldObject wo in wolist)
@@ -1772,7 +1727,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool GetVirtualOnlineStatus()
         {
-            if (Character.CharacterOptions[CharacterOption.AppearOffline] == true)
+            if (Character.CharacterOptions[CharacterOption.AppearOffline])
                 return false;
 
             return IsOnline;
@@ -1910,7 +1865,7 @@ namespace ACE.Server.Entity
         {
             lock (clientObjectList)
             {
-                return (List<ObjectGuid>)clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
+                return clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
             }
         }
 
@@ -2104,10 +2059,8 @@ namespace ACE.Server.Entity
                 Teleport(dest);
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         /// <summary>
@@ -2368,10 +2321,6 @@ namespace ACE.Server.Entity
         /// and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
         /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
         /// </summary>
-        /// <param name="container"></param>
-        /// <param name="item"></param>
-        /// <param name="placement"></param>
-        /// <param name="inContainerChain"></param>
         private void HandleUnwieldItem(Container container, WorldObject item, int placement)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
@@ -2933,9 +2882,7 @@ namespace ACE.Server.Entity
                     {
                         if (((EquipMask)placement & EquipMask.Selectable) != 0)
                         {
-                            int placementId;
-                            int childLocation;
-                            SetChild(container, item, placement, out placementId, out childLocation);
+                            SetChild(container, item, placement, out var placementId, out var childLocation);
 
                             UpdateAppearance(container);
 
@@ -3256,7 +3203,6 @@ namespace ACE.Server.Entity
 
             moveToChain.AddLoop(this, () =>
             {
-                bool valid;
                 float outdistance;
                 // Break loop if CurrentLandblock == null (we portaled or logged out), or if we arrive at the item
                 if (CurrentLandblock == null)
@@ -3264,7 +3210,7 @@ namespace ACE.Server.Entity
                     return false;
                 }
 
-                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out valid);
+                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out var valid);
                 if (!valid)
                 {
                     // If one of the items isn't on a landblock
@@ -3358,7 +3304,7 @@ namespace ACE.Server.Entity
                     }
                     else
                     {
-                        List<CloSubPalEffect> values = Enumerable.ToList(item.ClothingSubPalEffects.Values);
+                        List<CloSubPalEffect> values = item.ClothingSubPalEffects.Values.ToList();
                         Random rand = new Random();
                         palOption = rand.Next(size);
                         itemSubPal = values[palOption];
@@ -3389,8 +3335,8 @@ namespace ACE.Server.Entity
                 var objDescEvent = new GameMessageObjDescEvent(this);
                 session.Network.EnqueueSend(objDescEvent);
                 ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") +
-                                                      ", Applying palette index " + palOption.ToString() + " of " + palCount.ToString() +
-                                                      " with a shade value of " + shade.ToString() + ".", ChatMessageType.Broadcast);
+                                                      ", Applying palette index " + palOption + " of " + palCount +
+                                                      " with a shade value of " + shade + ".", ChatMessageType.Broadcast);
             }
             else
             {
@@ -3585,10 +3531,10 @@ namespace ACE.Server.Entity
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
 
-        private int coinValue = 0;
+        private int coinValue;
         public override int? CoinValue
         {
-            get { return coinValue; }
+            get => coinValue;
             set
             {
                 if (value != coinValue)
@@ -3601,10 +3547,10 @@ namespace ACE.Server.Entity
             }
         }
 
-        private ushort burden = 0;
+        private ushort burden;
         public override ushort? Burden
         {
-            get { return burden; }
+            get => burden;
             set
             {
                 if (value != burden)
@@ -3620,7 +3566,7 @@ namespace ACE.Server.Entity
         private int value = 0;
         public override int? Value
         {
-            get { return value; }
+            get => value;
             set { base.Value = 0; }
         }
 
@@ -3631,7 +3577,7 @@ namespace ACE.Server.Entity
         /// <param name="sound">Either Sound.Eat1 or Sound.Drink1</param>
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
-        /// <param name="spellId">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
+        /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyComsumable(string consumableName, global::ACE.Entity.Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
             GameMessageSystemChat buffMessage;
@@ -3706,7 +3652,7 @@ namespace ACE.Server.Entity
             motionChain.EnqueueChain();
         }
 
-        public bool Adminvision = false;
+        public bool Adminvision;
 
         public void HandleAdminvisionToggle(int choice)
         {
@@ -3739,7 +3685,7 @@ namespace ACE.Server.Entity
 
             if (oldState != Adminvision && !Adminvision)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
             }
         }
     }

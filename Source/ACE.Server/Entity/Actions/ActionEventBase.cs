@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Server.Entity.Actions
 {
@@ -6,7 +6,7 @@ namespace ACE.Server.Entity.Actions
     {
         protected Tuple<IActor, IAction> nextAct;
 
-        public ActionEventBase()
+        protected ActionEventBase()
         {
             nextAct = null;
         }

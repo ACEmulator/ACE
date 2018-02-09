@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common;
 using MySql.Data.MySqlClient;
 namespace ACE.Entity
@@ -9,14 +9,14 @@ namespace ACE.Entity
         // private variables for things that mean "this changed".
         // position type and position id are _relatively_ immutable
 
-        private uint _cell = 0;
-        private float _positionX = 0;
-        private float _positionY = 0;
-        private float _positionZ = 0;
-        private float _rotationW = 0;
-        private float _rotationX = 0;
-        private float _rotationY = 0;
-        private float _rotationZ = 0;
+        private uint _cell;
+        private float _positionX;
+        private float _positionY;
+        private float _positionZ;
+        private float _rotationW;
+        private float _rotationX;
+        private float _rotationY;
+        private float _rotationZ;
         
         [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint Cell

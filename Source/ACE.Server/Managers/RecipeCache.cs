@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.Entity;
 using log4net;
 
@@ -27,8 +27,7 @@ namespace ACE.Server.Managers
         {
             if (_cache.ContainsKey(source) && _cache[source].ContainsKey(target))
                 return _cache[source][target];
-            else
-                return null;
+            return null;
         }
     }
 }

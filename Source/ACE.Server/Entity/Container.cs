@@ -17,7 +17,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private int coinValue = 0;
+        private int coinValue;
         public override int? CoinValue
         {
             get { return coinValue; }
@@ -31,7 +31,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        private ushort burden = 0;
+        private ushort burden;
         public override ushort? Burden
         {
             get { return burden; }
@@ -45,7 +45,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        private ushort usedPackSlots = 0;
+        private ushort usedPackSlots;
         private ushort maxPackSlots = 15;
 
         /// <summary>
@@ -190,10 +190,9 @@ namespace ACE.Server.Entity
     public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
-            WorldObject inventoryItem;
             if (InventoryObjects.ContainsKey(objectGuid))
             {
-                if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
+                if (InventoryObjects.TryGetValue(objectGuid, out var inventoryItem))
                     return inventoryItem;
             }
 

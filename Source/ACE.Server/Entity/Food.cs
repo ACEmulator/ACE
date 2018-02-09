@@ -30,7 +30,7 @@ namespace ACE.Server.Entity
         {
             global::ACE.Server.Entity.Player.ConsumableBuffType buffType;
 
-            if (Food == true)
+            if (Food)
             {
                 switch (BoostEnum)
                 {
@@ -68,8 +68,7 @@ namespace ACE.Server.Entity
                 || (Name.ToLower().Contains("acidic rejuvenation")) || (Name.ToLower().Contains("tea"))
                 || (Name.ToLower().Contains("saliva invigorator")))
                 return Sound.Drink1;
-            else
-                return Sound.Eat1;
+            return Sound.Eat1;
         }
     }
 }

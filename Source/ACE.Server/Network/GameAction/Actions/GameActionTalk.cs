@@ -14,12 +14,9 @@ namespace ACE.Server.Network.GameAction.Actions
             
             if (message.StartsWith("@"))
             {
-                string command;
-                string[] parameters;
-                CommandManager.ParseCommand(message.Remove(0, 1), out command, out parameters);
+                CommandManager.ParseCommand(message.Remove(0, 1), out var command, out var parameters);
 
-                CommandHandlerInfo commandHandler;
-                var response = CommandManager.GetCommandHandler(session, command, parameters, out commandHandler);
+                var response = CommandManager.GetCommandHandler(session, command, parameters, out var commandHandler);
                 if (response == CommandHandlerResponse.Ok)
                     ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
                 else if (response == CommandHandlerResponse.SudoOk)
