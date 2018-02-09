@@ -16,7 +16,7 @@ namespace ACE.Server.Entity.Actions
         private long sequence;
         private static volatile uint glblSequence;
 
-        public DelayAction(double waitTimePortalTickYears) : base()
+        public DelayAction(double waitTimePortalTickYears)
         {
             WaitTime = waitTimePortalTickYears;
             sequence = glblSequence++;
