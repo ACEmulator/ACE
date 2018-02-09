@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
@@ -81,7 +81,7 @@ namespace ACE.Entity.Enum.Properties
     {
         public static string GetDescription(this PropertyDataId prop)
         {
-            var description = EnumHelper.GetAttributeOfType<DescriptionAttribute>(prop);
+            var description = prop.GetAttributeOfType<DescriptionAttribute>();
             return description?.Description ?? prop.ToString();
         }
     }

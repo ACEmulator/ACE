@@ -614,11 +614,11 @@ namespace ACE.Server.Entity
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
                     trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
-                    trainSkillMessageText = $"{SkillExtensions.ToSentence(skill)} trained. You now have {Character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {Character.AvailableSkillCredits} credits available.";
                 }
                 else
                 {
-                    trainSkillMessageText = $"Failed to train {SkillExtensions.ToSentence(skill)}! You now have {Character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"Failed to train {skill.ToSentence()}! You now have {Character.AvailableSkillCredits} credits available.";
                 }
 
                 // create the final game message and send to the client
@@ -3304,7 +3304,7 @@ namespace ACE.Server.Entity
                     }
                     else
                     {
-                        List<CloSubPalEffect> values = Enumerable.ToList(item.ClothingSubPalEffects.Values);
+                        List<CloSubPalEffect> values = item.ClothingSubPalEffects.Values.ToList();
                         Random rand = new Random();
                         palOption = rand.Next(size);
                         itemSubPal = values[palOption];
