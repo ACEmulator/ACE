@@ -1,5 +1,4 @@
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 
 namespace ACE.Server.Entity
