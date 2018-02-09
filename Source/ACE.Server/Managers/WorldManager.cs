@@ -232,7 +232,7 @@ namespace ACE.Server.Managers
         /// Returns a list of all players currently online
         /// </summary>
         /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
-        /// <returns>List<> of all online players on the server</returns>
+        /// <returns>List of all online players on the server</returns>
         public static List<Session> GetAll(bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();

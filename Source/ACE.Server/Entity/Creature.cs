@@ -194,7 +194,7 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Updates a vital, returns true if vital is now < max
+        /// Updates a vital, returns true if vital is now &lt; max
         /// </summary>
         public void UpdateVital(CreatureVital vital, uint newVal)
         {
