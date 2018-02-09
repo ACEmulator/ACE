@@ -1,4 +1,4 @@
-﻿using ACE.Server.Network.Enum;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Managers;
 
@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameAction
 
         protected ClientPacketFragment Fragment { get; private set; }
 
-        public GameActionPacket(Session session, ClientPacketFragment fragment)
+        protected GameActionPacket(Session session, ClientPacketFragment fragment)
         {
             Session  = session;
             Fragment = fragment;
