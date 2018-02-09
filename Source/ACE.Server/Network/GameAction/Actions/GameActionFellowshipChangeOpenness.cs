@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.FellowshipChangeOpenness)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var isOpen = message.Payload.ReadUInt32() == 0 ? false : true;
+            var isOpen = message.Payload.ReadUInt32() != 0;
             session.Player.FellowshipSetOpen(isOpen);
         }
     }
