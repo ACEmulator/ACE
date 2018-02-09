@@ -911,8 +911,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return;

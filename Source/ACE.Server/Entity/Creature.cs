@@ -298,8 +298,7 @@ namespace ACE.Server.Entity
             // check wielded objects
             if (WieldedObjects.ContainsKey(objectGuid))
             {
-                WorldObject inventoryItem;
-                if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
+                if (WieldedObjects.TryGetValue(objectGuid, out var inventoryItem))
                     return inventoryItem;
             }
             return null;

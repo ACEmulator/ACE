@@ -192,8 +192,7 @@ namespace ACE.Server.Entity
             // first search me for this item..
             if (InventoryObjects.ContainsKey(objectGuid))
             {
-                WorldObject inventoryItem;
-                if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
+                if (InventoryObjects.TryGetValue(objectGuid, out var inventoryItem))
                     return inventoryItem;
             }
 

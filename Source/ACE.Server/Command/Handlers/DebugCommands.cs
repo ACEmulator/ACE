@@ -615,11 +615,10 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length == 1)
             {
-                PositionType positionType = new PositionType();
                 string parsePositionString = parameters[0].Length > 19 ? parameters[0].Substring(0, 19) : parameters[0];
                 // The enum labels max character length has been observered as length 19
                 // int value can be: 0-27
-                if (Enum.TryParse(parsePositionString, out positionType))
+                if (Enum.TryParse(parsePositionString, out PositionType positionType))
                 {
                     if (positionType != PositionType.Undef)
                     {
@@ -653,8 +652,7 @@ namespace ACE.Server.Command.Handlers
             {
                 string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
 
-                var positionType = new PositionType();
-                if (Enum.TryParse(parsePositionString, out positionType))
+                if (Enum.TryParse(parsePositionString, out PositionType positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
                     {
