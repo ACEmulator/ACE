@@ -1,6 +1,6 @@
 namespace ACE.Entity.Enum
  {
-     public enum HeritageGroup : int
+     public enum HeritageGroup
      {
          Invalid     = 0,
          Aluvian     = 1,

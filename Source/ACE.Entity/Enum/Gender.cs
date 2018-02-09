@@ -1,6 +1,6 @@
 namespace ACE.Entity.Enum
  {
-     public enum Gender : int
+     public enum Gender
      {
          Invalid = 0,
          Male    = 1,
