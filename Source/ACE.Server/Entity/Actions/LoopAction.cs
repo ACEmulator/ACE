@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 
 namespace ACE.Server.Entity.Actions
 {
     public class LoopAction : ActionEventBase
     {
-        public Func<bool> Condition { get; }
-        public ActionChain Body { get; }
+        public Func<bool> Condition { get; private set; }
+        public ActionChain Body { get; private set; }
 
         public LoopAction(IActor conditionActor, Func<bool> condition, ActionChain body)
         {

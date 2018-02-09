@@ -7,7 +7,7 @@ namespace ACE.Server.Entity
 {
     public sealed class Portal : WorldObject
     {
-        public Position Destination { get; }
+        public Position Destination { get; private set; }
 
         // private byte portalSocietyId;
 

@@ -94,6 +94,7 @@ namespace ACE.Server.Entity
         private bool DefaultLocked
         {
             get;
+            set;
         }
 
         private bool DefaultOpen
@@ -105,6 +106,7 @@ namespace ACE.Server.Entity
         private float ResetInterval
         {
             get;
+            set;
         }
 
         private double? resetTimestamp;
@@ -143,6 +145,7 @@ namespace ACE.Server.Entity
         private string LockCode
         {
             get;
+            set;
         }
 
         private string ShortDesc
@@ -160,6 +163,7 @@ namespace ACE.Server.Entity
         private int? ResistLockpick
         {
             get;
+            set;
         }
 
         private int? AppraisalLockpickSuccessPercent

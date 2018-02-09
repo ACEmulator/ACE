@@ -5,7 +5,7 @@ namespace ACE.Common
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class DbTableAttribute : Attribute
     {
-        public string DbTableName { get; }
+        public string DbTableName { get; private set; }
 
         public DbTableAttribute(string tableName)
         {

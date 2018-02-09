@@ -40,7 +40,7 @@ namespace ACE.Entity
         /// base64 encoded version of the salt.  salts may not be changed for an account.
         /// </summary>
         [DbField("passwordSalt", (int)MySqlDbType.Text, Update = false)]
-        public string Salt { get; }
+        public string Salt { get; private set; }
 
         public string Digest { get; private set; }
 

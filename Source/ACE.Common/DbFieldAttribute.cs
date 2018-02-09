@@ -5,9 +5,9 @@ namespace ACE.Common
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
     public class DbFieldAttribute : Attribute
     {
-        public string DbFieldName { get; }
+        public string DbFieldName { get; private set; }
 
-        public int DbFieldType { get; }
+        public int DbFieldType { get; private set; }
 
         public bool Insert { get; set; } = true;
 

@@ -9,7 +9,7 @@ namespace ACE.Server.Entity.Actions
     /// </summary>
     public class DelayAction : ActionEventBase, IComparable<DelayAction>
     {
-        public double WaitTime { get; }
+        public double WaitTime { get; private set; }
         public double EndTime { get; private set; }
 
         // For breaking ties on compareto, two actions cannot be equal

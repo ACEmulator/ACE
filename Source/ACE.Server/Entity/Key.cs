@@ -12,6 +12,7 @@ namespace ACE.Server.Entity
         private string KeyCode
         {
             get;
+            set;
         }
 
         public Key(AceObject aceO)
