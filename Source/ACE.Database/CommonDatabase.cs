@@ -6,7 +6,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public abstract class CommonDatabase : Database, ICommonDatabase
+    public abstract class CommonDatabase : Database
     {
         private enum AceObjectPreparedStatement
         {

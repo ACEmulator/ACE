@@ -6,7 +6,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class AuthenticationDatabase : Database, IAuthenticationDatabase
+    public class AuthenticationDatabase : Database
     {
         private enum AuthenticationPreparedStatement
         {

@@ -10,7 +10,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class WorldDatabase : CommonDatabase, IWorldDatabase
+    public class WorldDatabase : CommonDatabase
     {
         private enum WorldPreparedStatement
         {

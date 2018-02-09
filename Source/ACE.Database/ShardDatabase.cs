@@ -11,7 +11,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class ShardDatabase : CommonDatabase, IShardDatabase
+    public class ShardDatabase : CommonDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

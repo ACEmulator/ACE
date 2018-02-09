@@ -9,15 +9,15 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class SerializedShardDatabase : ISerializedShardDatabase
+    public class SerializedShardDatabase
     {
-        private readonly IShardDatabase _wrappedDatabase;
+        private readonly ShardDatabase _wrappedDatabase;
 
         private readonly BlockingCollection<Task> _queue = new BlockingCollection<Task>();
 
         private Thread _workerThread;
 
-        internal SerializedShardDatabase(IShardDatabase shardDatabase)
+        internal SerializedShardDatabase(ShardDatabase shardDatabase)
         {
             _wrappedDatabase = shardDatabase;
         }

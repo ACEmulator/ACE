@@ -4,21 +4,19 @@ namespace ACE.Database
 {
     public static class DatabaseManager
     {
+        public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
+
         private static SerializedShardDatabase serializedShardDb;
 
-        public static IAuthenticationDatabase Authentication { get; private set; }
+        public static SerializedShardDatabase Shard { get; private set; }
 
-        public static ISerializedShardDatabase Shard { get; private set; }
-
-        public static IWorldDatabase World { get; private set; }
+        public static CachingWorldDatabase World { get; private set; }
 
         public static void Initialize(bool autoRetry = true)
         {
             var config = ConfigManager.Config.MySql;
 
-            var authDb = new AuthenticationDatabase();
-            authDb.Initialize(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database, autoRetry);
-            Authentication = authDb;
+            Authentication.Initialize(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database, autoRetry);
 
             var shardDb = new ShardDatabase();
             shardDb.Initialize(config.Shard.Host, config.Shard.Port, config.Shard.Username, config.Shard.Password, config.Shard.Database, autoRetry);
@@ -27,7 +25,6 @@ namespace ACE.Database
 
             var worldDb = new WorldDatabase();
             worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database, autoRetry);
-
             var cachingWorldDb = new CachingWorldDatabase(worldDb);
             World = cachingWorldDb;
         }
