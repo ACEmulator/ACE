@@ -259,7 +259,7 @@ namespace ACE.Diagnostics
             selrow = e.X;
 
             UpdateZoomedImage(e);
-            lblDetail.Text = string.Format("Landblock Detail: {0}, {1} ", selrow, selcol);
+            lblDetail.Text = $"Landblock Detail: {selrow}, {selcol} ";
         }
 
         private int Reverse(int x)
@@ -275,15 +275,15 @@ namespace ACE.Diagnostics
             // this is used for unloaded and loaded landblocks
             LandblockId landblockid = new LandblockId((byte)selrow, (byte)selcol);
 
-            txtDetail.Text = string.Format("Landblock: {0} ", landblockid.Raw.ToString("X"));
+            txtDetail.Text = $"Landblock: {landblockid.Raw.ToString("X")} ";
 
             // this only works if the landblock is loaded..
             LandBlockStatus status = new LandBlockStatus();
             status = Diagnostics.GetLandBlockKey(selrow, selcol);
             if (status != null)
             {
-                txtDetail.Text += Environment.NewLine + string.Format("Status:  {0} ", status.LandBlockStatusFlag.ToString());
-                txtDetail.Text += Environment.NewLine + string.Format("Players:  {0} ", status.PlayerCount);
+                txtDetail.Text += Environment.NewLine + $"Status:  {status.LandBlockStatusFlag.ToString()} ";
+                txtDetail.Text += Environment.NewLine + $"Players:  {status.PlayerCount} ";
             }
         }
     }
