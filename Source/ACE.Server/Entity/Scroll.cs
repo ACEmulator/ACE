@@ -105,19 +105,16 @@ namespace ACE.Server.Entity
         private List<AceObjectPropertiesInt> ScrollPropertiesInt
         {
             get;
-            set;
         }
 
         private List<AceObjectPropertiesString> ScrollPropertiesString
         {
             get;
-            set;
         }
 
         private List<AceObjectPropertiesSpell> ScrollPropertiesSpellId
         {
             get;
-            set;
         }
 
         private uint SpellId => (uint)Spell.Value;
@@ -126,13 +123,11 @@ namespace ACE.Server.Entity
         private uint Power
         {
             get;
-            set;
         }
 
         private MagicSchool School
         {
             get;
-            set;
         }
 
         public override void OnUse(Session session)

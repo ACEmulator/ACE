@@ -45,7 +45,7 @@ namespace ACE.Entity
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
         public uint High => (Full >> 24);
-        public GuidType Type { get; private set; }
+        public GuidType Type { get; }
 
         public ObjectGuid(uint full)
         {

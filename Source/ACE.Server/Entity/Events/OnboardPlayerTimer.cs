@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace ACE.Server.Entity.Events
 {
     public class OnboardPlayerTimer : System.Timers.Timer
     {
-        public Player Player { get; private set; }
+        public Player Player { get; }
 
-        public List<WorldObject> Objects { get; private set; }
+        public List<WorldObject> Objects { get; }
 
         public OnboardPlayerTimer(Player player, List<WorldObject> objects)
             : base()

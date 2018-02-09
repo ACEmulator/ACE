@@ -644,13 +644,13 @@ namespace ACE.Server.Network
 
         private class MessageFragment
         {
-            public GameMessage Message { get; private set; }
+            public GameMessage Message { get; }
 
-            public uint Sequence { get; set; }
+            public uint Sequence { get; }
 
             public ushort Index { get; set; }
 
-            public ushort Count { get; set; }
+            public ushort Count { get; }
 
             public uint DataLength => (uint)Message.Data.Length;
 

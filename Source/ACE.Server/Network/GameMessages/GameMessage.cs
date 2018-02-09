@@ -1,14 +1,14 @@
-﻿namespace ACE.Server.Network.GameMessages
+namespace ACE.Server.Network.GameMessages
 {
     public abstract class GameMessage
     {
-        public GameMessageOpcode Opcode { get; private set; }
+        public GameMessageOpcode Opcode { get; }
 
-        public System.IO.MemoryStream Data { get; private set; }
+        public System.IO.MemoryStream Data { get; }
 
-        public GameMessageGroup Group { get; private set; }
+        public GameMessageGroup Group { get; }
 
-        protected System.IO.BinaryWriter Writer { get; private set; }
+        protected System.IO.BinaryWriter Writer { get; }
 
         protected GameMessage(GameMessageOpcode opCode, GameMessageGroup group)
         {

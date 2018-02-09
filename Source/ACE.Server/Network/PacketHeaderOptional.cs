@@ -6,11 +6,11 @@ namespace ACE.Server.Network
 {
     public class PacketHeaderOptional
     {
-        public uint Size { get; private set; }
+        public uint Size { get; }
 
-        public uint Sequence { get; private set; }
-        public double TimeSynch { get; private set; }
-        public float EchoRequestClientTime { get; private set; }
+        public uint Sequence { get; }
+        public double TimeSynch { get; }
+        public float EchoRequestClientTime { get; }
         public List<uint> RetransmitData { get; } = new List<uint>();
 
         private MemoryStream headerBytes = new MemoryStream();

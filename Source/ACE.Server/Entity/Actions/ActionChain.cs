@@ -7,8 +7,8 @@ namespace ACE.Server.Entity.Actions
     {
         public class ChainElement
         {
-            public IAction Action { get; private set; }
-            public IActor Actor { get; private set; }
+            public IAction Action { get; }
+            public IActor Actor { get; }
 
             public ChainElement(IActor actor, IAction action)
             {

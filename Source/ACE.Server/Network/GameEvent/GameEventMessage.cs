@@ -1,12 +1,12 @@
-﻿using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.Network.GameEvent
 {
     public abstract class GameEventMessage : GameMessage
     {
-        public GameEventType EventType { get; private set; }
+        public GameEventType EventType { get; }
 
-        protected Session Session { get; private set; }
+        protected Session Session { get; }
 
         public GameEventMessage(GameEventType eventType, GameMessageGroup group, Session session) : base(GameMessageOpcode.GameEvent, group)
         {

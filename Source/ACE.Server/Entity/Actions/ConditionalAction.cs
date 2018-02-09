@@ -4,8 +4,8 @@ namespace ACE.Server.Entity.Actions
 {
     public class ConditionalAction : IAction
     {
-        public ActionChain TrueChain { get; private set; }
-        public ActionChain FalseChain { get; private set; }
+        public ActionChain TrueChain { get; }
+        public ActionChain FalseChain { get; }
         public Func<bool> Condition { get; private set; }
 
         public ConditionalAction(Func<bool> condition, ActionChain trueChain, ActionChain falseChain)

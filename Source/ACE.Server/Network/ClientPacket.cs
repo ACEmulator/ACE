@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using log4net;
 
 namespace ACE.Server.Network
@@ -7,7 +7,7 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public BinaryReader Payload { get; }
-        public PacketHeaderOptional HeaderOptional { get; private set; }
+        public PacketHeaderOptional HeaderOptional { get; }
 
         public ClientPacket(byte[] data)
         {

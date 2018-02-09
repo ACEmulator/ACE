@@ -49,7 +49,6 @@ namespace ACE.Server.Entity
         private List<AceObjectPropertiesInt> CoinPropertiesInt
         {
             get;
-            set;
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

@@ -6,7 +6,7 @@ namespace ACE.Server.Network
 {
     public class ServerPacket : Packet
     {
-        public BinaryWriter BodyWriter { get; private set; }
+        public BinaryWriter BodyWriter { get; }
 
         private uint issacXor;
         private bool issacXorSet;

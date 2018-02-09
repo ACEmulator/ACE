@@ -23,7 +23,7 @@ namespace ACE.Server.Network
 
         public string Account { get; private set; }
 
-        public string LoggingIdentifier { get; private set; } = "Unverified";
+        public string LoggingIdentifier { get; } = "Unverified";
 
         public AccessLevel AccessLevel { get; private set; }
 
