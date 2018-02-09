@@ -202,7 +202,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            Log($"adding {wo.Guid.Full.ToString("X")}");
+            Log($"adding {wo.Guid.Full:X}");
 
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
@@ -852,7 +852,7 @@ namespace ACE.Server.Entity
 
         private void Log(string message)
         {
-            log.Debug($"LB {id.Landblock.ToString("X")}: {message}");
+            log.Debug($"LB {id.Landblock:X}: {message}");
         }
 
         public void ResendObjectsInRange(WorldObject wo)

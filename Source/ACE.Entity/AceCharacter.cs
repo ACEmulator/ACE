@@ -51,7 +51,7 @@ namespace ACE.Entity
 
             SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
             SetIntProperty(PropertyInt.CreationTimestamp, (int)GetDoubleProperty(PropertyDouble.CreationTimestamp));
-            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("dd MMMM yyyy")}");
+            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow:dd MMMM yyyy}");
 
             SetIntProperty(PropertyInt.CreatureType, (int)Enum.CreatureType.Human);
             SetIntProperty(PropertyInt.ChannelsAllowed, (int)Channel.AllChans);

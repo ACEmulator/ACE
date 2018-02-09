@@ -477,7 +477,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @myiid - Displays your Instance ID(IID).
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full.ToString("X")})", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full:X})", ChatMessageType.Broadcast));
         }
 
         // myserver
@@ -792,7 +792,7 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: Check if water block?
 
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock.ToString("X4")} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
 
             session.Player.Teleport(position);
         }
@@ -1292,8 +1292,8 @@ namespace ACE.Server.Command.Handlers
             ObjectGuid nextItemGuid = GuidManager.NextItemGuid();
             ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
 
-            string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full).ToString("X")})\n";
-            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full).ToString("X")})";
+            string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";
+            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full):X})";
             var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
             session.Network.EnqueueSend(sysChatMsg);
         }
