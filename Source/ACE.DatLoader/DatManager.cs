@@ -25,7 +25,7 @@ namespace ACE.DatLoader
             {
                 datFile = Path.Combine(datDir, "client_cell_1.dat");
                 CellDat = new CellDatDatabase(datFile);
-                count = CellDat.AllFiles.Count();
+                count = CellDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
             catch (FileNotFoundException ex)
@@ -38,7 +38,7 @@ namespace ACE.DatLoader
             {
                 datFile = Path.Combine(datDir, "client_portal.dat");
                 PortalDat = new PortalDatDatabase(datFile);
-                count = PortalDat.AllFiles.Count();
+                count = PortalDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
             catch (FileNotFoundException ex)
