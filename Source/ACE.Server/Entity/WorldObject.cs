@@ -34,7 +34,7 @@ namespace ACE.Server.Entity
         private ObjectGuid guid;
         public ObjectGuid Guid
         {
-            get { return guid; }
+            get => guid;
             set
             {
                 guid = new ObjectGuid(value.Full);
@@ -48,62 +48,29 @@ namespace ACE.Server.Entity
 
         protected internal Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; set; }
 
-        protected internal Dictionary<ObjectGuid, AceObject> Inventory
-        {
-            get { return AceObject.Inventory; }
-        }
+        protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
 
         // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
-        protected internal Dictionary<ObjectGuid, AceObject> WieldedItems
-        {
-            get { return AceObject.WieldedItems; }
-        }
+        protected internal Dictionary<ObjectGuid, AceObject> WieldedItems => AceObject.WieldedItems;
 
         // we need to expose this read only for examine to work. Og II
-        public List<AceObjectPropertiesInt> PropertiesInt
-        {
-            get { return AceObject.IntProperties; }
-        }
+        public List<AceObjectPropertiesInt> PropertiesInt => AceObject.IntProperties;
 
-        public List<AceObjectPropertiesInt64> PropertiesInt64
-        {
-            get { return AceObject.Int64Properties; }
-        }
+        public List<AceObjectPropertiesInt64> PropertiesInt64 => AceObject.Int64Properties;
 
-        public List<AceObjectPropertiesBool> PropertiesBool
-        {
-            get { return AceObject.BoolProperties; }
-        }
+        public List<AceObjectPropertiesBool> PropertiesBool => AceObject.BoolProperties;
 
-        public List<AceObjectPropertiesString> PropertiesString
-        {
-            get { return AceObject.StringProperties; }
-        }
+        public List<AceObjectPropertiesString> PropertiesString => AceObject.StringProperties;
 
-        public List<AceObjectPropertiesDouble> PropertiesDouble
-        {
-            get { return AceObject.DoubleProperties; }
-        }
+        public List<AceObjectPropertiesDouble> PropertiesDouble => AceObject.DoubleProperties;
 
-        public List<AceObjectPropertiesDataId> PropertiesDid
-        {
-            get { return AceObject.DataIdProperties; }
-        }
+        public List<AceObjectPropertiesDataId> PropertiesDid => AceObject.DataIdProperties;
 
-        public List<AceObjectPropertiesInstanceId> PropertiesIid
-        {
-            get { return AceObject.InstanceIdProperties; }
-        }
+        public List<AceObjectPropertiesInstanceId> PropertiesIid => AceObject.InstanceIdProperties;
 
-        public List<AceObjectPropertiesSpell> PropertiesSpellId
-        {
-            get { return AceObject.SpellIdProperties; }
-        }
+        public List<AceObjectPropertiesSpell> PropertiesSpellId => AceObject.SpellIdProperties;
 
-        public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook
-        {
-            get { return AceObject.BookProperties; }
-        }
+        public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook => AceObject.BookProperties;
 
         #region ObjDesc
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
@@ -113,22 +80,13 @@ namespace ACE.Server.Entity
         private readonly List<Model> models = new List<Model>();
 
         // subpalettes
-        public List<ModelPalette> GetPalettes
-        {
-            get { return modelPalettes.ToList(); }
-        }
+        public List<ModelPalette> GetPalettes => modelPalettes.ToList();
 
         // tmChanges
-        public List<ModelTexture> GetTextures
-        {
-            get { return modelTextures.ToList(); }
-        }
+        public List<ModelTexture> GetTextures => modelTextures.ToList();
 
         // apChanges
-        public List<Model> GetModels
-        {
-            get { return models.ToList(); }
-        }
+        public List<Model> GetModels => models.ToList();
 
         public void AddPalette(uint paletteId, ushort offset, ushort length)
         {
@@ -158,7 +116,7 @@ namespace ACE.Server.Entity
 
         public uint? PaletteBaseId
         {
-            get { return AceObject.PaletteBaseDID; }
+            get => AceObject.PaletteBaseDID;
             set { AceObject.PaletteBaseDID = value; }
         }
         #endregion
@@ -169,14 +127,14 @@ namespace ACE.Server.Entity
         // bitfield
         public PhysicsDescriptionFlag PhysicsDescriptionFlag
         {
-            get { return SetPhysicsDescriptionFlag(); }
+            get => SetPhysicsDescriptionFlag();
             protected internal set { AceObject.PhysicsDescriptionFlag = (uint)SetPhysicsDescriptionFlag(); }
         }
 
         // state
         public PhysicsState PhysicsState
         {
-            get { return (PhysicsState)AceObject.PhysicsState; }
+            get => (PhysicsState)AceObject.PhysicsState;
             set { AceObject.PhysicsState = (int)value; }
         }
 
@@ -185,7 +143,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint? SetupTableId
         {
-            get { return AceObject.SetupDID; }
+            get => AceObject.SetupDID;
             set { AceObject.SetupDID = value; }
         }
 
@@ -194,7 +152,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint? MotionTableId
         {
-            get { return AceObject.MotionTableDID; }
+            get => AceObject.MotionTableDID;
             set { AceObject.MotionTableDID = value; }
         }
         /// <summary>
@@ -202,7 +160,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint? SoundTableId
         {
-            get { return AceObject.SoundTableDID; }
+            get => AceObject.SoundTableDID;
             set { AceObject.SoundTableDID = value; }
         }
         /// <summary>
@@ -210,13 +168,13 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint? PhysicsTableId
         {
-            get { return AceObject.PhysicsEffectTableDID; }
+            get => AceObject.PhysicsEffectTableDID;
             set { AceObject.PhysicsEffectTableDID = value; }
         }
 
         public int? ParentLocation
         {
-            get { return AceObject.ParentLocation; }
+            get => AceObject.ParentLocation;
             set { AceObject.ParentLocation = value; }
         }
 
@@ -224,25 +182,25 @@ namespace ACE.Server.Entity
 
         public float? ObjScale
         {
-            get { return AceObject.DefaultScale; }
+            get => AceObject.DefaultScale;
             set { AceObject.DefaultScale = value; }
         }
 
         public float? Friction
         {
-            get { return AceObject.Friction; }
+            get => AceObject.Friction;
             set { AceObject.Friction = value; }
         }
 
         public float? Elasticity
         {
-            get { return AceObject.Elasticity; }
+            get => AceObject.Elasticity;
             set { AceObject.Elasticity = value; }
         }
 
         public Placement? Placement // Sometimes known as AnimationFrame
         {
-            get { return (Placement?)AceObject.Placement; }
+            get => (Placement?)AceObject.Placement;
             set { AceObject.Placement = (int?)value; }
         }
 
@@ -250,7 +208,7 @@ namespace ACE.Server.Entity
 
         public float? Translucency
         {
-            get { return AceObject.Translucency; }
+            get => AceObject.Translucency;
             set { AceObject.Translucency = value; }
         }
 
@@ -263,20 +221,20 @@ namespace ACE.Server.Entity
 
         public uint? DefaultScriptId
         {
-            get { return Script; }
+            get => Script;
             set { Script = (ushort?)value; }
         }
 
         public float? DefaultScriptIntensity
         {
-            get { return AceObject.PhysicsScriptIntensity; }
+            get => AceObject.PhysicsScriptIntensity;
             set { AceObject.PhysicsScriptIntensity = value; }
         }
 
         // pos
         public virtual Position Location
         {
-            get { return AceObject.Location; }
+            get => AceObject.Location;
             set
             {
                 /*
@@ -298,7 +256,7 @@ namespace ACE.Server.Entity
         // bitfield
         public WeenieHeaderFlag WeenieFlags
         {
-            get { return SetWeenieHeaderFlag(); }
+            get => SetWeenieHeaderFlag();
             protected internal set { AceObject.WeenieHeaderFlags = (uint)value; }
         }
 
@@ -312,12 +270,12 @@ namespace ACE.Server.Entity
                     IncludesSecondHeader = true;
                 return flags;
             }
-            protected internal set { AceObject.WeenieHeaderFlags2 = (uint)value; }
+            protected internal set => AceObject.WeenieHeaderFlags2 = (uint)value;
         }
 
         public string Name
         {
-            get { return AceObject.Name; }
+            get => AceObject.Name;
             protected set { AceObject.Name = value; }
         }
 
@@ -326,93 +284,90 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint WeenieClassId
         {
-            get { return AceObject.WeenieClassId; }
+            get => AceObject.WeenieClassId;
             protected set { AceObject.WeenieClassId = value; }
         }
 
         public uint? IconId
         {
-            get { return AceObject.IconDID; }
+            get => AceObject.IconDID;
             set { AceObject.IconDID = value; }
         }
 
         // type
         public ItemType ItemType
         {
-            get { return (ItemType?)AceObject.ItemType ?? 0; }
+            get => (ItemType?)AceObject.ItemType ?? 0;
             protected set { AceObject.ItemType = (int)value; }
         }
 
         // header
         public ObjectDescriptionFlag DescriptionFlags
         {
-            get { return (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags; }
+            get => (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags;
             protected internal set { AceObject.AceObjectDescriptionFlags = (uint)value; }
         }
         #endregion
         #region optional
         public string NamePlural
         {
-            get { return AceObject.PluralName; }
+            get => AceObject.PluralName;
             set { AceObject.PluralName = value; }
         }
 
         public byte? ItemCapacity
         {
-            get { return AceObject.ItemsCapacity; }
+            get => AceObject.ItemsCapacity;
             set { AceObject.ItemsCapacity = value; }
         }
 
         public byte? ContainerCapacity
         {
-            get { return AceObject.ContainersCapacity; }
+            get => AceObject.ContainersCapacity;
             set { AceObject.ContainersCapacity = value; }
         }
 
         public AmmoType? AmmoType
         {
-            get { return (AmmoType?)AceObject.AmmoType; }
+            get => (AmmoType?)AceObject.AmmoType;
             set { AceObject.AmmoType = (int?)value; }
         }
 
         public virtual int? Value
         {
-            get { return (StackUnitValue * (StackSize ?? 1)); }
+            get => (StackUnitValue * (StackSize ?? 1));
             set { AceObject.Value = value; }
         }
 
-        public virtual int? StackUnitValue
-        {
-            get { return Weenie.Value ?? 0; }
-        }
+        public virtual int? StackUnitValue => Weenie.Value ?? 0;
 
         public Usable? Usable
         {
-            get { return (Usable?)AceObject.ItemUseable; }
+            get => (Usable?)AceObject.ItemUseable;
             set { AceObject.ItemUseable = (int?)value; }
         }
 
         public float? UseRadius
         {
-            get { return AceObject.UseRadius; }
+            get => AceObject.UseRadius;
             set { AceObject.UseRadius = value; }
         }
 
         public int? TargetType
         {
-            get { return AceObject.TargetType; }
+            get => AceObject.TargetType;
             set { AceObject.TargetType = value; }
         }
 
         public UiEffects? UiEffects
         {
-            get { return (UiEffects?)AceObject.UiEffects; }
+            get => (UiEffects?)AceObject.UiEffects;
             set { AceObject.UiEffects = (int?)value; }
         }
 
         public CombatUse? CombatUse
         {
-            get { return (CombatUse?)AceObject.CombatUse; }
+            get => (CombatUse?)AceObject.CombatUse;
             set { AceObject.CombatUse = (byte?)value; }
         }
 
@@ -421,7 +376,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public ushort? Structure
         {
-            get { return AceObject.Structure; }
+            get => AceObject.Structure;
             set { AceObject.Structure = value; }
         }
 
@@ -430,74 +385,74 @@ namespace ACE.Server.Entity
         /// </summary>
         public ushort? MaxStructure
         {
-            get { return AceObject.MaxStructure; }
+            get => AceObject.MaxStructure;
             set { AceObject.MaxStructure = value; }
         }
 
         public virtual ushort? StackSize
         {
-            get { return AceObject.StackSize; }
+            get => AceObject.StackSize;
             set { AceObject.StackSize = value; }
         }
 
         public ushort? MaxStackSize
         {
-            get { return AceObject.MaxStackSize; }
+            get => AceObject.MaxStackSize;
             set { AceObject.MaxStackSize = value; }
         }
 
         public uint? ContainerId
         {
-            get { return AceObject.ContainerIID; }
+            get => AceObject.ContainerIID;
             set { AceObject.ContainerIID = value; }
         }
 
         public int? PlacementPosition
         {
-            get { return AceObject.PlacementPosition; }
+            get => AceObject.PlacementPosition;
             set { AceObject.PlacementPosition = value; }
         }
 
         public uint? WielderId
         {
-            get { return AceObject.WielderIID; }
+            get => AceObject.WielderIID;
             set { AceObject.WielderIID = value; }
         }
 
         // Locations
         public EquipMask? ValidLocations
         {
-            get { return (EquipMask?)AceObject.ValidLocations; }
+            get => (EquipMask?)AceObject.ValidLocations;
             set { AceObject.ValidLocations = (int?)value; }
         }
 
         public EquipMask? CurrentWieldedLocation
         {
-            get { return (EquipMask?)AceObject.CurrentWieldedLocation; }
+            get => (EquipMask?)AceObject.CurrentWieldedLocation;
             set { AceObject.CurrentWieldedLocation = (int?)value; }
         }
 
         public CoverageMask? Priority
         {
-            get { return (CoverageMask?)AceObject.ClothingPriority; }
+            get => (CoverageMask?)AceObject.ClothingPriority;
             set { AceObject.ClothingPriority = (int?)value; }
         }
 
         public RadarColor? RadarColor
         {
-            get { return (RadarColor?)AceObject.RadarBlipColor; }
+            get => (RadarColor?)AceObject.RadarBlipColor;
             set { AceObject.RadarBlipColor = (byte?)value; }
         }
 
         public RadarBehavior? RadarBehavior
         {
-            get { return (RadarBehavior?)AceObject.ShowableOnRadar; }
+            get => (RadarBehavior?)AceObject.ShowableOnRadar;
             set { AceObject.ShowableOnRadar = (byte?)value; }
         }
 
         public ushort? Script
         {
-            get { return AceObject.PhysicsScriptDID; }
+            get => AceObject.PhysicsScriptDID;
             set { AceObject.PhysicsScriptDID = value; }
         }
 
@@ -526,24 +481,21 @@ namespace ACE.Server.Entity
 
         private int? ItemWorkmanship
         {
-            get { return AceObject.ItemWorkmanship; }
+            get => AceObject.ItemWorkmanship;
             set { AceObject.ItemWorkmanship = value; }
         }
 
         public virtual ushort? Burden
         {
-            get { return (ushort)(StackUnitBurden * (StackSize ?? 1)); }
+            get => (ushort)(StackUnitBurden * (StackSize ?? 1));
             set { AceObject.EncumbranceVal = value; }
         }
 
-        public virtual ushort? StackUnitBurden
-        {
-            get { return Weenie.EncumbranceVal ?? 0; }
-        }
+        public virtual ushort? StackUnitBurden => Weenie.EncumbranceVal ?? 0;
 
         public Spell? Spell
         {
-            get { return (Spell?)AceObject.SpellDID; }
+            get => (Spell?)AceObject.SpellDID;
             set { AceObject.SpellDID = (ushort?)value; }
         }
 
@@ -556,7 +508,7 @@ namespace ACE.Server.Entity
 
         public ushort? HookItemType
         {
-            get { return AceObject.HookItemType; }
+            get => AceObject.HookItemType;
             set { AceObject.HookItemType = value; }
         }
 
@@ -564,25 +516,25 @@ namespace ACE.Server.Entity
 
         public ushort? HookType
         {
-            get { return (ushort?)AceObject.HookType; }
+            get => (ushort?)AceObject.HookType;
             set { AceObject.HookType = value; }
         }
 
         public uint? IconOverlayId
         {
-            get { return AceObject.IconOverlayDID; }
+            get => AceObject.IconOverlayDID;
             set { AceObject.IconOverlayDID = value; }
         }
 
         public uint? IconUnderlayId
         {
-            get { return AceObject.IconUnderlayDID; }
+            get => AceObject.IconUnderlayDID;
             set { AceObject.IconUnderlayDID = value; }
         }
 
         public Material? MaterialType
         {
-            get { return (Material?)AceObject.MaterialType; }
+            get => (Material?)AceObject.MaterialType;
             set { AceObject.MaterialType = (byte?)value; }
         }
 
@@ -590,13 +542,13 @@ namespace ACE.Server.Entity
 
         public int? CooldownId
         {
-            get { return AceObject.SharedCooldown; }
+            get => AceObject.SharedCooldown;
             set { AceObject.SharedCooldown = value; }
         }
 
         public double? CooldownDuration
         {
-            get { return AceObject.CooldownDuration; }
+            get => AceObject.CooldownDuration;
             set { AceObject.CooldownDuration = value; }
         }
         #endregion
@@ -607,7 +559,7 @@ namespace ACE.Server.Entity
         ////Openable               = 0x00000001,
         public bool Openable
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Openable); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Openable);
             set
             {
                 if (value)
@@ -620,7 +572,7 @@ namespace ACE.Server.Entity
         ////Inscribable            = 0x00000002,
         public bool Inscribable
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Inscribable); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Inscribable);
             set
             {
                 if (value)
@@ -633,7 +585,7 @@ namespace ACE.Server.Entity
         ////Stuck                  = 0x00000004,
         public bool Stuck
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Stuck); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Stuck);
             set
             {
                 if (value)
@@ -646,7 +598,7 @@ namespace ACE.Server.Entity
         ////Player                 = 0x00000008,
         public bool Player
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Player); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Player);
             set
             {
                 if (value)
@@ -659,7 +611,7 @@ namespace ACE.Server.Entity
         ////Attackable             = 0x00000010,
         public bool Attackable
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Attackable); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Attackable);
             set
             {
                 if (value)
@@ -672,7 +624,7 @@ namespace ACE.Server.Entity
         ////PlayerKiller           = 0x00000020,
         public bool PlayerKiller
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PlayerKiller); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.PlayerKiller);
             set
             {
                 if (value)
@@ -685,7 +637,7 @@ namespace ACE.Server.Entity
         ////HiddenAdmin            = 0x00000040,
         public bool HiddenAdmin
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.HiddenAdmin); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.HiddenAdmin);
             set
             {
                 if (value)
@@ -698,7 +650,7 @@ namespace ACE.Server.Entity
         ////UiHidden               = 0x00000080,
         public bool UiHidden
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.UiHidden); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.UiHidden);
             set
             {
                 if (value)
@@ -711,7 +663,7 @@ namespace ACE.Server.Entity
         ////Book                   = 0x00000100,
         public bool Book
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Book); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Book);
             set
             {
                 if (value)
@@ -724,7 +676,7 @@ namespace ACE.Server.Entity
         ////Vendor                 = 0x00000200,
         public bool Vendor
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Vendor); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Vendor);
             set
             {
                 if (value)
@@ -737,7 +689,7 @@ namespace ACE.Server.Entity
         ////PkSwitch               = 0x00000400,
         public bool PkSwitch
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkSwitch); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkSwitch);
             set
             {
                 if (value)
@@ -750,7 +702,7 @@ namespace ACE.Server.Entity
         ////NpkSwitch              = 0x00000800,
         public bool NpkSwitch
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.NpkSwitch); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.NpkSwitch);
             set
             {
                 if (value)
@@ -763,7 +715,7 @@ namespace ACE.Server.Entity
         ////Door                   = 0x00001000,
         public bool Door
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Door); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Door);
             set
             {
                 if (value)
@@ -776,7 +728,7 @@ namespace ACE.Server.Entity
         ////Corpse                 = 0x00002000,
         public bool Corpse
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Corpse); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Corpse);
             set
             {
                 if (value)
@@ -789,7 +741,7 @@ namespace ACE.Server.Entity
         ////LifeStone              = 0x00004000,
         public bool LifeStone
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.LifeStone); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.LifeStone);
             set
             {
                 if (value)
@@ -802,7 +754,7 @@ namespace ACE.Server.Entity
         ////Food                   = 0x00008000,
         public bool Food
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Food); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Food);
             set
             {
                 if (value)
@@ -815,7 +767,7 @@ namespace ACE.Server.Entity
         ////Healer                 = 0x00010000,
         public bool Healer
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Healer); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Healer);
             set
             {
                 if (value)
@@ -828,7 +780,7 @@ namespace ACE.Server.Entity
         ////Lockpick               = 0x00020000,
         public bool Lockpick
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Lockpick); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Lockpick);
             set
             {
                 if (value)
@@ -841,7 +793,7 @@ namespace ACE.Server.Entity
         ////Portal                 = 0x00040000,
         public bool Portal
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Portal); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Portal);
             set
             {
                 if (value)
@@ -854,7 +806,7 @@ namespace ACE.Server.Entity
         ////Admin                  = 0x00100000,
         public bool Admin
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Admin); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Admin);
             set
             {
                 if (value)
@@ -867,7 +819,7 @@ namespace ACE.Server.Entity
         ////FreePkStatus           = 0x00200000,
         public bool FreePkStatus
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.FreePkStatus); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.FreePkStatus);
             set
             {
                 if (value)
@@ -880,7 +832,7 @@ namespace ACE.Server.Entity
         ////ImmuneCellRestrictions = 0x00400000,
         public bool ImmuneCellRestrictions
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions);
             set
             {
                 if (value)
@@ -893,7 +845,7 @@ namespace ACE.Server.Entity
         ////RequiresPackSlot       = 0x00800000,
         public bool RequiresPackSlot
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.RequiresPackSlot); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.RequiresPackSlot);
             set
             {
                 if (value)
@@ -904,15 +856,12 @@ namespace ACE.Server.Entity
             }
         }
 
-        public bool UseBackpackSlot
-        {
-            get { return AceObject.UseBackpackSlot; }
-        }
+        public bool UseBackpackSlot => AceObject.UseBackpackSlot;
 
         ////Retained               = 0x01000000,
         public bool Retained
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.Retained); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.Retained);
             set
             {
                 if (value)
@@ -925,7 +874,7 @@ namespace ACE.Server.Entity
         ////PkLiteStatus           = 0x02000000,
         public bool PkLiteStatus
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkLiteStatus); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.PkLiteStatus);
             set
             {
                 if (value)
@@ -938,7 +887,7 @@ namespace ACE.Server.Entity
         ////IncludesSecondHeader   = 0x04000000,
         public bool IncludesSecondHeader
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.IncludesSecondHeader); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.IncludesSecondHeader);
             set
             {
                 if (value)
@@ -951,7 +900,7 @@ namespace ACE.Server.Entity
         ////BindStone              = 0x08000000,
         public bool BindStone
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.BindStone); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.BindStone);
             set
             {
                 if (value)
@@ -964,7 +913,7 @@ namespace ACE.Server.Entity
         ////VolatileRare           = 0x10000000,
         public bool VolatileRare
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.VolatileRare); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.VolatileRare);
             set
             {
                 if (value)
@@ -977,7 +926,7 @@ namespace ACE.Server.Entity
         ////WieldOnUse             = 0x20000000,
         public bool WieldOnUse
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldOnUse); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldOnUse);
             set
             {
                 if (value)
@@ -990,7 +939,7 @@ namespace ACE.Server.Entity
         ////WieldLeft              = 0x40000000,
         public bool WieldLeft
         {
-            get { return DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldLeft); }
+            get => DescriptionFlags.HasFlag(ObjectDescriptionFlag.WieldLeft);
             set
             {
                 if (value)
@@ -1006,7 +955,7 @@ namespace ACE.Server.Entity
         ////Static                      = 0x00000001,
         public bool Static
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Static); }
+            get => PhysicsState.HasFlag(PhysicsState.Static);
             set
             {
                 if (value)
@@ -1020,7 +969,7 @@ namespace ACE.Server.Entity
         ////Ethereal                    = 0x00000004,
         public bool Ethereal
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Ethereal); }
+            get => PhysicsState.HasFlag(PhysicsState.Ethereal);
             set
             {
                 if (value)
@@ -1033,7 +982,7 @@ namespace ACE.Server.Entity
         ////ReportCollision             = 0x00000008,
         public bool ReportCollision
         {
-            get { return PhysicsState.HasFlag(PhysicsState.ReportCollision); }
+            get => PhysicsState.HasFlag(PhysicsState.ReportCollision);
             set
             {
                 if (value)
@@ -1046,7 +995,7 @@ namespace ACE.Server.Entity
         ////IgnoreCollision             = 0x00000010,
         public bool IgnoreCollision
         {
-            get { return PhysicsState.HasFlag(PhysicsState.IgnoreCollision); }
+            get => PhysicsState.HasFlag(PhysicsState.IgnoreCollision);
             set
             {
                 if (value)
@@ -1059,7 +1008,7 @@ namespace ACE.Server.Entity
         ////NoDraw                      = 0x00000020,
         public bool NoDraw
         {
-            get { return PhysicsState.HasFlag(PhysicsState.NoDraw); }
+            get => PhysicsState.HasFlag(PhysicsState.NoDraw);
             set
             {
                 if (value)
@@ -1072,7 +1021,7 @@ namespace ACE.Server.Entity
         ////Missile                     = 0x00000040,
         public bool Missile
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Missile); }
+            get => PhysicsState.HasFlag(PhysicsState.Missile);
             set
             {
                 if (value)
@@ -1085,7 +1034,7 @@ namespace ACE.Server.Entity
         ////Pushable                    = 0x00000080,
         public bool Pushable
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Pushable); }
+            get => PhysicsState.HasFlag(PhysicsState.Pushable);
             set
             {
                 if (value)
@@ -1098,7 +1047,7 @@ namespace ACE.Server.Entity
         ////AlignPath                   = 0x00000100,
         public bool AlignPath
         {
-            get { return PhysicsState.HasFlag(PhysicsState.AlignPath); }
+            get => PhysicsState.HasFlag(PhysicsState.AlignPath);
             set
             {
                 if (value)
@@ -1111,7 +1060,7 @@ namespace ACE.Server.Entity
         ////PathClipped                 = 0x00000200,
         public bool PathClipped
         {
-            get { return PhysicsState.HasFlag(PhysicsState.PathClipped); }
+            get => PhysicsState.HasFlag(PhysicsState.PathClipped);
             set
             {
                 if (value)
@@ -1124,7 +1073,7 @@ namespace ACE.Server.Entity
         ////Gravity                     = 0x00000400,
         public bool Gravity
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Gravity); }
+            get => PhysicsState.HasFlag(PhysicsState.Gravity);
             set
             {
                 if (value)
@@ -1137,7 +1086,7 @@ namespace ACE.Server.Entity
         ////LightingOn                  = 0x00000800,
         public bool LightingOn
         {
-            get { return PhysicsState.HasFlag(PhysicsState.LightingOn); }
+            get => PhysicsState.HasFlag(PhysicsState.LightingOn);
             set
             {
                 if (value)
@@ -1150,7 +1099,7 @@ namespace ACE.Server.Entity
         ////ParticleEmitter             = 0x00001000,
         public bool ParticleEmitter
         {
-            get { return PhysicsState.HasFlag(PhysicsState.ParticleEmitter); }
+            get => PhysicsState.HasFlag(PhysicsState.ParticleEmitter);
             set
             {
                 if (value)
@@ -1164,7 +1113,7 @@ namespace ACE.Server.Entity
         ////Hidden                      = 0x00004000,
         public bool Hidden
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Hidden); }
+            get => PhysicsState.HasFlag(PhysicsState.Hidden);
             set
             {
                 if (value)
@@ -1177,7 +1126,7 @@ namespace ACE.Server.Entity
         ////ScriptedCollision           = 0x00008000,
         public bool ScriptedCollision
         {
-            get { return PhysicsState.HasFlag(PhysicsState.ScriptedCollision); }
+            get => PhysicsState.HasFlag(PhysicsState.ScriptedCollision);
             set
             {
                 if (value)
@@ -1190,7 +1139,7 @@ namespace ACE.Server.Entity
         ////HasPhysicsBsp               = 0x00010000,
         public bool HasPhysicsBsp
         {
-            get { return PhysicsState.HasFlag(PhysicsState.HasPhysicsBsp); }
+            get => PhysicsState.HasFlag(PhysicsState.HasPhysicsBsp);
             set
             {
                 if (value)
@@ -1203,7 +1152,7 @@ namespace ACE.Server.Entity
         ////Inelastic                   = 0x00020000,
         public bool Inelastic
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Inelastic); }
+            get => PhysicsState.HasFlag(PhysicsState.Inelastic);
             set
             {
                 if (value)
@@ -1216,7 +1165,7 @@ namespace ACE.Server.Entity
         ////HasDefaultAnim              = 0x00040000,
         public bool HasDefaultAnim
         {
-            get { return PhysicsState.HasFlag(PhysicsState.HasDefaultAnim); }
+            get => PhysicsState.HasFlag(PhysicsState.HasDefaultAnim);
             set
             {
                 if (value)
@@ -1229,7 +1178,7 @@ namespace ACE.Server.Entity
         ////HasDefaultScript            = 0x00080000,
         public bool HasDefaultScript
         {
-            get { return PhysicsState.HasFlag(PhysicsState.HasDefaultScript); }
+            get => PhysicsState.HasFlag(PhysicsState.HasDefaultScript);
             set
             {
                 if (value)
@@ -1242,7 +1191,7 @@ namespace ACE.Server.Entity
         ////Cloaked                     = 0x00100000,
         public bool Cloaked
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Cloaked); }
+            get => PhysicsState.HasFlag(PhysicsState.Cloaked);
             set
             {
                 if (value)
@@ -1255,7 +1204,7 @@ namespace ACE.Server.Entity
         ////ReportCollisionAsEnviroment = 0x00200000,
         public bool ReportCollisionAsEnviroment
         {
-            get { return PhysicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment); }
+            get => PhysicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment);
             set
             {
                 if (value)
@@ -1268,7 +1217,7 @@ namespace ACE.Server.Entity
         ////EdgeSlide                   = 0x00400000,
         public bool EdgeSlide
         {
-            get { return PhysicsState.HasFlag(PhysicsState.EdgeSlide); }
+            get => PhysicsState.HasFlag(PhysicsState.EdgeSlide);
             set
             {
                 if (value)
@@ -1281,7 +1230,7 @@ namespace ACE.Server.Entity
         ////Sledding                    = 0x00800000,
         public bool Sledding
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Sledding); }
+            get => PhysicsState.HasFlag(PhysicsState.Sledding);
             set
             {
                 if (value)
@@ -1294,7 +1243,7 @@ namespace ACE.Server.Entity
         ////Frozen                      = 0x01000000,
         public bool Frozen
         {
-            get { return PhysicsState.HasFlag(PhysicsState.Frozen); }
+            get => PhysicsState.HasFlag(PhysicsState.Frozen);
             set
             {
                 if (value)
@@ -1314,7 +1263,7 @@ namespace ACE.Server.Entity
 
         public WeenieType WeenieType
         {
-            get { return (WeenieType?)AceObject.WeenieType ?? WeenieType.Undef; }
+            get => (WeenieType?)AceObject.WeenieType ?? WeenieType.Undef;
             protected set { AceObject.WeenieType = (int)value; }
         }
 
@@ -1327,10 +1276,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
         /// </summary>
-        public Landblock CurrentLandblock
-        {
-            get { return CurrentParent as Landblock; }
-        }
+        public Landblock CurrentLandblock => CurrentParent as Landblock;
 
         /// <summary>
         /// tick-stamp for the last time this object changed in any way.
@@ -1374,138 +1320,129 @@ namespace ACE.Server.Entity
 
         public CombatStyle? DefaultCombatStyle
         {
-            get { return (CombatStyle?)AceObject.DefaultCombatStyle; }
+            get => (CombatStyle?)AceObject.DefaultCombatStyle;
             set { AceObject.DefaultCombatStyle = (int?)value; }
         }
 
         public uint? GeneratorId
         {
-            get { return AceObject.GeneratorIID; }
+            get => AceObject.GeneratorIID;
             set { AceObject.GeneratorIID = value; }
         }
 
         public uint? ClothingBase
         {
-            get { return AceObject.ClothingBaseDID; }
+            get => AceObject.ClothingBaseDID;
             set { AceObject.ClothingBaseDID = value; }
         }
 
         public int? ItemCurMana
         {
-            get { return AceObject.ItemCurMana; }
+            get => AceObject.ItemCurMana;
             set { AceObject.ItemCurMana = value; }
         }
 
         public int? ItemMaxMana
         {
-            get { return AceObject.ItemMaxMana; }
+            get => AceObject.ItemMaxMana;
             set { AceObject.ItemMaxMana = value; }
         }
 
         public bool? AdvocateState
         {
-            get { return AceObject.AdvocateState; }
+            get => AceObject.AdvocateState;
             set { AceObject.AdvocateState = value; }
         }
 
         public bool? UnderLifestoneProtection
         {
-            get { return AceObject.UnderLifestoneProtection; }
+            get => AceObject.UnderLifestoneProtection;
             set { AceObject.UnderLifestoneProtection = value; }
         }
 
         public bool? DefaultOn
         {
-            get { return AceObject.DefaultOn; }
+            get => AceObject.DefaultOn;
             set { AceObject.DefaultOn = value; }
         }
 
         public bool? AdvocateQuest
         {
-            get { return AceObject.AdvocateQuest; }
+            get => AceObject.AdvocateQuest;
             set { AceObject.AdvocateQuest = value; }
         }
 
         public bool? IsAdvocate
         {
-            get { return AceObject.IsAdvocate; }
+            get => AceObject.IsAdvocate;
             set { AceObject.IsAdvocate = value; }
         }
 
         public bool? IsSentinel
         {
-            get { return AceObject.IsSentinel; }
+            get => AceObject.IsSentinel;
             set { AceObject.IsSentinel = value; }
         }
 
         public bool? IgnorePortalRestrictions
         {
-            get { return AceObject.IgnorePortalRestrictions; }
+            get => AceObject.IgnorePortalRestrictions;
             set { AceObject.IgnorePortalRestrictions = value; }
         }
 
         public bool? Invincible
         {
-            get { return AceObject.Invincible; }
+            get => AceObject.Invincible;
             set { AceObject.Invincible = value; }
         }
 
         public bool? IsGagged
         {
-            get { return AceObject.IsGagged; }
+            get => AceObject.IsGagged;
             set { AceObject.IsGagged = value; }
         }
 
         public bool? Afk
         {
-            get { return AceObject.Afk; }
+            get => AceObject.Afk;
             set { AceObject.Afk = value; }
         }
 
         public bool? IgnoreAuthor
         {
-            get { return AceObject.IgnoreAuthor; }
+            get => AceObject.IgnoreAuthor;
             set { AceObject.IgnoreAuthor = value; }
         }
 
         public bool? NpcLooksLikeObject
         {
-            get { return AceObject.NpcLooksLikeObject; }
+            get => AceObject.NpcLooksLikeObject;
             set { AceObject.NpcLooksLikeObject = value; }
         }
 
         public bool? SuppressGenerateEffect
         {
-            get { return AceObject.SuppressGenerateEffect; }
+            get => AceObject.SuppressGenerateEffect;
             set { AceObject.SuppressGenerateEffect = value; }
         }
 
         public CreatureType? CreatureType
         {
-            get { return (CreatureType?)AceObject.CreatureType; }
+            get => (CreatureType?)AceObject.CreatureType;
             set { AceObject.CreatureType = (int)value; }
         }
 
-        public AceObject Weenie
-        {
-            get { return Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId); }
-        }
+        public AceObject Weenie => Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId);
 
-        public SetupModel CSetup
-        {
-            get { return DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId.Value); }
-        }
+        public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId.Value);
 
         /// <summary>
         /// This is used to determine how close you need to be to use an item.
         /// NOTE: cheat factor added for items with null use radius.   Og II
         /// </summary>
-        public float UseRadiusSquared
-        {
-            get { return ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius); }
-        }
+        public float UseRadiusSquared => ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius);
 
-    public bool IsWithinUseRadiusOf(WorldObject wo)
+        public bool IsWithinUseRadiusOf(WorldObject wo)
     {
         if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
                 return false;
@@ -1514,85 +1451,85 @@ namespace ACE.Server.Entity
 
         public string LongDesc
         {
-            get { return AceObject.LongDesc; }
+            get => AceObject.LongDesc;
             set { AceObject.LongDesc = value; }
         }
 
         public string Use
         {
-            get { return AceObject.Use; }
+            get => AceObject.Use;
             set { AceObject.Use = value; }
         }
 
         public string Inscription
         {
-            get { return AceObject.Inscription; }
+            get => AceObject.Inscription;
             set { AceObject.Inscription = value; }
         }
 
         public string ScribeAccount
         {
-            get { return AceObject.ScribeAccount; }
+            get => AceObject.ScribeAccount;
             set { AceObject.ScribeAccount = value; }
         }
 
         public string ScribeName
         {
-            get { return AceObject.ScribeName; }
+            get => AceObject.ScribeName;
             set { AceObject.ScribeName = value; }
         }
 
         public uint? Scribe
         {
-            get { return AceObject.ScribeIID; }
+            get => AceObject.ScribeIID;
             set { AceObject.ScribeIID = value; }
         }
 
         public int? Pages
         {
-            get { return AceObject.AppraisalPages; }
+            get => AceObject.AppraisalPages;
             set { AceObject.AppraisalPages = value; }
         }
 
         public int? MaxPages
         {
-            get { return AceObject.AppraisalMaxPages; }
+            get => AceObject.AppraisalMaxPages;
             set { AceObject.AppraisalMaxPages = value; }
         }
 
         public int? MaxCharactersPerPage
         {
-            get { return AceObject.AvailableCharacter; }
+            get => AceObject.AvailableCharacter;
             set { AceObject.AvailableCharacter = value; }
         }
 
         public int? Boost
         {
-            get { return AceObject.Boost; }
+            get => AceObject.Boost;
             set { AceObject.Boost = value; }
         }
 
         public uint? SpellDID
         {
-            get { return AceObject.SpellDID ?? null; }
+            get => AceObject.SpellDID ?? null;
             set { AceObject.SpellDID = value; }
         }
 
         public int? BoostEnum
         {
-            get { return AceObject.BoostEnum ?? 0; }
+            get => AceObject.BoostEnum ?? 0;
             set { AceObject.BoostEnum = value; }
         }
 
         public double? HealkitMod
         {
-            get { return AceObject.HealkitMod; }
+            get => AceObject.HealkitMod;
             set { AceObject.HealkitMod = value; }
         }
 
         public virtual int? CoinValue
         {
-            get { return AceObject.CoinValue; }
+            get => AceObject.CoinValue;
             set { AceObject.CoinValue = value; }
         }
 
@@ -3034,25 +2971,25 @@ namespace ACE.Server.Entity
 
         public int? ChessGamesLost
         {
-            get { return AceObject.ChessGamesLost; }
+            get => AceObject.ChessGamesLost;
             set { AceObject.ChessGamesLost = value; }
         }
 
         public int? ChessGamesWon
         {
-            get { return AceObject.ChessGamesWon; }
+            get => AceObject.ChessGamesWon;
             set { AceObject.ChessGamesWon = value; }
         }
 
         public int? ChessRank
         {
-            get { return AceObject.ChessRank; }
+            get => AceObject.ChessRank;
             set { AceObject.ChessRank = value; }
         }
 
         public int? ChessTotalGames
         {
-            get { return AceObject.ChessTotalGames; }
+            get => AceObject.ChessTotalGames;
             set { AceObject.ChessTotalGames = value; }
         }
 
@@ -3088,10 +3025,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public List<AceObjectInventory> CreateList
-        {
-            get { return AceObject.CreateList; }
-        }
+        public List<AceObjectInventory> CreateList => AceObject.CreateList;
 
         public List<AceObjectInventory> WieldList
         {
@@ -3105,54 +3039,51 @@ namespace ACE.Server.Entity
 
         public int? MerchandiseItemTypes
         {
-            get { return AceObject.MerchandiseItemTypes; }
+            get => AceObject.MerchandiseItemTypes;
             set { AceObject.MerchandiseItemTypes = value; }
         }
 
         public int? MerchandiseMinValue
         {
-            get { return AceObject.MerchandiseMinValue; }
+            get => AceObject.MerchandiseMinValue;
             set { AceObject.MerchandiseMinValue = value; }
         }
 
         public int? MerchandiseMaxValue
         {
-            get { return AceObject.MerchandiseMaxValue; }
+            get => AceObject.MerchandiseMaxValue;
             set { AceObject.MerchandiseMaxValue = value; }
         }
 
         public double? BuyPrice
         {
-            get { return AceObject.BuyPrice; }
+            get => AceObject.BuyPrice;
             set { AceObject.BuyPrice = (double)value; }
         }
 
         public double? SellPrice
         {
-            get { return AceObject.SellPrice; }
+            get => AceObject.SellPrice;
             set { AceObject.SellPrice = (double)value; }
         }
 
         public bool? DealMagicalItems
         {
-            get { return AceObject.DealMagicalItems; }
+            get => AceObject.DealMagicalItems;
             set { AceObject.DealMagicalItems = value; }
         }
 
         public uint? AlternateCurrencyDID
         {
-            get { return AceObject.AlternateCurrencyDID; }
+            get => AceObject.AlternateCurrencyDID;
             set { AceObject.AlternateCurrencyDID = value; }
         }
 
-        public List<AceObjectGeneratorProfile> GeneratorProfiles
-        {
-            get { return AceObject.GeneratorProfiles; }
-        }
+        public List<AceObjectGeneratorProfile> GeneratorProfiles => AceObject.GeneratorProfiles;
 
         public double? HeartbeatInterval
         {
-            get { return AceObject.HeartbeatInterval; }
+            get => AceObject.HeartbeatInterval;
             set { AceObject.HeartbeatInterval = (double)value; }
         }
 
@@ -3172,25 +3103,25 @@ namespace ACE.Server.Entity
 
         public int? InitGeneratedObjects
         {
-            get { return AceObject.InitGeneratedObjects; }
+            get => AceObject.InitGeneratedObjects;
             set { AceObject.InitGeneratedObjects = value; }
         }
 
         public int? MaxGeneratedObjects
         {
-            get { return AceObject.MaxGeneratedObjects; }
+            get => AceObject.MaxGeneratedObjects;
             set { AceObject.MaxGeneratedObjects = value; }
         }
 
         public double? RegenerationInterval
         {
-            get { return AceObject.RegenerationInterval; }
+            get => AceObject.RegenerationInterval;
             set { AceObject.RegenerationInterval = (double)value; }
         }
 
         public bool? GeneratorEnteredWorld
         {
-            get { return AceObject.GeneratorEnteredWorld; }
+            get => AceObject.GeneratorEnteredWorld;
             set { AceObject.GeneratorEnteredWorld = value; }
         }
 
@@ -3374,7 +3305,7 @@ namespace ACE.Server.Entity
 
         public bool? Visibility
         {
-            get { return AceObject.Visibility; }
+            get => AceObject.Visibility;
             set { AceObject.Visibility = value; }
         }
 
@@ -3553,13 +3484,13 @@ namespace ACE.Server.Entity
 
         public int? PaletteTemplate
         {
-            get { return AceObject.PaletteTemplate; }
+            get => AceObject.PaletteTemplate;
             set { AceObject.PaletteTemplate = value; }
         }
 
         public double? Shade
         {
-            get { return AceObject.Shade; }
+            get => AceObject.Shade;
             set { AceObject.Shade = value; }
         }
 
@@ -3746,97 +3677,97 @@ namespace ACE.Server.Entity
 
         public int? Heritage
         {
-            get { return AceObject.Heritage; }
+            get => AceObject.Heritage;
             set { AceObject.Heritage = value; }
         }
 
         public int? Gender
         {
-            get { return AceObject.Gender; }
+            get => AceObject.Gender;
             set { AceObject.Gender = value; }
         }
 
         public string HeritageGroup
         {
-            get { return AceObject.HeritageGroup; }
+            get => AceObject.HeritageGroup;
             set { AceObject.HeritageGroup = value; }
         }
 
         public string Sex
         {
-            get { return AceObject.Sex; }
+            get => AceObject.Sex;
             set { AceObject.Sex = value; }
         }
 
         public uint? HeadObjectDID
         {
-            get { return AceObject.HeadObjectDID ?? null; }
+            get => AceObject.HeadObjectDID ?? null;
             set { AceObject.HeadObjectDID = value; }
         }
 
         public uint? HairTextureDID
         {
-            get { return AceObject.HairTextureDID ?? null; }
+            get => AceObject.HairTextureDID ?? null;
             set { AceObject.HairTextureDID = value; }
         }
 
         public uint? DefaultHairTextureDID
         {
-            get { return AceObject.DefaultHairTextureDID ?? null; }
+            get => AceObject.DefaultHairTextureDID ?? null;
             set { AceObject.DefaultHairTextureDID = value; }
         }
 
         public uint? HairPaletteDID
         {
-            get { return AceObject.HairPaletteDID ?? null; }
+            get => AceObject.HairPaletteDID ?? null;
             set { AceObject.HairPaletteDID = value; }
         }
 
         public uint? SkinPaletteDID
         {
-            get { return AceObject.SkinPaletteDID ?? null; }
+            get => AceObject.SkinPaletteDID ?? null;
             set { AceObject.SkinPaletteDID = value; }
         }
 
         public uint? EyesPaletteDID
         {
-            get { return AceObject.EyesPaletteDID ?? null; }
+            get => AceObject.EyesPaletteDID ?? null;
             set { AceObject.EyesPaletteDID = value; }
         }
 
         public uint? EyesTextureDID
         {
-            get { return AceObject.EyesTextureDID ?? null; }
+            get => AceObject.EyesTextureDID ?? null;
             set { AceObject.EyesTextureDID = value; }
         }
 
         public uint? DefaultEyesTextureDID
         {
-            get { return AceObject.DefaultEyesTextureDID ?? null; }
+            get => AceObject.DefaultEyesTextureDID ?? null;
             set { AceObject.DefaultEyesTextureDID = value; }
         }
 
         public uint? NoseTextureDID
         {
-            get { return AceObject.NoseTextureDID ?? null; }
+            get => AceObject.NoseTextureDID ?? null;
             set { AceObject.NoseTextureDID = value; }
         }
 
         public uint? DefaultNoseTextureDID
         {
-            get { return AceObject.DefaultNoseTextureDID ?? null; }
+            get => AceObject.DefaultNoseTextureDID ?? null;
             set { AceObject.DefaultNoseTextureDID = value; }
         }
 
         public uint? MouthTextureDID
         {
-            get { return AceObject.MouthTextureDID ?? null; }
+            get => AceObject.MouthTextureDID ?? null;
             set { AceObject.MouthTextureDID = value; }
         }
 
         public uint? DefaultMouthTextureDID
         {
-            get { return AceObject.DefaultMouthTextureDID ?? null; }
+            get => AceObject.DefaultMouthTextureDID ?? null;
             set { AceObject.DefaultMouthTextureDID = value; }
         }
 

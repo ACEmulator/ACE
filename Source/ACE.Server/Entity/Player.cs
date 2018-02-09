@@ -85,10 +85,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Level of the player
         /// </summary>
-        public int Level
-        {
-            get { return Character.Level; }
-        }
+        public int Level => Character.Level;
 
         /// <summary>
         /// This code handle objects between players and other world objects
@@ -171,14 +168,11 @@ namespace ACE.Server.Entity
             Session.Network.EnqueueSend(new GameMessageConfirmationDone(this, confirmationType, contextId));
         }
 
-        private AceCharacter Character { get { return AceObject as AceCharacter; } }
+        private AceCharacter Character => AceObject as AceCharacter;
 
         public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars
         {
-            get
-            {
-                return AceObject.SpellsInSpellBars;
-            }
+            get => AceObject.SpellsInSpellBars;
             set
             {
                 AceObject.SpellsInSpellBars = value;
@@ -195,10 +189,7 @@ namespace ACE.Server.Entity
             Character.CharacterOptions2Mapping = options2;
         }
 
-        public Dictionary<Skill, CreatureSkill> Skills
-        {
-            get { return AceObject.AceObjectPropertiesSkills; }
-        }
+        public Dictionary<Skill, CreatureSkill> Skills => AceObject.AceObjectPropertiesSkills;
 
         private readonly object clientObjectMutex = new object();
 
@@ -208,10 +199,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
 
-        public Dictionary<PositionType, Position> Positions
-        {
-            get { return AceObject.AceObjectPropertiesPositions; }
-        }
+        public Dictionary<PositionType, Position> Positions => AceObject.AceObjectPropertiesPositions;
 
         private Position PositionSanctuary
         {
@@ -223,10 +211,7 @@ namespace ACE.Server.Entity
                 }
                 return null;
             }
-            set
-            {
-                Positions[PositionType.Sanctuary] = value;
-            }
+            set => Positions[PositionType.Sanctuary] = value;
         }
 
         private Position PositionLastPortal
@@ -239,10 +224,7 @@ namespace ACE.Server.Entity
                 }
                 return null;
             }
-            set
-            {
-                Positions[PositionType.LastPortal] = value;
-            }
+            set => Positions[PositionType.LastPortal] = value;
         }
 
         public bool UnknownSpell(uint spellId)
@@ -336,43 +318,37 @@ namespace ACE.Server.Entity
             }
         }
 
-        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions
-        {
-            get { return Character.CharacterOptions; }
-        }
+        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => Character.CharacterOptions;
 
-        public ReadOnlyCollection<Friend> Friends
-        {
-            get { return Character.Friends; }
-        }
+        public ReadOnlyCollection<Friend> Friends => Character.Friends;
 
         public bool IsAdmin
         {
-            get { return Character.IsAdmin; }
+            get => Character.IsAdmin;
             set { Character.IsAdmin = value; }
         }
 
         public bool IsEnvoy
         {
-            get { return Character.IsEnvoy; }
+            get => Character.IsEnvoy;
             set { Character.IsEnvoy = value; }
         }
 
         public bool IsArch
         {
-            get { return Character.IsArch; }
+            get => Character.IsArch;
             set { Character.IsArch = value; }
         }
 
         public bool IsPsr
         {
-            get { return Character.IsPsr; }
+            get => Character.IsPsr;
             set { Character.IsPsr = value; }
         }
 
         public int TotalLogins
         {
-            get { return Character.TotalLogins; }
+            get => Character.TotalLogins;
             set { Character.TotalLogins = value; }
         }
 
@@ -433,11 +409,9 @@ namespace ACE.Server.Entity
 
         public bool FirstEnterWorldDone;
 
-        public int Age
-        { get { return Character.Age; } }
+        public int Age => Character.Age;
 
-        public uint CreationTimestamp
-        { get { return (uint)Character.CreationTimestamp; } }
+        public uint CreationTimestamp => (uint)Character.CreationTimestamp;
 
         public AceObject GetAceObject()
         {
@@ -3576,7 +3550,7 @@ namespace ACE.Server.Entity
         private int coinValue;
         public override int? CoinValue
         {
-            get { return coinValue; }
+            get => coinValue;
             set
             {
                 if (value != coinValue)
@@ -3592,7 +3566,7 @@ namespace ACE.Server.Entity
         private ushort burden;
         public override ushort? Burden
         {
-            get { return burden; }
+            get => burden;
             set
             {
                 if (value != burden)
@@ -3608,7 +3582,7 @@ namespace ACE.Server.Entity
         private int value = 0;
         public override int? Value
         {
-            get { return value; }
+            get => value;
             set { base.Value = 0; }
         }
 

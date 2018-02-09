@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using ACE.Common.Cryptography;
 
@@ -15,13 +15,7 @@ namespace ACE.Server.Network
 
         private MemoryStream headerBytes = new MemoryStream();
 
-        public byte[] Bytes
-        {
-            get
-            {
-                return headerBytes.ToArray();
-            }
-        }
+        public byte[] Bytes => headerBytes.ToArray();
 
         public PacketHeaderOptional(BinaryReader payload, PacketHeader header)
         {

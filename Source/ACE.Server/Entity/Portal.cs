@@ -145,10 +145,7 @@ namespace ACE.Server.Entity
             get;
         }
 
-        public int SocietyId
-        {
-            get { return 0; }
-        }
+        public int SocietyId => 0;
 
         public bool IsTieable
         {
@@ -160,10 +157,7 @@ namespace ACE.Server.Entity
             get;
         }
 
-        public bool IsRecallable
-        {
-            get { return IsTieable; }
-        }
+        public bool IsRecallable => IsTieable;
 
         public override void HandleActionOnCollide(ObjectGuid playerId)
         {

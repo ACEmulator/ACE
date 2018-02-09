@@ -18,10 +18,7 @@ namespace ACE.Server.Entity
                 SetMovementStateFlag();
                 return movementStateFlag;
             }
-            private set
-            {
-                movementStateFlag = value;
-            }
+            private set => movementStateFlag = value;
         }
 
         public uint CurrentStyle { get; set; }

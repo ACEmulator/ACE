@@ -609,9 +609,9 @@ namespace ACE.Server.Network
             private List<ClientPacketFragment> fragments = new List<ClientPacketFragment>();
 
             public uint Sequence { get; }
-            public int Count { get { return fragments.Count; } }
+            public int Count => fragments.Count;
             public uint TotalFragments { get; }
-            public bool Complete { get { return fragments.Count == TotalFragments; } }
+            public bool Complete => fragments.Count == TotalFragments;
 
             public MessageBuffer(uint sequence, uint totalFragments)
             {
@@ -652,13 +652,7 @@ namespace ACE.Server.Network
 
             public ushort Count { get; set; }
 
-            public uint DataLength
-            {
-                get
-                {
-                    return (uint)Message.Data.Length;
-                }
-            }
+            public uint DataLength => (uint)Message.Data.Length;
 
             public uint DataRemaining { get; private set; }
 
@@ -673,13 +667,7 @@ namespace ACE.Server.Network
                 }
             }
 
-            public uint TailSize
-            {
-                get
-                {
-                    return PacketFragmentHeader.HeaderSize + (DataLength % ServerPacketFragment.MaxFragmentDataSize);
-                }
-            }
+            public uint TailSize => PacketFragmentHeader.HeaderSize + (DataLength % ServerPacketFragment.MaxFragmentDataSize);
 
             public bool TailSent { get; private set; }
 
@@ -750,27 +738,16 @@ namespace ACE.Server.Network
         {
             private bool propChanged;
 
-            public bool NeedsSending
-            {
-                get
-                {
-                    return propChanged || messages.Count > 0;
-                }
-            }
-            public bool HasMoreMessages
-            {
-                get
-                {
-                    return messages.Count > 0;
-                }
-            }
+            public bool NeedsSending => propChanged || messages.Count > 0;
+
+            public bool HasMoreMessages => messages.Count > 0;
 
             private Queue<GameMessage> messages = new Queue<GameMessage>();
 
             private float clientTime = -1f;
             public float ClientTime
             {
-                get { return clientTime; }
+                get => clientTime;
                 set
                 {
                     clientTime = value;
@@ -781,7 +758,7 @@ namespace ACE.Server.Network
             private bool timeSync;
             public bool TimeSync
             {
-                get { return timeSync; }
+                get => timeSync;
                 set
                 {
                     timeSync = value;
@@ -792,7 +769,7 @@ namespace ACE.Server.Network
             private bool ackSeq;
             public bool SendAck
             {
-                get { return ackSeq; }
+                get => ackSeq;
                 set
                 {
                     ackSeq = value;

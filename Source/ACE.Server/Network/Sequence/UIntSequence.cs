@@ -40,20 +40,8 @@ namespace ACE.Server.Network.Sequence
             }
         }
 
-        public byte[] CurrentBytes
-        {
-            get
-            {
-                return BitConverter.GetBytes(CurrentValue);
-            }
-        }
+        public byte[] CurrentBytes => BitConverter.GetBytes(CurrentValue);
 
-        public byte[] NextBytes
-        {
-            get
-            {
-                return BitConverter.GetBytes(NextValue);
-            }
-        }
+        public byte[] NextBytes => BitConverter.GetBytes(NextValue);
     }
 }

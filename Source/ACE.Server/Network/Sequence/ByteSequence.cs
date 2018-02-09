@@ -40,20 +40,8 @@ namespace ACE.Server.Network.Sequence
             }
         }
 
-        public byte[] CurrentBytes
-        {
-            get
-            {
-                return new byte[] { CurrentValue };
-            }
-        }
+        public byte[] CurrentBytes => new byte[] { CurrentValue };
 
-        public byte[] NextBytes
-        {
-            get
-            {
-                return new byte[] { NextValue };
-            }
-        }
+        public byte[] NextBytes => new byte[] { NextValue };
     }
 }

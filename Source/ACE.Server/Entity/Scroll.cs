@@ -120,10 +120,7 @@ namespace ACE.Server.Entity
             set;
         }
 
-        private uint SpellId
-        {
-            get { return (uint)Spell.Value; }
-        }
+        private uint SpellId => (uint)Spell.Value;
 
         // Minimum Skill Level for 50% fizzle rate
         private uint Power
