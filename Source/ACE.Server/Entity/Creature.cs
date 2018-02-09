@@ -216,7 +216,7 @@ namespace ACE.Server.Entity
             }
             else if (delta + vital.Current > vital.MaxValue)
             {
-                absVal = (uint)(vital.MaxValue - vital.Current);
+                absVal = vital.MaxValue - vital.Current;
             }
             else
             {

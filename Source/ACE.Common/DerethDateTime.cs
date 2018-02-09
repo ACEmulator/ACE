@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Common
 {
@@ -602,7 +602,7 @@ namespace ACE.Common
             Month = (int)month;
             Day = day;
 
-            Hour = (int)hour;
+            Hour = hour;
 
             if (month == Months.Wintersebb && year > 10)
                 Ticks = GetTicksFromDateTime(true);

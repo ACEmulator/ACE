@@ -1910,7 +1910,7 @@ namespace ACE.Server.Entity
         {
             lock (clientObjectList)
             {
-                return (List<ObjectGuid>)clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
+                return clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
             }
         }
 

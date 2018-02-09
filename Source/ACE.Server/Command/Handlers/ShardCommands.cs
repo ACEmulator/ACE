@@ -92,9 +92,9 @@ namespace ACE.Server.Command.Handlers
                 foreach (var word in parameters)
                 {
                     if (adminShutdownText.Length > 0)
-                        adminShutdownText += " " + (string)word;
+                        adminShutdownText += " " + word;
                     else
-                        adminShutdownText += (string)word;
+                        adminShutdownText += word;
                 }
             }
 

@@ -17,7 +17,7 @@ namespace ACE.Server.Entity
             
             SetObjectDescriptionBools();
 
-            Pages = (int)PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
+            Pages = PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
             MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
         }
 

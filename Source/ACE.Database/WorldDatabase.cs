@@ -268,7 +268,7 @@ namespace ACE.Database
                 where = where != null ? where + " AND " : "";
                 where += "`v`.aceObjectId = ?";
                 var p = new MySqlParameter("", MySqlDbType.UInt32);
-                p.Value = (uint)criteria.WeenieClassId.Value;
+                p.Value = criteria.WeenieClassId.Value;
                 mysqlParams.Add(p);
             }
 
