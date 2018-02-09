@@ -190,9 +190,9 @@ namespace ACE.Server.Entity
     public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
-            WorldObject inventoryItem;
             if (InventoryObjects.ContainsKey(objectGuid))
             {
+                WorldObject inventoryItem;
                 if (InventoryObjects.TryGetValue(objectGuid, out inventoryItem))
                     return inventoryItem;
             }

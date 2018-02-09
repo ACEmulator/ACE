@@ -296,9 +296,9 @@ namespace ACE.Server.Entity
         public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
         {
             // check wielded objects
-            WorldObject inventoryItem;
             if (WieldedObjects.ContainsKey(objectGuid))
             {
+                WorldObject inventoryItem;
                 if (WieldedObjects.TryGetValue(objectGuid, out inventoryItem))
                     return inventoryItem;
             }

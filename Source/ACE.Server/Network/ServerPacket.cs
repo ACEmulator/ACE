@@ -35,7 +35,6 @@ namespace ACE.Server.Network
 
         public byte[] GetPayload()
         {
-            uint headerChecksum = 0u;
             uint bodyChecksum = 0u;
             uint fragmentChecksum = 0u;
 
@@ -57,7 +56,7 @@ namespace ACE.Server.Network
                     }
 
                     Header.Size = (ushort)(stream.Length - PacketHeader.HeaderSize);
-                    headerChecksum = Header.CalculateHash32();
+                    var headerChecksum = Header.CalculateHash32();
                     uint payloadChecksum = bodyChecksum + fragmentChecksum;
                     Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
                     writer.Seek(0, SeekOrigin.Begin);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Common.Cryptography
 {
@@ -40,7 +40,7 @@ namespace ACE.Common.Cryptography
 
         private void Initialize(byte[] keyBytes)
         {
-            int i, j, k;
+            int i;
             for (i = 0; i < 256; i++)
                 mm[i] = randRsl[i] = 0;
 
@@ -53,8 +53,10 @@ namespace ACE.Common.Cryptography
 
             for (i = 0; i < 2; i++)
             {
+                int j;
                 for (j = 0; j < 256; j += 8)
                 {
+                    int k;
                     for (k = 0; k < 8; k++)
                         abcdefgh[k] += (i < 1) ? randRsl[j + k] : mm[j + k];
 
@@ -73,12 +75,10 @@ namespace ACE.Common.Cryptography
 
         private void IsaacScramble()
         {
-            uint x, y;
-
             b += ++c;
             for (int i = 0; i < 256; i++)
             {
-                x = mm[i];
+                var x = mm[i];
                 switch (i & 3)
                 {
                     case 0: a ^= (a << 0x0D);
@@ -95,6 +95,7 @@ namespace ACE.Common.Cryptography
 
                 a += mm[(i + 128) & 0xFF];
 
+                uint y;
                 mm[i]      = y = mm[(int)(x >> 2) & 0xFF] + a + b;
                 randRsl[i] = b = mm[(int)(y >> 10) & 0xFF] + x;
             }

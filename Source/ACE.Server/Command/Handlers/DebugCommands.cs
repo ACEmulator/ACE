@@ -55,9 +55,9 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                string debugOutput = "";
                 if (parameters?.Length == 2)
                 {
+                    var debugOutput = "";
                     switch (parameters[0].ToLower())
                     {
                         case "descriptionflags":
@@ -658,11 +658,11 @@ namespace ACE.Server.Command.Handlers
             "@teletype 1")]
         public static void HandleTeleType(Session session, params string[] parameters)
         {
-            PositionType positionType = new PositionType();
             if (parameters?.Length > 0)
             {
                 string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
 
+                var positionType = new PositionType();
                 if (Enum.TryParse(parsePositionString, out positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
@@ -713,9 +713,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            uint modelId;
             try
             {
+                uint modelId;
                 if (parameters[0].StartsWith("0x"))
                 {
                     string strippedmodelid = parameters[0].Substring(2);

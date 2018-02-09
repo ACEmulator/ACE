@@ -739,7 +739,6 @@ namespace ACE.Server.Entity
             uint result = SpendAbilityXp(creatureStat, amount);
             uint ranks = creatureStat.Ranks;
             uint newValue = creatureStat.UnbuffedValue;
-            string messageText = "";
             if (result > 0u)
             {
                 GameMessage abilityUpdate;
@@ -753,6 +752,7 @@ namespace ACE.Server.Entity
                 }
 
                 // checks if max rank is achieved and plays fireworks w/ special text
+                var messageText = "";
                 if (IsAbilityMaxRank(ranks, isSecondary))
                 {
                     // fireworks
