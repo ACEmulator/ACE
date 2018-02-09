@@ -187,9 +187,7 @@ namespace ACE.Server.Entity
                     Position portalDest = Destination;
                     switch (WeenieClassId)
                     {
-                        /// <summary>
-                        /// Setup correct racial portal destination for the Central Courtyard in the Training Academy
-                        /// </summary>
+                        // Setup correct racial portal destination for the Central Courtyard in the Training Academy
                         case (ushort)SpecialPortalWCID.CentralCourtyard:
                             {
                                 uint playerLandblockId = player.Location.LandblockId.Raw;
@@ -226,9 +224,7 @@ namespace ACE.Server.Entity
                                 portalDest.RotationW = Destination.RotationW;
                                 break;
                             }
-                        /// <summary>
-                        /// Setup correct racial portal destination for the Outer Courtyard in the Training Academy
-                        /// </summary>
+                        // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
                         case (ushort)SpecialPortalWCID.OuterCourtyard:
                             {
                                 uint playerLandblockId = player.Location.LandblockId.Raw;
@@ -265,9 +261,7 @@ namespace ACE.Server.Entity
                                 portalDest.RotationW = Destination.RotationW;
                                 break;
                             }
-                        /// <summary>
-                        /// All other portals don't need adjustments.
-                        /// </summary>
+                        // All other portals don't need adjustments.
                         default:
                             {
                                 break;
