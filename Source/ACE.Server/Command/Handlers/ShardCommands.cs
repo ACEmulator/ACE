@@ -36,11 +36,10 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length > 0)
             {
-                uint newShutdownInterval = 0;
                 // delay server shutdown for up to x minutes
                 // limit to uint length 65535
                 string parseInt = parameters[0].Length > 5 ? parameters[0].Substring(0, 5) : parameters[0];
-                if (uint.TryParse(parseInt, out newShutdownInterval))
+                if (uint.TryParse(parseInt, out var newShutdownInterval))
                 {
                     // newShutdownInterval is represented as a time element
                     if (newShutdownInterval > uint.MaxValue) newShutdownInterval = uint.MaxValue;

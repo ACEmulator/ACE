@@ -83,8 +83,7 @@ namespace ACE.Server.Entity
                 SetAsDisplayContract = 1
             };
 
-            DateTime lastUse;
-            if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out lastUse))
+            if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUse))
             {
                 TimeSpan timeRemaining = lastUse.AddSeconds(CooldownDuration ?? 0.00).Subtract(DateTime.Now);
                 if (timeRemaining.Seconds > 0)

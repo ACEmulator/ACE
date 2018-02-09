@@ -64,8 +64,7 @@ namespace ACE.Database.Tests
             Account newAccount = new Account();
             newAccount.SetName("testaccount1");
 
-            uint id;
-            authDb.GetAccountIdByName(newAccount.Name, out id);
+            authDb.GetAccountIdByName(newAccount.Name, out var id);
             var results = authDb.GetAccountById(id);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.AccountId == id);

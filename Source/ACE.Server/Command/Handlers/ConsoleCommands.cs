@@ -56,8 +56,7 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                uint rawid;
-                if (!uint.TryParse(parameters[0], out rawid))
+                if (!uint.TryParse(parameters[0], out var rawid))
                     return;
                 LandblockManager.ForceLoadLandBlock(new LandblockId((rawid) << 16));
             }

@@ -286,8 +286,7 @@ namespace ACE.Server.Network
                 // Packet is split
                 log.DebugFormat("[{0}] Fragment {1} is split, this index {2} of {3} fragments", session.LoggingIdentifier, fragment.Header.Sequence, fragment.Header.Index, fragment.Header.Count);
 
-                MessageBuffer buffer = null;
-                if (partialFragments.TryGetValue(fragment.Header.Sequence, out buffer))
+                if (partialFragments.TryGetValue(fragment.Header.Sequence, out var buffer))
                 {
                     // Existing buffer, add this to it and check if we are finally complete.
                     buffer.AddFragment(fragment);
@@ -351,9 +350,7 @@ namespace ACE.Server.Network
         /// </summary>
         private void CheckOutOfOrderPackets()
         {
-            ClientPacket packet = null;
-
-            while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out packet))
+            while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out var packet))
             {
                 log.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
                 HandlePacket(packet);
@@ -365,8 +362,7 @@ namespace ACE.Server.Network
         /// </summary>
         private void CheckOutOfOrderFragments()
         {
-            ClientMessage message = null;
-            while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out message))
+            while (outOfOrderFragments.TryRemove(lastReceivedFragmentSequence + 1, out var message))
             {
                 log.DebugFormat("[{0}] Ready to handle out of order fragment {1}", session.LoggingIdentifier, lastReceivedFragmentSequence + 1);
                 HandleFragment(message);
@@ -400,9 +396,7 @@ namespace ACE.Server.Network
 
         private void Retransmit(uint sequence)
         {
-            ServerPacket cachedPacket;
-
-            if (cachedPackets.TryGetValue(sequence, out cachedPacket))
+            if (cachedPackets.TryGetValue(sequence, out var cachedPacket))
             {
                 log.DebugFormat("[{0}] Retransmit {1}", session.LoggingIdentifier, sequence);
 

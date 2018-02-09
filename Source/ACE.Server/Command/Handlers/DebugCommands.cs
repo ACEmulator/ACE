@@ -34,8 +34,7 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                ChatMessageType cmt = ChatMessageType.Broadcast;
-                if (Enum.TryParse(parameters[1], true, out cmt))
+                if (Enum.TryParse(parameters[1], true, out ChatMessageType cmt))
                     if (Enum.IsDefined(typeof(ChatMessageType), cmt))
                         ChatPacket.SendServerMessage(session, parameters[0], cmt);
                     else
@@ -181,15 +180,13 @@ namespace ACE.Server.Command.Handlers
             "all parameters must be specified and cell must be in decimal form")]
         public static void HandleDebugTeleportXYZ(Session session, params string[] parameters)
         {
-            uint cell;
-            if (!uint.TryParse(parameters[0], out cell))
+            if (!uint.TryParse(parameters[0], out var cell))
                 return;
 
             var positionData = new float[7];
             for (uint i = 0u; i < 7u; i++)
             {
-                float position;
-                if (!float.TryParse(parameters[i + 1], out position))
+                if (!float.TryParse(parameters[i + 1], out var position))
                     return;
 
                 positionData[i] = position;
@@ -221,10 +218,9 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length > 0)
             {
-                ulong xp = 0;
                 string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
                 // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
-                if (ulong.TryParse(xpAmountToParse, out xp))
+                if (ulong.TryParse(xpAmountToParse, out var xp))
                 {
                     session.Player.GrantXp(xp);
                     return;
@@ -238,8 +234,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleContract(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0)) return;
-            uint contractId;
-            if (!uint.TryParse(parameters[0], out contractId)) return;
+            if (!uint.TryParse(parameters[0], out var contractId)) return;
 
             ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
             {
@@ -266,8 +261,7 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters?.Length > 0)
             {
-                ushort health = 0;
-                if (ushort.TryParse(parameters[0], out health))
+                if (ushort.TryParse(parameters[0], out var health))
                 {
                     session.Player.Health.Current = health;
                     var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
@@ -289,7 +283,6 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                Sound sound = Sound.Invalid;
                 string message = "";
                 float volume = 1f;
                 var soundEvent = new GameMessageSound(session.Player.Guid, Sound.Invalid, volume);
@@ -300,7 +293,7 @@ namespace ACE.Server.Command.Handlers
 
                 message = $"Unable to find a sound called {parameters[0]} to play.";
 
-                if (Enum.TryParse(parameters[0], true, out sound))
+                if (Enum.TryParse(parameters[0], true, out Sound sound))
                 {
                     if (Enum.IsDefined(typeof(Sound), sound))
                     {
@@ -331,7 +324,6 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                PlayScript effect = PlayScript.Invalid;
                 string message = "";
                 float scale = 1f;
                 var effectEvent = new GameMessageScript(session.Player.Guid, PlayScript.Invalid);
@@ -342,7 +334,7 @@ namespace ACE.Server.Command.Handlers
 
                 message = $"Unable to find a effect called {parameters[0]} to play.";
 
-                if (Enum.TryParse(parameters[0], true, out effect))
+                if (Enum.TryParse(parameters[0], true, out PlayScript effect))
                 {
                     if (Enum.IsDefined(typeof(PlayScript), effect))
                     {
@@ -442,9 +434,8 @@ namespace ACE.Server.Command.Handlers
             string paramValue = parameters[1];
 
             bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
-            int value = int.MaxValue;
 
-            if (!int.TryParse(paramValue, out value))
+            if (!int.TryParse(paramValue, out var value))
             {
                 ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
                 return;
@@ -932,8 +923,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            uint spellid;
-            if (!uint.TryParse(parameters[1], out spellid))
+            if (!uint.TryParse(parameters[1], out var spellid))
             {
                 Console.WriteLine("getspellformula <accountname> <spellid>");
                 return;

@@ -168,8 +168,7 @@ namespace ACE.Server.Entity
                 // check unique items / add unique items to purchaselist / remove from vendor list
                 if (uniqueItemsForSale.ContainsKey(item.Guid))
                 {
-                    WorldObject wo;
-                    if (uniqueItemsForSale.TryGetValue(item.Guid, out wo))
+                    if (uniqueItemsForSale.TryGetValue(item.Guid, out var wo))
                     {
                         uqlist.Add(wo);
                         uniqueItemsForSale.Remove(item.Guid);

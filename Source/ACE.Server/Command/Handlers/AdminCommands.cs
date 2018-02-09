@@ -374,9 +374,8 @@ namespace ACE.Server.Command.Handlers
             if (parameters?.Length >= 1)
                 parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
 
-            uint parsedPositionInt = 0;
             // Attempt to parse the integer
-            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            if (uint.TryParse(parsePositionString, out var parsedPositionInt))
             {
                 // parsedPositionInt value should be limited too a value from, 0-9
                 // Create a new position from the current player location
@@ -602,9 +601,8 @@ namespace ACE.Server.Command.Handlers
             if (parameters?.Length >= 1)
                 parsePositionString = parameters[0].Length > 1 ? parameters[0].Substring(0, 1) : parameters[0];
 
-            uint parsedPositionInt = 0;
             // Attempt to parse the integer
-            if (uint.TryParse(parsePositionString, out parsedPositionInt))
+            if (uint.TryParse(parsePositionString, out var parsedPositionInt))
             {
                 // parsedPositionInt value should be limited too a value from, 0-9
                 // Create a new position from the current player location
@@ -757,15 +755,13 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            float coordNS;
-            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out coordNS))
+            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out var coordNS))
             {
                 ChatPacket.SendServerMessage(session, "North/South coordinate is not a valid number.", ChatMessageType.Broadcast);
                 return;
             }
 
-            float coordEW;
-            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out coordEW))
+            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out var coordEW))
             {
                 ChatPacket.SendServerMessage(session, "East/West coordinate is not a valid number.", ChatMessageType.Broadcast);
                 return;
@@ -853,8 +849,7 @@ namespace ACE.Server.Command.Handlers
                 var positionData = new float[7];
                 for (uint i = 0u; i < 7u; i++)
                 {
-                    float position;
-                    if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out position))
+                    if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out var position))
                         return;
 
                     positionData[i] = position;
@@ -940,9 +935,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @add spell - Adds the specified spell to your own spellbook.
 
-            Spell spellId = 0;
-
-            if (Enum.TryParse(parameters[0], true, out spellId))
+            if (Enum.TryParse(parameters[0], true, out Spell spellId))
             {
                 if (Enum.IsDefined(typeof(Spell), spellId))
                 {

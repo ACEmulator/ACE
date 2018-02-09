@@ -63,12 +63,9 @@ namespace ACE.Server.Command
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
-                string command;
-                string[] parameters;
-                ParseCommand(commandLine, out command, out parameters);
+                ParseCommand(commandLine, out var command, out var parameters);
 
-                CommandHandlerInfo commandHandler;
-                if (GetCommandHandler(null, command, parameters, out commandHandler) == CommandHandlerResponse.Ok)
+                if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
                 {
                     // Add command to world manager's main thread...
                     ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);

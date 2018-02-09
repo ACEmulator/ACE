@@ -21,8 +21,7 @@ namespace ACE.Server.Managers
 
         public static void ProcessConfirmation(uint contextId, bool response)
         {
-            Confirmation confirmationToProcess = null;
-            if (confirmations.Remove<uint, Confirmation>(contextId, out confirmationToProcess))
+            if (confirmations.Remove<uint, Confirmation>(contextId, out var confirmationToProcess))
             { 
                 Player newMember = WorldManager.GetPlayerByGuidId(confirmationToProcess.Target);
                 Player player = WorldManager.GetPlayerByGuidId(confirmationToProcess.Initiator);

@@ -600,8 +600,7 @@ namespace ACE.Server.Entity
         {
             while (!broadcastQueue.IsEmpty)
             {
-                Tuple<Position, float, GameMessage> tuple;
-                bool success = broadcastQueue.TryDequeue(out tuple);
+                bool success = broadcastQueue.TryDequeue(out var tuple);
                 if (!success)
                 {
                     log.Error("Unexpected TryDequeue Failure!");

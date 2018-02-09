@@ -1956,8 +1956,7 @@ namespace ACE.Entity
 
         protected CreatureAbility GetAttributeProperty(Ability ability)
         {
-            CreatureAbility ret;
-            bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out ret);
+            bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out var ret);
 
             if (!success || ret == null)
             {
@@ -1993,8 +1992,7 @@ namespace ACE.Entity
 
         protected CreatureVital GetAttribute2ndProperty(Ability ability)
         {
-            CreatureVital ret;
-            bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out ret);
+            bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var ret);
 
             if (!success || ret == null)
             {
@@ -2012,8 +2010,7 @@ namespace ACE.Entity
 
         public CreatureSkill GetSkillProperty(Skill skill)
         {
-            CreatureSkill ret;
-            bool success = AceObjectPropertiesSkills.TryGetValue(skill, out ret);
+            bool success = AceObjectPropertiesSkills.TryGetValue(skill, out var ret);
 
             if (!success || ret == null)
             {
@@ -2260,8 +2257,7 @@ namespace ACE.Entity
 
         protected Position GetPosition(PositionType positionType)
         {
-            Position ret;
-            bool success = AceObjectPropertiesPositions.TryGetValue(positionType, out ret);
+            bool success = AceObjectPropertiesPositions.TryGetValue(positionType, out var ret);
 
             if (!success)
             {
@@ -2282,8 +2278,7 @@ namespace ACE.Entity
 
         public AceContractTracker GetTrackedContract(uint contractId)
         {
-            AceContractTracker ret;
-            bool success = TrackedContracts.TryGetValue(contractId, out ret);
+            bool success = TrackedContracts.TryGetValue(contractId, out var ret);
             return !success ? null : ret;
         }
 

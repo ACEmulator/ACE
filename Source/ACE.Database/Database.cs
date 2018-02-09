@@ -38,8 +38,7 @@ namespace ACE.Database
             {
                 // Debug.Assert(typeof(T) == database.PreparedStatementType, "Invalid prepared statement type.");
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -54,8 +53,7 @@ namespace ACE.Database
                 
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -66,8 +64,7 @@ namespace ACE.Database
                 {
                     if (p.Item2.ListDelete)
                     {
-                        object val;
-                        bool success = criteria.TryGetValue(p.Item2.DbFieldName, out val);
+                        bool success = criteria.TryGetValue(p.Item2.DbFieldName, out var val);
                         Debug.Assert(success, "Criteria does not contain essential key");
                         objects.Add(val);
                     }
@@ -84,8 +81,7 @@ namespace ACE.Database
 
                 uint statementId = Convert.ToUInt32(id);
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -108,8 +104,7 @@ namespace ACE.Database
             {
                 // Debug.Assert(typeof(T1) == preparedStatementType);
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -129,8 +124,7 @@ namespace ACE.Database
 
             public void AddPreparedUpdateStatement<T1, T2>(T1 id, T2 instance)
             {
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -154,8 +148,7 @@ namespace ACE.Database
 
                 uint statementId = Convert.ToUInt32(id);
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -629,8 +622,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -680,8 +672,7 @@ namespace ACE.Database
         {
             var results = new List<T2>();
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
@@ -748,8 +739,7 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return default(T3);
@@ -788,9 +778,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
-            StoredPreparedStatement preparedStatement;
-
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -845,8 +833,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -882,8 +869,7 @@ namespace ACE.Database
 
         public bool ExecuteConstructedDeleteStatement<T1>(T1 id, Type type, Dictionary<string, object> criteria)
         {
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -979,8 +965,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
@@ -1020,8 +1005,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;

@@ -712,16 +712,14 @@ namespace ACE.Server.Entity
         {
             bool isSecondary = false;
             ICreatureXpSpendableStat creatureStat;
-            CreatureAbility creatureAbility;
-            bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out creatureAbility);
+            bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out var creatureAbility);
             if (success)
             {
                 creatureStat = creatureAbility;
             }
             else
             {
-                CreatureVital v;
-                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out v);
+                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var v);
 
                 // Invalid ability
                 if (success)
@@ -2884,9 +2882,7 @@ namespace ACE.Server.Entity
                     {
                         if (((EquipMask)placement & EquipMask.Selectable) != 0)
                         {
-                            int placementId;
-                            int childLocation;
-                            SetChild(container, item, placement, out placementId, out childLocation);
+                            SetChild(container, item, placement, out var placementId, out var childLocation);
 
                             UpdateAppearance(container);
 
@@ -3207,7 +3203,6 @@ namespace ACE.Server.Entity
 
             moveToChain.AddLoop(this, () =>
             {
-                bool valid;
                 float outdistance;
                 // Break loop if CurrentLandblock == null (we portaled or logged out), or if we arrive at the item
                 if (CurrentLandblock == null)
@@ -3215,7 +3210,7 @@ namespace ACE.Server.Entity
                     return false;
                 }
 
-                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out valid);
+                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out var valid);
                 if (!valid)
                 {
                     // If one of the items isn't on a landblock
