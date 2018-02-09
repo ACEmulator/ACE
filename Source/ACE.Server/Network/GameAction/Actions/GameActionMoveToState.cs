@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -77,7 +77,6 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.MoveToState)]
         public static void Handle(ClientMessage message, Session session)
         {
-            Position position;
             uint currentHoldkey = 0;
             ushort instanceTimestamp;
             ushort serverControlTimestamp;
@@ -103,7 +102,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 commands[i] = new MotionItem((MotionCommand)motionCommand, speed);
             }
 
-            position = new Position(message.Payload);
+            var position = new Position(message.Payload);
             position.LandblockId = new LandblockId(position.Cell);
 
             instanceTimestamp = message.Payload.ReadUInt16();
