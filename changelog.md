@@ -2,6 +2,7 @@
 
 ### 2018-02-08
 [Mag-nus]
+* Major code cosmetic cleanup across entire solution.
 * ACE project renamed to ACE.Server
 
 ### 2018-02-07
