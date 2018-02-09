@@ -804,10 +804,6 @@ namespace ACE.Server.Network
 
             public int CurrentSize { get; private set; }
 
-            public NetworkBundle()
-            {
-            }
-
             public void Enqueue(GameMessage message)
             {
                 CurrentSize += (int)message.Data.Length;

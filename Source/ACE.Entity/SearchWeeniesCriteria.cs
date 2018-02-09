@@ -6,10 +6,6 @@ namespace ACE.Entity
 {
     public class SearchWeeniesCriteria
     {
-        public SearchWeeniesCriteria()
-        {
-        }
-
         [JsonProperty("partialName")]
         public string PartialName { get; set; }
 

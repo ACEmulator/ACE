@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
@@ -11,10 +11,6 @@ namespace ACE.Server.Entity.Actions
 
         protected object queueLock = new object();
         protected LinkedList<IAction> queue = new LinkedList<IAction>();
-
-        public ActionQueue()
-        {
-        }
 
         public void RunActions()
         {
