@@ -110,8 +110,8 @@ namespace ACE.Server.Network.Handlers
 
                     return;
                 }
-                else
-                    log.Info($"client {loginRequest.Account} connected with verified password");
+
+                log.Info($"client {loginRequest.Account} connected with verified password");
             }
             else if (loginRequest.NetAuthType == NetAuthType.GlsTicket)
             {

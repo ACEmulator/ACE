@@ -1123,16 +1123,6 @@ namespace ACE.Server.Entity
                 {
                     wo.QueryItemMana(Session);
                 }
-                else
-                {
-                    // todo replace with interactive items.... this creates crashing!
-                    // ActionChain idChain = new ActionChain();
-                    // CurrentLandblock.ChainOnObject(idChain, queryId, (WorldObject cwo) =>
-                    // {
-                    //    cwo.QueryItemMana(Session);
-                    // });
-                    // idChain.EnqueueChain();
-                }
             }
         }
 
@@ -1382,8 +1372,8 @@ namespace ACE.Server.Entity
                 UpdateCurrencyClientCalculations(WeenieType.Coin);
                 return true;
             }
-            else
-                return false;
+
+            return false;
         }
 
         /// <summary>
@@ -2104,10 +2094,8 @@ namespace ACE.Server.Entity
                 Teleport(dest);
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         /// <summary>

@@ -295,8 +295,8 @@ namespace ACE.Server.Entity
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
-            else
-                return UnlockDoorResults.PickLockFailed;
+
+            return UnlockDoorResults.PickLockFailed;
         }
 
         /// <summary>
@@ -317,8 +317,8 @@ namespace ACE.Server.Entity
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
-            else
-                return UnlockDoorResults.IncorrectKey;
+
+            return UnlockDoorResults.IncorrectKey;
         }
     }
 }

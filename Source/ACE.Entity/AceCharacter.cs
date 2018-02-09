@@ -435,8 +435,7 @@ namespace ACE.Entity
         {
             if (option.GetCharacterOptions1Attribute() != null)
                 return GetCharacterOptions1((CharacterOptions1)System.Enum.Parse(typeof(CharacterOptions1), option.ToString()));
-            else
-                return GetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()));
+            return GetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()));
         }
 
         /// <summary>
@@ -495,7 +494,8 @@ namespace ACE.Entity
                 SetSkillProperty(skill, newSkill);
                 return true;
             }
-            else if (cs != null && cs.Status == SkillStatus.Trained)
+
+            if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 RefundXp(cs.ExperienceSpent);
                 var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);

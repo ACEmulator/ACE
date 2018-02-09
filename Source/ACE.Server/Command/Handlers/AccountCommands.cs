@@ -104,8 +104,8 @@ namespace ACE.Server.Command.Handlers
                     ChatPacket.SendServerMessage(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
                 return;
             }
-            else
-                DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
+
+            DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
 
             if (session == null)
                 Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");

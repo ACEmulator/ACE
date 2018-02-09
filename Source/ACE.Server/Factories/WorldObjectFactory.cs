@@ -26,13 +26,11 @@ namespace ACE.Server.Factories
                         linkSourceResults.Add(aceO);
                         continue;
                     }
-                    else
-                    {
-                        if (!linkResults.ContainsKey((int)aceO.LinkSlot))
-                            linkResults.Add((int)aceO.LinkSlot, new List<AceObject>());
-                        linkResults[(int)aceO.LinkSlot].Add(aceO);
-                        continue;
-                    }
+
+                    if (!linkResults.ContainsKey((int)aceO.LinkSlot))
+                        linkResults.Add((int)aceO.LinkSlot, new List<AceObject>());
+                    linkResults[(int)aceO.LinkSlot].Add(aceO);
+                    continue;
                 }
 
                 if (aceO.Location != null)

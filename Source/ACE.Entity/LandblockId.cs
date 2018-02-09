@@ -117,8 +117,7 @@ namespace ACE.Entity
         {
             if (obj is LandblockId)
                 return ((LandblockId)obj) == this;
-            else
-                return false;
+            return false;
         }
 
         public override int GetHashCode()

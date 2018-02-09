@@ -307,10 +307,8 @@ namespace ACE.Server.Entity
             {
                 return 1;
             }
-            else
-            {
-                return 1 - ((Math.Abs(memberPosition.DistanceTo(leaderPosition))-600) / 600);
-            }
+
+            return 1 - ((Math.Abs(memberPosition.DistanceTo(leaderPosition))-600) / 600);
         }
 
         internal bool IsPlayerInside(Player player)

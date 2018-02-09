@@ -68,8 +68,7 @@ namespace ACE.Server.Entity
                 || (Name.ToLower().Contains("acidic rejuvenation")) || (Name.ToLower().Contains("tea"))
                 || (Name.ToLower().Contains("saliva invigorator")))
                 return Sound.Drink1;
-            else
-                return Sound.Eat1;
+            return Sound.Eat1;
         }
     }
 }

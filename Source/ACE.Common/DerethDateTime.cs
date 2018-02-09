@@ -314,8 +314,7 @@ namespace ACE.Common
             {
                 if (Hour >= (int)Hours.Dawnsong && Hour <= (int)Hours.Warmtide_and_Half)
                     return Daytime.Day;
-                else
-                    return Daytime.Night;
+                return Daytime.Night;
             }
         }
 
@@ -328,8 +327,7 @@ namespace ACE.Common
             {
                 if (TimeOfDay == Daytime.Day)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -342,8 +340,7 @@ namespace ACE.Common
             {
                 if (TimeOfDay == Daytime.Night)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -378,12 +375,11 @@ namespace ACE.Common
             {
                 if (Month >= (int)Months.Snowreap && Month <= (int)Months.Wintersebb)
                     return Seasons.Winter;
-                else if (Month >= (int)Months.Morningthaw && Month <= (int)Months.Seedsow)
+                if (Month >= (int)Months.Morningthaw && Month <= (int)Months.Seedsow)
                     return Seasons.Spring;
-                else if (Month >= (int)Months.Leafdawning && Month <= (int)Months.Thistledown)
+                if (Month >= (int)Months.Leafdawning && Month <= (int)Months.Thistledown)
                     return Seasons.Summer;
-                else
-                    return Seasons.Autumn;
+                return Seasons.Autumn;
             }
         }
 
@@ -394,8 +390,7 @@ namespace ACE.Common
         {
             if (Season == seasonToCheckFor)
                 return true;
-            else
-                return false;
+            return false;
         }
 
         /// <summary>
@@ -407,8 +402,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Winter)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -421,8 +415,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Spring)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -435,8 +428,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Summer)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -449,8 +441,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Autumn)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 

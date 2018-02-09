@@ -429,8 +429,8 @@ namespace ACE.Server.Network.Handlers
             {
                 return (ushort)(maxAttributes - allAttributes);
             }
-            else
-                return (ushort)attributeValue;
+
+            return (ushort)attributeValue;
         }
 
         private static void CharacterCreateSetDefaultCharacterOptions(AceCharacter character)
