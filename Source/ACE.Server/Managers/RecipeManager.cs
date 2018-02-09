@@ -184,7 +184,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            Player targetPlayer = target as Player;
+            Player targetPlayer = (Player)target;
             Ability vital = (Ability?)recipe.HealingAttribute ?? Ability.Health;
 
             // there's a skill associated with this

@@ -1,4 +1,4 @@
-﻿using ACE.Server.Entity;
+using ACE.Server.Entity;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.Network.GameMessages.Messages
@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         {
             if (worldObject is Player)
             {
-                Player p = worldObject as Player;
+                Player p = (Player)worldObject;
                 Writer.WriteGuid(p.Guid);
                 p.Location.Serialize(Writer, true, false);
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // instance_timestamp - always 1 in my pcaps

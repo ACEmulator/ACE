@@ -219,7 +219,7 @@ namespace ACE.Server.Entity
             {
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
-                AddPlayerTracking(wolist, (wo as Player));
+                AddPlayerTracking(wolist, ((Player)wo));
             }
         }
 
