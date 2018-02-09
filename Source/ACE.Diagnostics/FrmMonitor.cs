@@ -20,7 +20,7 @@ namespace ACE.Diagnostics
             InitializeComponent(); 
         }
 
-        private bool initdraw = false;
+        private bool initdraw;
         private LandBlockStatusFlag[,] TempLandBlockKeys = new LandBlockStatusFlag[256, 256];
         private BackgroundWorker bwUpdateLandblockGrid = new BackgroundWorker();
 
@@ -40,8 +40,8 @@ namespace ACE.Diagnostics
         private int zoomFactor = 5;
 
         private Color backColor;
-        private int selrow = 0;
-        private int selcol = 0;
+        private int selrow;
+        private int selcol;
 
         private void FrmMonitor_Load(object sender, EventArgs e)
         {

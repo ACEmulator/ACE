@@ -35,7 +35,7 @@ namespace ACE.Server.Network
 
         // Resync will be started after ConnectResponse, and should immediately be sent then, so no delay here.
         // Fun fact: even though we send the server time in the ConnectRequest, client doesn't seem to use it?  Therefore we must TimeSync early so client doesn't see a skew when we send it later.
-        private bool sendResync = false;
+        private bool sendResync;
         private DateTime nextResync = DateTime.UtcNow;
 
         // Ack should be sent after a 2 second delay, so start enabled with the delay.
@@ -44,7 +44,7 @@ namespace ACE.Server.Network
         private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
         
         private uint lastReceivedPacketSequence = 1;
-        private uint lastReceivedFragmentSequence = 0;
+        private uint lastReceivedFragmentSequence;
 
         /// <summary>
         /// This is referenced from many threads:<para />
@@ -681,7 +681,7 @@ namespace ACE.Server.Network
                 }
             }
 
-            public bool TailSent { get; private set; } = false;
+            public bool TailSent { get; private set; }
 
             public MessageFragment(GameMessage message, uint sequence)
             {
@@ -748,7 +748,7 @@ namespace ACE.Server.Network
 
         private class NetworkBundle
         {
-            private bool propChanged = false;
+            private bool propChanged;
 
             public bool NeedsSending
             {
@@ -778,7 +778,7 @@ namespace ACE.Server.Network
                 }
             }
 
-            private bool timeSync = false;
+            private bool timeSync;
             public bool TimeSync
             {
                 get { return timeSync; }
@@ -789,7 +789,7 @@ namespace ACE.Server.Network
                 }
             }
 
-            private bool ackSeq = false;
+            private bool ackSeq;
             public bool SendAck
             {
                 get { return ackSeq; }
@@ -800,7 +800,7 @@ namespace ACE.Server.Network
                 }
             }
 
-            public bool EncryptedChecksum { get; set; } = false;
+            public bool EncryptedChecksum { get; set; }
 
             public int CurrentSize { get; private set; }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using ACE.Entity;
@@ -34,9 +34,9 @@ namespace ACE.Server.Network.Motion
 
         public MovementTypes MovementTypes { get; set; } = MovementTypes.General;
 
-        public bool HasTarget { get; set; } = false;
+        public bool HasTarget { get; set; }
 
-        public bool Jumping { get; set; } = false;
+        public bool Jumping { get; set; }
 
         /// <summary>
         /// Called Command in the client

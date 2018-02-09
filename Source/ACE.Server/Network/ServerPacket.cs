@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Common.Cryptography;
 
@@ -8,8 +8,8 @@ namespace ACE.Server.Network
     {
         public BinaryWriter BodyWriter { get; private set; }
 
-        private uint issacXor = 0u;
-        private bool issacXorSet = false;
+        private uint issacXor;
+        private bool issacXorSet;
         public uint IssacXor
         {
             get

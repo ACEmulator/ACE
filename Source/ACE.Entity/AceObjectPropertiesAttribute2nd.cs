@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -9,9 +9,9 @@ namespace ACE.Entity
     [DbTable("ace_object_properties_attribute2nd")]
     public class AceObjectPropertiesAttribute2nd : BaseAceProperty, ICloneable
     {
-        private uint _xpSpent = 0;
-        private ushort _ranks = 0;
-        private uint _value = 0;
+        private uint _xpSpent;
+        private ushort _ranks;
+        private uint _value;
 
         [JsonProperty("vitalId")]
         [DbField("attribute2ndId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]

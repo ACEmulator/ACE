@@ -431,7 +431,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public bool FirstEnterWorldDone = false;
+        public bool FirstEnterWorldDone;
 
         public int Age
         { get { return Character.Age; } }
@@ -3585,7 +3585,7 @@ namespace ACE.Server.Entity
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
 
-        private int coinValue = 0;
+        private int coinValue;
         public override int? CoinValue
         {
             get { return coinValue; }
@@ -3601,7 +3601,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        private ushort burden = 0;
+        private ushort burden;
         public override ushort? Burden
         {
             get { return burden; }
@@ -3706,7 +3706,7 @@ namespace ACE.Server.Entity
             motionChain.EnqueueChain();
         }
 
-        public bool Adminvision = false;
+        public bool Adminvision;
 
         public void HandleAdminvisionToggle(int choice)
         {

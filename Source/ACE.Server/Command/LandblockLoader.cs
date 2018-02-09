@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using ACE.Entity;
 using ACE.Server.Managers;
 
@@ -6,7 +6,7 @@ namespace ACE.Server.Command
 {
     public static class LandblockLoader
     {
-        private volatile static bool processLandblockLoading = false;
+        private volatile static bool processLandblockLoading;
 
         public static void StartLoading()
         {

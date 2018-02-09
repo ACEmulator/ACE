@@ -34,7 +34,7 @@ namespace ACE.Entity
         /// really no other way to tell at present.
         /// </summary>
         [JsonIgnore]
-        public bool HasEverBeenSavedToDatabase { get; set; } = false;
+        public bool HasEverBeenSavedToDatabase { get; set; }
 
         /// <summary>
         /// This is a mocked property that will set a flag in the database any time this object is altered.  this flag
@@ -62,7 +62,7 @@ namespace ACE.Entity
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public uint WeenieClassId { get; set; }
 
-        private uint _aceObjectDescriptionFlags = 0;
+        private uint _aceObjectDescriptionFlags;
 
         /// <summary>
         /// Table Field Flags
@@ -79,7 +79,7 @@ namespace ACE.Entity
             }
         }
 
-        private uint _physicsDescriptionFlag = 0;
+        private uint _physicsDescriptionFlag;
 
         /// <summary>
         /// Table Field - Flags
@@ -96,7 +96,7 @@ namespace ACE.Entity
             }
         }
 
-        private uint _weenieHeaderFlags = 0;
+        private uint _weenieHeaderFlags;
 
         /// <summary>
         /// Table Field - Flags
@@ -113,7 +113,7 @@ namespace ACE.Entity
             }
         }
 
-        private uint _weenieHeaderFlags2 = 0;
+        private uint _weenieHeaderFlags2;
 
         /// <summary>
         /// Table Field - Flags
@@ -130,7 +130,7 @@ namespace ACE.Entity
             }
         }
 
-        private string _currentMotionState = null;
+        private string _currentMotionState;
 
         [JsonProperty("currentMotionState")]
         [DbField("currentMotionState", (int)MySqlDbType.Text)]

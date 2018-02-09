@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
@@ -18,9 +18,9 @@ namespace ACE.Server.Network.GameEvent.Events
         }
 
         private FriendsUpdateTypeFlag updateType;
-        private Friend friend = null;
-        private bool overrideOnlineStatus = false;
-        private bool onlineStatusVal = false;
+        private Friend friend;
+        private bool overrideOnlineStatus;
+        private bool onlineStatusVal;
 
         /// <summary>
         /// This constructor should only be used for sending the full friend list

@@ -41,7 +41,7 @@ namespace ACE.Server.Network
 
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
-        private bool bootSession = false;
+        private bool bootSession;
 
         private ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
         private object playerSync = new object();

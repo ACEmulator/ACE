@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -24,19 +24,19 @@ namespace ACE.Server.Entity
             }
         }
 
-        public uint CurrentStyle { get; set; } = 0;
+        public uint CurrentStyle { get; set; }
 
-        public uint ForwardCommand { get; set; } = 0;
+        public uint ForwardCommand { get; set; }
 
-        public uint SideStepCommand { get; set; } = 0;
+        public uint SideStepCommand { get; set; }
 
-        public uint TurnCommand { get; set; } = 0;
+        public uint TurnCommand { get; set; }
 
-        public float TurnSpeed { get; set; } = 0f;
+        public float TurnSpeed { get; set; }
 
-        public float ForwardSpeed { get; set; } = 0f;
+        public float ForwardSpeed { get; set; }
 
-        public float SideStepSpeed { get; set; } = 0f;
+        public float SideStepSpeed { get; set; }
 
         /// <summary>
         /// This guy is nasty!  The movement commands input by the client are not ACCEPTED by the client!

@@ -18,7 +18,7 @@ namespace ACE.Server.Entity
         private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
         private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
-        private bool inventoryloaded = false;
+        private bool inventoryloaded;
 
         // todo : SO : Turning to player movement states  - looks at @og
         public Vendor(AceObject aceO)

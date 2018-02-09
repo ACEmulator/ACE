@@ -8,10 +8,10 @@ namespace ACE.Entity
     public class ChangeTrackedObject : IDirty
     {
         [JsonProperty("isDirty")]
-        public virtual bool IsDirty { get; set; } = false;
+        public virtual bool IsDirty { get; set; }
 
         [JsonIgnore]
-        public virtual bool HasEverBeenSavedToDatabase { get; set; } = false;
+        public virtual bool HasEverBeenSavedToDatabase { get; set; }
 
         [JsonProperty("isNew")]
         public bool IsNew

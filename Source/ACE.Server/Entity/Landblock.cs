@@ -46,7 +46,7 @@ namespace ACE.Server.Entity
         /// Special needs-broadcast flag.  Cleared in broadcast, but set in other phases.
         /// Must be treated exceptionally carefully to avoid races.  Don't touch unless you /really/ know what your doing
         /// </summary>
-        private int broadcastQueued = 0;
+        private int broadcastQueued;
 
         // Can be appeneded concurrently, will be sent serially
         // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
