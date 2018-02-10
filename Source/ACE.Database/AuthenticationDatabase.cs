@@ -16,7 +16,7 @@ namespace ACE.Database
             account.CreateRandomSalt();
 
             account.AccountName = name;
-            account.SetPassword("password");
+            account.SetPassword(password);
             account.AccessLevel = (uint)accessLevel;
 
             using (var context = new ace_authContext())
