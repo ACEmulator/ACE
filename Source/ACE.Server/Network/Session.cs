@@ -177,6 +177,7 @@ namespace ACE.Server.Network
             if (bootSession)
             {
                 SendFinalBoot();
+                State = SessionState.NetworkTimeout;
             }
 
             if (Player != null)

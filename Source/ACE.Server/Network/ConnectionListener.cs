@@ -88,7 +88,8 @@ namespace ACE.Server.Network
                 }
 
                 var packet = new ClientPacket(data);
-                WorldManager.ProcessPacket(packet, ipEndpoint);
+                if (packet.IsValid)
+                    WorldManager.ProcessPacket(packet, ipEndpoint);
             }
             catch (SocketException socketException)
             {
