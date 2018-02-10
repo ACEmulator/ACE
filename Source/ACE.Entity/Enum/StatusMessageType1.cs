@@ -88,7 +88,7 @@
         /// <summary>
         /// Your missile attack misfired!
         /// </summary>
-        YourAttackMisfired = 0x03F9,
+        YourMissileAttackMisfired = 0x03F9,
 
         /// <summary>
         /// You've attempted an impossible spell path!
@@ -182,22 +182,22 @@
         /// <summary>
         /// Either you or one of the items involved does not pass the requirements for this craft interaction.
         /// </summary>
-        YouOrItemsDoNotPassCraftingRequirements = 0x0437,
+        YouDoNotPassCraftingRequirements = 0x0437,
 
         /// <summary>
         /// You do not have all the neccessary items.
         /// </summary>
-        Enum_0438 = 0x0438,
+        YouDoNotHaveAllTheNecessaryItems = 0x0438,
 
         /// <summary>
         /// Not all the items are avaliable.
         /// </summary>
-        Enum_0439 = 0x0439,
+        NotAllTheItemsAreAvailable = 0x0439,
 
         /// <summary>
         /// You must be at rest in peace mode to do trade skills.
         /// </summary>
-        Enum_043A = 0x043A,
+        YouMustBeInPeaceModeToTrade = 0x043A,
 
         /// <summary>
         /// You are not trained in that trade skill.
@@ -229,12 +229,12 @@
         /// <summary>
         /// Player killers may not interact with that portal!
         /// </summary>
-        PlayerKillersCannotUsePortal = 0x045C,
+        PlayerKillersMayNotUsePortal = 0x045C,
 
         /// <summary>
         /// Non-player killers may not interact with that portal!
         /// </summary>
-        NonPlayerKillersCannotUsePortal = 0x045D,
+        NonPlayerKillersMayNotUsePortal = 0x045D,
 
         Enum_0465 = 0x0465,
 
@@ -256,7 +256,7 @@
         /// <summary>
         /// You must own a house to use this command.
         /// </summary>
-        YouMustOwnHouseToUseCommand = 0x047F,
+        YouMustOwnHouseToUseThisCommand = 0x047F,
 
         /// <summary>
         /// You can't lock or unlock that!
@@ -266,12 +266,12 @@
         /// <summary>
         /// You can't lock or unlock what is open!
         /// </summary>
-        Enum_0481 = 0x0481,
+        YouCannotLockOrUnlockWhatIsOpen = 0x0481,
 
         /// <summary>
         /// You must be a monarch to purchase this dwelling.
         /// </summary>
-        Enum_048A = 0x048A,
+        YouMustBeMonarchToPurchaseThisDwelling = 0x048A,
 
         /// <summary>
         /// Your Allegiance has been dissolved!
@@ -306,7 +306,7 @@
         /// <summary>
         /// You must have linked with a lifestone in order to recall to it!
         /// </summary>
-        YouMustLinkToLifestoneToRecall = 0x049E,
+        YouMustLinkToLifestoneToRecallToIt = 0x049E,
 
         /// <summary>
         /// You fail to recall to the lifestone!
@@ -331,7 +331,7 @@
         /// <summary>
         /// You must have linked with a portal in order to recall to it!
         /// </summary>
-        YouMustLinkToPortalToRecall = 0x04A3,
+        YouMustLinkToPortalToRecallToIt = 0x04A3,
 
         /// <summary>
         /// You fail to summon the portal!
@@ -341,7 +341,7 @@
         /// <summary>
         /// You must have linked with a portal in order to summon it!
         /// </summary>
-        YouMustLinkToPortalToSummon = 0x04A5,
+        YouMustLinkToPortalToSummonIt = 0x04A5,
 
         /// <summary>
         /// You fail to teleport!
@@ -356,7 +356,7 @@
         /// <summary>
         /// You must be an Advocate to interact with that portal.
         /// </summary>
-        YouMustBeAnAdvocateToUsePortal = 0x04A8,
+        YouMustBeAnAdvocateToInteractWithPortal = 0x04A8,
 
         /// <summary>
         /// Players may not interact with that portal.
@@ -416,7 +416,7 @@
         /// <summary>
         /// You must be a guest in this house to interact with that portal.
         /// </summary>
-        YouMustBeHouseGuestToUsePortal = 0x04C4,
+        YouMustBeHouseGuestToInteractWithPortal = 0x04C4,
 
         /// <summary>
         /// Your Allegiance Rank is too low to use that item's magic.
@@ -436,7 +436,7 @@
         /// <summary>
         /// You have been involved in a player killer battle too recently to do that!
         /// </summary>
-        YouHaveBeenInvolvedInPlayerKillerBattleTooRecentlyToDoThat = 0x04CC,
+        YouHaveBeenInvolvedInPlayerKillerBattleTooRecently = 0x04CC,
 
         Enum_04DC = 0x04DC,
 
@@ -473,12 +473,12 @@
         /// <summary>
         /// This hook was a duplicated housing object. Since it is now empty, it will be deleted momentarily. Once it is gone, it is safe to use the other, non-duplicated hook that is here.
         /// </summary>
-        HookWasDuplicatedHousingObject = 0x04E5,
+        HookWasDuplicatedHousingObjectToBeDeleted = 0x04E5,
 
         /// <summary>
         /// This chest was a duplicated housing object. Since it is now empty, it will be deleted momentarily. Once it is gone, it is safe to use the other, non-duplicated chest that is here.
         /// </summary>
-        ChestWasDuplicatedHousingObject = 0x04E6,
+        ChestWasDuplicatedHousingObjectToBeDeleted = 0x04E6,
 
         /// <summary>
         /// You cannot swear allegiance to anyone because you own a monarch-only house. Please abandon your house and try again.
@@ -518,7 +518,7 @@
         /// <summary>
         /// Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.
         /// </summary>
-        BaelZharonHasGrantedYouRespite = 0x04F2,
+        YouAreTemporarilyNoLongerAPlayerKiller = 0x04F2,
 
         /// <summary>
         /// Lite Player Killers may not interact with that portal!
@@ -543,32 +543,32 @@
         /// <summary>
         /// The Lifestone's magic protects you from the attack!
         /// </summary>
-        LifestoneProtectsYouFromAttack = 0x0502,
+        LifestonesMagicProtectsYouFromAttack = 0x0502,
 
         /// <summary>
         /// The portal's residual energy protects you from the attack!
         /// </summary>
-        PortalProtectsYouFromAttack = 0x0503,
+        PortalEnergyProtectsYouFromAttack = 0x0503,
 
         /// <summary>
         /// You are enveloped in a feeling of warmth as you are brought back into the protection of the Light. You are once again a Non-Player Killer.
         /// </summary>
-        Enum_0504 = 0x0504,
+        YouAreOnceAgainNonPlayerKiller = 0x0504,
 
         /// <summary>
         /// You're too close to your sanctuary!
         /// </summary>
-        Enum_0505 = 0x0505,
+        YoureTooCloseToYourSanctuary = 0x0505,
 
         /// <summary>
         /// Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.
         /// </summary>
-        Enum_0507 = 0x0507,
+        OnlyNonPlayerKillersMayEnterPKLite = 0x0507,
 
         /// <summary>
         /// A cold wind touches your heart. You are now a Player Killer Lite.
         /// </summary>
-        Enum_0508 = 0x0508,
+        YouAreNowPlayerKillerLite = 0x0508,
 
         /// <summary>
         /// You do not belong to a Fellowship.
@@ -578,17 +578,17 @@
         /// <summary>
         /// You are now using the maximum number of hooks.  You cannot use another hook until you take an item off one of your hooks.
         /// </summary>
-        Enum_0512 = 0x0512,
+        YouAreNowUsingMaximumHooks = 0x0512,
 
         /// <summary>
         /// You are no longer using the maximum number of hooks.  You may again add items to your hooks.
         /// </summary>
-        Enum_0513 = 0x0513,
+        YouAreNoLongerUsingMaximumHooks = 0x0513,
 
         /// <summary>
         /// You are not permitted to use that hook.
         /// </summary>
-        Enum_0516 = 0x0516,
+        YouAreNotPermittedToUseThatHook = 0x0516,
 
         /// <summary>
         /// You have entered your allegiance chat room.
@@ -608,22 +608,22 @@
         /// <summary>
         /// You cannot add anymore people to the list of players that you can hear.
         /// </summary>
-        Enum_0520 = 0x0520,
+        YouCannotAddAnymorePeopleToHearList = 0x0520,
 
         /// <summary>
         /// You are now deaf to player's screams.
         /// </summary>
-        Enum_0523 = 0x0523,
+        YouAreNowDeafTo_Screams = 0x0523,
 
         /// <summary>
         /// You can hear all players once again.
         /// </summary>
-        Enum_0524 = 0x0524,
+        YouCanHearAllPlayersOnceAgain = 0x0524,
 
         /// <summary>
         /// You chicken out.
         /// </summary>
-        Enum_0526 = 0x0526,
+        YouChickenOut = 0x0526,
 
         /// <summary>
         /// The fellowship is locked; you cannot open locked fellowships.
@@ -643,7 +643,7 @@
         /// <summary>
         /// You must wait 30 days after purchasing a house before you may purchase another with any character on the same account. This applies to all housing except apartments.
         /// </summary>
-        Enum_0532 = 0x0532,
+        YouMustWait30DaysAfterPurchasingHouse = 0x0532,
 
         /// <summary>
         /// You have been booted from your allegiance chat room. Use "@allegiance chat on" to rejoin. ().
@@ -653,7 +653,7 @@
         /// <summary>
         /// You do not have the authority within your allegiance to do that.
         /// </summary>
-        Enum_0535 = 0x0535,
+        YouDoNotHaveAuthorityWithinAllegianceToDoThat = 0x0535,
 
         /// <summary>
         /// You have the maximum number of accounts banned.!
@@ -698,22 +698,22 @@
         /// <summary>
         /// You have failed to complete the augmentation.
         /// </summary>
-        AugmentationCompletionFailed = 0x0556,
+        YouFailedToCompleteAugmentation = 0x0556,
 
         /// <summary>
         /// You have used this augmentation too many times already.
         /// </summary>
-        AugmentationUsedTooManyTimes = 0x0557,
+        YouUsedThisAugmentationTooManyTimes = 0x0557,
 
         /// <summary>
         /// You have used augmentations of this type too many times already.
         /// </summary>
-        AugmentationOfThisTypeUsedTooManyTimes = 0x0558,
+        YouUsedAugmentationsOfThisTypeTooManyTimes = 0x0558,
 
         /// <summary>
         /// You do not have enough unspent experience available to purchase this augmentation.
         /// </summary>
-        Enum_0559 = 0x0559,
+        YouDoNotHaveEnoughExperienceToPurchaseAugmentation = 0x0559,
 
         /// <summary>
         /// You must exit the Training Academy before that command will be available to you.
@@ -763,7 +763,7 @@
         /// <summary>
         /// You have cleared the pre-approved vassal for your allegiance.
         /// </summary>
-        ClearedPreApprovedVassal = 0x057C,
+        YouHaveClearedPreApprovedVassal = 0x057C,
 
         /// <summary>
         /// That character is already gagged!
@@ -793,7 +793,7 @@
         /// <summary>
         /// The vendor looks at you in horror!
         /// </summary>
-        OlthoiVendorLooksInHorror = 0x0589,
+        OlthoiVendorLooksAtYouInHorror = 0x0589,
 
         /// <summary>
         /// As a mindless engine of destruction an Olthoi cannot join a fellowship!
@@ -823,17 +823,17 @@
         /// <summary>
         /// Olthoi may not pass through this portal!
         /// </summary>
-        CannotPortalAsOlthoi = 0x0590,
+        OlthoiMayNotPassThroughPortal = 0x0590,
 
         /// <summary>
         /// You may not pass through this portal while Vitae weakens you!
         /// </summary>
-        CannotPortalWithVitae = 0x0591,
+        YouMayNotPassThroughPortalWithVitae = 0x0591,
 
         /// <summary>
         /// This character must be two weeks old or have been created on an account at least two weeks old to use this portal!
         /// </summary>
-        Enum_0592 = 0x0592,
+        YouMustBeTwoWeeksOldToUsePortal = 0x0592,
 
         /// <summary>
         /// Olthoi characters can only use Lifestone and PK Arena recalls!
