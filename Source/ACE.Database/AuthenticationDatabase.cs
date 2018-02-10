@@ -9,14 +9,24 @@ namespace ACE.Database
 {
     public class AuthenticationDatabase : Database
     {
-        public void AddAccount(Account account)
+        /// <exception cref="MySqlException">Account with name already exists.</exception>
+        public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {
+            var account = new Account();
+            account.CreateRandomSalt();
+
+            account.AccountName = name;
+            account.SetPassword("password");
+            account.AccessLevel = (uint)accessLevel;
+
             using (var context = new ace_authContext())
             {
                 context.Account.Add(account);
 
                 context.SaveChanges();
             }
+
+            return account;
         }
 
         /// <summary>
@@ -25,7 +35,7 @@ namespace ACE.Database
         public Account GetAccountById(uint accountId)
         {
             using (var context = new ace_authContext())
-                return context.Account.FirstOrDefault(r => r.AccountId == accountId);
+                return context.Account.AsNoTracking().FirstOrDefault(r => r.AccountId == accountId);
         }
 
         /// <summary>
@@ -34,7 +44,7 @@ namespace ACE.Database
         public Account GetAccountByName(string accountName)
         {
             using (var context = new ace_authContext())
-                return context.Account.FirstOrDefault(r => r.AccountName == accountName);
+                return context.Account.AsNoTracking().FirstOrDefault(r => r.AccountName == accountName);
         }
 
         /// <summary>
@@ -44,7 +54,7 @@ namespace ACE.Database
         {
             using (var context = new ace_authContext())
             {
-                var result = context.Account.FirstOrDefault(r => r.AccountName == accountName);
+                var result = context.Account.AsNoTracking().FirstOrDefault(r => r.AccountName == accountName);
 
                 return (result != null) ? result.AccountId : 0;
             }
