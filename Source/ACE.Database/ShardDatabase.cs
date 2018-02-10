@@ -1,8 +1,9 @@
+extern alias MySqlDataAlias;
+using MySqlDataAlias::MySql.Data.MySqlClient;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using MySql.Data.MySqlClient;
 
 using log4net;
 

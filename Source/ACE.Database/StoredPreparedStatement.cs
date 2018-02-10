@@ -1,6 +1,7 @@
-using System.Collections.Generic;
+extern alias MySqlDataAlias;
+using MySqlDataAlias::MySql.Data.MySqlClient;
 
-using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace ACE.Database
 {

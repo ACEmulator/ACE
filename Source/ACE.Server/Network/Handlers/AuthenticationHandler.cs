@@ -2,16 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Common.Cryptography;
 using ACE.Database;
+using ACE.Database.Models.ace_auth;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Packets;
-using log4net;
+
+using Account = ACE.Database.Models.ace_auth.Account;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -87,9 +93,9 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (WorldManager.Find(account.Name) != null)
+            if (WorldManager.Find(account.AccountName) != null)
             {
-                var foundSession = WorldManager.Find(account.Name);
+                var foundSession = WorldManager.Find(account.AccountName);
 
                 if (foundSession.State == SessionState.AuthConnected)
                 {
@@ -125,7 +131,7 @@ namespace ACE.Server.Network.Handlers
 
             // TODO: check for account bans
 
-            session.SetAccount(account.AccountId, account.Name, account.AccessLevel);
+            session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
         }
 

@@ -1,75 +1,80 @@
-using System;
-using System.Collections.Generic;
+using System.Linq;
 
-using ACE.Entity;
+using Microsoft.EntityFrameworkCore;
+
+using ACE.Database.Models.ace_auth;
 using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
     public class AuthenticationDatabase : Database
     {
-        private enum AuthenticationPreparedStatement
+        public void AddAccount(Account account)
         {
-            AccountInsert,
-            AccountSelect,
-            AccountUpdate,
-            AccountSelectByName,
+            using (var context = new ace_authContext())
+            {
+                context.Account.Add(account);
+
+                context.SaveChanges();
+            }
         }
 
-        protected override Type PreparedStatementType => typeof(AuthenticationPreparedStatement);
-
-        protected override void InitializePreparedStatements()
-        {
-            ConstructStatement(AuthenticationPreparedStatement.AccountSelect, typeof(Account), ConstructedStatementType.Get);
-            ConstructStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), ConstructedStatementType.Insert);
-            ConstructStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), ConstructedStatementType.Update);
-            ConstructStatement(AuthenticationPreparedStatement.AccountSelectByName, typeof(AccountByName), ConstructedStatementType.Get);
-        }
-
-        public void CreateAccount(Account account)
-        {
-            ExecuteConstructedInsertStatement(AuthenticationPreparedStatement.AccountInsert, typeof(Account), account);
-        }
-
-        public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
-        {
-            // ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
-            var account = GetAccountById(accountId);
-            account.SetAccessLevel(accessLevel);
-            UpdateAccount(account);
-        }
-
+        /// <summary>
+        /// Will return null if the accountId was not found.
+        /// </summary>
         public Account GetAccountById(uint accountId)
         {
-            Account ret = new Account();
-            var criteria = new Dictionary<string, object> { { "accountId", accountId } };
-            bool success = ExecuteConstructedGetStatement<Account, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelect, criteria, ret);
-            return ret;
+            using (var context = new ace_authContext())
+                return context.Account.FirstOrDefault(r => r.AccountId == accountId);
         }
 
+        /// <summary>
+        /// Will return null if the accountName was not found.
+        /// </summary>
         public Account GetAccountByName(string accountName)
         {
-            AccountByName ret = new AccountByName();
-            var criteria = new Dictionary<string, object> { { "accountName", accountName } };
-            bool success = ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
-
-            if (success)
-                return GetAccountById(ret.AccountId);
-
-            return null;
+            using (var context = new ace_authContext())
+                return context.Account.FirstOrDefault(r => r.AccountName == accountName);
         }
 
-        public void GetAccountIdByName(string accountName, out uint id)
+        /// <summary>
+        /// id will be 0 if the accountName was not found.
+        /// </summary>
+        public uint GetAccountIdByName(string accountName)
         {
-            AccountByName ret = new AccountByName();
-            var criteria = new Dictionary<string, object> { { "accountName", accountName } };
-            ExecuteConstructedGetStatement<AccountByName, AuthenticationPreparedStatement>(AuthenticationPreparedStatement.AccountSelectByName, criteria, ret);
-            id = ret.AccountId;
+            using (var context = new ace_authContext())
+            {
+                var result = context.Account.FirstOrDefault(r => r.AccountName == accountName);
+
+                return (result != null) ? result.AccountId : 0;
+            }
         }
 
         public void UpdateAccount(Account account)
         {
-            ExecuteConstructedUpdateStatement(AuthenticationPreparedStatement.AccountUpdate, typeof(Account), account);
+            using (var context = new ace_authContext())
+            {
+                context.Entry(account).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+        }
+
+        public bool UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
+        {
+            using (var context = new ace_authContext())
+            {
+                var account = context.Account.First(r => r.AccountId == accountId);
+
+                if (account == null)
+                    return false;
+
+                account.AccessLevel = (uint)accessLevel;
+
+                context.SaveChanges();
+            }
+
+            return true;
         }
     }
 }

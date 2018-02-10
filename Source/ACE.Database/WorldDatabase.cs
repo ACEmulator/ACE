@@ -1,9 +1,10 @@
+extern alias MySqlDataAlias;
+using MySqlDataAlias::MySql.Data.MySqlClient;
+
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-
-using MySql.Data.MySqlClient;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
