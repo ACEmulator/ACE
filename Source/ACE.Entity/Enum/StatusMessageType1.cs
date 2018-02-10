@@ -49,7 +49,7 @@
         /// <summary>
         /// You can't do that... you're dead!
         /// </summary>
-        YouCantDoThat_YouAreDead = 0x003A,
+        YouCantDoThatYoureDead = 0x003A,
 
         Enum_003C = 0x003C,
 
@@ -108,7 +108,7 @@
         /// <summary>
         /// You don't have all the components for this spell.
         /// </summary>
-        YouDontHaveAllTheComponents = 0x0400,
+        YouDontHaveAllTheSpellComponents = 0x0400,
 
         /// <summary>
         /// You don't have enough Mana to cast this spell.
@@ -155,7 +155,7 @@
         /// <summary>
         /// You must be the leader of a Fellowship
         /// </summary>
-        YouMustBeTheLeaderOfAFellowship = 0x041D,
+        YouMustBeTheLeaderOfFellowship = 0x041D,
 
         /// <summary>
         /// Your Fellowship is full
@@ -356,22 +356,22 @@
         /// <summary>
         /// You must be an Advocate to interact with that portal.
         /// </summary>
-        YouMustBeAnAdvocateToInteractWithPortal = 0x04A8,
+        YouMustBeAnAdvocateToUsePortal = 0x04A8,
 
         /// <summary>
         /// Players may not interact with that portal.
         /// </summary>
-        PlayersMayNotInteractWithPortal = 0x04AA,
+        PlayersMayNotUsePortal = 0x04AA,
 
         /// <summary>
         /// You are not powerful enough to interact with that portal!
         /// </summary>
-        YouAreNotPowerfulEnoughToInteractWithPortal = 0x04AB,
+        YouAreNotPowerfulEnoughToUsePortal = 0x04AB,
 
         /// <summary>
         /// You are too powerful to interact with that portal!
         /// </summary>
-        YouAreTooPowerfulToInteractWithPortal = 0x04AC,
+        YouAreTooPowerfulToUsePortal = 0x04AC,
 
         /// <summary>
         /// You cannot recall to that portal!
@@ -436,7 +436,7 @@
         /// <summary>
         /// You have been involved in a player killer battle too recently to do that!
         /// </summary>
-        YouHaveBeenInvolvedInPlayerKillerBattleTooRecently = 0x04CC,
+        YouHaveBeenInvolvedInPKBattleTooRecently = 0x04CC,
 
         Enum_04DC = 0x04DC,
 
@@ -518,7 +518,7 @@
         /// <summary>
         /// Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.
         /// </summary>
-        YouAreTemporarilyNoLongerAPlayerKiller = 0x04F2,
+        YouAreTemporarilyNoLongerPlayerKiller = 0x04F2,
 
         /// <summary>
         /// Lite Player Killers may not interact with that portal!
@@ -543,7 +543,7 @@
         /// <summary>
         /// The Lifestone's magic protects you from the attack!
         /// </summary>
-        LifestonesMagicProtectsYouFromAttack = 0x0502,
+        LifestoneMagicProtectsYouFromAttack = 0x0502,
 
         /// <summary>
         /// The portal's residual energy protects you from the attack!
@@ -663,7 +663,7 @@
         /// <summary>
         /// You already have the maximum number of allegiance officers. You must remove some before you add any more.
         /// </summary>
-        YouAlreadyHaveMaximumNumberOfAllegianceOfficers = 0x0545,
+        YouAlreadyHaveMaximumAllegianceOfficers = 0x0545,
 
         /// <summary>
         /// Your allegiance officers have been cleared.
@@ -683,7 +683,7 @@
         /// <summary>
         /// Your allegiance does not have a hometown.
         /// </summary>
-        YourAllegianceDoesNotHaveAHometown = 0x054C,
+        YourAllegianceDoesNotHaveHometown = 0x054C,
 
         /// <summary>
         /// The hook does not contain a usable item. You cannot open the hook because you do not own the house to which it belongs.
@@ -798,12 +798,12 @@
         /// <summary>
         /// As a mindless engine of destruction an Olthoi cannot join a fellowship!
         /// </summary>
-        OlthoiCannotJoinAFellowship = 0x058B,
+        OlthoiCannotJoinFellowship = 0x058B,
 
         /// <summary>
         /// The Olthoi only have an allegiance to the Olthoi Queen!
         /// </summary>
-        OlthoiCannotJoinAnAllegiance = 0x058C,
+        OlthoiCannotJoinAllegiance = 0x058C,
 
         /// <summary>
         /// You cannot use that item!
@@ -818,17 +818,17 @@
         /// <summary>
         /// Only Olthoi may pass through this portal!
         /// </summary>
-        OnlyOlthoiMayUsePortal = 0x058F,
+        OnlyOlthoiMayUseThisPortal = 0x058F,
 
         /// <summary>
         /// Olthoi may not pass through this portal!
         /// </summary>
-        OlthoiMayNotPassThroughPortal = 0x0590,
+        OlthoiMayNotUseThisPortal = 0x0590,
 
         /// <summary>
         /// You may not pass through this portal while Vitae weakens you!
         /// </summary>
-        YouMayNotPassThroughPortalWithVitae = 0x0591,
+        YouMayNotUsePortalWithVitae = 0x0591,
 
         /// <summary>
         /// This character must be two weeks old or have been created on an account at least two weeks old to use this portal!
