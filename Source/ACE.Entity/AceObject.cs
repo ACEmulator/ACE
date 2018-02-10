@@ -1,11 +1,14 @@
-using System.Collections.Generic;
-using ACE.Common;
-using MySql.Data.MySqlClient;
-using ACE.Entity.Enum.Properties;
 using System;
-using ACE.Entity.Enum;
+using System.Collections.Generic;
 using System.Linq;
+
+using MySql.Data.MySqlClient;
+
 using Newtonsoft.Json;
+
+using ACE.Common;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
@@ -208,28 +211,22 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint Strength
-        { get { return StrengthAbility.MaxValue; } }
+        public uint Strength { get { return StrengthAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Endurance
-        { get { return EnduranceAbility.MaxValue; } }
+        public uint Endurance { get { return EnduranceAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Coordination
-        { get { return CoordinationAbility.MaxValue; } }
+        public uint Coordination { get { return CoordinationAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Quickness
-        { get { return QuicknessAbility.MaxValue; } }
+        public uint Quickness { get { return QuicknessAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Focus
-        { get { return FocusAbility.MaxValue; } }
+        public uint Focus { get { return FocusAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Self
-        { get { return SelfAbility.MaxValue; } }
+        public uint Self { get { return SelfAbility.MaxValue; } }
 
         [JsonIgnore]
         public uint? SetupDID
@@ -2215,19 +2212,13 @@ namespace ACE.Entity
         public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
         [JsonProperty("inventoryWeenieIds")]
-        public List<uint> InventoryWeenieIds
-        {
-            get { return Inventory.Values.Select(a => a.WeenieClassId).ToList(); }
-        }
+        public List<uint> InventoryWeenieIds { get { return Inventory.Values.Select(a => a.WeenieClassId).ToList(); } }
         
         [JsonIgnore]
         public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
         [JsonProperty("wieldedWeenieIds")]
-        public List<uint> WieldedWeenieIds
-        {
-            get { return WieldedItems.Values.Select(a => a.WeenieClassId).ToList(); }
-        }
+        public List<uint> WieldedWeenieIds { get { return WieldedItems.Values.Select(a => a.WeenieClassId).ToList(); } }
 
         [JsonProperty("contracts")]
         public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();

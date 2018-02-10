@@ -1,16 +1,17 @@
 using System;
-using System.Collections.Generic;
-using ACE.Entity;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+
+using ACE.Entity;
 
 namespace ACE.Database
 {
-    public class CachingWorldDatabase : IWorldDatabase
+    public class CachingWorldDatabase
     {
         /// <summary>
         /// wrapper to the the world database that actually does the lifting
         /// </summary>
-        private IWorldDatabase _wrappedDatabase;
+        private WorldDatabase _wrappedDatabase;
 
         /// <summary>
         /// so, caches are fun.  we have to be especially careful that we never hand out the same instance
@@ -19,7 +20,7 @@ namespace ACE.Database
         /// </summary>
         private ConcurrentDictionary<uint, AceObject> _weenieCache = new ConcurrentDictionary<uint, AceObject>();
 
-        public CachingWorldDatabase(IWorldDatabase wrappedDatabase)
+        public CachingWorldDatabase(WorldDatabase wrappedDatabase)
         {
             _wrappedDatabase = wrappedDatabase;
         }

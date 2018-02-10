@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using MySql.Data.MySqlClient;
+
 using log4net;
+
 using ACE.Common;
 using ACE.Common.Extensions;
-using System.Reflection;
 using ACE.Database.Extensions;
 
 namespace ACE.Database
@@ -18,7 +20,7 @@ namespace ACE.Database
     public class Database
     {
         // This is a debug channel for the general debugging of the database.
-        private ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
 
@@ -27,7 +29,7 @@ namespace ACE.Database
         public class DatabaseTransaction
         {
             // This logging function will log specific db transactions - this class may be instantiated outside of the database namespace
-            private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
             private readonly Database database;
             private readonly List<Tuple<StoredPreparedStatement, object[]>> queries = new List<Tuple<StoredPreparedStatement, object[]>>();
@@ -457,6 +459,7 @@ namespace ACE.Database
                     valueList += ", ";
                     fieldList += ", ";
                 }
+
                 fieldList += "`" + p.Item2.DbFieldName + "`";
 
                 valueList += "?";
@@ -723,14 +726,11 @@ namespace ACE.Database
             foreach (var p in properties)
             {
                 var assignable = commandReader[p.Item2.DbFieldName];
+
                 if (Convert.IsDBNull(assignable))
-                {
                     p.Item1.SetValue(o, null);
-                }
                 else
-                {
                     p.Item1.SetValue(o, assignable);
-                }
             }
             return o;
         }
@@ -1140,9 +1140,7 @@ namespace ACE.Database
                     using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                     {
                         if (commandReader.Read())
-                        {
                             return ReadObject<T>(commandReader);
-                        }
 
                         return null;
                     }
@@ -1249,9 +1247,7 @@ namespace ACE.Database
             var dbQuery = "DROP DATABASE IF EXISTS `" + databaseName + "`;";
             var result = ExecuteSqlQueryOrScript(dbQuery, databaseName, false);
             if (result.Length > 0 && result != "0")
-            {
                 return result;
-            }
             return null;
         }
 
@@ -1266,9 +1262,7 @@ namespace ACE.Database
             var result = ExecuteSqlQueryOrScript(dbQuery, "", false);
             // Only show result strings
             if (result.Length > 3)
-            {
                 return result;
-            }
             return null;
         }
 
@@ -1282,9 +1276,7 @@ namespace ACE.Database
                 int number = my.Number;
                 // if the number is zero, try to get the number of the inner exception
                 if (number == 0 && (my = my.InnerException as MySqlException) != null)
-                {
                     number = my.Number;
-                }
                 return number;
             }
             return -1;

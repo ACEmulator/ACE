@@ -1,10 +1,12 @@
+using System;
+using System.IO;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.IO;
 
 namespace ACE.Database.Tests
 {

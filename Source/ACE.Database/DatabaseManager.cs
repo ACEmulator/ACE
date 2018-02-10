@@ -1,35 +1,32 @@
-﻿using ACE.Common;
+using ACE.Common;
 
 namespace ACE.Database
 {
-    public class DatabaseManager
+    public static class DatabaseManager
     {
+        public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
+
+        public static CachingWorldDatabase World { get; private set; }
+
         private static SerializedShardDatabase serializedShardDb;
 
-        public static IAuthenticationDatabase Authentication { get; set; }
-
-        public static ISerializedShardDatabase Shard { get; set; }
-
-        public static IWorldDatabase World { get; set; }
+        public static SerializedShardDatabase Shard { get; private set; }
 
         public static void Initialize(bool autoRetry = true)
         {
             var config = ConfigManager.Config.MySql;
 
-            var authDb = new AuthenticationDatabase();
-            authDb.Initialize(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database, autoRetry);
-            Authentication = authDb;
+            Authentication.Initialize(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database, autoRetry);
+
+            var worldDb = new WorldDatabase();
+            worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database, autoRetry);
+            var cachingWorldDb = new CachingWorldDatabase(worldDb);
+            World = cachingWorldDb;
 
             var shardDb = new ShardDatabase();
             shardDb.Initialize(config.Shard.Host, config.Shard.Port, config.Shard.Username, config.Shard.Password, config.Shard.Database, autoRetry);
             serializedShardDb = new SerializedShardDatabase(shardDb);
             Shard = serializedShardDb;
-
-            var worldDb = new WorldDatabase();
-            worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database, autoRetry);
-
-            var cachingWorldDb = new CachingWorldDatabase(worldDb);
-            World = cachingWorldDb;
         }
 
         public static void Start()

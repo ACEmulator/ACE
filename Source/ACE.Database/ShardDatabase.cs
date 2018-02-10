@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using MySql.Data.MySqlClient;
+
+using log4net;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
-using MySql.Data.MySqlClient;
-using log4net;
-// ReSharper disable InconsistentNaming
 
 namespace ACE.Database
 {
-    public class ShardDatabase : CommonDatabase, IShardDatabase
+    public class ShardDatabase : CommonDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

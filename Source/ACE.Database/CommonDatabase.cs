@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public abstract class CommonDatabase : Database, ICommonDatabase
+    public abstract class CommonDatabase : Database
     {
         private enum AceObjectPreparedStatement
         {
@@ -297,14 +298,10 @@ namespace ACE.Database
             aceObject.TextureOverrides = GetAceObjectTextureMaps(aceObject.AceObjectId);
             aceObject.AnimationOverrides = GetAceObjectAnimations(aceObject.AceObjectId);
             aceObject.PaletteOverrides = GetAceObjectPalettes(aceObject.AceObjectId);
-            aceObject.AceObjectPropertiesPositions = GetAceObjectPostions(aceObject.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType,
-                x => new Position(x));
-            aceObject.AceObjectPropertiesAttributes = GetAceObjectPropertiesAttribute(aceObject.AceObjectId).ToDictionary(x => (Ability)x.AttributeId,
-                x => new CreatureAbility(x));
-            aceObject.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(aceObject.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId,
-                x => new CreatureVital(aceObject, x));
-            aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId,
-                x => new CreatureSkill(aceObject, x));
+            aceObject.AceObjectPropertiesPositions = GetAceObjectPostions(aceObject.AceObjectId).ToDictionary(x => (PositionType)x.DbPositionType, x => new Position(x));
+            aceObject.AceObjectPropertiesAttributes = GetAceObjectPropertiesAttribute(aceObject.AceObjectId).ToDictionary(x => (Ability)x.AttributeId, x => new CreatureAbility(x));
+            aceObject.AceObjectPropertiesAttributes2nd = GetAceObjectPropertiesAttribute2nd(aceObject.AceObjectId).ToDictionary(x => (Ability)x.Attribute2ndId, x => new CreatureVital(aceObject, x));
+            aceObject.AceObjectPropertiesSkills = GetAceObjectPropertiesSkill(aceObject.AceObjectId).ToDictionary(x => (Skill)x.SkillId, x => new CreatureSkill(aceObject, x));
             aceObject.SpellIdProperties = GetAceObjectPropertiesSpell(aceObject.AceObjectId);
             aceObject.BookProperties = GetAceObjectPropertiesBook(aceObject.AceObjectId).ToDictionary(x => x.Page);
 
