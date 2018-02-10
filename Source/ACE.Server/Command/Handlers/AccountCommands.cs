@@ -1,6 +1,7 @@
 using System;
+
 using ACE.Database;
-using ACE.Entity;
+using ACE.Database.Models.ace_auth;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
@@ -16,9 +17,11 @@ namespace ACE.Server.Command.Handlers
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
         public static void HandleAccountCreate(Session session, params string[] parameters)
         {
-            Account newAccount = new Account();
-            newAccount.SetName(parameters[0].ToLower());
-            newAccount.SetPassword(parameters[1]);
+            var account = new Account();
+
+            account.CreateRandomSalt();
+            account.AccountName = parameters[0].ToLower();
+            account.SetPassword(parameters[1]);
 
             AccessLevel accessLevel        = AccessLevel.Player;
             AccessLevel defaultAccessLevel = (AccessLevel)Common.ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
@@ -36,7 +39,7 @@ namespace ACE.Server.Command.Handlers
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
 
-            newAccount.SetAccessLevel(accessLevel);
+            account.AccessLevel = (uint)accessLevel;
    
             // TODO and FIXME: this is not fully correct yet, needs more work. Not thread safe.
             var accountExists = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
@@ -47,8 +50,8 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                DatabaseManager.Authentication.CreateAccount(newAccount);
-                Console.WriteLine("Account successfully created for " + newAccount.Name + " (" + newAccount.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+                DatabaseManager.Authentication.AddAccount(account);
+                Console.WriteLine("Account successfully created for " + account.AccountName + " (" + account.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
             }
         }
   
@@ -58,7 +61,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleAccountGet(Session session, params string[] parameters)
         {
             var account = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
-            Console.WriteLine($"User: {account.Name}, ID: {account.AccountId}");
+            Console.WriteLine($"User: {account.AccountName}, ID: {account.AccountId}");
         }
 
         // set-accountaccess accountname (accesslevel)
@@ -69,14 +72,11 @@ namespace ACE.Server.Command.Handlers
             "0 = Player | 1 = Advocate | 2 = Sentinel | 3 = Envoy | 4 = Developer | 5 = Admin")]
         public static void HandleAccountUpdateAccessLevel(Session session, params string[] parameters)
         {
-            uint accountId      = 0;
             string accountName  = parameters[0].ToLower();
 
-            try
-            {
-                DatabaseManager.Authentication.GetAccountIdByName(accountName, out accountId);
-            }
-            catch (IndexOutOfRangeException)
+            var accountId = DatabaseManager.Authentication.GetAccountIdByName(accountName);
+
+            if (accountId == 0)
             {
                 if (session == null)
                     Console.WriteLine("Account " + accountName + " does not exist.");
