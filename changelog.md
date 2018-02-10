@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-02-10
+[Ripley]
+* Renamed a couple of messages queues to match protocol documentation.
+
 ### 2018-02-09
 [Morosity/Spazmodica]
 * Added boolean to ClientPacket if packet fails to parse.

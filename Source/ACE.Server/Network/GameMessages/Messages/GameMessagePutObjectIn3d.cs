@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePutObjectIn3d : GameMessage
     {
         public GameMessagePutObjectIn3d(Session session, WorldObject worldObject, ObjectGuid itemGuid)
-            : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write(session.GameEventSequence++);

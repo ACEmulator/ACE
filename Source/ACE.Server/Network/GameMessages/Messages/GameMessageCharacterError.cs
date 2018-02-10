@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageCharacterError : GameMessage
     {
         public GameMessageCharacterError(CharacterError error)
-            : base(GameMessageOpcode.CharacterError, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.CharacterError, GameMessageGroup.UIQueue)
         {
             Writer.Write((uint)error);
         }

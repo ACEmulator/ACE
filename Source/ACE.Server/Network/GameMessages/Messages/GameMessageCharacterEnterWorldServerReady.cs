@@ -3,7 +3,7 @@
     public class GameMessageCharacterEnterWorldServerReady : GameMessage
     {
         public GameMessageCharacterEnterWorldServerReady()
-            : base(GameMessageOpcode.CharacterEnterWorldServerReady, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.CharacterEnterWorldServerReady, GameMessageGroup.UIQueue)
         {
         }
     }

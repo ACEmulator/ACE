@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventStartBarber : GameEventMessage
     {
         public GameEventStartBarber(Session session)
-            : base(GameEventType.StartBarber, GameMessageGroup.Group09, session)
+            : base(GameEventType.StartBarber, GameMessageGroup.UIQueue, session)
         {
             // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
             const uint EmpyreanMaleMotionDID = 0x0900020Eu;

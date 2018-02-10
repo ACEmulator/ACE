@@ -14,7 +14,7 @@ namespace ACE.Server.Network.GameEvent.Events
         /// <param name="contractTracker">This class contains all of the information we need to send the client about the contract. </param>
 
         public GameEventSendClientContractTracker(Session session, ContractTracker contractTracker)
-                : base(GameEventType.SendClientContractTracker, GameMessageGroup.Group09, session)
+                : base(GameEventType.SendClientContractTracker, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(contractTracker.Version);
             Writer.Write(contractTracker.ContractId);

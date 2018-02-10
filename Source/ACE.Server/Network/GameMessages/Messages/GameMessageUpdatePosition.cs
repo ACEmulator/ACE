@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageUpdatePosition : GameMessage
     {
         public GameMessageUpdatePosition(WorldObject worldObject)
-            : base(GameMessageOpcode.UpdatePosition, GameMessageGroup.Group0A)
+            : base(GameMessageOpcode.UpdatePosition, GameMessageGroup.SmartboxQueue)
         {
             worldObject.WriteUpdatePositionPayload(Writer);
         }

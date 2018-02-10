@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageParentEvent : GameMessage
     {
         public GameMessageParentEvent(WorldObject player, WorldObject targetItem, int childLocation, int placementId)
-            : base(GameMessageOpcode.ParentEvent, GameMessageGroup.Group0A)
+            : base(GameMessageOpcode.ParentEvent, GameMessageGroup.SmartboxQueue)
         {
             // Fix File Name
             Writer.Write(player.Guid.Full);

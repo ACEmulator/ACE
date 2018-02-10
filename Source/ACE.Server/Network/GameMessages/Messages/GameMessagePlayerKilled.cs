@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePlayerKilled : GameMessage
     {
         public GameMessagePlayerKilled(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
-            : base(GameMessageOpcode.PlayerKilled, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.PlayerKilled, GameMessageGroup.UIQueue)
         {
             Writer.WriteString16L(deathMessage);
             Writer.WriteGuid(victimId);

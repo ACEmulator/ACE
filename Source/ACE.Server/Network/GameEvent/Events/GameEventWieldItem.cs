@@ -3,7 +3,7 @@
     public class GameEventWieldItem : GameEventMessage
     {
         public GameEventWieldItem(Session session, uint objectId, int newLocation)
-            : base(GameEventType.WieldObject, GameMessageGroup.Group09, session)
+            : base(GameEventType.WieldObject, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(objectId);
             Writer.Write(newLocation);

@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageConfirmationDone : GameMessage
     {
         public GameMessageConfirmationDone(Player player, ConfirmationType confirmationType, uint contextId)
-            : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
             Writer.Write(player.Guid.Full);
             Writer.Write(player.Session.GameEventSequence++);

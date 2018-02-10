@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePickupEvent : GameMessage
     {
         public GameMessagePickupEvent(WorldObject targetItem)
-            : base(GameMessageOpcode.PickupEvent, GameMessageGroup.Group0A)
+            : base(GameMessageOpcode.PickupEvent, GameMessageGroup.SmartboxQueue)
         {
             Writer.Write(targetItem.Guid.Full);
             Writer.Write(targetItem.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));

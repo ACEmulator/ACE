@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageUpdatePropertyBool : GameMessage
     {
-        public GameMessageUpdatePropertyBool(WorldObject worldObject, PropertyBool property, bool value) : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.Group09)
+        public GameMessageUpdatePropertyBool(WorldObject worldObject, PropertyBool property, bool value) : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.UIQueue)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdatePropertyBool)); // This might need to change to GetCurrentSequence.. 
             Writer.Write(worldObject.Guid.Full);

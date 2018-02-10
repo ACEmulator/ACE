@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePublicUpdatePropertyBool : GameMessage
     {
         public GameMessagePublicUpdatePropertyBool(SequenceManager sequences, PropertyBool property, bool value)
-            : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyBool));
             Writer.Write((uint)property);
@@ -22,7 +22,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <param name="property"></param>
         /// <param name="value"></param>
         public GameMessagePublicUpdatePropertyBool(SequenceManager sequences, ObjectGuid sender, PropertyBool property, bool value)
-            : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyBool));
             Writer.Write(sender.Full);

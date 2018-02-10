@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventTell : GameEventMessage
     {
         public GameEventTell(Session session, string messageText, string senderName, uint senderID, uint targetID, ChatMessageType chatMessageType)
-            : base(GameEventType.Tell, GameMessageGroup.Group09, session)
+            : base(GameEventType.Tell, GameMessageGroup.UIQueue, session)
         {
             Writer.WriteString16L(messageText);
             Writer.WriteString16L(senderName);
