@@ -25,6 +25,7 @@ namespace ACE.Server.Managers
         private static Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
+        private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
 
         /// <summary>
         /// Seconds until a session will timeout. 
@@ -60,14 +61,16 @@ namespace ACE.Server.Managers
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) &&
+                loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
             {
                 log.DebugFormat("Login Request from {0}", endPoint);
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
                     session.ProcessPacket(packet);
+                
             }
-            else if (sessionMap.Length > packet.Header.Id)
+            else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
                 var session = sessionMap[packet.Header.Id];
                 if (session != null)
@@ -101,6 +104,7 @@ namespace ACE.Server.Managers
                             session = new Session(endPoint, i, ServerId);
                             sessions.Add(session);
                             sessionMap[i] = session;
+                            loggedInClients.Add(endPoint);
                             break;
                         }
                     }
@@ -134,6 +138,8 @@ namespace ACE.Server.Managers
                     sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
                     sessionMap[session.Network.ClientId] = null;
+                if (loggedInClients.Contains(session.EndPoint))
+                    loggedInClients.Remove(session.EndPoint);
             }
             finally
             {
@@ -378,6 +384,7 @@ namespace ACE.Server.Managers
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
             }
+
             // World has finished operations and concedes the thread to garbage collection
             WorldActive = false;
         }

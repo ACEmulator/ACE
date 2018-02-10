@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2018-02-09
+[Morosity/Spazmodica]
+* Added boolean to ClientPacket if packet fails to parse.
+* Use Packet.IsValid to determine whether to readfragments
+* Use Packet.IsValid to determine whether to send Packet to WorldManager
+* Added new list for tracking endpoints calling server before creating sessions
+* Added check if client is already in the loggedIn list and sending another Login packet to remove
+* Added check if client is not in the loggedIn list ignore requests
+* Added removal of client from loggedIn list
+* Set loggedIn list max to match ConfigManager.Config.Server.Network.MaximumAllowedSessions
+
 ### 2018-02-08
 [Mag-nus]
 * Major code cosmetic cleanup across entire solution.

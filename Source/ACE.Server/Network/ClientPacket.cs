@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System;
+using System.IO;
 using log4net;
 
 namespace ACE.Server.Network
@@ -6,23 +7,37 @@ namespace ACE.Server.Network
     public class ClientPacket : Packet
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        public BinaryReader Payload { get; }
+        public BinaryReader Payload { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
+        public bool IsValid { get; private set; } = false;
 
         public ClientPacket(byte[] data)
         {
-            using (var stream = new MemoryStream(data))
-            {
-                using (var reader = new BinaryReader(stream))
-                {
-                    Header = new PacketHeader(reader);
-                    Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
-                    Payload = new BinaryReader(Data);
-                    HeaderOptional = new PacketHeaderOptional(Payload, Header);
-                }
-            }
+            ParsePacketData(data);
+            if (IsValid)
+                ReadFragments();
+        }
 
-            ReadFragments();
+        private void ParsePacketData(byte[] data)
+        {
+            try
+            {
+                using (var stream = new MemoryStream(data))
+                {
+                    using (var reader = new BinaryReader(stream))
+                    {
+                        Header = new PacketHeader(reader);
+                        Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
+                        Payload = new BinaryReader(Data);
+                        HeaderOptional = new PacketHeaderOptional(Payload, Header);
+                    }
+                }
+                IsValid = true;
+            }
+            catch(Exception ex)
+            {
+                log.Error("Invalid packet data", ex);
+            }
         }
 
         private void ReadFragments()
