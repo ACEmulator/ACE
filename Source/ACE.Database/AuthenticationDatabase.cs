@@ -7,7 +7,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class AuthenticationDatabase : Database
+    public class AuthenticationDatabase
     {
         /// <exception cref="MySqlException">Account with name already exists.</exception>
         public Account CreateAccount(string name, string password, AccessLevel accessLevel)
