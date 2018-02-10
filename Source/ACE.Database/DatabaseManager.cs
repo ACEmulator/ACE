@@ -16,8 +16,6 @@ namespace ACE.Database
         {
             var config = ConfigManager.Config.MySql;
 
-            Authentication.Initialize(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database, autoRetry);
-
             var worldDb = new WorldDatabase();
             worldDb.Initialize(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database, autoRetry);
             var cachingWorldDb = new CachingWorldDatabase(worldDb);
