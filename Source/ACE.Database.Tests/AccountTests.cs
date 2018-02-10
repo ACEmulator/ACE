@@ -32,13 +32,8 @@ namespace ACE.Database.Tests
         [TestMethod]
         public void CreateAccount_GetAccountByName_ReturnsAccount()
         {
-            Account newAccount = new Account();
-            newAccount.CreateRandomSalt();
-            newAccount.AccountName = "testaccount1";
-            newAccount.SetPassword("testpassword1");
-            newAccount.AccessLevel = (uint)AccessLevel.Player;
+            var newAccount = authDb.CreateAccount("testaccount1", "testpassword1", AccessLevel.Player);
 
-            authDb.AddAccount(newAccount);
             var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.AccessLevel == (uint)AccessLevel.Player);
