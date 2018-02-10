@@ -3,7 +3,7 @@
     public class GameMessageCharacterDelete : GameMessage
     {
         public GameMessageCharacterDelete()
-            : base(GameMessageOpcode.CharacterDelete, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.CharacterDelete, GameMessageGroup.UIQueue)
         {
         }
     }

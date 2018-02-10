@@ -2,7 +2,7 @@
 {
     public class GameMessageCharacterLogOff : GameMessage
     {
-        public GameMessageCharacterLogOff() : base(GameMessageOpcode.CharacterLogOff, GameMessageGroup.Group09)
+        public GameMessageCharacterLogOff() : base(GameMessageOpcode.CharacterLogOff, GameMessageGroup.UIQueue)
         {
         }
     }

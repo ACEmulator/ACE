@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageUpdateObject : GameMessage
     {
         public GameMessageUpdateObject(WorldObject worldObject)
-            : base(GameMessageOpcode.UpdateObject, GameMessageGroup.Group0A)
+            : base(GameMessageOpcode.UpdateObject, GameMessageGroup.SmartboxQueue)
         {
             worldObject.SerializeUpdateObject(this.Writer);
         }

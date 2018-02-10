@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageCharacterCreateResponse : GameMessage
     {
         public GameMessageCharacterCreateResponse(CharacterGenerationVerificationResponse response, ObjectGuid guid, string charName)
-            : base(GameMessageOpcode.CharacterCreateResponse, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.CharacterCreateResponse, GameMessageGroup.UIQueue)
         {
             Writer.Write((uint)response);
 

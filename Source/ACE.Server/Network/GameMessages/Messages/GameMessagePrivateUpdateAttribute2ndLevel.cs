@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePrivateUpdateAttribute2ndLevel : GameMessage
     {
         public GameMessagePrivateUpdateAttribute2ndLevel(Session session, Vital vital, uint value)
-            : base(GameMessageOpcode.PrivateUpdateAttribute2ndLevel, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.PrivateUpdateAttribute2ndLevel, GameMessageGroup.UIQueue)
         {
             switch (vital)
             {

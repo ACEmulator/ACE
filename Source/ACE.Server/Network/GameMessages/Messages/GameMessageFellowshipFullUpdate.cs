@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageFellowshipFullUpdate : GameMessage
     {
         public GameMessageFellowshipFullUpdate(Session session)
-            : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
             // This is a naive, bare-bones implementation of 0x02BE, FullFellowshipUpdate.
             // 0x02BE is fairly complicated, so the following code is at least valuable as an example of a valid server response.

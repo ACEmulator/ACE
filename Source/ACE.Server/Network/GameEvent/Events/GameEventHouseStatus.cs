@@ -3,7 +3,7 @@
     public class GameEventHouseStatus : GameEventMessage
     {
         public GameEventHouseStatus(Session session)
-            : base(GameEventType.HouseStatus, GameMessageGroup.Group09, session)
+            : base(GameEventType.HouseStatus, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(2u);
         }

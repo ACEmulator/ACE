@@ -3,7 +3,7 @@
     public class GameMessageServerName : GameMessage
     {
         public GameMessageServerName(string serverName, int currentConnections = 0, int maxConnections = -1)
-            : base(GameMessageOpcode.ServerName, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.ServerName, GameMessageGroup.UIQueue)
         {
             Writer.Write(currentConnections);
             Writer.Write(maxConnections);

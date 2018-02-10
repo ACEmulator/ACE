@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventFellowshipFellowUpdateDone : GameMessage
     {
         public GameEventFellowshipFellowUpdateDone(Session session)
-            : base(GameMessageOpcode.GameEvent, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
             Writer.Write(session.Player.Guid.Full);
             Writer.Write(session.GameEventSequence++);

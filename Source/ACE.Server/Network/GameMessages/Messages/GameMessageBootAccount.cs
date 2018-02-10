@@ -3,7 +3,7 @@
     public class GameMessageBootAccount : GameMessage
     {
         public GameMessageBootAccount(Session session)
-            : base(GameMessageOpcode.AccountBoot, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.AccountBoot, GameMessageGroup.UIQueue)
         {
         }
     }

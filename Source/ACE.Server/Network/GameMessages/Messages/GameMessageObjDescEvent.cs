@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageObjDescEvent : GameMessage
     {
         public GameMessageObjDescEvent(WorldObject worldObject)
-            : base(GameMessageOpcode.ObjDescEvent, GameMessageGroup.Group0A)
+            : base(GameMessageOpcode.ObjDescEvent, GameMessageGroup.SmartboxQueue)
         {
             worldObject.SerializeUpdateModelData(this.Writer);
         }

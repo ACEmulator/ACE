@@ -11,7 +11,7 @@
         /// <param name="scribeName">Who is inscribing the object.</param>
         /// <param name="scribeAccount">This is the scribe account - not sure how it works and passing empty string if null</param>
         public GameEventInscriptionResponse(Session session, uint objectID, string inscriptionText, string scribeName, string scribeAccount)
-                : base(GameEventType.GetInscriptionResponse, GameMessageGroup.Group09, session)
+                : base(GameEventType.GetInscriptionResponse, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(objectID);
             Writer.WriteString16L(inscriptionText);

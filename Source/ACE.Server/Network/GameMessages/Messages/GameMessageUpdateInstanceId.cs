@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageUpdateInstanceId : GameMessage
     {
         public GameMessageUpdateInstanceId(ObjectGuid containerGuid, ObjectGuid itemGuid, PropertyInstanceId iidPropertyId)
-            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.UIQueue)
         {
             // TODO: research - could these types of sends be generalized by payload type?   for example GameMessageInt
             Writer.Write((byte)1);  // wts
@@ -18,7 +18,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         }
 
         public GameMessageUpdateInstanceId(SequenceManager sequences, ObjectGuid senderGuid, PropertyInstanceId idPropertyId, ObjectGuid value)
-            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInstanceId));  // wts
             Writer.Write(senderGuid.Full);

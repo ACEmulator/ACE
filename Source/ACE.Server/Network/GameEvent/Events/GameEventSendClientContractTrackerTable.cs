@@ -15,7 +15,7 @@ namespace ACE.Server.Network.GameEvent.Events
         /// <param name="contactTracker">This is a list of the contact class containing all of the information we need to send the client about the contracts. </param>
 
         public GameEventSendClientContractTrackerTable(Session session, List<ContractTracker> contactTracker)
-                : base(GameEventType.SendClientContractTrackerTable, GameMessageGroup.Group09, session)
+                : base(GameEventType.SendClientContractTrackerTable, GameMessageGroup.UIQueue, session)
         {
             const ushort tableSize = 32;
             Writer.Write((ushort)contactTracker.Count);

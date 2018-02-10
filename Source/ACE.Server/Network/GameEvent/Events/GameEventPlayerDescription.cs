@@ -33,7 +33,7 @@ namespace ACE.Server.Network.GameEvent.Events
         }
 
         public GameEventPlayerDescription(Session session)
-            : base(GameEventType.PlayerDescription, GameMessageGroup.Group09, session)
+            : base(GameEventType.PlayerDescription, GameMessageGroup.UIQueue, session)
         {
             WriteEventBody();
         }

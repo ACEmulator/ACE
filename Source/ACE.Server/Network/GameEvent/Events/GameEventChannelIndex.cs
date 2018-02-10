@@ -2,7 +2,7 @@
 {
     public class GameEventChannelIndex : GameEventMessage
     {
-        public GameEventChannelIndex(Session session) : base(GameEventType.ChannelIndex, GameMessageGroup.Group09, session)
+        public GameEventChannelIndex(Session session) : base(GameEventType.ChannelIndex, GameMessageGroup.UIQueue, session)
         {
             WriteEventBody();
         }

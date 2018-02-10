@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventApproachVendor : GameEventMessage
     {
         public GameEventApproachVendor(Session session, WorldObject vendor, List<WorldObject> items)
-            : base(GameEventType.ApproachVendor, GameMessageGroup.Group09, session)
+            : base(GameEventType.ApproachVendor, GameMessageGroup.UIQueue, session)
         {        
             Writer.Write(vendor.Guid.Full); // merchant id
 

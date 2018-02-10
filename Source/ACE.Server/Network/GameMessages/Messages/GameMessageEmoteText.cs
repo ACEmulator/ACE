@@ -3,7 +3,7 @@
     public class GameMessageEmoteText : GameMessage
     {
         public GameMessageEmoteText(uint senderId, string senderName, string emoteText)
-            : base(GameMessageOpcode.EmoteText, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.EmoteText, GameMessageGroup.UIQueue)
         {
             Writer.Write(senderId);
             Writer.WriteString16L(senderName);

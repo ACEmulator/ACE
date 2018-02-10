@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageUpdateMotion : GameMessage
     {
         public GameMessageUpdateMotion(ObjectGuid animationTargetGuid, byte[] instance_timestamp, SequenceManager sequence, MotionState newState)
-             : base(GameMessageOpcode.Motion, GameMessageGroup.Group0A)
+             : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue)
         {
             Writer.WriteGuid(animationTargetGuid);
             // who is getting the message - the rest of the sequences are the target objects sequences -may be the same

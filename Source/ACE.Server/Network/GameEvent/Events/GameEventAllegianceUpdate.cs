@@ -1,9 +1,9 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventAllegianceUpdate : GameEventMessage
     {
         public GameEventAllegianceUpdate(Session session)
-            : base(GameEventType.AllegianceUpdate, GameMessageGroup.Group09, session)
+            : base(GameEventType.AllegianceUpdate, GameMessageGroup.UIQueue, session)
         {
             // TODO
 

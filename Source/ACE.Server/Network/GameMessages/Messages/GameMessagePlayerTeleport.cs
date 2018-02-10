@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePlayerTeleport : GameMessage
     {
         public GameMessagePlayerTeleport(Player player)
-            : base(GameMessageOpcode.PlayerTeleport, GameMessageGroup.Group0A)
+            : base(GameMessageOpcode.PlayerTeleport, GameMessageGroup.SmartboxQueue)
         {
             Writer.Write(player.Sequences.GetNextSequence(Sequence.SequenceType.ObjectTeleport));
             // Don't see these in traces or protocol spec:

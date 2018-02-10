@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePublicUpdatePropertyInt : GameMessage
     {
         public GameMessagePublicUpdatePropertyInt(SequenceManager sequences, PropertyInt property, int value)
-            : base(GameMessageOpcode.PublicUpdatePropertyInt, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.PublicUpdatePropertyInt, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInt));
             Writer.Write((uint)property);
@@ -22,7 +22,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <param name="property"></param>
         /// <param name="value"></param>
         public GameMessagePublicUpdatePropertyInt(SequenceManager sequences, ObjectGuid sender, PropertyInt property, int value)
-            : base(GameMessageOpcode.PublicUpdatePropertyInt, GameMessageGroup.Group09)
+            : base(GameMessageOpcode.PublicUpdatePropertyInt, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInt));
             Writer.Write(sender.Full);

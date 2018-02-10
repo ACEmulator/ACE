@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageCharacterList : GameMessage
     {
-        public GameMessageCharacterList(List<CachedCharacter> characters, string clientAccountString) : base(GameMessageOpcode.CharacterList, GameMessageGroup.Group09)
+        public GameMessageCharacterList(List<CachedCharacter> characters, string clientAccountString) : base(GameMessageOpcode.CharacterList, GameMessageGroup.UIQueue)
         {
             // Remove any deleted characters from results
             List<CachedCharacter> charactersTrimmed = new List<CachedCharacter>();

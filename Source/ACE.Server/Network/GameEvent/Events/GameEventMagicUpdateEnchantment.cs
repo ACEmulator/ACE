@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventMagicUpdateEnchantment : GameEventMessage
     {
         public GameEventMagicUpdateEnchantment(Session session, WorldObject target, SpellBase spellBase, uint layer, int cooldownId, uint enchantmentTypeFlag)
-            : base(GameEventType.MagicUpdateEnchantment, GameMessageGroup.Group09, session)
+            : base(GameEventType.MagicUpdateEnchantment, GameMessageGroup.UIQueue, session)
         {
             const double startTime = 0;
             const double lastTimeDegraded = 0;
