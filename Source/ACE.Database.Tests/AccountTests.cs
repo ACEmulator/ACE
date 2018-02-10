@@ -22,11 +22,6 @@ namespace ACE.Database.Tests
 
             ConfigManager.Initialize();
             authDb = new AuthenticationDatabase();
-            authDb.Initialize(ConfigManager.Config.MySql.Authentication.Host,
-                          ConfigManager.Config.MySql.Authentication.Port,
-                          ConfigManager.Config.MySql.Authentication.Username,
-                          ConfigManager.Config.MySql.Authentication.Password,
-                          ConfigManager.Config.MySql.Authentication.Database);
         }
 
         [TestMethod]
