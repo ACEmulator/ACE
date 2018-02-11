@@ -39,12 +39,12 @@
         /// <summary>
         /// Unable to move to object!
         /// </summary>
-        UnableToMoveToObject_37 = 0x0037,
+        UnableToMoveToObject = 0x0037,
 
         /// <summary>
         /// Unable to move to object!
         /// </summary>
-        UnableToMoveToObject_39 = 0x0039,
+        Enum_0039 = 0x0039,
 
         /// <summary>
         /// You can't do that... you're dead!
@@ -88,7 +88,7 @@
         /// <summary>
         /// Your missile attack misfired!
         /// </summary>
-        YourMissileAttackMisfired = 0x03F9,
+        YourAttackMisfired = 0x03F9,
 
         /// <summary>
         /// You've attempted an impossible spell path!
@@ -145,7 +145,7 @@
         /// <summary>
         /// You are unprepared to cast a spell
         /// </summary>
-        YouAreUnpreparedToCastSpell = 0x040A,
+        YouAreUnpreparedToCastASpell = 0x040A,
 
         /// <summary>
         /// You are not in an allegiance!
@@ -170,12 +170,12 @@
         /// <summary>
         /// Your craft attempt fails.
         /// </summary>
-        YourCraftAttemptFails_433 = 0x0433,
+        YourCraftAttemptFails = 0x0433,
 
         /// <summary>
         /// Your craft attempt fails.
         /// </summary>
-        YourCraftAttemptFails_435 = 0x0435,
+        Enum_0435 = 0x0435,
 
         Enum_0436 = 0x0436,
 
@@ -187,7 +187,7 @@
         /// <summary>
         /// You do not have all the neccessary items.
         /// </summary>
-        YouDoNotHaveAllNecessaryItems = 0x0438,
+        YouDoNotHaveAllTheNecessaryItems = 0x0438,
 
         /// <summary>
         /// Not all the items are avaliable.
@@ -573,7 +573,7 @@
         /// <summary>
         /// You do not belong to a Fellowship.
         /// </summary>
-        YouDoNotBelongToFellowship = 0x050F,
+        YouDoNotBelongToAFellowship = 0x050F,
 
         /// <summary>
         /// You are now using the maximum number of hooks.  You cannot use another hook until you take an item off one of your hooks.
