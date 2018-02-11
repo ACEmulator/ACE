@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -14,14 +15,12 @@ namespace ACE.DatLoader.FileTypes
 
         public override void Unpack(BinaryReader reader)
         {
-            int headerSize  = reader.ReadInt32() - 2; // not sure why this is required, it just is.
-            int dataSize    = reader.ReadInt32();
+            int objectId   = reader.ReadInt32();
+            int headerSize = reader.ReadInt32();
+            int dataSize   = reader.ReadInt32();
 
-            Header  = reader.ReadBytes(headerSize);
-            Data    = reader.ReadBytes(dataSize);
-
-            // TODO: I don't know why, but the reader doesn't align properly with the length here
-            reader.BaseStream.Position = reader.BaseStream.Length;
+            Header = reader.ReadBytes(headerSize);
+            Data   = reader.ReadBytes(dataSize);
         }
 
         /// <summary>
@@ -29,7 +28,10 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public static void ExportWave(Wave wav, uint fileId, string directory)
         {
-            string filename = Path.Combine(directory, fileId.ToString("X8") + ".wav");
+            string ext = ".wav";
+            if (wav.Header[0] == 0x55) ext = ".mp3";
+
+            string filename = Path.Combine(directory, fileId.ToString("X8") + ext);
 
             // Good summary of the header for a WAV file and what all this means
             // http://www.topherlee.com/software/pcm-tut-wavformat.html
@@ -39,7 +41,7 @@ namespace ACE.DatLoader.FileTypes
 
             binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
 
-            uint filesize = (uint)(wav.Header.Length + wav.Data.Length + 20); // 20 is added for all the extra we're adding for the WAV header format
+            uint filesize = (uint)(wav.Data.Length + 36); // 36 is added for all the extra we're adding for the WAV header format
             binaryWriter.Write(filesize);
 
             binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
@@ -49,7 +51,13 @@ namespace ACE.DatLoader.FileTypes
 
             binaryWriter.Write((int)0x10); // 16 ... length of all the above
 
-            binaryWriter.Write(wav.Header);
+            // AC audio headers start at Format Type,
+            // and are usually 18 bytes, with some exceptions
+            // notably objectID A000393 which is 30 bytes
+
+            // WAV headers are always 16 bytes from Format Type to end of header,
+            // so this extra data is truncated here.
+            binaryWriter.Write(wav.Header.Take(16).ToArray());
 
             binaryWriter.Write(System.Text.Encoding.ASCII.GetBytes("data"));
             binaryWriter.Write((uint)wav.Data.Length);
