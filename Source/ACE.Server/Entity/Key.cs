@@ -56,15 +56,15 @@ namespace ACE.Server.Entity
                                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this.Sequences, Guid, PropertyInt.Structure, (int)Structure));
                                 break;
                             case global::ACE.Server.Entity.Door.UnlockDoorResults.DoorOpen:
-                                var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0481); // TODO: Messages are not quiet right. Need to find right one.
+                                var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen);  // TODO: Messages are not quiet right. Need to find right one.
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
                                 break;
                             case global::ACE.Server.Entity.Door.UnlockDoorResults.AlreadyUnlocked:
-                                var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04B2); // TODO: Messages are not quiet right. Need to find right one.
+                                var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock);  // TODO: Messages are not quiet right. Need to find right one.
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
                                 break;
                             default:
-                                var messageIncorrectKey = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04B2);
+                                var messageIncorrectKey = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock);
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageIncorrectKey);
                                 break;
                         }
@@ -76,7 +76,7 @@ namespace ACE.Server.Entity
                     }
                     else
                     {
-                        var message = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0480);
+                        var message = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockOrUnlockThat);
                         player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
                     }
                 }
