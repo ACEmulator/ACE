@@ -39,12 +39,12 @@
         /// <summary>
         /// Unable to move to object!
         /// </summary>
-        UnableToMoveToObject = 0x0037,
+        UnableToMoveToObject_37 = 0x0037,
 
         /// <summary>
         /// Unable to move to object!
         /// </summary>
-        Enum_0039 = 0x0039,
+        UnableToMoveToObject_39 = 0x0039,
 
         /// <summary>
         /// You can't do that... you're dead!
@@ -108,7 +108,7 @@
         /// <summary>
         /// You don't have all the components for this spell.
         /// </summary>
-        YouDontHaveAllTheSpellComponents = 0x0400,
+        YouDontHaveAllTheComponents = 0x0400,
 
         /// <summary>
         /// You don't have enough Mana to cast this spell.
@@ -123,7 +123,7 @@
         /// <summary>
         /// Your spell's target is missing!
         /// </summary>
-        YourSpellsTargetIsMissing = 0x0403,
+        YourSpellTargetIsMissing = 0x0403,
 
         /// <summary>
         /// Your projectile spell mislaunched!
@@ -145,17 +145,17 @@
         /// <summary>
         /// You are unprepared to cast a spell
         /// </summary>
-        YouAreUnpreparedToCastASpell = 0x040A,
+        YouAreUnpreparedToCastSpell = 0x040A,
 
         /// <summary>
         /// You are not in an allegiance!
         /// </summary>
-        YouAreNotInAnAllegiance = 0x0414,
+        YouAreNotInAllegiance = 0x0414,
 
         /// <summary>
         /// You must be the leader of a Fellowship
         /// </summary>
-        YouMustBeTheLeaderOfFellowship = 0x041D,
+        YouMustBeLeaderOfFellowship = 0x041D,
 
         /// <summary>
         /// Your Fellowship is full
@@ -170,12 +170,12 @@
         /// <summary>
         /// Your craft attempt fails.
         /// </summary>
-        YourCraftAttemptFails = 0x0433,
+        YourCraftAttemptFails_433 = 0x0433,
 
         /// <summary>
         /// Your craft attempt fails.
         /// </summary>
-        Enum_0435 = 0x0435,
+        YourCraftAttemptFails_435 = 0x0435,
 
         Enum_0436 = 0x0436,
 
@@ -187,7 +187,7 @@
         /// <summary>
         /// You do not have all the neccessary items.
         /// </summary>
-        YouDoNotHaveAllTheNecessaryItems = 0x0438,
+        YouDoNotHaveAllNecessaryItems = 0x0438,
 
         /// <summary>
         /// Not all the items are avaliable.
@@ -229,19 +229,19 @@
         /// <summary>
         /// Player killers may not interact with that portal!
         /// </summary>
-        PlayerKillersMayNotUsePortal = 0x045C,
+        PKsMayNotUsePortal = 0x045C,
 
         /// <summary>
         /// Non-player killers may not interact with that portal!
         /// </summary>
-        NonPlayerKillersMayNotUsePortal = 0x045D,
+        NonPKsMayNotUsePortal = 0x045D,
 
         Enum_0465 = 0x0465,
 
         /// <summary>
         /// You must purchase Asheron's Call: Dark Majesty to interact with that portal.
         /// </summary>
-        YouMustPurchaseDarkMajestyToUsePortal = 0x0466,
+        YouMustHaveDarkMajestyToUsePortal = 0x0466,
 
         /// <summary>
         /// You have used all the hooks you are allowed to use for this house.
@@ -256,7 +256,7 @@
         /// <summary>
         /// You must own a house to use this command.
         /// </summary>
-        YouMustOwnHouseToUseThisCommand = 0x047F,
+        YouMustOwnHouseToUseCommand = 0x047F,
 
         /// <summary>
         /// You can't lock or unlock that!
@@ -266,12 +266,12 @@
         /// <summary>
         /// You can't lock or unlock what is open!
         /// </summary>
-        YouCannotLockOrUnlockWhatIsOpen = 0x0481,
+        YouCannotLockWhatIsOpen = 0x0481,
 
         /// <summary>
         /// You must be a monarch to purchase this dwelling.
         /// </summary>
-        YouMustBeMonarchToPurchaseThisDwelling = 0x048A,
+        YouMustBeMonarchToPurchaseDwelling = 0x048A,
 
         /// <summary>
         /// Your Allegiance has been dissolved!
@@ -306,7 +306,7 @@
         /// <summary>
         /// You must have linked with a lifestone in order to recall to it!
         /// </summary>
-        YouMustLinkToLifestoneToRecallToIt = 0x049E,
+        YouMustLinkToLifestoneToRecall = 0x049E,
 
         /// <summary>
         /// You fail to recall to the lifestone!
@@ -331,7 +331,7 @@
         /// <summary>
         /// You must have linked with a portal in order to recall to it!
         /// </summary>
-        YouMustLinkToPortalToRecallToIt = 0x04A3,
+        YouMustLinkToPortalToRecall = 0x04A3,
 
         /// <summary>
         /// You fail to summon the portal!
@@ -376,12 +376,12 @@
         /// <summary>
         /// You cannot recall to that portal!
         /// </summary>
-        YouCannotRecallToThatPortal = 0x04AD,
+        YouCannotRecallPortal = 0x04AD,
 
         /// <summary>
         /// You cannot summon that portal!
         /// </summary>
-        YouCannotSummonThatPortal = 0x04AE,
+        YouCannotSummonPortal = 0x04AE,
 
         /// <summary>
         /// The key doesn't fit this lock.
@@ -411,22 +411,22 @@
         /// <summary>
         /// You cannot salvage items that you are trading!
         /// </summary>
-        YouCannotSalvageItemsInTrade = 0x04C3,
+        YouCannotSalvageItemsInTrading = 0x04C3,
 
         /// <summary>
         /// You must be a guest in this house to interact with that portal.
         /// </summary>
-        YouMustBeHouseGuestToInteractWithPortal = 0x04C4,
+        YouMustBeHouseGuestToUsePortal = 0x04C4,
 
         /// <summary>
         /// Your Allegiance Rank is too low to use that item's magic.
         /// </summary>
-        YourAllegianceRankIsTooLowToUseItemMagic = 0x04C5,
+        YourAllegianceRankIsTooLowToUseMagic = 0x04C5,
 
         /// <summary>
         /// Your Arcane Lore skill is too low to use that item's magic.
         /// </summary>
-        YourArcaneLoreIsTooLowToUseItemMagic = 0x04C7,
+        YourArcaneLoreIsTooLowToUseMagic = 0x04C7,
 
         /// <summary>
         /// That item doesn't have enough Mana.
@@ -436,19 +436,19 @@
         /// <summary>
         /// You have been involved in a player killer battle too recently to do that!
         /// </summary>
-        YouHaveBeenInvolvedInPKBattleTooRecently = 0x04CC,
+        YouHaveBeenInPKBattleTooRecently = 0x04CC,
 
         Enum_04DC = 0x04DC,
 
         /// <summary>
         /// You have failed to alter your attributes.
         /// </summary>
-        YouHaveFailedToAlterYourAttributes = 0x04DD,
+        YouHaveFailedToAlterAttributes = 0x04DD,
 
         /// <summary>
         /// You are currently wielding items which require a certain level of skill. Your attributes cannot be transferred while you are wielding these items. Please remove these items and try again.
         /// </summary>
-        YourAttributesCannotBeTransferredWhileWieldingItems = 0x04E0,
+        CannotTransferAttributesWhileWieldingItem = 0x04E0,
 
         /// <summary>
         /// You have succeeded in transferring your attributes!
@@ -458,7 +458,7 @@
         /// <summary>
         /// This hook is a duplicated housing object. You may not add items to a duplicated housing object. Please empty the hook and allow it to reset.
         /// </summary>
-        HookIsDuplicatedHousingObject = 0x04E2,
+        HookIsDuplicated = 0x04E2,
 
         /// <summary>
         /// That item is of the wrong type to be placed on this hook.
@@ -468,42 +468,42 @@
         /// <summary>
         /// This chest is a duplicated housing object. You may not add items to a duplicated housing object. Please empty everything -- including backpacks -- out of the chest and allow the chest to reset.
         /// </summary>
-        ChestIsDuplicatedHousingObject = 0x04E4,
+        HousingChestIsDuplicated = 0x04E4,
 
         /// <summary>
         /// This hook was a duplicated housing object. Since it is now empty, it will be deleted momentarily. Once it is gone, it is safe to use the other, non-duplicated hook that is here.
         /// </summary>
-        HookWasDuplicatedHousingObjectToBeDeleted = 0x04E5,
+        HookWillBeDeleted = 0x04E5,
 
         /// <summary>
         /// This chest was a duplicated housing object. Since it is now empty, it will be deleted momentarily. Once it is gone, it is safe to use the other, non-duplicated chest that is here.
         /// </summary>
-        ChestWasDuplicatedHousingObjectToBeDeleted = 0x04E6,
+        HousingChestWillBeDeleted = 0x04E6,
 
         /// <summary>
         /// You cannot swear allegiance to anyone because you own a monarch-only house. Please abandon your house and try again.
         /// </summary>
-        CannotSwearAllegiancWhileOwningMansion = 0x04E7,
+        CannotSwearAllegianceWhileOwningMansion = 0x04E7,
 
         /// <summary>
         /// You cannot modify your player killer status while you are recovering from a PK death.
         /// </summary>
-        CannotChangePlayerKillerStatusWhileRecovering = 0x04EC,
+        CannotChangePKStatusWhileRecovering = 0x04EC,
 
         /// <summary>
         /// Advocates may not change their player killer status!
         /// </summary>
-        AdvocatesCannotChangePlayerKillerStatus = 0x04ED,
+        AdvocatesCannotChangePKStatus = 0x04ED,
 
         /// <summary>
         /// Your level is too low to change your player killer status with this object.
         /// </summary>
-        YourLevelIsTooLowToChangePlayerKillerStatusWithObject = 0x04EE,
+        LevelTooLowToChangePKStatusWithObject = 0x04EE,
 
         /// <summary>
         /// Your level is too high to change your player killer status with this object.
         /// </summary>
-        YourLevelIsTooHighToChangePlayerKillerStatusWithObject = 0x04EF,
+        LevelTooHighToChangePKStatusWithObject = 0x04EF,
 
         /// <summary>
         /// You feel a harsh dissonance, and you sense that an act of killing you have committed recently is interfering with the conversion.
@@ -513,47 +513,47 @@
         /// <summary>
         /// Bael'Zharon's power flows through you again. You are once more a player killer.
         /// </summary>
-        YouAreOnceMoreAPlayerKiller = 0x04F1,
+        YouArePKAgain = 0x04F1,
 
         /// <summary>
         /// Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.
         /// </summary>
-        YouAreTemporarilyNoLongerPlayerKiller = 0x04F2,
+        YouAreTemporarilyNoLongerPK = 0x04F2,
 
         /// <summary>
         /// Lite Player Killers may not interact with that portal!
         /// </summary>
-        CannotPortalAsPlayerKillerLite = 0x04F3,
+        PKLiteMayNotUsePortal = 0x04F3,
 
         /// <summary>
         /// You aren't trained in healing!
         /// </summary>
-        YouAreNotTrainedInHealing = 0x04FC,
+        YouArentTrainedInHealing = 0x04FC,
 
         /// <summary>
         /// You aren't ready to heal!
         /// </summary>
-        YouAreNotReadyToHeal = 0x0500,
+        YouArentReadyToHeal = 0x0500,
 
         /// <summary>
         /// You can only use Healing Kits on player characters.
         /// </summary>
-        YouCanOnlyHealPlayerCharacters = 0x0501,
+        YouCanOnlyHealPlayers = 0x0501,
 
         /// <summary>
         /// The Lifestone's magic protects you from the attack!
         /// </summary>
-        LifestoneMagicProtectsYouFromAttack = 0x0502,
+        LifestoneMagicProtectsYou = 0x0502,
 
         /// <summary>
         /// The portal's residual energy protects you from the attack!
         /// </summary>
-        PortalEnergyProtectsYouFromAttack = 0x0503,
+        PortalEnergyProtectsYou = 0x0503,
 
         /// <summary>
         /// You are enveloped in a feeling of warmth as you are brought back into the protection of the Light. You are once again a Non-Player Killer.
         /// </summary>
-        YouAreOnceAgainNonPlayerKiller = 0x0504,
+        YouAreNonPKAgain = 0x0504,
 
         /// <summary>
         /// You're too close to your sanctuary!
@@ -563,27 +563,27 @@
         /// <summary>
         /// Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.
         /// </summary>
-        OnlyNonPlayerKillersMayEnterPKLite = 0x0507,
+        OnlyNonPKsMayEnterPKLite = 0x0507,
 
         /// <summary>
         /// A cold wind touches your heart. You are now a Player Killer Lite.
         /// </summary>
-        YouAreNowPlayerKillerLite = 0x0508,
+        YouAreNowPKLite = 0x0508,
 
         /// <summary>
         /// You do not belong to a Fellowship.
         /// </summary>
-        YouDoNotBelongToAFellowship = 0x050F,
+        YouDoNotBelongToFellowship = 0x050F,
 
         /// <summary>
         /// You are now using the maximum number of hooks.  You cannot use another hook until you take an item off one of your hooks.
         /// </summary>
-        YouAreNowUsingMaximumHooks = 0x0512,
+        YouAreNowUsingMaxHooks = 0x0512,
 
         /// <summary>
         /// You are no longer using the maximum number of hooks.  You may again add items to your hooks.
         /// </summary>
-        YouAreNoLongerUsingMaximumHooks = 0x0513,
+        YouAreNoLongerUsingMaxHooks = 0x0513,
 
         /// <summary>
         /// You are not permitted to use that hook.
@@ -608,7 +608,7 @@
         /// <summary>
         /// You cannot add anymore people to the list of players that you can hear.
         /// </summary>
-        YouCannotAddAnymorePeopleToHearList = 0x0520,
+        YouCannotAddPeopleToHearList = 0x0520,
 
         /// <summary>
         /// You are now deaf to player's screams.
@@ -643,7 +643,7 @@
         /// <summary>
         /// You must wait 30 days after purchasing a house before you may purchase another with any character on the same account. This applies to all housing except apartments.
         /// </summary>
-        YouMustWait30DaysAfterPurchasingHouse = 0x0532,
+        YouMustWaitToPurchaseHouse = 0x0532,
 
         /// <summary>
         /// You have been booted from your allegiance chat room. Use "@allegiance chat on" to rejoin. ().
@@ -653,17 +653,17 @@
         /// <summary>
         /// You do not have the authority within your allegiance to do that.
         /// </summary>
-        YouDoNotHaveAuthorityWithinAllegianceToDoThat = 0x0535,
+        YouDoNotHaveAuthorityInAllegiance = 0x0535,
 
         /// <summary>
         /// You have the maximum number of accounts banned.!
         /// </summary>
-        YouHaveMaximumNumberOfAccountsBanned = 0x0540,
+        YouHaveMaxAccountsBanned = 0x0540,
 
         /// <summary>
         /// You already have the maximum number of allegiance officers. You must remove some before you add any more.
         /// </summary>
-        YouAlreadyHaveMaximumAllegianceOfficers = 0x0545,
+        YouHaveMaxAllegianceOfficers = 0x0545,
 
         /// <summary>
         /// Your allegiance officers have been cleared.
@@ -678,7 +678,7 @@
         /// <summary>
         /// You are no longer an allegiance officer.
         /// </summary>
-        YouAreNoLongerAnAllegianceOfficer = 0x054A,
+        YouAreNoLongerAllegianceOfficer = 0x054A,
 
         /// <summary>
         /// Your allegiance does not have a hometown.
@@ -688,12 +688,12 @@
         /// <summary>
         /// The hook does not contain a usable item. You cannot open the hook because you do not own the house to which it belongs.
         /// </summary>
-        HookDoesNotContainUsableItem_CannotBeOpened = 0x054E,
+        HookItemNotUsable_CannotOpen = 0x054E,
 
         /// <summary>
         /// The hook does not contain a usable item. Use the '@house hooks on'command to make the hook openable.
         /// </summary>
-        HookDoesNotContainUsableItem = 0x054F,
+        HookItemNotUsable_CanOpen = 0x054F,
 
         /// <summary>
         /// You have failed to complete the augmentation.
@@ -703,32 +703,32 @@
         /// <summary>
         /// You have used this augmentation too many times already.
         /// </summary>
-        YouUsedThisAugmentationTooManyTimes = 0x0557,
+        AugmentationUsedTooManyTimes = 0x0557,
 
         /// <summary>
         /// You have used augmentations of this type too many times already.
         /// </summary>
-        YouUsedAugmentationsOfThisTypeTooManyTimes = 0x0558,
+        AugmentationTypeUsedTooManyTimes = 0x0558,
 
         /// <summary>
         /// You do not have enough unspent experience available to purchase this augmentation.
         /// </summary>
-        YouDoNotHaveEnoughExperienceToPurchaseAugmentation = 0x0559,
+        AugmentationNotEnoughExperience = 0x0559,
 
         /// <summary>
         /// You must exit the Training Academy before that command will be available to you.
         /// </summary>
-        YouMustExitTrainingAcademyToUseCommand = 0x055D,
+        ExitTrainingAcademyToUseCommand = 0x055D,
 
         /// <summary>
         /// Only Player Killer characters may use this command!
         /// </summary>
-        OnlyPlayerKillerMayUseCommand = 0x055F,
+        OnlyPKsMayUseCommand = 0x055F,
 
         /// <summary>
         /// Only Player Killer Lite characters may use this command!
         /// </summary>
-        OnlyPlayerKillerLiteMayUseCommand = 0x0560,
+        OnlyPKLiteMayUseCommand = 0x0560,
 
         /// <summary>
         /// That is an invalid officer level.
@@ -753,7 +753,7 @@
         /// <summary>
         /// That allegiance title contains illegal characters. Please choose another name using only letters, spaces, - and '.
         /// </summary>
-        AllegianceTitleHasIllegalCharacters = 0x0573,
+        AllegianceTitleHasIllegalChars = 0x0573,
 
         /// <summary>
         /// You have not pre-approved any vassals to join your allegiance.
@@ -768,17 +768,17 @@
         /// <summary>
         /// That character is already gagged!
         /// </summary>
-        CharacterIsAlreadyGagged = 0x057D,
+        CharIsAlreadyGagged = 0x057D,
 
         /// <summary>
         /// That character is not currently gagged!
         /// </summary>
-        CharacterIsNotCurrentlyGagged = 0x057E,
+        CharIsNotCurrentlyGagged = 0x057E,
 
         /// <summary>
         /// Your allegiance chat privileges have been restored.
         /// </summary>
-        YourAllegianceChatPrivilegesHaveBeenRestored = 0x0581,
+        YourAllegianceChatPrivilegesRestored = 0x0581,
 
         /// <summary>
         /// Olthoi cannot interact with that!
@@ -793,7 +793,7 @@
         /// <summary>
         /// The vendor looks at you in horror!
         /// </summary>
-        OlthoiVendorLooksAtYouInHorror = 0x0589,
+        OlthoiVendorLooksInHorror = 0x0589,
 
         /// <summary>
         /// As a mindless engine of destruction an Olthoi cannot join a fellowship!
@@ -818,12 +818,12 @@
         /// <summary>
         /// Only Olthoi may pass through this portal!
         /// </summary>
-        OnlyOlthoiMayUseThisPortal = 0x058F,
+        OnlyOlthoiMayUsePortal = 0x058F,
 
         /// <summary>
         /// Olthoi may not pass through this portal!
         /// </summary>
-        OlthoiMayNotUseThisPortal = 0x0590,
+        OlthoiMayNotUsePortal = 0x0590,
 
         /// <summary>
         /// You may not pass through this portal while Vitae weakens you!
