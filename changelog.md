@@ -1,5 +1,278 @@
 # ACEmulator Change Log
 
+### 2018-02-10
+[Ripley]
+* Renamed a couple of messages queues to match protocol documentation.
+
+### 2018-02-09
+[Morosity/Spazmodica]
+* Added boolean to ClientPacket if packet fails to parse.
+* Use Packet.IsValid to determine whether to readfragments
+* Use Packet.IsValid to determine whether to send Packet to WorldManager
+* Added new list for tracking endpoints calling server before creating sessions
+* Added check if client is already in the loggedIn list and sending another Login packet to remove
+* Added check if client is not in the loggedIn list ignore requests
+* Added removal of client from loggedIn list
+* Set loggedIn list max to match ConfigManager.Config.Server.Network.MaximumAllowedSessions
+
+### 2018-02-08
+[Mag-nus]
+* Major code cosmetic cleanup across entire solution.
+* ACE project renamed to ACE.Server
+
+### 2018-02-07
+[Mag-nus]
+* ACE.DatLoader caching and ReadFromDat code refactored. No more static method/object messes. DatLoading is now done through DatManager and DatDatabases.
+
+### 2018-02-06
+[Mag-nus]
+* ACE.DatLoader DatDirectory reading code cleaned up.
+
+### 2018-02-05
+[Mag-nus]
+* ACE.DatLoader now reads the full header. FileType is no longer passed as an arg and pulled from the file headers.
+* ACE.DatLoader full conversion to the IUnpackable interface completed.
+
+### 2018-02-04
+[Ripley]
+* Disable OlthoiPlay character creation for now. They're not really implemented yet.
+* Add Database lookup by WeenieClassDescription.
+* Update Create and CI commands to support id or name search.
+* Added catch for missing database objects in CharGen and IOU object creation for those missing.
+
+[Slushnas]
+* Added support for all starter spells during character creation.
+
+[Mag-nus]
+* ACE.DatLoader more IUnpackable refactoring
+
+### 2018-02-03
+[Mag-nus]
+* ACE.DatLoader DatManager.Initialize() is no longer dependant on ConfigManager.
+* ACE.DatLoader.Tests now include framework for unpack testing objects from the dats.
+
+[dgatewood]
+* Updated GameEventMagicUpdateEnchantment
+* Hardcoded some test functionality in Gem.
+
+### 2018-01-31
+[Mag-nus]
+* ACE.DatLoader more IUnpackable work
+  * ACE.DatLoader: XpTable updated
+
+  * ACE.DatLoader physics and environment using new unpack pattern
+
+### 2018-01-29
+[Ripley]
+* Rebased SQL scripts.
+
+### 2018-01-28
+[Ripley]
+
+**You will need to delete and recreate your ace_auth and ace_shard databases to proceed**
+
+* Removed API and SecureAuth coding per new license agreement.
+* Added some simple Authentication database tests.
+* Added NetAuthType checking and password verification.
+* GlsTicketDirect/GlsTicket checking is disabled until it can be reimplented in the future.
+* **New ACClient launch command is in use now!**
+  - ``` acclient.exe -a account_name_here -v password_here -h 127.0.0.1:9000 ```
+  - The old command will not work.
+* Auto Account creation now occurs for any successful connection for an account that does not currently exist. Default AccessLevel is based on config.json setting.
+* Added some account password tests.
+* Added AllowAutoAccountCreation to config.json. Set it to false to disable auto account creation.
+
+### 2018-01-27
+[Mag-nus]
+* More dat refactoring, this time based on SetupModel and Hooks.
+
+### 2018-01-26
+[CrimsonMage]
+* Added Summoning to StarterGear (Mud Golem Essence).
+
+### 2018-01-24
+[Ripley]
+
+**Changes based on 16PY database, may result in problems when using ACE-World database**
+
+* Adjusted SQL scripts slightly.
+* Corrected issue with objects spawning at xxxx0000 in landblock.
+* Added null catch for objects that have generator profiles for weenies not found in the database.
+* Added Bindstone and Clothing classes.
+* Added expected object flags to currently implemented WeenieType classes.
+* Adjusted Bool recalls for WorldObjects.
+* Added Shade (and TryToBond, which appears unimportant) to Inventory.
+* Added Shade, Palette and StackSize to create command for testing.
+* Added Palette and Shade to WorldObject and use them in conjunction with ClothingBaseDID to set ObjDesc.
+* Added proper wielding for clothing on weenies and fixed clothing priority for them.
+* Added face randomization for Human based NPCs.
+* Removed GeneratatorLinks and AceObjectGeneratorLinks and cleaned up some AceObject load/clone code.
+
+### 2018-01-23
+[Ripley]
+* Minor cleanup of PR #595 due to needing to more inventory handling.
+* Added HearDirectSpeech from @dgatewood PR #585.
+
+[Mag-nus]
+* ACE.DatLoader refactoring and cleanup.
+
+[dgatewood]
+* Added GiveObjectRequest and HearDirectSpeech messages.
+
+[Morosity/Spazmodica]
+* Added ActionChain null wrapper added to not crash server if teleporting player disconnects.
+* Work toward resolving #231.
+
+### 2018-01-19
+[Cydrith]
+* Changed Licence from GPL V3 to AGPL V3. Additional licence restrictions introduced by AGPL apply from this point forward.
+
+### 2018-01-18
+[Morosity/Spazmodica]
+* Fixed range xp calculation for members based upon distance to leader
+
+### 2018-01-14
+[Morosity/Spazmodica]
+* Fellowships functionality updated to add Recruit, Dismiss, Disband, Make new leader, Quit, and Openness
+* On leader quit (not disband), random player picked as new leader
+* When limit hit of 9, error message will appear on trying to recruit.
+* Join requests outstanding that could put fellowship above 9 will not get added if accepted
+* Character options of "Ignore" and "Auto accept" fellowship requests saved and read
+* Confirmations added for character with "ignore" and "auto accept" off
+* ConfirmationRequest GameEvent added to send requests to client
+* ConfirmationResponse GameAction added to send responses to server
+* ConfirmationResponse GameAction has handling for other confirmation types
+* Fellowship xp dist handled for both evensplit fellows as well as proportional
+* Fellowship xp dist handled for up to 2.5 coords away with appropriate loss of amount of xp based upon distance
+* EarnXP method added to Player with params of fixedAmount bool and sharable bool
+* FixedAmount does not provide bonus xp when passed to fellowships
+* Sharable provides ability to not share xp reward
+* EarnXPFromFellowship method to bypass loop of trying to split xp through fellowship again
+* Fellowship enums renamed to start with Fellowship for easier location
+* GameActions, GameMessages, and GameEvents for fellowships names updated for easier location
+
+### 2017-12-21
+[Ripley]
+* Added Placement Enum.
+* Swapped storage of Placement data with PlacementPosition data.
+* Removed AnimationFrame and linked it with Placement.
+
+### 2017-12-19
+[Ripley]
+* Overhauled Generator system to bring it more in line with how it operated on retail servers.
+  * You'll need to load some test data included with this update in the Updates/World folder for this code to work.
+  * Locations of the test generators are below. The creature generators do not support regeneration, while the item generators will regenerate.
+  * /teleloc 0x7f0301ad [12.319899559021 -28.482000350952 0.0049999998882413] 0.33894598484039 0 0 0.94080585241318
+  * /telepoi Holtburg
+* Added @adminvision command, use it to see the generators (and eventually other unsendable things).
+
+### 2017-12-11
+[ddevec]
+* More updates to parallelism structure
+* Network messages are now seralized
+* Removed the vast majority of ActionChain code that was being used for parallelism/thread safety
+
+### 2017-12-10
+[Mag-nus]
+* ACE has been converted from .net framework 4.6.1 to .net core 2.0.
+  * This also involves changing the way databases are loaded to a manual method which is .net core compatible.
+  * This breaks secure auth. That system will need to be reworked by someone more experienced to function properly.
+
+### 2017-12-06
+[HellsWrath]
+* Fixed an issue with accountcreate command. It did not check if accountname already existed.
+* This does not not fully resolve the issue of accounts being created on other threads.
+
+### 2017-12-03
+[Mag-nus]
+* Many projects converted to .net standard 2.0 or .net core 2.0
+* MySqlResult object removed from ACE.Database
+* ACE.Diagnostics removed from ACE. ('diag' command is disabled until we fine a better solution)
+* ACE.CmdLineLauncher changed over to ACE.ACClientLauncher. Build is also disabled by default in Configuration Manager.
+
+### 2017-12-02
+[Ripley]
+* Updated README links relating to Protocol documentation.
+* Fixed read issue with AnimationFrame in DatLoader. (Issue reported from Discord & confirmed by OptimShi)
+* Rebased SQL scripts.
+
+[Mag-nus]
+* Changes to eventually support .net core 2.0
+  * Changed target .net framework to 4.6.1
+  * Changed build environment to Visual Studio 2017.
+
+### 2017-11-26
+[Ripley]
+* Deleted VendorItems class.
+* Replaced VendorItems class with more generic AceObjectInventory class.. This is entirely based on CreationProfile found in protocol doc so probably could stand to be renamed, same with database table.
+* Made changes to Vendor to use AceObjectInventory and added a bit more functionality with respect to alternate currency.
+* Added more to DestinationType enum.
+* Added some properties to AO/WO.
+* Added WieldList object spawning to the CreateWorldObjects function of the WorldObjectFactory. This is not the final, correct way to do this but does visually look right.
+* WorldObjects are not really world aware so they have much work to do to be able to really wield and use objects, as well as report them properly to the landblock manager.
+
+### 2017-11-20
+[OptimShi]
+* Changed EquipTest debug command to utilize the index of a clothing table item and added an optional shade parameter
+
+### 2017-11-18
+[Ripley]
+* Added some foundational elements to support Chess minigame.
+* Client handles it cleanly now.
+* Find a chessboard in the world and try it out. Enjoy your table flipping.
+
+
+### 2017-11-10
+[Verbal]
+* updated fellowship creation to read the xp sharing flag
+
+### 2017-11-09
+[fantoms]
+* Added command and API endpoint for retreiving the database content from Github.
+* You can now redeploy database content from local disk.
+* Updated logging for redeployment.
+* Added `ContentServer` example config setting.
+
+### 2017-11-05
+[fantoms]
+* Added Database Redeployment feature to allow for updating or resetting a database from the latest github content.
+* Added `redeploy-world` command from the console to issue world redeployment.
+* Added `redeploy` console command to allow for resetting one or more databases, using the redeployment functionality. This command requires a database selectiona dnd the "force" string as a parameter, for added security.
+* Implemented API functionality for World redeployment and database Redeployment.
+* Added configuration section for Remote Content downloads from Github, `ContentServer`.
+* Added database.cs functions to allow for database creation, removal, connectionString changes, and database script loading events.
+* Added WorldDatabase function to check for user modified flag.
+* Added a workaround that prevents a crash when a bad token is passed in to the API.
+
+### 2017-11-03
+[ddevec]
+* Change core structure eliminating multi-threading between threads.  
+* Removed ChainOnObject() from landblock, make GetObject() public.
+* Simplified Action code to reflect for new threading model.
+
+[Ripley]
+* Fix AppVeyor issues.
+
+### 2017-11-02
+[Ripley]
+* Fix Landblock loading of weenie instance position data.
+
+### 2017-11-01
+[Ripley]
+* Updated EmoteCategory, EmoteType, and SpellType enums.
+* Add CombatStyle enum.
+* Rebased SQL scripts.
+* Changed all PropertyInt properties from uint to int.
+** NOTE: ACE-World database version required to be 0.2.7 or higher from this point forward. **
+* Todo/Fixme: Combat Stances don't work properly due to GetInventoryItem issue.
+* Cleaned up StyleCop issues.
+* Updated README with ACE-World requirement.
+
+### 2017-10-30
+[Mogwai]
+* implemented updating of weenies in ace-world necessary for crowd-sourced content creation
+* added database unit tests to AppVeyor build
+
 ### 2017-10-27
 [OptimShi]
 * Updated DatLoader.FileTypes.SetupModel to more closely represent what is in the client. Also added additional structures to this to fully read the file.

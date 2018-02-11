@@ -1,10 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ACE.Common;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace ACE.Entity
@@ -15,10 +8,10 @@ namespace ACE.Entity
     public class ChangeTrackedObject : IDirty
     {
         [JsonProperty("isDirty")]
-        public virtual bool IsDirty { get; set; } = false;
+        public virtual bool IsDirty { get; set; }
 
         [JsonIgnore]
-        public virtual bool HasEverBeenSavedToDatabase { get; set; } = false;
+        public virtual bool HasEverBeenSavedToDatabase { get; set; }
 
         [JsonProperty("isNew")]
         public bool IsNew

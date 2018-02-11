@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.DatLoader
 {
@@ -59,6 +54,7 @@ namespace ACE.DatLoader
         LandBlockInfo           = 2, // DB_TYPE_LBI
 
         [DatDatabaseType(DatDatabaseType.Cell)]
+        [DatFileTypeIdRange(0x01010000, 0x013EFFFF)]
         Cell                    = 3, // DB_TYPE_CELL
 
         /// <summary>

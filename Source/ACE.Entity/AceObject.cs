@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
-using ACE.Common;
-using MySql.Data.MySqlClient;
-using ACE.Entity.Enum.Properties;
 using System;
-using ACE.Entity.Enum;
+using System.Collections.Generic;
 using System.Linq;
+
+using MySql.Data.MySqlClient;
+
 using Newtonsoft.Json;
+
+using ACE.Common;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
@@ -34,7 +37,7 @@ namespace ACE.Entity
         /// really no other way to tell at present.
         /// </summary>
         [JsonIgnore]
-        public bool HasEverBeenSavedToDatabase { get; set; } = false;
+        public bool HasEverBeenSavedToDatabase { get; set; }
 
         /// <summary>
         /// This is a mocked property that will set a flag in the database any time this object is altered.  this flag
@@ -62,7 +65,7 @@ namespace ACE.Entity
         [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public uint WeenieClassId { get; set; }
 
-        private uint _aceObjectDescriptionFlags = 0;
+        private uint _aceObjectDescriptionFlags;
 
         /// <summary>
         /// Table Field Flags
@@ -79,7 +82,7 @@ namespace ACE.Entity
             }
         }
 
-        private uint _physicsDescriptionFlag = 0;
+        private uint _physicsDescriptionFlag;
 
         /// <summary>
         /// Table Field - Flags
@@ -96,7 +99,7 @@ namespace ACE.Entity
             }
         }
 
-        private uint _weenieHeaderFlags = 0;
+        private uint _weenieHeaderFlags;
 
         /// <summary>
         /// Table Field - Flags
@@ -113,7 +116,7 @@ namespace ACE.Entity
             }
         }
 
-        private uint _weenieHeaderFlags2 = 0;
+        private uint _weenieHeaderFlags2;
 
         /// <summary>
         /// Table Field - Flags
@@ -130,7 +133,7 @@ namespace ACE.Entity
             }
         }
 
-        private string _currentMotionState = null;
+        private string _currentMotionState;
 
         [JsonProperty("currentMotionState")]
         [DbField("currentMotionState", (int)MySqlDbType.Text)]
@@ -208,28 +211,22 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint Strength
-        { get { return StrengthAbility.MaxValue; } }
+        public uint Strength { get { return StrengthAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Endurance
-        { get { return EnduranceAbility.MaxValue; } }
+        public uint Endurance { get { return EnduranceAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Coordination
-        { get { return CoordinationAbility.MaxValue; } }
+        public uint Coordination { get { return CoordinationAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Quickness
-        { get { return QuicknessAbility.MaxValue; } }
+        public uint Quickness { get { return QuicknessAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Focus
-        { get { return FocusAbility.MaxValue; } }
+        public uint Focus { get { return FocusAbility.MaxValue; } }
 
         [JsonIgnore]
-        public uint Self
-        { get { return SelfAbility.MaxValue; } }
+        public uint Self { get { return SelfAbility.MaxValue; } }
 
         [JsonIgnore]
         public uint? SetupDID
@@ -267,21 +264,21 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? PhysicsState
+        public int? PhysicsState
         {
             get { return GetIntProperty(PropertyInt.PhysicsState); }
             set { SetIntProperty(PropertyInt.PhysicsState, value); }
         }
 
         [JsonIgnore]
-        public uint? WeenieType
+        public int? WeenieType
         {
             get { return GetIntProperty(PropertyInt.WeenieType); }
             set { SetIntProperty(PropertyInt.WeenieType, value); }
         }
 
         [JsonIgnore]
-        public uint? ItemType
+        public int? ItemType
         {
             get { return GetIntProperty(PropertyInt.ItemType); }
             set { SetIntProperty(PropertyInt.ItemType, value); }
@@ -312,42 +309,42 @@ namespace ACE.Entity
         public byte? ItemsCapacity
         {
             get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity); }
-            set { SetIntProperty(PropertyInt.ItemsCapacity, (uint)value); }
+            set { SetIntProperty(PropertyInt.ItemsCapacity, (int)value); }
         }
 
         [JsonIgnore]
         public byte? ContainersCapacity
         {
             get { return (byte?)GetIntProperty(PropertyInt.ContainersCapacity); }
-            set { SetIntProperty(PropertyInt.ContainersCapacity, (uint)value); }
+            set { SetIntProperty(PropertyInt.ContainersCapacity, (int)value); }
         }
 
         [JsonIgnore]
-        public uint? AmmoType
+        public int? AmmoType
         {
             get { return GetIntProperty(PropertyInt.AmmoType); }
-            set { SetIntProperty(PropertyInt.AmmoType, (uint)value); }
+            set { SetIntProperty(PropertyInt.AmmoType, (int)value); }
         }
 
         [JsonIgnore]
-        public uint? Value
+        public int? Value
         {
             get { return GetIntProperty(PropertyInt.Value); }
             set { SetIntProperty(PropertyInt.Value, value); }
         }
 
         [JsonIgnore]
-        public uint? UseCreateContractId
+        public int? UseCreateContractId
         {
             get { return GetIntProperty(PropertyInt.UseCreatesContractId); }
             set { SetIntProperty(PropertyInt.UseCreatesContractId, value); }
         }
 
         [JsonIgnore]
-        public uint? ItemUseable
+        public int? ItemUseable
         {
             get { return GetIntProperty(PropertyInt.ItemUseable); }
-            set { SetIntProperty(PropertyInt.ItemUseable, (uint?)value); }
+            set { SetIntProperty(PropertyInt.ItemUseable, (int)value); }
         }
 
         [JsonIgnore]
@@ -358,14 +355,14 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? TargetType
+        public int? TargetType
         {
             get { return GetIntProperty(PropertyInt.TargetType); }
             set { SetIntProperty(PropertyInt.TargetType, value); }
         }
 
         [JsonIgnore]
-        public uint? UiEffects
+        public int? UiEffects
         {
             get { return GetIntProperty(PropertyInt.UiEffects); }
             set { SetIntProperty(PropertyInt.UiEffects, value); }
@@ -379,7 +376,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? DefaultCombatStyle
+        public int? DefaultCombatStyle
         {
             get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
             set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
@@ -420,11 +417,8 @@ namespace ACE.Entity
             set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
         }
 
-        /// <summary>
-        /// If in a container, then what slot am I currently in.
-        /// </summary>
         [JsonIgnore]
-        public uint? Placement
+        public int? Placement
         {
             get { return GetIntProperty(PropertyInt.Placement); }
             set { SetIntProperty(PropertyInt.Placement, value); }
@@ -445,21 +439,21 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? ValidLocations
+        public int? ValidLocations
         {
             get { return GetIntProperty(PropertyInt.ValidLocations); }
             set { SetIntProperty(PropertyInt.ValidLocations, value); }
         }
 
         [JsonIgnore]
-        public uint? CurrentWieldedLocation
+        public int? CurrentWieldedLocation
         {
             get { return GetIntProperty(PropertyInt.CurrentWieldedLocation); }
             set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
         [JsonIgnore]
-        public uint? ClothingPriority
+        public int? ClothingPriority
         {
             get { return GetIntProperty(PropertyInt.ClothingPriority); }
             set { SetIntProperty(PropertyInt.ClothingPriority, value); }
@@ -487,7 +481,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? ItemWorkmanship
+        public int? ItemWorkmanship
         {
             get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
             set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
@@ -543,7 +537,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? SharedCooldown
+        public int? SharedCooldown
         {
             get { return GetIntProperty(PropertyInt.SharedCooldown); }
             set { SetIntProperty(PropertyInt.SharedCooldown, value); }
@@ -565,7 +559,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? ParentLocation
+        public int? ParentLocation
         {
             get { return GetIntProperty(PropertyInt.ParentLocation); }
             set { SetIntProperty(PropertyInt.ParentLocation, value); }
@@ -593,7 +587,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? PlacementPosition
+        public int? PlacementPosition
         {
             get { return GetIntProperty(PropertyInt.PlacementPosition); }
             set { SetIntProperty(PropertyInt.PlacementPosition, value); }
@@ -628,31 +622,31 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? CharacterOptions1
+        public int? CharacterOptions1
         {
             get { return GetIntProperty(PropertyInt.CharacterOptions1); }
             set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
         }
 
         [JsonIgnore]
-        public uint? CharacterOptions2
+        public int? CharacterOptions2
         {
             get { return GetIntProperty(PropertyInt.CharacterOptions2); }
             set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
         }
 
         [JsonIgnore]
-        public uint? TotalLogins
+        public int? TotalLogins
         {
             get { return GetIntProperty(PropertyInt.TotalLogins); }
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
         }
 
         [JsonIgnore]
-        public uint? SubscriptionId
+        public uint? AccountId
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Subscription); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Subscription, value); }
+            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
+            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
         }
 
         [JsonIgnore]
@@ -684,7 +678,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? Age
+        public int? Age
         {
             get { return GetIntProperty(PropertyInt.Age); }
             set { SetIntProperty(PropertyInt.Age, value); }
@@ -698,35 +692,35 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? AvailableSkillCredits
+        public int? AvailableSkillCredits
         {
             get { return GetIntProperty(PropertyInt.AvailableSkillCredits); }
             set { SetIntProperty(PropertyInt.AvailableSkillCredits, value); }
         }
 
         [JsonIgnore]
-        public uint? TotalSkillCredits
+        public int? TotalSkillCredits
         {
             get { return GetIntProperty(PropertyInt.TotalSkillCredits); }
             set { SetIntProperty(PropertyInt.TotalSkillCredits, value); }
         }
 
         [JsonIgnore]
-        public uint? NumDeaths
+        public int? NumDeaths
         {
             get { return GetIntProperty(PropertyInt.NumDeaths); }
             set { SetIntProperty(PropertyInt.NumDeaths, value); }
         }
 
         [JsonIgnore]
-        public uint? DeathLevel
+        public int? DeathLevel
         {
             get { return GetIntProperty(PropertyInt.DeathLevel); }
             set { SetIntProperty(PropertyInt.DeathLevel, value); }
         }
 
         [JsonIgnore]
-        public uint? VitaeCpPool
+        public int? VitaeCpPool
         {
             get { return GetIntProperty(PropertyInt.VitaeCpPool); }
             set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
@@ -761,14 +755,14 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? Heritage
+        public int? Heritage
         {
             get { return GetIntProperty(PropertyInt.HeritageGroup); }
             set { SetIntProperty(PropertyInt.HeritageGroup, value); }
         }
 
         [JsonIgnore]
-        public uint? Gender
+        public int? Gender
         {
             get { return GetIntProperty(PropertyInt.Gender); }
             set { SetIntProperty(PropertyInt.Gender, value); }
@@ -859,7 +853,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? Level
+        public int? Level
         {
             get { return GetIntProperty(PropertyInt.Level); }
             set { SetIntProperty(PropertyInt.Level, value); }
@@ -936,35 +930,35 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? GeneratorTimeType
+        public int? GeneratorTimeType
         {
             get { return GetIntProperty(PropertyInt.GeneratorTimeType); }
             set { SetIntProperty(PropertyInt.GeneratorTimeType, value); }
         }
 
         [JsonIgnore]
-        public uint? GeneratorProbability
+        public int? GeneratorProbability
         {
             get { return GetIntProperty(PropertyInt.GeneratorProbability); }
             set { SetIntProperty(PropertyInt.GeneratorProbability, value); }
         }
 
         [JsonIgnore]
-        public uint? MaxGeneratedObjects
+        public int? MaxGeneratedObjects
         {
             get { return GetIntProperty(PropertyInt.MaxGeneratedObjects); }
             set { SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
         }
 
         [JsonIgnore]
-        public uint? GeneratorType
+        public int? GeneratorType
         {
             get { return GetIntProperty(PropertyInt.GeneratorType); }
             set { SetIntProperty(PropertyInt.GeneratorType, value); }
         }
 
         [JsonIgnore]
-        public uint? ActivationCreateClass
+        public int? ActivationCreateClass
         {
             get { return GetIntProperty(PropertyInt.ActivationCreateClass); }
             set { SetIntProperty(PropertyInt.ActivationCreateClass, value); }
@@ -1055,35 +1049,35 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? ResistLockpick
+        public int? ResistLockpick
         {
             get { return GetIntProperty(PropertyInt.ResistLockpick); }
             set { SetIntProperty(PropertyInt.ResistLockpick, value); }
         }
 
         [JsonIgnore]
-        public uint? AppraisalLockpickSuccessPercent
+        public int? AppraisalLockpickSuccessPercent
         {
             get { return GetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent); }
             set { SetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent, value); }
         }
 
         [JsonIgnore]
-        public uint? MinLevel
+        public int? MinLevel
         {
             get { return GetIntProperty(PropertyInt.MinLevel); }
             set { SetIntProperty(PropertyInt.MinLevel, value); }
         }
 
         [JsonIgnore]
-        public uint? MaxLevel
+        public int? MaxLevel
         {
             get { return GetIntProperty(PropertyInt.MaxLevel); }
             set { SetIntProperty(PropertyInt.MaxLevel, value); }
         }
 
         [JsonIgnore]
-        public uint? PortalBitmask
+        public int? PortalBitmask
         {
             get { return GetIntProperty(PropertyInt.PortalBitmask); }
             set { SetIntProperty(PropertyInt.PortalBitmask, value); }
@@ -1167,14 +1161,14 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? CharacterTitleId
+        public int? CharacterTitleId
         {
             get { return GetIntProperty(PropertyInt.CharacterTitleId); }
             set { SetIntProperty(PropertyInt.CharacterTitleId, value); }
         }
 
         [JsonIgnore]
-        public uint? NumCharacterTitles
+        public int? NumCharacterTitles
         {
             get { return GetIntProperty(PropertyInt.NumCharacterTitles); }
             set { SetIntProperty(PropertyInt.NumCharacterTitles, value); }
@@ -1440,14 +1434,14 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? ItemCurMana
+        public int? ItemCurMana
         {
             get { return GetIntProperty(PropertyInt.ItemCurMana); }
             set { SetIntProperty(PropertyInt.ItemCurMana, value); }
         }
 
         [JsonIgnore]
-        public uint? ItemMaxMana
+        public int? ItemMaxMana
         {
             get { return GetIntProperty(PropertyInt.ItemMaxMana); }
             set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
@@ -1468,28 +1462,28 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? CreatureType
+        public int? CreatureType
         {
             get { return GetIntProperty(PropertyInt.CreatureType); }
             set { SetIntProperty(PropertyInt.CreatureType, value); }
         }
 
         [JsonIgnore]
-        public uint? MerchandiseItemTypes
+        public int? MerchandiseItemTypes
         {
             get { return GetIntProperty(PropertyInt.MerchandiseItemTypes); }
             set { SetIntProperty(PropertyInt.MerchandiseItemTypes, value); }
         }
 
         [JsonIgnore]
-        public uint? MerchandiseMinValue
+        public int? MerchandiseMinValue
         {
             get { return GetIntProperty(PropertyInt.MerchandiseMinValue); }
             set { SetIntProperty(PropertyInt.MerchandiseMinValue, value); }
         }
 
         [JsonIgnore]
-        public uint? MerchandiseMaxValue
+        public int? MerchandiseMaxValue
         {
             get { return GetIntProperty(PropertyInt.MerchandiseMaxValue); }
             set { SetIntProperty(PropertyInt.MerchandiseMaxValue, value); }
@@ -1526,14 +1520,14 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? AppraisalPages
+        public int? AppraisalPages
         {
             get { return GetIntProperty(PropertyInt.AppraisalPages); }
             set { SetIntProperty(PropertyInt.AppraisalPages, value); }
         }
 
         [JsonIgnore]
-        public uint? AppraisalMaxPages
+        public int? AppraisalMaxPages
         {
             get { return GetIntProperty(PropertyInt.AppraisalMaxPages); }
             set { SetIntProperty(PropertyInt.AppraisalMaxPages, value); }
@@ -1542,21 +1536,21 @@ namespace ACE.Entity
 
         // TODO: This might be wrong place to store the data being stored here.
         [JsonIgnore]
-        public uint? AvailableCharacter
+        public int? AvailableCharacter
         {
             get { return GetIntProperty(PropertyInt.AvailableCharacter); }
             set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
         }
 
         [JsonIgnore]
-        public uint? Boost
+        public int? Boost
         {
             get { return GetIntProperty(PropertyInt.BoostValue); }
             set { SetIntProperty(PropertyInt.BoostValue, value); }
         }
 
         [JsonIgnore]
-        public uint? BoostEnum
+        public int? BoostEnum
         {
             get { return GetIntProperty(PropertyInt.BoosterEnum); }
             set { SetIntProperty(PropertyInt.BoosterEnum, value); }
@@ -1570,7 +1564,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public uint? CoinValue
+        public int? CoinValue
         {
             get { return GetIntProperty(PropertyInt.CoinValue); }
             set { SetIntProperty(PropertyInt.CoinValue, value); }
@@ -1769,18 +1763,97 @@ namespace ACE.Entity
         #endregion
 
         [JsonIgnore]
-        public double? BuyRate
+        public double? BuyPrice
         {
             get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
             set { SetDoubleProperty(PropertyDouble.BuyPrice, value); }
         }
 
         [JsonIgnore]
-        public double? SellRate
+        public double? SellPrice
         {
             get { return GetDoubleProperty(PropertyDouble.SellPrice); }
             set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
         }
+
+        [JsonIgnore]
+        public bool? DealMagicalItems
+        {
+            get { return GetBoolProperty(PropertyBool.DealMagicalItems); }
+            set { SetBoolProperty(PropertyBool.DealMagicalItems, value); }
+        }
+
+        [JsonIgnore]
+        public uint? AlternateCurrencyDID
+        {
+            get { return GetDataIdProperty(PropertyDataId.AlternateCurrency); }
+            set { SetDataIdProperty(PropertyDataId.AlternateCurrency, value); }
+        }
+
+        [JsonIgnore]
+        public double? HeartbeatInterval
+        {
+            get { return GetDoubleProperty(PropertyDouble.HeartbeatInterval); }
+            set { SetDoubleProperty(PropertyDouble.HeartbeatInterval, value); }
+        }
+
+        [JsonIgnore]
+        public int? InitGeneratedObjects
+        {
+            get { return GetIntProperty(PropertyInt.InitGeneratedObjects); }
+            set { SetIntProperty(PropertyInt.InitGeneratedObjects, value); }
+        }
+
+        [JsonIgnore]
+        public double? RegenerationInterval
+        {
+            get { return GetDoubleProperty(PropertyDouble.RegenerationInterval); }
+            set { SetDoubleProperty(PropertyDouble.RegenerationInterval, value); }
+        }
+
+        [JsonIgnore]
+        public int? PaletteTemplate
+        {
+            get { return GetIntProperty(PropertyInt.PaletteTemplate); }
+            set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
+        }
+
+        [JsonIgnore]
+        public double? Shade
+        {
+            get { return GetDoubleProperty(PropertyDouble.Shade); }
+            set { SetDoubleProperty(PropertyDouble.Shade, value); }
+        }
+
+        #region Chess
+        [JsonIgnore]
+        public int? ChessGamesLost
+        {
+            get { return GetIntProperty(PropertyInt.ChessGamesLost); }
+            set { SetIntProperty(PropertyInt.ChessGamesLost, value); }
+        }
+
+        [JsonIgnore]
+        public int? ChessGamesWon
+        {
+            get { return GetIntProperty(PropertyInt.ChessGamesWon); }
+            set { SetIntProperty(PropertyInt.ChessGamesWon, value); }
+        }
+
+        [JsonIgnore]
+        public int? ChessRank
+        {
+            get { return GetIntProperty(PropertyInt.ChessRank); }
+            set { SetIntProperty(PropertyInt.ChessRank, value); }
+        }
+
+        [JsonIgnore]
+        public int? ChessTotalGames
+        {
+            get { return GetIntProperty(PropertyInt.ChessTotalGames); }
+            set { SetIntProperty(PropertyInt.ChessTotalGames, value); }
+        }
+        #endregion
 
         protected uint? GetDataIdProperty(PropertyDataId property)
         {
@@ -1880,8 +1953,7 @@ namespace ACE.Entity
 
         protected CreatureAbility GetAttributeProperty(Ability ability)
         {
-            CreatureAbility ret;
-            bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out ret);
+            bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out var ret);
 
             if (!success || ret == null)
             {
@@ -1917,8 +1989,7 @@ namespace ACE.Entity
 
         protected CreatureVital GetAttribute2ndProperty(Ability ability)
         {
-            CreatureVital ret;
-            bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out ret);
+            bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var ret);
 
             if (!success || ret == null)
             {
@@ -1936,8 +2007,7 @@ namespace ACE.Entity
 
         public CreatureSkill GetSkillProperty(Skill skill)
         {
-            CreatureSkill ret;
-            bool success = AceObjectPropertiesSkills.TryGetValue(skill, out ret);
+            bool success = AceObjectPropertiesSkills.TryGetValue(skill, out var ret);
 
             if (!success || ret == null)
             {
@@ -1958,29 +2028,29 @@ namespace ACE.Entity
             return AceObjectPropertiesSkills.Values.ToList();
         }
 
-        public uint? GetIntProperty(PropertyInt property)
+        public int? GetIntProperty(PropertyInt property)
         {
             return IntProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
 
-        protected List<uint> GetIntProperties(PropertyInt property)
+        protected List<int> GetIntProperties(PropertyInt property)
         {
             return IntProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        protected void SetIntProperty(PropertyInt intPropertyId, uint? value)
+        protected void SetIntProperty(PropertyInt intPropertyId, int? value)
         {
             AceObjectPropertiesInt listItem = IntProperties.Find(x => x.PropertyId == (ushort)intPropertyId);
             if (value != null)
             {
                 if (listItem == null)
                 {
-                    listItem = new AceObjectPropertiesInt { PropertyId = (uint)intPropertyId, PropertyValue = (uint)value, AceObjectId = AceObjectId };
+                    listItem = new AceObjectPropertiesInt { PropertyId = (uint)intPropertyId, PropertyValue = (int)value, AceObjectId = AceObjectId };
                     IntProperties.Add(listItem);
                 }
                 else
                 {
-                    listItem.PropertyValue = (uint)value;
+                    listItem.PropertyValue = (int)value;
                 }
             }
             else
@@ -2142,19 +2212,13 @@ namespace ACE.Entity
         public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
         [JsonProperty("inventoryWeenieIds")]
-        public List<uint> InventoryWeenieIds
-        {
-            get { return Inventory.Values.Select(a => a.WeenieClassId).ToList(); }
-        }
+        public List<uint> InventoryWeenieIds { get { return Inventory.Values.Select(a => a.WeenieClassId).ToList(); } }
         
         [JsonIgnore]
         public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
         [JsonProperty("wieldedWeenieIds")]
-        public List<uint> WieldedWeenieIds
-        {
-            get { return WieldedItems.Values.Select(a => a.WeenieClassId).ToList(); }
-        }
+        public List<uint> WieldedWeenieIds { get { return WieldedItems.Values.Select(a => a.WeenieClassId).ToList(); } }
 
         [JsonProperty("contracts")]
         public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();
@@ -2166,8 +2230,8 @@ namespace ACE.Entity
         [JsonProperty("bookProperties")]
         public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
 
-        [JsonProperty("generators")]
-        public List<AceObjectGeneratorLink> GeneratorLinks { get; set; } = new List<AceObjectGeneratorLink>();
+        [JsonProperty("generatorProfiles")]
+        public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
         [JsonProperty("abilities")]
         public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
@@ -2184,8 +2248,7 @@ namespace ACE.Entity
 
         protected Position GetPosition(PositionType positionType)
         {
-            Position ret;
-            bool success = AceObjectPropertiesPositions.TryGetValue(positionType, out ret);
+            bool success = AceObjectPropertiesPositions.TryGetValue(positionType, out var ret);
 
             if (!success)
             {
@@ -2206,10 +2269,12 @@ namespace ACE.Entity
 
         public AceContractTracker GetTrackedContract(uint contractId)
         {
-            AceContractTracker ret;
-            bool success = TrackedContracts.TryGetValue(contractId, out ret);
+            bool success = TrackedContracts.TryGetValue(contractId, out var ret);
             return !success ? null : ret;
         }
+
+        [JsonProperty("createlist")]
+        public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
 
         public object Clone()
         {
@@ -2231,7 +2296,8 @@ namespace ACE.Entity
                 DataIdProperties = CloneList(DataIdProperties),
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
-                GeneratorLinks = CloneList(GeneratorLinks),
+                GeneratorProfiles = CloneList(GeneratorProfiles),
+                CreateList = CloneList(CreateList),
                 AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
                 AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
                 AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
@@ -2266,16 +2332,14 @@ namespace ACE.Entity
             ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
-            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.GeneratorLinks.ForEach(c => c.AceObjectId = guid);
+            ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
+            ret.CreateList.ForEach(c => c.AceObjectId = guid);
             ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
 
             // No need to change Dictionary guids per DDEVEC
             // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
-            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
@@ -2327,5 +2391,11 @@ namespace ACE.Entity
         {
             return toClone.ToDictionary(x => x.Key, x => (V)x.Value.Clone());
         }
+
+        [JsonIgnore]
+        public int? LinkSlot;
+
+        [JsonIgnore]
+        public bool? LinkSource;
     }
 }

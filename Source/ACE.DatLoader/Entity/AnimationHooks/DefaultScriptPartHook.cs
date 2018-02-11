@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class DefaultScriptPartHook : IHook
+    public class DefaultScriptPartHook : AnimationHook
     {
         public uint PartIndex { get; private set; }
 
-        public static DefaultScriptPartHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            DefaultScriptPartHook dsp = new DefaultScriptPartHook();
-            dsp.PartIndex = datReader.ReadUInt32();
-            return dsp;
+            base.Unpack(reader);
+
+            PartIndex = reader.ReadUInt32();
         }
     }
 }

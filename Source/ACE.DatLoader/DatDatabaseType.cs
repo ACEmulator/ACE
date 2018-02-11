@@ -1,9 +1,8 @@
-﻿namespace ACE.DatLoader
+namespace ACE.DatLoader
 {
-    public enum DatDatabaseType
+    public enum DatDatabaseType : byte
     {
-        Cell,
-
-        Portal
+        Portal  = 1,
+        Cell    = 2,
     }
 }

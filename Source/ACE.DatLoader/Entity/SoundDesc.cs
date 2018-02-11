@@ -1,24 +1,15 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SoundDesc
+    public class SoundDesc : IUnpackable
     {
-        public List<AmbientSTBDesc> STBDesc { get; set; } = new List<AmbientSTBDesc>();
+        public List<AmbientSTBDesc> STBDesc { get; } = new List<AmbientSTBDesc>();
 
-        public static SoundDesc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            SoundDesc obj = new SoundDesc();
-
-            uint num_stb_desc = datReader.ReadUInt32();
-            for (uint i = 0; i < num_stb_desc; i++)
-                obj.STBDesc.Add(AmbientSTBDesc.Read(datReader));
-
-            return obj;
+            STBDesc.Unpack(reader);
         }
     }
 }

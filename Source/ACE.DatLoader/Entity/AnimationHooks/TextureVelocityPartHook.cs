@@ -1,24 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class TextureVelocityPartHook : IHook
+    public class TextureVelocityPartHook : AnimationHook
     {
         public uint PartIndex { get; private set; }
         public float USpeed { get; private set; }
         public float VSpeed { get; private set; }
 
-        public static TextureVelocityPartHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            TextureVelocityPartHook tv = new TextureVelocityPartHook();
-            tv.PartIndex = datReader.ReadUInt32();
-            tv.USpeed = datReader.ReadSingle();
-            tv.VSpeed = datReader.ReadSingle();
-            return tv;
+            base.Unpack(reader);
+
+            PartIndex   = reader.ReadUInt32();
+            USpeed      = reader.ReadSingle();
+            VSpeed      = reader.ReadSingle();
         }
     }
 }

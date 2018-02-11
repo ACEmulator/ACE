@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class TerrainAlphaMap
+    public class TerrainAlphaMap : IUnpackable
     {
-        public uint TCode { get; set; }
-        public uint TexGID { get; set; }
+        public uint TCode { get; private set; }
+        public uint TexGID { get; private set; }
 
-        public static TerrainAlphaMap Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            TerrainAlphaMap obj = new TerrainAlphaMap();
-            obj.TCode = datReader.ReadUInt32();
-            obj.TexGID = datReader.ReadUInt32();
-            return obj;
+            TCode   = reader.ReadUInt32();
+            TexGID  = reader.ReadUInt32();
         }
     }
 }

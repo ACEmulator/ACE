@@ -1,43 +1,36 @@
-﻿using ACE.Entity;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
     /// <summary>
     /// This is actually different than just a "Vertex" class.
     /// </summary>
-    public class SWVertex
+    public class SWVertex : IUnpackable
     {
-        public short VertId { get; set; } // referenced by a Polygon
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
-        public float NormalX { get; set; }
-        public float NormalY { get; set; }
-        public float NormalZ { get; set; }
-        public List<Vec2Duv> UVs { get; set; } = new List<Vec2Duv>();
+        public float X { get; private set; }
+        public float Y { get; private set; }
+        public float Z { get; private set; }
 
-        public static SWVertex Read(DatReader datReader)
+        public float NormalX { get; private set; }
+        public float NormalY { get; private set; }
+        public float NormalZ { get; private set; }
+
+        public List<Vec2Duv> UVs { get; } = new List<Vec2Duv>();
+
+        public void Unpack(BinaryReader reader)
         {
-            SWVertex obj = new SWVertex();
+            var numUVs = reader.ReadUInt16();
 
-            short num_uvs = datReader.ReadInt16();
+            X = reader.ReadSingle();
+            Y = reader.ReadSingle();
+            Z = reader.ReadSingle();
 
-            obj.X = datReader.ReadSingle();
-            obj.Y = datReader.ReadSingle();
-            obj.Z = datReader.ReadSingle();
-            obj.NormalX = datReader.ReadSingle();
-            obj.NormalY = datReader.ReadSingle();
-            obj.NormalZ = datReader.ReadSingle();
+            NormalX = reader.ReadSingle();
+            NormalY = reader.ReadSingle();
+            NormalZ = reader.ReadSingle();
 
-            for (short i = 0; i < num_uvs; i++)
-                obj.UVs.Add(Vec2Duv.Read(datReader));
-            
-            return obj;
+            UVs.Unpack(reader, numUVs);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace ACE.Entity
         [DbField("aceObjectId", (int)MySqlDbType.UInt32)]
         public uint AceObjectId { get; set; }
 
-        [DbField("placement", (int)MySqlDbType.UInt32)]
-        public uint Placement { get; set; }
+        [DbField("placement", (int)MySqlDbType.Int32)]
+        public int Placement { get; set; }
     }
 }

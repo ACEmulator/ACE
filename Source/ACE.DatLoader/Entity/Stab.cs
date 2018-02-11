@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
@@ -7,9 +7,15 @@ namespace ACE.DatLoader.Entity
     /// It is an object and a corresponding position. 
     /// Note that since these are referenced by either a landblock or a cellblock, the corresponding Landblock and Cell should come from the parent.
     /// </summary>
-    public class Stab
+    public class Stab : IUnpackable
     {
-        public uint Model { get; set; }
-        public Position Position { get; set; } = new Position();
+        public uint Id { get; private set; }
+        public Frame Frame { get; } = new Frame();
+
+        public void Unpack(BinaryReader reader)
+        {
+            Id = reader.ReadUInt32();
+            Frame.Unpack(reader);
+        }
     }
 }

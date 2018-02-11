@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using System.Collections.Generic;
@@ -28,15 +28,15 @@ namespace ACE.Entity
             WeenieHeaderFlags = 0;
             SetIntProperty(PropertyInt.ItemsCapacity, 102);
             SetIntProperty(PropertyInt.ContainersCapacity, 7);           
-            SetIntProperty(PropertyInt.ItemUseable, (uint)Usable.No);
+            SetIntProperty(PropertyInt.ItemUseable, (int)Usable.No);
             SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
 
             PhysicsState = 0;
 
             WeenieClassId = 1;
-            SetIntProperty(PropertyInt.WeenieType, (uint)Enum.WeenieType.Creature); // This might need to change
+            SetIntProperty(PropertyInt.WeenieType, (int)Enum.WeenieType.Creature); // This might need to change
             SetDataIdProperty(PropertyDataId.Icon, 100667446);
-            SetIntProperty(PropertyInt.ItemType, (uint)Enum.ItemType.Creature);
+            SetIntProperty(PropertyInt.ItemType, (int)Enum.ItemType.Creature);
             // SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);
             SetBoolProperty(PropertyBool.IsDeleted, false);
             SetIntProperty(PropertyInt.TotalLogins, 0);
@@ -50,12 +50,12 @@ namespace ACE.Entity
             SetBoolProperty(PropertyBool.FirstEnterWorldDone, false);
 
             SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
-            SetIntProperty(PropertyInt.CreationTimestamp, (uint)GetDoubleProperty(PropertyDouble.CreationTimestamp));
-            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow.ToString("dd MMMM yyyy")}");
+            SetIntProperty(PropertyInt.CreationTimestamp, (int)GetDoubleProperty(PropertyDouble.CreationTimestamp));
+            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow:dd MMMM yyyy}");
 
-            SetIntProperty(PropertyInt.CreatureType, (uint)Enum.CreatureType.Human);
-            SetIntProperty(PropertyInt.ChannelsAllowed, (uint)Channel.AllChans);
-            SetIntProperty(PropertyInt.ChannelsActive, (uint)Channel.AllBroadcast);
+            SetIntProperty(PropertyInt.CreatureType, (int)Enum.CreatureType.Human);
+            SetIntProperty(PropertyInt.ChannelsAllowed, (int)Channel.AllChans);
+            SetIntProperty(PropertyInt.ChannelsActive, (int)Channel.AllBroadcast);
 
             SetIntProperty(PropertyInt.NumDeaths, 0);
 
@@ -113,26 +113,26 @@ namespace ACE.Entity
 
             SetBoolProperty(PropertyBool.Account15Days, true);
 
-            SetIntProperty(PropertyInt.PlayerKillerStatus, (uint)PlayerKillerStatus.NPK);
+            SetIntProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
 
         public uint CharacterSlot { get; set; }
 
-        public uint CharacterOptions1Mapping
+        public int CharacterOptions1Mapping
         {
             get { return GetIntProperty(PropertyInt.CharacterOptions1) ?? 0; }
             set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
         }
 
-        public uint CharacterOptions2Mapping
+        public int CharacterOptions2Mapping
         {
             get { return GetIntProperty(PropertyInt.CharacterOptions2) ?? 0; }
             set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
         }
 
-        public new uint TotalLogins
+        public new int TotalLogins
         {
             get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalLogins, value); }
@@ -159,11 +159,11 @@ namespace ACE.Entity
         {
             if (value)
             {
-                CharacterOptions1Mapping |= (uint)option;
+                CharacterOptions1Mapping |= (int)option;
             }
             else
             {
-                CharacterOptions1Mapping &= ~(uint)option;
+                CharacterOptions1Mapping &= ~(int)option;
             }
 
             dirtyOptions = true;
@@ -178,11 +178,11 @@ namespace ACE.Entity
         {
             if (value)
             {
-                CharacterOptions2Mapping |= (uint)option;
+                CharacterOptions2Mapping |= (int)option;
             }
             else
             {
-                CharacterOptions2Mapping &= ~(uint)option;
+                CharacterOptions2Mapping &= ~(int)option;
             }
 
             dirtyOptions = true;
@@ -200,7 +200,7 @@ namespace ACE.Entity
             set { SetInt64Property(PropertyInt64.TotalExperience, value); }
         }
 
-        public new uint Age
+        public new int Age
         {
             get { return GetIntProperty(PropertyInt.Age) ?? 0; }
             set { SetIntProperty(PropertyInt.Age, value); }
@@ -212,31 +212,31 @@ namespace ACE.Entity
             set { SetBoolProperty(PropertyBool.IsDeleted, value); }
         }
 
-        public new uint AvailableSkillCredits
+        public new int AvailableSkillCredits
         {
             get { return GetIntProperty(PropertyInt.AvailableSkillCredits) ?? 0; }
             set { SetIntProperty(PropertyInt.AvailableSkillCredits, value); }
         }
 
-        public new uint TotalSkillCredits
+        public new int TotalSkillCredits
         {
             get { return GetIntProperty(PropertyInt.TotalSkillCredits) ?? 0; }
             set { SetIntProperty(PropertyInt.TotalSkillCredits, value); }
         }
 
-        public new uint NumDeaths
+        public new int NumDeaths
         {
             get { return GetIntProperty(PropertyInt.NumDeaths) ?? 0; }
             set { SetIntProperty(PropertyInt.NumDeaths, value); }
         }
 
-        public new uint DeathLevel
+        public new int DeathLevel
         {
             get { return GetIntProperty(PropertyInt.DeathLevel) ?? 0; }
             set { SetIntProperty(PropertyInt.DeathLevel, value); }
         }
 
-        public new uint VitaeCpPool
+        public new int VitaeCpPool
         {
             get { return GetIntProperty(PropertyInt.VitaeCpPool) ?? 0; }
             set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
@@ -374,7 +374,7 @@ namespace ACE.Entity
             set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
         }
 
-        public new uint Level
+        public new int Level
         {
             get { return GetIntProperty(PropertyInt.Level) ?? 1; }
             set { SetIntProperty(PropertyInt.Level, value); }
@@ -431,11 +431,18 @@ namespace ACE.Entity
                 SetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
         }
 
+        public bool GetCharacterOption(CharacterOption option)
+        {
+            if (option.GetCharacterOptions1Attribute() != null)
+                return GetCharacterOptions1((CharacterOptions1)System.Enum.Parse(typeof(CharacterOptions1), option.ToString()));
+            return GetCharacterOptions2((CharacterOptions2)System.Enum.Parse(typeof(CharacterOptions2), option.ToString()));
+        }
+
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
         /// <param name="skill"></param>
-        public bool TrainSkill(Skill skill, uint creditsSpent)
+        public bool TrainSkill(Skill skill, int creditsSpent)
         {
             CreatureSkill cs = GetSkillProperty(skill);
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
@@ -456,7 +463,7 @@ namespace ACE.Entity
         /// Sets the skill to specialized status for a character
         /// </summary>
         /// <param name="skill"></param>
-        public bool SpecializeSkill(Skill skill, uint creditsSpent)
+        public bool SpecializeSkill(Skill skill, int creditsSpent)
         {
             CreatureSkill cs = GetSkillProperty(skill);
             if (cs != null && cs.Status == SkillStatus.Trained)
@@ -478,7 +485,7 @@ namespace ACE.Entity
         /// Sets the skill to untrained status for a character
         /// </summary>
         /// <param name="skill"></param>
-        public bool UntrainSkill(Skill skill, uint creditsSpent)
+        public bool UntrainSkill(Skill skill, int creditsSpent)
         {
             CreatureSkill cs = GetSkillProperty(skill);
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized) 
@@ -487,7 +494,8 @@ namespace ACE.Entity
                 SetSkillProperty(skill, newSkill);
                 return true;
             }
-            else if (cs != null && cs.Status == SkillStatus.Trained)
+
+            if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 RefundXp(cs.ExperienceSpent);
                 var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);

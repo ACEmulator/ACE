@@ -1,42 +1,24 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class TexMerge
+    public class TexMerge : IUnpackable
     {
-        public uint BaseTexSize { get; set; }
-        public List<TerrainAlphaMap> CornerTerrainMaps { get; set; } = new List<TerrainAlphaMap>();
-        public List<TerrainAlphaMap> SideTerrainMaps { get; set; } = new List<TerrainAlphaMap>();
-        public List<RoadAlphaMap> RoadMaps { get; set; } = new List<RoadAlphaMap>();
-        public List<TMTerrainDesc> TerrainDesc { get; set; } = new List<TMTerrainDesc>();
+        public uint BaseTexSize { get; private set; }
+        public List<TerrainAlphaMap> CornerTerrainMaps { get; } = new List<TerrainAlphaMap>();
+        public List<TerrainAlphaMap> SideTerrainMaps { get; } = new List<TerrainAlphaMap>();
+        public List<RoadAlphaMap> RoadMaps { get; } = new List<RoadAlphaMap>();
+        public List<TMTerrainDesc> TerrainDesc { get; } = new List<TMTerrainDesc>();
 
-        public static TexMerge Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            TexMerge obj = new TexMerge();
+            BaseTexSize = reader.ReadUInt32();
 
-            obj.BaseTexSize = datReader.ReadUInt32();
-
-            uint num_corner_terrain_maps = datReader.ReadUInt32();
-            for (uint i = 0; i < num_corner_terrain_maps; i++)
-                obj.CornerTerrainMaps.Add(TerrainAlphaMap.Read(datReader));
-
-            uint num_side_terrain_maps = datReader.ReadUInt32();
-            for (uint i = 0; i < num_side_terrain_maps; i++)
-                obj.SideTerrainMaps.Add(TerrainAlphaMap.Read(datReader));
-
-            uint num_road_maps = datReader.ReadUInt32();
-            for (uint i = 0; i < num_road_maps; i++)
-                obj.RoadMaps.Add(RoadAlphaMap.Read(datReader));
-
-            uint num_terrain_desc = datReader.ReadUInt32();
-            for (uint i = 0; i < num_terrain_desc; i++)
-                obj.TerrainDesc.Add(TMTerrainDesc.Read(datReader));
-
-            return obj;
+            CornerTerrainMaps.Unpack(reader);
+            SideTerrainMaps.Unpack(reader);
+            RoadMaps.Unpack(reader);
+            TerrainDesc.Unpack(reader);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -12,10 +12,10 @@ namespace ACE.Entity
         public uint AceObjectId { get; set; }
 
         [JsonIgnore]
-        public bool IsDirty { get; set; } = false;
+        public bool IsDirty { get; set; }
 
         [JsonIgnore]
-        public bool HasEverBeenSavedToDatabase { get; set; } = false;
+        public bool HasEverBeenSavedToDatabase { get; set; }
 
         public void ClearDirtyFlags()
         {
@@ -28,7 +28,7 @@ namespace ACE.Entity
             this.IsDirty = true;
             this.HasEverBeenSavedToDatabase = false;
         }
-
+        
         [JsonIgnore]
         public virtual uint PropertyId { get; set; }
 

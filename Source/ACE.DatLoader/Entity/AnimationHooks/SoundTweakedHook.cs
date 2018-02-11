@@ -1,26 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class SoundTweakedHook : IHook
+    public class SoundTweakedHook : AnimationHook
     {
         public uint SoundID { get; private set; }
         public float Priority { get; private set; }
         public float Probability { get; private set; }
         public float Volume { get; private set; }
 
-        public static SoundTweakedHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            SoundTweakedHook st = new SoundTweakedHook();
-            st.SoundID = datReader.ReadUInt32();
-            st.Priority = datReader.ReadSingle();
-            st.Probability = datReader.ReadSingle();
-            st.Volume = datReader.ReadSingle();
-            return st;
+            base.Unpack(reader);
+
+            SoundID = reader.ReadUInt32();
+            Priority = reader.ReadSingle();
+            Probability = reader.ReadSingle();
+            Volume = reader.ReadSingle();
         }
     }
 }

@@ -1,6 +1,6 @@
 # ACEmulator Core Server
 
-Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl7cb9xq5am/branch/master?svg=true)](https://ci.appveyor.com/project/ACEmulator/ace/branch/master)
+Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda31cgu8u59w/branch/master?svg=true)](https://ci.appveyor.com/project/LtRipley36706/ace)
 
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
  * MySQL and MariaDB are used as the database engine.
@@ -22,24 +22,22 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/qyueypl
 ## Getting Started
 
 **For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
-* Install MySQL (MariaDB is preferred, but either will work)
-  - [MySQL minimum required version 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
-  - [MariaDB minimum required version 10.2+](https://mariadb.org/download/)
-* Create three databases named `ace_auth`, `ace_shard`, and `ace_world`.
-* Load AuthenticationBase.sql, ShardBase.sql, and WorldBase.sql for their respective databases. 
+* Install MySQL
+  - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
+  - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
+* Create two databases named `ace_auth`, `ace_shard`.
+* Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
 * Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest.
 * Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest.
-* Download from [ACE-World](https://github.com/ACEmulator/ACE-World) the [latest release](https://github.com/ACEmulator/ACE-World/releases/latest) of world data, extract and load into your ace_world database.
+* Create a final database named `ace_world`.
+* Load WorldBase.sql to initialize the ace_world database. 
+* Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release](https://github.com/ACEmulator/ACE-World-16PY/releases/latest) of world data, extract and load into your ace_world database.
+  - [ACE-World-16PY minimum required version - 0.0.3+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
-* Copy `ACE.CmdLineLauncher\launcher_config.json.example` to `launcher_config.json` and modify your launcher settings to correspond with your ACE\config.json settings.
-* Build and run ACE, ACE.Api.Host, and ACE.CmdLineLauncher.
+* Build and run ACE.
 * Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
-* Launch AC with the CmdLineLauncher or directly with this command: `acclient.exe -a testaccount -h 127.0.0.1:9000 -glsticketdirect null`
-
-## API
-
-Once running, you can browse the APIs by adding "/swagger" to the hosted endpoints.  For example, the game server api defaults to run on port 8000, and you could browse to http://localhost:8000/swagger for the documentation.
+* Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
 
 ## Contributions
 
@@ -80,24 +78,11 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 * _Problem_
 > When you first load the solution and try to "run" the server, you may get a popup that says "A project with Output Type of Class Library cannot be started directly."
 * _Solution_
-> 1) Right click the Solution in Visual Studio ("Solution 'ACE' (16 projects)"), and select "Set StartUp Projects".
-> 2) The following projects should have "Start" in the "Action" column: ACE, ACE.Api.Host, ACE.CmdLineLauncher.  If your server is configured to use secure authentication, also set ACE.AuthApi.Host to "Start".
-
-#### 4. API.Host applications throw "Access is denied" errors
-* _Problem_ When you first load the API Host or Auth Host applications, you may get an error message:
-```cs
-Unhandled Exception: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.Net.HttpListenerException: Access is denied
-```
-* _Solution_
-In an administrative Windows command prompt add both port 8000 and 8001 to netsh's urlacl table: 
-```powershell
-netsh http add urlacl url=http://+:8000/ user=<YOUR USER ACCOUNT>
-netsh http add urlacl url=http://+:8001/ user=<YOUR USER ACCOUNT>
-```
-
+> 1) Right click the Solution in Visual Studio ("Solution 'ACE' (9 projects)"), and select "Set StartUp Projects".
+> 2) The following projects should have "Start" in the "Action" column: ACE.
 
 ## Other Resources
-* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Recommended)
-* [Zegeger Protocol documentation](http://www.zegeger.net/decal/protocol/Protocol.php) (At times, this link may be more recently updated)
+* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Out of date currently)
+* [Zegeger Protocol documentation](http://ac.zegeger.net/protocol/) (Recommended)
 * [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php) (outdated)
 * [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)

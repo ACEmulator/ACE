@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common;
 using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
@@ -9,19 +9,19 @@ namespace ACE.Entity
     [DbTable("ace_object_properties_int")]
     public class AceObjectPropertiesInt : BaseAceProperty, ICloneable
     {
-        private uint? _value = 0;
+        private int? _value = 0;
 
         [JsonProperty("intPropertyId")]
         [DbField("intPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
-        public override uint PropertyId { get; set; }
+        public new uint PropertyId { get; set; }
 
         [JsonProperty("index")]
         [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
-        public byte Index { get; set; } = 0;
+        public byte Index { get; set; }
 
         [JsonProperty("value")]
-        [DbField("propertyValue", (int)MySqlDbType.UInt32)]
-        public uint? PropertyValue
+        [DbField("propertyValue", (int)MySqlDbType.Int32)]
+        public int? PropertyValue
         {
             get
             {

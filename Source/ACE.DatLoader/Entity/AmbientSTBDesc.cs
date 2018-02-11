@@ -1,26 +1,18 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class AmbientSTBDesc
+    public class AmbientSTBDesc : IUnpackable
     {
-        public uint STBId { get; set; }
-        public List<AmbientSoundDesc> AmbientSounds { get; set; } = new List<AmbientSoundDesc>();
+        public uint STBId { get; private set; }
+        public List<AmbientSoundDesc> AmbientSounds { get; } = new List<AmbientSoundDesc>();
 
-        public static AmbientSTBDesc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            AmbientSTBDesc obj = new AmbientSTBDesc();
-            obj.STBId = datReader.ReadUInt32();
+            STBId = reader.ReadUInt32();
 
-            uint num_ambient_sounds = datReader.ReadUInt32();
-            for (uint i = 0; i < num_ambient_sounds; i++)
-                obj.AmbientSounds.Add(AmbientSoundDesc.Read(datReader));
-
-            return obj;
+            AmbientSounds.Unpack(reader);
         }
     }
 }

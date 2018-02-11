@@ -11,15 +11,7 @@
       "DefaultAccessLevel": 5
     },
     "DatFilesDirectory": "c:\\Turbine",
-    "ShutdownInterval": "60",
-    "SecureAuthentication": false,
-    "AllowedAuthServers": [
-      "http://localhost:8001",
-      "http://acemulator.org"
-    ]
-  },
-  "AuthServer": {
-    "Url": "http://localhost:8001"
+    "ShutdownInterval": "60"
   },
   "MySql": {
     "Authentication": {

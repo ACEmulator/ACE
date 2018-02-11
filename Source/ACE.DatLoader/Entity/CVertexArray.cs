@@ -1,37 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
     /// <summary>
     /// This is actually different than just a "VertexArray" class.
     /// </summary>
-    public class CVertexArray
+    public class CVertexArray : IUnpackable
     {
-        public int VertexType { get; set; }
-        public Dictionary<short, SWVertex> Vertices { get; set; } = new Dictionary<short, SWVertex>();
+        public int VertexType { get; private set; }
+        public Dictionary<ushort, SWVertex> Vertices { get; } = new Dictionary<ushort, SWVertex>();
 
-        public static CVertexArray Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            CVertexArray obj = new CVertexArray();
+            VertexType = reader.ReadInt32();
 
-            obj.VertexType = datReader.ReadInt32();
+            var numVertices = reader.ReadUInt32();
 
-            uint num_vertices = datReader.ReadUInt32();
-
-            if (obj.VertexType == 1)
-            {
-                for (uint i = 0; i < num_vertices; i++)
-                {
-                    short vert_id = datReader.ReadInt16();
-                    obj.Vertices.Add(vert_id, SWVertex.Read(datReader));
-                }
-            }
-
-            return obj;
+            if (VertexType == 1)
+                Vertices.Unpack(reader, numVertices);
+            else
+                throw new NotImplementedException();
         }
     }
 }

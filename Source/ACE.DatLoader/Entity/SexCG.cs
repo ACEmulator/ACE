@@ -1,35 +1,33 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SexCG
+    public class SexCG : IUnpackable
     {
-        public string Name { get; set; }
-        public uint Scale { get; set; }
-        public uint SetupID { get; set; }
-        public uint SoundTable { get; set; }
-        public uint IconImage { get; set; }
-        public uint BasePalette { get; set; }
-        public uint SkinPalSet { get; set; }
-        public uint PhysicsTable { get; set; }
-        public uint MotionTable { get; set; }
-        public uint CombatTable { get; set; }
-        public ObjDesc BaseObjDesc { get; set; } = new ObjDesc();
-        public List<uint> HairColorList { get; set; } = new List<uint>();
-        public List<HairStyleCG> HairStyleList { get; set; } = new List<HairStyleCG>();
-        public List<uint> EyeColorList { get; set; } = new List<uint>();
-        public List<EyeStripCG> EyeStripList { get; set; } = new List<EyeStripCG>();
-        public List<FaceStripCG> NoseStripList { get; set; } = new List<FaceStripCG>();
-        public List<FaceStripCG> MouthStripList { get; set; } = new List<FaceStripCG>();
-        public List<GearCG> HeadgearList { get; set; } = new List<GearCG>();
-        public List<GearCG> ShirtList { get; set; } = new List<GearCG>();
-        public List<GearCG> PantsList { get; set; } = new List<GearCG>();
-        public List<GearCG> FootwearList { get; set; } = new List<GearCG>();
-        public List<uint> ClothingColorsList { get; set; } = new List<uint>();
+        public string Name { get; private set; }
+        public uint Scale { get; private set; }
+        public uint SetupID { get; private set; }
+        public uint SoundTable { get; private set; }
+        public uint IconImage { get; private set; }
+        public uint BasePalette { get; private set; }
+        public uint SkinPalSet { get; private set; }
+        public uint PhysicsTable { get; private set; }
+        public uint MotionTable { get; private set; }
+        public uint CombatTable { get; private set; }
+        public ObjDesc BaseObjDesc { get; } = new ObjDesc();
+        public List<uint> HairColorList { get; } = new List<uint>();
+        public List<HairStyleCG> HairStyleList { get; } = new List<HairStyleCG>();
+        public List<uint> EyeColorList { get; } = new List<uint>();
+        public List<EyeStripCG> EyeStripList { get; } = new List<EyeStripCG>();
+        public List<FaceStripCG> NoseStripList { get; } = new List<FaceStripCG>();
+        public List<FaceStripCG> MouthStripList { get; } = new List<FaceStripCG>();
+        public List<GearCG> HeadgearList { get; } = new List<GearCG>();
+        public List<GearCG> ShirtList { get; } = new List<GearCG>();
+        public List<GearCG> PantsList { get; } = new List<GearCG>();
+        public List<GearCG> FootwearList { get; } = new List<GearCG>();
+        public List<uint> ClothingColorsList { get; } = new List<uint>();
 
         // Eyes
         public uint GetEyeTexture(uint eyesStrip, bool isBald)
@@ -130,6 +128,35 @@ namespace ACE.DatLoader.Entity
         public uint GetFootwearClothingTable(uint footwearStyle)
         {
             return FootwearList[Convert.ToInt32(footwearStyle)].ClothingTable;
+        }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Name            = reader.ReadString();
+            Scale           = reader.ReadUInt32();
+            SetupID         = reader.ReadUInt32();
+            SoundTable      = reader.ReadUInt32();
+            IconImage       = reader.ReadUInt32();
+            BasePalette     = reader.ReadUInt32();
+            SkinPalSet      = reader.ReadUInt32();
+            PhysicsTable    = reader.ReadUInt32();
+            MotionTable     = reader.ReadUInt32();
+            CombatTable     = reader.ReadUInt32();
+
+            BaseObjDesc.Unpack(reader);
+
+            HairColorList.UnpackSmartArray(reader);
+            HairStyleList.UnpackSmartArray(reader);
+            EyeColorList.UnpackSmartArray(reader);
+            EyeStripList.UnpackSmartArray(reader);
+            NoseStripList.UnpackSmartArray(reader);
+            MouthStripList.UnpackSmartArray(reader);
+
+            HeadgearList.UnpackSmartArray(reader);
+            ShirtList.UnpackSmartArray(reader);
+            PantsList.UnpackSmartArray(reader);
+            FootwearList.UnpackSmartArray(reader);
+            ClothingColorsList.UnpackSmartArray(reader);
         }
     }
 }

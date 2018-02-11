@@ -1,7 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
+
 using log4net;
+
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.DatLoader
 {
@@ -9,60 +12,78 @@ namespace ACE.DatLoader
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public DatDirectory RootDirectory { get; private set; }
+        private static readonly uint DAT_HEADER_OFFSET = 0x140;
 
-        public Dictionary<uint, DatFile> AllFiles { get; private set; }
 
-        // So we can cache the read files. The read methods in the FileTypes will handle the caching and casting.
-        public Dictionary<uint, object> FileCache { get; private set; } = new Dictionary<uint, object>();
+        public string FilePath { get; }
 
-        public DatDatabaseType DatType { get; private set; }
 
-        public string FilePath { get; private set; }
+        public DatDatabaseHeader Header { get; } = new DatDatabaseHeader();
 
-        public uint SectorSize { get; private set; }
+        public DatDirectory RootDirectory { get; }
 
-        internal DatDatabase(string filePath, DatDatabaseType type)
+        public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
+
+
+        public Dictionary<uint, FileType> FileCache { get; } = new Dictionary<uint, FileType>();
+
+
+        public DatDatabase(string filePath)
         {
             if (!File.Exists(filePath))
-            {
                 throw new FileNotFoundException(filePath);
-            }
 
-            this.FilePath = filePath;
-            DatType = type;
+            FilePath = filePath;
 
             using (FileStream stream = new FileStream(filePath, FileMode.Open))
             {
-                byte[] sectorSizeBuffer = new byte[4];
-                stream.Seek(0x144u, SeekOrigin.Begin);
-                stream.Read(sectorSizeBuffer, 0, sizeof(uint));
-                this.SectorSize = BitConverter.ToUInt32(sectorSizeBuffer, 0);
+                stream.Seek(DAT_HEADER_OFFSET, SeekOrigin.Begin);
+                using (var reader = new BinaryReader(stream, System.Text.Encoding.Default, true))
+                    Header.Unpack(reader);
 
-                stream.Seek(0x160u, SeekOrigin.Begin);
-                byte[] firstDirBuffer = new byte[4];
-                stream.Read(firstDirBuffer, 0, sizeof(uint));
-                uint firstDirectoryOffset = BitConverter.ToUInt32(firstDirBuffer, 0);
-
-                RootDirectory = new DatDirectory(firstDirectoryOffset, Convert.ToInt32(this.SectorSize), stream, DatType);
+                RootDirectory = new DatDirectory(Header.BTree, Header.BlockSize);
+                RootDirectory.Read(stream);
             }
 
-            AllFiles = new Dictionary<uint, DatFile>();
             RootDirectory.AddFilesToList(AllFiles);
         }
 
-        public DatReader GetReaderForFile(uint object_id)
+        /// <summary>
+        /// This will try to find the object for the given fileId in local cache. If the object was not found, it will be read from the dat and cached.
+        /// </summary>
+        public T ReadFromDat<T>(uint fileId) where T : FileType, new()
         {
-            if (AllFiles.ContainsKey(object_id))
+            // Check the FileCache so we don't need to hit the FileSystem repeatedly
+            if (FileCache.TryGetValue(fileId, out FileType result))
+                return (T)result;
+
+            var datReader = GetReaderForFile(fileId);
+
+            var obj = new T();
+
+            if (datReader != null)
             {
-                DatReader dr = new DatReader(FilePath, AllFiles[object_id].FileOffset, AllFiles[object_id].FileSize, SectorSize);
+                using (var memoryStream = new MemoryStream(datReader.Buffer))
+                using (var reader = new BinaryReader(memoryStream))
+                    obj.Unpack(reader);
+            }
+
+            // Store this object in the FileCache
+            FileCache[fileId] = obj;
+
+            return obj;
+        }
+
+        public DatReader GetReaderForFile(uint fileId)
+        {
+            if (AllFiles.TryGetValue(fileId, out var file))
+            {
+                DatReader dr = new DatReader(FilePath, file.FileOffset, file.FileSize, Header.BlockSize);
                 return dr;                    
             }
-            else
-            {
-                log.InfoFormat("Unable to find object_id {0} in {1}", object_id.ToString(), Enum.GetName(typeof(DatDatabaseType), DatType));
-                return null;
-            }
+
+            log.InfoFormat("Unable to find object_id {0} in {1}", fileId, Enum.GetName(typeof(DatDatabaseType), Header.DataSet));
+            return null;
         }
     }
 }

@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity.AnimationHooks
 {
-    public class SetLightHook : IHook
+    public class SetLightHook : AnimationHook
     {
         public int LightsOn { get; private set; }
 
-        public static SetLightHook ReadHookType(DatReader datReader)
+        public override void Unpack(BinaryReader reader)
         {
-            SetLightHook hook = new SetLightHook();
-            hook.LightsOn = datReader.ReadInt32();
-            return hook;
+            base.Unpack(reader);
+
+            LightsOn = reader.ReadInt32();
         }
     }
 }

@@ -1,38 +1,23 @@
-﻿using ACE.DatLoader.Entity;
 using System.Collections.Generic;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x33. 
     /// </summary>
-    public class PhysicsScript
+    [DatFileType(DatFileType.PhysicsScript)]
+    public class PhysicsScript : FileType
     {
-        public uint Id { get; set; }
-        public List<PhysicsScriptData> ScriptData { get; set; } = new List<PhysicsScriptData>();
+        public List<PhysicsScriptData> ScriptData { get; } = new List<PhysicsScriptData>();
 
-        public static PhysicsScript ReadFromDat(uint fileId)
+        public override void Unpack(BinaryReader reader)
         {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
-                return (PhysicsScript)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                PhysicsScript obj = new PhysicsScript();
-                obj.Id = datReader.ReadUInt32();
+            Id = reader.ReadUInt32();
 
-                uint num_script_data = datReader.ReadUInt32();
-                for (uint i = 0; i < num_script_data; i++)
-                    obj.ScriptData.Add(PhysicsScriptData.Read(datReader));
-
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
-
-                return obj;
-            }
+            ScriptData.Unpack(reader);
         }
     }
 }

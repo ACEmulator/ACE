@@ -1,17 +1,39 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ACE.Entity;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class BuildInfo
+    public class BuildInfo : IUnpackable
     {
-        public uint ModelId { get; set; } // 0x01 or 0x02 model of the building
-        public Position Frame { get; set; } = new Position(); // specific @loc of the model
-        public uint NumLeaves { get; set; } // unsure what this is used for
-        public List<CBldPortal> Portals { get; set; } = new List<CBldPortal>(); // portals are things like doors, windows, etc.
+        /// <summary>
+        /// 0x01 or 0x02 model of the building
+        /// </summary>
+        public uint ModelId { get; set; }
+
+        /// <summary>
+        /// specific @loc of the model
+        /// </summary>
+        public Frame Frame { get; } = new Frame();
+
+        /// <summary>
+        /// unsure what this is used for
+        /// </summary>
+        public uint NumLeaves { get; set; }
+
+        /// <summary>
+        /// portals are things like doors, windows, etc.
+        /// </summary>
+        public List<CBldPortal> Portals { get; } = new List<CBldPortal>();
+
+        public void Unpack(BinaryReader reader)
+        {
+            ModelId = reader.ReadUInt32();
+
+            Frame.Unpack(reader);
+
+            NumLeaves = reader.ReadUInt32();
+
+            Portals.Unpack(reader);
+        }
     }
 }

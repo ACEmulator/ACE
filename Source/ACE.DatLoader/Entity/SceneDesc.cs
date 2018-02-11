@@ -1,24 +1,15 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class SceneDesc
+    public class SceneDesc : IUnpackable
     {
-        public List<SceneType> SceneTypes { get; set; } = new List<SceneType>();
+        public List<SceneType> SceneTypes { get; } = new List<SceneType>();
 
-        public static SceneDesc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            SceneDesc obj = new SceneDesc();
-
-            uint num_scene_types = datReader.ReadUInt32();
-            for (uint i = 0; i < num_scene_types; i++)
-                obj.SceneTypes.Add(SceneType.Read(datReader));
-
-            return obj;
+            SceneTypes.Unpack(reader);
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using ACE.DatLoader.Entity;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -9,47 +10,30 @@ namespace ACE.DatLoader.FileTypes
     /// Thanks alot Widgeon of Leafcull for his ACDataTools which helped understanding this structure.
     /// And thanks alot to Pea as well whos hard work surely helped in the creation of those Tools too.
     /// </summary>
-    public static class GeneratorTable
+    [DatFileType(DatFileType.ObjectHierarchy)]
+    public class GeneratorTable : FileType
     {
-        public static Generator ReadFromDat()
+        internal const uint FILE_ID = 0x0E00000D;
+
+        public Generator Generators { get; } = new Generator();
+
+        /// <summary>
+        /// This is just a shortcut to Generators.Items[0].Items
+        /// </summary>
+        public List<Generator> PlayDayItems { get; private set; } = new List<Generator>();
+        /// <summary>
+        /// This is just a shortcut to Generators.Items[1].Items
+        /// </summary>
+        public List<Generator> WeenieObjectsItems { get; private set; } = new List<Generator>();
+
+        public override void Unpack(BinaryReader reader)
         {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(0x0E00000D))
-            {
-                return (Generator)DatManager.PortalDat.FileCache[0x0E00000D];
-            }
-            else
-            {
-                Generator gen = new Generator();
+            Id = reader.ReadUInt32();
 
-                // Create the datReader for the proper file
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(0x0E00000D);
+            Generators.Unpack(reader);
 
-                gen.Id = datReader.ReadInt32();
-                gen.Name = "0E00000D";
-                gen.Count = 2;
-                datReader.Offset = 16;
-
-                Generator playDay = new Generator();
-                Generator weenieObjects = new Generator();
-                gen.Items.Add(playDay.GetNextGenerator(datReader)); // Parse and add PlayDay hierarchy
-                gen.Items.Add(weenieObjects.GetNextGenerator(datReader)); // Parse and add WeenieObjects hierarchy
-
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[0x0E00000D] = gen;
-                return gen;
-            }
-        }
-
-        public static IEnumerable<Generator> ReadItems(this Generator root)
-        {
-            var nodes = new Stack<Generator>(new[] { root });
-            while (nodes.Any())
-            {
-                Generator node = nodes.Pop();
-                yield return node;
-                foreach (var n in node.Items) nodes.Push(n);
-            }
+            PlayDayItems = Generators.Items[0].Items;
+            WeenieObjectsItems = Generators.Items[1].Items;
         }
     }
 }

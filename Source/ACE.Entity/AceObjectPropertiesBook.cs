@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -26,7 +26,7 @@ namespace ACE.Entity
 
         [JsonProperty("ignoreAuthor")]
         [DbField("ignoreAuthor", (int)MySqlDbType.UInt32)]
-        public uint IgnoreAuthor { get; set; } = 0;
+        public uint IgnoreAuthor { get; set; }
 
         [JsonProperty("pageText")]
         [DbField("pageText", (int)MySqlDbType.VarChar)]

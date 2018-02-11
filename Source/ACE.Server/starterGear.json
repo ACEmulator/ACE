@@ -1,0 +1,1270 @@
+{
+    "skills": [
+        {
+            "id": "6",
+            "name": "Melee Defense"
+        },
+        {
+            "id": "7",
+            "name": "Missile Defense"
+        },
+        {
+            "id": "14",
+            "name": "Arcane Lore"
+        },
+        {
+            "id": "15",
+            "name": "Magic Defense"
+        },
+        {
+            "id": "16",
+            "name": "Mana Conversion"
+        },
+        {
+            "id": "18",
+            "name": "Item Tinkering"
+        },
+        {
+            "id": "20",
+            "name": "Deception"
+        },
+        {
+            "id": "21",
+            "name": "Healing",
+            "gear": [
+                {
+                    "weenieId": "628",
+                    "name": "Handy Healing Kit",
+                    "stacksize": "1"
+                }
+            ]
+        },
+        {
+            "id": "22",
+            "name": "Jump",
+            "gear": [
+                {
+                    "weenieId": "273",
+                    "name": "Pyreal",
+                    "stacksize": "10000"
+                },
+                {
+                    "weenieId": "166",
+                    "name": "Sack",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "5084",
+                    "name": "Calling Stone",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "33613",
+                    "name": "Pathwarden Token",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "259",
+                    "name": "Bread",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "31000",
+                    "name": "Blackmoor's Favor",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "20646",
+                    "name": "Ust",
+                    "stacksize": "1"
+                }
+            ],
+            "heritage": [
+                {
+                    "id": "1",
+                    "name": "Aluvian",
+                    "gear": [
+                        {
+                            "weenieId": "30988",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "name": "Gharu'ndim",
+                    "gear": [
+                        {
+                            "weenieId": "30986",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "name": "Sho",
+                    "gear": [
+                        {
+                            "weenieId": "30985",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "name": "Viamontian",
+                    "gear": [
+                        {
+                            "weenieId": "30987",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "5",
+                    "name": "Umbrean",
+                    "gear": [
+                        {
+                            "weenieId": "43019",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Gear",
+                    "gear": [
+                        {
+                            "weenieId": "43018",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "name": "Penumbraen",
+                    "gear": [
+                        {
+                            "weenieId": "43019",
+                            "name": "Letter From Home",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "12",
+                    "name": "Olthoi Soldier",
+                    "gear": [
+                        {
+                            "weenieId": "43634",
+                            "name": "Acidic Infusion",
+                            "stacksize": "10"
+                        },
+                        {
+                            "weenieId": "43701",
+                            "name": "Olthoi Fibrous Healing Tissue",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "13",
+                    "name": "Olthoi Spitter",
+                    "gear": [
+                        {
+                            "weenieId": "43634",
+                            "name": "Acidic Infusion",
+                            "stacksize": "10"
+                        },
+                        {
+                            "weenieId": "43635",
+                            "name": "Saliva Invigorator",
+                            "stacksize": "100"
+                        },
+                        {
+                            "weenieId": "43701",
+                            "name": "Olthoi Fibrous Healing Tissue",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "43489",
+                            "name": "Salivatory Goo",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "15271",
+                            "name": "Foci of Strife",
+                            "stacksize": "1"
+                        }
+                    ],
+                    "spells": [
+                        {
+                            "spellId": "5440",
+                            "name": "Acid Spit 1"
+                        },
+                        {
+                            "spellId": "5442",
+                            "name": "Acid Spit Arc 1"
+                        },
+                        {
+                            "spellId": "5444",
+                            "name": "Acid Spit Blast 1"
+                        },
+                        {
+                            "spellId": "5439",
+                            "name": "Acid Spit Streak 1"
+                        },
+                        {
+                            "spellId": "5446",
+                            "name": "Acid Spit Volley 1"
+                        },
+                        {
+                            "spellId": "5522",
+                            "name": "Acid Spit Vulnerability 1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "23",
+            "name": "Lockpick",
+            "gear": [
+                {
+                    "weenieId": "511",
+                    "name": "Crude Lockpick",
+                    "stacksize": "1"
+                }
+            ]
+        },
+        {
+            "id": "24",
+            "name": "Run"
+        },
+        {
+            "id": "27",
+            "name": "Assess Creature"
+        },
+        {
+            "id": "28",
+            "name": "Weapon Tinkering"
+        },
+        {
+            "id": "29",
+            "name": "Armor Tinkering"
+        },
+        {
+            "id": "30",
+            "name": "Magic Item Tinkering"
+        },
+        {
+            "id": "31",
+            "name": "Creature Enchantment",
+            "gear": [
+                {
+                    "weenieId": "12748",
+                    "name": "Training Wand",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "15268",
+                    "name": "Foci of Enchantment",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "691",
+                    "name": "Lead Scarab",
+                    "stacksize": "5"
+                },
+                {
+                    "weenieId": "20631",
+                    "name": "Prismatic Taper",
+                    "stacksize": "25"
+                }
+            ],
+            "spells": [
+                {
+                    "spellId": "1421",
+                    "name": "Focus Self I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "17",
+                    "name": "Invulnerability Other I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "118",
+                    "name": "Invulnerability Self I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "653",
+                    "name": "Mana Conversion Mastery Self I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "1445",
+                    "name": "Willpower Self I",
+                    "specializedOnly": "true"
+                }
+            ]
+        },
+        {
+            "id": "32",
+            "name": "Item Enchantment",
+            "gear": [
+                {
+                    "weenieId": "12748",
+                    "name": "Training Wand",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "15269",
+                    "name": "Foci of Artifice",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "691",
+                    "name": "Lead Scarab",
+                    "stacksize": "5"
+                },
+                {
+                    "weenieId": "20631",
+                    "name": "Prismatic Taper",
+                    "stacksize": "25"
+                }
+            ],
+            "spells": [
+                {
+                    "spellId": "35",
+                    "name": "Aura of Blood Drinker Self I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "1511",
+                    "name": "Bludgeon Bane I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "49",
+                    "name": "Aura of Swift Killer Self I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "51",
+                    "name": "Impenetrability I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "1599",
+                    "name": "Aura of Defender Self I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "37",
+                    "name": "Blade Bane I",
+                    "specializedOnly": "true"
+                }
+            ]
+        },
+        {
+            "id": "33",
+            "name": "Life Magic",
+            "gear": [
+                {
+                    "weenieId": "12748",
+                    "name": "Training Wand",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "15270",
+                    "name": "Foci of Verdancy",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "691",
+                    "name": "Lead Scarab",
+                    "stacksize": "5"
+                },
+                {
+                    "weenieId": "20631",
+                    "name": "Prismatic Taper",
+                    "stacksize": "25"
+                }
+            ],
+            "spells": [
+                {
+                    "spellId": "23",
+                    "name": "Armor Other I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "24",
+                    "name": "Armor Self I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "5",
+                    "name": "Heal Other I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "6",
+                    "name": "Heal Self I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "25",
+                    "name": "Imperil Other I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "1237",
+                    "name": "Drain Health Other I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "7",
+                    "name": "Harm Other I",
+                    "specializedOnly": "true"
+                }
+            ]
+        },
+        {
+            "id": "34",
+            "name": "War Magic",
+            "gear": [
+                {
+                    "weenieId": "12748",
+                    "name": "Training Wand",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "15271",
+                    "name": "Foci of Strife",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "691",
+                    "name": "Lead Scarab",
+                    "stacksize": "5"
+                },
+                {
+                    "weenieId": "20631",
+                    "name": "Prismatic Taper",
+                    "stacksize": "25"
+                }
+            ],
+            "spells": [
+                {
+                    "spellId": "27",
+                    "name": "Flame Bolt I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "86",
+                    "name": "Force Bolt I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "28",
+                    "name": "Frost Bolt I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "64",
+                    "name": "Shock Wave I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "58",
+                    "name": "Acid Stream I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "75",
+                    "name": "Lightning Bolt I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "92",
+                    "name": "Whirling Blade I",
+                    "specializedOnly": "true"
+                }
+            ]
+        },
+        {
+            "id": "35",
+            "name": "Leadership"
+        },
+        {
+            "id": "36",
+            "name": "Loyalty"
+        },
+        {
+            "id": "37",
+            "name": "Fletching",
+            "gear": [
+                {
+                    "weenieId": "4586",
+                    "name": "Bundle of Arrowheads",
+                    "stacksize": "30"
+                },
+                {
+                    "weenieId": "4586",
+                    "name": "Bundle of Arrowheads",
+                    "stacksize": "30"
+                },
+                {
+                    "weenieId": "4586",
+                    "name": "Bundle of Arrowheads",
+                    "stacksize": "30"
+                },
+                {
+                    "weenieId": "4585",
+                    "name": "Bundle of Arrowshafts",
+                    "stacksize": "30"
+                },
+                {
+                    "weenieId": "15296",
+                    "name": "Bundle of Atlatl Dart Shafts",
+                    "stacksize": "30"
+                },
+                {
+                    "weenieId": "5339",
+                    "name": "Bundle of Quarrelshafts",
+                    "stacksize": "30"
+                }
+            ]
+        },
+        {
+            "id": "38",
+            "name": "Alchemy",
+            "gear": [
+                {
+                    "weenieId": "4751",
+                    "name": "Mortar and Pestle",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "2414",
+                    "name": "Azurite",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "2414",
+                    "name": "Azurite",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "2414",
+                    "name": "Azurite",
+                    "stacksize": "1"
+                }
+            ]
+        },
+        {
+            "id": "39",
+            "name": "Cooking",
+            "gear": [
+                {
+                    "weenieId": "4761",
+                    "name": "Flour",
+                    "stacksize": "6"
+                },
+                {
+                    "weenieId": "4746",
+                    "name": "Water",
+                    "stacksize": "6"
+                }
+            ]
+        },
+        {
+            "id": "40",
+            "name": "Salvaging"
+        },
+        {
+            "id": "41",
+            "name": "Two Handed Combat",
+            "gear": [
+                {
+                    "weenieId": "41512",
+                    "name": "Training Spadone",
+                    "stacksize": "1"
+                }
+            ]
+        },
+        {
+            "id": "43",
+            "name": "Void Magic",
+            "gear": [
+                {
+                    "weenieId": "12748",
+                    "name": "Training Wand",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "43173",
+                    "name": "Foci of Shadow",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "691",
+                    "name": "Lead Scarab",
+                    "stacksize": "5"
+                },
+                {
+                    "weenieId": "20631",
+                    "name": "Prismatic Taper",
+                    "stacksize": "25"
+                }
+            ],
+            "spells": [
+                {
+                    "spellId": "5339",
+                    "name": "Destructive Curse I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "5387",
+                    "name": "Corrosion I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "5395",
+                    "name": "Corruption I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "5349",
+                    "name": "Nether Bolt I",
+                    "specializedOnly": "false"
+                },
+                {
+                    "spellId": "5379",
+                    "name": "Weakening Curse I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "5357",
+                    "name": "Nether Streak I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "5369",
+                    "name": "Nether Arc I",
+                    "specializedOnly": "true"
+                },
+                {
+                    "spellId": "5371",
+                    "name": "Festering Curse I",
+                    "specializedOnly": "true"
+                }
+            ]
+        },
+        {
+            "id": "44",
+            "name": "Heavy Weapons",
+            "heritage": [
+                {
+                    "id": "1",
+                    "name": "Aluvian",
+                    "gear": [
+                        {
+                            "weenieId": "12739",
+                            "name": "Training Dirk",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "name": "Gharu'ndim",
+                    "gear": [
+                        {
+                            "weenieId": "12743",
+                            "name": "Training Stick",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "name": "Sho",
+                    "gear": [
+                        {
+                            "weenieId": "12742",
+                            "name": "Training Cestus",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "name": "Viamontian",
+                    "gear": [
+                        {
+                            "weenieId": "12747",
+                            "name": "Training Ken",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "5",
+                    "name": "Umbrean",
+                    "gear": [
+                        {
+                            "weenieId": "12742",
+                            "name": "Training Cestus",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Gear",
+                    "gear": [
+                        {
+                            "weenieId": "12744",
+                            "name": "Training Mace",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "name": "Tumerok",
+                    "gear": [
+                        {
+                            "name": "Training Trident",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Lugian",
+                    "gear": [
+                        {
+                            "weenieId": "12740",
+                            "name": "Training Battle Axe",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "9",
+                    "name": "Empyrean",
+                    "gear": [
+                        {
+                            "weenieId": "12747",
+                            "name": "Training Ken",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "name": "Penumbraen",
+                    "gear": [
+                        {
+                            "weenieId": "12742",
+                            "name": "Training Cestus",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "name": "Undead",
+                    "gear": [
+                        {
+                            "weenieId": "12740",
+                            "name": "Training Battle Axe",
+                            "stacksize": "1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "45",
+            "name": "Light Weapons",
+            "heritage": [
+                {
+                    "id": "1",
+                    "name": "Aluvian",
+                    "gear": [
+                        {
+                            "weenieId": "45538",
+                            "name": "Training Dagger",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "name": "Gharu'ndim",
+                    "gear": [
+                        {
+                            "name": "Training Staff",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "name": "Sho",
+                    "gear": [
+                        {
+                            "weenieId": "45558",
+                            "name": "Training Knuckles",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "name": "Viamontian",
+                    "gear": [
+                        {
+                            "weenieId": "45554",
+                            "name": "Training Broad Sword",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "5",
+                    "name": "Umbrean",
+                    "gear": [
+                        {
+                            "weenieId": "45558",
+                            "name": "Training Knuckles",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Gear",
+                    "gear": [
+                        {
+                            "name": "Training Club",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "name": "Tumerok",
+                    "gear": [
+                        {
+                            "name": "Training Spear",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Lugian",
+                    "gear": [
+                        {
+                            "weenieId": "45534",
+                            "name": "Training Hand Axe",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "9",
+                    "name": "Empyrean",
+                    "gear": [
+                        {
+                            "weenieId": "45554",
+                            "name": "Training Broad Sword",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "name": "Penumbraen",
+                    "gear": [
+                        {
+                            "weenieId": "45558",
+                            "name": "Training Knuckles",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "name": "Undead",
+                    "gear": [
+                        {
+                            "weenieId": "45534",
+                            "name": "Training Hand Axe",
+                            "stacksize": "1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "46",
+            "name": "Finesse Weapons",
+            "heritage": [
+                {
+                    "id": "1",
+                    "name": "Aluvian",
+                    "gear": [
+                        {
+                            "weenieId": "45537",
+                            "name": "Training Knife",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "name": "Gharu'ndim",
+                    "gear": [
+                        {
+                            "weenieId": "45549",
+                            "name": "Training Bastone",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "name": "Sho",
+                    "gear": [
+                        {
+                            "weenieId": "45537",
+                            "name": "Training Handwraps",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "name": "Viamontian",
+                    "gear": [
+                        {
+                            "weenieId": "45553",
+                            "name": "Training Short Sword",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "5",
+                    "name": "Umbrean",
+                    "gear": [
+                        {
+                            "weenieId": "45537",
+                            "name": "Training Handwraps",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Gear",
+                    "gear": [
+                        {
+                            "weenieId": "45541",
+                            "name": "Training Dabus",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "name": "Tumerok",
+                    "gear": [
+                        {
+                            "weenieId": "45545",
+                            "name": "Training Budiaq",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Lugian",
+                    "gear": [
+                        {
+                            "weenieId": "45533",
+                            "name": "Training Tungi",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "9",
+                    "name": "Empyrean",
+                    "gear": [
+                        {
+                            "weenieId": "45553",
+                            "name": "Training Short Sword",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "name": "Penumbraen",
+                    "gear": [
+                        {
+                            "weenieId": "45537",
+                            "name": "Training Handwraps",
+                            "stacksize": "1"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "name": "Undead",
+                    "gear": [
+                        {
+                            "weenieId": "45533",
+                            "name": "Training Tungi",
+                            "stacksize": "1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "47",
+            "name": "Missile Weapons",
+            "heritage": [
+                {
+                    "id": "1",
+                    "name": "Aluvian",
+                    "gear": [
+                        {
+                            "weenieId": "12741",
+                            "name": "Training Shortbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "300",
+                            "name": "Arrow",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "2",
+                    "name": "Gharu'ndim",
+                    "gear": [
+                        {
+                            "weenieId": "12746",
+                            "name": "Training Atlatl",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "12464",
+                            "name": "Atlatl Dart",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "3",
+                    "name": "Sho",
+                    "gear": [
+                        {
+                            "weenieId": "12741",
+                            "name": "Training Shortbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "300",
+                            "name": "Arrow",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "4",
+                    "name": "Viamontian",
+                    "gear": [
+                        {
+                            "weenieId": "12749",
+                            "name": "Light Training Crossbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "305",
+                            "name": "Quarrel",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "5",
+                    "name": "Umbrean",
+                    "gear": [
+                        {
+                            "weenieId": "12749",
+                            "name": "Light Training Crossbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "305",
+                            "name": "Quarrel",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "6",
+                    "name": "Gear",
+                    "gear": [
+                        {
+                            "weenieId": "12749",
+                            "name": "Light Training Crossbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "305",
+                            "name": "Quarrel",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "7",
+                    "name": "Tumerok",
+                    "gear": [
+                        {
+                            "weenieId": "12746",
+                            "name": "Training Atlatl",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "12464",
+                            "name": "Atlatl Dart",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "8",
+                    "name": "Lugian",
+                    "gear": [
+                        {
+                            "weenieId": "12746",
+                            "name": "Training Atlatl",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "12464",
+                            "name": "Atlatl Dart",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "9",
+                    "name": "Empyrean",
+                    "gear": [
+                        {
+                            "weenieId": "12741",
+                            "name": "Training Shortbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "300",
+                            "name": "Arrow",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "10",
+                    "name": "Penumbraen",
+                    "gear": [
+                        {
+                            "weenieId": "12749",
+                            "name": "Light Training Crossbow",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "305",
+                            "name": "Quarrel",
+                            "stacksize": "250"
+                        }
+                    ]
+                },
+                {
+                    "id": "11",
+                    "name": "Undead",
+                    "gear": [
+                        {
+                            "weenieId": "12746",
+                            "name": "Training Atlatl",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "12464",
+                            "name": "Atlatl Dart",
+                            "stacksize": "250"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "48",
+            "name": "Shield",
+            "gear": [
+                {
+                    "weenieId": "93",
+                    "name": "Round Shield",
+                    "stacksize": "1"
+                }
+            ]
+        },
+        {
+            "id": "49",
+            "name": "Dual Wield"
+        },
+        {
+            "id": "50",
+            "name": "Recklessness"
+        },
+        {
+            "id": "51",
+            "name": "Sneak Attack"
+        },
+        {
+            "id": "52",
+            "name": "Dirty Fighting"
+        },
+        {
+            "id": "54",
+            "name": "Summoning",
+            "gear": [
+                {
+                    "weenieId": "48886",
+                    "name": "Mud Golem Essence",
+                    "stacksize": "1"
+                }
+            ]
+        }
+    ]
+}

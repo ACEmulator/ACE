@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
@@ -33,9 +33,6 @@ namespace ACE.Entity
         [DbField("qZ", (int)MySqlDbType.Float)]
         public float QZ { get; set; }
 
-        public Position Position
-        {
-            get { return new Position(LandblockRaw, PosX, PosY, PosZ, QX, QY, QZ, QW); }
-        }
+        public Position Position => new Position(LandblockRaw, PosX, PosY, PosZ, QX, QY, QZ, QW);
     }
 }

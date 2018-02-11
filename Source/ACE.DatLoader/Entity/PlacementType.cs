@@ -1,22 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class PlacementType
+    public class PlacementType : IUnpackable
     {
-        AnimationFrame AnimFrame { get; set; }
+        public AnimationFrame AnimFrame { get; } = new AnimationFrame();
 
-        public static PlacementType Read(int numParts, DatReader datReader)
+        /// <summary>
+        /// You must use the Unpack(BinaryReader reader, int numParts) method.
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must use the Unpack(BinaryReader reader, int numParts) method.</exception>
+        public void Unpack(BinaryReader reader)
         {
-            PlacementType obj = new PlacementType();
+            throw new NotSupportedException();
+        }
 
-            obj.AnimFrame = AnimationFrame.Read((uint)numParts, datReader);
-
-            return obj;
+        public void Unpack(BinaryReader reader, uint numParts)
+        {
+            AnimFrame.Unpack(reader, numParts);
         }
     }
 }

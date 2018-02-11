@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.Diagnostics
@@ -34,16 +34,14 @@ namespace ACE.Diagnostics
         {
             if (landBlockInfos[col, row] == null)
                 return LandBlockStatusFlag.IdleUnloaded;
-            else
-                return landBlockInfos[col, row].LandBlockStatusFlag;
+            return landBlockInfos[col, row].LandBlockStatusFlag;
         }
 
         public static LandBlockStatus GetLandBlockKey(int col, int row)
         {
             if (landBlockInfos[col, row] == null)
                 return null;
-            else
-                return landBlockInfos[col, row];
+            return landBlockInfos[col, row];
         }
     }
 }

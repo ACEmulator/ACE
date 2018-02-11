@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ACE.Entity.Enum;
 using ACE.Common;
 using MySql.Data.MySqlClient;
@@ -25,24 +20,21 @@ namespace ACE.Entity
         public WeenieType WeenieType { get; set; }
 
         [JsonIgnore]
-        [DbField("weenieType", (int)MySqlDbType.UInt32)]
-        public uint WeenieType_Binder
+        [DbField("weenieType", (int)MySqlDbType.Int32)]
+        public int WeenieType_Binder
         {
-            get { return (uint)WeenieType; }
+            get { return (int)WeenieType; }
             set { WeenieType = (WeenieType)value; }
         }
 
         public ItemType ItemType { get; set; }
 
         [JsonIgnore]
-        [DbField("itemType", (int)MySqlDbType.UInt32)]
-        public uint ItemType_Binder
+        [DbField("itemType", (int)MySqlDbType.Int32)]
+        public int ItemType_Binder
         {
-            get { return (uint)ItemType; }
+            get { return (int)ItemType; }
             set { ItemType = (ItemType)value; }
         }
-
-        [DbField("userModified", (int)MySqlDbType.Byte)]
-        public bool UserModified { get; set; }
     }
 }

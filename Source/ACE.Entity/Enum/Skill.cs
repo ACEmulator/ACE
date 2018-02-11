@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace ACE.Entity.Enum
 {
@@ -226,17 +226,17 @@ namespace ACE.Entity.Enum
     {
         public static AbilityFormulaAttribute GetFormula(this Skill skill)
         {
-            return Enum.EnumHelper.GetAttributeOfType<AbilityFormulaAttribute>(skill);
+            return skill.GetAttributeOfType<AbilityFormulaAttribute>();
         }
 
         public static SkillCostAttribute GetCost(this Skill skill)
         {
-            return Enum.EnumHelper.GetAttributeOfType<SkillCostAttribute>(skill);
+            return skill.GetAttributeOfType<SkillCostAttribute>();
         }
 
         public static SkillUsableUntrainedAttribute GetUsability(this Skill skill)
         {
-            return Enum.EnumHelper.GetAttributeOfType<SkillUsableUntrainedAttribute>(skill);
+            return skill.GetAttributeOfType<SkillUsableUntrainedAttribute>();
         }
 
         /// <summary>

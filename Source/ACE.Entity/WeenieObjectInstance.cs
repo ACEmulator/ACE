@@ -1,4 +1,4 @@
-﻿using ACE.Common;
+using ACE.Common;
 using MySql.Data.MySqlClient;
 
 namespace ACE.Entity
@@ -42,5 +42,11 @@ namespace ACE.Entity
 
         [DbField("qZ", (int)MySqlDbType.Float)]
         public float RotationZ { get; set; }
+
+        [DbField("linkSlot", (int)MySqlDbType.Int32)]
+        public int LinkSlot { get; set; }
+
+        [DbField("linkSource", (int)MySqlDbType.Byte)]
+        public sbyte LinkSource { get; set; }
     }
 }

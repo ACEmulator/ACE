@@ -1,23 +1,26 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using MySql.Data.MySqlClient;
+
 using log4net;
+
 using ACE.Common;
 using ACE.Common.Extensions;
-using System.Reflection;
+using ACE.Database.Extensions;
 
 namespace ACE.Database
 {
     public class Database
     {
         // This is a debug channel for the general debugging of the database.
-        private ILog log = LogManager.GetLogger("Database");
+        private ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>> propertyCache = new Dictionary<Type, List<Tuple<PropertyInfo, DbFieldAttribute>>>();
 
@@ -26,7 +29,7 @@ namespace ACE.Database
         public class DatabaseTransaction
         {
             // This logging function will log specific db transactions - this class may be instantiated outside of the database namespace
-            private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
             private readonly Database database;
             private readonly List<Tuple<StoredPreparedStatement, object[]>> queries = new List<Tuple<StoredPreparedStatement, object[]>>();
@@ -35,10 +38,9 @@ namespace ACE.Database
 
             public void AddPreparedStatement<T>(T id, params object[] parameters)
             {
-                Debug.Assert(typeof(T) == database.PreparedStatementType, "Invalid prepared statement type.");
+                // Debug.Assert(typeof(T) == database.PreparedStatementType, "Invalid prepared statement type.");
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -49,12 +51,11 @@ namespace ACE.Database
 
             public void AddPreparedDeleteListStatement<T1, T2>(T1 id, Dictionary<string, object> criteria)
             {
-                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
-                // Oh goody, its reflection time
+                // Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -65,8 +66,7 @@ namespace ACE.Database
                 {
                     if (p.Item2.ListDelete)
                     {
-                        object val;
-                        bool success = criteria.TryGetValue(p.Item2.DbFieldName, out val);
+                        bool success = criteria.TryGetValue(p.Item2.DbFieldName, out var val);
                         Debug.Assert(success, "Criteria does not contain essential key");
                         objects.Add(val);
                     }
@@ -77,14 +77,13 @@ namespace ACE.Database
 
             public void AddPreparedInsertListStatement<T1, T2>(T1 id, List<T2> info)
             {
-                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
-                // Oh goody, its reflection time
+                // Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+                
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -107,8 +106,7 @@ namespace ACE.Database
             {
                 // Debug.Assert(typeof(T1) == preparedStatementType);
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -124,14 +122,11 @@ namespace ACE.Database
                 }
 
                 queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
-
-                return;
             }
 
             public void AddPreparedUpdateStatement<T1, T2>(T1 id, T2 instance)
             {
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -145,20 +140,17 @@ namespace ACE.Database
                 object[] parameters = p.ToArray();
 
                 queries.Add(new Tuple<StoredPreparedStatement, object[]>(preparedStatement, parameters));
-
-                return;
             }
 
             public void AddPreparedDeleteStatement<T1, T2>(T1 id, object instance)
             {
-                Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
-                // Oh goody, its reflection time
+                // Debug.Assert(typeof(T1) == database.PreparedStatementType, "Invalid prepared statement type.");
+
                 var propertyInfo = GetPropertyCache(typeof(T2));
 
                 uint statementId = Convert.ToUInt32(id);
 
-                StoredPreparedStatement preparedStatement;
-                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+                if (!database.preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
                 {
                     Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                     return;
@@ -260,7 +252,9 @@ namespace ACE.Database
                 Password = password,
                 Database = database,
                 IgnorePrepare = false,
-                Pooling = true
+                Pooling = true,
+                AllowUserVariables = true,
+                AllowZeroDateTime = true
             };
 
             connectionString = connectionBuilder.ToString();
@@ -287,7 +281,30 @@ namespace ACE.Database
                 }
             }
 
+            log.Debug($"Initializing prepared statements for {database}...");
+
+            // This is a very time consuming call
             InitializePreparedStatements();
+
+            log.Debug($"Initializing prepared statements for {database} completed.");
+        }
+
+        public void ResetConnectionString(string host, uint port, string user, string password, string database, bool autoReconnect = true)
+        {
+            var connectionBuilder = new MySqlConnectionStringBuilder()
+            {
+                Server = host,
+                Port = port,
+                UserID = user,
+                Password = password,
+                Database = database,
+                IgnorePrepare = false,
+                Pooling = true,
+                AllowUserVariables = true,
+                AllowZeroDateTime = true
+            };
+
+            connectionString = connectionBuilder.ToString();
         }
 
         public DatabaseTransaction BeginTransaction() { return new DatabaseTransaction(this); }
@@ -296,7 +313,7 @@ namespace ACE.Database
 
         protected void AddPreparedStatement<T>(T id, string query, params MySqlDbType[] types)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
             Debug.Assert(types.Length == query.Count(c => c == '?'), "Invalid prepared statement parameter length.");
 
             try
@@ -442,6 +459,7 @@ namespace ACE.Database
                     valueList += ", ";
                     fieldList += ", ";
                 }
+
                 fieldList += "`" + p.Item2.DbFieldName + "`";
 
                 valueList += "?";
@@ -607,8 +625,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -658,8 +675,7 @@ namespace ACE.Database
         {
             var results = new List<T2>();
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
@@ -710,14 +726,11 @@ namespace ACE.Database
             foreach (var p in properties)
             {
                 var assignable = commandReader[p.Item2.DbFieldName];
+
                 if (Convert.IsDBNull(assignable))
-                {
                     p.Item1.SetValue(o, null);
-                }
                 else
-                {
                     p.Item1.SetValue(o, assignable);
-                }
             }
             return o;
         }
@@ -726,8 +739,7 @@ namespace ACE.Database
         {
             uint statementId = Convert.ToUInt32(id);
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return default(T3);
@@ -747,8 +759,7 @@ namespace ACE.Database
                                 // TODO: Extend this to read multiple Aggregate functions if/when there is a use case for this
                                 if (commandReader[0] == DBNull.Value)
                                     return default(T3);
-                                else
-                                    return (T3)commandReader[0];
+                                return (T3)commandReader[0];
                             }
                         }
                     }
@@ -767,9 +778,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
-            StoredPreparedStatement preparedStatement;
-
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -791,25 +800,23 @@ namespace ACE.Database
                         {
                             return command.ExecuteNonQuery() > 0;
                         }
-                        else
+
+                        command.CommandText += "; SELECT LAST_INSERT_ID();";
+                        // backfill the generated id
+                        using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                         {
-                            command.CommandText += "; SELECT LAST_INSERT_ID();";
-                            // backfill the generated id
-                            using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                            if (commandReader.Read())
                             {
-                                if (commandReader.Read())
-                                {
-                                    var generatedId = Convert.ToUInt32(commandReader[0].ToString());
-                                    var prop = properties.FirstOrDefault(p => p.Item2.DbFieldName == dbTable.AutoGeneratedIdColumn);
-                                    prop?.Item1.SetValue(instance, generatedId);
-                                }
-                                else
-                                {
-                                    return false;
-                                }
+                                var generatedId = Convert.ToUInt32(commandReader[0].ToString());
+                                var prop = properties.FirstOrDefault(p => p.Item2.DbFieldName == dbTable.AutoGeneratedIdColumn);
+                                prop?.Item1.SetValue(instance, generatedId);
                             }
-                            return true;
+                            else
+                            {
+                                return false;
+                            }
                         }
+                        return true;
                     }
                 }
             }
@@ -826,8 +833,7 @@ namespace ACE.Database
         {
             // Debug.Assert(typeof(T1) == preparedStatementType);
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -863,8 +869,7 @@ namespace ACE.Database
 
         public bool ExecuteConstructedDeleteStatement<T1>(T1 id, Type type, Dictionary<string, object> criteria)
         {
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return false;
@@ -904,10 +909,9 @@ namespace ACE.Database
 
         private async void ExecutePreparedStatement<T>(bool async, T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return;
@@ -956,12 +960,11 @@ namespace ACE.Database
             }
         }
 
-        protected MySqlResult SelectPreparedStatement<T>(T id, params object[] parameters)
+        protected DataTable SelectPreparedStatement<T>(T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
@@ -979,10 +982,9 @@ namespace ACE.Database
 
                         using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                         {
-                            using (var result = new MySqlResult())
+                            using (var result = new DataTable())
                             {
-                                result.Load(commandReader);
-                                result.Count = (uint)result.Rows.Count;
+                                result.LoadEx(commandReader);
                                 return result;
                             }
                         }
@@ -998,12 +1000,11 @@ namespace ACE.Database
             return null;
         }
 
-        protected async Task<MySqlResult> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
+        protected async Task<DataTable> SelectPreparedStatementAsync<T>(T id, params object[] parameters)
         {
-            Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
+            // Debug.Assert(typeof(T) == PreparedStatementType, "Invalid prepared statement type.");
 
-            StoredPreparedStatement preparedStatement;
-            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out preparedStatement))
+            if (!preparedStatements.TryGetValue(Convert.ToUInt32(id), out var preparedStatement))
             {
                 Debug.Assert(preparedStatement != null, "Invalid prepared statement id.");
                 return null;
@@ -1023,10 +1024,9 @@ namespace ACE.Database
                         {
                             using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                             {
-                                using (var result = new MySqlResult())
+                                using (var result = new DataTable())
                                 {
-                                    result.Load(commandReader);
-                                    result.Count = (uint)result.Rows.Count;
+                                    result.LoadEx(commandReader);
                                     return result;
                                 }
                             }
@@ -1140,16 +1140,146 @@ namespace ACE.Database
                     using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
                     {
                         if (commandReader.Read())
-                        {
                             return ReadObject<T>(commandReader);
-                        }
-                        else
-                        {
-                            return null;
-                        }
+
+                        return null;
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Executs a single Sql query against a specific database.
+        /// </summary>
+        /// <remarks>This function needs to be converted to common ACE functions, like prepared/constructed statements.</remarks>
+        public string ExecuteSqlQueryOrScript(string query, string databaseName, bool executeAsScript)
+        {
+            var result = "";
+            try
+            {
+                if (executeAsScript)
+                    RunScript(query, databaseName);
+                else
+                    RunQuery(query, databaseName);
+            }
+            catch (MySqlException ex)
+            {
+                var errMsg = "Error: ";
+                // get the number from the inner exception
+                if (ex.InnerException != null)
+                {
+                    var mySqlErrorNumber = GetExceptionNumber(ex);
+                    // create a short error message for the console log / label
+                    errMsg += $"{mySqlErrorNumber} : {ex.InnerException.Message}";
+                }
+                else
+                {
+                    errMsg += $"{ex.Message}";
+                }
+#if DEBUG
+                // long message to console
+                Console.WriteLine(errMsg);
+#endif
+                return errMsg;
+            }
+            catch (Exception e)
+            {
+                var errMsg = $"Error: {e.Message}";
+#if DEBUG
+                Console.WriteLine(errMsg);
+#endif
+                return errMsg;
+            }
+            return $"{result}";
+        }
+
+        /// <remarks>This function needs to be converted to common ACE functions.</remarks>
+        private void RunQuery(string query, string databaseName)
+        {
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (MySqlCommand command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = query;
+                MySqlDataReader reader = command.ExecuteReader();
+                connection.Close();
+            }
+        }
+
+        private void RunScript(string script, string databaseName)
+        {
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                MySqlScript query = new MySqlScript(connection, script);
+                query.Error += Query_Error;
+                query.ScriptCompleted += Query_ScriptCompleted;
+                query.StatementExecuted += Query_StatementExecuted;
+                query.Execute();
+                connection.Close();
+            }
+        }
+
+        private void Query_StatementExecuted(object sender, MySqlScriptEventArgs args)
+        {
+            Console.Write(".");
+        }
+
+        private void Query_ScriptCompleted(object sender, EventArgs e)
+        {
+            Console.WriteLine(".");
+            log.Info("Script has completed!");
+        }
+
+        private void Query_Error(object sender, MySqlScriptErrorEventArgs args)
+        {
+            Console.WriteLine(".");
+            log.Info($"Script encountered an error! {args.Exception.Message}");
+        }
+
+        /// <summary>
+        /// Attempts to Drop a database, with a name collected a Form Textbox.
+        /// </summary>
+        /// <remarks>This function must NOT set a database in the connection string.</remarks>
+        public string DropDatabase(string databaseName)
+        {
+            log.Debug($"Dropping database {databaseName}!!!");
+            var dbQuery = "DROP DATABASE IF EXISTS `" + databaseName + "`;";
+            var result = ExecuteSqlQueryOrScript(dbQuery, databaseName, false);
+            if (result.Length > 0 && result != "0")
+                return result;
+            return null;
+        }
+
+        /// <summary>
+        /// Attempts to create a database, with a name collected a Form Textbox.
+        /// </summary>
+        /// <remarks>This function must NOT set a database in the connection string.</remarks>
+        public string CreateDatabase(string databaseName)
+        {
+            log.Debug($"Creating database {databaseName}...");
+            var dbQuery = "CREATE DATABASE IF NOT EXISTS `" + databaseName + "` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;";
+            var result = ExecuteSqlQueryOrScript(dbQuery, "", false);
+            // Only show result strings
+            if (result.Length > 3)
+                return result;
+            return null;
+        }
+
+        /// <summary>
+        /// Returns inner MySql Exception number.
+        /// </summary>
+        public static int GetExceptionNumber(MySqlException my)
+        {
+            if (my != null)
+            {
+                int number = my.Number;
+                // if the number is zero, try to get the number of the inner exception
+                if (number == 0 && (my = my.InnerException as MySqlException) != null)
+                    number = my.Number;
+                return number;
+            }
+            return -1;
         }
     }
 }

@@ -1,42 +1,33 @@
-﻿using ACE.Entity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class AnimationFrame
+    public class AnimationFrame : IUnpackable
     {
-        public List<Position> Locations { get; set; } = new List<Position>();
-        public List<AnimationHook> Hooks { get; set; } = new List<AnimationHook>();
+        public List<Frame> Frames { get; } = new List<Frame>();
+        public List<AnimationHook> Hooks { get; } = new List<AnimationHook>();
 
-        public static AnimationFrame Read(uint numParts, DatReader datReader)
+        /// <summary>
+        /// You must use the Unpack(BinaryReader reader, int numParts) method.
+        /// </summary>
+        /// <exception cref="NotSupportedException">You must use the Unpack(BinaryReader reader, int numParts) method.</exception>
+        public void Unpack(BinaryReader reader)
         {
-            AnimationFrame a = new AnimationFrame();
+            throw new NotSupportedException();
+        }
 
-            for (uint i = 0; i < numParts; i++)
-            {
-                Position p = new Position();
-                // Origin
-                p.PositionX = datReader.ReadUInt32();
-                p.PositionY = datReader.ReadUInt32();
-                p.PositionZ = datReader.ReadUInt32();
-                p.RotationW = datReader.ReadUInt32();
-                p.RotationX = datReader.ReadUInt32();
-                p.RotationY = datReader.ReadUInt32();
-                p.RotationZ = datReader.ReadUInt32();
-                a.Locations.Add(p);
-            }
+        public void Unpack(BinaryReader reader, uint numParts)
+        {
+            Frames.Unpack(reader, numParts);
 
-            uint numHooks = datReader.ReadUInt32();
+            uint numHooks = reader.ReadUInt32();
             for (uint i = 0; i < numHooks; i++)
             {
-                a.Hooks.Add(AnimationHook.Read(datReader));
+                var hook = AnimationHook.ReadHook(reader);
+                Hooks.Add(hook);
             }
-
-            return a;
         }
     }
 }

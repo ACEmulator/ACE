@@ -1,107 +1,90 @@
-﻿using ACE.DatLoader.Entity;
-using ACE.Entity;
-using ACE.Entity.Enum;
+using System.IO;
+using System.Numerics;
 
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// These are client_portal.dat files starting with 0x32. 
     /// </summary>
-    public class ParticleEmitterInfo
+    [DatFileType(DatFileType.ParticleEmitter)]
+    public class ParticleEmitterInfo : FileType
     {
-        public uint Id { get; set; }
-        public EmitterType EmitterType { get; set; }
-        public ParticleType ParticleType { get; set; }
-        public uint GfxObjId { get; set; }
-        public uint HwGfxObjId { get; set; }
-        public double Birthrate { get; set; }
-        public int MaxParticles { get; set; }
-        public int InitialParticles { get; set; }
-        public int TotalParticles { get; set; }
-        public double TotalSeconds { get; set; }
-        public double LifespanRand { get; set; }
-        public double Lifespan { get; set; }
-        public uint SortingSphere { get; set; }
-        public Position OffsetDir { get; set; }
-        public float MinOffset { get; set; }
-        public float MaxOffset { get; set; }
-        public Position A { get; set; }
-        public Position B { get; set; }
-        public Position C { get; set; }
-        public float MinA { get; set; }
-        public float MaxA { get; set; }
-        public float MinB { get; set; }
-        public float MaxB { get; set; }
-        public float MinC { get; set; }
-        public float MaxC { get; set; }
-        public float ScaleRand { get; set; }
-        public float StartScale { get; set; }
-        public float FinalScale { get; set; }
-        public float TransRand { get; set; }
-        public float StartTrans { get; set; }
-        public float FinalTrans { get; set; }
+        public int EmitterType { get; private set; }
+        public int ParticleType { get; private set; }
+        public uint GfxObjId { get; private set; }
+        public uint HwGfxObjId { get; private set; }
+        public double Birthrate { get; private set; }
+        public int MaxParticles { get; private set; }
+        public int InitialParticles { get; private set; }
+        public int TotalParticles { get; private set; }
+        public double TotalSeconds { get; private set; }
+        public double LifespanRand { get; private set; }
+        public double Lifespan { get; private set; }
+        public uint SortingSphere { get; private set; }
+        public Vector3 OffsetDir { get; private set; }
+        public float MinOffset { get; private set; }
+        public float MaxOffset { get; private set; }
+        public Vector3 A { get; private set; }
+        public Vector3 B { get; private set; }
+        public Vector3 C { get; private set; }
+        public float MinA { get; private set; }
+        public float MaxA { get; private set; }
+        public float MinB { get; private set; }
+        public float MaxB { get; private set; }
+        public float MinC { get; private set; }
+        public float MaxC { get; private set; }
+        public float ScaleRand { get; private set; }
+        public float StartScale { get; private set; }
+        public float FinalScale { get; private set; }
+        public float TransRand { get; private set; }
+        public float StartTrans { get; private set; }
+        public float FinalTrans { get; private set; }
 
-        public static ParticleEmitterInfo ReadFromDat(uint fileId)
+        public override void Unpack(BinaryReader reader)
         {
-            // Check the FileCache so we don't need to hit the FileSystem repeatedly
-            if (DatManager.PortalDat.FileCache.ContainsKey(fileId))
-            {
-                return (ParticleEmitterInfo)DatManager.PortalDat.FileCache[fileId];
-            }
-            else
-            {
-                DatReader datReader = DatManager.PortalDat.GetReaderForFile(fileId);
-                ParticleEmitterInfo obj = new ParticleEmitterInfo();
+            Id = reader.ReadUInt32();
 
-                obj.Id = datReader.ReadUInt32();
+            /*uint unknown = */reader.ReadUInt32();
 
-                uint unknown = datReader.ReadUInt32();
+            EmitterType     = reader.ReadInt32();
+            ParticleType    = reader.ReadInt32();
 
-                obj.EmitterType = (EmitterType)datReader.ReadInt32();
-                obj.ParticleType = (ParticleType)datReader.ReadInt32();
+            GfxObjId    = reader.ReadUInt32();
+            HwGfxObjId  = reader.ReadUInt32();
 
-                obj.GfxObjId = datReader.ReadUInt32();
-                obj.HwGfxObjId = datReader.ReadUInt32();
+            Birthrate   = reader.ReadDouble();
 
-                obj.Birthrate = datReader.ReadDouble();
+            MaxParticles        = reader.ReadInt32();
+            InitialParticles    = reader.ReadInt32();
+            TotalParticles      = reader.ReadInt32();
 
-                obj.MaxParticles = datReader.ReadInt32();
-                obj.InitialParticles = datReader.ReadInt32();
-                obj.TotalParticles = datReader.ReadInt32();
+            TotalSeconds    = reader.ReadDouble();
+            LifespanRand    = reader.ReadDouble();
+            Lifespan        = reader.ReadDouble();
 
-                obj.TotalSeconds = datReader.ReadDouble();
-                obj.LifespanRand = datReader.ReadDouble();
-                obj.Lifespan = datReader.ReadDouble();
+            SortingSphere = reader.ReadUInt32();
 
-                obj.SortingSphere = datReader.ReadUInt32();
+            OffsetDir = reader.ReadVector3();
+            MinOffset = reader.ReadSingle();
+            MaxOffset = reader.ReadSingle();
 
-                obj.OffsetDir = PositionExtensions.ReadPositionFrame(datReader);
-                obj.MinOffset = datReader.ReadSingle();
-                obj.MaxOffset = datReader.ReadSingle();
+            A = reader.ReadVector3();
+            B = reader.ReadVector3();
+            C = reader.ReadVector3();
 
-                obj.A = PositionExtensions.ReadPositionFrame(datReader);
-                obj.B = PositionExtensions.ReadPositionFrame(datReader);
-                obj.C = PositionExtensions.ReadPositionFrame(datReader);
+            MinA = reader.ReadSingle();
+            MaxA = reader.ReadSingle();
+            MinB = reader.ReadSingle();
+            MaxB = reader.ReadSingle();
+            MinC = reader.ReadSingle();
+            MaxC = reader.ReadSingle();
 
-                obj.MinA = datReader.ReadSingle();
-                obj.MaxA = datReader.ReadSingle();
-                obj.MinB = datReader.ReadSingle();
-                obj.MaxB = datReader.ReadSingle();
-                obj.MinC = datReader.ReadSingle();
-                obj.MaxC = datReader.ReadSingle();
-
-                obj.ScaleRand = datReader.ReadSingle();
-                obj.StartScale = datReader.ReadSingle();
-                obj.FinalScale = datReader.ReadSingle();
-                obj.TransRand = datReader.ReadSingle();
-                obj.StartTrans = datReader.ReadSingle();
-                obj.FinalTrans = datReader.ReadSingle();
-
-                // Store this object in the FileCache
-                DatManager.PortalDat.FileCache[fileId] = obj;
-
-                return obj;
-            }
+            ScaleRand   = reader.ReadSingle();
+            StartScale  = reader.ReadSingle();
+            FinalScale  = reader.ReadSingle();
+            TransRand   = reader.ReadSingle();
+            StartTrans  = reader.ReadSingle();
+            FinalTrans  = reader.ReadSingle();
         }
     }
 }

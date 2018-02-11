@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class GearCG
+    public class GearCG : IUnpackable
     {
-        public string Name { get; set; }
-        public uint ClothingTable { get; set; }
-        public uint WeenieDefault { get; set; }
+        public string Name { get; private set; }
+        public uint ClothingTable { get; private set; }
+        public uint WeenieDefault { get; private set; }
+
+        public void Unpack(BinaryReader reader)
+        {
+            Name            = reader.ReadString();
+            ClothingTable   = reader.ReadUInt32();
+            WeenieDefault   = reader.ReadUInt32();
+        }
     }
 }

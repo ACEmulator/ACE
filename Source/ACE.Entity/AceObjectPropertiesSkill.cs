@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common;
 using ACE.Entity.Enum;
 using MySql.Data.MySqlClient;
@@ -10,9 +10,9 @@ namespace ACE.Entity
     [DbTable("ace_object_properties_skill")]
     public class AceObjectPropertiesSkill : BaseAceProperty, ICloneable
     {
-        private uint _xpSpent = 0;
-        private ushort _skillPoints = 0;
-        private ushort _skillStatus = 0;
+        private uint _xpSpent;
+        private ushort _skillPoints;
+        private ushort _skillStatus;
 
         [JsonIgnore]
         [DbField("skillId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -15,10 +15,10 @@ namespace ACE.Common.Cryptography
         public static string Hash(SHA2Type type, string data)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(data);
-            byte[] digest;
 
             try
             {
+                byte[] digest;
                 switch (type)
                 {
                     case SHA2Type.SHA256:

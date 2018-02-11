@@ -1,101 +1,148 @@
-﻿using ACE.DatLoader.Entity.AnimationHooks;
+using System;
+using System.IO;
+
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
-    public class AnimationHook
+    public class AnimationHook : IUnpackable
     {
-        public AnimationHookType HookType { get; set; }
-        public uint Direction { get; set; }
-        private IHook _hook = null;
-        public IHook Hook { get { return _hook; } private set { _hook = value; } }
+        public AnimationHookType HookType { get; private set; }
+        public uint Direction { get; private set; }
 
-        public static AnimationHook Read(DatReader datReader)
+        /// <summary>
+        /// WARNING: If you're reading a hook from the dat, you should use AnimationHook.ReadHook(reader).
+        /// If you read a hook from the dat using this function, it is likely you will not read all the data correctly.
+        /// </summary>
+        /// <param name="reader"></param>
+        public virtual void Unpack(BinaryReader reader)
         {
-            AnimationHook h = new AnimationHook();
+            HookType    = (AnimationHookType)reader.ReadUInt32();
+            Direction   = reader.ReadUInt32();
+        }
 
-            h.HookType = (AnimationHookType)datReader.ReadUInt32();
-            h.Direction = datReader.ReadUInt32();
+        public static AnimationHook ReadHook(BinaryReader reader)
+        {
+            // We peek forward to get the hook type, then revert our position.
+            var hookType = (AnimationHookType)reader.ReadUInt32();
+            reader.BaseStream.Position -= 4;
 
-            // The following HookTypes have no additional properties:
-            // AnimationHookType.AnimationDone
-            // AnimationHookType.DefaultScript
-            // CreateBlockingParticle
+            AnimationHook hook;
 
-            switch (h.HookType)
+            switch (hookType)
             {
                 case AnimationHookType.Sound:
-                    h._hook = SoundHook.ReadHookType(datReader);
+                    hook = new SoundHook();
                     break;
+
                 case AnimationHookType.SoundTable:
-                    h._hook = SoundTableHook.ReadHookType(datReader);
+                    hook = new SoundTableHook();
                     break;
+
                 case AnimationHookType.Attack:
-                    h._hook = AttackHook.ReadHookType(datReader);
+                    hook = new AttackHook();
                     break;
+
                 case AnimationHookType.ReplaceObject:
-                    h._hook = ReplaceObjectHook.ReadHookType(datReader);
+                    hook = new ReplaceObjectHook();
                     break;
+
                 case AnimationHookType.Ethereal:
-                    h._hook = EtherealHook.ReadHookType(datReader);
+                    hook = new EtherealHook();
                     break;
+
                 case AnimationHookType.TransparentPart:
-                    h._hook = TransparentPartHook.ReadHookType(datReader);
+                    hook = new TransparentPartHook();
                     break;
+
                 case AnimationHookType.Luminous:
-                    h._hook = LuminousHook.ReadHookType(datReader);
+                    hook = new LuminousHook();
                     break;
+
                 case AnimationHookType.LuminousPart:
-                    h._hook = LuminousPartHook.ReadHookType(datReader);
+                    hook = new LuminousPartHook();
                     break;
+
                 case AnimationHookType.Diffuse:
-                    h._hook = DiffuseHook.ReadHookType(datReader);
+                    hook = new DiffuseHook();
                     break;
+
                 case AnimationHookType.DiffusePart:
-                    h._hook = DiffusePartHook.ReadHookType(datReader);
+                    hook = new DiffusePartHook();
                     break;
+
                 case AnimationHookType.Scale:
-                    h._hook = ScaleHook.ReadHookType(datReader);
+                    hook = new ScaleHook();
                     break;
+
                 case AnimationHookType.CreateParticle:
-                    h._hook = CreateParticleHook.ReadHookType(datReader);
+                    hook = new CreateParticleHook();
                     break;
+
                 case AnimationHookType.DestroyParticle:
-                    h._hook = DestroyParticleHook.ReadHookType(datReader);
+                    hook = new DestroyParticleHook();
                     break;
+
                 case AnimationHookType.StopParticle:
-                    h._hook = StopParticleHook.ReadHookType(datReader);
+                    hook = new StopParticleHook();
                     break;
+
                 case AnimationHookType.NoDraw:
-                    h._hook = NoDrawHook.ReadHookType(datReader);
+                    hook = new NoDrawHook();
                     break;
+
                 case AnimationHookType.DefaultScriptPart:
-                    h._hook = DefaultScriptPartHook.ReadHookType(datReader);
+                    hook = new DefaultScriptPartHook();
                     break;
+
                 case AnimationHookType.CallPES:
-                    h._hook = CallPESHook.ReadHookType(datReader);
+                    hook = new CallPESHook();
                     break;
+
                 case AnimationHookType.Transparent:
-                    h._hook = TransparentHook.ReadHookType(datReader);
+                    hook = new TransparentHook();
                     break;
+
                 case AnimationHookType.SoundTweaked:
-                    h._hook = SoundTweakedHook.ReadHookType(datReader);
+                    hook = new SoundTweakedHook();
                     break;
+
                 case AnimationHookType.SetOmega:
-                    h._hook = SetOmegaHook.ReadHookType(datReader);
+                    hook = new SetOmegaHook();
                     break;
+
                 case AnimationHookType.TextureVelocity:
-                    h._hook = TextureVelocityHook.ReadHookType(datReader);
+                    hook = new TextureVelocityHook();
                     break;
+
                 case AnimationHookType.TextureVelocityPart:
-                    h._hook = TextureVelocityPartHook.ReadHookType(datReader);
+                    hook = new TextureVelocityPartHook();
                     break;
+
                 case AnimationHookType.SetLight:
-                    h._hook = SetLightHook.ReadHookType(datReader);
+                    hook = new SetLightHook();
                     break;
+
+                case AnimationHookType.CreateBlockingParticle:
+                    hook = new CreateBlockingParticle();
+                    break;
+
+                // The following HookTypes have no additional properties:
+                // AnimationHookType.AnimationDone
+                // AnimationHookType.DefaultScript
+                case AnimationHookType.AnimationDone:
+                case AnimationHookType.DefaultScript:
+                    hook = new AnimationHook();
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Hook type: {hookType}");
             }
 
-            return h;
+            hook.Unpack(reader);
+
+            return hook;
         }
     }
 }

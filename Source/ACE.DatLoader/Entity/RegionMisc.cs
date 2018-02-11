@@ -1,32 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace ACE.DatLoader.Entity
 {
-    public class RegionMisc
+    public class RegionMisc : IUnpackable
     {
-        public uint Version { get; set; }
-        public uint GameMapID { get; set; }
-        public uint AutotestMapId { get; set; }
-        public uint AutotestMapSize { get; set; }
-        public uint ClearCellId { get; set; }
-        public uint ClearMonsterId { get; set; }
+        public uint Version { get; private set; }
+        public uint GameMapID { get; private set; }
+        public uint AutotestMapId { get; private set; }
+        public uint AutotestMapSize { get; private set; }
+        public uint ClearCellId { get; private set; }
+        public uint ClearMonsterId { get; private set; }
 
-        public static RegionMisc Read(DatReader datReader)
+        public void Unpack(BinaryReader reader)
         {
-            RegionMisc obj = new RegionMisc();
-
-            obj.Version = datReader.ReadUInt32();
-            obj.GameMapID = datReader.ReadUInt32();
-            obj.AutotestMapId = datReader.ReadUInt32();
-            obj.AutotestMapSize = datReader.ReadUInt32();
-            obj.ClearCellId = datReader.ReadUInt32();
-            obj.ClearMonsterId = datReader.ReadUInt32();
-
-            return obj;
+            Version         = reader.ReadUInt32();
+            GameMapID       = reader.ReadUInt32();
+            AutotestMapId   = reader.ReadUInt32();
+            AutotestMapSize = reader.ReadUInt32();
+            ClearCellId     = reader.ReadUInt32();
+            ClearMonsterId  = reader.ReadUInt32();
         }
     }
 }

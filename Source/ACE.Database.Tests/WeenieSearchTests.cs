@@ -1,14 +1,12 @@
-﻿using ACE.Common;
+using System;
+using System.IO;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ACE.Database.Tests
 {
@@ -21,7 +19,7 @@ namespace ACE.Database.Tests
         public static void TestSetup(TestContext context)
         {
             // copy config.json
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\ACE\\Config.json"), ".\\Config.json", true);
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.json"), ".\\Config.json", true);
 
             ConfigManager.Initialize();
             worldDb = new WorldDatabase();
@@ -32,7 +30,7 @@ namespace ACE.Database.Tests
                           ConfigManager.Config.MySql.World.Database);
         }
 
-        [TestMethod]
+        // [TestMethod]
         public void WeenieSearch_NullCriteria_ReturnsLotsOfWeenies()
         {
             var results = worldDb.SearchWeenies(null);
@@ -48,15 +46,6 @@ namespace ACE.Database.Tests
             var results = worldDb.SearchWeenies(criteria);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.Count > 0);
-        }
-
-        [TestMethod]
-        public void WeenieSearch_ByContent_DoesntExplode()
-        {
-            SearchWeeniesCriteria criteria = new SearchWeeniesCriteria();
-            criteria.ContentGuid = Guid.NewGuid();
-            var results = worldDb.SearchWeenies(criteria);
-            Assert.IsNotNull(results);
         }
 
         [TestMethod]
@@ -103,6 +92,34 @@ namespace ACE.Database.Tests
             var results = worldDb.SearchWeenies(criteria);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.Count > 0, "no Peerless Healing Kit in the database is bad.");
+        }
+
+        [TestMethod]
+        public void GetAndSaveWeenie_ById_DoesNotThrow()
+        {
+            var mote = worldDb.GetObject(6353);
+
+            mote.IsDirty = true;
+
+            worldDb.SaveObject(mote);
+        }
+
+        [TestMethod]
+        public void GetWeenie_Pyreal_ById_ReturnsObject()
+        {
+            var results = worldDb.GetAceObjectByWeenie(273);
+
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.Name == "Pyreal");
+        }
+
+        [TestMethod]
+        public void GetWeenie_Pyreal_ByName_ReturnsObject()
+        {
+            var results = worldDb.GetAceObjectByWeenie("coinstack");
+
+            Assert.IsNotNull(results);
+            Assert.IsTrue(results.Name == "Pyreal");
         }
     }
 }
