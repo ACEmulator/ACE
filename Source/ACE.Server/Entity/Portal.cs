@@ -276,13 +276,13 @@ namespace ACE.Server.Entity
                 else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
                 {
                     // You are too powerful to interact with that portal!
-                    var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AC);
+                    var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouAreTooPowerfulToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
                 }
                 else
                 {
                     // You are not powerful enough to interact with that portal!
-                    var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_04AB);
+                    var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouAreNotPowerfulEnoughToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
                 }
             }
