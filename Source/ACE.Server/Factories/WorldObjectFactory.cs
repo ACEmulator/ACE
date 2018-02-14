@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -14,51 +15,52 @@ namespace ACE.Server.Factories
     {
         /// <summary>
         /// This will create a WorldObject without generating a new GUID.
+        /// If biota is null, one will be created with default values for this WorldObject type.
         /// </summary>
-        public static WorldObject CreateWorldObject(Weenie weenie)
+        public static WorldObject CreateWorldObject(Weenie weenie, Biota biota = null)
         {
             var objWeenieType = (WeenieType)weenie.Type;
 
             switch (objWeenieType)
             {
                 case WeenieType.LifeStone:
-                    return new Lifestone(weenie);
+                    return new Lifestone(weenie, biota);
                 case WeenieType.Door:
-                    return new Door(weenie);
+                    return new Door(weenie, biota);
                 case WeenieType.Portal:
-                    return new Portal(weenie);
+                    return new Portal(weenie, biota);
                 case WeenieType.Book:
-                    return new Book(weenie);
+                    return new Book(weenie, biota);
                 // case WeenieType.PKModifier:
-                //    return new PKModifier(weenie);
+                //    return new PKModifier(weenie, biota);
                 case WeenieType.Cow:
-                    return new Cow(weenie);
+                    return new Cow(weenie, biota);
                 case WeenieType.Creature:
-                    return new Creature(weenie);
+                    return new Creature(weenie, biota);
                 case WeenieType.Container:
-                    return new Container(weenie);
+                    return new Container(weenie, biota);
                 case WeenieType.Scroll:
-                    return new Scroll(weenie);
+                    return new Scroll(weenie, biota);
                 case WeenieType.Vendor:
-                    return new Vendor(weenie);
+                    return new Vendor(weenie, biota);
                 case WeenieType.Coin:
-                    return new Coin(weenie);
+                    return new Coin(weenie, biota);
                 case WeenieType.Key:
-                    return new Key(weenie);
+                    return new Key(weenie, biota);
                 case WeenieType.Food:
-                    return new Food(weenie);
+                    return new Food(weenie, biota);
                 case WeenieType.Gem:
-                    return new Gem(weenie);
+                    return new Gem(weenie, biota);
                 case WeenieType.Game:
-                    return new Game(weenie);
+                    return new Game(weenie, biota);
                 case WeenieType.GamePiece:
-                    return new GamePiece(weenie);
+                    return new GamePiece(weenie, biota);
                 case WeenieType.AllegianceBindstone:
-                    return new Bindstone(weenie);
+                    return new Bindstone(weenie, biota);
                 case WeenieType.Clothing:
-                    return new Clothing(weenie);
+                    return new Clothing(weenie, biota);
                 default:
-                    return new GenericObject(weenie);
+                    return new GenericObject(weenie, biota);
             }
         }
 
