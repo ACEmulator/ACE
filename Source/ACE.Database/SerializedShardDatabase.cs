@@ -95,6 +95,10 @@ namespace ACE.Database
             }));
         }
 
+        /// <summary>
+        /// Will return a biota from the db with tracking enabled.
+        /// This will populate all sub collections except the followign: BiotaPropertiesEmoteAction
+        /// </summary>
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
@@ -175,7 +179,6 @@ namespace ACE.Database
             }));
         }
 
-
         public void GetObjectInfoByName(string name, Action<ObjectInfo> callback)
         {
             _queue.Add(new Task(() =>
@@ -185,7 +188,6 @@ namespace ACE.Database
                     callback.Invoke(result);
             }));
         }
-
 
 
         public void RemoveAllFriends(uint characterId, Action callback)

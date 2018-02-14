@@ -5,7 +5,7 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class Monster : Creature
     {
-        public Monster(Weenie weenie) : base(weenie)
+        public Monster(Weenie weenie) : base(weenie, null)
         {
             Guid = GuidManager.NewDynamicGuid();
             IsAlive = true;

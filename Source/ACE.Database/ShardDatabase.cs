@@ -103,11 +103,11 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.BiotaPropertiesString
+                var result = context.BiotaPropertiesString
                     .AsNoTracking()
-                    .Where(r => r.Type == (ushort)PropertyString.Name && r.Value == name);
+                    .FirstOrDefault(r => r.Type == (ushort)PropertyString.Name && r.Value == name);
 
-                return !results.Any();
+                return result == null;
             }
         }
 
@@ -130,16 +130,41 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// Will return a biota from the db with tracking enabled.
+        /// This will populate all sub collections except the followign: BiotaPropertiesEmoteAction
+        /// </summary>
         public Biota GetBiota(uint id)
         {
             using (var context = new ShardDbContext())
             {
                 var result = context.Biota
-                    .AsNoTracking()
+                    .Include(r => r.BiotaPropertiesAnimPart)
+                    .Include(r => r.BiotaPropertiesAttribute)
+                    .Include(r => r.BiotaPropertiesAttribute2nd)
+                    .Include(r => r.BiotaPropertiesBodyPart)
+                    .Include(r => r.BiotaPropertiesBookPageData)
+                    .Include(r => r.BiotaPropertiesBool)
+                    .Include(r => r.BiotaPropertiesContract)
+                    .Include(r => r.BiotaPropertiesCreateList)
+                    .Include(r => r.BiotaPropertiesDID)
+                    .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
+                    //.Include(r => r.BiotaPropertiesEmoteAction)  // Reference BiotaPropertiesEmoteAction from the BiotaPropertiesEmote object
+                    .Include(r => r.BiotaPropertiesEventFilter)
+                    .Include(r => r.BiotaPropertiesFloat)
+                    .Include(r => r.BiotaPropertiesFriendListFriend)
+                    .Include(r => r.BiotaPropertiesFriendListObject)
+                    .Include(r => r.BiotaPropertiesGenerator)
+                    .Include(r => r.BiotaPropertiesIID)
+                    .Include(r => r.BiotaPropertiesInt)
+                    .Include(r => r.BiotaPropertiesInt64)
+                    .Include(r => r.BiotaPropertiesPalette)
+                    .Include(r => r.BiotaPropertiesPosition)
+                    .Include(r => r.BiotaPropertiesSkill)
+                    .Include(r => r.BiotaPropertiesSpellBook)
+                    .Include(r => r.BiotaPropertiesString)
+                    .Include(r => r.BiotaPropertiesTextureMap)
                     .FirstOrDefault(r => r.Id == id);
-
-                // load common stuff here
-                //LoadIntoObject(character);
 
                 return result;
             }
@@ -227,9 +252,7 @@ namespace ACE.Database
 
             return true;
         }
-        
 
-        
         protected override void LoadIntoObject(AceObject aceObject)
         {
             base.LoadIntoObject(aceObject);

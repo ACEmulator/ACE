@@ -21,56 +21,13 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Container(Weenie weenie, Biota biota) : base(weenie, biota)
-        {
-
-        }
-
-
-        /// <summary>
-        /// Use EquipObject() and DequipObject() to manipulate this dictionary..
-        /// </summary>
-        public Dictionary<ObjectGuid, WorldObject> EquippedObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
-
-        /// <summary>
-        /// This will set the wielder property on worldObject to this guid, and will add it to the EquippedObjects dictionary.
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public void EquipObject(WorldObject worldObject)
-        {
-            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
-            EquippedObjects[worldObject.Guid] = worldObject;
-        }
-
-        /// <summary>
-        /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public void DequipObject(WorldObject worldObject)
-        {
-            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
-            EquippedObjects.Remove(worldObject.Guid);
-        }
-
-
-        public Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
-
-
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-
         /// <summary>
         /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
         /// </summary>
-        public Container(Weenie weenie) : base(weenie)
+        public Container(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
+            return;
+
             CoinValue = 0;
             log.Debug($"{weenie.GetProperty(PropertyString.Name)} CoinValue initialized to {CoinValue}");
 
@@ -112,6 +69,54 @@ namespace ACE.Server.Entity.WorldObjects
             }
         }
 
+
+        /// <summary>
+        /// Use EquipObject() and DequipObject() to manipulate this dictionary..
+        /// </summary>
+        public Dictionary<ObjectGuid, WorldObject> EquippedObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
+
+        /// <summary>
+        /// This will set the wielder property on worldObject to this guid, and will add it to the EquippedObjects dictionary.
+        /// </summary>
+        /// <param name="worldObject"></param>
+        public void EquipObject(WorldObject worldObject)
+        {
+            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
+            EquippedObjects[worldObject.Guid] = worldObject;
+        }
+
+        /// <summary>
+        /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
+        /// </summary>
+        /// <param name="worldObject"></param>
+        public void DequipObject(WorldObject worldObject)
+        {
+            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
+            EquippedObjects.Remove(worldObject.Guid);
+        }
+
+
+        public Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
+
+
+
+
+
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        
         private int coinValue;
         public override int? CoinValue
         {

@@ -24,16 +24,11 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Creature(Weenie weenie, Biota biota) : base(weenie, biota)
+        public Creature(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
 
-        }
-
-        public Creature(Weenie weenie) : base(weenie)
-        {
-            Stuck = true;
-            Attackable = true;
-            
             SetObjectDescriptionBools();
         }
 

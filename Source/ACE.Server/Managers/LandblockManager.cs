@@ -13,6 +13,7 @@ using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Managers
 {
@@ -45,13 +46,12 @@ namespace ACE.Server.Managers
 
                 // check the value of the welcome message. Only display it if it is not empty
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-                {
                     session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-                }
-                /* todo fix
-                Landblock block = GetLandblock(character.Location.LandblockId, true);
+
+                var location = biota.GetPosition(PositionType.Location);
+                Landblock block = GetLandblock(location.LandblockId, true);
                 // Must enqueue add world object -- this is called from a message handler context
-                block.AddWorldObject(session.Player);*/
+                block.AddWorldObject(session.Player);
 
                 string welcomeMsg = "Welcome to Asheron's Call" + "\n";
                 welcomeMsg += "  powered by ACEmulator  " + "\n";
