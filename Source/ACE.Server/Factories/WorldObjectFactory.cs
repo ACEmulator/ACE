@@ -76,11 +76,9 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateNewWorldObject(Weenie weenie)
         {
-            var guid = GuidManager.NewDynamicGuid();
-
             var worldObject = CreateWorldObject(weenie);
 
-            worldObject.Guid = guid;
+            worldObject.Guid = GuidManager.NewDynamicGuid();
 
             return worldObject;
         }
@@ -117,7 +115,8 @@ namespace ACE.Server.Factories
 
 
 
-        // DO WE NEED TO INCORP THIS CODE INTO THE NEW ENTITY FRAMEWORK MODEL?
+        // todo DO WE NEED TO INCORP THIS CODE INTO THE NEW ENTITY FRAMEWORK MODEL?
+        // I'm not sure aobut the Link stuff
         private static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
         {
             throw new System.NotImplementedException();

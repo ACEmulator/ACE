@@ -48,8 +48,8 @@ namespace ACE.Server.Entity
         public Weenie Weenie { get; }
 
         /// <summary>
-        /// This is object property overrides that should have come from the shard db.
-        /// You should not manipulate these values directly. Manipulate this WorldObjects exposed SetProperty functions instead.
+        /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
+        /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
         /// </summary>
         public Biota Biota { get; }
 
@@ -63,17 +63,22 @@ namespace ACE.Server.Entity
             set => Biota.Id = value.Full;
         }
 
-        public UpdatePositionFlag PositionFlag { get; set; }
+        public SequenceManager Sequences { get; } = new SequenceManager();
+
+        public UpdatePositionFlag PositionFlag { get; protected set; }
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
         protected WorldObject(Weenie weenie, Biota biota = null)
         {
             Weenie = weenie;
 
             Biota = biota;
 
-            if (Biota == null)
+            if (Biota == null) // If no biota was passed our base (THATS US!) will instantiate one, and we will initialize it with appropriate default values
             {
                 Biota = new Biota();
 
@@ -81,9 +86,6 @@ namespace ACE.Server.Entity
                 Biota.WeenieType = weenie.Type;
             }
 
-            return;
-
-            Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
@@ -118,20 +120,7 @@ namespace ACE.Server.Entity
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
 
-            #region ACE-World initalizing.. to be removed later
-            ////RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
-
-            ////RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
-
-            ////if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
-            ////    CurrentMotionState = null;
-            ////else
-            ////    CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            ////aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
-            ////aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
-            ////aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            #endregion
+            return;
 
             SetPhysicsStateBools();
 
@@ -149,6 +138,7 @@ namespace ACE.Server.Entity
             GenerateWieldList();
         }
 
+        // We try to get from the biota first, then the weenie.
         public bool? GetProperty(PropertyBool property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
         public uint? GetProperty(PropertyDataId property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
         public double? GetProperty(PropertyDouble property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
@@ -157,14 +147,16 @@ namespace ACE.Server.Entity
         public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
         public string GetProperty(PropertyString property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
 
-        public void SetProperty(PropertyBool property, bool value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyDataId property, uint value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyDouble property, double value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInstanceId property, int value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInt property, int value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInt64 property, long value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyString property, string value) { Biota.SetProperty(property, value); }
+        // When we try to set a property, if we're setting the default of the weenie we'll just remove the value from the biota.
+        public void SetProperty(PropertyBool property, bool value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDataId property, uint value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDouble property, double value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInstanceId property, int value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt property, int value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt64 property, long value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyString property, string value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
 
+        // We only remove from the biota.
         public void RemoveProperty(PropertyBool property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyDataId property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyDouble property) { Biota.RemoveProperty(property); }
@@ -172,6 +164,58 @@ namespace ACE.Server.Entity
         public void RemoveProperty(PropertyInt property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyInt64 property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyString property) { Biota.RemoveProperty(property); }
+
+        // When we get all properties, we first get the properties from the weenie, then we get the overrides from the biota.
+        public Dictionary<PropertyBool, bool> GetAllPropertyBools()
+        {
+            var results = new Dictionary<PropertyBool, bool>();
+
+            foreach (var property in Weenie.WeeniePropertiesBool)
+                results[(PropertyBool)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesBool)
+                results[(PropertyBool)property.Type] = property.Value;
+
+            return results;
+        }
+
+        public Dictionary<PropertyDataId, uint> GetAllPropertyDataIds()
+        {
+            var results = new Dictionary<PropertyDataId, uint>();
+
+            foreach (var property in Weenie.WeeniePropertiesDID)
+                results[(PropertyDataId)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesDID)
+                results[(PropertyDataId)property.Type] = property.Value;
+
+            return results;
+        }
+
+        // PropertyDouble
+
+        // PropertyInstanceId
+
+        public Dictionary<PropertyInt, int> GetAllPropertyInt()
+        {
+            var results = new Dictionary<PropertyInt, int>();
+
+            foreach (var property in Weenie.WeeniePropertiesInt)
+                results[(PropertyInt)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesInt)
+                results[(PropertyInt)property.Type] = property.Value;
+
+            return results;
+        }
+
+        // PropertyInt64
+
+        // PropertyString
+
+
+
+
 
 
 
@@ -1627,7 +1671,6 @@ namespace ACE.Server.Entity
             set { AceObject.CoinValue = value; }
         }
 
-        public SequenceManager Sequences { get; }
 
         internal void SetInventoryForVendor(WorldObject inventoryItem)
         {

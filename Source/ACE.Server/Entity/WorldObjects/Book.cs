@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Server.Network;
@@ -11,15 +12,23 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public sealed class Book : WorldObject
     {
-        public Book(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Book(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Book = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            Pages = PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
-            MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
+                Book = true;
+                Attackable = true;
+
+                SetObjectDescriptionBools();
+
+                Pages = PropertiesBook.Count; // Set correct Page Count for appraisal based on data actually in database.
+                MaxPages = MaxPages ?? 1; // If null, set MaxPages to 1.
+            }
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc

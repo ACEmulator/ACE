@@ -22,10 +22,16 @@ namespace ACE.Server.Entity.WorldObjects
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
         /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
         /// </summary>
         public Container(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            }
+
             return;
 
             CoinValue = 0;

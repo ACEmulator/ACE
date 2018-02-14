@@ -53,12 +53,12 @@ namespace ACE.Server.Network.GameEvent.Events
 
         private void WriteEventBody()
         {
-            List<Friend> friendList = null;
+            List<Friend> friendList;
 
-            if (updateType == FriendsUpdateTypeFlag.FullList)
+            /* todo fix for not use aceobj if (updateType == FriendsUpdateTypeFlag.FullList)
                 friendList = Session.Player.Friends.ToList();
-            else
-                friendList = new List<Friend>() { friend };
+            else*/
+                friendList = new List<Friend>();
 
             Writer.Write((uint)friendList.Count);
 

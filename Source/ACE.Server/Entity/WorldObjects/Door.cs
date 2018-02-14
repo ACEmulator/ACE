@@ -36,50 +36,58 @@ namespace ACE.Server.Entity.WorldObjects
         private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
-        public Door(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Door(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Door = true;
-            Stuck = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
-
-            // This likely will change to be based on reading a dat file to determine if this exists...
-            HasPhysicsBsp = true;
-
-            if (!DefaultOpen)
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
             {
-                CurrentMotionState = motionStateClosed;
-                IsOpen = false;
-                Ethereal = false;
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+                Door = true;
+                Stuck = true;
+                Attackable = true;
+
+                SetObjectDescriptionBools();
+
+                // This likely will change to be based on reading a dat file to determine if this exists...
+                HasPhysicsBsp = true;
+
+                if (!DefaultOpen)
+                {
+                    CurrentMotionState = motionStateClosed;
+                    IsOpen = false;
+                    Ethereal = false;
+                }
+                else
+                {
+                    CurrentMotionState = motionStateOpen;
+                    IsOpen = true;
+                    Ethereal = true;
+                }
+
+                IsLocked = AceObject.Locked ?? false;
+                ResetInterval = AceObject.ResetInterval ?? 30.0f;
+                ResistLockpick = AceObject.ResistLockpick ?? 0;
+                LockCode = AceObject.LockCode ?? "";
+
+                // If we had the base weenies this would be the way to go
+                ////if (DefaultLocked)
+                ////    IsLocked = true;
+                ////else
+                ////    IsLocked = false;
+
+                // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
+                if (IsLocked)
+                    DefaultLocked = true;
+
+                movementOpen.ForwardCommand = (uint) MotionCommand.On;
+                movementClosed.ForwardCommand = (uint) MotionCommand.Off;
+
+                if (UseRadius < 2)
+                    UseRadius = 2;
             }
-            else
-            {
-                CurrentMotionState = motionStateOpen;
-                IsOpen = true;
-                Ethereal = true;
-            }
-
-            IsLocked = AceObject.Locked ?? false;
-            ResetInterval = AceObject.ResetInterval ?? 30.0f;
-            ResistLockpick = AceObject.ResistLockpick ?? 0;
-            LockCode = AceObject.LockCode ?? "";
-
-            // If we had the base weenies this would be the way to go
-            ////if (DefaultLocked)
-            ////    IsLocked = true;
-            ////else
-            ////    IsLocked = false;
-
-            // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
-            if (IsLocked)
-                DefaultLocked = true;
-
-            movementOpen.ForwardCommand = (uint)MotionCommand.On;
-            movementClosed.ForwardCommand = (uint)MotionCommand.Off;
-
-            if (UseRadius < 2)
-                UseRadius = 2;
         }
 
         private bool IsOpen

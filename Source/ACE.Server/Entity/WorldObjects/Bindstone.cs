@@ -5,8 +5,13 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class Bindstone : WorldObject
     {
-        public Bindstone(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Bindstone(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
+            // TODO we shouldn't be auto setting properties that come from our weenie by default
+
             Stuck = true;
             Attackable = true;
 

@@ -13,15 +13,23 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private bool active;
 
-        public Game(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Game(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Stuck = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            // Setup game variables...
-            // TODO: so much more than what's here now.
+                Stuck = true;
+                Attackable = true;
+
+                SetObjectDescriptionBools();
+
+                // Setup game variables...
+                // TODO: so much more than what's here now.
+            }
         }
 
         public override void ActOnUse(ObjectGuid playerId)

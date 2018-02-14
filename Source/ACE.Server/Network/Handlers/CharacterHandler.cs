@@ -155,19 +155,16 @@ namespace ACE.Server.Network.Handlers
 
             var weenie = DatabaseManager.World.GetCachedWeenie(1);
 
-            var biota = new Biota();
-            biota.Id = guid.Full;
-            biota.WeenieClassId = weenie.ClassId;
-            biota.WeenieType = weenie.Type;
+            var player = new Player(weenie, null, session);
 
-            var player = new Player(weenie, biota, session);
+            player.Guid = guid;
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, cg.HeritageGroups[characterCreateInfo.Heritage].Name);
             player.SetProperty(PropertyInt.Gender, (int)characterCreateInfo.Gender);
             player.SetProperty(PropertyString.Sex, characterCreateInfo.Gender == 1 ? "Male" : "Female");
 
-            // character.IconId = cg.HeritageGroups[(int)character.Heritage].IconImage;
+            player.SetProperty(PropertyDataId.Icon, cg.HeritageGroups[characterCreateInfo.Heritage].IconImage); // I don't believe this is used anywhere in the client, but it might be used by a future custom launcher
 
             // pull character data from the dat file
             var sex = cg.HeritageGroups[characterCreateInfo.Heritage].Genders[(int)characterCreateInfo.Gender];
@@ -397,7 +394,7 @@ namespace ACE.Server.Network.Handlers
             player.SetProperty(PropertyBool.IsAdmin, characterCreateInfo.IsAdmin);
             player.SetProperty(PropertyBool.IsSentinel, characterCreateInfo.IsEnvoy);
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, ((bool isAvailable) =>
+            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
             {
                 if (!isAvailable)
                 {
@@ -411,21 +408,19 @@ namespace ACE.Server.Network.Handlers
                 CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddBiota(player.Biota, ((bool saveSuccess) =>
+                DatabaseManager.Shard.AddBiota(player.Biota, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {
                         SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
                         return;
                     }
-                    // DatabaseManager.Shard.SaveCharacterOptions(character);
-                    // DatabaseManager.Shard.InitCharacterPositions(character);
 
                     session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, characterCreateInfo.Name, 0));
 
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, characterCreateInfo.Name);
-                }));
-            }));
+                });
+            });
         }
 
         /// <summary>

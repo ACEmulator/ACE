@@ -1,3 +1,4 @@
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
@@ -7,22 +8,30 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class Food : WorldObject
     {
-        public Food(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Food(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Food = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            StackSize = (base.StackSize ?? 1);
+                Food = true;
+                Attackable = true;
 
-            if (StackSize == null)
-                StackSize = 1;
+                SetObjectDescriptionBools();
 
-            Boost = (base.Boost ?? 0);
+                StackSize = (base.StackSize ?? 1);
 
-            if (BoostEnum == null)
-                BoostEnum = 0;
+                if (StackSize == null)
+                    StackSize = 1;
+
+                Boost = (base.Boost ?? 0);
+
+                if (BoostEnum == null)
+                    BoostEnum = 0;
+            }
         }
 
         public override void OnUse(Session session)

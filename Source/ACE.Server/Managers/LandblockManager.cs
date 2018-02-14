@@ -42,7 +42,7 @@ namespace ACE.Server.Managers
 
                 var player = new Player(weenie, biota, session);
                 session.SetPlayer(player);
-                session.Player.Load();
+                session.Player.PlayerEnterWorld();
 
                 // check the value of the welcome message. Only display it if it is not empty
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))

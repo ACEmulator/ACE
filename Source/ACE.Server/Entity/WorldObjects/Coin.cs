@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -29,20 +30,28 @@ namespace ACE.Server.Entity.WorldObjects
             }
         }
 
-        public Coin(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Coin(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Attackable = true;
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            SetObjectDescriptionBools();
+                Attackable = true; // todo use SetProperty instead
 
-            CoinPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
+                SetObjectDescriptionBools(); // todo we shouldn't be doing these types of calls
 
-            StackSize = (base.StackSize ?? 1);
+                CoinPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value || x.PropertyId == (uint)PropertyInt.EncumbranceVal).ToList();
 
-            Value = (Weenie.GetProperty(PropertyInt.Value) ?? 0) * (StackSize ?? 1);
+                StackSize = (base.StackSize ?? 1); // todo use SetProperty instead
 
-            if (StackSize == null)
-                StackSize = 1;
+                Value = (Weenie.GetProperty(PropertyInt.Value) ?? 0) * (StackSize ?? 1); // todo use SetProperty instead
+
+                if (StackSize == null)
+                    StackSize = 1;
+            }
         }
 
         private List<AceObjectPropertiesInt> CoinPropertiesInt

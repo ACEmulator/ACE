@@ -1,4 +1,5 @@
 using ACE.Common;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -12,16 +13,23 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.TippedRight));
 
-        public Cow(Weenie weenie) : base(weenie, null)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Cow(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Stuck = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+                Stuck = true;
+                Attackable = true;
 
-            UseRadius = 1;
-            IsAlive = true;
-            SetupVitals();
+                SetObjectDescriptionBools();
+
+                UseRadius = 1;
+                IsAlive = true;
+                SetupVitals();
+            }
         }
 
         private double? resetTimestamp;

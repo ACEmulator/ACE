@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Server.Factories;
@@ -24,13 +25,21 @@ namespace ACE.Server.Entity.WorldObjects
 
         private bool inventoryloaded;
 
-        public Vendor(Weenie weenie) : base(weenie, null)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Vendor(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Vendor = true;
-            Stuck = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+                Vendor = true;
+                Stuck = true;
+                Attackable = true;
+
+                SetObjectDescriptionBools();
+            }
         }
 
         #region General Vendor functions

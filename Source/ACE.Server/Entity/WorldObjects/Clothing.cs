@@ -6,11 +6,17 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class Clothing : WorldObject
     {
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
         public Clothing(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            SetProperty(PropertyBool.Attackable, true);
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+                SetProperty(PropertyBool.Attackable, true);
+            }
         }
 
         ////public GenericObject(ObjectGuid guid, AceObject aceObject)

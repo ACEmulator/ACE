@@ -37,12 +37,19 @@ namespace ACE.Server.Entity.WorldObjects
 
         public Session Session { get; }
 
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
         public Player(Weenie weenie, Biota biota, Session session) : base(weenie, biota)
         {
             Session = session;
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
+
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+            }
 
             return;
 
@@ -84,12 +91,10 @@ namespace ACE.Server.Entity.WorldObjects
             }
 
             LastUseTracker = new Dictionary<int, DateTime>();
-        }
 
-        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
-        public void Load()
-        {
-            /*
+            // =======================================
+            // This code was taken from the old Load()
+            // =======================================
             AceCharacter character;
 
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
@@ -139,13 +144,21 @@ namespace ACE.Server.Entity.WorldObjects
 
             UpdateAppearance(this);
             ////Burden = UpdateBurden();
+        }
 
+        public void PlayerEnterWorld()
+        {
             // Save the the LoginTimestamp
-            Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
+            TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+            double timestamp = span.TotalSeconds;
+            SetProperty(PropertyDouble.LoginTimestamp, timestamp);
 
-            TotalLogins++;
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
-            */
+            var totalLogins = GetProperty(PropertyInt.TotalLogins) ?? 0;
+            totalLogins++;
+            SetProperty(PropertyInt.TotalLogins, totalLogins);
+
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)totalLogins));
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
@@ -158,10 +171,92 @@ namespace ACE.Server.Entity.WorldObjects
             var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
-
-            FirstEnterWorldDone = true;
         }
 
+        /// <summary>
+        /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
+        /// </summary>
+        private void SetChildren()
+        {
+            // WE SHOULDNT SET THE CHILDEREN HERE
+            // THIS SHOULD PROBABLY GO IN PlayerEnterWorld()
+            // ALTERNATIVELY, WE CAN PULL THE EQUIPPED INVENTORY FROM THE DB IN THE CTOR
+
+            Children.Clear();
+
+            /* todo fix for new not use aceobj
+            foreach (WorldObject wieldedObject in WieldedObjects.Values)
+            {
+                WorldObject wo = wieldedObject;
+                int placementId;
+                int childLocation;
+                if ((wo.CurrentWieldedLocation != null) && (((EquipMask)wo.CurrentWieldedLocation & EquipMask.Selectable) != 0))
+                    SetChild(this, wo, (int)wo.CurrentWieldedLocation, out placementId, out childLocation);
+                else
+                    log.Debug($"Error - item set as child that should not be set - no currentWieldedLocation {wo.Name} - {wo.Guid.Full:X}");
+            }*/
+        }
+
+        private void SendSelf()
+        {
+            var player = new GameEventPlayerDescription(Session);
+            var title = new GameEventCharacterTitle(Session);
+            var friends = new GameEventFriendsListUpdate(Session);
+
+            Session.Network.EnqueueSend(player, title, friends);
+
+            SetChildren();
+
+            Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
+
+            //SendInventoryAndWieldedItems(Session); todo fix for new ef not use aceobj
+
+           // SendContractTrackerTable(); todo fix for new ef not use aceobj
+        }
+
+        /// <summary>
+        /// This method iterates through your main pack, any packs and finds all the items contained
+        /// It also iterates over your wielded items - it sends create object messages needed by the login process
+        /// it is called from SendSelf as part of the login message traffic.   Og II
+        /// </summary>
+        /// <param name="session"></param>
+        public void SendInventoryAndWieldedItems(Session session)
+        {
+            foreach (WorldObject invItem in InventoryObjects.Values)
+            {
+                session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
+                // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
+                if (invItem.WeenieType != WeenieType.Container)
+                    continue;
+
+                Session.Network.EnqueueSend(new GameEventViewContents(Session, invItem.SnapShotOfAceObject()));
+                throw new System.NotImplementedException();/*
+                foreach (WorldObject itemsInContainer in invItem.InventoryObjects.Values)
+                {
+                    session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
+                }*/
+            }
+
+            foreach (WorldObject wieldedObject in WieldedObjects.Values)
+            {
+                WorldObject item = wieldedObject;
+                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
+                {
+                    int placementId;
+                    int childLocation;
+                    session.Player.SetChild(this, item, (int)item.CurrentWieldedLocation, out placementId, out childLocation);
+                }
+                session.Network.EnqueueSend(new GameMessageCreateObject(item));
+            }
+        }
+
+        /// <summary>
+        /// This method is used to take our persisted tracked contracts and send them on to the client. Pg II
+        /// </summary>
+        public void SendContractTrackerTable()
+        {
+            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
+        }
 
 
 
@@ -1760,41 +1855,7 @@ namespace ACE.Server.Entity.WorldObjects
             return IsOnline;
         }
 
-        /// <summary>
-        /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
-        /// </summary>
-        private void SetChildren()
-        {
-            Children.Clear();
 
-            foreach (WorldObject wieldedObject in WieldedObjects.Values)
-            {
-                WorldObject wo = wieldedObject;
-                int placementId;
-                int childLocation;
-                if ((wo.CurrentWieldedLocation != null) && (((EquipMask)wo.CurrentWieldedLocation & EquipMask.Selectable) != 0))
-                    SetChild(this, wo, (int)wo.CurrentWieldedLocation, out placementId, out childLocation);
-                else
-                    log.Debug($"Error - item set as child that should not be set - no currentWieldedLocation {wo.Name} - {wo.Guid.Full:X}");
-            }
-        }
-
-        private void SendSelf()
-        {
-            var player = new GameEventPlayerDescription(Session);
-            var title = new GameEventCharacterTitle(Session);
-            var friends = new GameEventFriendsListUpdate(Session);
-
-            Session.Network.EnqueueSend(player, title, friends);
-
-            SetChildren();
-
-            Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
-
-            SendInventoryAndWieldedItems(Session);
-
-            SendContractTrackerTable();
-        }
 
         public void Teleport(Position newPosition)
         {
@@ -2299,49 +2360,9 @@ namespace ACE.Server.Entity.WorldObjects
             }
         }
 
-        /// <summary>
-        /// This method iterates through your main pack, any packs and finds all the items contained
-        /// It also iterates over your wielded items - it sends create object messages needed by the login process
-        /// it is called from SendSelf as part of the login message traffic.   Og II
-        /// </summary>
-        /// <param name="session"></param>
-        public void SendInventoryAndWieldedItems(Session session)
-        {
-            foreach (WorldObject invItem in InventoryObjects.Values)
-            {
-                session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
-                // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
-                if (invItem.WeenieType != WeenieType.Container)
-                    continue;
 
-                Session.Network.EnqueueSend(new GameEventViewContents(Session, invItem.SnapShotOfAceObject()));
-                throw new System.NotImplementedException();/*
-                foreach (WorldObject itemsInContainer in invItem.InventoryObjects.Values)
-                {
-                    session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
-                }*/
-            }
 
-            foreach (WorldObject wieldedObject in WieldedObjects.Values)
-            {
-                WorldObject item = wieldedObject;
-                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
-                {
-                    int placementId;
-                    int childLocation;
-                    session.Player.SetChild(this, item, (int)item.CurrentWieldedLocation, out placementId, out childLocation);
-                }
-                session.Network.EnqueueSend(new GameMessageCreateObject(item));
-            }
-        }
 
-        /// <summary>
-        /// This method is used to take our persisted tracked contracts and send them on to the client. Pg II
-        /// </summary>
-        public void SendContractTrackerTable()
-        {
-            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
-        }
 
         /// <summary>
         /// This method is called in response to a put item in container message.  It is used when the item going

@@ -24,12 +24,17 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
         public Creature(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
-
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+                SetProperty(PropertyBool.Stuck, true);
+                SetProperty(PropertyBool.Attackable, true);
+            }
         }
 
 

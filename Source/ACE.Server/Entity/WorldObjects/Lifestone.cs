@@ -12,15 +12,23 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class Lifestone : WorldObject
     {
-        public Lifestone(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Lifestone(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            LifeStone = true;
-            Stuck = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
-            
-            RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+                LifeStone = true;
+                Stuck = true;
+                Attackable = true;
+
+                SetObjectDescriptionBools();
+
+                RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
+            }
         }
 
         public override void ActOnUse(ObjectGuid playerId)

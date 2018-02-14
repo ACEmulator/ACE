@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -22,11 +22,19 @@ namespace ACE.Server.Entity.WorldObjects
             set { AceObject.UseCreateContractId = value; }
         }
 
-        public Gem(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Gem(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+                Attackable = true;
+
+                SetObjectDescriptionBools();
+            }
         }
 
         /// <summary>

@@ -1,3 +1,4 @@
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -98,30 +99,38 @@ namespace ACE.Server.Entity.WorldObjects
             HoltburgOCLanding = 0x860302c3
         }
 
-        public Portal(Weenie weenie) : base(weenie)
+        /// <summary>
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public Portal(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            Portal = true;
-            Stuck = true;
-            Attackable = true;
-            
-            SetObjectDescriptionBools();
-            throw new System.NotImplementedException();/*
-            var weenie = Database.DatabaseManager.World.GetCachedWeenie(AceObject.WeenieClassId);
+            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            // check to see if this ace object has a destination.  if so, defer to it.
-            if (aceO.Destination != null)
-                Destination = aceO.Destination;
-            else
-                // but if not, portals roll up to the weenie
-                Destination = weenie.GetPosition(PositionType.Destination);
+                Portal = true;
+                Stuck = true;
+                Attackable = true;
 
-            MinimumLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.MinLevel) ?? 0;
-            MaximumLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.MaxLevel) ?? 0;
+                SetObjectDescriptionBools();
+                throw new System.NotImplementedException(); /*
+                var weenie = Database.DatabaseManager.World.GetCachedWeenie(AceObject.WeenieClassId);
 
-            IsTieable = ((weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
-            IsSummonable = ((weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
-            AppraisalPortalDestination = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyString.AppraisalPortalDestination);
-            PortalShowDestination = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyBool.PortalShowDestination) ?? false;*/
+                // check to see if this ace object has a destination.  if so, defer to it.
+                if (aceO.Destination != null)
+                    Destination = aceO.Destination;
+                else
+                    // but if not, portals roll up to the weenie
+                    Destination = weenie.GetPosition(PositionType.Destination);
+
+                MinimumLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.MinLevel) ?? 0;
+                MaximumLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.MaxLevel) ?? 0;
+
+                IsTieable = ((weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoRecall) == 0;
+                IsSummonable = ((weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.PortalBitmask) ?? 0) & (uint)PortalBitmask.NoSummon) == 0;
+                AppraisalPortalDestination = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyString.AppraisalPortalDestination);
+                PortalShowDestination = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyBool.PortalShowDestination) ?? false;*/
+            }
         }
 
         public string AppraisalPortalDestination
