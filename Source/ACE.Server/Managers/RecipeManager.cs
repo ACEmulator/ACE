@@ -1,5 +1,10 @@
 using System;
 using System.Collections.Generic;
+
+using log4net;
+
+using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -7,9 +12,9 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
-using log4net;
 
 namespace ACE.Server.Managers
 {
@@ -17,21 +22,13 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Random _random = new Random();
-        private static RecipeCache _recipeCache;
+        private static readonly Random _random = new Random();
 
-        private static List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
-
-        public static void Initialize()
-        {
-            // build the cache
-            var recipes = Database.DatabaseManager.World.GetAllRecipes();
-            _recipeCache = new RecipeCache(recipes);
-        }
+        private static readonly List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
-            Recipe recipe = _recipeCache.GetRecipe(source.WeenieClassId, target.WeenieClassId);
+            var recipe = DatabaseManager.World.GetCachedRecipe(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
             {
@@ -62,7 +59,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        private static void HandleCreateItemRecipe(Player player, WorldObject source, WorldObject target, Recipe recipe)
+        private static void HandleCreateItemRecipe(Player player, WorldObject source, WorldObject target, AceRecipe recipe)
         {
             ActionChain craftChain = new ActionChain();
             CreatureSkill skill = null;
@@ -164,7 +161,7 @@ namespace ACE.Server.Managers
             craftChain.EnqueueChain();
         }
 
-        private static void HandleHealingRecipe(Player player, WorldObject source, WorldObject target, Recipe recipe)
+        private static void HandleHealingRecipe(Player player, WorldObject source, WorldObject target, AceRecipe recipe)
         {
             ActionChain chain = new ActionChain();
 

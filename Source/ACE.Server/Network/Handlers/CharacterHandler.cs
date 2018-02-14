@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -129,160 +133,171 @@ namespace ACE.Server.Network.Handlers
             if (clientString != session.Account)
                 return;
 
-            uint id = GuidManager.NewPlayerGuid().Full;
+            var guid = GuidManager.NewPlayerGuid();
 
-            CharacterCreateEx(message, session, id);
+            CharacterCreateEx(message, session, guid);
         }
 
-        private static void CharacterCreateEx(ClientMessage message, Session session, uint id)
+        private static void CharacterCreateEx(ClientMessage message, Session session, ObjectGuid guid)
         {
-            var cg = DatManager.PortalDat.CharGen;
-            var reader = message.Payload;
-            AceCharacter character = new AceCharacter(id);
-
-            reader.Skip(4);   /* Unknown constant (1) */
-            character.Heritage = (int)reader.ReadUInt32();
+            var characterCreateInfo = new CharacterCreateInfo();
+            characterCreateInfo.Unpack(message.Payload);
 
             // Disable OlthoiPlay characters for now. They're not implemented yet.
             // FIXME: Restore OlthoiPlay characters when properly handled.
-            if (character.Heritage == (int)HeritageGroup.Olthoi || character.Heritage == (int)HeritageGroup.OlthoiAcid)
+            if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi || characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Pending);
                 return;
             }
 
-            character.HeritageGroup = cg.HeritageGroups[(uint)character.Heritage].Name;
-            character.Gender = (int)reader.ReadUInt32();
-            if (character.Gender == 1)
-                character.Sex = "Male";
-            else
-                character.Sex = "Female";
-            Appearance appearance = Appearance.FromNetwork(reader);
+            var cg = DatManager.PortalDat.CharGen;
+
+            var weenie = DatabaseManager.World.GetCachedWeenie(1);
+
+            var biota = new Biota();
+            biota.Id = guid.Full;
+            biota.WeenieClassId = weenie.ClassId;
+            biota.WeenieType = weenie.Type;
+
+            var player = new Player(weenie, biota, session);
+
+            player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
+            player.SetProperty(PropertyString.HeritageGroup, cg.HeritageGroups[characterCreateInfo.Heritage].Name);
+            player.SetProperty(PropertyInt.Gender, (int)characterCreateInfo.Gender);
+            player.SetProperty(PropertyString.Sex, characterCreateInfo.Gender == 1 ? "Male" : "Female");
 
             // character.IconId = cg.HeritageGroups[(int)character.Heritage].IconImage;
 
             // pull character data from the dat file
-            SexCG sex = cg.HeritageGroups[(uint)character.Heritage].Genders[(int)character.Gender];
+            var sex = cg.HeritageGroups[characterCreateInfo.Heritage].Genders[(int)characterCreateInfo.Gender];
 
-            character.MotionTableId = sex.MotionTable;
-            character.SoundTableId = sex.SoundTable;
-            character.PhysicsTableId = sex.PhysicsTable;
-            character.SetupTableId = sex.SetupID;
-            character.PaletteId = sex.BasePalette;
-            character.CombatTableId = sex.CombatTable;
+            player.SetProperty(PropertyDataId.MotionTable, sex.MotionTable);
+            player.SetProperty(PropertyDataId.SoundTable, sex.SoundTable);
+            player.SetProperty(PropertyDataId.PhysicsEffectTable, sex.PhysicsTable);
+            player.SetProperty(PropertyDataId.Setup, sex.SetupID);
+            player.SetProperty(PropertyDataId.PaletteBase, sex.BasePalette);
+            player.SetProperty(PropertyDataId.CombatTable, sex.CombatTable);
 
             // Check the character scale
             if (sex.Scale != 100u)
-            {
-                character.DefaultScale = (sex.Scale / 100f); // Scale is stored as a percentage
-            }
+                player.SetProperty(PropertyDouble.DefaultScale, (sex.Scale / 100f)); // Scale is stored as a percentage
 
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-            HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
-            bool isBald = hairstyle.Bald;
+            var hairstyle = sex.HairStyleList[Convert.ToInt32(characterCreateInfo.Apperance.HairStyle)];
 
             // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             if (hairstyle.AlternateSetup > 0)
-                character.SetupTableId = hairstyle.AlternateSetup;
+                player.SetProperty(PropertyDataId.Setup, hairstyle.AlternateSetup);
 
-            character.EyesTexture = sex.GetEyeTexture(appearance.Eyes, isBald);
-            character.DefaultEyesTexture = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
-            character.NoseTexture = sex.GetNoseTexture(appearance.Nose);
-            character.DefaultNoseTexture = sex.GetDefaultNoseTexture(appearance.Nose);
-            character.MouthTexture = sex.GetMouthTexture(appearance.Mouth);
-            character.DefaultMouthTexture = sex.GetDefaultMouthTexture(appearance.Mouth);
-            character.HairTexture = sex.GetHairTexture(appearance.HairStyle);
-            character.DefaultHairTexture = sex.GetDefaultHairTexture(appearance.HairStyle);
-            character.HeadObject = sex.GetHeadObject(appearance.HairStyle);
+            player.SetProperty(PropertyDataId.EyesTexture, sex.GetEyeTexture(characterCreateInfo.Apperance.Eyes, hairstyle.Bald));
+            player.SetProperty(PropertyDataId.DefaultEyesTexture, sex.GetDefaultEyeTexture(characterCreateInfo.Apperance.Eyes, hairstyle.Bald));
+            player.SetProperty(PropertyDataId.NoseTexture, sex.GetNoseTexture(characterCreateInfo.Apperance.Nose));
+            player.SetProperty(PropertyDataId.DefaultNoseTexture, sex.GetDefaultNoseTexture(characterCreateInfo.Apperance.Nose));
+            player.SetProperty(PropertyDataId.MouthTexture, sex.GetMouthTexture(characterCreateInfo.Apperance.Mouth));
+            player.SetProperty(PropertyDataId.DefaultMouthTexture, sex.GetDefaultMouthTexture(characterCreateInfo.Apperance.Mouth));
+            player.SetProperty(PropertyDataId.HairTexture, sex.GetHairTexture(characterCreateInfo.Apperance.HairStyle));
+            player.SetProperty(PropertyDataId.DefaultHairTexture, sex.GetDefaultHairTexture(characterCreateInfo.Apperance.HairStyle));
+            player.SetProperty(PropertyDataId.HeadObject, sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle));
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
-            character.SkinPalette = skinPalSet.GetPaletteID(appearance.SkinHue);
-            character.Shade = appearance.SkinHue;
+            player.SetProperty(PropertyDataId.SkinPalette, skinPalSet.GetPaletteID(characterCreateInfo.Apperance.SkinHue));
+            player.SetProperty(PropertyDouble.Shade, characterCreateInfo.Apperance.SkinHue);
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
-            character.HairPalette = hairPalSet.GetPaletteID(appearance.HairHue);
+            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(characterCreateInfo.Apperance.HairColor)]);
+            player.SetProperty(PropertyDataId.HairPalette, hairPalSet.GetPaletteID(characterCreateInfo.Apperance.HairHue));
 
             // Eye Color
-            character.EyesPalette = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
+            player.SetProperty(PropertyDataId.EyesPalette, sex.EyeColorList[Convert.ToInt32(characterCreateInfo.Apperance.EyeColor)]);
 
-            if (appearance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
+            if (characterCreateInfo.Apperance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
             {
-                var hat = GetClothingObject(id, sex.GetHeadgearWeenie(appearance.HeadgearStyle), appearance.HeadgearColor, appearance.HeadgearHue);
+                var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle), characterCreateInfo.Apperance.HeadgearColor, characterCreateInfo.Apperance.HeadgearHue);
                 if (hat != null)
-                    character.WieldedItems.Add(new ObjectGuid(hat.AceObjectId), hat);
+                    player.EquipObject(hat);
                 else
-                    CreateIOU(character, sex.GetHeadgearWeenie(appearance.HeadgearStyle));
+                    CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle));
             }
 
-            var shirt = GetClothingObject(id, sex.GetShirtWeenie(appearance.ShirtStyle), appearance.ShirtColor, appearance.ShirtHue);
+            var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
-                character.WieldedItems.Add(new ObjectGuid(shirt.AceObjectId), shirt);
+                player.EquipObject(shirt);
             else
-                CreateIOU(character, sex.GetShirtWeenie(appearance.ShirtStyle));
+                CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle));
 
-            var pants = GetClothingObject(id, sex.GetPantsWeenie(appearance.PantsStyle), appearance.PantsColor, appearance.PantsHue);
+            var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
-                character.WieldedItems.Add(new ObjectGuid(pants.AceObjectId), pants);
+                player.EquipObject(pants);
             else
-                CreateIOU(character, sex.GetPantsWeenie(appearance.PantsStyle));
+                CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle));
 
-            var shoes = GetClothingObject(id, sex.GetFootwearWeenie(appearance.FootwearStyle), appearance.FootwearColor, appearance.FootwearHue);
+            var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
-                character.WieldedItems.Add(new ObjectGuid(shoes.AceObjectId), shoes);
+                player.EquipObject(shoes);
             else
-                CreateIOU(character, sex.GetFootwearWeenie(appearance.FootwearStyle));
+                CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle));
 
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.
-            var templateOption = reader.ReadInt32();
-            string templateName = cg.HeritageGroups[(uint)character.Heritage].Templates[templateOption].Name;
-            character.Title = templateName;
-            character.Template = templateName;
-            character.CharacterTitleId = (int)cg.HeritageGroups[(uint)character.Heritage].Templates[templateOption].Title;
-            character.NumCharacterTitles = 1;
+            string templateName = cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Name;
+            player.SetProperty(PropertyString.Title, templateName);
+            player.SetProperty(PropertyString.Template, templateName);
+            player.SetProperty(PropertyInt.CharacterTitleId, (int)cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Title);
+            player.SetProperty(PropertyInt.NumCharacterTitles, 1);
 
             // stats
-            uint totalAttributeCredits = cg.HeritageGroups[(uint)character.Heritage].AttributeCredits;
+            /* todo fix this .. need to init the attribute properties for a new biota
+            uint totalAttributeCredits = cg.HeritageGroups[characterCreateInfo.Heritage].AttributeCredits;
             uint usedAttributeCredits = 0;
+
+            var strength = player.Biota.GetAttribute(Ability.Strength);
+            strength.InitLevel = ValidateAttributeCredits(characterCreateInfo.StrengthAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += strength.InitLevel;
+
+            var endurance = player.Biota.GetAttribute(Ability.Endurance);
+            endurance.InitLevel = ValidateAttributeCredits(characterCreateInfo.EnduranceAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += endurance.InitLevel;
+
+            var coordination = player.Biota.GetAttribute(Ability.Coordination);
+            coordination.InitLevel = ValidateAttributeCredits(characterCreateInfo.CoordinationAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += coordination.InitLevel;
+
+            var quickness = player.Biota.GetAttribute(Ability.Quickness);
+            quickness.InitLevel = ValidateAttributeCredits(characterCreateInfo.QuicknessAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += quickness.InitLevel;
+
+            var focus = player.Biota.GetAttribute(Ability.Focus);
+            focus.InitLevel = ValidateAttributeCredits(characterCreateInfo.FocusAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += focus.InitLevel;
+
+            var self = player.Biota.GetAttribute(Ability.Self);
+            self.InitLevel = ValidateAttributeCredits(characterCreateInfo.SelfAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += self.InitLevel;*/
+
             // Validate this is equal to actual attribute credits (330 for all but "Olthoi", which have 60
-            character.StrengthAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += character.StrengthAbility.Base;
-
-            character.EnduranceAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += character.EnduranceAbility.Base;
-
-            character.CoordinationAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += character.CoordinationAbility.Base;
-
-            character.QuicknessAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += character.QuicknessAbility.Base;
-
-            character.FocusAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += character.FocusAbility.Base;
-
-            character.SelfAbility.Base = ValidateAttributeCredits(reader.ReadUInt32(), usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += character.SelfAbility.Base;
+            // todo if (usedAttributeCredits > .....
 
             // data we don't care about
-            uint characterSlot = reader.ReadUInt32();
-            uint classId = reader.ReadUInt32();
+            //characterCreateInfo.CharacterSlot;
+            //characterCreateInfo.ClassId;
 
             // characters start with max vitals
-            character.Health.Current = character.Health.MaxValue;
+            // TODO for the new format
+            /*character.Health.Current = character.Health.MaxValue;
             character.Stamina.Current = character.Stamina.MaxValue;
-            character.Mana.Current = character.Mana.MaxValue;
+            character.Mana.Current = character.Mana.MaxValue;*/
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
-            character.AvailableSkillCredits = (int)cg.HeritageGroups[(uint)character.Heritage].SkillCredits;
+            player.SetProperty(PropertyInt.AvailableSkillCredits, (int)cg.HeritageGroups[characterCreateInfo.Heritage].SkillCredits);
 
-            uint numOfSkills = reader.ReadUInt32();
-            for (uint i = 0; i < numOfSkills; i++)
+            // TODO for the new format
+            /*for (int i = 0; i < characterCreateInfo.SkillStatuses.Count; i++)
             {
                 var skill = (Skill)i;
                 var skillCost = skill.GetCost();
-                var skillStatus = (SkillStatus)reader.ReadUInt32();
+                var skillStatus = characterCreateInfo.SkillStatuses[i];
 
                 if (skillStatus == SkillStatus.Specialized)
                 {
@@ -290,15 +305,15 @@ namespace ACE.Server.Network.Handlers
                     character.SpecializeSkill(skill, skillCost.SpecializationCost);
                     // oddly enough, specialized skills don't get any free ranks like trained do
                 }
-                if (skillStatus == SkillStatus.Trained)
+                else if (skillStatus == SkillStatus.Trained)
                 {
                     character.TrainSkill(skill, skillCost.TrainingCost);
                     character.AceObjectPropertiesSkills[skill].Ranks = 5;
                     character.AceObjectPropertiesSkills[skill].ExperienceSpent = 526;
                 }
-                if (skillCost != null && skillStatus == SkillStatus.Untrained)
+                else if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     character.UntrainSkill(skill, skillCost.TrainingCost);
-            }
+            }*/
 
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
@@ -306,6 +321,8 @@ namespace ACE.Server.Network.Handlers
 
             foreach (var skillGear in starterGearConfig.Skills)
             {
+                // TODO for the new format
+                /*
                 var charSkill = character.AceObjectPropertiesSkills[(Skill)skillGear.SkillId];
                 if (charSkill.Status == SkillStatus.Trained || charSkill.Status == SkillStatus.Specialized)
                 {
@@ -321,11 +338,11 @@ namespace ACE.Server.Network.Handlers
                             continue;
                         }
 
-                        var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
-                        loot.Placement = 0;
-                        loot.ContainerIID = id;
-                        loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
-                        character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
+                        var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                        loot.SetProperty(PropertyInt.Placement, 0);
+                        loot.SetProperty(PropertyInstanceId.Container, (int)guid.Full);
+                        if (item.StackSize > 1) loot.SetProperty(PropertyInt.StackSize, item.StackSize);
+                        //character.Inventory.Add(loot.Guid, loot); TODO FIX THIS FOR NEW MODEL
                         grantedItems.Add(item.WeenieId);
                     }
 
@@ -344,11 +361,11 @@ namespace ACE.Server.Network.Handlers
                                 continue;
                             }
 
-                            var loot = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(item.WeenieId).Clone(GuidManager.NewItemGuid().Full);
-                            loot.Placement = 0;
-                            loot.ContainerIID = id;
-                            loot.StackSize = item.StackSize > 1 ? (ushort?)item.StackSize : null;
-                            character.Inventory.Add(new ObjectGuid(loot.AceObjectId), loot);
+                            var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                            loot.SetProperty(PropertyInt.Placement, 0);
+                            loot.SetProperty(PropertyInstanceId.Container, (int)guid.Full);
+                            if (item.StackSize > 1) loot.SetProperty(PropertyInt.StackSize, item.StackSize);
+                            //character.Inventory.Add(loot.Guid, loot); TODO FIX THIS FOR NEW MODEL
                             grantedItems.Add(item.WeenieId);
                         }
                     }
@@ -358,33 +375,29 @@ namespace ACE.Server.Network.Handlers
                         // Olthoi Spitter is a special case
                         if (character.Heritage == (int)HeritageGroup.OlthoiAcid)
                         {
-                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
+                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = guid.Full, SpellId = spell.SpellId });
                             // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
                             continue;
                         }
 
                         if (charSkill.Status == SkillStatus.Trained && spell.SpecializedOnly == false)
-                        {
-                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
-                        }
+                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = guid.Full, SpellId = spell.SpellId });
                         else if (charSkill.Status == SkillStatus.Specialized)
-                        {
-                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = id, SpellId = spell.SpellId });
-                        }
+                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = guid.Full, SpellId = spell.SpellId });
                     }
-                }
+                }*/
             }
 
-            character.Name = reader.ReadString16L();
-            character.DisplayName = character.Name; // unsure
+            player.SetProperty(PropertyString.Name, characterCreateInfo.Name);
+            player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
 
             // Index used to determine the starting location
-            uint startArea = reader.ReadUInt32();
+            uint startArea = characterCreateInfo.StartArea;
 
-            character.IsAdmin = Convert.ToBoolean(reader.ReadUInt32());
-            character.IsEnvoy = Convert.ToBoolean(reader.ReadUInt32());
+            player.SetProperty(PropertyBool.IsAdmin, characterCreateInfo.IsAdmin);
+            player.SetProperty(PropertyBool.IsSentinel, characterCreateInfo.IsEnvoy);
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(character.Name, ((bool isAvailable) =>
+            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, ((bool isAvailable) =>
             {
                 if (!isAvailable)
                 {
@@ -392,13 +405,13 @@ namespace ACE.Server.Network.Handlers
                     return;
                 }
 
-                character.AccountId = session.Id;
+                player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
 
-                CharacterCreateSetDefaultCharacterOptions(character);
-                CharacterCreateSetDefaultCharacterPositions(character, startArea);
+                CharacterCreateSetDefaultCharacterOptions(player);
+                CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
                 // We must await here -- 
-                DatabaseManager.Shard.SaveObject(character, ((bool saveSuccess) =>
+                DatabaseManager.Shard.AddBiota(player.Biota, ((bool saveSuccess) =>
                 {
                     if (!saveSuccess)
                     {
@@ -408,10 +421,9 @@ namespace ACE.Server.Network.Handlers
                     // DatabaseManager.Shard.SaveCharacterOptions(character);
                     // DatabaseManager.Shard.InitCharacterPositions(character);
 
-                    var guid = new ObjectGuid(character.AceObjectId);
-                    session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, character.Name, 0));
+                    session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, characterCreateInfo.Name, 0));
 
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, character.Name);
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, characterCreateInfo.Name);
                 }));
             }));
         }
@@ -423,15 +435,14 @@ namespace ACE.Server.Network.Handlers
         private static ushort ValidateAttributeCredits(uint attributeValue, uint allAttributes, uint maxAttributes)
         {
             if ((attributeValue + allAttributes) > maxAttributes)
-            {
                 return (ushort)(maxAttributes - allAttributes);
-            }
 
             return (ushort)attributeValue;
         }
 
-        private static void CharacterCreateSetDefaultCharacterOptions(AceCharacter character)
+        private static void CharacterCreateSetDefaultCharacterOptions(Player player)
         {
+            AceCharacter character = new AceCharacter(0); // temp
             character.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
             character.SetCharacterOption(CharacterOption.Display3dTooltips, true);
             character.SetCharacterOption(CharacterOption.ShowCoordinatesByTheRadar, true);
@@ -450,8 +461,9 @@ namespace ACE.Server.Network.Handlers
             character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
-        public static void CharacterCreateSetDefaultCharacterPositions(AceCharacter character, uint startArea)
+        public static void CharacterCreateSetDefaultCharacterPositions(Player player, uint startArea)
         {
+            AceCharacter character = new AceCharacter(0); // temp
             character.Location = CharacterPositionExtensions.StartingPosition(startArea);
         }
 
@@ -466,24 +478,21 @@ namespace ACE.Server.Network.Handlers
             session.LogOffPlayer();
         }
 
-        private static AceObject GetClothingObject(uint playerIID, uint weenieClassId, uint palette, double shade)
+        private static WorldObject GetClothingObject(uint weenieClassId, uint palette, double shade)
         {
-            AceObject clothingObj;
+            var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
 
-            try
-            {
-                clothingObj = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieClassId).Clone(GuidManager.NewItemGuid().Full);
-            }
-            catch (NullReferenceException)
-            {
+            if (weenie == null)
                 return null;
-            }
 
-            clothingObj.IconDID = DatManager.PortalDat.ReadFromDat<ClothingTable>(clothingObj.ClothingBaseDID.Value).GetIcon(palette);
-            clothingObj.PaletteBaseDID = palette;
-            clothingObj.Shade = shade;
-            clothingObj.CurrentWieldedLocation = clothingObj.ValidLocations;
-            clothingObj.WielderIID = playerIID;
+            var worldObject = WorldObjectFactory.CreateNewWorldObject(weenie);
+
+            var icon = DatManager.PortalDat.ReadFromDat<ClothingTable>(worldObject.GetProperty(PropertyDataId.ClothingBase) ?? 0).GetIcon(palette);
+
+            worldObject.SetProperty(PropertyDataId.Icon, icon);
+            worldObject.SetProperty(PropertyDataId.PaletteBase, palette);
+            worldObject.SetProperty(PropertyDouble.Shade, shade);
+            worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, worldObject.GetProperty(PropertyInt.ValidLocations) ?? 0);
 
             //if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
             //{
@@ -538,11 +547,12 @@ namespace ACE.Server.Network.Handlers
             //    }
             //}
 
-            return clothingObj;
+            return worldObject;
         }
 
-        private static void CreateIOU(AceCharacter character, uint missingWeenieId)
+        private static void CreateIOU(Player player, uint missingWeenieId)
         {
+            throw new NotImplementedException();/*
             var iouObj = (AceObject)DatabaseManager.World.GetAceObjectByWeenie("parchment").Clone(GuidManager.NewItemGuid().Full);
 
             iouObj.Name = "IOU";
@@ -572,7 +582,7 @@ namespace ACE.Server.Network.Handlers
             iouObj.BookProperties.Add(bookProperties.Page, bookProperties);
 
             if (iouObj != null)
-                character.Inventory.Add(new ObjectGuid(iouObj.AceObjectId), iouObj);
+                character.Inventory.Add(new ObjectGuid(iouObj.AceObjectId), iouObj);*/
         }
     }
 }

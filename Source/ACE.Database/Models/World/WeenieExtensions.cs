@@ -1,0 +1,124 @@
+using System.Linq;
+
+using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+
+namespace ACE.Database.Models.World
+{
+    public static class WeenieExtensions
+    {
+        // LandblockInstances
+
+        // PointsOfInterest
+
+        public static uint? GetAnimationId(this Weenie weenie, byte index)
+        {
+            return weenie.WeeniePropertiesAnimPart.FirstOrDefault(x => x.Index == index)?.AnimationId;
+        }
+
+        public static WeeniePropertiesAttribute GetAttribute(this Weenie weenie, Ability ability)
+        {
+            return weenie.WeeniePropertiesAttribute.FirstOrDefault(x => x.Type == (uint)ability);
+        }
+
+        public static WeeniePropertiesAttribute2nd GetAttribute2nd(this Weenie weenie, Ability ability)
+        {
+            return weenie.WeeniePropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)ability);
+        }
+
+        public static WeeniePropertiesBodyPart GetBodyPart(this Weenie weenie, ushort key)
+        {
+            return weenie.WeeniePropertiesBodyPart.FirstOrDefault(x => x.Key == key);
+        }
+
+        public static WeeniePropertiesBookPageData GetBookPageData(this Weenie weenie, uint pageId)
+        {
+            return weenie.WeeniePropertiesBookPageData.FirstOrDefault(x => x.PageId == pageId);
+        }
+
+        public static bool? GetProperty(this Weenie weenie, PropertyBool property)
+        {
+            return weenie.WeeniePropertiesBool.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
+        public static WeeniePropertiesCreateList GetCreateList(this Weenie weenie, sbyte destinationType)
+        {
+            return weenie.WeeniePropertiesCreateList.FirstOrDefault(x => x.DestinationType == destinationType);
+        }
+
+        public static uint? GetProperty(this Weenie weenie, PropertyDataId property)
+        {
+            return weenie.WeeniePropertiesDID.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
+        public static WeeniePropertiesEmote GetEmote(this Weenie weenie, uint category)
+        {
+            return weenie.WeeniePropertiesEmote.FirstOrDefault(x => x.Category == category);
+        }
+
+        // WeeniePropertiesEmoteAction
+
+        public static WeeniePropertiesEventFilter GetEventFilter(this Weenie weenie, int eventId)
+        {
+            return weenie.WeeniePropertiesEventFilter.FirstOrDefault(x => x.Event == eventId);
+        }
+
+        public static double? GetProperty(this Weenie weenie, PropertyDouble property)
+        {
+            return weenie.WeeniePropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property)?.Value;
+        }
+
+        // WeeniePropertiesGenerator
+
+        public static int? GetProperty(this Weenie weenie, PropertyInstanceId property)
+        {
+            return weenie.WeeniePropertiesIID.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
+        public static int? GetProperty(this Weenie weenie, PropertyInt property)
+        {
+            return weenie.WeeniePropertiesInt.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
+        public static long? GetProperty(this Weenie weenie, PropertyInt64 property)
+        {
+            return weenie.WeeniePropertiesInt64.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
+        public static WeeniePropertiesPalette GetPalette(this Weenie weenie, uint subPaletteId)
+        {
+            return weenie.WeeniePropertiesPalette.FirstOrDefault(x => x.SubPaletteId == subPaletteId);
+        }
+
+        public static Position GetPosition(this Weenie weenie, PositionType positionType)
+        {
+            var result = weenie.WeeniePropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
+
+            if (result == null)
+                return null;
+
+            return new Position(result.Landblock ?? 0, result.OriginX, result.OriginY, result.OriginZ, result.AnglesX, result.AnglesY, result.AnglesZ, result.AnglesW);
+        }
+
+        public static WeeniePropertiesSkill GetProperty(this Weenie weenie, Skill skill)
+        {
+            return weenie.WeeniePropertiesSkill.FirstOrDefault(x => x.Type == (uint) skill);
+        }
+
+        public static WeeniePropertiesSpellBook GetSpell(this Weenie weenie, int spell)
+        {
+            return weenie.WeeniePropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
+        }
+
+        public static string GetProperty(this Weenie weenie, PropertyString property)
+        {
+            return weenie.WeeniePropertiesString.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
+        public static WeeniePropertiesTextureMap GetTextureMap(this Weenie weenie, byte index)
+        {
+            return weenie.WeeniePropertiesTextureMap.FirstOrDefault(x => x.Index == index);
+        }
+    }
+}

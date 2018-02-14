@@ -2,14 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using ACE.Database.Models.Shard;
+
+using log4net;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -19,7 +24,15 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
-using log4net;
+
+using AceObjectGeneratorProfile = ACE.Entity.AceObjectGeneratorProfile;
+using AceObjectInventory = ACE.Entity.AceObjectInventory;
+using AceObjectPropertiesBook = ACE.Entity.AceObjectPropertiesBook;
+using AceObjectPropertiesBool = ACE.Entity.AceObjectPropertiesBool;
+using AceObjectPropertiesDouble = ACE.Entity.AceObjectPropertiesDouble;
+using AceObjectPropertiesInt = ACE.Entity.AceObjectPropertiesInt;
+using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
+using AceObjectPropertiesString = ACE.Entity.AceObjectPropertiesString;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
@@ -28,25 +41,181 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static float MaxObjectTrackingRange { get; } = 20000f;
+        /// <summary>
+        /// This is base weenie that should have come from the world db.
+        /// You should not manipulate any of these values. This weenie object is shared by all other instances.
+        /// </summary>
+        public Weenie Weenie { get; }
 
-        // object_id
-        private ObjectGuid guid;
+        /// <summary>
+        /// This is object property overrides that should have come from the shard db.
+        /// You should not manipulate these values directly. Manipulate this WorldObjects exposed SetProperty functions instead.
+        /// </summary>
+        public Biota Biota { get; }
+
+        /// <summary>
+        /// You should only set this once, after initial object creation. Changing this value a 2nd time will most likely cause the end of days.
+        /// This is just a wrapper around Biota.Id
+        /// </summary>
         public ObjectGuid Guid
         {
-            get => guid;
-            set
-            {
-                guid = new ObjectGuid(value.Full);
-                AceObject.AceObjectId = value.Full;
-            }
+            get => new ObjectGuid(Biota.Id);
+            set => Biota.Id = value.Full;
         }
+
+        protected WorldObject(Weenie weenie, Biota biota = null)
+        {
+            Weenie = weenie;
+
+            Biota = biota;
+
+            if (Biota == null)
+            {
+                Biota = new Biota();
+
+                Biota.WeenieClassId = weenie.ClassId;
+                Biota.WeenieType = weenie.Type;
+            }
+
+
+
+
+
+
+
+            return;
+
+
+
+
+
+
+
+            //AceObject = aceObject;
+            //Guid = new ObjectGuid(aceObject.AceObjectId);
+
+            Sequences = new SequenceManager();
+            Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectVector, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectTeleport, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectServerControl, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
+            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
+
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyBool, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt64, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDouble, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
+
+            Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
+
+            #region ACE-World initalizing.. to be removed later
+            ////RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
+
+            ////RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
+
+            ////if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
+            ////    CurrentMotionState = null;
+            ////else
+            ////    CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
+
+            ////aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
+            ////aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
+            ////aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
+            #endregion
+
+            SetPhysicsStateBools();
+
+            if (Placement == null)
+                Placement = global::ACE.Entity.Enum.Placement.Resting;
+
+            GetClothingBase();
+
+            SelectGeneratorProfiles();
+            UpdateGeneratorInts();
+            QueueGenerator();
+
+            QueueNextHeartBeat();
+
+            GenerateWieldList();
+        }
+
+        public bool? GetProperty(PropertyBool property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public uint? GetProperty(PropertyDataId property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public double? GetProperty(PropertyDouble property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public int? GetProperty(PropertyInstanceId property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public int? GetProperty(PropertyInt property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public string GetProperty(PropertyString property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+
+        public void SetProperty(PropertyBool property, bool value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDataId property, uint value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDouble property, double value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInstanceId property, int value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt property, int value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt64 property, long value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyString property, string value) { Biota.SetProperty(property, value); }
+
+        public void RemoveProperty(PropertyBool property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyDataId property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyDouble property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInstanceId property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInt property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInt64 property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyString property) { Biota.RemoveProperty(property); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+
+        // this is just temp so code compiles, remove it later
+        public Dictionary<PositionType, Position> Positions = new Dictionary<PositionType, Position>();
+
+        public static float MaxObjectTrackingRange { get; } = 20000f;
+
 
         protected AceObject AceObject { get; set; }
 
         protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
 
-        protected internal Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; set; }
+
 
         protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
 
@@ -339,7 +508,7 @@ namespace ACE.Server.Entity
             set { AceObject.Value = value; }
         }
 
-        public virtual int? StackUnitValue => Weenie.Value ?? 0;
+        public virtual int? StackUnitValue => Weenie.GetProperty(PropertyInt.StackUnitValue) ?? 0;
 
         public Usable? Usable
         {
@@ -491,7 +660,7 @@ namespace ACE.Server.Entity
             set { AceObject.EncumbranceVal = value; }
         }
 
-        public virtual ushort? StackUnitBurden => Weenie.EncumbranceVal ?? 0;
+        public virtual ushort? StackUnitBurden => (ushort?)(Weenie.GetProperty(PropertyInt.EncumbranceVal) ?? 0);
 
         public Spell? Spell
         {
@@ -1348,66 +1517,6 @@ namespace ACE.Server.Entity
             set { AceObject.ItemMaxMana = value; }
         }
 
-        public bool? AdvocateState
-        {
-            get => AceObject.AdvocateState;
-            set { AceObject.AdvocateState = value; }
-        }
-
-        public bool? UnderLifestoneProtection
-        {
-            get => AceObject.UnderLifestoneProtection;
-            set { AceObject.UnderLifestoneProtection = value; }
-        }
-
-        public bool? DefaultOn
-        {
-            get => AceObject.DefaultOn;
-            set { AceObject.DefaultOn = value; }
-        }
-
-        public bool? AdvocateQuest
-        {
-            get => AceObject.AdvocateQuest;
-            set { AceObject.AdvocateQuest = value; }
-        }
-
-        public bool? IsAdvocate
-        {
-            get => AceObject.IsAdvocate;
-            set { AceObject.IsAdvocate = value; }
-        }
-
-        public bool? IsSentinel
-        {
-            get => AceObject.IsSentinel;
-            set { AceObject.IsSentinel = value; }
-        }
-
-        public bool? IgnorePortalRestrictions
-        {
-            get => AceObject.IgnorePortalRestrictions;
-            set { AceObject.IgnorePortalRestrictions = value; }
-        }
-
-        public bool? Invincible
-        {
-            get => AceObject.Invincible;
-            set { AceObject.Invincible = value; }
-        }
-
-        public bool? IsGagged
-        {
-            get => AceObject.IsGagged;
-            set { AceObject.IsGagged = value; }
-        }
-
-        public bool? Afk
-        {
-            get => AceObject.Afk;
-            set { AceObject.Afk = value; }
-        }
-
         public bool? IgnoreAuthor
         {
             get => AceObject.IgnoreAuthor;
@@ -1431,8 +1540,6 @@ namespace ACE.Server.Entity
             get => (CreatureType?)AceObject.CreatureType;
             set { AceObject.CreatureType = (int)value; }
         }
-
-        public AceObject Weenie => Database.DatabaseManager.World.GetAceObjectByWeenie(WeenieClassId);
 
         public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId.Value);
 
@@ -1535,77 +1642,6 @@ namespace ACE.Server.Entity
 
         public SequenceManager Sequences { get; }
 
-        protected WorldObject(AceObject aceObject)
-        {
-            AceObject = aceObject;
-            Guid = new ObjectGuid(aceObject.AceObjectId);
-
-            Sequences = new SequenceManager();
-            Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectVector, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectTeleport, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectServerControl, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
-
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyBool, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt64, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDouble, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
-
-            Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
-
-            #region ACE-World initalizing.. to be removed later
-            ////RecallAndSetObjectDescriptionBools(); // Read bools stored in DB and apply them
-
-            ////RecallAndSetPhysicsStateBools(); // Read bools stored in DB and apply them
-
-            ////if (aceObject.CurrentMotionState == "0" || aceObject.CurrentMotionState == null)
-            ////    CurrentMotionState = null;
-            ////else
-            ////    CurrentMotionState = new UniversalMotion(Convert.FromBase64String(aceObject.CurrentMotionState));
-
-            ////aceObject.AnimationOverrides.ForEach(ao => AddModel(ao.Index, ao.AnimationId));
-            ////aceObject.TextureOverrides.ForEach(to => AddTexture(to.Index, to.OldId, to.NewId));
-            ////aceObject.PaletteOverrides.ForEach(po => AddPalette(po.SubPaletteId, po.Offset, po.Length));
-            #endregion
-
-            SetPhysicsStateBools();
-
-            if (Placement == null)
-                Placement = global::ACE.Entity.Enum.Placement.Resting;
-
-            GetClothingBase();
-
-            SelectGeneratorProfiles();
-            UpdateGeneratorInts();
-            QueueGenerator();
-
-            QueueNextHeartBeat();
-
-            GenerateWieldList();
-        }
-
         internal void SetInventoryForVendor(WorldObject inventoryItem)
         {
             inventoryItem.Location = null;
@@ -1676,7 +1712,7 @@ namespace ACE.Server.Entity
             pageData.IgnoreAuthor = false;
             // TODO - check for PropertyBool.IgnoreAuthor flag
 
-            var bookDataResponse = new GameEventBookPageDataResponse(reader, guid.Full, pageData);
+            var bookDataResponse = new GameEventBookPageDataResponse(reader, Guid.Full, pageData);
             reader.Network.EnqueueSend(bookDataResponse);
         }
 
@@ -1799,7 +1835,7 @@ namespace ACE.Server.Entity
             debugOutput += "AceObjectId: " + obj.Guid.Full + " (0x" + obj.Guid.Full.ToString("X") + ")" + "\n";
 
             debugOutput += "-Private Fields-\n";
-            foreach (var prop in obj.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var prop in obj.GetType().GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
             {
                 if (prop.GetValue(obj) == null)
                     continue;
@@ -1816,7 +1852,7 @@ namespace ACE.Server.Entity
                 switch (prop.Name.ToLower())
                 {
                     case "guid":
-                        debugOutput += $"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.guid.Type.ToString()})" + "\n";
+                        debugOutput += $"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.Guid.Type.ToString()})" + "\n";
                         break;
                     case "descriptionflags":
                         debugOutput += $"{prop.Name} = {obj.DescriptionFlags.ToString()}" + " (" + (uint)obj.DescriptionFlags + ")" + "\n";
@@ -2074,8 +2110,9 @@ namespace ACE.Server.Entity
                 Player tmpTarget = (Player)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
             }
-            else if (Guid.IsCreature())
+            else// if (Guid.IsCreature())
             {
+                throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
                 Creature tmpTarget = (Creature)this;
                 healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
             }
@@ -2268,7 +2305,7 @@ namespace ACE.Server.Entity
                 switch (property.PropertyType)
                 {
                     case AceObjectPropertyType.PropertyInt:
-                        int? value = this.AceObject.GetIntProperty((PropertyInt)property.PropertyId);
+                        int? value = this.AceObject.GetProperty((PropertyInt)property.PropertyId);
                         if (value != null)
                             targetSession.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(targetSession.Player.Sequences, (PropertyInt)property.PropertyId, value.Value));
                         break;
@@ -2554,7 +2591,7 @@ namespace ACE.Server.Entity
 
         public AceObject NewAceObjectFromCopy()
         {
-            return (AceObject)AceObject.Clone(GuidManager.NewItemGuid().Full);
+            return (AceObject)AceObject.Clone(GuidManager.NewDynamicGuid().Full);
         }
 
         public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
@@ -3563,13 +3600,13 @@ namespace ACE.Server.Entity
             {
                 if (WieldedObjects == null)
                     WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
-
+                throw new System.NotImplementedException();/* Create the object, THEN set the palette/shade on the new object, not via this ctor
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId, item.Palette, item.Shade);
 
                 wo.CurrentWieldedLocation = wo.ValidLocations;
                 wo.WielderId = Guid.Full;
 
-                WieldedObjects.Add(wo.guid, wo);                
+                WieldedObjects.Add(wo.Guid, wo);   */           
             }
 
             if (WieldedObjects != null)

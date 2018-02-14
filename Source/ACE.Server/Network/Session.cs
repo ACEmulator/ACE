@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
 
 namespace ACE.Server.Network
 {

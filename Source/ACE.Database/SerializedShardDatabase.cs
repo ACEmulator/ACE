@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 
@@ -64,6 +65,76 @@ namespace ACE.Database
             }
         }
 
+        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.GetCharacters(subscriptionId);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        public void IsCharacterNameAvailable(string name, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.IsCharacterNameAvailable(name);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        public void AddBiota(Biota biota, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddBiota(biota);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        public void GetBiota(uint id, Action<Biota> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetBiota(id);
+                if (callback != null)
+                    callback.Invoke(c);
+            }));
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+
         public void AddFriend(uint characterId, uint friendCharacterId, Action callback)
         {
             _queue.Add(new Task(() =>
@@ -104,35 +175,6 @@ namespace ACE.Database
             }));
         }
 
-        public void GetCharacter(uint id, Action<AceCharacter> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetCharacter(id);
-                if (callback != null)
-                    callback.Invoke(c);
-            }));
-        }
-
-        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetCharacters(subscriptionId);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetObject(uint aceObjectId, Action<AceObject> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetObject(aceObjectId);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
 
         public void GetObjectInfoByName(string name, Action<ObjectInfo> callback)
         {
@@ -144,25 +186,7 @@ namespace ACE.Database
             }));
         }
 
-        public void GetObjectsByLandblock(ushort landblock, Action<List<AceObject>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetObjectsByLandblock(landblock);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
 
-        public void IsCharacterNameAvailable(string name, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.IsCharacterNameAvailable(name);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
 
         public void RemoveAllFriends(uint characterId, Action callback)
         {
@@ -204,11 +228,11 @@ namespace ACE.Database
             }));
         }
 
-        public void GetCurrentId(uint min, uint max, Action<uint> callback)
+        public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCurrentId(min, max);
+                var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
                 callback.Invoke(result);
             }));
         }

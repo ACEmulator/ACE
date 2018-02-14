@@ -3,82 +3,58 @@ namespace ACE.Entity
     public enum GuidType
     {
         Undef,
-        Weenie,
-        Static,
-        Generator,
         Player,
-        Creature,
-        Item
+        Static,
+        Dynamic,
     }
 
     public struct ObjectGuid
     {
         public static readonly ObjectGuid Invalid = new ObjectGuid(0);
 
+        /* These are not GUIDs
         public static uint WeenieMin { get; } = 0x00000001;
-        public static uint WeenieMax { get; } = 0x000F423F; // 999,999
+        public static uint WeenieMax { get; } = 0x000F423F; // 999,999 */
 
-        public static uint StaticObjectMin { get; } = 0x70000000;
-        public static uint StaticObjectMax { get; } = 0xDFFFFFFF;
-
-        /* NOTE(ddevec): Taking out static object allocation -- we never allocate "static" objects, right?
-        // We should never allocate from our static object pool?
-        private static uint staticObject = staticObjectMax;
-        */
-
-        // Removed old comments -- looks like we are going in a different direction here and they were just confusing.   Og II
-
-        public static uint GeneratorMin { get; } = 0x000F4240; // 1,000,000
-        public static uint GeneratorMax { get; } = 0x001E847F; // 1,999,999
-
-        // FIXME(ddevec): Currently
-        public static uint NonStaticMin { get; } = 0x001E8480; // 2,000,000
-        public static uint NonStaticMax { get; } = 0x4FFFFFFF;
+        // 0x01000001 and 0x422C91BC Only PCAP'd 9 GUID's found in this range 
 
         public static uint PlayerMin { get; } = 0x50000001;
         public static uint PlayerMax { get; } = 0x5FFFFFFF;
 
-        public static uint ItemMin { get; } = 0xE0000000;
-        // Ends at E because uint.Max is reserved for "invalid"
-        public static uint ItemMax { get; } = 0xFFFFFFFE;
+        // 0x60000000 No PCAP'd GUID's in this range
+
+        // PY 16 has these ranges 0x70003000 - 0x7FADA053
+        // They are organized by landblock where 0x7AABB000 is landblock AABB
+        // These represent items that come from the World db
+        public static uint StaticObjectMin { get; } = 0x70000000;
+        public static uint StaticObjectMax { get; } = 0x7FFFFFFF;
+
+        // These represent items are generated in the world. Some of them will be saved to the Shard db.
+        public static uint DynamicMin { get; } = 0x80000000;
+        public static uint DynamicMax { get; } = 0xFFFFFFFE; // Ends at E because uint.Max is reserved for "invalid"
 
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
         public uint High => (Full >> 24);
-        public GuidType Type { get; private set; }
+        public GuidType Type { get; }
 
         public ObjectGuid(uint full)
         {
             Full = full;
 
-            if (Full >= WeenieMin && Full <= WeenieMax)
-                Type = GuidType.Weenie;
+            if (Full >= PlayerMin && Full <= PlayerMax)
+                Type = GuidType.Player;
             else if (Full >= StaticObjectMin && Full <= StaticObjectMax)
                 Type = GuidType.Static;
-            else if (Full >= GeneratorMin && Full <= GeneratorMax)
-                Type = GuidType.Generator;
-            else if (Full >= NonStaticMin && Full <= NonStaticMax)
-                Type = GuidType.Creature;
-            else if (Full >= PlayerMin && Full <= PlayerMax)
-                Type = GuidType.Player;
-            else if (Full >= ItemMin && Full <= ItemMax)
-                Type = GuidType.Item;
+            else if (Full >= DynamicMin && Full <= DynamicMax)
+                Type = GuidType.Dynamic;
             else
                 Type = GuidType.Undef;
         }
 
         public bool IsPlayer()
         {
-            if (Type == GuidType.Player)
-                return true;
-            return false;
-        }
-
-        public bool IsCreature()
-        {
-            if (Type == GuidType.Creature)
-                return true;
-            return false;
+            return Type == GuidType.Player;
         }
 
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
@@ -93,9 +69,7 @@ namespace ACE.Entity
 
         public override bool Equals(object obj)
         {
-            if (obj is ObjectGuid)
-                return ((ObjectGuid)obj) == this;
-            return false;
+            return obj is ObjectGuid && (ObjectGuid)obj == this;
         }
 
         public override int GetHashCode()

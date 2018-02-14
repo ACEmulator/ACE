@@ -4,7 +4,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using ACE.Common;
-using ACE.Database.Models.ace_auth;
+using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 
 namespace ACE.Database.Tests

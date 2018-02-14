@@ -22,98 +22,98 @@ namespace ACE.Entity
             // FIXME(ddevec): Should we have constants for (some of) these things?
 
             AceObjectDescriptionFlags = 0;
-            SetBoolProperty(PropertyBool.Stuck, true);
-            SetBoolProperty(PropertyBool.Attackable, true);
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
 
             WeenieHeaderFlags = 0;
-            SetIntProperty(PropertyInt.ItemsCapacity, 102);
-            SetIntProperty(PropertyInt.ContainersCapacity, 7);           
-            SetIntProperty(PropertyInt.ItemUseable, (int)Usable.No);
-            SetIntProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
+            SetProperty(PropertyInt.ItemsCapacity, 102);
+            SetProperty(PropertyInt.ContainersCapacity, 7);           
+            SetProperty(PropertyInt.ItemUseable, (int)Usable.No);
+            SetProperty(PropertyInt.ShowableOnRadar, (byte)RadarBehavior.ShowAlways);
 
             PhysicsState = 0;
 
             WeenieClassId = 1;
-            SetIntProperty(PropertyInt.WeenieType, (int)Enum.WeenieType.Creature); // This might need to change
-            SetDataIdProperty(PropertyDataId.Icon, 100667446);
-            SetIntProperty(PropertyInt.ItemType, (int)Enum.ItemType.Creature);
+            SetProperty(PropertyInt.WeenieType, (int)Enum.WeenieType.Creature); // This might need to change
+            SetProperty(PropertyDataId.Icon, 100667446);
+            SetProperty(PropertyInt.ItemType, (int)Enum.ItemType.Creature);
             // SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);
-            SetBoolProperty(PropertyBool.IsDeleted, false);
-            SetIntProperty(PropertyInt.TotalLogins, 0);
+            SetProperty(PropertyBool.IsDeleted, false);
+            SetProperty(PropertyInt.TotalLogins, 0);
             SetInt64Property(PropertyInt64.DeleteTime, 0);
-            SetIntProperty(PropertyInt.Level, 1);
+            SetProperty(PropertyInt.Level, 1);
             SetInt64Property(PropertyInt64.AvailableExperience, 0);
             SetInt64Property(PropertyInt64.TotalExperience, 0);
 
-            SetIntProperty(PropertyInt.EncumbranceVal, 0);
+            SetProperty(PropertyInt.EncumbranceVal, 0);
 
-            SetBoolProperty(PropertyBool.FirstEnterWorldDone, false);
+            SetProperty(PropertyBool.FirstEnterWorldDone, false);
 
             SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
-            SetIntProperty(PropertyInt.CreationTimestamp, (int)GetDoubleProperty(PropertyDouble.CreationTimestamp));
-            SetStringProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow:dd MMMM yyyy}");
+            SetProperty(PropertyInt.CreationTimestamp, (int)GetProperty(PropertyDouble.CreationTimestamp));
+            SetProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow:dd MMMM yyyy}");
 
-            SetIntProperty(PropertyInt.CreatureType, (int)Enum.CreatureType.Human);
-            SetIntProperty(PropertyInt.ChannelsAllowed, (int)Channel.AllChans);
-            SetIntProperty(PropertyInt.ChannelsActive, (int)Channel.AllBroadcast);
+            SetProperty(PropertyInt.CreatureType, (int)Enum.CreatureType.Human);
+            SetProperty(PropertyInt.ChannelsAllowed, (int)Channel.AllChans);
+            SetProperty(PropertyInt.ChannelsActive, (int)Channel.AllBroadcast);
 
-            SetIntProperty(PropertyInt.NumDeaths, 0);
+            SetProperty(PropertyInt.NumDeaths, 0);
 
-            SetIntProperty(PropertyInt.ChessRank, 1400);
-            SetIntProperty(PropertyInt.ChessTotalGames, 0);
-            SetIntProperty(PropertyInt.ChessGamesLost, 0);
-            SetIntProperty(PropertyInt.ChessGamesWon, 0);
-            SetIntProperty(PropertyInt.FakeFishingSkill, 0);            
+            SetProperty(PropertyInt.ChessRank, 1400);
+            SetProperty(PropertyInt.ChessTotalGames, 0);
+            SetProperty(PropertyInt.ChessGamesLost, 0);
+            SetProperty(PropertyInt.ChessGamesWon, 0);
+            SetProperty(PropertyInt.FakeFishingSkill, 0);            
 
-            SetDoubleProperty(PropertyDouble.GlobalXpMod, 0);
-            SetIntProperty(PropertyInt.HealingBoostRating, 0);
-            SetIntProperty(PropertyInt.WeaknessRating, 0);
-            SetIntProperty(PropertyInt.NetherOverTime, 0);
-            SetIntProperty(PropertyInt.NetherResistRating, 0);
-            SetIntProperty(PropertyInt.DotResistRating, 0);
-            SetIntProperty(PropertyInt.LifeResistRating, 0);
-            SetIntProperty(PropertyInt.WeaponAuraDamage, 0);
-            SetIntProperty(PropertyInt.WeaponAuraSpeed, 0);
-            SetIntProperty(PropertyInt.PKDamageRating, 0);
-            SetIntProperty(PropertyInt.PKDamageResistRating, 0);
-            SetIntProperty(PropertyInt.Overpower, 0);
-            SetIntProperty(PropertyInt.OverpowerResist, 0);
-            SetIntProperty(PropertyInt.GearOverpower, 0);
-            SetIntProperty(PropertyInt.GearOverpowerResist, 0);
-            SetDoubleProperty(PropertyDouble.WeaponAuraOffense, 0);
-            SetDoubleProperty(PropertyDouble.WeaponAuraDefense, 0);
-            SetDoubleProperty(PropertyDouble.WeaponAuraElemental, 0);
-            SetDoubleProperty(PropertyDouble.WeaponAuraManaConv, 0);
+            SetProperty(PropertyDouble.GlobalXpMod, 0);
+            SetProperty(PropertyInt.HealingBoostRating, 0);
+            SetProperty(PropertyInt.WeaknessRating, 0);
+            SetProperty(PropertyInt.NetherOverTime, 0);
+            SetProperty(PropertyInt.NetherResistRating, 0);
+            SetProperty(PropertyInt.DotResistRating, 0);
+            SetProperty(PropertyInt.LifeResistRating, 0);
+            SetProperty(PropertyInt.WeaponAuraDamage, 0);
+            SetProperty(PropertyInt.WeaponAuraSpeed, 0);
+            SetProperty(PropertyInt.PKDamageRating, 0);
+            SetProperty(PropertyInt.PKDamageResistRating, 0);
+            SetProperty(PropertyInt.Overpower, 0);
+            SetProperty(PropertyInt.OverpowerResist, 0);
+            SetProperty(PropertyInt.GearOverpower, 0);
+            SetProperty(PropertyInt.GearOverpowerResist, 0);
+            SetProperty(PropertyDouble.WeaponAuraOffense, 0);
+            SetProperty(PropertyDouble.WeaponAuraDefense, 0);
+            SetProperty(PropertyDouble.WeaponAuraElemental, 0);
+            SetProperty(PropertyDouble.WeaponAuraManaConv, 0);
             SetInt64Property(PropertyInt64.AvailableLuminance, 0);
             SetInt64Property(PropertyInt64.MaximumLuminance, 0);
-            SetIntProperty(PropertyInt.LumAugDamageRating, 0);
-            SetIntProperty(PropertyInt.LumAugDamageReductionRating, 0);
-            SetIntProperty(PropertyInt.LumAugCritDamageRating, 0);
-            SetIntProperty(PropertyInt.LumAugCritReductionRating, 0);
-            SetIntProperty(PropertyInt.LumAugSurgeChanceRating, 0);
-            SetIntProperty(PropertyInt.LumAugItemManaUsage, 0);
-            SetIntProperty(PropertyInt.LumAugItemManaGain, 0);
-            SetIntProperty(PropertyInt.LumAugHealingRating, 0);
-            SetIntProperty(PropertyInt.LumAugSkilledCraft, 0);
-            SetIntProperty(PropertyInt.LumAugSkilledSpec, 0);
-            SetIntProperty(PropertyInt.LumAugAllSkills, 0);
-            SetIntProperty(PropertyInt.Enlightenment, 0);
-            SetIntProperty(PropertyInt.GearDamage, 0);
-            SetIntProperty(PropertyInt.GearDamageResist, 0);
-            SetIntProperty(PropertyInt.GearCrit, 0);
-            SetIntProperty(PropertyInt.GearCritResist, 0);
-            SetIntProperty(PropertyInt.GearCritDamage, 0);
-            SetIntProperty(PropertyInt.GearCritDamageResist, 0);
-            SetIntProperty(PropertyInt.GearHealingBoost, 0);
-            SetIntProperty(PropertyInt.GearNetherResist, 0);
-            SetIntProperty(PropertyInt.GearLifeResist, 0);
-            SetIntProperty(PropertyInt.GearMaxHealth, 0);
-            SetIntProperty(PropertyInt.GearPKDamageRating, 0);
-            SetIntProperty(PropertyInt.GearPKDamageResistRating, 0);
+            SetProperty(PropertyInt.LumAugDamageRating, 0);
+            SetProperty(PropertyInt.LumAugDamageReductionRating, 0);
+            SetProperty(PropertyInt.LumAugCritDamageRating, 0);
+            SetProperty(PropertyInt.LumAugCritReductionRating, 0);
+            SetProperty(PropertyInt.LumAugSurgeChanceRating, 0);
+            SetProperty(PropertyInt.LumAugItemManaUsage, 0);
+            SetProperty(PropertyInt.LumAugItemManaGain, 0);
+            SetProperty(PropertyInt.LumAugHealingRating, 0);
+            SetProperty(PropertyInt.LumAugSkilledCraft, 0);
+            SetProperty(PropertyInt.LumAugSkilledSpec, 0);
+            SetProperty(PropertyInt.LumAugAllSkills, 0);
+            SetProperty(PropertyInt.Enlightenment, 0);
+            SetProperty(PropertyInt.GearDamage, 0);
+            SetProperty(PropertyInt.GearDamageResist, 0);
+            SetProperty(PropertyInt.GearCrit, 0);
+            SetProperty(PropertyInt.GearCritResist, 0);
+            SetProperty(PropertyInt.GearCritDamage, 0);
+            SetProperty(PropertyInt.GearCritDamageResist, 0);
+            SetProperty(PropertyInt.GearHealingBoost, 0);
+            SetProperty(PropertyInt.GearNetherResist, 0);
+            SetProperty(PropertyInt.GearLifeResist, 0);
+            SetProperty(PropertyInt.GearMaxHealth, 0);
+            SetProperty(PropertyInt.GearPKDamageRating, 0);
+            SetProperty(PropertyInt.GearPKDamageResistRating, 0);
 
-            SetBoolProperty(PropertyBool.Account15Days, true);
+            SetProperty(PropertyBool.Account15Days, true);
 
-            SetIntProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+            SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
         }
 
         public ReadOnlyCollection<Friend> Friends { get; set; }
@@ -122,31 +122,31 @@ namespace ACE.Entity
 
         public int CharacterOptions1Mapping
         {
-            get { return GetIntProperty(PropertyInt.CharacterOptions1) ?? 0; }
-            set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
+            get { return GetProperty(PropertyInt.CharacterOptions1) ?? 0; }
+            set { SetProperty(PropertyInt.CharacterOptions1, value); }
         }
 
         public int CharacterOptions2Mapping
         {
-            get { return GetIntProperty(PropertyInt.CharacterOptions2) ?? 0; }
-            set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
+            get { return GetProperty(PropertyInt.CharacterOptions2) ?? 0; }
+            set { SetProperty(PropertyInt.CharacterOptions2, value); }
         }
 
         public new int TotalLogins
         {
-            get { return GetIntProperty(PropertyInt.TotalLogins) ?? 0; }
-            set { SetIntProperty(PropertyInt.TotalLogins, value); }
+            get { return GetProperty(PropertyInt.TotalLogins) ?? 0; }
+            set { SetProperty(PropertyInt.TotalLogins, value); }
         }
         
         public bool Deleted
         {
-            get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }
-            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
+            get { return GetProperty(PropertyBool.IsDeleted) ?? false; }
+            set { SetProperty(PropertyBool.IsDeleted, value); }
         }
 
         public new ulong DeleteTime
         {
-            get { return GetInt64Property(PropertyInt64.DeleteTime) ?? 0; }
+            get { return GetProperty(PropertyInt64.DeleteTime) ?? 0; }
             set { SetInt64Property(PropertyInt64.DeleteTime, value); }
         }
 
@@ -190,200 +190,200 @@ namespace ACE.Entity
 
         public new ulong AvailableExperience
         {
-            get { return GetInt64Property(PropertyInt64.AvailableExperience) ?? 0; }
+            get { return GetProperty(PropertyInt64.AvailableExperience) ?? 0; }
             set { SetInt64Property(PropertyInt64.AvailableExperience, value); }
         }
 
         public new ulong TotalExperience
         {
-            get { return GetInt64Property(PropertyInt64.TotalExperience) ?? 0; }
+            get { return GetProperty(PropertyInt64.TotalExperience) ?? 0; }
             set { SetInt64Property(PropertyInt64.TotalExperience, value); }
         }
 
         public new int Age
         {
-            get { return GetIntProperty(PropertyInt.Age) ?? 0; }
-            set { SetIntProperty(PropertyInt.Age, value); }
+            get { return GetProperty(PropertyInt.Age) ?? 0; }
+            set { SetProperty(PropertyInt.Age, value); }
         }
 
         public new bool IsDeleted
         {
-            get { return GetBoolProperty(PropertyBool.IsDeleted) ?? false; }
-            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
+            get { return GetProperty(PropertyBool.IsDeleted) ?? false; }
+            set { SetProperty(PropertyBool.IsDeleted, value); }
         }
 
         public new int AvailableSkillCredits
         {
-            get { return GetIntProperty(PropertyInt.AvailableSkillCredits) ?? 0; }
-            set { SetIntProperty(PropertyInt.AvailableSkillCredits, value); }
+            get { return GetProperty(PropertyInt.AvailableSkillCredits) ?? 0; }
+            set { SetProperty(PropertyInt.AvailableSkillCredits, value); }
         }
 
         public new int TotalSkillCredits
         {
-            get { return GetIntProperty(PropertyInt.TotalSkillCredits) ?? 0; }
-            set { SetIntProperty(PropertyInt.TotalSkillCredits, value); }
+            get { return GetProperty(PropertyInt.TotalSkillCredits) ?? 0; }
+            set { SetProperty(PropertyInt.TotalSkillCredits, value); }
         }
 
         public new int NumDeaths
         {
-            get { return GetIntProperty(PropertyInt.NumDeaths) ?? 0; }
-            set { SetIntProperty(PropertyInt.NumDeaths, value); }
+            get { return GetProperty(PropertyInt.NumDeaths) ?? 0; }
+            set { SetProperty(PropertyInt.NumDeaths, value); }
         }
 
         public new int DeathLevel
         {
-            get { return GetIntProperty(PropertyInt.DeathLevel) ?? 0; }
-            set { SetIntProperty(PropertyInt.DeathLevel, value); }
+            get { return GetProperty(PropertyInt.DeathLevel) ?? 0; }
+            set { SetProperty(PropertyInt.DeathLevel, value); }
         }
 
         public new int VitaeCpPool
         {
-            get { return GetIntProperty(PropertyInt.VitaeCpPool) ?? 0; }
-            set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
+            get { return GetProperty(PropertyInt.VitaeCpPool) ?? 0; }
+            set { SetProperty(PropertyInt.VitaeCpPool, value); }
         }
 
         public new bool IsAdmin
         {
-            get { return GetBoolProperty(PropertyBool.IsAdmin) ?? false; }
-            set { SetBoolProperty(PropertyBool.IsAdmin, value); }
+            get { return GetProperty(PropertyBool.IsAdmin) ?? false; }
+            set { SetProperty(PropertyBool.IsAdmin, value); }
         }
 
         public new bool IsEnvoy
         {
-            get { return GetBoolProperty(PropertyBool.IsSentinel) ?? false; }
-            set { SetBoolProperty(PropertyBool.IsSentinel, value); }
+            get { return GetProperty(PropertyBool.IsSentinel) ?? false; }
+            set { SetProperty(PropertyBool.IsSentinel, value); }
         }
 
         public new bool IsArch
         {
-            get { return GetBoolProperty(PropertyBool.IsArch) ?? false; }
-            set { SetBoolProperty(PropertyBool.IsArch, value); }
+            get { return GetProperty(PropertyBool.IsArch) ?? false; }
+            set { SetProperty(PropertyBool.IsArch, value); }
         }
 
         public new bool IsPsr
         {
-            get { return GetBoolProperty(PropertyBool.IsPsr) ?? false; }
-            set { SetBoolProperty(PropertyBool.IsPsr, value); }
+            get { return GetProperty(PropertyBool.IsPsr) ?? false; }
+            set { SetProperty(PropertyBool.IsPsr, value); }
         }
 
         public uint EyesTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.EyesTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.EyesTexture, value); }
+            get { return GetProperty(PropertyDataId.EyesTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.EyesTexture, value); }
         }
 
         public uint DefaultEyesTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultEyesTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.DefaultEyesTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultEyesTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.DefaultEyesTexture, value); }
         }
 
         public uint NoseTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.NoseTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.NoseTexture, value); }
+            get { return GetProperty(PropertyDataId.NoseTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.NoseTexture, value); }
         }
 
         public uint DefaultNoseTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultNoseTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.DefaultNoseTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultNoseTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.DefaultNoseTexture, value); }
         }
 
         public uint MouthTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.MouthTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.MouthTexture, value); }
+            get { return GetProperty(PropertyDataId.MouthTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.MouthTexture, value); }
         }
 
         public uint DefaultMouthTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultMouthTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.DefaultMouthTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultMouthTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.DefaultMouthTexture, value); }
         }
 
         public uint HairTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.HairTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.HairTexture, value); }
+            get { return GetProperty(PropertyDataId.HairTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.HairTexture, value); }
         }
 
         public uint DefaultHairTexture
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultHairTexture) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.DefaultHairTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultHairTexture) ?? 0; }
+            set { SetProperty(PropertyDataId.DefaultHairTexture, value); }
         }
 
         public uint HeadObject
         {
-            get { return GetDataIdProperty(PropertyDataId.HeadObject) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.HeadObject, value); }
+            get { return GetProperty(PropertyDataId.HeadObject) ?? 0; }
+            set { SetProperty(PropertyDataId.HeadObject, value); }
         }
 
         public uint SkinPalette
         {
-            get { return GetDataIdProperty(PropertyDataId.SkinPalette) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.SkinPalette, value); }
+            get { return GetProperty(PropertyDataId.SkinPalette) ?? 0; }
+            set { SetProperty(PropertyDataId.SkinPalette, value); }
         }
 
         public uint HairPalette
         {
-            get { return GetDataIdProperty(PropertyDataId.HairPalette) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.HairPalette, value); }
+            get { return GetProperty(PropertyDataId.HairPalette) ?? 0; }
+            set { SetProperty(PropertyDataId.HairPalette, value); }
         }
 
         public uint EyesPalette
         {
-            get { return GetDataIdProperty(PropertyDataId.EyesPalette) ?? 0; }
-            set { SetDataIdProperty(PropertyDataId.EyesPalette, value); }
+            get { return GetProperty(PropertyDataId.EyesPalette) ?? 0; }
+            set { SetProperty(PropertyDataId.EyesPalette, value); }
         }
 
         public uint? SetupTableId
         {
-            get { return GetDataIdProperty(PropertyDataId.Setup); }
-            set { SetDataIdProperty(PropertyDataId.Setup, value); }
+            get { return GetProperty(PropertyDataId.Setup); }
+            set { SetProperty(PropertyDataId.Setup, value); }
         }
 
         public uint? MotionTableId
         {
-            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
-            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
+            get { return GetProperty(PropertyDataId.MotionTable); }
+            set { SetProperty(PropertyDataId.MotionTable, value); }
         }
 
         public ushort? PhysicsScript
         {
-            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
-            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+            get { return (ushort?)GetProperty(PropertyDataId.PhysicsScript); }
+            set { SetProperty(PropertyDataId.PhysicsScript, value); }
         }
 
         public uint? PhysicsTableId
         {
-            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
-            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
+            get { return GetProperty(PropertyDataId.PhysicsEffectTable); }
+            set { SetProperty(PropertyDataId.PhysicsEffectTable, value); }
         }
 
         public uint? SoundTableId
         {
-            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
-            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
+            get { return GetProperty(PropertyDataId.SoundTable); }
+            set { SetProperty(PropertyDataId.SoundTable, value); }
         }
 
         public uint? CombatTableId
         {
-            get { return GetDataIdProperty(PropertyDataId.CombatTable); }
-            set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
+            get { return GetProperty(PropertyDataId.CombatTable); }
+            set { SetProperty(PropertyDataId.CombatTable, value); }
         }
 
         public new int Level
         {
-            get { return GetIntProperty(PropertyInt.Level) ?? 1; }
-            set { SetIntProperty(PropertyInt.Level, value); }
+            get { return GetProperty(PropertyInt.Level) ?? 1; }
+            set { SetProperty(PropertyInt.Level, value); }
         }
 
         public uint? PaletteId
         {
-            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
-            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
+            get { return GetProperty(PropertyDataId.PaletteBase); }
+            set { SetProperty(PropertyDataId.PaletteBase, value); }
         }
 
         private bool dirtyOptions = true;
@@ -450,7 +450,7 @@ namespace ACE.Entity
                 if (AvailableSkillCredits >= creditsSpent)
                 {
                     var newSkill = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
-                    SetSkillProperty(skill, newSkill);
+                    SetProperty(skill, newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -472,7 +472,7 @@ namespace ACE.Entity
                 {
                     RefundXp(cs.ExperienceSpent);
                     var newSkill = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
-                    SetSkillProperty(skill, newSkill);
+                    SetProperty(skill, newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -491,7 +491,7 @@ namespace ACE.Entity
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized) 
             {
                 var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
-                SetSkillProperty(skill, newSkill);
+                SetProperty(skill, newSkill);
                 return true;
             }
 
@@ -499,7 +499,7 @@ namespace ACE.Entity
             {
                 RefundXp(cs.ExperienceSpent);
                 var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
-                SetSkillProperty(skill, newSkill);
+                SetProperty(skill, newSkill);
                 AvailableSkillCredits += creditsSpent;
                 return true;
             }
