@@ -49,6 +49,7 @@ namespace ACE.Server.Entity.WorldObjects
 
             if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
             {
+                // TODO we shouldn't be auto setting properties that come from our weenie by default
             }
 
             return;
