@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using ACE.Database;
@@ -37,6 +38,31 @@ namespace ACE.Server.Entity
         public static float MaxObjectRange { get; } = 192f;
         public static float MaxObjectGhostRange { get; } = 250f;
 
+        /// <summary>
+        /// A landblock has this many cells squared
+        /// </summary>
+        public static readonly int CellDim = 8;
+
+        /// <summary>
+        /// A landblock is this unit size squared
+        /// </summary>
+        public static readonly int LandblockSize = 192;
+
+        /// <summary>
+        /// A landblock cell is this unit size squared
+        /// </summary>
+        public static readonly int CellSize = LandblockSize / CellDim;
+
+        /// <summary>
+        /// A landblock has this many vertices squared
+        /// </summary>
+        public static readonly int VertexDim = CellDim + 1;
+
+        /// <summary>
+        /// LandHeightTable for building mesh
+        /// </summary>
+        public static RegionDesc RegionDesc;
+
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
@@ -65,6 +91,20 @@ namespace ACE.Server.Entity
 
         public LandblockId Id { get; }
 
+        /// <summary>
+        /// The landblock vertex and triangle mesh
+        /// </summary>
+        public Mesh Mesh;
+
+        /// <summary>
+        /// Static constructor
+        /// </summary>
+        static Landblock()
+        {
+            // load the region file from portal.dat
+            RegionDesc = DatManager.PortalDat.ReadFromDat<RegionDesc>(0x13000000);
+        }
+
         public Landblock(LandblockId id)
         {
             this.Id = id;
@@ -85,10 +125,7 @@ namespace ACE.Server.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
-            // TODO: Load cell.dat contents
-            //   1. landblock cell structure
-            //   2. terrain data
-            // TODO: Load portal.dat contents (as/if needed)
+            LoadMesh();
 
             var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.Id.Landblock); // Instances
 
@@ -108,6 +145,69 @@ namespace ACE.Server.Entity
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
 
             motionQueue = new NestedActionQueue(WorldManager.MotionQueue);
+        }
+
+        /// <summary>
+        /// Generates a mesh from a landblock
+        /// </summary>
+        public void LoadMesh()
+        {
+            var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw | 0xFFFF);
+
+            var vertexHeights = GetVertexHeights(cellLandblock);
+
+            Mesh = new Mesh();
+            Mesh.LoadVertices(vertexHeights);
+            Mesh.BuildTriangles(Id);
+        }
+
+        /// <summary>
+        /// Reads the heights for each vertex in the landblock cells
+        /// </summary>
+        /// <param name="cellLandblock">A landblock from the cell database</param>
+        /// <returns>The vertex heights for the landblock cells</returns>
+        public float[,] GetVertexHeights(CellLandblock cellLandblock)
+        {
+            // The vertex heights in the cell database are stored in bytes,
+            // which map to offsets in the land height table from the region file in the portal database.
+
+            var heights = new float[VertexDim, VertexDim];
+
+            for (int x = 0; x < VertexDim; x++)
+            {
+                for (int y = 0; y < VertexDim; y++)
+                {
+                    heights[x, y] = RegionDesc.LandDefs.LandHeightTable[cellLandblock.Height[x * VertexDim + y]];
+                }
+            }
+            return heights;
+        }
+
+        /// <summary>
+        /// Given a pair of 2D coordinates within a landblock,
+        /// Returns the cell that contains these coordinates
+        /// </summary>
+        /// <param name="point">The 2D coordinates within the landblock</param>
+        /// <returns>The cell that contains these coordinates</returns>
+        public static Vector2 GetCell(Vector2 point)
+        {
+            return new Vector2(
+                (float)Math.Floor(point.X / CellSize),
+                (float)Math.Floor(point.Y / CellSize)
+            );
+        }
+
+        /// <summary>
+        /// Returns the z height coordinate for a 2D position within a landblock
+        /// </summary>
+        public float GetZ(Vector2 point)
+        {
+            // find the triangle that contains this point
+            var triangle = Mesh.GetTriangle(point);
+
+            // calculate the z coordinate at x,y
+            // for the plane defined by this triangle
+            return triangle.GetZ(Mesh.Vertices, point);
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
