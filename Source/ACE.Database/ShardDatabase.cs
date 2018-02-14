@@ -79,13 +79,14 @@ namespace ACE.Database
                 var results = context.BiotaPropertiesIID
                     .AsNoTracking()
                     .Where(r => r.Type == (ushort)PropertyInstanceId.Account && r.Value == accountId)
+                    .Include(r => r.Object).ThenInclude(r => r.BiotaPropertiesBool)
                     .Include(r => r.Object).ThenInclude(r => r.BiotaPropertiesString);
 
                 foreach (var result in results)
                 {
                     var cachedCharacter = new CachedCharacter();
                     cachedCharacter.AccountId = accountId;
-                    //cachedCharacter.Deleted
+                    cachedCharacter.Deleted = result.Object.GetProperty(PropertyBool.IsDeleted) ?? false;
                     //cachedCharacter.DeleteTime
                     cachedCharacter.FullGuid = result.ObjectId;
                     //cachedCharacter.LoginTimestamp
