@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 
@@ -48,25 +50,25 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write(0x0Au);
 
-            var aceObj = Session.Player.GetAceObject() as AceCharacter;
+            // Below is the new EF method that doesn't use aceObj
+            var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
 
-            var propertiesInt = aceObj?.IntProperties.Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.PropertyId)).ToList();
-
-            if (propertiesInt != null && propertiesInt.Count != 0)
+            if (propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
 
                 Writer.Write((ushort)propertiesInt.Count);
                 Writer.Write((ushort)0x40);
 
-                var notNull = propertiesInt.Where(x => x != null);
-                foreach (var uintProperty in notNull)
+                foreach (var property in propertiesInt)
                 {
-                    Writer.Write((uint)uintProperty.PropertyId);
-                    Debug.Assert(uintProperty.PropertyValue != null, $"uintProperty.PropertyValue != null | {uintProperty.PropertyId}");
-                    Writer.Write(uintProperty.PropertyValue.Value);
+                    Writer.Write((uint)property.Key);
+                    Writer.Write(property.Value);
                 }
             }
+
+            // Below are legacy methods that need to be converted (see above as example)
+            var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
             var propertiesInt64 = aceObj?.Int64Properties.Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.PropertyId)).ToList();
 
@@ -183,11 +185,13 @@ namespace ACE.Server.Network.GameEvent.Events
 
             Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
-            DescriptionVectorFlag vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
+            // todo fix to not use aceobj
+            DescriptionVectorFlag vectorFlags = 0;//DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
 
+            /* todo fix for player, not use aceobj
             var propertiesSpells = aceObj.SpellIdProperties.ToList();
             if (propertiesSpells.Count > 0)
-                vectorFlags |= DescriptionVectorFlag.Spell;
+                vectorFlags |= DescriptionVectorFlag.Spell;*/
 
             Writer.Write((uint)vectorFlags);
             Writer.Write(1u);
@@ -289,7 +293,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }
 
             if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
-            {
+            {/* todo fix for not aceobj
                 Writer.Write((ushort)propertiesSpells.Count);
                 Writer.Write((ushort)64);
 
@@ -300,7 +304,7 @@ namespace ACE.Server.Network.GameEvent.Events
                         // This sets a flag to use new spell configuration always 2
                         Writer.Write(2f);
                     }
-                }
+                }*/
             }
 
             /*if ((vectorFlags & DescriptionVectorFlag.Enchantment) != 0)
@@ -312,14 +316,15 @@ namespace ACE.Server.Network.GameEvent.Events
 
             // TODO: Refactor this to set all of these flags based on data. Og II
             CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
-            if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
-                optionFlags |= CharacterOptionDataFlag.SpellLists8;
+            // todo fix to not use aceobj
+            //if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
+            //    optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
             Writer.Write((uint)optionFlags);
             /*
             Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
             */
-            Writer.Write(aceObj.CharacterOptions1Mapping);
+            Writer.Write(0 /* todo fix for not use aceobj aceObj.CharacterOptions1Mapping*/);
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
@@ -352,7 +357,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if ((optionFlags & CharacterOptionDataFlag.CharacterOptions2) != 0)
                 // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
-                Writer.Write(aceObj.CharacterOptions2Mapping);
+                Writer.Write(0 /* todo fix for not ueaceobj aceObj.CharacterOptions2Mapping*/);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {
@@ -367,9 +372,9 @@ namespace ACE.Server.Network.GameEvent.Events
             }*/
 
             // Write total count.
-            Writer.Write((uint)aceObj.Inventory.Count);
+            Writer.Write(0 /* todo fix for not useaceobj (uint)aceObj.Inventory.Count*/);
             // write out all of the non-containers and foci
-            foreach (var inv in aceObj.Inventory.Where(i => !i.Value.UseBackpackSlot))
+            /*foreach (var inv in aceObj.Inventory.Where(i => !i.Value.UseBackpackSlot))
             {
                 Writer.Write(inv.Value.AceObjectId);
                 Writer.Write((uint)ContainerType.NonContainer);
@@ -382,16 +387,16 @@ namespace ACE.Server.Network.GameEvent.Events
                     Writer.Write((uint)ContainerType.Container);
                 else
                     Writer.Write((uint)ContainerType.Foci);
-            }
+            }*/
 
             // TODO: This is where what we have equipped is sent.
-            Writer.Write((uint)aceObj.WieldedItems.Count);
-            foreach (var wieldedItem in aceObj.WieldedItems)
+            Writer.Write(0 /* todo fix for not use aceobj (uint)aceObj.WieldedItems.Count*/);
+            /*foreach (var wieldedItem in aceObj.WieldedItems)
             {
                 Writer.Write(wieldedItem.Value.AceObjectId);
                 Writer.Write((uint)wieldedItem.Value.CurrentWieldedLocation);
                 Writer.Write(wieldedItem.Value.ClothingPriority ?? 0);
-            }
+            }*/
         }
     }
 }

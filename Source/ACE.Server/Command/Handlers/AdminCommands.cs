@@ -817,11 +817,12 @@ namespace ACE.Server.Command.Handlers
         public static void HandleTeleportPoi(Session session, params string[] parameters)
         {
             var poi = String.Join(" ", parameters);
+            throw new NotImplementedException();/* Use DatabaseManager.World.GetCachedPointOfInterest, then use an extension class to convert that to a Position object to be used here
             var teleportPOI = AssetManager.GetTeleport(poi);
             if (teleportPOI == null)
                 return;
 
-            session.Player.Teleport(teleportPOI);
+            session.Player.Teleport(teleportPOI);*/
         }
 
         // teleloc cell x y z [qx qy qz qw]
@@ -1029,9 +1030,13 @@ namespace ACE.Server.Command.Handlers
 
             WorldObject loot;
             if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+
+
+            throw new NotImplementedException();
+                // set the palette, shade, stackSize here
 
             if (loot == null)
             {
@@ -1082,9 +1087,12 @@ namespace ACE.Server.Command.Handlers
 
             WorldObject loot;
             if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+
+            throw new NotImplementedException();
+            // set the palette, shade, stackSize here
 
             if (loot == null)
             {
@@ -1281,7 +1289,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            ObjectGuid nextItemGuid = GuidManager.NextItemGuid();
+            ObjectGuid nextItemGuid = GuidManager.NewDynamicGuid();
             ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
 
             string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";

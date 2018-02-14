@@ -1,18 +1,128 @@
-using System;
 using System.Collections.Generic;
+
 using ACE.Database;
+using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Managers;
 
 namespace ACE.Server.Factories
 {
-    public class WorldObjectFactory
+    public static class WorldObjectFactory
     {
-        public static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
+        /// <summary>
+        /// This will create a WorldObject without generating a new GUID.
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public static WorldObject CreateWorldObject(Weenie weenie, Biota biota = null)
         {
-            var results = new List<WorldObject>();
+            var objWeenieType = (WeenieType)weenie.Type;
+
+            switch (objWeenieType)
+            {
+                case WeenieType.LifeStone:
+                    return new Lifestone(weenie, biota);
+                case WeenieType.Door:
+                    return new Door(weenie, biota);
+                case WeenieType.Portal:
+                    return new Portal(weenie, biota);
+                case WeenieType.Book:
+                    return new Book(weenie, biota);
+                // case WeenieType.PKModifier:
+                //    return new PKModifier(weenie, biota);
+                case WeenieType.Cow:
+                    return new Cow(weenie, biota);
+                case WeenieType.Creature:
+                    return new Creature(weenie, biota);
+                case WeenieType.Container:
+                    return new Container(weenie, biota);
+                case WeenieType.Scroll:
+                    return new Scroll(weenie, biota);
+                case WeenieType.Vendor:
+                    return new Vendor(weenie, biota);
+                case WeenieType.Coin:
+                    return new Coin(weenie, biota);
+                case WeenieType.Key:
+                    return new Key(weenie, biota);
+                case WeenieType.Food:
+                    return new Food(weenie, biota);
+                case WeenieType.Gem:
+                    return new Gem(weenie, biota);
+                case WeenieType.Game:
+                    return new Game(weenie, biota);
+                case WeenieType.GamePiece:
+                    return new GamePiece(weenie, biota);
+                case WeenieType.AllegianceBindstone:
+                    return new Bindstone(weenie, biota);
+                case WeenieType.Clothing:
+                    return new Clothing(weenie, biota);
+                default:
+                    return new GenericObject(weenie, biota);
+            }
+        }
+
+
+        /// <summary>
+        /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
+        /// </summary>
+        public static List<WorldObject> CreateNewWorldObjects(Dictionary<Weenie, List<LandblockInstances>> sourceObjects)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// This will create a new WorldObject with a new GUID.
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(Weenie weenie)
+        {
+            var worldObject = CreateWorldObject(weenie);
+
+            worldObject.Guid = GuidManager.NewDynamicGuid();
+
+            return worldObject;
+        }
+
+        /// <summary>
+        /// This will create a new WorldObject with a new GUID.
+        /// It will return null if weenieClassId was not found.
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(uint weenieClassId)
+        {
+            var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+
+            if (weenie == null)
+                return null;
+
+            return CreateNewWorldObject(weenie);
+        }
+
+        /// <summary>
+        /// This will create a new WorldObject with a new GUID.
+        /// It will return null if weenieClassDescription was not found.
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(string weenieClassDescription)
+        {
+            var classId = DatabaseManager.World.GetWeenieClassId(weenieClassDescription);
+
+            if (classId == 0)
+                return null;
+
+            return CreateNewWorldObject(classId);
+        }
+
+
+
+
+
+        // todo DO WE NEED TO INCORP THIS CODE INTO THE NEW ENTITY FRAMEWORK MODEL?
+        // I'm not sure aobut the Link stuff
+        private static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
+        {
+            throw new System.NotImplementedException();
+            /*var results = new List<WorldObject>();
 
             var linkSourceResults = new List<AceObject>();
             var linkResults = new Dictionary<int, List<AceObject>>();
@@ -93,125 +203,7 @@ namespace ACE.Server.Factories
                 if (wo != null)
                     results.Add(wo);
             }
-            return results;
-        }
-
-        public static WorldObject CreateWorldObject(AceObject aceO)
-        {
-            WeenieType objWeenieType = (WeenieType?)aceO.WeenieType ?? WeenieType.Generic;
-
-            switch (objWeenieType)
-            {
-                case WeenieType.LifeStone:
-                    return new Lifestone(aceO);
-                case WeenieType.Door:
-                    return new Door(aceO);
-                case WeenieType.Portal:
-                    return new Portal(aceO);
-                case WeenieType.Book:
-                    return new Book(aceO);
-                // case WeenieType.PKModifier:
-                //    return new PKModifier(aceO);
-                case WeenieType.Cow:
-                    return new Cow(aceO);
-                case WeenieType.Creature:
-                    return new Creature(aceO);
-                case WeenieType.Container:
-                    return new Container(aceO);
-                case WeenieType.Scroll:
-                    return new Scroll(aceO);
-                case WeenieType.Vendor:
-                    return new Vendor(aceO);
-                case WeenieType.Coin:
-                    return new Coin(aceO);
-                case WeenieType.Key:
-                    return new Key(aceO);
-                case WeenieType.Food:
-                    return new Food(aceO);
-                case WeenieType.Gem:
-                    return new Gem(aceO);
-                case WeenieType.Game:
-                    return new Game(aceO);
-                case WeenieType.GamePiece:
-                    return new GamePiece(aceO);
-                case WeenieType.AllegianceBindstone:
-                    return new Bindstone(aceO);
-                case WeenieType.Clothing:
-                    return new Clothing(aceO);
-                default:
-                    return new GenericObject(aceO);
-            }
-        }
-
-        public static WorldObject CreateWorldObject(uint weenieId, int palette = 0, float shade = 0, int stackSize = 1)
-        {
-            try
-            {
-                AceObject aceObject = DatabaseManager.World.GetAceObjectByWeenie(weenieId);
-
-                if (palette > 0)
-                    aceObject.PaletteTemplate = palette;
-                if (shade > 0)
-                    aceObject.Shade = shade;
-                if (aceObject.StackSize.HasValue && aceObject.MaxStackSize.HasValue)
-                {
-                    if (stackSize > 1)
-                        aceObject.StackSize = (ushort)stackSize;
-                    if (aceObject.StackSize > aceObject.MaxStackSize)
-                        aceObject.StackSize = aceObject.MaxStackSize;
-                }
-
-                return CreateWorldObject(aceObject);
-            }
-            catch (NullReferenceException)
-            {
-                return null;
-            }
-        }
-
-        public static WorldObject CreateWorldObject(uint weenieId, ObjectGuid guid, int palette = 0, float shade = 0, int stackSize = 1)
-        {
-            try
-            {
-                AceObject aceObject = (AceObject)DatabaseManager.World.GetAceObjectByWeenie(weenieId).Clone(guid.Full);
-
-                if (palette > 0)
-                    aceObject.PaletteTemplate = palette;
-                if (shade > 0)
-                    aceObject.Shade = shade;
-                if (aceObject.StackSize.HasValue && aceObject.MaxStackSize.HasValue)
-                {
-                    if (stackSize > 1)
-                        aceObject.StackSize = (ushort)stackSize;
-                    if (aceObject.StackSize > aceObject.MaxStackSize)
-                        aceObject.StackSize = aceObject.MaxStackSize;
-                }
-
-                return CreateWorldObject(aceObject);
-            }
-            catch (NullReferenceException)
-            {
-                return null;
-            }
-        }
-
-        public static WorldObject CreateNewWorldObject(uint weenieClassId, int palette = 0, float shade = 0, int stackSize = 1)
-        {
-            WorldObject wo = CreateWorldObject(weenieClassId, GuidManager.NewItemGuid(), palette, shade, stackSize);
-            return wo;
-        }
-
-        public static WorldObject CreateNewWorldObject(string weenieClassDescription, int palette = 0, float shade = 0, int stackSize = 1)
-        {
-            uint weenieClassId = DatabaseManager.World.GetWeenieClassIdByWeenieClassDescription(weenieClassDescription);
-
-            if (weenieClassId < 1 && weenieClassId > AceObject.WEENIE_MAX)
-            {
-                return null;
-            }
-
-            WorldObject wo = CreateWorldObject(weenieClassId, GuidManager.NewItemGuid(), palette, shade, stackSize);
-            return wo;
+            return results;*/
         }
     }
 }

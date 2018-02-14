@@ -4,19 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using log4net;
+
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
-using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -98,9 +101,9 @@ namespace ACE.Server.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
-            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.Id.Landblock); // Instances
+            var objects = DatabaseManager.World.GetCachedWeenieInstancesByLandblock(Id.Landblock); // Instances
 
-            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))
@@ -235,6 +238,7 @@ namespace ACE.Server.Entity
         {
             Parallel.ForEach(wolist, (o) =>
             {
+                throw new NotImplementedException(); /* Can't use Guid.IsCreature
                 if (o.Guid.IsCreature())
                 {
                     if ((o as Creature).IsAlive)
@@ -243,7 +247,7 @@ namespace ACE.Server.Entity
                 else
                 {
                     player.TrackObject(o);
-                }
+                }*/
             });
         }
 
@@ -325,8 +329,9 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(objectId))
             {
                 wo = worldObjects[objectId];
+                throw new NotImplementedException(); /* Can't use Guid.IsCreature
                 if (!objectId.IsCreature())
-                    worldObjects.Remove(objectId);
+                    worldObjects.Remove(objectId);*/
             }
 
             if (wo != null)
