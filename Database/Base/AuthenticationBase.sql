@@ -106,6 +106,7 @@ CREATE TABLE `securitylevel` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+-- Dump completed on 2018-02-14 13:39:27
  
 /*
 -- Query: SELECT * FROM ace_auth.accesslevel
