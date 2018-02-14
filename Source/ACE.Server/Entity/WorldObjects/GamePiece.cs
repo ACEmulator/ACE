@@ -6,7 +6,7 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class GamePiece : Creature
     {
-        public GamePiece(Weenie weenie) : base(weenie)
+        public GamePiece(Weenie weenie) : base(weenie, null)
         {
             Stuck = true;
             Attackable = true;

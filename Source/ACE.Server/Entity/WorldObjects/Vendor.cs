@@ -24,7 +24,7 @@ namespace ACE.Server.Entity.WorldObjects
 
         private bool inventoryloaded;
 
-        public Vendor(Weenie weenie) : base(weenie)
+        public Vendor(Weenie weenie) : base(weenie, null)
         {
             Vendor = true;
             Stuck = true;

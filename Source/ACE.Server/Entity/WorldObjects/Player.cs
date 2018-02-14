@@ -26,7 +26,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
-
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using Position = ACE.Entity.Position;
 
@@ -41,48 +40,25 @@ namespace ACE.Server.Entity.WorldObjects
         public Player(Weenie weenie, Biota biota, Session session) : base(weenie, biota)
         {
             Session = session;
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-
-        public Player(Weenie weenie, AceCharacter character, Session session) : base(weenie)
-        {
-            Session = session;
 
             // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
+            return;
+
             Player = true;
-            Stuck = true;
-            Attackable = true;
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
 
             SetObjectDescriptionBools();
 
             // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true,
             // I don't believe both were on at the same time. -Ripley
 
-            IgnoreCollision = true;
-            Gravity = true;
+            SetProperty(PropertyBool.IgnoreCollisions, true);
+            SetProperty(PropertyBool.GravityStatus, true);
             Hidden = true;
-            EdgeSlide = true;
+            SetProperty(PropertyBool.AllowEdgeSlide, true);
 
             // apply defaults.  "Load" should be overwriting these with values specific to the character
             // TODO: Load from database should be loading player data - including inventroy and positions
@@ -109,6 +85,100 @@ namespace ACE.Server.Entity.WorldObjects
 
             LastUseTracker = new Dictionary<int, DateTime>();
         }
+
+        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
+        public void Load()
+        {
+            /*
+            AceCharacter character;
+
+            if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (Session.AccessLevel == AccessLevel.Admin)
+                    character.IsAdmin = true;
+                if (Session.AccessLevel == AccessLevel.Developer)
+                    character.IsArch = true;
+                if (Session.AccessLevel == AccessLevel.Envoy)
+                    character.IsEnvoy = true;
+                // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
+                // if (Session.AccessLevel == AccessLevel.Sentinel)
+                //    character.IsSentinel = true;
+                // if (Session.AccessLevel == AccessLevel.Advocate)
+                //    character.IsAdvocate= true;
+            }
+
+            FirstEnterWorldDone = false;
+
+            Location = character.Location;
+            IsAlive = true;
+            IsOnline = true;
+
+            // TODO: test and remove - this should be coming in from AceObject.
+
+            MotionTableId = Character.MotionTableId;
+            SoundTableId = Character.SoundTableId;
+            PhysicsTableId = Character.PhysicsTableId;
+            SetupTableId = Character.SetupTableId;
+
+            // Start vital ticking, if they need it
+            if (Health.Current != Health.MaxValue)
+                VitalTickInternal(Health);
+
+            if (Stamina.Current != Stamina.MaxValue)
+                VitalTickInternal(Stamina);
+
+            if (Mana.Current != Mana.MaxValue)
+                VitalTickInternal(Mana);
+
+            ContainerCapacity = 7;
+
+            if (Character.DefaultScale != null)
+                ObjScale = Character.DefaultScale;
+
+            AddCharacterBaseModelData();
+
+            UpdateAppearance(this);
+            ////Burden = UpdateBurden();
+
+            // Save the the LoginTimestamp
+            Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
+
+            TotalLogins++;
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
+            */
+            // SendSelf will trigger the entrance into portal space
+            SendSelf();
+
+            SendFriendStatusUpdates();
+
+            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
+            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
+            var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "General");
+            var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
+            var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
+            var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
+            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+
+            FirstEnterWorldDone = true;
+        }
+
+
+
+
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
 
         /// <summary>
         /// Enum used for the DoEatOrDrink() method
@@ -453,81 +523,7 @@ namespace ACE.Server.Entity.WorldObjects
 
         private MotionStance stance = MotionStance.Standing;
 
-        // FIXME(ddevec): This should eventually be removed, with most of its contents making its way into the Player() constructor
-        public void Load()
-        {
-            /*
-            AceCharacter character;
 
-            if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
-            {
-                if (Session.AccessLevel == AccessLevel.Admin)
-                    character.IsAdmin = true;
-                if (Session.AccessLevel == AccessLevel.Developer)
-                    character.IsArch = true;
-                if (Session.AccessLevel == AccessLevel.Envoy)
-                    character.IsEnvoy = true;
-                // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
-                // if (Session.AccessLevel == AccessLevel.Sentinel)
-                //    character.IsSentinel = true;
-                // if (Session.AccessLevel == AccessLevel.Advocate)
-                //    character.IsAdvocate= true;
-            }
-
-            FirstEnterWorldDone = false;
-
-            Location = character.Location;
-            IsAlive = true;
-            IsOnline = true;
-
-            // TODO: test and remove - this should be coming in from AceObject.
-
-            MotionTableId = Character.MotionTableId;
-            SoundTableId = Character.SoundTableId;
-            PhysicsTableId = Character.PhysicsTableId;
-            SetupTableId = Character.SetupTableId;
-
-            // Start vital ticking, if they need it
-            if (Health.Current != Health.MaxValue)
-                VitalTickInternal(Health);
-
-            if (Stamina.Current != Stamina.MaxValue)
-                VitalTickInternal(Stamina);
-
-            if (Mana.Current != Mana.MaxValue)
-                VitalTickInternal(Mana);
-
-            ContainerCapacity = 7;
-
-            if (Character.DefaultScale != null)
-                ObjScale = Character.DefaultScale;
-
-            AddCharacterBaseModelData();
-
-            UpdateAppearance(this);
-            ////Burden = UpdateBurden();
-
-            // Save the the LoginTimestamp
-            Character.SetDoubleTimestamp(PropertyDouble.LoginTimestamp);
-
-            TotalLogins++;
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)TotalLogins));
-            */
-            // SendSelf will trigger the entrance into portal space
-            SendSelf();
-
-            SendFriendStatusUpdates();
-
-            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
-            var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "General");
-            var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Trade");
-            var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "LFG");
-            var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
-
-            FirstEnterWorldDone = true;
-        }
 
         private void AddCharacterBaseModelData()
         {
@@ -1793,8 +1789,7 @@ namespace ACE.Server.Entity.WorldObjects
 
             SetChildren();
 
-            Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid),
-                                        new GameMessageCreateObject(this));
+            Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
 
             SendInventoryAndWieldedItems(Session);
 

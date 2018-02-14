@@ -12,7 +12,7 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.TippedRight));
 
-        public Cow(Weenie weenie) : base(weenie)
+        public Cow(Weenie weenie) : base(weenie, null)
         {
             Stuck = true;
             Attackable = true;

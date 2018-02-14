@@ -50,7 +50,9 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances.AsNoTracking().Where(r => r.Guid >= min && r.Guid <= max);
+                var results = context.LandblockInstances
+                    .AsNoTracking()
+                    .Where(r => r.Guid >= min && r.Guid <= max);
 
                 if (!results.Any())
                     return uint.MaxValue;
@@ -141,7 +143,9 @@ namespace ACE.Database
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances.AsNoTracking().Where(r => r.Landblock == landblock);
+                var results = context.LandblockInstances
+                    .AsNoTracking()
+                    .Where(r => r.Landblock == landblock);
 
                 foreach (var result in results)
                 {
@@ -187,7 +191,9 @@ namespace ACE.Database
 
             using (var context = new WorldDbContext())
             {
-                var result = context.AceRecipe.AsNoTracking().FirstOrDefault(r => r.SourceWcid == sourceWeenieClassid && r.TargetWcid == targetWeenieClassId);
+                var result = context.AceRecipe
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.SourceWcid == sourceWeenieClassid && r.TargetWcid == targetWeenieClassId);
 
                 lock (recipeCache)
                 {

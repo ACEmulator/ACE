@@ -64,11 +64,11 @@ namespace ACE.Server.Factories
 
 
         /// <summary>
-        /// This will create a list of WorldObjects, all with new GUIDs.
+        /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
         public static List<WorldObject> CreateNewWorldObjects(Dictionary<Weenie, List<LandblockInstances>> sourceObjects)
         {
-            return new List<WorldObject>();
+            throw new System.NotImplementedException();
         }
 
         /// <summary>
@@ -115,7 +115,10 @@ namespace ACE.Server.Factories
 
 
 
-        public static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
+
+
+        // DO WE NEED TO INCORP THIS CODE INTO THE NEW ENTITY FRAMEWORK MODEL?
+        private static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
         {
             throw new System.NotImplementedException();
             /*var results = new List<WorldObject>();

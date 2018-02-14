@@ -63,6 +63,10 @@ namespace ACE.Server.Entity
             set => Biota.Id = value.Full;
         }
 
+        public UpdatePositionFlag PositionFlag { get; set; }
+
+        public virtual float ListeningRadius { get; protected set; } = 5f;
+
         protected WorldObject(Weenie weenie, Biota biota = null)
         {
             Weenie = weenie;
@@ -77,22 +81,7 @@ namespace ACE.Server.Entity
                 Biota.WeenieType = weenie.Type;
             }
 
-
-
-
-
-
-
             return;
-
-
-
-
-
-
-
-            //AceObject = aceObject;
-            //Guid = new ObjectGuid(aceObject.AceObjectId);
 
             Sequences = new SequenceManager();
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
@@ -417,7 +406,6 @@ namespace ACE.Server.Entity
             }
         }
 
-        public UpdatePositionFlag PositionFlag { get; set; }
         #endregion
 
         #region WDesc
@@ -1472,7 +1460,6 @@ namespace ACE.Server.Entity
 
         public virtual void PlayScript(Session session) { }
 
-        public virtual float ListeningRadius { get; protected set; } = 5f;
 
         ////// Logical Game Data
         public ContainerType ContainerType

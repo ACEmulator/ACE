@@ -1,14 +1,14 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Entity.WorldObjects
 {
     public class Clothing : WorldObject
     {
-        public Clothing(Weenie weenie) : base(weenie)
+        public Clothing(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            return;
-            Attackable = true;
+            SetProperty(PropertyBool.Attackable, true);
             
             SetObjectDescriptionBools();
         }
