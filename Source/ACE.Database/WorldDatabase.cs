@@ -1,365 +1,209 @@
-extern alias MySqlDataAlias;
-using MySqlDataAlias::MySql.Data.MySqlClient;
-
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
+using System.Threading;
 
-using ACE.Entity;
-using ACE.Entity.Enum;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+
+using log4net;
+
+using ACE.Database.Models.World;
 
 namespace ACE.Database
 {
-    public class WorldDatabase : CommonDatabase
+    public class WorldDatabase 
     {
-        private enum WorldPreparedStatement
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public bool Exists(bool retryUntilFound)
         {
-            GetPointsOfInterest,
-            GetWeenieClass,
-            GetObjectsByLandblock,
-            GetCreaturesByLandblock,
-            GetCreatureDataByWeenie,
-            InsertCreatureStaticLocation,
-            GetCreatureGeneratorByLandblock,
-            GetCreatureGeneratorData,
-            GetPortalObjectsByAceObjectId,
-            GetItemsByTypeId,
-            GetAceObject,
-            GetAceObjectGeneratorProfiles,
-            GetAceObjectInventory,
-            GetMaxId,
+            var config = Common.ConfigManager.Config.MySql.World;
 
-            GetWeenieInstancesByLandblock,            
+            for (; ; )
+            {
+                using (var context = new WorldDbContext())
+                {
+                    if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
+                    {
+                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        return true;
+                    }
+                }
 
-            GetAllRecipes,
-            CreateRecipe,
-            UpdateRecipe,
-            DeleteRecipe,          
+                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
 
-            CreateWeenie,
-            UpdateWeenie
-        }
-        
-        private void ConstructMaxQueryStatement(WorldPreparedStatement id, string tableName, string columnName)
-        {
-            // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
-            AddPreparedStatement(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?", MySqlDbType.UInt32, MySqlDbType.UInt32);
+                if (retryUntilFound)
+                    Thread.Sleep(5000);
+                else
+                    return false;
+            }
         }
 
-        protected override void InitializePreparedStatements()
+
+        /// <summary>
+        /// Will return uint.MaxValue if no records were found within the range provided.
+        /// </summary>
+        public uint GetMaxGuidFoundInRange(uint min, uint max)
         {
-            base.InitializePreparedStatements();
+            using (var context = new WorldDbContext())
+            {
+                var results = context.LandblockInstances.AsNoTracking().Where(r => r.Guid >= min && r.Guid <= max);
 
-            ConstructStatement(WorldPreparedStatement.GetPointsOfInterest, typeof(TeleportLocation), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.GetWeenieClass, typeof(WeenieClass), ConstructedStatementType.Get);
-            HashSet<string> criteria1 = new HashSet<string> { "itemType" };
-            ConstructGetListStatement(WorldPreparedStatement.GetItemsByTypeId, typeof(CachedWeenieClass), criteria1);
-            HashSet<string> criteria2 = new HashSet<string> { "landblock" };
-            ConstructGetListStatement(WorldPreparedStatement.GetObjectsByLandblock, typeof(CachedWorldObject), criteria2);
-            
-            ConstructStatement(WorldPreparedStatement.GetAceObjectGeneratorProfiles, typeof(AceObjectGeneratorProfile), ConstructedStatementType.GetList);
+                if (!results.Any())
+                    return uint.MaxValue;
 
-            ConstructStatement(WorldPreparedStatement.GetAceObjectInventory, typeof(AceObjectInventory), ConstructedStatementType.GetList);
+                var maxId = min;
 
-            ConstructStatement(WorldPreparedStatement.GetAceObject, typeof(AceObject), ConstructedStatementType.Get);
+                foreach (var result in results)
+                {
+                    if (result.Guid > maxId)
+                        maxId = result.Guid;
+                }
 
-            ConstructMaxQueryStatement(WorldPreparedStatement.GetMaxId, "ace_object", "aceObjectId");
+                return maxId;
+            }
+        }
 
-            ConstructGetListStatement(WorldPreparedStatement.GetWeenieInstancesByLandblock, typeof(WeenieObjectInstance), criteria2);
 
-            // recipes
-            ConstructStatement(WorldPreparedStatement.GetAllRecipes, typeof(Recipe), ConstructedStatementType.GetList);
-            ConstructStatement(WorldPreparedStatement.CreateRecipe, typeof(Recipe), ConstructedStatementType.Insert);
-            ConstructStatement(WorldPreparedStatement.UpdateRecipe, typeof(Recipe), ConstructedStatementType.Update);
-            ConstructStatement(WorldPreparedStatement.DeleteRecipe, typeof(Recipe), ConstructedStatementType.Delete);
+        /// <summary>
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// </summary>
+        public Weenie GetWeenie(uint weenieClassId)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = context.Weenie.AsNoTracking()
+                    .Include(r => r.WeeniePropertiesBook)
+                    //.Include(r => r.LandblockInstances)   / When we grab a weenie, we don't need to also know everywhere it exists in the world
+                    //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
+                    .Include(r => r.WeeniePropertiesAnimPart)
+                    .Include(r => r.WeeniePropertiesAttribute)
+                    .Include(r => r.WeeniePropertiesAttribute2nd)
+                    .Include(r => r.WeeniePropertiesBodyPart)
+                    .Include(r => r.WeeniePropertiesBookPageData)
+                    .Include(r => r.WeeniePropertiesBool)
+                    .Include(r => r.WeeniePropertiesCreateList)
+                    .Include(r => r.WeeniePropertiesDID)
+                    .Include(r => r.WeeniePropertiesEmote).ThenInclude(emote => emote.WeeniePropertiesEmoteAction)
+                    //.Include(r => r.WeeniePropertiesEmoteAction)  // Reference WeeniePropertiesEmoteAction from the WeeniePropertiesEmote object
+                    .Include(r => r.WeeniePropertiesEventFilter)
+                    .Include(r => r.WeeniePropertiesFloat)
+                    .Include(r => r.WeeniePropertiesGenerator)
+                    .Include(r => r.WeeniePropertiesIID)
+                    .Include(r => r.WeeniePropertiesInt)
+                    .Include(r => r.WeeniePropertiesInt64)
+                    .Include(r => r.WeeniePropertiesPalette)
+                    .Include(r => r.WeeniePropertiesPosition)
+                    .Include(r => r.WeeniePropertiesSkill)
+                    .Include(r => r.WeeniePropertiesSpellBook)
+                    .Include(r => r.WeeniePropertiesString)
+                    .Include(r => r.WeeniePropertiesTextureMap)
+                    .FirstOrDefault(r => r.ClassId == weenieClassId);
+
+                weenieCache.TryAdd(weenieClassId, result);
+
+                return result;
+            }
+        }
+
+        public uint GetWeenieClassId(string weenieDescription)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+
+        /// <summary>
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// </summary>
+        public Weenie GetCachedWeenie(uint weenieClassId)
+        {
+            if (weenieCache.TryGetValue(weenieClassId, out var value))
+                return value;
+
+            var result = GetWeenie(weenieClassId);
+
+            weenieCache.TryAdd(weenieClassId, result);
+
+            return result;
         }
 
         /// <summary>
-        /// does a full object replacement, deleting all properties prior to insertion
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
-        public bool ReplaceObject(AceObject aceObject)
+        public Dictionary<Weenie, List<LandblockInstances>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
-            return SaveOrReplaceObject(aceObject, true);
-        }
+            var builder = new Dictionary<uint, List<LandblockInstances>>();
 
-        public List<CachedWeenieClass> GetRandomWeeniesOfType(uint itemType, uint numWeenies)
-        {
-            var criteria = new Dictionary<string, object> { { "itemType", itemType } };
-            var weenieList = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWeenieClass>(WorldPreparedStatement.GetItemsByTypeId, criteria);
-            if (weenieList.Count <= 0) return null;
-            Random rnd = new Random();
-            int r = rnd.Next(weenieList.Count);
-            var randomWeenieList = new List<CachedWeenieClass>();
-            for (int i = 0; i < numWeenies; i++)
+            using (var context = new WorldDbContext())
             {
-                randomWeenieList.Add(weenieList[r]);
-                r = rnd.Next(weenieList.Count);
+                var results = context.LandblockInstances.AsNoTracking().Where(r => r.Landblock == landblock);
+
+                foreach (var result in results)
+                {
+                    if (builder.TryGetValue(result.WeenieClassId, out var value))
+                        value.Add(result);
+                    else
+                        builder[result.WeenieClassId] = new List<LandblockInstances>() { result };
+                }
             }
-            return randomWeenieList;
-        }
 
-        public override List<AceObject> GetObjectsByLandblock(ushort landblock)
-        {
-            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, CachedWorldObject>(WorldPreparedStatement.GetObjectsByLandblock, criteria);
-            return objects.Select(cwo => GetObject(cwo.AceObjectId)).ToList();
-        }
+            var ret = new Dictionary<Weenie, List<LandblockInstances>>();
 
-        protected override void LoadIntoObject(AceObject aceObject)
-        {
-            base.LoadIntoObject(aceObject);
-            aceObject.GeneratorProfiles = GetAceObjectGeneratorProfiles(aceObject.AceObjectId);
-            aceObject.CreateList = GetAceObjectInventory(aceObject.AceObjectId);
-        }
+            foreach (var kvp in builder)
+                ret[GetCachedWeenie(kvp.Key)] = kvp.Value;
 
-        public List<AceObject> GetWeenieInstancesByLandblock(ushort landblock)
-        {
-            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var instances = ExecuteConstructedGetListStatement<WorldPreparedStatement, WeenieObjectInstance>(WorldPreparedStatement.GetWeenieInstancesByLandblock, criteria);
-            List<AceObject> ret = new List<AceObject>();
-            instances.ForEach(instance =>
-            {
-                // Create a new AceObject from Weenie.
-                AceObject ao = GetObject(instance.WeenieClassId);
-
-                // Set the object's current location for this instance.
-                ao.Location = new Position(instance.LandblockRaw, instance.PositionX, instance.PositionY, instance.PositionZ, instance.RotationX, instance.RotationY, instance.RotationZ, instance.RotationW);
-
-                // Use the guid recorded by the PCAP.
-                // Cloning the CurrentMotionState would likely be removed at some point as it is mainly useful for examining objects as recorded at time of pcap.
-                string cmsClone = ao.CurrentMotionState; // Make a copy of the CurrentMotionState for cloning
-
-                // Clone AceObject and assign the recorded Guid
-                ao = (AceObject)ao.Clone(instance.PreassignedGuid); // Use recorded guid
-
-                ao.CurrentMotionState = cmsClone; // Restore CurrentMotionState from original weenie
-
-                // If instance has linking data add it to the object
-                if (instance.LinkSlot > 0)
-                    ao.LinkSlot = instance.LinkSlot;
-                if (instance.LinkSource == 1)
-                    ao.LinkSource = true;
-
-                ret.Add(ao);
-            });
             return ret;
         }
-        
-        private List<AceObjectInventory> GetAceObjectInventory(uint aceObjectId)
+
+
+        private readonly ConcurrentDictionary<string, PointsOfInterest> cachedAcePositions = new ConcurrentDictionary<string, PointsOfInterest>();
+
+        public PointsOfInterest GetCachedPointOfInterest(string name)
         {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectInventory>(WorldPreparedStatement.GetAceObjectInventory, criteria);
-            return objects;
-        }
+            if (cachedAcePositions.TryGetValue(name, out var value))
+                return value;
 
-        private List<AceObjectGeneratorProfile> GetAceObjectGeneratorProfiles(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, AceObjectGeneratorProfile>(WorldPreparedStatement.GetAceObjectGeneratorProfiles, criteria);
-            return objects;
-        }
-
-        public AceObject GetAceObjectByWeenie(uint weenieClassId)
-        {
-            return GetObject(weenieClassId);
-        }
-
-        public AceObject GetAceObjectByWeenie(string weenieClassDescription)
-        {
-            var ret = new WeenieClass();
-            var criteria = new Dictionary<string, object> { { "weenieClassDescription", weenieClassDescription } };
-            bool success = ExecuteConstructedGetStatement<WeenieClass, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, ret);
-            if (!success)
-                return null;
-
-            return GetObject(ret.WeenieClassId);
-        }
-
-        public uint GetWeenieClassIdByWeenieClassDescription(string weenieClassDescription)
-        {
-            var ret = new WeenieClass();
-            var criteria = new Dictionary<string, object> { { "weenieClassDescription", weenieClassDescription } };
-            bool success = ExecuteConstructedGetStatement<WeenieClass, WorldPreparedStatement>(WorldPreparedStatement.GetWeenieClass, criteria, ret);
-            if (!success)
-                return 0;
-
-            return ret.WeenieClassId;
-        }
-
-        public List<TeleportLocation> GetPointsOfInterest()
-        {
-            Dictionary<string, object> criteria = new Dictionary<string, object>();
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, TeleportLocation>(WorldPreparedStatement.GetPointsOfInterest, criteria);
-            return objects;
-        }
-
-        private uint GetMaxId(WorldPreparedStatement id, uint min, uint max)
-        {
-            object[] critera = new object[] { min, max };
-            var res = SelectPreparedStatement<WorldPreparedStatement>(id, critera);
-            var ret = res.Rows[0][0];
-            if (ret is DBNull)
-                return uint.MaxValue;
-
-            return (uint)res.Rows[0][0];
-        }
-
-        public uint GetCurrentId(uint min, uint max)
-        {
-            return GetMaxId(WorldPreparedStatement.GetMaxId, min, max);
-        }
-
-        public List<Recipe> GetAllRecipes()
-        {
-            var objects = ExecuteConstructedGetListStatement<WorldPreparedStatement, Recipe>(WorldPreparedStatement.GetAllRecipes, new Dictionary<string, object>());
-            return objects;
-        }    
-
-        public void CreateRecipe(Recipe recipe)
-        {
             throw new NotImplementedException();
         }
 
-        public void UpdateRecipe(Recipe recipe)
+
+        private readonly Dictionary<uint, Dictionary<uint, AceRecipe>> recipeCache = new Dictionary<uint, Dictionary<uint, AceRecipe>>();
+
+        public AceRecipe GetCachedRecipe(uint sourceWeenieClassid, uint targetWeenieClassId)
         {
-            throw new NotImplementedException();
-        }
-
-        public void DeleteRecipe(Guid recipeGuid)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public List<WeenieSearchResult> SearchWeenies(SearchWeeniesCriteria criteria)
-        {
-            List<WeenieSearchResult> results = new List<WeenieSearchResult>();
-            List<MySqlParameter> mysqlParams = new List<MySqlParameter>();
-
-            var properties = GetPropertyCache(typeof(WeenieSearchResult));
-            var dbTable = GetDbTableAttribute(typeof(WeenieSearchResult));
-            string sql = "SELECT " + string.Join(", ", properties.Select(p => "`v`." + p.Item2.DbFieldName)) + " FROM " + dbTable.DbTableName + " `v` ";
-            string where = null;
-
-            if (criteria?.ItemType != null)
+            lock (recipeCache)
             {
-                where = "";
-                where += "`itemType` = ?";
-                var p = new MySqlParameter("", MySqlDbType.Int32);
-                p.Value = (int)criteria.ItemType.Value;
-                mysqlParams.Add(p);
-            }
-
-            if (criteria?.WeenieType != null)
-            {
-                where = where != null ? where + " AND " : "";
-                where += "`weenieType` = ?";
-                var p = new MySqlParameter("", MySqlDbType.Int32);
-                p.Value = (int)criteria.WeenieType.Value;
-                mysqlParams.Add(p);
-            }
-
-            if (criteria?.WeenieClassId != null)
-            {
-                where = where != null ? where + " AND " : "";
-                where += "`v`.aceObjectId = ?";
-                var p = new MySqlParameter("", MySqlDbType.UInt32);
-                p.Value = criteria.WeenieClassId.Value;
-                mysqlParams.Add(p);
-            }
-
-            if (!string.IsNullOrWhiteSpace(criteria?.PartialName))
-            {
-                where = where != null ? where + " AND " : "";
-                where += "`v`.`name` LIKE '%" + EscapeStringLiteral(criteria.PartialName) + "%'";
-            }
-
-            int index = 0;
-            if (criteria?.PropertyCriteria != null)
-            {
-                foreach (var prop in criteria.PropertyCriteria)
+                if (recipeCache.TryGetValue(sourceWeenieClassid, out var recipiesForSource))
                 {
-                    // this should be the 99% use case
-                    switch (prop.PropertyType)
-                    {
-                        case AceObjectPropertyType.PropertyBool:
-                            sql += $" INNER JOIN ace_object_properties_bool `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.boolPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue = {bool.Parse(prop.PropertyValue)}";
-                            break;
-                        case AceObjectPropertyType.PropertyString:
-                            sql += $" INNER JOIN ace_object_properties_string `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.strPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue like '%{EscapeStringLiteral(prop.PropertyValue)}%'";
-                            break;
-                        case AceObjectPropertyType.PropertyDouble:
-                            float fnum = float.Parse(prop.PropertyValue);
-                            sql += $" INNER JOIN ace_object_properties_double `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.dblPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue = {fnum}";
-                            break;
-                        case AceObjectPropertyType.PropertyDataId:
-                            uint did = uint.Parse(prop.PropertyValue);
-                            sql += $" INNER JOIN ace_object_properties_did `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.didPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue = {did}";
-                            break;
-                        case AceObjectPropertyType.PropertyInstanceId:
-                            uint iid = uint.Parse(prop.PropertyValue);
-                            sql += $" INNER JOIN ace_object_properties_iid `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.iidPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue = {iid}";
-                            break;
-                        case AceObjectPropertyType.PropertyInt:
-                            uint id = uint.Parse(prop.PropertyValue);
-                            sql += $" INNER JOIN ace_object_properties_int `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.intPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue = {id}";
-                            break;
-                        case AceObjectPropertyType.PropertyInt64:
-                            ulong id64 = ulong.Parse(prop.PropertyValue);
-                            sql += $" INNER JOIN ace_object_properties_int `prop{index}` ON `v`.`aceObjectId` = `prop{index}`.aceObjectId " +
-                                                                                              $"AND `prop{index}`.intPropertyId = {prop.PropertyId} " +
-                                                                                              $"AND `prop{index}`.propertyValue = {id64}";
-                            break;
-                        case AceObjectPropertyType.PropertyBook:
-                            // TODO: implement
-                            break;
-
-                        case AceObjectPropertyType.PropertyPosition:
-                            // TODO: implement.  this will look up the static weenie mappings of where things are supposed to be spawned
-                            break;
-                    }
-
-                    index++;
+                    if (recipiesForSource.TryGetValue(targetWeenieClassId, out var value))
+                        return value;
                 }
             }
 
-            // note, "sql" may have had additional joins done on it with criteria
-
-            if (where != null)
-                sql += " WHERE " + where;
-
-            sql += " ORDER BY aceObjectId";
-            
-            using (var connection = new MySqlConnection(connectionString))
+            using (var context = new WorldDbContext())
             {
-                using (var command = new MySqlCommand(sql, connection))
+                var result = context.AceRecipe.AsNoTracking().FirstOrDefault(r => r.SourceWcid == sourceWeenieClassid && r.TargetWcid == targetWeenieClassId);
+
+                lock (recipeCache)
                 {
-                    mysqlParams.ForEach(p => command.Parameters.Add(p));
-
-                    connection.Open();
-                    using (var commandReader = command.ExecuteReader(CommandBehavior.Default))
+                    // We double check before commiting the recipe.
+                    // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
+                    if (recipeCache.TryGetValue(sourceWeenieClassid, out var sourceRecipies))
                     {
-                        while (commandReader.Read())
-                        {
-                            results.Add(ReadObject<WeenieSearchResult>(commandReader));
-                        }
+                        if (!sourceRecipies.ContainsKey(targetWeenieClassId))
+                            sourceRecipies.Add(targetWeenieClassId, result);
                     }
+                    else
+                        recipeCache.Add(sourceWeenieClassid, new Dictionary<uint, AceRecipe>() { { targetWeenieClassId, result } });
                 }
-            }
 
-            return results;
+                return result;
+            }
         }
     }
 }

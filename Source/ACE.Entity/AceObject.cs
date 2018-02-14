@@ -231,1269 +231,1143 @@ namespace ACE.Entity
         [JsonIgnore]
         public uint? SetupDID
         {
-            get { return GetDataIdProperty(PropertyDataId.Setup); }
-            set { SetDataIdProperty(PropertyDataId.Setup, value); }
+            get { return GetProperty(PropertyDataId.Setup); }
+            set { SetProperty(PropertyDataId.Setup, value); }
         }
 
         [JsonIgnore]
         public uint? MotionTableDID
         {
-            get { return GetDataIdProperty(PropertyDataId.MotionTable); }
-            set { SetDataIdProperty(PropertyDataId.MotionTable, value); }
+            get { return GetProperty(PropertyDataId.MotionTable); }
+            set { SetProperty(PropertyDataId.MotionTable, value); }
         }
 
         [JsonIgnore]
         public uint? SoundTableDID
         {
-            get { return GetDataIdProperty(PropertyDataId.SoundTable); }
-            set { SetDataIdProperty(PropertyDataId.SoundTable, value); }
+            get { return GetProperty(PropertyDataId.SoundTable); }
+            set { SetProperty(PropertyDataId.SoundTable, value); }
         }
 
         [JsonIgnore]
         public uint? PhysicsEffectTableDID
         {
-            get { return GetDataIdProperty(PropertyDataId.PhysicsEffectTable); }
-            set { SetDataIdProperty(PropertyDataId.PhysicsEffectTable, value); }
+            get { return GetProperty(PropertyDataId.PhysicsEffectTable); }
+            set { SetProperty(PropertyDataId.PhysicsEffectTable, value); }
         }
 
         [JsonIgnore]
         public uint? CombatTableDID
         {
-            get { return GetDataIdProperty(PropertyDataId.CombatTable); }
-            set { SetDataIdProperty(PropertyDataId.CombatTable, value); }
+            get { return GetProperty(PropertyDataId.CombatTable); }
+            set { SetProperty(PropertyDataId.CombatTable, value); }
         }
 
         [JsonIgnore]
         public int? PhysicsState
         {
-            get { return GetIntProperty(PropertyInt.PhysicsState); }
-            set { SetIntProperty(PropertyInt.PhysicsState, value); }
+            get { return GetProperty(PropertyInt.PhysicsState); }
+            set { SetProperty(PropertyInt.PhysicsState, value); }
         }
 
         [JsonIgnore]
         public int? WeenieType
         {
-            get { return GetIntProperty(PropertyInt.WeenieType); }
-            set { SetIntProperty(PropertyInt.WeenieType, value); }
+            get { return GetProperty(PropertyInt.WeenieType); }
+            set { SetProperty(PropertyInt.WeenieType, value); }
         }
 
         [JsonIgnore]
         public int? ItemType
         {
-            get { return GetIntProperty(PropertyInt.ItemType); }
-            set { SetIntProperty(PropertyInt.ItemType, value); }
+            get { return GetProperty(PropertyInt.ItemType); }
+            set { SetProperty(PropertyInt.ItemType, value); }
         }
 
         [JsonIgnore]
         public uint? IconDID
         {
-            get { return GetDataIdProperty(PropertyDataId.Icon); }
-            set { SetDataIdProperty(PropertyDataId.Icon, value); }
+            get { return GetProperty(PropertyDataId.Icon); }
+            set { SetProperty(PropertyDataId.Icon, value); }
         }
 
         [JsonIgnore]
         public string Name
         {
-            get { return GetStringProperty(PropertyString.Name); }
-            set { SetStringProperty(PropertyString.Name, value); }
+            get { return GetProperty(PropertyString.Name); }
+            set { SetProperty(PropertyString.Name, value); }
         }
 
         [JsonIgnore]
         public string PluralName
         {
-            get { return GetStringProperty(PropertyString.PluralName); }
-            set { SetStringProperty(PropertyString.PluralName, value); }
+            get { return GetProperty(PropertyString.PluralName); }
+            set { SetProperty(PropertyString.PluralName, value); }
         }
         [JsonIgnore]
 
         public byte? ItemsCapacity
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ItemsCapacity); }
-            set { SetIntProperty(PropertyInt.ItemsCapacity, (int)value); }
+            get { return (byte?)GetProperty(PropertyInt.ItemsCapacity); }
+            set { SetProperty(PropertyInt.ItemsCapacity, (int)value); }
         }
 
         [JsonIgnore]
         public byte? ContainersCapacity
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ContainersCapacity); }
-            set { SetIntProperty(PropertyInt.ContainersCapacity, (int)value); }
+            get { return (byte?)GetProperty(PropertyInt.ContainersCapacity); }
+            set { SetProperty(PropertyInt.ContainersCapacity, (int)value); }
         }
 
         [JsonIgnore]
         public int? AmmoType
         {
-            get { return GetIntProperty(PropertyInt.AmmoType); }
-            set { SetIntProperty(PropertyInt.AmmoType, (int)value); }
+            get { return GetProperty(PropertyInt.AmmoType); }
+            set { SetProperty(PropertyInt.AmmoType, (int)value); }
         }
 
         [JsonIgnore]
         public int? Value
         {
-            get { return GetIntProperty(PropertyInt.Value); }
-            set { SetIntProperty(PropertyInt.Value, value); }
+            get { return GetProperty(PropertyInt.Value); }
+            set { SetProperty(PropertyInt.Value, value); }
         }
 
         [JsonIgnore]
         public int? UseCreateContractId
         {
-            get { return GetIntProperty(PropertyInt.UseCreatesContractId); }
-            set { SetIntProperty(PropertyInt.UseCreatesContractId, value); }
+            get { return GetProperty(PropertyInt.UseCreatesContractId); }
+            set { SetProperty(PropertyInt.UseCreatesContractId, value); }
         }
 
         [JsonIgnore]
         public int? ItemUseable
         {
-            get { return GetIntProperty(PropertyInt.ItemUseable); }
-            set { SetIntProperty(PropertyInt.ItemUseable, (int)value); }
+            get { return GetProperty(PropertyInt.ItemUseable); }
+            set { SetProperty(PropertyInt.ItemUseable, (int)value); }
         }
 
         [JsonIgnore]
         public float? UseRadius
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.UseRadius); }
-            set { SetDoubleProperty(PropertyDouble.UseRadius, value); }
+            get { return (float?)GetProperty(PropertyDouble.UseRadius); }
+            set { SetProperty(PropertyDouble.UseRadius, value); }
         }
 
         [JsonIgnore]
         public int? TargetType
         {
-            get { return GetIntProperty(PropertyInt.TargetType); }
-            set { SetIntProperty(PropertyInt.TargetType, value); }
+            get { return GetProperty(PropertyInt.TargetType); }
+            set { SetProperty(PropertyInt.TargetType, value); }
         }
 
         [JsonIgnore]
         public int? UiEffects
         {
-            get { return GetIntProperty(PropertyInt.UiEffects); }
-            set { SetIntProperty(PropertyInt.UiEffects, value); }
+            get { return GetProperty(PropertyInt.UiEffects); }
+            set { SetProperty(PropertyInt.UiEffects, value); }
         }
 
         [JsonIgnore]
         public byte? CombatUse
         {
-            get { return (byte?)GetIntProperty(PropertyInt.CombatUse); }
-            set { SetIntProperty(PropertyInt.CombatUse, value); }
+            get { return (byte?)GetProperty(PropertyInt.CombatUse); }
+            set { SetProperty(PropertyInt.CombatUse, value); }
         }
 
         [JsonIgnore]
         public int? DefaultCombatStyle
         {
-            get { return GetIntProperty(PropertyInt.DefaultCombatStyle); }
-            set { SetIntProperty(PropertyInt.DefaultCombatStyle, value); }
+            get { return GetProperty(PropertyInt.DefaultCombatStyle); }
+            set { SetProperty(PropertyInt.DefaultCombatStyle, value); }
         }
 
         [JsonIgnore]
         public ushort? Structure
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.Structure); }
-            set { SetIntProperty(PropertyInt.Structure, value); }
+            get { return (ushort?)GetProperty(PropertyInt.Structure); }
+            set { SetProperty(PropertyInt.Structure, value); }
         }
 
         [JsonIgnore]
         public ushort? MaxStructure
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStructure); }
-            set { SetIntProperty(PropertyInt.MaxStructure, value); }
+            get { return (ushort?)GetProperty(PropertyInt.MaxStructure); }
+            set { SetProperty(PropertyInt.MaxStructure, value); }
         }
 
         [JsonIgnore]
         public ushort? StackSize
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.StackSize); }
-            set { SetIntProperty(PropertyInt.StackSize, value); }
+            get { return (ushort?)GetProperty(PropertyInt.StackSize); }
+            set { SetProperty(PropertyInt.StackSize, value); }
         }
 
         [JsonIgnore]
         public ushort? MaxStackSize
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.MaxStackSize); }
-            set { SetIntProperty(PropertyInt.MaxStackSize, value); }
+            get { return (ushort?)GetProperty(PropertyInt.MaxStackSize); }
+            set { SetProperty(PropertyInt.MaxStackSize, value); }
         }
 
         [JsonIgnore]
         public uint? ContainerIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Container); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Container, value); }
+            get { return GetProperty(PropertyInstanceId.Container); }
+            set { SetProperty(PropertyInstanceId.Container, value); }
         }
 
         [JsonIgnore]
         public int? Placement
         {
-            get { return GetIntProperty(PropertyInt.Placement); }
-            set { SetIntProperty(PropertyInt.Placement, value); }
+            get { return GetProperty(PropertyInt.Placement); }
+            set { SetProperty(PropertyInt.Placement, value); }
         }
 
         [JsonIgnore]
         public uint? WielderIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+            get { return GetProperty(PropertyInstanceId.Wielder); }
+            set { SetProperty(PropertyInstanceId.Wielder, value); }
         }
 
         [JsonIgnore]
         public uint? GeneratorIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Generator); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Generator, value); }
+            get { return GetProperty(PropertyInstanceId.Generator); }
+            set { SetProperty(PropertyInstanceId.Generator, value); }
         }
 
         [JsonIgnore]
         public int? ValidLocations
         {
-            get { return GetIntProperty(PropertyInt.ValidLocations); }
-            set { SetIntProperty(PropertyInt.ValidLocations, value); }
+            get { return GetProperty(PropertyInt.ValidLocations); }
+            set { SetProperty(PropertyInt.ValidLocations, value); }
         }
 
         [JsonIgnore]
         public int? CurrentWieldedLocation
         {
-            get { return GetIntProperty(PropertyInt.CurrentWieldedLocation); }
-            set { SetIntProperty(PropertyInt.CurrentWieldedLocation, value); }
+            get { return GetProperty(PropertyInt.CurrentWieldedLocation); }
+            set { SetProperty(PropertyInt.CurrentWieldedLocation, value); }
         }
 
         [JsonIgnore]
         public int? ClothingPriority
         {
-            get { return GetIntProperty(PropertyInt.ClothingPriority); }
-            set { SetIntProperty(PropertyInt.ClothingPriority, value); }
+            get { return GetProperty(PropertyInt.ClothingPriority); }
+            set { SetProperty(PropertyInt.ClothingPriority, value); }
         }
 
         [JsonIgnore]
         public byte? RadarBlipColor
         {
-            get { return (byte?)GetIntProperty(PropertyInt.RadarBlipColor); }
-            set { SetIntProperty(PropertyInt.RadarBlipColor, value); }
+            get { return (byte?)GetProperty(PropertyInt.RadarBlipColor); }
+            set { SetProperty(PropertyInt.RadarBlipColor, value); }
         }
 
         [JsonIgnore]
         public byte? ShowableOnRadar
         {
-            get { return (byte?)GetIntProperty(PropertyInt.ShowableOnRadar); }
-            set { SetIntProperty(PropertyInt.ShowableOnRadar, value); }
+            get { return (byte?)GetProperty(PropertyInt.ShowableOnRadar); }
+            set { SetProperty(PropertyInt.ShowableOnRadar, value); }
         }
 
         [JsonIgnore]
         public ushort? PhysicsScriptDID
         {
-            get { return (ushort?)GetDataIdProperty(PropertyDataId.PhysicsScript); }
-            set { SetDataIdProperty(PropertyDataId.PhysicsScript, value); }
+            get { return (ushort?)GetProperty(PropertyDataId.PhysicsScript); }
+            set { SetProperty(PropertyDataId.PhysicsScript, value); }
         }
 
         [JsonIgnore]
         public int? ItemWorkmanship
         {
-            get { return GetIntProperty(PropertyInt.ItemWorkmanship); }
-            set { SetIntProperty(PropertyInt.ItemWorkmanship, value); }
+            get { return GetProperty(PropertyInt.ItemWorkmanship); }
+            set { SetProperty(PropertyInt.ItemWorkmanship, value); }
         }
 
         [JsonIgnore]
         public ushort? EncumbranceVal
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.EncumbranceVal); }
-            set { SetIntProperty(PropertyInt.EncumbranceVal, value); }
+            get { return (ushort?)GetProperty(PropertyInt.EncumbranceVal); }
+            set { SetProperty(PropertyInt.EncumbranceVal, value); }
         }
 
         [JsonIgnore]
         public uint? SpellDID
         {
-            get { return GetDataIdProperty(PropertyDataId.Spell); }
-            set { SetDataIdProperty(PropertyDataId.Spell, value); }
+            get { return GetProperty(PropertyDataId.Spell); }
+            set { SetProperty(PropertyDataId.Spell, value); }
         }
 
         [JsonIgnore]
         public ushort? HookType
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookType); }
-            set { SetIntProperty(PropertyInt.HookType, value); }
+            get { return (ushort?)GetProperty(PropertyInt.HookType); }
+            set { SetProperty(PropertyInt.HookType, value); }
         }
 
         [JsonIgnore]
         public ushort? HookItemType
         {
-            get { return (ushort?)GetIntProperty(PropertyInt.HookItemType); }
-            set { SetIntProperty(PropertyInt.HookItemType, value); }
+            get { return (ushort?)GetProperty(PropertyInt.HookItemType); }
+            set { SetProperty(PropertyInt.HookItemType, value); }
         }
 
         [JsonIgnore]
         public uint? IconOverlayDID
         {
-            get { return GetDataIdProperty(PropertyDataId.IconOverlay); }
-            set { SetDataIdProperty(PropertyDataId.IconOverlay, value); }
+            get { return GetProperty(PropertyDataId.IconOverlay); }
+            set { SetProperty(PropertyDataId.IconOverlay, value); }
         }
 
         [JsonIgnore]
         public uint? IconUnderlayDID
         {
-            get { return GetDataIdProperty(PropertyDataId.IconUnderlay); }
-            set { SetDataIdProperty(PropertyDataId.IconUnderlay, value); }
+            get { return GetProperty(PropertyDataId.IconUnderlay); }
+            set { SetProperty(PropertyDataId.IconUnderlay, value); }
         }
 
         [JsonIgnore]
         public byte? MaterialType
         {
-            get { return (byte?)GetIntProperty(PropertyInt.MaterialType); }
-            set { SetIntProperty(PropertyInt.MaterialType, (byte?)value); }
+            get { return (byte?)GetProperty(PropertyInt.MaterialType); }
+            set { SetProperty(PropertyInt.MaterialType, (byte?)value); }
         }
 
         [JsonIgnore]
         public int? SharedCooldown
         {
-            get { return GetIntProperty(PropertyInt.SharedCooldown); }
-            set { SetIntProperty(PropertyInt.SharedCooldown, value); }
+            get { return GetProperty(PropertyInt.SharedCooldown); }
+            set { SetProperty(PropertyInt.SharedCooldown, value); }
         }
 
         [JsonIgnore]
         public double? CooldownDuration
         {
-            get { return GetDoubleProperty(PropertyDouble.CooldownDuration); }
-            set { SetDoubleProperty(PropertyDouble.CooldownDuration, value); }
+            get { return GetProperty(PropertyDouble.CooldownDuration); }
+            set { SetProperty(PropertyDouble.CooldownDuration, value); }
         }
 
         // Wielder is Parent, No such thing as PropertyInstanceId.Parent
         [JsonIgnore]
         public uint? ParentIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Wielder); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Wielder, value); }
+            get { return GetProperty(PropertyInstanceId.Wielder); }
+            set { SetProperty(PropertyInstanceId.Wielder, value); }
         }
 
         [JsonIgnore]
         public int? ParentLocation
         {
-            get { return GetIntProperty(PropertyInt.ParentLocation); }
-            set { SetIntProperty(PropertyInt.ParentLocation, value); }
+            get { return GetProperty(PropertyInt.ParentLocation); }
+            set { SetProperty(PropertyInt.ParentLocation, value); }
         }
 
         [JsonIgnore]
         public float? DefaultScale
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.DefaultScale); }
-            set { SetDoubleProperty(PropertyDouble.DefaultScale, value); }
+            get { return (float?)GetProperty(PropertyDouble.DefaultScale); }
+            set { SetProperty(PropertyDouble.DefaultScale, value); }
         }
 
         [JsonIgnore]
         public float? Friction
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Friction); }
-            set { SetDoubleProperty(PropertyDouble.Friction, value); }
+            get { return (float?)GetProperty(PropertyDouble.Friction); }
+            set { SetProperty(PropertyDouble.Friction, value); }
         }
 
         [JsonIgnore]
         public float? Elasticity
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Elasticity); }
-            set { SetDoubleProperty(PropertyDouble.Elasticity, value); }
+            get { return (float?)GetProperty(PropertyDouble.Elasticity); }
+            set { SetProperty(PropertyDouble.Elasticity, value); }
         }
 
         [JsonIgnore]
         public int? PlacementPosition
         {
-            get { return GetIntProperty(PropertyInt.PlacementPosition); }
-            set { SetIntProperty(PropertyInt.PlacementPosition, value); }
+            get { return GetProperty(PropertyInt.PlacementPosition); }
+            set { SetProperty(PropertyInt.PlacementPosition, value); }
         }
 
         [JsonIgnore]
         public float? Translucency
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.Translucency); }
-            set { SetDoubleProperty(PropertyDouble.Translucency, value); }
+            get { return (float?)GetProperty(PropertyDouble.Translucency); }
+            set { SetProperty(PropertyDouble.Translucency, value); }
         }
         
         [JsonIgnore]
         public float? PhysicsScriptIntensity
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.PhysicsScriptIntensity); }
-            set { SetDoubleProperty(PropertyDouble.PhysicsScriptIntensity, value); }
+            get { return (float?)GetProperty(PropertyDouble.PhysicsScriptIntensity); }
+            set { SetProperty(PropertyDouble.PhysicsScriptIntensity, value); }
         }
 
         [JsonIgnore]
         public uint? PaletteBaseDID
         {
-            get { return GetDataIdProperty(PropertyDataId.PaletteBase); }
-            set { SetDataIdProperty(PropertyDataId.PaletteBase, value); }
+            get { return GetProperty(PropertyDataId.PaletteBase); }
+            set { SetProperty(PropertyDataId.PaletteBase, value); }
         }
 
         [JsonIgnore]
         public uint? ClothingBaseDID
         {
-            get { return GetDataIdProperty(PropertyDataId.ClothingBase); }
-            set { SetDataIdProperty(PropertyDataId.ClothingBase, value); }
-        }
-
-        [JsonIgnore]
-        public int? CharacterOptions1
-        {
-            get { return GetIntProperty(PropertyInt.CharacterOptions1); }
-            set { SetIntProperty(PropertyInt.CharacterOptions1, value); }
-        }
-
-        [JsonIgnore]
-        public int? CharacterOptions2
-        {
-            get { return GetIntProperty(PropertyInt.CharacterOptions2); }
-            set { SetIntProperty(PropertyInt.CharacterOptions2, value); }
-        }
-
-        [JsonIgnore]
-        public int? TotalLogins
-        {
-            get { return GetIntProperty(PropertyInt.TotalLogins); }
-            set { SetIntProperty(PropertyInt.TotalLogins, value); }
+            get { return GetProperty(PropertyDataId.ClothingBase); }
+            set { SetProperty(PropertyDataId.ClothingBase, value); }
         }
 
         [JsonIgnore]
         public uint? AccountId
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Account); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Account, value); }
-        }
-
-        [JsonIgnore]
-        public bool? IsDeleted
-        {
-            get { return GetBoolProperty(PropertyBool.IsDeleted); }
-            set { SetBoolProperty(PropertyBool.IsDeleted, value); }
-        }
-
-        [JsonIgnore]
-        public ulong? DeleteTime
-        {
-            get { return GetInt64Property(PropertyInt64.DeleteTime); }
-            set { SetInt64Property(PropertyInt64.DeleteTime, value); }
-        }
-
-        [JsonIgnore]
-        public ulong? AvailableExperience
-        {
-            get { return GetInt64Property(PropertyInt64.AvailableExperience); }
-            set { SetInt64Property(PropertyInt64.AvailableExperience, value); }
-        }
-
-        [JsonIgnore]
-        public ulong? TotalExperience
-        {
-            get { return GetInt64Property(PropertyInt64.TotalExperience); }
-            set { SetInt64Property(PropertyInt64.TotalExperience, value); }
-        }
-
-        [JsonIgnore]
-        public int? Age
-        {
-            get { return GetIntProperty(PropertyInt.Age); }
-            set { SetIntProperty(PropertyInt.Age, value); }
-        }
-
-        [JsonIgnore]
-        public string DateOfBirth
-        {
-            get { return GetStringProperty(PropertyString.DateOfBirth); }
-            set { SetStringProperty(PropertyString.DateOfBirth, value); }
-        }
-
-        [JsonIgnore]
-        public int? AvailableSkillCredits
-        {
-            get { return GetIntProperty(PropertyInt.AvailableSkillCredits); }
-            set { SetIntProperty(PropertyInt.AvailableSkillCredits, value); }
-        }
-
-        [JsonIgnore]
-        public int? TotalSkillCredits
-        {
-            get { return GetIntProperty(PropertyInt.TotalSkillCredits); }
-            set { SetIntProperty(PropertyInt.TotalSkillCredits, value); }
-        }
-
-        [JsonIgnore]
-        public int? NumDeaths
-        {
-            get { return GetIntProperty(PropertyInt.NumDeaths); }
-            set { SetIntProperty(PropertyInt.NumDeaths, value); }
-        }
-
-        [JsonIgnore]
-        public int? DeathLevel
-        {
-            get { return GetIntProperty(PropertyInt.DeathLevel); }
-            set { SetIntProperty(PropertyInt.DeathLevel, value); }
-        }
-
-        [JsonIgnore]
-        public int? VitaeCpPool
-        {
-            get { return GetIntProperty(PropertyInt.VitaeCpPool); }
-            set { SetIntProperty(PropertyInt.VitaeCpPool, value); }
-        }
-        
-        [JsonIgnore]
-        public bool? IsAdmin
-        {
-            get { return GetBoolProperty(PropertyBool.IsAdmin); }
-            set { SetBoolProperty(PropertyBool.IsAdmin, value); }
-        }
-
-        [JsonIgnore]
-        public bool? IsEnvoy
-        {
-            get { return GetBoolProperty(PropertyBool.IsSentinel); }
-            set { SetBoolProperty(PropertyBool.IsSentinel, value); }
-        }
-
-        [JsonIgnore]
-        public bool? IsArch
-        {
-            get { return GetBoolProperty(PropertyBool.IsArch); }
-            set { SetBoolProperty(PropertyBool.IsArch, value); }
-        }
-
-        [JsonIgnore]
-        public bool? IsPsr
-        {
-            get { return GetBoolProperty(PropertyBool.IsPsr); }
-            set { SetBoolProperty(PropertyBool.IsPsr, value); }
+            get { return GetProperty(PropertyInstanceId.Account); }
+            set { SetProperty(PropertyInstanceId.Account, value); }
         }
 
         [JsonIgnore]
         public int? Heritage
         {
-            get { return GetIntProperty(PropertyInt.HeritageGroup); }
-            set { SetIntProperty(PropertyInt.HeritageGroup, value); }
+            get { return GetProperty(PropertyInt.HeritageGroup); }
+            set { SetProperty(PropertyInt.HeritageGroup, value); }
         }
 
         [JsonIgnore]
         public int? Gender
         {
-            get { return GetIntProperty(PropertyInt.Gender); }
-            set { SetIntProperty(PropertyInt.Gender, value); }
+            get { return GetProperty(PropertyInt.Gender); }
+            set { SetProperty(PropertyInt.Gender, value); }
         }
 
         [JsonIgnore]
         public uint? EyesTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.EyesTexture); }
-            set { SetDataIdProperty(PropertyDataId.EyesTexture, value); }
+            get { return GetProperty(PropertyDataId.EyesTexture); }
+            set { SetProperty(PropertyDataId.EyesTexture, value); }
         }
 
         [JsonIgnore]
         public uint? DefaultEyesTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultEyesTexture); }
-            set { SetDataIdProperty(PropertyDataId.DefaultEyesTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultEyesTexture); }
+            set { SetProperty(PropertyDataId.DefaultEyesTexture, value); }
         }
 
         [JsonIgnore]
         public uint? NoseTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.NoseTexture); }
-            set { SetDataIdProperty(PropertyDataId.NoseTexture, value); }
+            get { return GetProperty(PropertyDataId.NoseTexture); }
+            set { SetProperty(PropertyDataId.NoseTexture, value); }
         }
 
         [JsonIgnore]
         public uint? DefaultNoseTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultNoseTexture); }
-            set { SetDataIdProperty(PropertyDataId.DefaultNoseTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultNoseTexture); }
+            set { SetProperty(PropertyDataId.DefaultNoseTexture, value); }
         }
 
         [JsonIgnore]
         public uint? MouthTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.MouthTexture); }
-            set { SetDataIdProperty(PropertyDataId.MouthTexture, value); }
+            get { return GetProperty(PropertyDataId.MouthTexture); }
+            set { SetProperty(PropertyDataId.MouthTexture, value); }
         }
 
         [JsonIgnore]
         public uint? DefaultMouthTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultMouthTexture); }
-            set { SetDataIdProperty(PropertyDataId.DefaultMouthTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultMouthTexture); }
+            set { SetProperty(PropertyDataId.DefaultMouthTexture, value); }
         }
 
         [JsonIgnore]
         public uint? HairTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.HairTexture); }
-            set { SetDataIdProperty(PropertyDataId.HairTexture, value); }
+            get { return GetProperty(PropertyDataId.HairTexture); }
+            set { SetProperty(PropertyDataId.HairTexture, value); }
         }
 
         [JsonIgnore]
         public uint? DefaultHairTextureDID
         {
-            get { return GetDataIdProperty(PropertyDataId.DefaultHairTexture); }
-            set { SetDataIdProperty(PropertyDataId.DefaultHairTexture, value); }
+            get { return GetProperty(PropertyDataId.DefaultHairTexture); }
+            set { SetProperty(PropertyDataId.DefaultHairTexture, value); }
         }
 
         [JsonIgnore]
         public uint? HeadObjectDID
         {
-            get { return GetDataIdProperty(PropertyDataId.HeadObject); }
-            set { SetDataIdProperty(PropertyDataId.HeadObject, value); }
+            get { return GetProperty(PropertyDataId.HeadObject); }
+            set { SetProperty(PropertyDataId.HeadObject, value); }
         }
 
         [JsonIgnore]
         public uint? SkinPaletteDID
         {
-            get { return GetDataIdProperty(PropertyDataId.SkinPalette); }
-            set { SetDataIdProperty(PropertyDataId.SkinPalette, value); }
+            get { return GetProperty(PropertyDataId.SkinPalette); }
+            set { SetProperty(PropertyDataId.SkinPalette, value); }
         }
 
         [JsonIgnore]
         public uint? HairPaletteDID
         {
-            get { return GetDataIdProperty(PropertyDataId.HairPalette); }
-            set { SetDataIdProperty(PropertyDataId.HairPalette, value); }
+            get { return GetProperty(PropertyDataId.HairPalette); }
+            set { SetProperty(PropertyDataId.HairPalette, value); }
         }
 
         [JsonIgnore]
         public uint? EyesPaletteDID
         {
-            get { return GetDataIdProperty(PropertyDataId.EyesPalette); }
-            set { SetDataIdProperty(PropertyDataId.EyesPalette, value); }
+            get { return GetProperty(PropertyDataId.EyesPalette); }
+            set { SetProperty(PropertyDataId.EyesPalette, value); }
         }
 
         [JsonIgnore]
         public int? Level
         {
-            get { return GetIntProperty(PropertyInt.Level); }
-            set { SetIntProperty(PropertyInt.Level, value); }
+            get { return GetProperty(PropertyInt.Level); }
+            set { SetProperty(PropertyInt.Level, value); }
         }
 
         [JsonIgnore]
         public bool? GeneratorStatus
         {
-            get { return GetBoolProperty(PropertyBool.GeneratorStatus); }
-            set { SetBoolProperty(PropertyBool.GeneratorStatus, value); }
+            get { return GetProperty(PropertyBool.GeneratorStatus); }
+            set { SetProperty(PropertyBool.GeneratorStatus, value); }
         }
 
         [JsonIgnore]
         public bool? GeneratorEnteredWorld
         {
-            get { return GetBoolProperty(PropertyBool.GeneratorEnteredWorld); }
-            set { SetBoolProperty(PropertyBool.GeneratorEnteredWorld, value); }
+            get { return GetProperty(PropertyBool.GeneratorEnteredWorld); }
+            set { SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
         }
 
         [JsonIgnore]
         public bool? GeneratorDisabled
         {
-            get { return GetBoolProperty(PropertyBool.GeneratorDisabled); }
-            set { SetBoolProperty(PropertyBool.GeneratorDisabled, value); }
+            get { return GetProperty(PropertyBool.GeneratorDisabled); }
+            set { SetProperty(PropertyBool.GeneratorDisabled, value); }
         }
 
         [JsonIgnore]
         public bool? GeneratedTreasureItem
         {
-            get { return GetBoolProperty(PropertyBool.GeneratedTreasureItem); }
-            set { SetBoolProperty(PropertyBool.GeneratedTreasureItem, value); }
+            get { return GetProperty(PropertyBool.GeneratedTreasureItem); }
+            set { SetProperty(PropertyBool.GeneratedTreasureItem, value); }
         }
 
         [JsonIgnore]
         public bool? GeneratorAutomaticDestruction
         {
-            get { return GetBoolProperty(PropertyBool.GeneratorAutomaticDestruction); }
-            set { SetBoolProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
+            get { return GetProperty(PropertyBool.GeneratorAutomaticDestruction); }
+            set { SetProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
         }
 
         [JsonIgnore]
         public bool? CanGenerateRare
         {
-            get { return GetBoolProperty(PropertyBool.CanGenerateRare); }
-            set { SetBoolProperty(PropertyBool.CanGenerateRare, value); }
+            get { return GetProperty(PropertyBool.CanGenerateRare); }
+            set { SetProperty(PropertyBool.CanGenerateRare, value); }
         }
 
         [JsonIgnore]
         public bool? CorpseGeneratedRare
         {
-            get { return GetBoolProperty(PropertyBool.CorpseGeneratedRare); }
-            set { SetBoolProperty(PropertyBool.CorpseGeneratedRare, value); }
+            get { return GetProperty(PropertyBool.CorpseGeneratedRare); }
+            set { SetProperty(PropertyBool.CorpseGeneratedRare, value); }
         }
 
         [JsonIgnore]
         public bool? SuppressGenerateEffect
         {
-            get { return GetBoolProperty(PropertyBool.SuppressGenerateEffect); }
-            set { SetBoolProperty(PropertyBool.SuppressGenerateEffect, value); }
+            get { return GetProperty(PropertyBool.SuppressGenerateEffect); }
+            set { SetProperty(PropertyBool.SuppressGenerateEffect, value); }
         }
 
         [JsonIgnore]
         public bool? ChestRegenOnClose
         {
-            get { return GetBoolProperty(PropertyBool.ChestRegenOnClose); }
-            set { SetBoolProperty(PropertyBool.ChestRegenOnClose, value); }
+            get { return GetProperty(PropertyBool.ChestRegenOnClose); }
+            set { SetProperty(PropertyBool.ChestRegenOnClose, value); }
         }
 
         [JsonIgnore]
         public bool? ChestClearedWhenClosed
         {
-            get { return GetBoolProperty(PropertyBool.ChestClearedWhenClosed); }
-            set { SetBoolProperty(PropertyBool.ChestClearedWhenClosed, value); }
+            get { return GetProperty(PropertyBool.ChestClearedWhenClosed); }
+            set { SetProperty(PropertyBool.ChestClearedWhenClosed, value); }
         }
 
         [JsonIgnore]
         public int? GeneratorTimeType
         {
-            get { return GetIntProperty(PropertyInt.GeneratorTimeType); }
-            set { SetIntProperty(PropertyInt.GeneratorTimeType, value); }
+            get { return GetProperty(PropertyInt.GeneratorTimeType); }
+            set { SetProperty(PropertyInt.GeneratorTimeType, value); }
         }
 
         [JsonIgnore]
         public int? GeneratorProbability
         {
-            get { return GetIntProperty(PropertyInt.GeneratorProbability); }
-            set { SetIntProperty(PropertyInt.GeneratorProbability, value); }
+            get { return GetProperty(PropertyInt.GeneratorProbability); }
+            set { SetProperty(PropertyInt.GeneratorProbability, value); }
         }
 
         [JsonIgnore]
         public int? MaxGeneratedObjects
         {
-            get { return GetIntProperty(PropertyInt.MaxGeneratedObjects); }
-            set { SetIntProperty(PropertyInt.MaxGeneratedObjects, value); }
+            get { return GetProperty(PropertyInt.MaxGeneratedObjects); }
+            set { SetProperty(PropertyInt.MaxGeneratedObjects, value); }
         }
 
         [JsonIgnore]
         public int? GeneratorType
         {
-            get { return GetIntProperty(PropertyInt.GeneratorType); }
-            set { SetIntProperty(PropertyInt.GeneratorType, value); }
+            get { return GetProperty(PropertyInt.GeneratorType); }
+            set { SetProperty(PropertyInt.GeneratorType, value); }
         }
 
         [JsonIgnore]
         public int? ActivationCreateClass
         {
-            get { return GetIntProperty(PropertyInt.ActivationCreateClass); }
-            set { SetIntProperty(PropertyInt.ActivationCreateClass, value); }
+            get { return GetProperty(PropertyInt.ActivationCreateClass); }
+            set { SetProperty(PropertyInt.ActivationCreateClass, value); }
         }
 
         [JsonIgnore]
         public bool? Ethereal
         {
-            get { return GetBoolProperty(PropertyBool.Ethereal); }
-            set { SetBoolProperty(PropertyBool.Ethereal, value); }
+            get { return GetProperty(PropertyBool.Ethereal); }
+            set { SetProperty(PropertyBool.Ethereal, value); }
         }
 
         [JsonIgnore]
         public bool? Open
         {
-            get { return GetBoolProperty(PropertyBool.Open); }
-            set { SetBoolProperty(PropertyBool.Open, value); }
+            get { return GetProperty(PropertyBool.Open); }
+            set { SetProperty(PropertyBool.Open, value); }
         }
 
         [JsonIgnore]
         public bool? Locked
         {
-            get { return GetBoolProperty(PropertyBool.Locked); }
-            set { SetBoolProperty(PropertyBool.Locked, value); }
+            get { return GetProperty(PropertyBool.Locked); }
+            set { SetProperty(PropertyBool.Locked, value); }
         }
 
         [JsonIgnore]
         public bool? DefaultLocked
         {
-            get { return GetBoolProperty(PropertyBool.DefaultLocked); }
-            set { SetBoolProperty(PropertyBool.DefaultLocked, value); }
+            get { return GetProperty(PropertyBool.DefaultLocked); }
+            set { SetProperty(PropertyBool.DefaultLocked, value); }
         }
 
         [JsonIgnore]
         public bool? DefaultOpen
         {
-            get { return GetBoolProperty(PropertyBool.DefaultOpen); }
-            set { SetBoolProperty(PropertyBool.DefaultOpen, value); }
+            get { return GetProperty(PropertyBool.DefaultOpen); }
+            set { SetProperty(PropertyBool.DefaultOpen, value); }
         }
 
         [JsonIgnore]
         public float? ResetInterval
         {
-            get { return (float?)GetDoubleProperty(PropertyDouble.ResetInterval); }
-            set { SetDoubleProperty(PropertyDouble.ResetInterval, value); }
+            get { return (float?)GetProperty(PropertyDouble.ResetInterval); }
+            set { SetProperty(PropertyDouble.ResetInterval, value); }
         }
 
         [JsonIgnore]
         public double? ResetTimestamp
         {
-            get { return GetDoubleProperty(PropertyDouble.ResetTimestamp); }
+            get { return GetProperty(PropertyDouble.ResetTimestamp); }
             set { SetDoubleTimestamp(PropertyDouble.ResetTimestamp); }
         }
 
         [JsonIgnore]
         public double? UseTimestamp
         {
-            get { return GetDoubleProperty(PropertyDouble.UseTimestamp); }
+            get { return GetProperty(PropertyDouble.UseTimestamp); }
             set { SetDoubleTimestamp(PropertyDouble.UseTimestamp); }
         }
 
         [JsonIgnore]
         public double? UseLockTimestamp
         {
-            get { return GetDoubleProperty(PropertyDouble.UseLockTimestamp); }
+            get { return GetProperty(PropertyDouble.UseLockTimestamp); }
             set { SetDoubleTimestamp(PropertyDouble.UseLockTimestamp); }
         }
 
         [JsonIgnore]
         public uint? LastUnlockerIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.LastUnlocker); }
-            set { SetInstanceIdProperty(PropertyInstanceId.LastUnlocker, value); }
+            get { return GetProperty(PropertyInstanceId.LastUnlocker); }
+            set { SetProperty(PropertyInstanceId.LastUnlocker, value); }
         }
 
         [JsonIgnore]
         public string KeyCode
         {
-            get { return GetStringProperty(PropertyString.KeyCode); }
-            set { SetStringProperty(PropertyString.KeyCode, value); }
+            get { return GetProperty(PropertyString.KeyCode); }
+            set { SetProperty(PropertyString.KeyCode, value); }
         }
 
         [JsonIgnore]
         public string LockCode
         {
-            get { return GetStringProperty(PropertyString.LockCode); }
-            set { SetStringProperty(PropertyString.LockCode, value); }
+            get { return GetProperty(PropertyString.LockCode); }
+            set { SetProperty(PropertyString.LockCode, value); }
         }
 
         [JsonIgnore]
         public int? ResistLockpick
         {
-            get { return GetIntProperty(PropertyInt.ResistLockpick); }
-            set { SetIntProperty(PropertyInt.ResistLockpick, value); }
+            get { return GetProperty(PropertyInt.ResistLockpick); }
+            set { SetProperty(PropertyInt.ResistLockpick, value); }
         }
 
         [JsonIgnore]
         public int? AppraisalLockpickSuccessPercent
         {
-            get { return GetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent); }
-            set { SetIntProperty(PropertyInt.AppraisalLockpickSuccessPercent, value); }
+            get { return GetProperty(PropertyInt.AppraisalLockpickSuccessPercent); }
+            set { SetProperty(PropertyInt.AppraisalLockpickSuccessPercent, value); }
         }
 
         [JsonIgnore]
         public int? MinLevel
         {
-            get { return GetIntProperty(PropertyInt.MinLevel); }
-            set { SetIntProperty(PropertyInt.MinLevel, value); }
+            get { return GetProperty(PropertyInt.MinLevel); }
+            set { SetProperty(PropertyInt.MinLevel, value); }
         }
 
         [JsonIgnore]
         public int? MaxLevel
         {
-            get { return GetIntProperty(PropertyInt.MaxLevel); }
-            set { SetIntProperty(PropertyInt.MaxLevel, value); }
+            get { return GetProperty(PropertyInt.MaxLevel); }
+            set { SetProperty(PropertyInt.MaxLevel, value); }
         }
 
         [JsonIgnore]
         public int? PortalBitmask
         {
-            get { return GetIntProperty(PropertyInt.PortalBitmask); }
-            set { SetIntProperty(PropertyInt.PortalBitmask, value); }
+            get { return GetProperty(PropertyInt.PortalBitmask); }
+            set { SetProperty(PropertyInt.PortalBitmask, value); }
         }
 
         [JsonIgnore]
         public string AppraisalPortalDestination
         {
-            get { return GetStringProperty(PropertyString.AppraisalPortalDestination); }
-            set { SetStringProperty(PropertyString.AppraisalPortalDestination, value); }
+            get { return GetProperty(PropertyString.AppraisalPortalDestination); }
+            set { SetProperty(PropertyString.AppraisalPortalDestination, value); }
         }
 
         [JsonIgnore]
         public string ShortDesc
         {
-            get { return GetStringProperty(PropertyString.ShortDesc); }
-            set { SetStringProperty(PropertyString.ShortDesc, value); }
+            get { return GetProperty(PropertyString.ShortDesc); }
+            set { SetProperty(PropertyString.ShortDesc, value); }
         }
 
         [JsonIgnore]
         public string LongDesc
         {
-            get { return GetStringProperty(PropertyString.LongDesc); }
-            set { SetStringProperty(PropertyString.LongDesc, value); }
+            get { return GetProperty(PropertyString.LongDesc); }
+            set { SetProperty(PropertyString.LongDesc, value); }
         }
 
         [JsonIgnore]
         public string Use
         {
-            get { return GetStringProperty(PropertyString.Use); }
-            set { SetStringProperty(PropertyString.Use, value); }
+            get { return GetProperty(PropertyString.Use); }
+            set { SetProperty(PropertyString.Use, value); }
         }
 
         [JsonIgnore]
         public string UseMessage
         {
-            get { return GetStringProperty(PropertyString.UseMessage); }
-            set { SetStringProperty(PropertyString.UseMessage, value); }
+            get { return GetProperty(PropertyString.UseMessage); }
+            set { SetProperty(PropertyString.UseMessage, value); }
         }
 
         [JsonIgnore]
         public bool? PortalShowDestination
         {
-            get { return GetBoolProperty(PropertyBool.PortalShowDestination); }
-            set { SetBoolProperty(PropertyBool.PortalShowDestination, value); }
+            get { return GetProperty(PropertyBool.PortalShowDestination); }
+            set { SetProperty(PropertyBool.PortalShowDestination, value); }
         }
 
         [JsonIgnore]
         public string HeritageGroup
         {
-            get { return GetStringProperty(PropertyString.HeritageGroup); }
-            set { SetStringProperty(PropertyString.HeritageGroup, value); }
+            get { return GetProperty(PropertyString.HeritageGroup); }
+            set { SetProperty(PropertyString.HeritageGroup, value); }
         }
 
         [JsonIgnore]
         public string Sex
         {
-            get { return GetStringProperty(PropertyString.Sex); }
-            set { SetStringProperty(PropertyString.Sex, value); }
+            get { return GetProperty(PropertyString.Sex); }
+            set { SetProperty(PropertyString.Sex, value); }
         }
 
         [JsonIgnore]
         public string Title
         {
-            get { return GetStringProperty(PropertyString.Title); }
-            set { SetStringProperty(PropertyString.Title, value); }
+            get { return GetProperty(PropertyString.Title); }
+            set { SetProperty(PropertyString.Title, value); }
         }
 
         [JsonIgnore]
         public string Template
         {
-            get { return GetStringProperty(PropertyString.Template); }
-            set { SetStringProperty(PropertyString.Template, value); }
+            get { return GetProperty(PropertyString.Template); }
+            set { SetProperty(PropertyString.Template, value); }
         }
 
         [JsonIgnore]
         public string DisplayName
         {
-            get { return GetStringProperty(PropertyString.DisplayName); }
-            set { SetStringProperty(PropertyString.DisplayName, value); }
+            get { return GetProperty(PropertyString.DisplayName); }
+            set { SetProperty(PropertyString.DisplayName, value); }
         }
 
         [JsonIgnore]
         public int? CharacterTitleId
         {
-            get { return GetIntProperty(PropertyInt.CharacterTitleId); }
-            set { SetIntProperty(PropertyInt.CharacterTitleId, value); }
+            get { return GetProperty(PropertyInt.CharacterTitleId); }
+            set { SetProperty(PropertyInt.CharacterTitleId, value); }
         }
 
         [JsonIgnore]
         public int? NumCharacterTitles
         {
-            get { return GetIntProperty(PropertyInt.NumCharacterTitles); }
-            set { SetIntProperty(PropertyInt.NumCharacterTitles, value); }
+            get { return GetProperty(PropertyInt.NumCharacterTitles); }
+            set { SetProperty(PropertyInt.NumCharacterTitles, value); }
         }
 
         [JsonIgnore]
         public double? CreationTimestamp
         {
-            get { return GetDoubleProperty(PropertyDouble.CreationTimestamp); }
+            get { return GetProperty(PropertyDouble.CreationTimestamp); }
             set { SetDoubleTimestamp(PropertyDouble.CreationTimestamp); }
         }
 
         [JsonIgnore]
         public bool? Stuck
         {
-            get { return GetBoolProperty(PropertyBool.Stuck); }
-            set { SetBoolProperty(PropertyBool.Stuck, value); }
+            get { return GetProperty(PropertyBool.Stuck); }
+            set { SetProperty(PropertyBool.Stuck, value); }
         }
 
         [JsonIgnore]
         public bool? IgnoreCollisions
         {
-            get { return GetBoolProperty(PropertyBool.IgnoreCollisions); }
-            set { SetBoolProperty(PropertyBool.IgnoreCollisions, value); }
+            get { return GetProperty(PropertyBool.IgnoreCollisions); }
+            set { SetProperty(PropertyBool.IgnoreCollisions, value); }
         }
 
         [JsonIgnore]
         public bool? ReportCollisions
         {
-            get { return GetBoolProperty(PropertyBool.ReportCollisions); }
-            set { SetBoolProperty(PropertyBool.ReportCollisions, value); }
+            get { return GetProperty(PropertyBool.ReportCollisions); }
+            set { SetProperty(PropertyBool.ReportCollisions, value); }
         }
 
         [JsonIgnore]
         public bool? GravityStatus
         {
-            get { return GetBoolProperty(PropertyBool.GravityStatus); }
-            set { SetBoolProperty(PropertyBool.GravityStatus, value); }
+            get { return GetProperty(PropertyBool.GravityStatus); }
+            set { SetProperty(PropertyBool.GravityStatus, value); }
         }
 
         [JsonIgnore]
         public bool? LightsStatus
         {
-            get { return GetBoolProperty(PropertyBool.LightsStatus); }
-            set { SetBoolProperty(PropertyBool.LightsStatus, value); }
+            get { return GetProperty(PropertyBool.LightsStatus); }
+            set { SetProperty(PropertyBool.LightsStatus, value); }
         }
 
         [JsonIgnore]
         public bool? ScriptedCollision
         {
-            get { return GetBoolProperty(PropertyBool.ScriptedCollision); }
-            set { SetBoolProperty(PropertyBool.ScriptedCollision, value); }
+            get { return GetProperty(PropertyBool.ScriptedCollision); }
+            set { SetProperty(PropertyBool.ScriptedCollision, value); }
         }
 
         [JsonIgnore]
         public bool? Inelastic
         {
-            get { return GetBoolProperty(PropertyBool.Inelastic); }
-            set { SetBoolProperty(PropertyBool.Inelastic, value); }
+            get { return GetProperty(PropertyBool.Inelastic); }
+            set { SetProperty(PropertyBool.Inelastic, value); }
         }
 
         [JsonIgnore]
         public bool? Visibility
         {
-            get { return GetBoolProperty(PropertyBool.Visibility); }
-            set { SetBoolProperty(PropertyBool.Visibility, value); }
+            get { return GetProperty(PropertyBool.Visibility); }
+            set { SetProperty(PropertyBool.Visibility, value); }
         }
 
         [JsonIgnore]
         public bool? Attackable
         {
-            get { return GetBoolProperty(PropertyBool.Attackable); }
-            set { SetBoolProperty(PropertyBool.Attackable, value); }
+            get { return GetProperty(PropertyBool.Attackable); }
+            set { SetProperty(PropertyBool.Attackable, value); }
         }
 
         [JsonIgnore]
         public bool? AdvocateState
         {
-            get { return GetBoolProperty(PropertyBool.AdvocateState); }
-            set { SetBoolProperty(PropertyBool.AdvocateState, value); }
+            get { return GetProperty(PropertyBool.AdvocateState); }
+            set { SetProperty(PropertyBool.AdvocateState, value); }
         }
 
         [JsonIgnore]
         public bool? Inscribable
         {
-            get { return GetBoolProperty(PropertyBool.Inscribable); }
-            set { SetBoolProperty(PropertyBool.Inscribable, value); }
+            get { return GetProperty(PropertyBool.Inscribable); }
+            set { SetProperty(PropertyBool.Inscribable, value); }
         }
 
         [JsonIgnore]
         public bool? UiHidden
         {
-            get { return GetBoolProperty(PropertyBool.UiHidden); }
-            set { SetBoolProperty(PropertyBool.UiHidden, value); }
+            get { return GetProperty(PropertyBool.UiHidden); }
+            set { SetProperty(PropertyBool.UiHidden, value); }
         }
 
         [JsonIgnore]
         public bool? IgnoreHouseBarriers
         {
-            get { return GetBoolProperty(PropertyBool.IgnoreHouseBarriers); }
-            set { SetBoolProperty(PropertyBool.IgnoreHouseBarriers, value); }
+            get { return GetProperty(PropertyBool.IgnoreHouseBarriers); }
+            set { SetProperty(PropertyBool.IgnoreHouseBarriers, value); }
         }
 
         [JsonIgnore]
         public bool? HiddenAdmin
         {
-            get { return GetBoolProperty(PropertyBool.HiddenAdmin); }
-            set { SetBoolProperty(PropertyBool.HiddenAdmin, value); }
+            get { return GetProperty(PropertyBool.HiddenAdmin); }
+            set { SetProperty(PropertyBool.HiddenAdmin, value); }
         }
 
         [JsonIgnore]
         public bool? PkWounder
         {
-            get { return GetBoolProperty(PropertyBool.PkWounder); }
-            set { SetBoolProperty(PropertyBool.PkWounder, value); }
+            get { return GetProperty(PropertyBool.PkWounder); }
+            set { SetProperty(PropertyBool.PkWounder, value); }
         }
 
         [JsonIgnore]
         public bool? PkKiller
         {
-            get { return GetBoolProperty(PropertyBool.PkKiller); }
-            set { SetBoolProperty(PropertyBool.PkKiller, value); }
+            get { return GetProperty(PropertyBool.PkKiller); }
+            set { SetProperty(PropertyBool.PkKiller, value); }
         }
 
         [JsonIgnore]
         public bool? UnderLifestoneProtection
         {
-            get { return GetBoolProperty(PropertyBool.UnderLifestoneProtection); }
-            set { SetBoolProperty(PropertyBool.UnderLifestoneProtection, value); }
+            get { return GetProperty(PropertyBool.UnderLifestoneProtection); }
+            set { SetProperty(PropertyBool.UnderLifestoneProtection, value); }
         }
 
         [JsonIgnore]
         public bool? DefaultOn
         {
-            get { return GetBoolProperty(PropertyBool.DefaultOn); }
-            set { SetBoolProperty(PropertyBool.DefaultOn, value); }
+            get { return GetProperty(PropertyBool.DefaultOn); }
+            set { SetProperty(PropertyBool.DefaultOn, value); }
         }
 
         [JsonIgnore]
         public bool? IsFrozen
         {
-            get { return GetBoolProperty(PropertyBool.IsFrozen); }
-            set { SetBoolProperty(PropertyBool.IsFrozen, value); }
+            get { return GetProperty(PropertyBool.IsFrozen); }
+            set { SetProperty(PropertyBool.IsFrozen, value); }
         }
 
         [JsonIgnore]
         public bool? ReportCollisionsAsEnvironment
         {
-            get { return GetBoolProperty(PropertyBool.ReportCollisionsAsEnvironment); }
-            set { SetBoolProperty(PropertyBool.ReportCollisionsAsEnvironment, value); }
+            get { return GetProperty(PropertyBool.ReportCollisionsAsEnvironment); }
+            set { SetProperty(PropertyBool.ReportCollisionsAsEnvironment, value); }
         }
 
         [JsonIgnore]
         public bool? AllowEdgeSlide
         {
-            get { return GetBoolProperty(PropertyBool.AllowEdgeSlide); }
-            set { SetBoolProperty(PropertyBool.AllowEdgeSlide, value); }
+            get { return GetProperty(PropertyBool.AllowEdgeSlide); }
+            set { SetProperty(PropertyBool.AllowEdgeSlide, value); }
         }
 
         [JsonIgnore]
         public bool? AdvocateQuest
         {
-            get { return GetBoolProperty(PropertyBool.AdvocateQuest); }
-            set { SetBoolProperty(PropertyBool.AdvocateQuest, value); }
+            get { return GetProperty(PropertyBool.AdvocateQuest); }
+            set { SetProperty(PropertyBool.AdvocateQuest, value); }
         }
 
         [JsonIgnore]
         public bool? IsAdvocate
         {
-            get { return GetBoolProperty(PropertyBool.IsAdvocate); }
-            set { SetBoolProperty(PropertyBool.IsAdvocate, value); }
+            get { return GetProperty(PropertyBool.IsAdvocate); }
+            set { SetProperty(PropertyBool.IsAdvocate, value); }
         }
 
         [JsonIgnore]
         public bool? IsSentinel
         {
-            get { return GetBoolProperty(PropertyBool.IsSentinel); }
-            set { SetBoolProperty(PropertyBool.IsSentinel, value); }
+            get { return GetProperty(PropertyBool.IsSentinel); }
+            set { SetProperty(PropertyBool.IsSentinel, value); }
         }
 
         [JsonIgnore]
         public bool? NoDraw
         {
-            get { return GetBoolProperty(PropertyBool.NoDraw); }
-            set { SetBoolProperty(PropertyBool.NoDraw, value); }
+            get { return GetProperty(PropertyBool.NoDraw); }
+            set { SetProperty(PropertyBool.NoDraw, value); }
         }
 
         [JsonIgnore]
         public bool? IgnorePortalRestrictions
         {
-            get { return GetBoolProperty(PropertyBool.IgnorePortalRestrictions); }
-            set { SetBoolProperty(PropertyBool.IgnorePortalRestrictions, value); }
+            get { return GetProperty(PropertyBool.IgnorePortalRestrictions); }
+            set { SetProperty(PropertyBool.IgnorePortalRestrictions, value); }
         }
 
         [JsonIgnore]
         public bool? Retained
         {
-            get { return GetBoolProperty(PropertyBool.Retained); }
-            set { SetBoolProperty(PropertyBool.Retained, value); }
+            get { return GetProperty(PropertyBool.Retained); }
+            set { SetProperty(PropertyBool.Retained, value); }
         }
 
         [JsonIgnore]
         public bool? Invincible
         {
-            get { return GetBoolProperty(PropertyBool.Invincible); }
-            set { SetBoolProperty(PropertyBool.Invincible, value); }
+            get { return GetProperty(PropertyBool.Invincible); }
+            set { SetProperty(PropertyBool.Invincible, value); }
         }
 
         [JsonIgnore]
         public bool? IsGagged
         {
-            get { return GetBoolProperty(PropertyBool.IsGagged); }
-            set { SetBoolProperty(PropertyBool.IsGagged, value); }
+            get { return GetProperty(PropertyBool.IsGagged); }
+            set { SetProperty(PropertyBool.IsGagged, value); }
         }
 
         [JsonIgnore]
         public bool? Afk
         {
-            get { return GetBoolProperty(PropertyBool.Afk); }
-            set { SetBoolProperty(PropertyBool.Afk, value); }
+            get { return GetProperty(PropertyBool.Afk); }
+            set { SetProperty(PropertyBool.Afk, value); }
         }
 
         [JsonIgnore]
         public bool? IgnoreAuthor
         {
-            get { return GetBoolProperty(PropertyBool.IgnoreAuthor); }
-            set { SetBoolProperty(PropertyBool.IgnoreAuthor, value); }
+            get { return GetProperty(PropertyBool.IgnoreAuthor); }
+            set { SetProperty(PropertyBool.IgnoreAuthor, value); }
         }
 
         [JsonIgnore]
         public bool? WieldOnUse
         {
-            get { return GetBoolProperty(PropertyBool.WieldOnUse); }
-            set { SetBoolProperty(PropertyBool.WieldOnUse, value); }
+            get { return GetProperty(PropertyBool.WieldOnUse); }
+            set { SetProperty(PropertyBool.WieldOnUse, value); }
         }
 
         [JsonIgnore]
         public bool? AutowieldLeft
         {
-            get { return GetBoolProperty(PropertyBool.AutowieldLeft); }
-            set { SetBoolProperty(PropertyBool.AutowieldLeft, value); }
+            get { return GetProperty(PropertyBool.AutowieldLeft); }
+            set { SetProperty(PropertyBool.AutowieldLeft, value); }
         }
 
         [JsonIgnore]
         public bool? VendorService
         {
-            get { return GetBoolProperty(PropertyBool.VendorService); }
-            set { SetBoolProperty(PropertyBool.VendorService, value); }
+            get { return GetProperty(PropertyBool.VendorService); }
+            set { SetProperty(PropertyBool.VendorService, value); }
         }
 
         [JsonIgnore]
         public bool? RequiresBackpackSlot
         {
-            get { return GetBoolProperty(PropertyBool.RequiresBackpackSlot); }
-            set { SetBoolProperty(PropertyBool.RequiresBackpackSlot, value); }
+            get { return GetProperty(PropertyBool.RequiresBackpackSlot); }
+            set { SetProperty(PropertyBool.RequiresBackpackSlot, value); }
         }
 
         [JsonIgnore]
         public bool UseBackpackSlot
         {
-            get { return (GetBoolProperty(PropertyBool.RequiresBackpackSlot) ?? false) ||
-                          GetIntProperty(PropertyInt.WeenieType) == (uint)Enum.WeenieType.Container; }
+            get { return (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) ||
+                          GetProperty(PropertyInt.WeenieType) == (uint)Enum.WeenieType.Container; }
         }
 
         [JsonIgnore]
         public int? ItemCurMana
         {
-            get { return GetIntProperty(PropertyInt.ItemCurMana); }
-            set { SetIntProperty(PropertyInt.ItemCurMana, value); }
+            get { return GetProperty(PropertyInt.ItemCurMana); }
+            set { SetProperty(PropertyInt.ItemCurMana, value); }
         }
 
         [JsonIgnore]
         public int? ItemMaxMana
         {
-            get { return GetIntProperty(PropertyInt.ItemMaxMana); }
-            set { SetIntProperty(PropertyInt.ItemMaxMana, value); }
+            get { return GetProperty(PropertyInt.ItemMaxMana); }
+            set { SetProperty(PropertyInt.ItemMaxMana, value); }
         }
 
         [JsonIgnore]
         public bool? NpcLooksLikeObject
         {
-            get { return GetBoolProperty(PropertyBool.NpcLooksLikeObject); }
-            set { SetBoolProperty(PropertyBool.NpcLooksLikeObject, value); }
+            get { return GetProperty(PropertyBool.NpcLooksLikeObject); }
+            set { SetProperty(PropertyBool.NpcLooksLikeObject, value); }
         }
 
         [JsonIgnore]
         public uint? AllowedActivator
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.AllowedActivator); }
-            set { SetInstanceIdProperty(PropertyInstanceId.AllowedActivator, value); }
+            get { return GetProperty(PropertyInstanceId.AllowedActivator); }
+            set { SetProperty(PropertyInstanceId.AllowedActivator, value); }
         }
 
         [JsonIgnore]
         public int? CreatureType
         {
-            get { return GetIntProperty(PropertyInt.CreatureType); }
-            set { SetIntProperty(PropertyInt.CreatureType, value); }
+            get { return GetProperty(PropertyInt.CreatureType); }
+            set { SetProperty(PropertyInt.CreatureType, value); }
         }
 
         [JsonIgnore]
         public int? MerchandiseItemTypes
         {
-            get { return GetIntProperty(PropertyInt.MerchandiseItemTypes); }
-            set { SetIntProperty(PropertyInt.MerchandiseItemTypes, value); }
+            get { return GetProperty(PropertyInt.MerchandiseItemTypes); }
+            set { SetProperty(PropertyInt.MerchandiseItemTypes, value); }
         }
 
         [JsonIgnore]
         public int? MerchandiseMinValue
         {
-            get { return GetIntProperty(PropertyInt.MerchandiseMinValue); }
-            set { SetIntProperty(PropertyInt.MerchandiseMinValue, value); }
+            get { return GetProperty(PropertyInt.MerchandiseMinValue); }
+            set { SetProperty(PropertyInt.MerchandiseMinValue, value); }
         }
 
         [JsonIgnore]
         public int? MerchandiseMaxValue
         {
-            get { return GetIntProperty(PropertyInt.MerchandiseMaxValue); }
-            set { SetIntProperty(PropertyInt.MerchandiseMaxValue, value); }
+            get { return GetProperty(PropertyInt.MerchandiseMaxValue); }
+            set { SetProperty(PropertyInt.MerchandiseMaxValue, value); }
         }
 
         [JsonIgnore]
         public string Inscription
         {
-            get { return GetStringProperty(PropertyString.Inscription); }
-            set { SetStringProperty(PropertyString.Inscription, value); }
+            get { return GetProperty(PropertyString.Inscription); }
+            set { SetProperty(PropertyString.Inscription, value); }
         }
 
         #region Books
@@ -1501,36 +1375,36 @@ namespace ACE.Entity
         [JsonIgnore]
         public string ScribeName
         {
-            get { return GetStringProperty(PropertyString.ScribeName); }
-            set { SetStringProperty(PropertyString.ScribeName, value); }
+            get { return GetProperty(PropertyString.ScribeName); }
+            set { SetProperty(PropertyString.ScribeName, value); }
         }
 
         [JsonIgnore]
         public string ScribeAccount
         {
-            get { return GetStringProperty(PropertyString.ScribeAccount); }
-            set { SetStringProperty(PropertyString.ScribeAccount, value); }
+            get { return GetProperty(PropertyString.ScribeAccount); }
+            set { SetProperty(PropertyString.ScribeAccount, value); }
         }
 
         [JsonIgnore]
         public uint? ScribeIID
         {
-            get { return GetInstanceIdProperty(PropertyInstanceId.Scribe); }
-            set { SetInstanceIdProperty(PropertyInstanceId.Scribe, value); }
+            get { return GetProperty(PropertyInstanceId.Scribe); }
+            set { SetProperty(PropertyInstanceId.Scribe, value); }
         }
 
         [JsonIgnore]
         public int? AppraisalPages
         {
-            get { return GetIntProperty(PropertyInt.AppraisalPages); }
-            set { SetIntProperty(PropertyInt.AppraisalPages, value); }
+            get { return GetProperty(PropertyInt.AppraisalPages); }
+            set { SetProperty(PropertyInt.AppraisalPages, value); }
         }
 
         [JsonIgnore]
         public int? AppraisalMaxPages
         {
-            get { return GetIntProperty(PropertyInt.AppraisalMaxPages); }
-            set { SetIntProperty(PropertyInt.AppraisalMaxPages, value); }
+            get { return GetProperty(PropertyInt.AppraisalMaxPages); }
+            set { SetProperty(PropertyInt.AppraisalMaxPages, value); }
         }
         #endregion
 
@@ -1538,36 +1412,36 @@ namespace ACE.Entity
         [JsonIgnore]
         public int? AvailableCharacter
         {
-            get { return GetIntProperty(PropertyInt.AvailableCharacter); }
-            set { SetIntProperty(PropertyInt.AvailableCharacter, value); }
+            get { return GetProperty(PropertyInt.AvailableCharacter); }
+            set { SetProperty(PropertyInt.AvailableCharacter, value); }
         }
 
         [JsonIgnore]
         public int? Boost
         {
-            get { return GetIntProperty(PropertyInt.BoostValue); }
-            set { SetIntProperty(PropertyInt.BoostValue, value); }
+            get { return GetProperty(PropertyInt.BoostValue); }
+            set { SetProperty(PropertyInt.BoostValue, value); }
         }
 
         [JsonIgnore]
         public int? BoostEnum
         {
-            get { return GetIntProperty(PropertyInt.BoosterEnum); }
-            set { SetIntProperty(PropertyInt.BoosterEnum, value); }
+            get { return GetProperty(PropertyInt.BoosterEnum); }
+            set { SetProperty(PropertyInt.BoosterEnum, value); }
         }
 
         [JsonIgnore]
         public double? HealkitMod
         {
-            get { return GetDoubleProperty(PropertyDouble.HealkitMod); }
-            set { SetDoubleProperty(PropertyDouble.HealkitMod, value); }
+            get { return GetProperty(PropertyDouble.HealkitMod); }
+            set { SetProperty(PropertyDouble.HealkitMod, value); }
         }
 
         [JsonIgnore]
         public int? CoinValue
         {
-            get { return GetIntProperty(PropertyInt.CoinValue); }
-            set { SetIntProperty(PropertyInt.CoinValue, value); }
+            get { return GetProperty(PropertyInt.CoinValue); }
+            set { SetProperty(PropertyInt.CoinValue, value); }
         }
 
         #region Positions
@@ -1765,97 +1639,97 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? BuyPrice
         {
-            get { return GetDoubleProperty(PropertyDouble.BuyPrice); }
-            set { SetDoubleProperty(PropertyDouble.BuyPrice, value); }
+            get { return GetProperty(PropertyDouble.BuyPrice); }
+            set { SetProperty(PropertyDouble.BuyPrice, value); }
         }
 
         [JsonIgnore]
         public double? SellPrice
         {
-            get { return GetDoubleProperty(PropertyDouble.SellPrice); }
-            set { SetDoubleProperty(PropertyDouble.SellPrice, value); }
+            get { return GetProperty(PropertyDouble.SellPrice); }
+            set { SetProperty(PropertyDouble.SellPrice, value); }
         }
 
         [JsonIgnore]
         public bool? DealMagicalItems
         {
-            get { return GetBoolProperty(PropertyBool.DealMagicalItems); }
-            set { SetBoolProperty(PropertyBool.DealMagicalItems, value); }
+            get { return GetProperty(PropertyBool.DealMagicalItems); }
+            set { SetProperty(PropertyBool.DealMagicalItems, value); }
         }
 
         [JsonIgnore]
         public uint? AlternateCurrencyDID
         {
-            get { return GetDataIdProperty(PropertyDataId.AlternateCurrency); }
-            set { SetDataIdProperty(PropertyDataId.AlternateCurrency, value); }
+            get { return GetProperty(PropertyDataId.AlternateCurrency); }
+            set { SetProperty(PropertyDataId.AlternateCurrency, value); }
         }
 
         [JsonIgnore]
         public double? HeartbeatInterval
         {
-            get { return GetDoubleProperty(PropertyDouble.HeartbeatInterval); }
-            set { SetDoubleProperty(PropertyDouble.HeartbeatInterval, value); }
+            get { return GetProperty(PropertyDouble.HeartbeatInterval); }
+            set { SetProperty(PropertyDouble.HeartbeatInterval, value); }
         }
 
         [JsonIgnore]
         public int? InitGeneratedObjects
         {
-            get { return GetIntProperty(PropertyInt.InitGeneratedObjects); }
-            set { SetIntProperty(PropertyInt.InitGeneratedObjects, value); }
+            get { return GetProperty(PropertyInt.InitGeneratedObjects); }
+            set { SetProperty(PropertyInt.InitGeneratedObjects, value); }
         }
 
         [JsonIgnore]
         public double? RegenerationInterval
         {
-            get { return GetDoubleProperty(PropertyDouble.RegenerationInterval); }
-            set { SetDoubleProperty(PropertyDouble.RegenerationInterval, value); }
+            get { return GetProperty(PropertyDouble.RegenerationInterval); }
+            set { SetProperty(PropertyDouble.RegenerationInterval, value); }
         }
 
         [JsonIgnore]
         public int? PaletteTemplate
         {
-            get { return GetIntProperty(PropertyInt.PaletteTemplate); }
-            set { SetIntProperty(PropertyInt.PaletteTemplate, value); }
+            get { return GetProperty(PropertyInt.PaletteTemplate); }
+            set { SetProperty(PropertyInt.PaletteTemplate, value); }
         }
 
         [JsonIgnore]
         public double? Shade
         {
-            get { return GetDoubleProperty(PropertyDouble.Shade); }
-            set { SetDoubleProperty(PropertyDouble.Shade, value); }
+            get { return GetProperty(PropertyDouble.Shade); }
+            set { SetProperty(PropertyDouble.Shade, value); }
         }
 
         #region Chess
         [JsonIgnore]
         public int? ChessGamesLost
         {
-            get { return GetIntProperty(PropertyInt.ChessGamesLost); }
-            set { SetIntProperty(PropertyInt.ChessGamesLost, value); }
+            get { return GetProperty(PropertyInt.ChessGamesLost); }
+            set { SetProperty(PropertyInt.ChessGamesLost, value); }
         }
 
         [JsonIgnore]
         public int? ChessGamesWon
         {
-            get { return GetIntProperty(PropertyInt.ChessGamesWon); }
-            set { SetIntProperty(PropertyInt.ChessGamesWon, value); }
+            get { return GetProperty(PropertyInt.ChessGamesWon); }
+            set { SetProperty(PropertyInt.ChessGamesWon, value); }
         }
 
         [JsonIgnore]
         public int? ChessRank
         {
-            get { return GetIntProperty(PropertyInt.ChessRank); }
-            set { SetIntProperty(PropertyInt.ChessRank, value); }
+            get { return GetProperty(PropertyInt.ChessRank); }
+            set { SetProperty(PropertyInt.ChessRank, value); }
         }
 
         [JsonIgnore]
         public int? ChessTotalGames
         {
-            get { return GetIntProperty(PropertyInt.ChessTotalGames); }
-            set { SetIntProperty(PropertyInt.ChessTotalGames, value); }
+            get { return GetProperty(PropertyInt.ChessTotalGames); }
+            set { SetProperty(PropertyInt.ChessTotalGames, value); }
         }
         #endregion
 
-        protected uint? GetDataIdProperty(PropertyDataId property)
+        protected uint? GetProperty(PropertyDataId property)
         {
             return DataIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -1865,7 +1739,7 @@ namespace ACE.Entity
             return DataIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        protected void SetDataIdProperty(PropertyDataId didPropertyId, uint? value)
+        protected void SetProperty(PropertyDataId didPropertyId, uint? value)
         {
             AceObjectPropertiesDataId listItem = DataIdProperties.Find(x => x.PropertyId == (short)didPropertyId);
             if (value != null)
@@ -1887,7 +1761,7 @@ namespace ACE.Entity
             }
         }
 
-        protected bool? GetBoolProperty(PropertyBool property)
+        protected bool? GetProperty(PropertyBool property)
         {
             return BoolProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -1897,7 +1771,7 @@ namespace ACE.Entity
             return BoolProperties.Where(x => x.PropertyId == (uint)property).Where(b => b.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        protected void SetBoolProperty(PropertyBool propertyId, bool? value)
+        protected void SetProperty(PropertyBool propertyId, bool? value)
         {
             AceObjectPropertiesBool listItem = BoolProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
@@ -1919,7 +1793,7 @@ namespace ACE.Entity
             }
         }
 
-        protected uint? GetInstanceIdProperty(PropertyInstanceId property)
+        protected uint? GetProperty(PropertyInstanceId property)
         {
             return InstanceIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -1929,7 +1803,7 @@ namespace ACE.Entity
             return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        protected void SetInstanceIdProperty(PropertyInstanceId iidPropertyId, uint? value)
+        protected void SetProperty(PropertyInstanceId iidPropertyId, uint? value)
         {
             AceObjectPropertiesInstanceId listItem = InstanceIdProperties.Find(x => x.PropertyId == (ushort)iidPropertyId);
             if (value != null)
@@ -2018,7 +1892,7 @@ namespace ACE.Entity
             return ret;
         }
 
-        protected void SetSkillProperty(Skill skill, CreatureSkill value)
+        protected void SetProperty(Skill skill, CreatureSkill value)
         {
             SetProperty(AceObjectPropertiesSkills, skill, value);
         }
@@ -2028,7 +1902,7 @@ namespace ACE.Entity
             return AceObjectPropertiesSkills.Values.ToList();
         }
 
-        public int? GetIntProperty(PropertyInt property)
+        public int? GetProperty(PropertyInt property)
         {
             return IntProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -2038,7 +1912,7 @@ namespace ACE.Entity
             return IntProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        protected void SetIntProperty(PropertyInt intPropertyId, int? value)
+        protected void SetProperty(PropertyInt intPropertyId, int? value)
         {
             AceObjectPropertiesInt listItem = IntProperties.Find(x => x.PropertyId == (ushort)intPropertyId);
             if (value != null)
@@ -2060,7 +1934,7 @@ namespace ACE.Entity
             }
         }
 
-        public ulong? GetInt64Property(PropertyInt64 property)
+        public ulong? GetProperty(PropertyInt64 property)
         {
             return Int64Properties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -2092,7 +1966,7 @@ namespace ACE.Entity
             }
         }
 
-        public double? GetDoubleProperty(PropertyDouble property)
+        public double? GetProperty(PropertyDouble property)
         {
             return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
         }
@@ -2106,10 +1980,10 @@ namespace ACE.Entity
         {
             TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
             double timestamp = span.TotalSeconds;
-            SetDoubleProperty(propertyId, timestamp);
+            SetProperty(propertyId, timestamp);
         }
 
-        protected void SetDoubleProperty(PropertyDouble propertyId, double? value)
+        protected void SetProperty(PropertyDouble propertyId, double? value)
         {
             AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)
@@ -2137,7 +2011,7 @@ namespace ACE.Entity
             }
         }
 
-        public string GetStringProperty(PropertyString property)
+        public string GetProperty(PropertyString property)
         {
             return StringProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
         }
@@ -2147,7 +2021,7 @@ namespace ACE.Entity
             return StringProperties.Where(x => x.PropertyId == (uint)property).Select(x => x.PropertyValue).ToList();
         }
 
-        protected void SetStringProperty(PropertyString propertyId, string value)
+        protected void SetProperty(PropertyString propertyId, string value)
         {
             AceObjectPropertiesString listItem = StringProperties.Find(x => x.PropertyId == (ushort)propertyId);
             if (value != null)

@@ -1,14 +1,46 @@
 using System.Linq;
-
+using System.Threading;
 using Microsoft.EntityFrameworkCore;
 
-using ACE.Database.Models.ace_auth;
+using log4net;
+
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+
+using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
     public class AuthenticationDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public bool Exists(bool retryUntilFound)
+        {
+            var config = Common.ConfigManager.Config.MySql.Authentication;
+
+            for (; ; )
+            {
+                using (var context = new AuthDbContext())
+                {
+                    if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
+                    {
+                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        return true;
+                    }
+                }
+
+                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+
+                if (retryUntilFound)
+                    Thread.Sleep(5000);
+                else
+                    return false;
+            }
+        }
+
+
         /// <exception cref="MySqlException">Account with name already exists.</exception>
         public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {
@@ -19,7 +51,7 @@ namespace ACE.Database
             account.SetPassword(password);
             account.AccessLevel = (uint)accessLevel;
 
-            using (var context = new ace_authContext())
+            using (var context = new AuthDbContext())
             {
                 context.Account.Add(account);
 
@@ -34,7 +66,7 @@ namespace ACE.Database
         /// </summary>
         public Account GetAccountById(uint accountId)
         {
-            using (var context = new ace_authContext())
+            using (var context = new AuthDbContext())
                 return context.Account.AsNoTracking().FirstOrDefault(r => r.AccountId == accountId);
         }
 
@@ -43,7 +75,7 @@ namespace ACE.Database
         /// </summary>
         public Account GetAccountByName(string accountName)
         {
-            using (var context = new ace_authContext())
+            using (var context = new AuthDbContext())
                 return context.Account.AsNoTracking().FirstOrDefault(r => r.AccountName == accountName);
         }
 
@@ -52,7 +84,7 @@ namespace ACE.Database
         /// </summary>
         public uint GetAccountIdByName(string accountName)
         {
-            using (var context = new ace_authContext())
+            using (var context = new AuthDbContext())
             {
                 var result = context.Account.AsNoTracking().FirstOrDefault(r => r.AccountName == accountName);
 
@@ -62,7 +94,7 @@ namespace ACE.Database
 
         public void UpdateAccount(Account account)
         {
-            using (var context = new ace_authContext())
+            using (var context = new AuthDbContext())
             {
                 context.Entry(account).State = EntityState.Modified;
 
@@ -72,7 +104,7 @@ namespace ACE.Database
 
         public bool UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
         {
-            using (var context = new ace_authContext())
+            using (var context = new AuthDbContext())
             {
                 var account = context.Account.First(r => r.AccountId == accountId);
 

@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
 
 namespace ACE.Server.Managers
 {
@@ -32,20 +35,23 @@ namespace ACE.Server.Managers
 
         public static void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
-            DatabaseManager.Shard.GetCharacter(guid.Full, ((AceCharacter c) =>
+            DatabaseManager.Shard.GetBiota(guid.Full, biota =>
             {
-                session.SetPlayer(new Player(session, c));
-                session.Player.Load(c);
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                var player = new Player(weenie, biota, session);
+                session.SetPlayer(player);
+                session.Player.Load();
 
                 // check the value of the welcome message. Only display it if it is not empty
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
                 {
                     session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
                 }
-
-                Landblock block = GetLandblock(c.Location.LandblockId, true);
+                /* todo fix
+                Landblock block = GetLandblock(character.Location.LandblockId, true);
                 // Must enqueue add world object -- this is called from a message handler context
-                block.AddWorldObject(session.Player);
+                block.AddWorldObject(session.Player);*/
 
                 string welcomeMsg = "Welcome to Asheron's Call" + "\n";
                 welcomeMsg += "  powered by ACEmulator  " + "\n";
@@ -53,7 +59,7 @@ namespace ACE.Server.Managers
                 welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(welcomeMsg, ChatMessageType.Broadcast));
-            }));
+            });
         }
 
         public static void AddObject(WorldObject worldObject)

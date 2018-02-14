@@ -1,14 +1,18 @@
-extern alias MySqlDataAlias;
-using MySqlDataAlias::MySql.Data.MySqlClient;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
@@ -16,84 +20,168 @@ namespace ACE.Database
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public bool Exists(bool retryUntilFound)
+        {
+            var config = Common.ConfigManager.Config.MySql.World;
+
+            for (; ; )
+            {
+                using (var context = new ShardDbContext())
+                {
+                    if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
+                    {
+                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        return true;
+                    }
+                }
+
+                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+
+                if (retryUntilFound)
+                    Thread.Sleep(5000);
+                else
+                    return false;
+            }
+        }
+
+
+        /// <summary>
+        /// Will return uint.MaxValue if no records were found within the range provided.
+        /// </summary>
+        public uint GetMaxGuidFoundInRange(uint min, uint max)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var results = context.Biota.AsNoTracking().Where(r => r.Id >= min && r.Id <= max);
+
+                if (!results.Any())
+                    return uint.MaxValue;
+
+                var maxId = min;
+
+                foreach (var result in results)
+                {
+                    if (result.Id > maxId)
+                        maxId = result.Id;
+                }
+
+                return maxId;
+            }
+        }
+
+
+        public List<CachedCharacter> GetCharacters(uint accountId)
+        {
+            var characters = new List<CachedCharacter>();
+
+            using (var context = new ShardDbContext())
+            {
+                var results = context.BiotaPropertiesIID
+                    .AsNoTracking()
+                    .Where(r => r.Type == (ushort)PropertyInstanceId.Account && r.Value == accountId)
+                    .Include(r => r.Object).ThenInclude(r => r.BiotaPropertiesString);
+
+                foreach (var result in results)
+                {
+                    var cachedCharacter = new CachedCharacter();
+                    cachedCharacter.AccountId = accountId;
+                    //cachedCharacter.Deleted
+                    //cachedCharacter.DeleteTime
+                    cachedCharacter.FullGuid = result.ObjectId;
+                    //cachedCharacter.LoginTimestamp
+                    cachedCharacter.Name = result.Object.GetProperty(PropertyString.Name);
+                    //cachedCharacter.SlotId
+
+                    characters.Add(cachedCharacter);
+                }
+            }
+
+            return characters;
+        }
+
+        public bool IsCharacterNameAvailable(string name)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var results = context.BiotaPropertiesString
+                    .AsNoTracking()
+                    .Where(r => r.Type == (ushort)PropertyString.Name && r.Value == name);
+
+                return !results.Any();
+            }
+        }
+
+        public bool AddBiota(Biota biota)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Biota.Add(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch
+                {
+                    // Character name might be in use or some other fault
+                    return false;
+                }
+            }
+        }
+
+        public Biota GetBiota(uint id)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Biota
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.Id == id);
+
+                // load common stuff here
+                //LoadIntoObject(character);
+
+                return result;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+
         private enum ShardPreparedStatement
         {
             // these are for the world database, but there's a lot of overlap
-            GetObjectsByLandblock,
-
             GetContractTracker,
             GetSpellBarPositions,
-
-            GetCharacters,
             IsCharacterNameAvailable,
-            
             DeleteContractTrackers,
             DeleteSpellBarPositions,
-
             InsertContractTracker,
             InsertSpellBarPositions,
-
-            UpdateContractTracker,
-            
             DeleteContractTracker,
-
-            GetCurrentId,
         }
         
-        private void ConstructMaxQueryStatement(ShardPreparedStatement id, string tableName, string columnName)
-        {
-            // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
-            AddPreparedStatement<ShardPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?",
-                MySqlDbType.UInt32, MySqlDbType.UInt32);
-        }
-
-        protected override void InitializePreparedStatements()
-        {
-            base.InitializePreparedStatements();
-
-            ConstructStatement(ShardPreparedStatement.IsCharacterNameAvailable, typeof(CachedCharacter), ConstructedStatementType.Get);
-            
-            ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
-            
-            ConstructStatement(ShardPreparedStatement.GetContractTracker, typeof(AceContractTracker), ConstructedStatementType.GetList);
-            ConstructStatement(ShardPreparedStatement.GetSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.GetList);
-
-            // Delete statements
-            ConstructStatement(ShardPreparedStatement.DeleteContractTrackers, typeof(AceContractTracker), ConstructedStatementType.DeleteList);
-            ConstructStatement(ShardPreparedStatement.DeleteSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.DeleteList);
-
-            // Insert statements
-            ConstructStatement(ShardPreparedStatement.InsertContractTracker, typeof(AceContractTracker), ConstructedStatementType.InsertList);
-            ConstructStatement(ShardPreparedStatement.InsertSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.InsertList);
-
-            // Updates
-            ConstructStatement(ShardPreparedStatement.UpdateContractTracker, typeof(AceContractTracker), ConstructedStatementType.Update);
-
-            // deletes for properties
-            ConstructStatement(ShardPreparedStatement.DeleteContractTracker, typeof(AceContractTracker), ConstructedStatementType.Delete);
-
-            // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
-            ConstructMaxQueryStatement(ShardPreparedStatement.GetCurrentId, "ace_object", "aceObjectId");
-        }
-
-        private uint GetMaxGuid(ShardPreparedStatement id, uint min, uint max)
-        {
-            object[] critera = new object[] { min, max };
-            var res = SelectPreparedStatement<ShardPreparedStatement>(id, critera);
-            var ret = res.Rows[0][0];
-            if (ret is DBNull)
-            {
-                return uint.MaxValue;
-            }
-
-            return (uint)res.Rows[0][0];
-        }
-
-        public uint GetCurrentId(uint min, uint max)
-        {
-            return GetMaxGuid(ShardPreparedStatement.GetCurrentId, min, max);
-        }
-
         public void AddFriend(uint characterId, uint friendCharacterId)
         {
             throw new NotImplementedException();
@@ -139,26 +227,8 @@ namespace ACE.Database
 
             return true;
         }
-
-        public List<CachedCharacter> GetCharacters(uint accountId)
-        {
-            var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
-
-            return objects;
-        }
         
-        public AceCharacter GetCharacter(uint id)
-        {
-            AceCharacter character = new AceCharacter(id);
 
-            // load common stuff here
-            LoadIntoObject(character);
-
-            // fetch common stuff here (is there any?)
-
-            return character;
-        }
         
         protected override void LoadIntoObject(AceObject aceObject)
         {
@@ -186,26 +256,6 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
         
-        public override List<AceObject> GetObjectsByLandblock(ushort landblock)
-        {
-            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWorldObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
-            List<AceObject> ret = new List<AceObject>();
-            objects.ForEach(cwo =>
-            {
-                var o = base.GetObject(cwo.AceObjectId);
-                ret.Add(o);
-            });
-            return ret;
-        }
-
-        public bool IsCharacterNameAvailable(string name)
-        {
-            var cc = new CachedCharacter();
-            var criteria = new Dictionary<string, object> { { "name", name } };
-            return !(ExecuteConstructedGetStatement<CachedCharacter, ShardPreparedStatement>(ShardPreparedStatement.IsCharacterNameAvailable, criteria, cc));
-        }
-
         public uint RenameCharacter(string currentName, string newName)
         {
             throw new NotImplementedException();

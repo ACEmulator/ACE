@@ -8,7 +8,7 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Cryptography;
 using ACE.Database;
-using ACE.Database.Models.ace_auth;
+using ACE.Database.Models.Auth;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers;
@@ -17,7 +17,7 @@ using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Packets;
 
-using Account = ACE.Database.Models.ace_auth.Account;
+using Account = ACE.Database.Models.Auth.Account;
 
 namespace ACE.Server.Network.Handlers
 {
