@@ -28,12 +28,6 @@ namespace ACE.Server.Tests
         }
 
         [TestMethod]
-        public void AssetManager_Initialize()
-        {
-            AssetManager.Initialize();
-        }
-
-        [TestMethod]
         public void WorldManager_Initialize()
         {
             WorldManager.Initialize();

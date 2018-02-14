@@ -4,7 +4,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using ACE.Common;
-using ACE.Entity;
+using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 
 namespace ACE.Database.Tests
@@ -22,55 +22,48 @@ namespace ACE.Database.Tests
 
             ConfigManager.Initialize();
             authDb = new AuthenticationDatabase();
-            authDb.Initialize(ConfigManager.Config.MySql.Authentication.Host,
-                          ConfigManager.Config.MySql.Authentication.Port,
-                          ConfigManager.Config.MySql.Authentication.Username,
-                          ConfigManager.Config.MySql.Authentication.Password,
-                          ConfigManager.Config.MySql.Authentication.Database);
         }
 
         [TestMethod]
         public void CreateAccount_GetAccountByName_ReturnsAccount()
         {
-            Account newAccount = new Account();
-            newAccount.SetName("testaccount1");
-            newAccount.SetPassword("testpassword1");
-            newAccount.SetAccessLevel(AccessLevel.Player);
+            var newAccount = authDb.CreateAccount("testaccount1", "testpassword1", AccessLevel.Player);
 
-            authDb.CreateAccount(newAccount);
-            var results = authDb.GetAccountByName(newAccount.Name);
+            var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);
-            Assert.IsTrue(results.AccessLevel == AccessLevel.Player);
+            Assert.IsTrue(results.AccessLevel == (uint)AccessLevel.Player);
         }
 
         [TestMethod]
         public void UpdateAccountAccessLevelToSentinelAndBackToPlayer_ReturnsAccount()
         {
             Account newAccount = new Account();
-            newAccount.SetName("testaccount1");            
+            newAccount.CreateRandomSalt();
+            newAccount.AccountName = "testaccount1";
 
             authDb.UpdateAccountAccessLevel(1, AccessLevel.Sentinel);
-            var results = authDb.GetAccountByName(newAccount.Name);
+            var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);
-            Assert.IsTrue(results.AccessLevel == AccessLevel.Sentinel);
+            Assert.IsTrue(results.AccessLevel == (uint)AccessLevel.Sentinel);
 
             authDb.UpdateAccountAccessLevel(1, AccessLevel.Player);
-            var results2 = authDb.GetAccountByName(newAccount.Name);
+            var results2 = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results2);
-            Assert.IsTrue(results2.AccessLevel == AccessLevel.Player);
+            Assert.IsTrue(results2.AccessLevel == (uint)AccessLevel.Player);
         }
 
         [TestMethod]
         public void GetAccountIdByName_ReturnsAccount()
         {
             Account newAccount = new Account();
-            newAccount.SetName("testaccount1");
+            newAccount.CreateRandomSalt();
+            newAccount.AccountName = "testaccount1";
 
-            authDb.GetAccountIdByName(newAccount.Name, out var id);
+            var id = authDb.GetAccountIdByName(newAccount.AccountName);
             var results = authDb.GetAccountById(id);
             Assert.IsNotNull(results);
             Assert.IsTrue(results.AccountId == id);
-            Assert.IsTrue(results.Name == newAccount.Name);
+            Assert.IsTrue(results.AccountName == newAccount.AccountName);
         }
 
         [TestMethod]

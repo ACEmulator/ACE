@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ACE.Entity;
+using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -38,12 +40,12 @@ namespace ACE.Server.Entity
         {
             if (FellowshipMembers.Count == 9)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ACE.Entity.Enum.ChatMessageType.Fellowship));
                 return;
             }
             if (newMember.Fellowship != null)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
             }
             else
             {
@@ -72,7 +74,7 @@ namespace ACE.Server.Entity
             {
                 if (FellowshipMembers.Count == 9)
                 {
-                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ACE.Entity.Enum.ChatMessageType.Fellowship));
                 }
                 else
                 {
@@ -89,7 +91,7 @@ namespace ACE.Server.Entity
             }
             else
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ACE.Entity.Enum.ChatMessageType.Fellowship));
             }
         }
         
@@ -98,7 +100,7 @@ namespace ACE.Server.Entity
             Parallel.ForEach(FellowshipMembers, member =>
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
-                member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
             });
             FellowshipMembers.Remove(player);
             player.Fellowship = null;
@@ -136,11 +138,11 @@ namespace ACE.Server.Entity
                         member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
                         {
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
                         }
                         else
                         {
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", global::ACE.Entity.Enum.ChatMessageType.Fellowship));
+                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
                             member.Fellowship = null;
                         }
                         

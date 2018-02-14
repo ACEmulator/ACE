@@ -1073,7 +1073,5 @@ namespace ACE.Database
             transaction.AddPreparedDeleteListStatement<AceObjectPreparedStatement, AceObjectPropertiesBook>(AceObjectPreparedStatement.DeleteAceObjectPropertiesBook, criteria);
             return true;
         }
-
-        public abstract List<AceObject> GetObjectsByLandblock(ushort landblock);
     }
 }
