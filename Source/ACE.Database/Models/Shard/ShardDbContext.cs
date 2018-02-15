@@ -32,6 +32,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }
         public virtual DbSet<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public virtual DbSet<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
+        public virtual DbSet<Character> Character { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -1225,6 +1226,53 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesTextureMap)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_texturemap");
+            });
+
+            modelBuilder.Entity<Character>(entity =>
+            {
+                entity.ToTable("character");
+
+                entity.HasIndex(e => e.AccountId)
+                    .HasName("character_account_idx");
+
+                entity.HasIndex(e => e.BiotaId)
+                    .HasName("biota_UNIQUE")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Name)
+                    .HasName("character_name_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.AccountId)
+                    .HasColumnName("account_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.BiotaId)
+                    .HasColumnName("biota_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DeleteTime)
+                    .HasColumnName("delete_Time")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.IsDeleted)
+                    .HasColumnName("is_Deleted")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.LastLoginTimestamp)
+                    .HasColumnName("last_Login_Timestamp")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasMaxLength(255);
+
+                entity.HasOne(d => d.Biota)
+                    .WithOne(p => p.Character)
+                    .HasForeignKey<Character>(d => d.BiotaId)
+                    .HasConstraintName("biota_character");
             });
         }
     }

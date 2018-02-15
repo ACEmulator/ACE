@@ -69,46 +69,104 @@ namespace ACE.Database
             }
         }
 
-
-        public List<CachedCharacter> GetCharacters(uint accountId)
+        public List<Character> GetCharacters(uint accountId)
         {
-            var characters = new List<CachedCharacter>();
-
             using (var context = new ShardDbContext())
             {
-                var results = context.BiotaPropertiesIID
+                var results = context.Character
                     .AsNoTracking()
-                    .Where(r => r.Type == (ushort)PropertyInstanceId.Account && r.Value == accountId)
-                    .Include(r => r.Object).ThenInclude(r => r.BiotaPropertiesBool)
-                    .Include(r => r.Object).ThenInclude(r => r.BiotaPropertiesString);
+                    .Where(r => r.AccountId == accountId && !r.IsDeleted).ToList();
 
-                foreach (var result in results)
-                {
-                    var cachedCharacter = new CachedCharacter();
-                    cachedCharacter.AccountId = accountId;
-                    cachedCharacter.Deleted = result.Object.GetProperty(PropertyBool.IsDeleted) ?? false;
-                    //cachedCharacter.DeleteTime
-                    cachedCharacter.FullGuid = result.ObjectId;
-                    //cachedCharacter.LoginTimestamp
-                    cachedCharacter.Name = result.Object.GetProperty(PropertyString.Name);
-                    //cachedCharacter.SlotId
-
-                    characters.Add(cachedCharacter);
-                }
+                return results;
             }
-
-            return characters;
         }
 
         public bool IsCharacterNameAvailable(string name)
         {
             using (var context = new ShardDbContext())
             {
-                var result = context.BiotaPropertiesString
+                var result = context.Character
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.Type == (ushort)PropertyString.Name && r.Value == name);
+                    .Where(r => !r.IsDeleted)
+                    .Where(r => !(r.DeleteTime > 0))
+                    .FirstOrDefault(r => r.Name == name);
 
                 return result == null;
+            }
+        }
+
+        public bool AddCharacter(Character character, Biota biota)
+        {
+            using (var context = new ShardDbContext())
+            {
+                if (!AddBiota(biota))
+                    return false; // Biota save failed which mean Character fails.
+
+                context.Character.Add(character);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch
+                {
+                    // Character name might be in use or some other fault
+                    return false;
+                }
+            }
+        }
+
+        public bool DeleteOrRestoreCharacter(ulong unixTime, uint guid)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Character
+                    .FirstOrDefault(r => r.BiotaId == guid);
+
+                if (result != null)
+                {
+                    result.DeleteTime = unixTime;
+                    result.IsDeleted = false;
+                }
+                else
+                    return false;
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool MarkCharacterDeleted(uint guid)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Character
+                    .FirstOrDefault(r => r.BiotaId == guid);
+
+                if (result != null)
+                {
+                    result.IsDeleted = true;
+                }
+                else
+                    return false;
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 

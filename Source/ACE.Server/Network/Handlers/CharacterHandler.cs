@@ -42,7 +42,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
+            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.BiotaId == guid.Full);
             if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
@@ -55,7 +55,7 @@ namespace ACE.Server.Network.Handlers
 
             session.State = SessionState.WorldConnected;
 
-            LandblockManager.PlayerEnterWorld(session, cachedCharacter.Guid);
+            LandblockManager.PlayerEnterWorld(session, new ObjectGuid(cachedCharacter.BiotaId));
         }
 
         [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
@@ -70,7 +70,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.SlotId == characterSlot);
+            var cachedCharacter = session.AccountCharacters[(int)characterSlot];
             if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.Delete);
@@ -81,11 +81,11 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            DatabaseManager.Shard.DeleteOrRestore(Time.GetUnixTime() + 3600ul, cachedCharacter.Guid.Full, ((bool deleteOrRestoreSuccess) =>
+            DatabaseManager.Shard.DeleteOrRestoreCharacter(Time.GetUnixTime() + 3600ul, cachedCharacter.BiotaId, ((bool deleteOrRestoreSuccess) =>
             {
                 if (deleteOrRestoreSuccess)
                 {
-                    DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+                    DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
                     {
                         session.UpdateCachedCharacters(result);
                         session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
@@ -103,7 +103,7 @@ namespace ACE.Server.Network.Handlers
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
-            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Guid.Full == guid.Full);
+            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.BiotaId == guid.Full);
             if (cachedCharacter == null)
                 return;
 
@@ -115,7 +115,7 @@ namespace ACE.Server.Network.Handlers
                 }
                 else
                 {
-                    DatabaseManager.Shard.DeleteOrRestore(0, cachedCharacter.Guid.Full, ((bool deleteOrRestoreSuccess) =>
+                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, cachedCharacter.BiotaId, ((bool deleteOrRestoreSuccess) =>
                     {
                         if (deleteOrRestoreSuccess)
                             session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
@@ -133,15 +133,34 @@ namespace ACE.Server.Network.Handlers
             if (clientString != session.Account)
                 return;
 
-            var guid = GuidManager.NewPlayerGuid();
+            // var guid = GuidManager.NewPlayerGuid();
 
-            CharacterCreateEx(message, session, guid);
+            CharacterCreateEx(message, session);
         }
 
-        private static void CharacterCreateEx(ClientMessage message, Session session, ObjectGuid guid)
+        private static void CharacterCreateEx(ClientMessage message, Session session)
         {
             var characterCreateInfo = new CharacterCreateInfo();
             characterCreateInfo.Unpack(message.Payload);
+
+            // TODO: Check for Banned Name Here
+            //DatabaseManager.Shard.IsCharacterNameBanned(characterCreateInfo.Name, isBanned =>
+            //{
+            //    if (!isBanned)
+            //    {
+            //        SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+            //        return;
+            //    }
+            //});
+
+            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
+            {
+                if (!isAvailable)
+                {
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                    return;
+                }
+            });
 
             // Disable OlthoiPlay characters for now. They're not implemented yet.
             // FIXME: Restore OlthoiPlay characters when properly handled.
@@ -155,9 +174,7 @@ namespace ACE.Server.Network.Handlers
 
             var weenie = DatabaseManager.World.GetCachedWeenie(1);
 
-            var player = new Player(weenie, null, session);
-
-            player.Guid = guid;
+            var player = new Player(weenie, null, session);            
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, cg.HeritageGroups[characterCreateInfo.Heritage].Name);
@@ -242,7 +259,7 @@ namespace ACE.Server.Network.Handlers
             player.SetProperty(PropertyString.Title, templateName);
             player.SetProperty(PropertyString.Template, templateName);
             player.SetProperty(PropertyInt.CharacterTitleId, (int)cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Title);
-            player.SetProperty(PropertyInt.NumCharacterTitles, 1);
+            //player.SetProperty(PropertyInt.NumCharacterTitles, 1);
 
             // stats
             /* todo fix this .. need to init the attribute properties for a new biota
@@ -402,13 +419,21 @@ namespace ACE.Server.Network.Handlers
                     return;
                 }
 
-                player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
+                // player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
+
+                player.Guid = GuidManager.NewPlayerGuid();
+
+                var character = new Character();
+                character.AccountId = session.Id;
+                character.Name = player.GetProperty(PropertyString.Name);
+                character.BiotaId = player.Guid.Full;
+                character.IsDeleted = false;
 
                 CharacterCreateSetDefaultCharacterOptions(player);
                 CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddBiota(player.Biota, saveSuccess =>
+                DatabaseManager.Shard.AddCharacter(character, player.Biota, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {
@@ -416,9 +441,9 @@ namespace ACE.Server.Network.Handlers
                         return;
                     }
 
-                    session.AccountCharacters.Add(new CachedCharacter(guid, (byte)session.AccountCharacters.Count, characterCreateInfo.Name, 0));
+                    session.AccountCharacters.Add(character);
 
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, guid, characterCreateInfo.Name);
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, player.Guid, characterCreateInfo.Name);
                 });
             });
         }

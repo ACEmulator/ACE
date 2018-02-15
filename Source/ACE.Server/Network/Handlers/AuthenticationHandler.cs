@@ -18,6 +18,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Packets;
 
 using Account = ACE.Database.Models.Auth.Account;
+using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -139,9 +140,9 @@ namespace ACE.Server.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+            DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
             {
-                result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
+                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 session.UpdateCachedCharacters(result);
 
                 GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
