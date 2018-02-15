@@ -437,6 +437,7 @@ namespace ACE.Server.Network.Handlers
 
         private static void CharacterCreateSetDefaultCharacterOptions(Player player)
         {
+            // Todo fix for new model that doesn't use AceCharacter
             AceCharacter character = new AceCharacter(0); // temp
             character.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
             character.SetCharacterOption(CharacterOption.Display3dTooltips, true);
