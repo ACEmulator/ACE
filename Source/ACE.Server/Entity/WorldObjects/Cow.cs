@@ -24,8 +24,6 @@ namespace ACE.Server.Entity.WorldObjects
                 Stuck = true;
                 Attackable = true;
 
-                SetObjectDescriptionBools();
-
                 UseRadius = 1;
                 IsAlive = true;
                 SetupVitals();

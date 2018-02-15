@@ -1,5 +1,8 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Entity.WorldObjects
@@ -11,32 +14,21 @@ namespace ACE.Server.Entity.WorldObjects
         /// </summary>
         public Clothing(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            DescriptionFlags |= ObjectDescriptionFlag.Attackable;
 
-                SetProperty(PropertyBool.Attackable, true);
-            }
+            SetProperty(PropertyBool.Attackable, true);
         }
 
-        ////public GenericObject(ObjectGuid guid, AceObject aceObject)
-        ////    : base(guid, aceObject)
-        ////{
-        ////}
+        /// <summary>
+        /// This will also set the icon based on the palette
+        /// </summary>
+        public void SetProperties(uint palette, double shade)
+        {
+            var icon = DatManager.PortalDat.ReadFromDat<ClothingTable>(GetProperty(PropertyDataId.ClothingBase) ?? 0).GetIcon(palette);
 
-        ////public override void HandleActionOnCollide(ObjectGuid playerId)
-        ////{
-        ////    // TODO: Implement
-        ////}
-
-        ////public override void HandleActionOnUse(ObjectGuid playerId)
-        ////{
-        ////    // TODO: Implement
-        ////}
-
-        ////public override void OnUse(Session session)
-        ////{
-        ////    // TODO: Implement
-        ////}        
+            SetProperty(PropertyDataId.Icon, icon);
+            SetProperty(PropertyDataId.PaletteBase, palette);
+            SetProperty(PropertyDouble.Shade, shade);
+        }
     }
 }

@@ -20,8 +20,6 @@ namespace ACE.Server.Entity.WorldObjects
                 Food = true;
                 Attackable = true;
 
-                SetObjectDescriptionBools();
-
                 StackSize = (base.StackSize ?? 1);
 
                 if (StackSize == null)

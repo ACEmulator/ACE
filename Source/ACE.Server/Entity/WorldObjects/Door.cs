@@ -49,8 +49,6 @@ namespace ACE.Server.Entity.WorldObjects
                 Stuck = true;
                 Attackable = true;
 
-                SetObjectDescriptionBools();
-
                 // This likely will change to be based on reading a dat file to determine if this exists...
                 HasPhysicsBsp = true;
 

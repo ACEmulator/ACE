@@ -51,7 +51,6 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write(0x0Au);
 
-            // Below is the new EF method that doesn't use aceObj
             var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
 
             if (propertiesInt.Count != 0)
@@ -68,110 +67,102 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            // Below are legacy methods that need to be converted (see above as example)
-            var aceObj = Session.Player.GetAceObject() as AceCharacter;
+            var propertiesInt64 = Session.Player.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToList();
 
-            var propertiesInt64 = aceObj?.Int64Properties.Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.PropertyId)).ToList();
-
-            if (propertiesInt64 != null && propertiesInt64.Count != 0)
+            if (propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
 
                 Writer.Write((ushort)propertiesInt64.Count);
                 Writer.Write((ushort)0x40);
 
-                var notNull = propertiesInt64.Where(x => x != null);
-                foreach (var uint64Property in notNull)
+                foreach (var property in propertiesInt64)
                 {
-                    Writer.Write((uint)uint64Property.PropertyId);
-                    Debug.Assert(uint64Property.PropertyValue != null, "uint64Property.PropertyValue != null");
-                    Writer.Write(uint64Property.PropertyValue.Value);
+                    Writer.Write((uint)property.Key);
+                    Writer.Write(property.Value);
                 }
             }
 
-            var propertiesBool = aceObj?.BoolProperties.Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesBool = Session.Player.GetAllPropertyBools().Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
 
-            if (propertiesBool != null && propertiesBool.Count != 0)
+            if (propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
 
                 Writer.Write((ushort)propertiesBool.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var boolProperty in propertiesBool)
+                foreach (var property in propertiesBool)
                 {
-                    Writer.Write((uint)boolProperty.PropertyId);
-                    Writer.Write(Convert.ToUInt32(boolProperty.PropertyValue)); // just as fast as inlining
+                    Writer.Write((uint)property.Key);
+                    Writer.Write(Convert.ToUInt32(property.Value)); // just as fast as inlining
                 }
             }
 
-            var propertiesDouble = aceObj?.DoubleProperties.Where(x => ClientProperties.PropertiesDouble.Contains(x.PropertyId)).ToList();
+            var propertiesDouble = Session.Player.GetAllPropertyDouble().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
 
-            if (propertiesDouble != null && propertiesDouble.Count != 0)
+            if (propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
 
                 Writer.Write((ushort)propertiesDouble.Count);
                 Writer.Write((ushort)0x20);
 
-                var notNull = propertiesDouble.Where(x => x != null);
-                foreach (var doubleProperty in notNull)
+                foreach (var property in propertiesDouble)
                 {
-                    Writer.Write((uint)doubleProperty.PropertyId);
-                    Debug.Assert(doubleProperty.PropertyValue != null, "doubleProperty.PropertyValue != null");
-                    Writer.Write(doubleProperty.PropertyValue.Value);
+                    Writer.Write((uint)property.Key);
+                    Writer.Write(property.Value);
                 }
             }
 
-            var propertiesString = aceObj?.StringProperties.Where(x => ClientProperties.PropertiesString.Contains(x.PropertyId)).ToList();
+            var propertiesString = Session.Player.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
 
-            if (propertiesString != null && propertiesString.Count != 0)
+            if (propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
 
                 Writer.Write((ushort)propertiesString.Count);
                 Writer.Write((ushort)0x10);
 
-                foreach (var stringProperty in propertiesString)
+                foreach (var property in propertiesString)
                 {
-                    Writer.Write((uint)stringProperty.PropertyId);
-                    Writer.WriteString16L(stringProperty.PropertyValue);
+                    Writer.Write((uint)property.Key);
+                    Writer.WriteString16L(property.Value);
                 }
             }
 
-            var propertiesDid = aceObj?.DataIdProperties.Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
 
-            if (propertiesDid != null && propertiesDid.Count != 0)
+            if (propertiesDid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDid;
 
                 Writer.Write((ushort)propertiesDid.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var didProperty in propertiesDid)
+                foreach (var property in propertiesDid)
                 {
-                    Writer.Write(didProperty.PropertyId);
-                    Debug.Assert(didProperty.PropertyValue != null, "didProperty.PropertyValue != null");
-                    Writer.Write(didProperty.PropertyValue.Value);
+                    Writer.Write((ushort)property.Key);
+                    Writer.Write(property.Value);
                 }
             }
 
-            var propertiesIid = aceObj?.InstanceIdProperties.Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.PropertyId)).ToList();
+            var propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToList();
 
-            if (propertiesIid != null && propertiesIid.Count != 0)
+            if (propertiesIid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyIid;
 
                 Writer.Write((ushort)propertiesIid.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var iidProperty in propertiesIid)
+                foreach (var property in propertiesIid)
                 {
-                    Writer.Write(iidProperty.PropertyId);
-                    Debug.Assert(iidProperty.PropertyValue != null, "iidProperty.PropertyValue != null");
-                    Writer.Write(iidProperty.PropertyValue.Value);
+                    Writer.Write((ushort)property.Key);
+                    Writer.Write(property.Value);
                 }
             }
+
             /*if ((propertyFlags & DescriptionPropertyFlag.Resource) != 0)
             {
             }*/
@@ -185,7 +176,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }*/
 
             Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
-
+var aceObj = Session.Player.GetAceObject() as AceCharacter;
             // todo fix to not use aceobj
             DescriptionVectorFlag vectorFlags = 0;//DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
 

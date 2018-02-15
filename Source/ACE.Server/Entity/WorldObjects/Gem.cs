@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -27,14 +29,10 @@ namespace ACE.Server.Entity.WorldObjects
         /// </summary>
         public Gem(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
 
-                Attackable = true;
-
-                SetObjectDescriptionBools();
-            }
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
         }
 
         /// <summary>

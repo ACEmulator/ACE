@@ -104,6 +104,7 @@ namespace ACE.Entity.Enum.Properties
         Structure                                = 92,
         PhysicsState                             = 93,
         TargetType                               = 94,
+        [Ephemeral]
         RadarBlipColor                           = 95,
         EncumbranceCapacity                      = 96,
         LoginTimestamp                           = 97,
@@ -142,6 +143,7 @@ namespace ACE.Entity.Enum.Properties
         NumServicesSold                          = 130,
         MaterialType                             = 131,
         NumAllegianceBreaks                      = 132,
+        [Ephemeral]
         ShowableOnRadar                          = 133,
         PlayerKillerStatus                       = 134,
         VendorHappyMaxItems                      = 135,
@@ -409,6 +411,7 @@ namespace ACE.Entity.Enum.Properties
         GearOverpowerResist                      = 389,
         // Number of times a character has enlightened
         Enlightenment                            = 390,
+
         [ServerOnly]
         TotalLogins                              = 9001,
         [ServerOnly]

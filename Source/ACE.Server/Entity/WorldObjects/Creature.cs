@@ -29,12 +29,10 @@ namespace ACE.Server.Entity.WorldObjects
         /// </summary>
         public Creature(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
-                SetProperty(PropertyBool.Stuck, true);
-                SetProperty(PropertyBool.Attackable, true);
-            }
+            DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
+
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
         }
 
 

@@ -69,9 +69,15 @@ namespace ACE.Server.Entity
             set => Biota.Id = value.Full;
         }
 
-        public SequenceManager Sequences { get; } = new SequenceManager();
+        public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
+
+        public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; protected set; }
 
         public UpdatePositionFlag PositionFlag { get; protected set; }
+
+        public MotionState CurrentMotionState { get; set; }
+
+        public SequenceManager Sequences { get; } = new SequenceManager();
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
@@ -88,6 +94,7 @@ namespace ACE.Server.Entity
             {
                 Biota = new Biota();
 
+                // If we restore this biota from the db, we'll need these values to give it the appropriate weenie
                 Biota.WeenieClassId = weenie.ClassId;
                 Biota.WeenieType = weenie.Type;
             }
@@ -128,6 +135,7 @@ namespace ACE.Server.Entity
 
             return;
 
+            SetObjectDescriptionBools();
             SetPhysicsStateBools();
 
             if (Placement == null)
@@ -188,7 +196,7 @@ namespace ACE.Server.Entity
             return results;
         }
 
-        public Dictionary<PropertyDataId, uint> GetAllPropertyDataIds()
+        public Dictionary<PropertyDataId, uint> GetAllPropertyDataId()
         {
             var results = new Dictionary<PropertyDataId, uint>();
 
@@ -204,9 +212,37 @@ namespace ACE.Server.Entity
             return results;
         }
 
-        // PropertyDouble
+        public Dictionary<PropertyDouble, double> GetAllPropertyDouble()
+        {
+            var results = new Dictionary<PropertyDouble, double>();
 
-        // PropertyInstanceId
+            foreach (var property in Weenie.WeeniePropertiesFloat)
+                results[(PropertyDouble)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesFloat)
+                results[(PropertyDouble)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesFloat)
+                results[(PropertyDouble)property.Type] = property.Value;
+
+            return results;
+        }
+
+        public Dictionary<PropertyInstanceId, int> GetAllPropertyInstanceId()
+        {
+            var results = new Dictionary<PropertyInstanceId, int>();
+
+            foreach (var property in Weenie.WeeniePropertiesIID)
+                results[(PropertyInstanceId)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesIID)
+                results[(PropertyInstanceId)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesIID)
+                results[(PropertyInstanceId)property.Type] = property.Value;
+
+            return results;
+        }
 
         public Dictionary<PropertyInt, int> GetAllPropertyInt()
         {
@@ -224,14 +260,219 @@ namespace ACE.Server.Entity
             return results;
         }
 
-        // PropertyInt64
+        public Dictionary<PropertyInt64, long> GetAllPropertyInt64()
+        {
+            var results = new Dictionary<PropertyInt64, long>();
 
-        // PropertyString
+            foreach (var property in Weenie.WeeniePropertiesInt64)
+                results[(PropertyInt64)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesInt64)
+                results[(PropertyInt64)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesInt64)
+                results[(PropertyInt64)property.Type] = property.Value;
+
+            return results;
+        }
+
+        public Dictionary<PropertyString, string> GetAllPropertyString()
+        {
+            var results = new Dictionary<PropertyString, string>();
+
+            foreach (var property in Weenie.WeeniePropertiesString)
+                results[(PropertyString)property.Type] = property.Value;
+
+            foreach (var property in Biota.BiotaPropertiesString)
+                results[(PropertyString)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesString)
+                results[(PropertyString)property.Type] = property.Value;
+
+            return results;
+        }
 
 
+        private void SetObjectDescriptionBools()
+        {
+            // TODO these are backwards. In the new model, we should be setting the flags for PhysicsDescriptionFlag based on properties that are set
+            // Several flags are set in the ctor, but if these flags can come from the shard we need to update the descriptionFlag. Is that even possible?
+            // If these values are not modified after the original ctor, then there's no need for this fn
 
+            // TODO: More uncommentting and wiring up for other flags
+            ////None                   = 0x00000000,
+            ////Openable               = 0x00000001,
+            // if (AceObject.Openable ?? false)
+            //    Openable = true;
+            ////Inscribable            = 0x00000002,
+            if (AceObject.Inscribable.HasValue)
+                Inscribable = (bool)AceObject.Inscribable;
+            ////Stuck                  = 0x00000004,
+            if (AceObject.Stuck.HasValue)
+                Stuck = (bool)AceObject.Stuck;
+            ////Player                 = 0x00000008,
+            // if (AceObject.Player ?? false)
+            //    Player = true;
+            ////Attackable             = 0x00000010,
+            if (AceObject.Attackable.HasValue)
+                Attackable = (bool)AceObject.Attackable;
+            ////PlayerKiller           = 0x00000020,
+            // if (AceObject.PlayerKiller ?? false)
+            //    PlayerKiller = true;
+            ////HiddenAdmin            = 0x00000040,
+            if (AceObject.HiddenAdmin.HasValue)
+                HiddenAdmin = (bool)AceObject.HiddenAdmin;
+            ////UiHidden               = 0x00000080,
+            if (AceObject.UiHidden.HasValue)
+                UiHidden = (bool)AceObject.UiHidden;
+            ////Book                   = 0x00000100,
+            // if (AceObject.Book ?? false)
+            //    Book = true;
+            ////Vendor                 = 0x00000200,
+            // if (AceObject.Vendor ?? false)
+            //    Vendor = true;
+            ////PkSwitch               = 0x00000400,
+            // if (AceObject.PkSwitch ?? false)
+            //    PkSwitch = true;
+            ////NpkSwitch              = 0x00000800,
+            // if (AceObject.NpkSwitch ?? false)
+            //    NpkSwitch = true;
+            ////Door                   = 0x00001000,
+            // if (AceObject.Door ?? false)
+            //    Door = true;
+            ////Corpse                 = 0x00002000,
+            // if (AceObject.Corpse ?? false)
+            //    Corpse = true;
+            ////LifeStone              = 0x00004000,
+            // if (AceObject.LifeStone ?? false)
+            //    LifeStone = true;
+            ////Food                   = 0x00008000,
+            // if (AceObject.Food ?? false)
+            //    Food = true;
+            ////Healer                 = 0x00010000,
+            // if (AceObject.Healer ?? false)
+            //    Healer = true;
+            ////Lockpick               = 0x00020000,
+            // if (AceObject.Lockpick ?? false)
+            //    Lockpick = true;
+            ////Portal                 = 0x00040000,
+            // if (AceObject.Portal ?? false)
+            //    Portal = true;
+            ////Admin                  = 0x00100000,
+            // if (AceObject.Admin ?? false)
+            //    Admin = true;
+            ////FreePkStatus           = 0x00200000,
+            // if (AceObject.FreePkStatus ?? false)
+            //    FreePkStatus = true;
+            ////ImmuneCellRestrictions = 0x00400000,
+            if (AceObject.IgnoreHouseBarriers.HasValue)
+                ImmuneCellRestrictions = (bool)AceObject.IgnoreHouseBarriers;
+            ////RequiresPackSlot       = 0x00800000,
+            if (AceObject.RequiresBackpackSlot.HasValue)
+                RequiresPackSlot = (bool)AceObject.RequiresBackpackSlot;
+            ////Retained               = 0x01000000,
+            if (AceObject.Retained.HasValue)
+                Retained = (bool)AceObject.Retained;
+            ////PkLiteStatus           = 0x02000000,
+            // if (AceObject.PkLiteStatus ?? false)
+            //    PkLiteStatus = true;
+            ////IncludesSecondHeader   = 0x04000000,
+            // if (AceObject.IncludesSecondHeader ?? false)
+            //    IncludesSecondHeader = true;
+            ////BindStone              = 0x08000000,
+            // if (AceObject.BindStone ?? false)
+            //    BindStone = true;
+            ////VolatileRare           = 0x10000000,
+            // if (AceObject.VolatileRare ?? false)
+            //    VolatileRare = true;
+            ////WieldOnUse             = 0x20000000,
+            if (AceObject.WieldOnUse.HasValue)
+                WieldOnUse = (bool)AceObject.WieldOnUse;
+            ////WieldLeft              = 0x40000000,
+            if (AceObject.AutowieldLeft.HasValue)
+                WieldLeft = (bool)AceObject.AutowieldLeft;
+        }
 
+        private void SetPhysicsStateBools()
+        {
+            // TODO these are backwards. In the new model, we should be setting the flags for DescriptionFlags based on properties that are set
+            // Several flags are set in the ctor, but if these flags can come from the shard we need to update the descriptionFlag. Is that even possible?
+            // If these values are not modified after the original ctor, then there's no need for this fn
 
+            // TODO: More uncommentting and wiring up for other flags
+
+            ////Static                      = 0x00000001,
+            // if (AceObject.Static ?? false)
+            //    Static = true;
+            ////Unused1                     = 0x00000002,
+            ////Ethereal                    = 0x00000004,
+            if (AceObject.Ethereal.HasValue)
+                Ethereal = (bool)AceObject.Ethereal;
+            ////ReportCollision             = 0x00000008,
+            if (AceObject.ReportCollisions.HasValue)
+                ReportCollision = (bool)AceObject.ReportCollisions;
+            ////IgnoreCollision             = 0x00000010,
+            if (AceObject.IgnoreCollisions.HasValue)
+                IgnoreCollision = (bool)AceObject.IgnoreCollisions;
+            ////NoDraw                      = 0x00000020,
+            if (AceObject.NoDraw.HasValue)
+                NoDraw = (bool)AceObject.NoDraw;
+            ////Missile                     = 0x00000040,
+            // if (AceObject.Missile ?? false)
+            //    Missile = true;
+            ////Pushable                    = 0x00000080,
+            // if (AceObject.Pushable ?? false)
+            //    Pushable = true;
+            ////AlignPath                   = 0x00000100,
+            // if (AceObject.AlignPath ?? false)
+            //    AlignPath = true;
+            ////PathClipped                 = 0x00000200,
+            // if (AceObject.PathClipped ?? false)
+            //    PathClipped = true;
+            ////Gravity                     = 0x00000400,
+            if (AceObject.GravityStatus.HasValue)
+                Gravity = (bool)AceObject.GravityStatus;
+            ////LightingOn                  = 0x00000800,
+            if (AceObject.LightsStatus.HasValue)
+                LightingOn = (bool)AceObject.LightsStatus;
+            ////ParticleEmitter             = 0x00001000,
+            // if (AceObject.ParticleEmitter ?? false)
+            //    ParticleEmitter = true;
+            ////Unused2                     = 0x00002000,
+            ////Hidden                      = 0x00004000,
+            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
+            //    Hidden = true;
+            ////ScriptedCollision           = 0x00008000,
+            if (AceObject.ScriptedCollision.HasValue)
+                ScriptedCollision = (bool)AceObject.ScriptedCollision;
+            ////HasPhysicsBsp               = 0x00010000,
+            // if (AceObject.HasPhysicsBsp ?? false)
+            //    HasPhysicsBsp = true;
+            ////Inelastic                   = 0x00020000,
+            if (AceObject.Inelastic.HasValue)
+                Inelastic = (bool)AceObject.Inelastic;
+            ////HasDefaultAnim              = 0x00040000,
+            // if (AceObject.HasDefaultAnim ?? false)
+            //    HasDefaultAnim = true;
+            ////HasDefaultScript            = 0x00080000,
+            // if (AceObject.HasDefaultScript ?? false) // Probably based on PhysicsDescriptionFlag
+            //    HasDefaultScript = true;
+            ////Cloaked                     = 0x00100000,
+            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
+            //    Cloaked = true;
+            ////ReportCollisionAsEnviroment = 0x00200000,
+            if (AceObject.ReportCollisionsAsEnvironment.HasValue)
+                ReportCollisionAsEnviroment = (bool)AceObject.ReportCollisionsAsEnvironment;
+            ////EdgeSlide                   = 0x00400000,
+            if (AceObject.AllowEdgeSlide.HasValue)
+                EdgeSlide = (bool)AceObject.AllowEdgeSlide;
+            ////Sledding                    = 0x00800000,
+            // if (AceObject.Sledding ?? false)
+            //    Sledding = true;
+            ////Frozen                      = 0x01000000,
+            if (AceObject.IsFrozen.HasValue)
+                Frozen = (bool)AceObject.IsFrozen;
+        }
 
 
 
@@ -342,11 +583,6 @@ namespace ACE.Server.Entity
         // PhysicsData Logical
 
         // bitfield
-        public PhysicsDescriptionFlag PhysicsDescriptionFlag
-        {
-            get => SetPhysicsDescriptionFlag();
-            protected internal set { AceObject.PhysicsDescriptionFlag = (uint)SetPhysicsDescriptionFlag(); }
-        }
 
         // state
         public PhysicsState PhysicsState
@@ -434,7 +670,7 @@ namespace ACE.Server.Entity
         public AceVector3 Omega = null;
 
         // movement_buffer
-        public MotionState CurrentMotionState { get; set; }
+
 
         public uint? DefaultScriptId
         {
@@ -517,12 +753,7 @@ namespace ACE.Server.Entity
             protected set { AceObject.ItemType = (int)value; }
         }
 
-        // header
-        public ObjectDescriptionFlag DescriptionFlags
-        {
-            get => (ObjectDescriptionFlag)AceObject.AceObjectDescriptionFlags;
-            protected internal set { AceObject.AceObjectDescriptionFlags = (uint)value; }
-        }
+
         #endregion
         #region optional
         public string NamePlural
@@ -1563,12 +1794,6 @@ namespace ACE.Server.Entity
             set { AceObject.ItemMaxMana = value; }
         }
 
-        public bool? IgnoreAuthor
-        {
-            get => AceObject.IgnoreAuthor;
-            set { AceObject.IgnoreAuthor = value; }
-        }
-
         public bool? NpcLooksLikeObject
         {
             get => AceObject.NpcLooksLikeObject;
@@ -1596,11 +1821,11 @@ namespace ACE.Server.Entity
         public float UseRadiusSquared => ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius);
 
         public bool IsWithinUseRadiusOf(WorldObject wo)
-    {
-        if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
+        {
+            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
                 return false;
-        return true;
-    }
+            return true;
+        }
 
         public string LongDesc
         {
@@ -1630,30 +1855,6 @@ namespace ACE.Server.Entity
         {
             get => AceObject.ScribeName;
             set { AceObject.ScribeName = value; }
-        }
-
-        public uint? Scribe
-        {
-            get => AceObject.ScribeIID;
-            set { AceObject.ScribeIID = value; }
-        }
-
-        public int? Pages
-        {
-            get => AceObject.AppraisalPages;
-            set { AceObject.AppraisalPages = value; }
-        }
-
-        public int? MaxPages
-        {
-            get => AceObject.AppraisalMaxPages;
-            set { AceObject.AppraisalMaxPages = value; }
-        }
-
-        public int? MaxCharactersPerPage
-        {
-            get => AceObject.AvailableCharacter;
-            set { AceObject.AvailableCharacter = value; }
         }
 
         public int? Boost
@@ -2022,6 +2223,23 @@ namespace ACE.Server.Entity
             {
                 writer.Write(x.PropertyId);
                 writer.Write(x.PropertyValue.Value);
+            }
+        }
+
+        protected static void WriteIdentifyObjectProperties(BinaryWriter writer, IdentifyResponseFlags flags, Dictionary<PropertyInt, int> properties)
+        {
+            const ushort tableSize = 16;
+
+            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (properties.Count == 0))
+                return;
+
+            writer.Write((ushort)properties.Count);
+            writer.Write(tableSize);
+
+            foreach (var property in properties)
+            {
+                writer.Write((uint)property.Key);
+                writer.Write(property.Value);
             }
         }
 
@@ -2556,15 +2774,6 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Records some game-logic based desired position update (e.g. teleport), for use by physics engine
-        /// </summary>
-        /// <param name="newPosition"></param>
-        protected void ForceUpdatePosition(Position newPosition)
-        {
-            ForcedLocation = newPosition;
-        }
-
-        /// <summary>
         /// Records where the client thinks we are, for use by physics engine later
         /// </summary>
         /// <param name="newPosition"></param>
@@ -2632,11 +2841,6 @@ namespace ACE.Server.Entity
         public void DequeueAction(LinkedListNode<IAction> node)
         {
             actionQueue.DequeueAction(node);
-        }
-
-        public AceObject NewAceObjectFromCopy()
-        {
-            return (AceObject)AceObject.Clone(GuidManager.NewDynamicGuid().Full);
         }
 
         public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
@@ -3389,179 +3593,6 @@ namespace ACE.Server.Entity
         {
             get => AceObject.Visibility;
             set { AceObject.Visibility = value; }
-        }
-
-        public void SetObjectDescriptionBools()
-        {
-            // TODO: More uncommentting and wiring up for other flags
-            ////None                   = 0x00000000,
-            ////Openable               = 0x00000001,
-            // if (AceObject.Openable ?? false)
-            //    Openable = true;
-            ////Inscribable            = 0x00000002,
-            if (AceObject.Inscribable.HasValue)
-                Inscribable = (bool)AceObject.Inscribable;
-            ////Stuck                  = 0x00000004,
-            if (AceObject.Stuck.HasValue)
-                Stuck = (bool)AceObject.Stuck;
-            ////Player                 = 0x00000008,
-            // if (AceObject.Player ?? false)
-            //    Player = true;
-            ////Attackable             = 0x00000010,
-            if (AceObject.Attackable.HasValue)
-                Attackable = (bool)AceObject.Attackable;
-            ////PlayerKiller           = 0x00000020,
-            // if (AceObject.PlayerKiller ?? false)
-            //    PlayerKiller = true;
-            ////HiddenAdmin            = 0x00000040,
-            if (AceObject.HiddenAdmin.HasValue)
-                HiddenAdmin = (bool)AceObject.HiddenAdmin;
-            ////UiHidden               = 0x00000080,
-            if (AceObject.UiHidden.HasValue)
-                UiHidden = (bool)AceObject.UiHidden;
-            ////Book                   = 0x00000100,
-            // if (AceObject.Book ?? false)
-            //    Book = true;
-            ////Vendor                 = 0x00000200,
-            // if (AceObject.Vendor ?? false)
-            //    Vendor = true;
-            ////PkSwitch               = 0x00000400,
-            // if (AceObject.PkSwitch ?? false)
-            //    PkSwitch = true;
-            ////NpkSwitch              = 0x00000800,
-            // if (AceObject.NpkSwitch ?? false)
-            //    NpkSwitch = true;
-            ////Door                   = 0x00001000,
-            // if (AceObject.Door ?? false)
-            //    Door = true;
-            ////Corpse                 = 0x00002000,
-            // if (AceObject.Corpse ?? false)
-            //    Corpse = true;
-            ////LifeStone              = 0x00004000,
-            // if (AceObject.LifeStone ?? false)
-            //    LifeStone = true;
-            ////Food                   = 0x00008000,
-            // if (AceObject.Food ?? false)
-            //    Food = true;
-            ////Healer                 = 0x00010000,
-            // if (AceObject.Healer ?? false)
-            //    Healer = true;
-            ////Lockpick               = 0x00020000,
-            // if (AceObject.Lockpick ?? false)
-            //    Lockpick = true;
-            ////Portal                 = 0x00040000,
-            // if (AceObject.Portal ?? false)
-            //    Portal = true;
-            ////Admin                  = 0x00100000,
-            // if (AceObject.Admin ?? false)
-            //    Admin = true;
-            ////FreePkStatus           = 0x00200000,
-            // if (AceObject.FreePkStatus ?? false)
-            //    FreePkStatus = true;
-            ////ImmuneCellRestrictions = 0x00400000,
-            if (AceObject.IgnoreHouseBarriers.HasValue)
-                ImmuneCellRestrictions = (bool)AceObject.IgnoreHouseBarriers;
-            ////RequiresPackSlot       = 0x00800000,
-            if (AceObject.RequiresBackpackSlot.HasValue)
-                RequiresPackSlot = (bool)AceObject.RequiresBackpackSlot;
-            ////Retained               = 0x01000000,
-            if (AceObject.Retained.HasValue)
-                Retained = (bool)AceObject.Retained;
-            ////PkLiteStatus           = 0x02000000,
-            // if (AceObject.PkLiteStatus ?? false)
-            //    PkLiteStatus = true;
-            ////IncludesSecondHeader   = 0x04000000,
-            // if (AceObject.IncludesSecondHeader ?? false)
-            //    IncludesSecondHeader = true;
-            ////BindStone              = 0x08000000,
-            // if (AceObject.BindStone ?? false)
-            //    BindStone = true;
-            ////VolatileRare           = 0x10000000,
-            // if (AceObject.VolatileRare ?? false)
-            //    VolatileRare = true;
-            ////WieldOnUse             = 0x20000000,
-            if (AceObject.WieldOnUse.HasValue)
-                WieldOnUse = (bool)AceObject.WieldOnUse;
-            ////WieldLeft              = 0x40000000,
-            if (AceObject.AutowieldLeft.HasValue)
-                WieldLeft = (bool)AceObject.AutowieldLeft;
-        }
-
-        private void SetPhysicsStateBools()
-        {
-            // TODO: More uncommentting and wiring up for other flags
-
-            ////Static                      = 0x00000001,
-            // if (AceObject.Static ?? false)
-            //    Static = true;
-            ////Unused1                     = 0x00000002,
-            ////Ethereal                    = 0x00000004,
-            if (AceObject.Ethereal.HasValue)
-                Ethereal = (bool)AceObject.Ethereal;
-            ////ReportCollision             = 0x00000008,
-            if (AceObject.ReportCollisions.HasValue)
-                ReportCollision = (bool)AceObject.ReportCollisions;
-            ////IgnoreCollision             = 0x00000010,
-            if (AceObject.IgnoreCollisions.HasValue)
-                IgnoreCollision = (bool)AceObject.IgnoreCollisions;
-            ////NoDraw                      = 0x00000020,
-            if (AceObject.NoDraw.HasValue)
-                NoDraw = (bool)AceObject.NoDraw;
-            ////Missile                     = 0x00000040,
-            // if (AceObject.Missile ?? false)
-            //    Missile = true;
-            ////Pushable                    = 0x00000080,
-            // if (AceObject.Pushable ?? false)
-            //    Pushable = true;
-            ////AlignPath                   = 0x00000100,
-            // if (AceObject.AlignPath ?? false)
-            //    AlignPath = true;
-            ////PathClipped                 = 0x00000200,
-            // if (AceObject.PathClipped ?? false)
-            //    PathClipped = true;
-            ////Gravity                     = 0x00000400,
-            if (AceObject.GravityStatus.HasValue)
-                Gravity = (bool)AceObject.GravityStatus;
-            ////LightingOn                  = 0x00000800,
-            if (AceObject.LightsStatus.HasValue)
-                LightingOn = (bool)AceObject.LightsStatus;
-            ////ParticleEmitter             = 0x00001000,
-            // if (AceObject.ParticleEmitter ?? false)
-            //    ParticleEmitter = true;
-            ////Unused2                     = 0x00002000,
-            ////Hidden                      = 0x00004000,
-            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
-            //    Hidden = true;
-            ////ScriptedCollision           = 0x00008000,
-            if (AceObject.ScriptedCollision.HasValue)
-                ScriptedCollision = (bool)AceObject.ScriptedCollision;
-            ////HasPhysicsBsp               = 0x00010000,
-            // if (AceObject.HasPhysicsBsp ?? false)
-            //    HasPhysicsBsp = true;
-            ////Inelastic                   = 0x00020000,
-            if (AceObject.Inelastic.HasValue)
-                Inelastic = (bool)AceObject.Inelastic;
-            ////HasDefaultAnim              = 0x00040000,
-            // if (AceObject.HasDefaultAnim ?? false)
-            //    HasDefaultAnim = true;
-            ////HasDefaultScript            = 0x00080000,
-            // if (AceObject.HasDefaultScript ?? false) // Probably based on PhysicsDescriptionFlag
-            //    HasDefaultScript = true;
-            ////Cloaked                     = 0x00100000,
-            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
-            //    Cloaked = true;
-            ////ReportCollisionAsEnviroment = 0x00200000,
-            if (AceObject.ReportCollisionsAsEnvironment.HasValue)
-                ReportCollisionAsEnviroment = (bool)AceObject.ReportCollisionsAsEnvironment;
-            ////EdgeSlide                   = 0x00400000,
-            if (AceObject.AllowEdgeSlide.HasValue)
-                EdgeSlide = (bool)AceObject.AllowEdgeSlide;
-            ////Sledding                    = 0x00800000,
-            // if (AceObject.Sledding ?? false)
-            //    Sledding = true;
-            ////Frozen                      = 0x01000000,
-            if (AceObject.IsFrozen.HasValue)
-                Frozen = (bool)AceObject.IsFrozen;
         }
 
         public int? PaletteTemplate

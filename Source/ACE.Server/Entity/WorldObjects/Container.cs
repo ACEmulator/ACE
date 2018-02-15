@@ -11,7 +11,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -27,25 +26,12 @@ namespace ACE.Server.Entity.WorldObjects
         /// </summary>
         public Container(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
-            }
+            SetProperty(PropertyInt.CoinValue, 0);
+            SetProperty(PropertyInt.EncumbranceVal, 0);
+            SetProperty(PropertyInt.Value, 0);
 
-            return;
-
-            CoinValue = 0;
-            log.Debug($"{weenie.GetProperty(PropertyString.Name)} CoinValue initialized to {CoinValue}");
-
-            Burden = 0;
-            log.Debug($"{weenie.GetProperty(PropertyString.Name)} Burden initialized to {Burden}");
-
-            Burden += (ushort?)Weenie.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
-            log.Debug($"{weenie.GetProperty(PropertyString.Name)}'s weenie id is {Weenie.ClassId} and its base burden is {Weenie.GetProperty(PropertyInt.EncumbranceVal)}, added to burden, Burden = {Burden}");
-
-            Value = 0;
-            Value += Weenie.GetProperty(PropertyInt.Value) ?? 0;
-
+            // todo
+            /*
             WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
             foreach (var wieldedItem in WieldedItems)
             {
@@ -63,7 +49,7 @@ namespace ACE.Server.Entity.WorldObjects
             foreach (var inventoryItem in Inventory)
             {
                 ObjectGuid woGuid = new ObjectGuid(inventoryItem.Value.AceObjectId);
-                throw new System.NotImplementedException();/*
+                throw new System.NotImplementedException();
                 WorldObject wo = WorldObjectFactory.CreateWorldObject(inventoryItem.Value);
                 InventoryObjects.Add(woGuid, wo);
 
@@ -71,10 +57,13 @@ namespace ACE.Server.Entity.WorldObjects
                     CoinValue += wo.Value ?? 0;
 
                 Burden += wo.Burden ?? 0;
-                log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");*/
+                log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
             }
+            */
         }
 
+
+        // todo I want to rework the tracked equipment/wielded items
 
         /// <summary>
         /// Use EquipObject() and DequipObject() to manipulate this dictionary..
@@ -85,27 +74,58 @@ namespace ACE.Server.Entity.WorldObjects
         /// This will set the wielder property on worldObject to this guid, and will add it to the EquippedObjects dictionary.
         /// </summary>
         /// <param name="worldObject"></param>
-        public void EquipObject(WorldObject worldObject)
+        public bool TryEquipObject(WorldObject worldObject)
         {
             worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
             EquippedObjects[worldObject.Guid] = worldObject;
+
+            return true;
+        }
+
+        /// <summary>
+        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.
+        /// </summary>
+        /// <param name="worldObject"></param>
+        public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
+        {
+            // todo see if the wielded location is in use, if so, return false
+
+            worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
+
+            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
+            EquippedObjects[worldObject.Guid] = worldObject;
+
+            return true;
         }
 
         /// <summary>
         /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
         /// </summary>
         /// <param name="worldObject"></param>
-        public void DequipObject(WorldObject worldObject)
+        public bool TryDequipObject(WorldObject worldObject)
         {
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
             EquippedObjects.Remove(worldObject.Guid);
+
+            return true;
         }
 
 
         public Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
 
+        public bool TryAddToInventory(WorldObject worldObject)
+        {
+            // todo
+            /*
+            iouObj.SetProperty(PropertyInstanceId.Container, (int)player.Guid.Full);
 
+            // FIXME: This is wrong and should also be unnecessary but we're not handling storing and reading back object placement within a container correctly so this is here to make it work.
+            // TODO: fix placement (order or slot) issues within containers.
+            iouObj.SetProperty(PropertyInt.Placement, 0);
+            */
 
+            return false;
+        }
 
 
 
