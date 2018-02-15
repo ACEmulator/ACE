@@ -25,8 +25,6 @@ namespace ACE.Server.Entity.WorldObjects
                 Stuck = true;
                 Attackable = true;
 
-                SetObjectDescriptionBools();
-
                 // Setup game variables...
                 // TODO: so much more than what's here now.
             }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories;
 
 using AceObjectInventory = ACE.Entity.AceObjectInventory;
@@ -30,16 +32,10 @@ namespace ACE.Server.Entity.WorldObjects
         /// </summary>
         public Vendor(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            DescriptionFlags |= ObjectDescriptionFlag.Vendor | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
 
-                Vendor = true;
-                Stuck = true;
-                Attackable = true;
-
-                SetObjectDescriptionBools();
-            }
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
         }
 
         #region General Vendor functions

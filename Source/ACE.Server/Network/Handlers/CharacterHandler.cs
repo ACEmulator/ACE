@@ -230,26 +230,26 @@ namespace ACE.Server.Network.Handlers
             {
                 var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle), characterCreateInfo.Apperance.HeadgearColor, characterCreateInfo.Apperance.HeadgearHue);
                 if (hat != null)
-                    player.EquipObject(hat);
+                    player.TryEquipObject(hat, hat.GetProperty(PropertyInt.ValidLocations) ?? 0);
                 else
                     CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle));
             }
 
             var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
-                player.EquipObject(shirt);
+                player.TryEquipObject(shirt, shirt.GetProperty(PropertyInt.ValidLocations) ?? 0);
             else
                 CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle));
 
             var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
-                player.EquipObject(pants);
+                player.TryEquipObject(pants, pants.GetProperty(PropertyInt.ValidLocations) ?? 0);
             else
                 CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle));
 
             var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
-                player.EquipObject(shoes);
+                player.TryEquipObject(shoes, shoes.GetProperty(PropertyInt.ValidLocations) ?? 0);
             else
                 CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle));
 
@@ -462,24 +462,22 @@ namespace ACE.Server.Network.Handlers
 
         private static void CharacterCreateSetDefaultCharacterOptions(Player player)
         {
-            // Todo fix for new model that doesn't use AceCharacter
-            AceCharacter character = new AceCharacter(0); // temp
-            character.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
-            character.SetCharacterOption(CharacterOption.Display3dTooltips, true);
-            character.SetCharacterOption(CharacterOption.ShowCoordinatesByTheRadar, true);
-            character.SetCharacterOption(CharacterOption.DisplaySpellDurations, true);
-            character.SetCharacterOption(CharacterOption.IgnoreFellowshipRequests, true);
-            character.SetCharacterOption(CharacterOption.ShareFellowshipExpAndLuminance, true);
-            character.SetCharacterOption(CharacterOption.LetOtherPlayersGiveYouItems, true);
-            character.SetCharacterOption(CharacterOption.RunAsDefaultMovement, true);
-            character.SetCharacterOption(CharacterOption.AutoTarget, true);
-            character.SetCharacterOption(CharacterOption.AutoRepeatAttacks, true);
-            character.SetCharacterOption(CharacterOption.UseChargeAttack, true);
-            character.SetCharacterOption(CharacterOption.LeadMissileTargets, true);
-            character.SetCharacterOption(CharacterOption.ListenToAllegianceChat, true);
-            character.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
-            character.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
-            character.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
+            player.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
+            player.SetCharacterOption(CharacterOption.Display3dTooltips, true);
+            player.SetCharacterOption(CharacterOption.ShowCoordinatesByTheRadar, true);
+            player.SetCharacterOption(CharacterOption.DisplaySpellDurations, true);
+            player.SetCharacterOption(CharacterOption.IgnoreFellowshipRequests, true);
+            player.SetCharacterOption(CharacterOption.ShareFellowshipExpAndLuminance, true);
+            player.SetCharacterOption(CharacterOption.LetOtherPlayersGiveYouItems, true);
+            player.SetCharacterOption(CharacterOption.RunAsDefaultMovement, true);
+            player.SetCharacterOption(CharacterOption.AutoTarget, true);
+            player.SetCharacterOption(CharacterOption.AutoRepeatAttacks, true);
+            player.SetCharacterOption(CharacterOption.UseChargeAttack, true);
+            player.SetCharacterOption(CharacterOption.LeadMissileTargets, true);
+            player.SetCharacterOption(CharacterOption.ListenToAllegianceChat, true);
+            player.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
+            player.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
+            player.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
         }
 
         public static void CharacterCreateSetDefaultCharacterPositions(Player player, uint startArea)
@@ -506,14 +504,9 @@ namespace ACE.Server.Network.Handlers
             if (weenie == null)
                 return null;
 
-            var worldObject = WorldObjectFactory.CreateNewWorldObject(weenie);
+            var worldObject = (Clothing)WorldObjectFactory.CreateNewWorldObject(weenie);
 
-            var icon = DatManager.PortalDat.ReadFromDat<ClothingTable>(worldObject.GetProperty(PropertyDataId.ClothingBase) ?? 0).GetIcon(palette);
-
-            worldObject.SetProperty(PropertyDataId.Icon, icon);
-            worldObject.SetProperty(PropertyDataId.PaletteBase, palette);
-            worldObject.SetProperty(PropertyDouble.Shade, shade);
-            worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, worldObject.GetProperty(PropertyInt.ValidLocations) ?? 0);
+            worldObject.SetProperties(palette, shade);
 
             //if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
             //{
@@ -573,37 +566,12 @@ namespace ACE.Server.Network.Handlers
 
         private static void CreateIOU(Player player, uint missingWeenieId)
         {
-            throw new NotImplementedException();/*
-            var iouObj = (AceObject)DatabaseManager.World.GetAceObjectByWeenie("parchment").Clone(GuidManager.NewItemGuid().Full);
+            var book = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
-            iouObj.Name = "IOU";
-            iouObj.EncumbranceVal = 0;
-            iouObj.Value = 0;            
-            iouObj.ShortDesc = "An IOU for a missing database object.";
-            iouObj.Inscription = "Sorry about that chief...";
-            iouObj.ScribeName = "Ripley";
-            iouObj.ScribeAccount = "prewritten";
-            iouObj.IgnoreAuthor = false;
-            iouObj.AppraisalPages = 1;
-            iouObj.AppraisalMaxPages = 1;
+            book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "Ripley", "prewritten");
+            book.AddPage(player.Guid.Full, "Ripley", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
-            iouObj.ContainerIID = character.AceObjectId;
-
-            // FIXME: This is wrong and should also be unnecessary but we're not handling storing and reading back object placement within a container correctly so this is here to make it work.
-            // TODO: fix placement (order or slot) issues within containers.
-            iouObj.Placement = 0;
-
-            var bookProperties = new AceObjectPropertiesBook();
-            bookProperties.AceObjectId = iouObj.AceObjectId;
-            bookProperties.AuthorName = "Ripley";
-            bookProperties.AuthorAccount = "prewritten";
-            bookProperties.Page = 0;
-            bookProperties.PageText = $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.";
-
-            iouObj.BookProperties.Add(bookProperties.Page, bookProperties);
-
-            if (iouObj != null)
-                character.Inventory.Add(new ObjectGuid(iouObj.AceObjectId), iouObj);*/
+            player.TryAddToInventory(book);
         }
     }
 }

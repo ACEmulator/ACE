@@ -10,49 +10,46 @@ namespace ACE.Server.Entity.WorldObjects
 {
     public class Key : WorldObject
     {
-        private string KeyCode
-        {
-            get;
-            set;
-        }
-
         /// <summary>
         /// If biota is null, one will be created with default values for this WorldObject type.
         /// </summary>
         public Key(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
+            DescriptionFlags |= ObjectDescriptionFlag.Attackable;
+
+            SetProperty(PropertyBool.Attackable, true);
+
             if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
             {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
-
-                Attackable = true;
-
-                SetObjectDescriptionBools();
-
-                KeyCode = AceObject.KeyCode ?? "";
-                Structure = AceObject.Structure ?? AceObject.MaxStructure;
+                // These shoudl come from the weenie. After confirmation, remove these
+                //KeyCode = AceObject.KeyCode ?? "";
+                //Structure = AceObject.Structure ?? AceObject.MaxStructure;
             }
         }
 
         public void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             ActionChain chain = new ActionChain();
+
+            var keyCode = GetProperty(PropertyString.KeyCode);
+
             chain.AddAction(player, () =>
             {
                 if (player == null)
-                {
                     return;
-                }
 
                 if (!player.IsWithinUseRadiusOf(target))
                     player.DoMoveTo(target);
                 else
                 {
                     var sendUseDoneEvent = new GameEventUseDone(player.Session);
+
                     if (target.WeenieType == WeenieType.Door)
                     {
                         Door door = target as Door;
-                        Door.UnlockDoorResults results = door.UnlockDoor(KeyCode);
+
+                        Door.UnlockDoorResults results = door.UnlockDoor(keyCode);
+
                         switch (results)
                         {
                             case WorldObjects.Door.UnlockDoorResults.UnlockSuccess:
@@ -61,7 +58,7 @@ namespace ACE.Server.Entity.WorldObjects
                                     player.HandleActionRemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
 
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this.Sequences, Guid, PropertyInt.Structure, (int)Structure));
+                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(Sequences, Guid, PropertyInt.Structure, (int)Structure));
                                 break;
                             case WorldObjects.Door.UnlockDoorResults.DoorOpen:
                                 var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
@@ -89,6 +86,7 @@ namespace ACE.Server.Entity.WorldObjects
                     }
                 }
             });
+
             chain.EnqueueChain();
         }
     }

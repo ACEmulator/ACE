@@ -58,7 +58,9 @@ namespace ACE.Entity.Enum.Properties
         PetDevice                        = 45,
 
         // values over 9000 are ones that we have added and should not be sent to the client
+        [ServerOnly]
         Account                          = 9001,
+        [ServerOnly]
         Friend                           = 9002
     }
 

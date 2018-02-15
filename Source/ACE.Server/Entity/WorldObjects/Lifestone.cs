@@ -4,6 +4,7 @@ using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -17,18 +18,12 @@ namespace ACE.Server.Entity.WorldObjects
         /// </summary>
         public Lifestone(Weenie weenie, Biota biota = null) : base(weenie, biota)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            DescriptionFlags |= ObjectDescriptionFlag.LifeStone | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
 
-                LifeStone = true;
-                Stuck = true;
-                Attackable = true;
+            SetProperty(PropertyBool.Stuck, true);
+            SetProperty(PropertyBool.Attackable, true);
 
-                SetObjectDescriptionBools();
-
-                RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
-            }
+            SetProperty(PropertyInt.RadarBlipColor, (int)ACE.Entity.Enum.RadarColor.LifeStone);
         }
 
         public override void ActOnUse(ObjectGuid playerId)

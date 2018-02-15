@@ -10,6 +10,7 @@ namespace ACE.Entity.Enum.Properties
         // description attributes are used by the weenie editor for a cleaner display name
 
         Undef                            = 0,
+        [Ephemeral]
         Stuck                            = 1,
         Open                             = 2,
         Locked                           = 3,
@@ -28,6 +29,7 @@ namespace ACE.Entity.Enum.Properties
         ScriptedCollision                = 16,
         Inelastic                        = 17,
         Visibility                       = 18,
+        [Ephemeral]
         Attackable                       = 19,
         SafeSpellComponents              = 20,
         AdvocateState                    = 21,

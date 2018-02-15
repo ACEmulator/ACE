@@ -44,36 +44,23 @@ namespace ACE.Server.Entity.WorldObjects
         {
             Session = session;
 
-            // This is the default send upon log in and the most common.   Anything with a velocity will need to add that flag.
-            PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
+            DescriptionFlags |= ObjectDescriptionFlag.Player;
 
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
-            }
-
-            return;
-
-            Player = true;
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
-
-            SetObjectDescriptionBools();
-
-            // Admin = true; // Uncomment to enable Admin flag on Player objects. I would expect this would go in Admin.cs, replacing Player = true,
-            // I don't believe both were on at the same time. -Ripley
+            PhysicsState |= PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide | PhysicsState.Hidden;
 
             SetProperty(PropertyBool.IgnoreCollisions, true);
             SetProperty(PropertyBool.GravityStatus, true);
-            Hidden = true;
             SetProperty(PropertyBool.AllowEdgeSlide, true);
 
-            // apply defaults.  "Load" should be overwriting these with values specific to the character
-            // TODO: Load from database should be loading player data - including inventroy and positions
+            // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
+            PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
+
             CurrentMotionState = new UniversalMotion(MotionStance.Standing);
 
             // radius for object updates
             ListeningRadius = 5f;
+
+            return; // todo
 
             TrackedContracts = new Dictionary<uint, ContractTracker>();
             // Load the persisted tracked contracts into the working dictionary on player object.
@@ -264,6 +251,70 @@ namespace ACE.Server.Entity.WorldObjects
 
 
 
+        #region GetCharacterOption SetCharacterOption GetCharacterOptions1 SetCharacterOptions1 GetCharacterOptions2 SetCharacterOptions2
+        public bool GetCharacterOption(CharacterOption option)
+        {
+            if (option.GetCharacterOptions1Attribute() != null)
+                return GetCharacterOptions1((CharacterOptions1)Enum.Parse(typeof(CharacterOptions1), option.ToString()));
+
+            return GetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()));
+        }
+
+        public void SetCharacterOption(CharacterOption option, bool value)
+        {
+            if (option.GetCharacterOptions1Attribute() != null)
+                SetCharacterOptions1((CharacterOptions1)Enum.Parse(typeof(CharacterOptions1), option.ToString()), value);
+            else
+                SetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
+        }
+
+        public bool GetCharacterOptions1(CharacterOptions1 option)
+        {
+            return (GetProperty(PropertyInt.CharacterOptions1) & (uint)option) != 0;
+        }
+
+        public void SetCharacterOptions1(CharacterOptions1 option, bool value)
+        {
+            var options = GetProperty(PropertyInt.CharacterOptions1) ?? 0;
+
+            if (value)
+                options |= (int)option;
+            else
+                options &= ~(int)option;
+
+            SetProperty(PropertyInt.CharacterOptions1, options);
+        }
+
+        public void SetCharacterOptions1(int value)
+        {
+            SetProperty(PropertyInt.CharacterOptions1, value);
+        }
+
+        public bool GetCharacterOptions2(CharacterOptions2 option)
+        {
+            return (GetProperty(PropertyInt.CharacterOptions2) & (uint)option) != 0;
+        }
+
+        public void SetCharacterOptions2(CharacterOptions2 option, bool value)
+        {
+            var options = GetProperty(PropertyInt.CharacterOptions2) ?? 0;
+
+            if (value)
+                options |= (int)option;
+            else
+                options &= ~(int)option;
+
+            SetProperty(PropertyInt.CharacterOptions2, options);
+        }
+
+        public void SetCharacterOptions2(int value)
+        {
+            SetProperty(PropertyInt.CharacterOptions2, value);
+        }
+        #endregion
+
+
+
 
 
 
@@ -424,15 +475,7 @@ namespace ACE.Server.Entity.WorldObjects
             }
         }
 
-        public void SetCharacterOptions1(int options1)
-        {
-            Character.CharacterOptions1Mapping = options1;
-        }
 
-        public void SetCharacterOptions2(int options2)
-        {
-            Character.CharacterOptions2Mapping = options2;
-        }
 
         public Dictionary<Skill, CreatureSkill> Skills => AceObject.AceObjectPropertiesSkills;
 
@@ -1706,18 +1749,6 @@ namespace ACE.Server.Entity.WorldObjects
             SendFriendStatusUpdates();
         }
 
-        /// <summary>
-        /// Set a single character option to the provided value. This does not save to the database.
-        /// </summary>
-        public void SetCharacterOption(CharacterOption option, bool value)
-        {
-            Character.SetCharacterOption(option, value);
-        }
-
-        public bool GetCharacterOption(CharacterOption option)
-        {
-            return Character.GetCharacterOption(option);
-        }
 
         /// <summary>
         /// Set the currently position of the character, to later save in the database.

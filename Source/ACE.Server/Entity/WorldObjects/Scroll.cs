@@ -46,8 +46,6 @@ namespace ACE.Server.Entity.WorldObjects
 
                 Attackable = true;
 
-                SetObjectDescriptionBools();
-
                 var table = DatManager.PortalDat.SpellTable;
 
                 Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
