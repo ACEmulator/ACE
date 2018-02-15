@@ -153,15 +153,6 @@ namespace ACE.Server.Network.Handlers
             //    }
             //});
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
-            {
-                if (!isAvailable)
-                {
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
-                    return;
-                }
-            });
-
             // Disable OlthoiPlay characters for now. They're not implemented yet.
             // FIXME: Restore OlthoiPlay characters when properly handled.
             if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi || characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid)
