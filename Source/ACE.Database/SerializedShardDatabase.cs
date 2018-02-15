@@ -65,11 +65,11 @@ namespace ACE.Database
             }
         }
 
-        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
+        public void GetCharacters(uint accountId, Action<List<Character>> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCharacters(subscriptionId);
+                var result = _wrappedDatabase.GetCharacters(accountId);
                 if (callback != null)
                     callback.Invoke(result);
             }));
@@ -80,6 +80,36 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.IsCharacterNameAvailable(name);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        public void AddCharacter(Character character, Biota biota, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddCharacter(character, biota);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        public void DeleteOrRestoreCharacter(ulong unixTime, uint guid, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.DeleteOrRestoreCharacter(unixTime, guid);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        public void MarkCharacterDeleted(uint guid, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.MarkCharacterDeleted(guid);
                 if (callback != null)
                     callback.Invoke(result);
             }));
