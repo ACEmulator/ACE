@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace ACE.Entity
+namespace ACE.Entity.Enum.Properties
 {
     public class ServerOnlyAttribute : Attribute
     {

@@ -54,6 +54,12 @@ namespace ACE.Server.Entity
         public Biota Biota { get; }
 
         /// <summary>
+        /// This is object property overrides that only exist during this session.
+        /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
+        /// </summary>
+        public Biota Ephemeral { get; } = new Biota();
+
+        /// <summary>
         /// You should only set this once, after initial object creation. Changing this value a 2nd time will most likely cause the end of days.
         /// This is just a wrapper around Biota.Id
         /// </summary>
@@ -138,34 +144,35 @@ namespace ACE.Server.Entity
             GenerateWieldList();
         }
 
-        // We try to get from the biota first, then the weenie.
-        public bool? GetProperty(PropertyBool property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
-        public uint? GetProperty(PropertyDataId property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
-        public double? GetProperty(PropertyDouble property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
-        public int? GetProperty(PropertyInstanceId property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
-        public int? GetProperty(PropertyInt property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
-        public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
-        public string GetProperty(PropertyString property) { return Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        // We try to get from the Ephemeral first, then the Biota and lastly the Weenie.
+        public bool? GetProperty(PropertyBool property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public uint? GetProperty(PropertyDataId property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public double? GetProperty(PropertyDouble property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public int? GetProperty(PropertyInstanceId property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public int? GetProperty(PropertyInt property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public long? GetProperty(PropertyInt64 property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
+        public string GetProperty(PropertyString property) { return Ephemeral.GetProperty(property) ?? Biota.GetProperty(property) ?? Weenie.GetProperty(property); }
 
-        // When we try to set a property, if we're setting the default of the weenie we'll just remove the value from the biota.
-        public void SetProperty(PropertyBool property, bool value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyDataId property, uint value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyDouble property, double value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInstanceId property, int value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInt property, int value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInt64 property, long value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyString property, string value) { if (Weenie.GetProperty(property) == value) Biota.RemoveProperty(property); else Biota.SetProperty(property, value); }
+        // When we try to set a property, if we're setting the default of the Weenie we'll just remove the value from the Biota and Ephemeral
+        // todo if the property has the Ephe
+        public void SetProperty(PropertyBool property, bool value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDataId property, uint value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDouble property, double value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInstanceId property, int value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt property, int value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt64 property, long value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyString property, string value) { if (Weenie.GetProperty(property) == value) RemoveProperty(property); else Biota.SetProperty(property, value); }
 
-        // We only remove from the biota.
-        public void RemoveProperty(PropertyBool property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyDataId property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyDouble property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyInstanceId property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyInt property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyInt64 property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyString property) { Biota.RemoveProperty(property); }
+        // We only remove from Ephemeral and the Biota.
+        public void RemoveProperty(PropertyBool property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyDataId property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyDouble property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInstanceId property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInt property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInt64 property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyString property) { Ephemeral.RemoveProperty(property); Biota.RemoveProperty(property); }
 
-        // When we get all properties, we first get the properties from the weenie, then we get the overrides from the biota.
+        // When we get all properties, we first get the properties from the weenie, then we get the overrides from the biota and lastly override with Ephemeral
         public Dictionary<PropertyBool, bool> GetAllPropertyBools()
         {
             var results = new Dictionary<PropertyBool, bool>();
@@ -174,6 +181,9 @@ namespace ACE.Server.Entity
                 results[(PropertyBool)property.Type] = property.Value;
 
             foreach (var property in Biota.BiotaPropertiesBool)
+                results[(PropertyBool)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesBool)
                 results[(PropertyBool)property.Type] = property.Value;
 
             return results;
@@ -187,6 +197,9 @@ namespace ACE.Server.Entity
                 results[(PropertyDataId)property.Type] = property.Value;
 
             foreach (var property in Biota.BiotaPropertiesDID)
+                results[(PropertyDataId)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesDID)
                 results[(PropertyDataId)property.Type] = property.Value;
 
             return results;
@@ -204,6 +217,9 @@ namespace ACE.Server.Entity
                 results[(PropertyInt)property.Type] = property.Value;
 
             foreach (var property in Biota.BiotaPropertiesInt)
+                results[(PropertyInt)property.Type] = property.Value;
+
+            foreach (var property in Ephemeral.BiotaPropertiesInt)
                 results[(PropertyInt)property.Type] = property.Value;
 
             return results;

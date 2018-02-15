@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using ACE.Entity.Enum.Properties;
 
-namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum.Properties
 {
     /// <summary>
-    /// Static selection of client enums based on attributes
+    /// Static selection of client enums that are NOT [ServerOnly]
     /// </summary>
     public static class ClientProperties
     {
@@ -28,16 +27,34 @@ namespace ACE.Entity.Enum
         /// </summary>
         public static List<ushort> PropertiesInt = GetValues<PropertyInt, ushort>();
 
+        /// <summary>
+        /// returns a list of values for PropertyInt that are NOT [ServerOnly]
+        /// </summary>
         public static List<ushort> PropertiesInt64 = GetValues<PropertyInt64, ushort>();
 
+        /// <summary>
+        /// returns a list of values for PropertyInt that are NOT [ServerOnly]
+        /// </summary>
         public static List<ushort> PropertiesBool = GetValues<PropertyBool, ushort>();
 
+        /// <summary>
+        /// returns a list of values for PropertyInt that are NOT [ServerOnly]
+        /// </summary>
         public static List<ushort> PropertiesString = GetValues<PropertyString, ushort>();
 
+        /// <summary>
+        /// returns a list of values for PropertyInt that are NOT [ServerOnly]
+        /// </summary>
         public static List<ushort> PropertiesDouble = GetValues<PropertyDouble, ushort>();
 
+        /// <summary>
+        /// returns a list of values for PropertyInt that are NOT [ServerOnly]
+        /// </summary>
         public static List<ushort> PropertiesDataId = GetValues<PropertyDataId, ushort>();
 
+        /// <summary>
+        /// returns a list of values for PropertyInt that are NOT [ServerOnly]
+        /// </summary>
         public static List<ushort> PropertiesInstanceId = GetValues<PropertyInstanceId, ushort>();
     }
 }
