@@ -14,24 +14,24 @@ namespace ACE.Server.Network.GameEvent.Events
         [Flags]
         private enum DescriptionPropertyFlag
         {
-            None = 0x0000,
-            PropertyInt32 = 0x0001,
-            PropertyBool = 0x0002,
-            PropertyDouble = 0x0004,
-            PropertyDid = 0x0008,
-            PropertyString = 0x0010,
-            Position = 0x0020,
-            PropertyIid = 0x0040,
-            PropertyInt64 = 0x0080,
+            None            = 0x0000,
+            PropertyInt32   = 0x0001,
+            PropertyBool    = 0x0002,
+            PropertyDouble  = 0x0004,
+            PropertyDid     = 0x0008,
+            PropertyString  = 0x0010,
+            Position        = 0x0020,
+            PropertyIid     = 0x0040,
+            PropertyInt64   = 0x0080,
         }
 
         [Flags]
         private enum DescriptionVectorFlag
         {
-            None = 0x0000,
-            Attribute = 0x0001,
-            Skill = 0x0002,
-            Spell = 0x0100,
+            None        = 0x0000,
+            Attribute   = 0x0001,
+            Skill       = 0x0002,
+            Spell       = 0x0100,
             Enchantment = 0x0200
         }
 
