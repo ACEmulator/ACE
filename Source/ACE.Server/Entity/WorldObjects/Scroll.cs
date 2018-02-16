@@ -5,6 +5,7 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
@@ -36,82 +37,92 @@ namespace ACE.Server.Entity.WorldObjects
         private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.IntStatsTable | IdentifyResponseFlags.StringStatsTable | IdentifyResponseFlags.SpellBook;
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Scroll(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Scroll(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Scroll(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
+        {
+            // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+            Attackable = true;
+
+            var table = DatManager.PortalDat.SpellTable;
+
+            Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
+            Use += $"{table.Spells[SpellId].Desc}";
+
+            LongDesc = "Use this item to attempt to learn its spell.";
+
+            Power = table.Spells[SpellId].Power;
+            School = table.Spells[SpellId].School;
+
+            Burden = 30;
+
+            switch (Power)
             {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
-
-                Attackable = true;
-
-                var table = DatManager.PortalDat.SpellTable;
-
-                Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
-                Use += $"{table.Spells[SpellId].Desc}";
-
-                LongDesc = "Use this item to attempt to learn its spell.";
-
-                Power = table.Spells[SpellId].Power;
-                School = table.Spells[SpellId].School;
-
-                Burden = 30;
-
-                switch (Power)
-                {
-                    case spellLevel1:
-                        Value = 1;
-                        break;
-                    case spellLevel2:
-                        Value = 5;
-                        break;
-                    case spellLevel3:
-                        Value = 20;
-                        break;
-                    case spellLevel4:
-                        Value = 100;
-                        break;
-                    case spellLevel5:
-                        Value = 200;
-                        break;
-                    case spellLevel6:
-                        Value = 1000;
-                        break;
-                    case spellLevel7:
-                        Value = 2000;
-                        break;
-                    case spellLevel8:
-                        Value = 60000;
-                        break;
-                }
-
-                ScrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint) PropertyInt.Value
-                                                               || x.PropertyId == (uint) PropertyInt.EncumbranceVal)
-                    .ToList();
-
-                if (ScrollPropertiesString == null)
-                    ScrollPropertiesString = new List<AceObjectPropertiesString>();
-                if (ScrollPropertiesSpellId == null)
-                    ScrollPropertiesSpellId = new List<AceObjectPropertiesSpell>();
-
-                var useString = new AceObjectPropertiesString();
-                useString.AceObjectId = Guid.Full;
-                useString.PropertyId = (ushort) PropertyString.Use;
-                useString.PropertyValue = Use;
-                ScrollPropertiesString.Add(useString);
-
-                var longDescString = new AceObjectPropertiesString();
-                longDescString.AceObjectId = Guid.Full;
-                longDescString.PropertyId = (ushort) PropertyString.LongDesc;
-                longDescString.PropertyValue = LongDesc;
-                ScrollPropertiesString.Add(longDescString);
-
-                var propSpell = new AceObjectPropertiesSpell();
-                propSpell.AceObjectId = Guid.Full;
-                propSpell.SpellId = SpellId;
-                ScrollPropertiesSpellId.Add(propSpell);
+                case spellLevel1:
+                    Value = 1;
+                    break;
+                case spellLevel2:
+                    Value = 5;
+                    break;
+                case spellLevel3:
+                    Value = 20;
+                    break;
+                case spellLevel4:
+                    Value = 100;
+                    break;
+                case spellLevel5:
+                    Value = 200;
+                    break;
+                case spellLevel6:
+                    Value = 1000;
+                    break;
+                case spellLevel7:
+                    Value = 2000;
+                    break;
+                case spellLevel8:
+                    Value = 60000;
+                    break;
             }
+
+            ScrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
+                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal)
+                .ToList();
+
+            if (ScrollPropertiesString == null)
+                ScrollPropertiesString = new List<AceObjectPropertiesString>();
+            if (ScrollPropertiesSpellId == null)
+                ScrollPropertiesSpellId = new List<AceObjectPropertiesSpell>();
+
+            var useString = new AceObjectPropertiesString();
+            useString.AceObjectId = Guid.Full;
+            useString.PropertyId = (ushort)PropertyString.Use;
+            useString.PropertyValue = Use;
+            ScrollPropertiesString.Add(useString);
+
+            var longDescString = new AceObjectPropertiesString();
+            longDescString.AceObjectId = Guid.Full;
+            longDescString.PropertyId = (ushort)PropertyString.LongDesc;
+            longDescString.PropertyValue = LongDesc;
+            ScrollPropertiesString.Add(longDescString);
+
+            var propSpell = new AceObjectPropertiesSpell();
+            propSpell.AceObjectId = Guid.Full;
+            propSpell.SpellId = SpellId;
+            ScrollPropertiesSpellId.Add(propSpell);
         }
 
         private List<AceObjectPropertiesInt> ScrollPropertiesInt

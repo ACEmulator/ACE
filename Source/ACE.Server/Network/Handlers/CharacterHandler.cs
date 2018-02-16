@@ -164,8 +164,9 @@ namespace ACE.Server.Network.Handlers
             var cg = DatManager.PortalDat.CharGen;
 
             var weenie = DatabaseManager.World.GetCachedWeenie(1);
+            var guid = GuidManager.NewPlayerGuid();
 
-            var player = new Player(weenie, null, session);            
+            var player = new Player(weenie, guid, session);            
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, cg.HeritageGroups[characterCreateInfo.Heritage].Name);
@@ -411,8 +412,6 @@ namespace ACE.Server.Network.Handlers
                 }
 
                 // player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
-
-                player.Guid = GuidManager.NewPlayerGuid();
 
                 var character = new Character();
                 character.AccountId = session.Id;

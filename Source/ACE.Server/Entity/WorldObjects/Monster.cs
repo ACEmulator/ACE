@@ -1,20 +1,32 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity;
 
 namespace ACE.Server.Entity.WorldObjects
 {
     public class Monster : Creature
     {
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Monster(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Monster(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                IsAlive = true;
-                SetupVitals();
-            }
+            IsAlive = true;
+            SetupVitals();
+
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Monster(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
+        {
         }
     }
 }

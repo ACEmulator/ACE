@@ -3,6 +3,7 @@ using System.IO;
 
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -12,20 +13,31 @@ namespace ACE.Server.Entity.WorldObjects
     {
         private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.IntStatsTable;
 
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// <summary>
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Coin(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Coin(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetProperty(PropertyInt.EncumbranceVal, 0);
+            SetProperty(PropertyInt.Value, 1);
+            SetProperty(PropertyInt.StackSize, 1);
+
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Coin(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             DescriptionFlags |= ObjectDescriptionFlag.Attackable;
 
             SetProperty(PropertyBool.Attackable, true);
-
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                SetProperty(PropertyInt.EncumbranceVal, 0);
-                SetProperty(PropertyInt.Value, 1);
-                SetProperty(PropertyInt.StackSize, 1);
-            }
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

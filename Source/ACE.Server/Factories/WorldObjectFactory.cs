@@ -17,53 +17,104 @@ namespace ACE.Server.Factories
         /// This will create a WorldObject without generating a new GUID.
         /// If biota is null, one will be created with default values for this WorldObject type.
         /// </summary>
-        public static WorldObject CreateWorldObject(Weenie weenie, Biota biota = null)
+        public static WorldObject CreateWorldObject(Biota biota)
+        {
+            var objWeenieType = (WeenieType)biota.WeenieType;
+
+            switch (objWeenieType)
+            {
+                case WeenieType.LifeStone:
+                    return new Lifestone(biota);
+                case WeenieType.Door:
+                    return new Door(biota);
+                case WeenieType.Portal:
+                    return new Portal(biota);
+                case WeenieType.Book:
+                    return new Book(biota);
+                // case WeenieType.PKModifier:
+                //    return new PKModifier(biota);
+                case WeenieType.Cow:
+                    return new Cow(biota);
+                case WeenieType.Creature:
+                    return new Creature(biota);
+                case WeenieType.Container:
+                    return new Container(biota);
+                case WeenieType.Scroll:
+                    return new Scroll(biota);
+                case WeenieType.Vendor:
+                    return new Vendor(biota);
+                case WeenieType.Coin:
+                    return new Coin(biota);
+                case WeenieType.Key:
+                    return new Key(biota);
+                case WeenieType.Food:
+                    return new Food(biota);
+                case WeenieType.Gem:
+                    return new Gem(biota);
+                case WeenieType.Game:
+                    return new Game(biota);
+                case WeenieType.GamePiece:
+                    return new GamePiece(biota);
+                case WeenieType.AllegianceBindstone:
+                    return new Bindstone(biota);
+                case WeenieType.Clothing:
+                    return new Clothing(biota);
+                default:
+                    return new GenericObject(biota);
+            }
+        }
+
+
+        /// <summary>
+        /// This will create a WorldObject without generating a new GUID.
+        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(Weenie weenie, ObjectGuid guid)
         {
             var objWeenieType = (WeenieType)weenie.Type;
 
             switch (objWeenieType)
             {
                 case WeenieType.LifeStone:
-                    return new Lifestone(weenie, biota);
+                    return new Lifestone(weenie, guid);
                 case WeenieType.Door:
-                    return new Door(weenie, biota);
+                    return new Door(weenie, guid);
                 case WeenieType.Portal:
-                    return new Portal(weenie, biota);
+                    return new Portal(weenie, guid);
                 case WeenieType.Book:
-                    return new Book(weenie, biota);
+                    return new Book(weenie, guid);
                 // case WeenieType.PKModifier:
-                //    return new PKModifier(weenie, biota);
+                //    return new PKModifier(weenie, guid);
                 case WeenieType.Cow:
-                    return new Cow(weenie, biota);
+                    return new Cow(weenie, guid);
                 case WeenieType.Creature:
-                    return new Creature(weenie, biota);
+                    return new Creature(weenie, guid);
                 case WeenieType.Container:
-                    return new Container(weenie, biota);
+                    return new Container(weenie, guid);
                 case WeenieType.Scroll:
-                    return new Scroll(weenie, biota);
+                    return new Scroll(weenie, guid);
                 case WeenieType.Vendor:
-                    return new Vendor(weenie, biota);
+                    return new Vendor(weenie, guid);
                 case WeenieType.Coin:
-                    return new Coin(weenie, biota);
+                    return new Coin(weenie, guid);
                 case WeenieType.Key:
-                    return new Key(weenie, biota);
+                    return new Key(weenie, guid);
                 case WeenieType.Food:
-                    return new Food(weenie, biota);
+                    return new Food(weenie, guid);
                 case WeenieType.Gem:
-                    return new Gem(weenie, biota);
+                    return new Gem(weenie, guid);
                 case WeenieType.Game:
-                    return new Game(weenie, biota);
+                    return new Game(weenie, guid);
                 case WeenieType.GamePiece:
-                    return new GamePiece(weenie, biota);
+                    return new GamePiece(weenie, guid);
                 case WeenieType.AllegianceBindstone:
-                    return new Bindstone(weenie, biota);
+                    return new Bindstone(weenie, guid);
                 case WeenieType.Clothing:
-                    return new Clothing(weenie, biota);
+                    return new Clothing(weenie, guid);
                 default:
-                    return new GenericObject(weenie, biota);
+                    return new GenericObject(weenie, guid);
             }
         }
-
 
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
@@ -78,9 +129,7 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateNewWorldObject(Weenie weenie)
         {
-            var worldObject = CreateWorldObject(weenie);
-
-            worldObject.Guid = GuidManager.NewDynamicGuid();
+            var worldObject = CreateNewWorldObject(weenie, GuidManager.NewDynamicGuid());
 
             return worldObject;
         }

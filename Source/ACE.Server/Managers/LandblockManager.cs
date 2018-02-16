@@ -38,9 +38,7 @@ namespace ACE.Server.Managers
         {
             DatabaseManager.Shard.GetBiota(guid.Full, biota =>
             {
-                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
-
-                var player = new Player(weenie, biota, session);
+                var player = new Player(biota, session);
                 session.SetPlayer(player);
                 session.Player.PlayerEnterWorld();
 

@@ -1,5 +1,5 @@
 using System.Linq;
-
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -119,6 +119,313 @@ namespace ACE.Database.Models.World
         public static WeeniePropertiesTextureMap GetTextureMap(this Weenie weenie, byte index)
         {
             return weenie.WeeniePropertiesTextureMap.FirstOrDefault(x => x.Index == index);
+        }
+
+
+        public static Biota CreateCopyAsBiota(this Weenie weenie, uint id)
+        {
+            var biota = new Biota();
+
+            biota.Id = id;
+            biota.WeenieClassId = weenie.ClassId;
+            biota.WeenieType = weenie.Type;
+
+            if (weenie.WeeniePropertiesBook != null)
+            {
+                biota.BiotaPropertiesBook = new BiotaPropertiesBook();
+                biota.BiotaPropertiesBook.ObjectId = biota.Id;
+                biota.BiotaPropertiesBook.MaxNumPages = weenie.WeeniePropertiesBook.MaxNumPages;
+                biota.BiotaPropertiesBook.MaxNumCharsPerPage = weenie.WeeniePropertiesBook.MaxNumCharsPerPage;
+            }
+
+            foreach (var value in weenie.WeeniePropertiesAnimPart)
+            {
+                biota.BiotaPropertiesAnimPart.Add(new BiotaPropertiesAnimPart
+                {
+                    ObjectId = biota.Id,
+                    Index = value.Index,
+                    AnimationId = value.AnimationId
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesAttribute)
+            {
+                biota.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    InitLevel = value.InitLevel,
+                    LevelFromCP = value.LevelFromCP,
+                    CPSpent = value.CPSpent,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesAttribute2nd)
+            {
+                biota.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    InitLevel = value.InitLevel,
+                    LevelFromCP = value.LevelFromCP,
+                    CPSpent = value.CPSpent,
+                    CurrentLevel = value.CurrentLevel,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesBodyPart)
+            {
+                biota.BiotaPropertiesBodyPart.Add(new BiotaPropertiesBodyPart
+                {
+                    ObjectId = biota.Id,
+                    Key = value.Key,
+                    DType = value.DType,
+                    DVal = value.DVal,
+                    DVar = value.DVar,
+                    BaseArmor = value.BaseArmor,
+                    ArmorVsSlash = value.ArmorVsSlash,
+                    ArmorVsPierce = value.ArmorVsPierce,
+                    ArmorVsBludgeon = value.ArmorVsBludgeon,
+                    ArmorVsCold = value.ArmorVsCold,
+                    ArmorVsFire = value.ArmorVsFire,
+                    ArmorVsAcid = value.ArmorVsAcid,
+                    ArmorVsElectric = value.ArmorVsElectric,
+                    ArmorVsNether = value.ArmorVsNether,
+                    BH = value.BH,
+                    HLF = value.HLF,
+                    MLF = value.MLF,
+                    LLF = value.LLF,
+                    HRF = value.HRF,
+                    MRF = value.MRF,
+                    LRF = value.LRF,
+                    HLB = value.HLB,
+                    MLB = value.MLB,
+                    LLB = value.LLB,
+                    HRB = value.HRB,
+                    MRB = value.MRB,
+                    LRB = value.LRB,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesBookPageData)
+            {
+                biota.BiotaPropertiesBookPageData.Add(new BiotaPropertiesBookPageData
+                {
+                    ObjectId = biota.Id,
+                    PageId = value.PageId,
+                    AuthorId = value.AuthorId,
+                    AuthorName = value.AuthorName,
+                    AuthorAccount = value.AuthorAccount,
+                    IgnoreAuthor = value.IgnoreAuthor,
+                    PageText = value.PageText,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesBool)
+            {
+                biota.BiotaPropertiesBool.Add(new BiotaPropertiesBool
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesCreateList)
+            {
+                biota.BiotaPropertiesCreateList.Add(new BiotaPropertiesCreateList
+                {
+                    ObjectId = biota.Id,
+                    DestinationType = value.DestinationType,
+                    WeenieClassId = value.WeenieClassId,
+                    StackSize = value.StackSize,
+                    Palette = value.Palette,
+                    Shade = value.Shade,
+                    TryToBond = value.TryToBond,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesDID)
+            {
+                biota.BiotaPropertiesDID.Add(new BiotaPropertiesDID
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesEmote)
+            {
+                biota.BiotaPropertiesEmote.Add(new BiotaPropertiesEmote
+                {
+                    ObjectId = biota.Id,
+                    Category = value.Category,
+                    Probability = value.Probability,
+                    WeenieClassId = value.WeenieClassId,
+                    Style = value.Style,
+                    Substyle = value.Substyle,
+                    Quest = value.Quest,
+                    VendorType = value.VendorType,
+                    MinHealth = value.MinHealth,
+                    MaxHealth = value.MaxHealth,
+                });
+            }
+
+            // WeeniePropertiesEmoteAction
+
+            foreach (var value in weenie.WeeniePropertiesEventFilter)
+            {
+                biota.BiotaPropertiesEventFilter.Add(new BiotaPropertiesEventFilter
+                {
+                    ObjectId = biota.Id,
+                    Event = value.Event,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesFloat)
+            {
+                biota.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesGenerator)
+            {
+                biota.BiotaPropertiesGenerator.Add(new BiotaPropertiesGenerator
+                {
+                    ObjectId = biota.Id,
+                    Probability = value.Probability,
+                    WeenieClassId = value.WeenieClassId,
+                    Delay = value.Delay,
+                    InitCreate = value.InitCreate,
+                    MaxCreate = value.MaxCreate,
+                    WhenCreate = value.WhenCreate,
+                    WhereCreate = value.WhereCreate,
+                    StackSize = value.StackSize,
+                    PaletteId = value.PaletteId,
+                    Shade = value.Shade,
+                    ObjCellId = value.ObjCellId,
+                    OriginX = value.OriginX,
+                    OriginY = value.OriginY,
+                    OriginZ = value.OriginZ,
+                    AnglesW = value.AnglesW,
+                    AnglesX = value.AnglesX,
+                    AnglesY = value.AnglesY,
+                    AnglesZ = value.AnglesZ,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesIID)
+            {
+                biota.BiotaPropertiesIID.Add(new BiotaPropertiesIID
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesInt)
+            {
+                biota.BiotaPropertiesInt.Add(new BiotaPropertiesInt
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesInt64)
+            {
+                biota.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesPalette)
+            {
+                biota.BiotaPropertiesPalette.Add(new BiotaPropertiesPalette
+                {
+                    ObjectId = biota.Id,
+                    SubPaletteId = value.SubPaletteId,
+                    Offset = value.Offset,
+                    Length = value.Length,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesPosition)
+            {
+                biota.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition
+                {
+                    ObjectId = biota.Id,
+                    PositionType = value.PositionType,
+                    ObjCellId = value.ObjCellId,
+                    Landblock = value.Landblock,
+                    OriginX = value.OriginX,
+                    OriginY = value.OriginY,
+                    OriginZ = value.OriginZ,
+                    AnglesW = value.AnglesW,
+                    AnglesX = value.AnglesX,
+                    AnglesY = value.AnglesY,
+                    AnglesZ = value.AnglesZ,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesSkill)
+            {
+                biota.BiotaPropertiesSkill.Add(new BiotaPropertiesSkill
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    LevelFromPP = value.LevelFromPP,
+                    AdjustPP = value.AdjustPP,
+                    SAC = value.SAC,
+                    PP = value.PP,
+                    InitLevel = value.InitLevel,
+                    ResistanceAtLastCheck = value.ResistanceAtLastCheck,
+                    LastUsedTime = value.LastUsedTime,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesSpellBook)
+            {
+                biota.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook
+                {
+                    ObjectId = biota.Id,
+                    Spell = value.Spell,
+                    Probability = value.Probability,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesString)
+            {
+                biota.BiotaPropertiesString.Add(new BiotaPropertiesString
+                {
+                    ObjectId = biota.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in weenie.WeeniePropertiesTextureMap)
+            {
+                biota.BiotaPropertiesTextureMap.Add(new BiotaPropertiesTextureMap
+                {
+                    ObjectId = biota.Id,
+                    Index = value.Index,
+                    OldId = value.OldId,
+                    NewId = value.NewId,
+                });
+            }
+
+            return biota;
         }
     }
 }

@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
@@ -25,9 +26,22 @@ namespace ACE.Server.Entity.WorldObjects
         }
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Gem(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Gem(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Gem(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
 

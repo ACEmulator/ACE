@@ -1,9 +1,7 @@
-using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Managers;
 
 namespace ACE.Server.Factories
@@ -26,11 +24,8 @@ namespace ACE.Server.Factories
         /// </summary>
         public static void SpawnPortal(PortalWcid weenieClassId, Position newPosition, float despawnTime)
         {
-            var weenie = DatabaseManager.World.GetCachedWeenie((ushort)weenieClassId);
+            WorldObject portal = WorldObjectFactory.CreateNewWorldObject((uint)weenieClassId);
 
-            WorldObject portal = new Portal(weenie);
-
-            portal.Guid = GuidManager.NewDynamicGuid();
             portal.Positions.Add(PositionType.Location, newPosition);
 
             LandblockManager.AddObject(portal);

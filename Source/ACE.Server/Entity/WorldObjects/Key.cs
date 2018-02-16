@@ -1,5 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
@@ -11,20 +12,30 @@ namespace ACE.Server.Entity.WorldObjects
     public class Key : WorldObject
     {
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Key(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Key(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Key(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             DescriptionFlags |= ObjectDescriptionFlag.Attackable;
 
             SetProperty(PropertyBool.Attackable, true);
 
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // These shoudl come from the weenie. After confirmation, remove these
-                //KeyCode = AceObject.KeyCode ?? "";
-                //Structure = AceObject.Structure ?? AceObject.MaxStructure;
-            }
+            // These shoudl come from the weenie. After confirmation, remove these
+            //KeyCode = AceObject.KeyCode ?? "";
+            //Structure = AceObject.Structure ?? AceObject.MaxStructure;
         }
 
         public void HandleActionUseOnTarget(Player player, WorldObject target)

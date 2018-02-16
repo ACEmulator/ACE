@@ -14,20 +14,30 @@ namespace ACE.Server.Entity.WorldObjects
         private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.TippedRight));
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Cow(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Cow(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
-                Stuck = true;
-                Attackable = true;
+            SetEphemeralValues();
+        }
 
-                UseRadius = 1;
-                IsAlive = true;
-                SetupVitals();
-            }
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Cow(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
+        {
+            // TODO we shouldn't be auto setting properties that come from our weenie by default
+            Stuck = true;
+            Attackable = true;
+
+            UseRadius = 1;
+            IsAlive = true;
+            SetupVitals();
         }
 
         private double? resetTimestamp;

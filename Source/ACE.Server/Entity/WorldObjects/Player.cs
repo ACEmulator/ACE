@@ -38,12 +38,27 @@ namespace ACE.Server.Entity.WorldObjects
         public Session Session { get; }
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Player(Weenie weenie, Biota biota, Session session) : base(weenie, biota)
+        public Player(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid)
         {
             Session = session;
 
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Player(Biota biota, Session session) : base(biota)
+        {
+            Session = session;
+
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
+        {
             DescriptionFlags |= ObjectDescriptionFlag.Player;
 
             PhysicsState |= PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide | PhysicsState.Hidden;

@@ -21,10 +21,22 @@ namespace ACE.Server.Entity.WorldObjects
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
-        /// On initial load, we will create all of the wielded items as world objects and add to dictionary for management.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Container(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Container(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             SetProperty(PropertyInt.CoinValue, 0);
             SetProperty(PropertyInt.EncumbranceVal, 0);

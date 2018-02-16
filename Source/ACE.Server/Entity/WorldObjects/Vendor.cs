@@ -28,9 +28,22 @@ namespace ACE.Server.Entity.WorldObjects
         private bool inventoryloaded;
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Vendor(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Vendor(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Vendor(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             DescriptionFlags |= ObjectDescriptionFlag.Vendor | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
 

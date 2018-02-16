@@ -12,15 +12,15 @@ namespace ACE.Server.Factories
         /// </summary>
         public static Monster SpawnMonster(Weenie weenie, Position position)
         {
-            Monster newMonster = new Monster(weenie);
-            newMonster.Location = position;
+            //Monster newMonster = new Monster(weenie);
+            //newMonster.Location = position;
             throw new System.NotImplementedException();
             //newMonster.GeneratorId = aceO.GeneratorIID;
 
             // newMonster.PhysicsData.DefaultScript = aceO.PhysicsScript;
             // newMonster.DefaultScript = (uint)Network.Enum.PlayScript.Create;
 
-            return newMonster;
+            //return newMonster;
         }
     }
 }

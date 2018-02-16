@@ -101,9 +101,22 @@ namespace ACE.Server.Entity.WorldObjects
         }
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Portal(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Portal(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Portal(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             DescriptionFlags |= ObjectDescriptionFlag.Portal | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
 
