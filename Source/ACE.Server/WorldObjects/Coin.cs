@@ -18,9 +18,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Coin(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            SetProperty(PropertyInt.EncumbranceVal, 0);
-            SetProperty(PropertyInt.Value, 1);
-            SetProperty(PropertyInt.StackSize, 1);
+            //SetProperty(PropertyInt.EncumbranceVal, 0);
+            //SetProperty(PropertyInt.Value, 1);
+            //SetProperty(PropertyInt.StackSize, 1);
 
             SetEphemeralValues();
         }
@@ -35,9 +35,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Attackable, true);
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

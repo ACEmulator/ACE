@@ -45,11 +45,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
-
             Vitals[Ability.Health] = new Entity.CreatureVital(this, Ability.Health);
             Vitals[Ability.Stamina] = new Entity.CreatureVital(this, Ability.Stamina);
             Vitals[Ability.Mana] = new Entity.CreatureVital(this, Ability.Mana);

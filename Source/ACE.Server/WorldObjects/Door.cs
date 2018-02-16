@@ -57,10 +57,9 @@ namespace ACE.Server.WorldObjects
         {
             // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            Door = true;
-            Stuck = true;
-            Attackable = true;
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Door;
 
+            // TODO: convert HasPhysicsBsp to calculated flags version.
             // This likely will change to be based on reading a dat file to determine if this exists...
             HasPhysicsBsp = true;
 

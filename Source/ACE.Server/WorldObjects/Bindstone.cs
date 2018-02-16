@@ -26,10 +26,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
+            BaseDescriptionFlags |= ObjectDescriptionFlag.BindStone;
 
             SetProperty(PropertyInt.ShowableOnRadar, (int)ACE.Entity.Enum.RadarBehavior.ShowAlways);
             SetProperty(PropertyInt.RadarBlipColor, (int)ACE.Entity.Enum.RadarColor.LifeStone);
