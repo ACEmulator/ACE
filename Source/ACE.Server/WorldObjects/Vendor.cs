@@ -6,11 +6,12 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
 
 using AceObjectInventory = ACE.Entity.AceObjectInventory;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     /// <summary>
     /// ** Usage Data Flow **

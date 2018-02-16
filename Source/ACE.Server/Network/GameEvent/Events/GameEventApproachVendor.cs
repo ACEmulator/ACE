@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Server.Entity;
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {

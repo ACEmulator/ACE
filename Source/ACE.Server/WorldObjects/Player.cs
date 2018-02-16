@@ -15,6 +15,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -29,7 +30,7 @@ using ACE.Server.Network.Sequence;
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using Position = ACE.Entity.Position;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public sealed class Player : Creature
     {
