@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -255,9 +256,12 @@ namespace ACE.Database.Models.World
                 });
             }
 
+
+            var actions = new List<BiotaPropertiesEmoteAction>();
+
             foreach (var value in weenie.WeeniePropertiesEmote)
             {
-                biota.BiotaPropertiesEmote.Add(new BiotaPropertiesEmote
+                var emote = new BiotaPropertiesEmote
                 {
                     ObjectId = biota.Id,
                     Category = value.Category,
@@ -269,10 +273,65 @@ namespace ACE.Database.Models.World
                     VendorType = value.VendorType,
                     MinHealth = value.MinHealth,
                     MaxHealth = value.MaxHealth,
-                });
+                };
+
+                foreach (var subValue in value.WeeniePropertiesEmoteAction)
+                {
+                    var action = new BiotaPropertiesEmoteAction
+                    {
+                        ObjectId = biota.Id,
+                        // EmoteId
+                        Type = subValue.Type,
+                        Delay = subValue.Delay,
+                        Extent = subValue.Extent,
+                        Motion = subValue.Motion,
+                        Message = subValue.Message,
+                        TestString = subValue.TestString,
+                        Min = subValue.Min,
+                        Max = subValue.Max,
+                        Min64 = subValue.Min64,
+                        Max64 = subValue.Max64,
+                        MinDbl = subValue.MinDbl,
+                        MaxDbl = subValue.MaxDbl,
+                        Stat = subValue.Stat,
+                        Display = subValue.Display,
+                        Amount = subValue.Amount,
+                        Amount64 = subValue.Amount64,
+                        HeroXP64 = subValue.HeroXP64,
+                        Percent = subValue.Percent,
+                        SpellId = subValue.SpellId,
+                        WealthRating = subValue.WealthRating,
+                        TreasureClass = subValue.TreasureClass,
+                        TreasureType = subValue.TreasureType,
+                        PScript = subValue.PScript,
+                        Sound = subValue.Sound,
+                        DestinationType = subValue.DestinationType,
+                        WeenieClassId = subValue.WeenieClassId,
+                        StackSize = subValue.StackSize,
+                        Palette = subValue.Palette,
+                        Shade = subValue.Shade,
+                        TryToBond = subValue.TryToBond,
+                        ObjCellId = subValue.ObjCellId,
+                        OriginX = subValue.OriginX,
+                        OriginY = subValue.OriginY,
+                        OriginZ = subValue.OriginZ,
+                        AnglesW = subValue.AnglesW,
+                        AnglesX = subValue.AnglesX,
+                        AnglesY = subValue.AnglesY,
+                        AnglesZ = subValue.AnglesZ,
+                    };
+
+                    emote.BiotaPropertiesEmoteAction.Add(action);
+
+                    actions.Add(action);
+                }
+
+                biota.BiotaPropertiesEmote.Add(emote);
             }
 
-            // WeeniePropertiesEmoteAction
+            foreach (var action in actions)
+                biota.BiotaPropertiesEmoteAction.Add(action);
+
 
             foreach (var value in weenie.WeeniePropertiesEventFilter)
             {
