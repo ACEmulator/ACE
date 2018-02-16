@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {

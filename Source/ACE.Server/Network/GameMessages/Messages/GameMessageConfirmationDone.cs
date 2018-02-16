@@ -1,4 +1,4 @@
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent;
 

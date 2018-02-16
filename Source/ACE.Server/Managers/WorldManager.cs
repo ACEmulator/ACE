@@ -13,7 +13,7 @@ using ACE.Common;
 using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 

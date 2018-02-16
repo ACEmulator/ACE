@@ -1,5 +1,5 @@
-﻿using ACE.Entity.Enum;
-using ACE.Server.Entity;
+using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
 {

@@ -5,7 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public class Food : WorldObject
     {

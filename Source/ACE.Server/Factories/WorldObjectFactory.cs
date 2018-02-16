@@ -5,9 +5,8 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
-using ACE.Server.Entity.WorldObjects;
 using ACE.Server.Managers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
 {

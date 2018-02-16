@@ -15,6 +15,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -29,7 +30,7 @@ using ACE.Server.Network.Sequence;
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using Position = ACE.Entity.Position;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public sealed class Player : Creature
     {
@@ -266,7 +267,7 @@ namespace ACE.Server.Entity.WorldObjects
 
 
 
-        #region GetCharacterOption SetCharacterOption GetCharacterOptions1 SetCharacterOptions1 GetCharacterOptions2 SetCharacterOptions2
+        #region ' GetCharacterOption SetCharacterOption GetCharacterOptions1 SetCharacterOptions1 GetCharacterOptions2 SetCharacterOptions2 '
         public bool GetCharacterOption(CharacterOption option)
         {
             if (option.GetCharacterOptions1Attribute() != null)
@@ -327,6 +328,81 @@ namespace ACE.Server.Entity.WorldObjects
             SetProperty(PropertyInt.CharacterOptions2, value);
         }
         #endregion
+
+        #region ' SetSkillTrained SetSkillSpecialized SetSkillUntrained '
+        /// <summary>
+        /// Sets the skill to trained status for a character
+        /// </summary>
+        /// <param name="skill"></param>
+        public bool SetSkillTrained(Skill skill, int creditsSpent)
+        {
+            /* todo
+            CreatureSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            {
+                if (AvailableSkillCredits >= creditsSpent)
+                {
+                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    SetSkillProperty(skill, newSkill);
+                    AvailableSkillCredits -= creditsSpent;
+                    return true;
+                }
+            }*/
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sets the skill to specialized status for a character
+        /// </summary>
+        /// <param name="skill"></param>
+        public bool SetSkillSpecialized(Skill skill, int creditsSpent)
+        {
+            /* todo
+            CreatureSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.Status == SkillStatus.Trained)
+            {
+                if (AvailableSkillCredits >= creditsSpent)
+                {
+                    RefundXp(cs.ExperienceSpent);
+                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
+                    SetSkillProperty(skill, newSkill);
+                    AvailableSkillCredits -= creditsSpent;
+                    return true;
+                }
+            }*/
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sets the skill to untrained status for a character
+        /// </summary>
+        /// <param name="skill"></param>
+        public bool SetSkillUntrained(Skill skill, int creditsSpent)
+        {
+            /* todo
+            CreatureSkill cs = GetSkillProperty(skill);
+            if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            {
+                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                SetSkillProperty(skill, newSkill);
+                return true;
+            }
+
+            if (cs != null && cs.Status == SkillStatus.Trained)
+            {
+                RefundXp(cs.ExperienceSpent);
+                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                SetSkillProperty(skill, newSkill);
+                AvailableSkillCredits += creditsSpent;
+                return true;
+            }*/
+
+            return false;
+        }
+        #endregion
+
 
 
 
