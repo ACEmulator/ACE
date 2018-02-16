@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        //public readonly Dictionary<Ability, CreatureVital> Vitals = new Dictionary<Ability, CreatureVital>();
+        public readonly Dictionary<Ability, Entity.CreatureVital> Vitals = new Dictionary<Ability, Entity.CreatureVital>();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -49,6 +49,10 @@ namespace ACE.Server.WorldObjects
 
             SetProperty(PropertyBool.Stuck, true);
             SetProperty(PropertyBool.Attackable, true);
+
+            Vitals[Ability.Health] = new Entity.CreatureVital(this, Ability.Health);
+            Vitals[Ability.Stamina] = new Entity.CreatureVital(this, Ability.Stamina);
+            Vitals[Ability.Mana] = new Entity.CreatureVital(this, Ability.Mana);
         }
 
 
@@ -130,7 +134,7 @@ namespace ACE.Server.WorldObjects
             set { AceObject.Mana = value; }
         }
 
-        public Dictionary<Ability, CreatureVital> Vitals => AceObject.AceObjectPropertiesAttributes2nd;
+        public Dictionary<Ability, CreatureVital> VitalsOld => AceObject.AceObjectPropertiesAttributes2nd;
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
