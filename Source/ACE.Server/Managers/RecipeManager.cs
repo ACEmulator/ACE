@@ -219,7 +219,7 @@ namespace ACE.Server.Managers
             {
                 // TODO: revalidate range if other player (they could have moved)
 
-                double difficulty = 2 * (targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current);
+                double difficulty = 2 * (targetPlayer.VitalsOld[vital].MaxValue - targetPlayer.VitalsOld[vital].Current);
                 if (difficulty <= 0)
                 {
                     // target is at max (or higher?) health, do nothing
@@ -270,22 +270,22 @@ namespace ACE.Server.Managers
                     }
 
                     // calculate amount restored
-                    uint maxRestore = targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current;
+                    uint maxRestore = targetPlayer.VitalsOld[vital].MaxValue - targetPlayer.VitalsOld[vital].Current;
 
                     // TODO: get actual forumula for healing.  this is COMPLETELY wrong.  this is 60 + random(1-60).
                     double amountRestored = 60d + _random.Next(1, 61);
                     amountRestored *= multiplier;
 
                     uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
-                    targetPlayer.Vitals[vital].Current += actualRestored;
+                    targetPlayer.VitalsOld[vital].Current += actualRestored;
                     
-                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.VitalsOld[vital].Current);
                     player.Session.Network.EnqueueSend(updateVital);
 
                     if (targetPlayer.Guid != player.Guid)
                     {
                         // tell the other player they got healed
-                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.VitalsOld[vital].Current);
                         targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
                     }
 
