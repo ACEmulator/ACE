@@ -16,12 +16,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Book(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            SetProperty(PropertyInt.EncumbranceVal, 0);
-            SetProperty(PropertyInt.Value, 0);
+            //SetProperty(PropertyInt.EncumbranceVal, 0);
+            //SetProperty(PropertyInt.Value, 0);
 
-            SetProperty(PropertyBool.IgnoreAuthor, false);
-            SetProperty(PropertyInt.AppraisalPages, 0);
-            SetProperty(PropertyInt.AppraisalMaxPages, 1);
+            //SetProperty(PropertyBool.IgnoreAuthor, false);
+            //SetProperty(PropertyInt.AppraisalPages, 0);
+            //SetProperty(PropertyInt.AppraisalMaxPages, 1);
 
             SetEphemeralValues();
         }
@@ -36,9 +36,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Book | ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Attackable, true);
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Book;
         }
 
         public void SetProperties(string name, string shortDesc, string inscription, string scribeName, string scribeAccount)

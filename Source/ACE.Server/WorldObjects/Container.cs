@@ -39,8 +39,8 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             SetProperty(PropertyInt.CoinValue, 0);
-            SetProperty(PropertyInt.EncumbranceVal, 0);
-            SetProperty(PropertyInt.Value, 0);
+            //SetProperty(PropertyInt.EncumbranceVal, 0);
+            //SetProperty(PropertyInt.Value, 0);
 
             // todo
             /*

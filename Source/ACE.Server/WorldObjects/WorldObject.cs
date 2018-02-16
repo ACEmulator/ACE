@@ -54,7 +54,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public ObjectGuid Guid => new ObjectGuid(Biota.Id);
 
-        public ObjectDescriptionFlag DescriptionFlags { get; protected set; }
+        public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
+
+        public ObjectDescriptionFlag DescriptionFlags { get { return CalculatedDescriptionFlag(); } }
 
         public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; protected set; }
 
@@ -123,6 +125,8 @@ namespace ACE.Server.WorldObjects
 
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
+
+            BaseDescriptionFlags = ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck;
 
             return;
 
@@ -420,7 +424,125 @@ namespace ACE.Server.WorldObjects
                 Frozen = (bool)AceObject.IsFrozen;
         }
 
+        private ObjectDescriptionFlag CalculatedDescriptionFlag()
+        {
+            var flag = BaseDescriptionFlags;
 
+            // TODO: More uncommentting and wiring up for other flags
+            ////None                   = 0x00000000,
+            ////Openable               = 0x00000001,
+            // if (AceObject.Openable ?? false)
+            //    Openable = true;
+            ////Inscribable            = 0x00000002,
+            if (GetProperty(PropertyBool.Inscribable) ?? false)
+                flag |= ObjectDescriptionFlag.Inscribable;
+            else
+                flag &= ~ObjectDescriptionFlag.Inscribable;
+            ////Stuck                  = 0x00000004,
+            if (GetProperty(PropertyBool.Stuck) ?? false)
+                flag |= ObjectDescriptionFlag.Stuck;
+            else
+                flag &= ~ObjectDescriptionFlag.Stuck;
+            ////Player                 = 0x00000008,
+            // if (AceObject.Player ?? false)
+            //    Player = true;
+            ////Attackable             = 0x00000010,
+            if (GetProperty(PropertyBool.Attackable) ?? false)
+                flag |= ObjectDescriptionFlag.Attackable;
+            else
+                flag &= ~ObjectDescriptionFlag.Attackable;
+            ////PlayerKiller           = 0x00000020,
+            // if (AceObject.PlayerKiller ?? false)
+            //    PlayerKiller = true;
+            ////HiddenAdmin            = 0x00000040,
+            if (GetProperty(PropertyBool.HiddenAdmin) ?? false)
+                flag |= ObjectDescriptionFlag.HiddenAdmin;
+            else
+                flag &= ~ObjectDescriptionFlag.HiddenAdmin;
+            ////UiHidden               = 0x00000080,
+            if (GetProperty(PropertyBool.UiHidden) ?? false)
+                flag |= ObjectDescriptionFlag.UiHidden;
+            else
+                flag &= ~ObjectDescriptionFlag.UiHidden;
+            ////Book                   = 0x00000100,
+            // if (AceObject.Book ?? false)
+            //    Book = true;
+            ////Vendor                 = 0x00000200,
+            // if (AceObject.Vendor ?? false)
+            //    Vendor = true;
+            ////PkSwitch               = 0x00000400,
+            // if (AceObject.PkSwitch ?? false)
+            //    PkSwitch = true;
+            ////NpkSwitch              = 0x00000800,
+            // if (AceObject.NpkSwitch ?? false)
+            //    NpkSwitch = true;
+            ////Door                   = 0x00001000,
+            // if (AceObject.Door ?? false)
+            //    Door = true;
+            ////Corpse                 = 0x00002000,
+            // if (AceObject.Corpse ?? false)
+            //    Corpse = true;
+            ////LifeStone              = 0x00004000,
+            // if (AceObject.LifeStone ?? false)
+            //    LifeStone = true;
+            ////Food                   = 0x00008000,
+            // if (AceObject.Food ?? false)
+            //    Food = true;
+            ////Healer                 = 0x00010000,
+            // if (AceObject.Healer ?? false)
+            //    Healer = true;
+            ////Lockpick               = 0x00020000,
+            // if (AceObject.Lockpick ?? false)
+            //    Lockpick = true;
+            ////Portal                 = 0x00040000,
+            // if (AceObject.Portal ?? false)
+            //    Portal = true;
+            ////Admin                  = 0x00100000,
+            // if (AceObject.Admin ?? false)
+            //    Admin = true;
+            ////FreePkStatus           = 0x00200000,
+            // if (AceObject.FreePkStatus ?? false)
+            //    FreePkStatus = true;
+            ////ImmuneCellRestrictions = 0x00400000,
+            if (GetProperty(PropertyBool.IgnoreHouseBarriers) ?? false)
+                flag |= ObjectDescriptionFlag.ImmuneCellRestrictions;
+            else
+                flag &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
+            ////RequiresPackSlot       = 0x00800000,
+            if (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false)
+                flag |= ObjectDescriptionFlag.RequiresPackSlot;
+            else
+                flag &= ~ObjectDescriptionFlag.RequiresPackSlot;
+            ////Retained               = 0x01000000,
+            if (GetProperty(PropertyBool.Retained) ?? false)
+                flag |= ObjectDescriptionFlag.Retained;
+            else
+                flag &= ~ObjectDescriptionFlag.Retained;
+            ////PkLiteStatus           = 0x02000000,
+            // if (AceObject.PkLiteStatus ?? false)
+            //    PkLiteStatus = true;
+            ////IncludesSecondHeader   = 0x04000000,
+            // if (AceObject.IncludesSecondHeader ?? false)
+            //    IncludesSecondHeader = true;
+            ////BindStone              = 0x08000000,
+            // if (AceObject.BindStone ?? false)
+            //    BindStone = true;
+            ////VolatileRare           = 0x10000000,
+            // if (AceObject.VolatileRare ?? false)
+            //    VolatileRare = true;
+            ////WieldOnUse             = 0x20000000,
+            if (GetProperty(PropertyBool.WieldOnUse) ?? false)
+                flag |= ObjectDescriptionFlag.WieldOnUse;
+            else
+                flag &= ~ObjectDescriptionFlag.WieldOnUse;
+            ////WieldLeft              = 0x40000000,
+            if (GetProperty(PropertyBool.AutowieldLeft) ?? false)
+                flag |= ObjectDescriptionFlag.WieldLeft;
+            else
+                flag &= ~ObjectDescriptionFlag.WieldLeft;
+
+            return flag;
+        }
 
 
 
