@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using ACE.Database;
@@ -38,31 +37,6 @@ namespace ACE.Server.Entity
         public static float MaxObjectRange { get; } = 192f;
         public static float MaxObjectGhostRange { get; } = 250f;
 
-        /// <summary>
-        /// A landblock has this many cells squared
-        /// </summary>
-        public static readonly int CellDim = 8;
-
-        /// <summary>
-        /// A landblock is this unit size squared
-        /// </summary>
-        public static readonly int LandblockSize = 192;
-
-        /// <summary>
-        /// A landblock cell is this unit size squared
-        /// </summary>
-        public static readonly int CellSize = LandblockSize / CellDim;
-
-        /// <summary>
-        /// A landblock has this many vertices squared
-        /// </summary>
-        public static readonly int VertexDim = CellDim + 1;
-
-        /// <summary>
-        /// LandHeightTable for building mesh
-        /// </summary>
-        public static RegionDesc RegionDesc;
-
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
@@ -91,19 +65,16 @@ namespace ACE.Server.Entity
 
         public LandblockId Id { get; }
 
-        /// <summary>
-        /// The landblock vertex and triangle mesh
-        /// </summary>
-        public Mesh Mesh;
+        public LandblockInfo LandblockInfo;
 
         /// <summary>
-        /// Static constructor
+        /// The landblock static meshes for
+        /// collision detection and physics simulation
         /// </summary>
-        static Landblock()
-        {
-            // load the region file from portal.dat
-            RegionDesc = DatManager.PortalDat.ReadFromDat<RegionDesc>(0x13000000);
-        }
+        public LandblockMesh LandblockMesh;
+        public List<ModelMesh> LandObjects;
+        public List<ModelMesh> Buildings;
+        public List<ModelMesh> WeenieMeshes;
 
         public Landblock(LandblockId id)
         {
@@ -125,8 +96,6 @@ namespace ACE.Server.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
-            LoadMesh();
-
             var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.Id.Landblock); // Instances
 
             var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
@@ -139,6 +108,8 @@ namespace ACE.Server.Entity
                 }
             });
 
+            LoadMeshes(objects);
+
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
             // FIXME(ddevec): Goal: get rid of UseTime() function...
@@ -148,66 +119,51 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Generates a mesh from a landblock
+        /// Loads the meshes for the landblock
         /// </summary>
-        public void LoadMesh()
+        public void LoadMeshes(List<AceObject> objects)
         {
-            var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw | 0xFFFF);
+            LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
 
-            var vertexHeights = GetVertexHeights(cellLandblock);
-
-            Mesh = new Mesh();
-            Mesh.LoadVertices(vertexHeights);
-            Mesh.BuildTriangles(Id);
+            LandblockMesh = new LandblockMesh(Id);
+            LoadLandObjects();
+            LoadBuildings();
+            LoadWeenies(objects);
         }
 
         /// <summary>
-        /// Reads the heights for each vertex in the landblock cells
+        /// Loads the meshes for the static landblock objects,
+        /// also known as obstacles
         /// </summary>
-        /// <param name="cellLandblock">A landblock from the cell database</param>
-        /// <returns>The vertex heights for the landblock cells</returns>
-        public float[,] GetVertexHeights(CellLandblock cellLandblock)
+        public void LoadLandObjects()
         {
-            // The vertex heights in the cell database are stored in bytes,
-            // which map to offsets in the land height table from the region file in the portal database.
+            LandObjects = new List<ModelMesh>();
 
-            var heights = new float[VertexDim, VertexDim];
-
-            for (int x = 0; x < VertexDim; x++)
-            {
-                for (int y = 0; y < VertexDim; y++)
-                {
-                    heights[x, y] = RegionDesc.LandDefs.LandHeightTable[cellLandblock.Height[x * VertexDim + y]];
-                }
-            }
-            return heights;
+            foreach (var obj in LandblockInfo.Objects)
+                LandObjects.Add(new ModelMesh(obj.Id, obj.Frame));
         }
 
         /// <summary>
-        /// Given a pair of 2D coordinates within a landblock,
-        /// Returns the cell that contains these coordinates
+        /// Loads the meshes for the buildings on the landblock
         /// </summary>
-        /// <param name="point">The 2D coordinates within the landblock</param>
-        /// <returns>The cell that contains these coordinates</returns>
-        public static Vector2 GetCell(Vector2 point)
+        public void LoadBuildings()
         {
-            return new Vector2(
-                (float)Math.Floor(point.X / CellSize),
-                (float)Math.Floor(point.Y / CellSize)
-            );
+            Buildings = new List<ModelMesh>();
+
+            foreach (var obj in LandblockInfo.Buildings)
+                Buildings.Add(new ModelMesh(obj.ModelId, obj.Frame));
         }
 
         /// <summary>
-        /// Returns the z height coordinate for a 2D position within a landblock
+        /// Loads the meshes for the weenies on the landblock
         /// </summary>
-        public float GetZ(Vector2 point)
+        public void LoadWeenies(List<AceObject> objects)
         {
-            // find the triangle that contains this point
-            var triangle = Mesh.GetTriangle(point);
+            WeenieMeshes = new List<ModelMesh>();
 
-            // calculate the z coordinate at x,y
-            // for the plane defined by this triangle
-            return triangle.GetZ(Mesh.Vertices, point);
+            foreach (var obj in objects)
+                WeenieMeshes.Add(new ModelMesh(obj.SetupDID.Value,
+                    new DatLoader.Entity.Frame(obj.AceObjectPropertiesPositions.Values.LastOrDefault())));
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)

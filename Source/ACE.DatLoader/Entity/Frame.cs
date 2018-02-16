@@ -11,6 +11,16 @@ namespace ACE.DatLoader.Entity
         public Vector3 Origin { get; private set; }
         public Quaternion Orientation { get; private set; }
 
+        public Frame()
+        {
+        }
+
+        public Frame(ACE.Entity.Position position)
+        {
+            Origin = new Vector3(position.PositionX, position.PositionY, position.PositionZ);
+            Orientation = new Quaternion(position.RotationX, position.RotationY, position.RotationZ, position.RotationW);
+        }
+
         public void Unpack(BinaryReader reader)
         {
             Origin = reader.ReadVector3();
