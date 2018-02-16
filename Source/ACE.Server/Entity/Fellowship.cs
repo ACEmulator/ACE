@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using ACE.Entity;
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;

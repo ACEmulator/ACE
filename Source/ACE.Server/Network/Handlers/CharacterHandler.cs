@@ -12,7 +12,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -133,8 +133,6 @@ namespace ACE.Server.Network.Handlers
             if (clientString != session.Account)
                 return;
 
-            // var guid = GuidManager.NewPlayerGuid();
-
             CharacterCreateEx(message, session);
         }
 
@@ -254,7 +252,6 @@ namespace ACE.Server.Network.Handlers
             //player.SetProperty(PropertyInt.NumCharacterTitles, 1);
 
             // stats
-            /* todo fix this .. need to init the attribute properties for a new biota
             uint totalAttributeCredits = cg.HeritageGroups[characterCreateInfo.Heritage].AttributeCredits;
             uint usedAttributeCredits = 0;
 
@@ -280,7 +277,7 @@ namespace ACE.Server.Network.Handlers
 
             var self = player.Biota.GetAttribute(Ability.Self);
             self.InitLevel = ValidateAttributeCredits(characterCreateInfo.SelfAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += self.InitLevel;*/
+            usedAttributeCredits += self.InitLevel;
 
             // Validate this is equal to actual attribute credits (330 for all but "Olthoi", which have 60
             // todo if (usedAttributeCredits > .....
@@ -291,9 +288,12 @@ namespace ACE.Server.Network.Handlers
 
             // characters start with max vitals
             // TODO for the new format
-            /*character.Health.Current = character.Health.MaxValue;
-            character.Stamina.Current = character.Stamina.MaxValue;
-            character.Mana.Current = character.Mana.MaxValue;*/
+            var attribute2nd = player.Biota.GetAttribute2nd(Ability.Health);
+            attribute2nd.CurrentLevel = attribute2nd.InitLevel;
+            attribute2nd = player.Biota.GetAttribute2nd(Ability.Stamina);
+            attribute2nd.CurrentLevel = attribute2nd.InitLevel;
+            attribute2nd = player.Biota.GetAttribute2nd(Ability.Mana);
+            attribute2nd.CurrentLevel = attribute2nd.InitLevel;
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             player.SetProperty(PropertyInt.AvailableSkillCredits, (int)cg.HeritageGroups[characterCreateInfo.Heritage].SkillCredits);

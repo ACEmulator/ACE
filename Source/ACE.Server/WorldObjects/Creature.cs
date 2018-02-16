@@ -17,12 +17,15 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Entity;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public class Creature : Container
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        //public readonly Dictionary<Ability, CreatureVital> Vitals = new Dictionary<Ability, CreatureVital>();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

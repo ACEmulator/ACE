@@ -6,7 +6,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public sealed class Portal : WorldObject
     {

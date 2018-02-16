@@ -14,7 +14,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public class Container : WorldObject
     {

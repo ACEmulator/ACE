@@ -18,7 +18,7 @@ using AceObjectPropertiesInt = ACE.Entity.AceObjectPropertiesInt;
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using AceObjectPropertiesString = ACE.Entity.AceObjectPropertiesString;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public class Scroll : WorldObject
     {

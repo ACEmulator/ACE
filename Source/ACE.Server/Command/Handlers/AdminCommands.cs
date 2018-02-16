@@ -1,4 +1,7 @@
 using System;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.DatLoader;
@@ -6,13 +9,12 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers
 {

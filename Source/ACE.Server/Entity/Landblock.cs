@@ -13,7 +13,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;

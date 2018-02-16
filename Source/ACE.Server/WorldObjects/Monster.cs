@@ -2,7 +2,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 
-namespace ACE.Server.Entity.WorldObjects
+namespace ACE.Server.WorldObjects
 {
     public class Monster : Creature
     {

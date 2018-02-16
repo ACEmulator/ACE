@@ -4,7 +4,7 @@ using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.Entity.WorldObjects;
+using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Sequence;
 
