@@ -14,20 +14,30 @@ namespace ACE.Server.Entity.WorldObjects
         private bool active;
 
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Game(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Game(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            SetEphemeralValues();
+        }
 
-                Stuck = true;
-                Attackable = true;
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Game(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
 
-                // Setup game variables...
-                // TODO: so much more than what's here now.
-            }
+        private void SetEphemeralValues()
+        {
+            // TODO we shouldn't be auto setting properties that come from our weenie by default
+
+            Stuck = true;
+            Attackable = true;
+
+            // Setup game variables...
+            // TODO: so much more than what's here now.
         }
 
         public override void ActOnUse(ObjectGuid playerId)

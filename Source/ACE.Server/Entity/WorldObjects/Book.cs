@@ -12,23 +12,33 @@ namespace ACE.Server.Entity.WorldObjects
     public sealed class Book : WorldObject
     {
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Book(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Book(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        {
+            SetProperty(PropertyInt.EncumbranceVal, 0);
+            SetProperty(PropertyInt.Value, 0);
+
+            SetProperty(PropertyBool.IgnoreAuthor, false);
+            SetProperty(PropertyInt.AppraisalPages, 0);
+            SetProperty(PropertyInt.AppraisalMaxPages, 1);
+
+            SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Book(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
+        private void SetEphemeralValues()
         {
             DescriptionFlags |= ObjectDescriptionFlag.Book | ObjectDescriptionFlag.Attackable;
 
             SetProperty(PropertyBool.Attackable, true);
-
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                SetProperty(PropertyInt.EncumbranceVal, 0);
-                SetProperty(PropertyInt.Value, 0);
-
-                SetProperty(PropertyBool.IgnoreAuthor, false);
-                SetProperty(PropertyInt.AppraisalPages, 0);
-                SetProperty(PropertyInt.AppraisalMaxPages, 1);
-            }
         }
 
         public void SetProperties(string name, string shortDesc, string inscription, string scribeName, string scribeAccount)

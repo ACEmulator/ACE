@@ -1,5 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -9,27 +10,37 @@ namespace ACE.Server.Entity.WorldObjects
     public class Food : WorldObject
     {
         /// <summary>
-        /// If biota is null, one will be created with default values for this WorldObject type.
+        /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Food(Weenie weenie, Biota biota = null) : base(weenie, biota)
+        public Food(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            if (biota == null) // If no biota was passed our base will instantiate one, and we will initialize it with appropriate default values
-            {
-                // TODO we shouldn't be auto setting properties that come from our weenie by default
+            SetEphemeralValues();
+        }
 
-                Food = true;
-                Attackable = true;
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Food(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
 
-                StackSize = (base.StackSize ?? 1);
+        private void SetEphemeralValues()
+        {
+            // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-                if (StackSize == null)
-                    StackSize = 1;
+            Food = true;
+            Attackable = true;
 
-                Boost = (base.Boost ?? 0);
+            StackSize = (base.StackSize ?? 1);
 
-                if (BoostEnum == null)
-                    BoostEnum = 0;
-            }
+            if (StackSize == null)
+                StackSize = 1;
+
+            Boost = (base.Boost ?? 0);
+
+            if (BoostEnum == null)
+                BoostEnum = 0;
         }
 
         public override void OnUse(Session session)

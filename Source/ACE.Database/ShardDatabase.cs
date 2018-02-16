@@ -208,7 +208,7 @@ namespace ACE.Database
                     .Include(r => r.BiotaPropertiesCreateList)
                     .Include(r => r.BiotaPropertiesDID)
                     .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
-                    //.Include(r => r.BiotaPropertiesEmoteAction)  // Reference BiotaPropertiesEmoteAction from the BiotaPropertiesEmote object
+                    .Include(r => r.BiotaPropertiesEmoteAction)
                     .Include(r => r.BiotaPropertiesEventFilter)
                     .Include(r => r.BiotaPropertiesFloat)
                     .Include(r => r.BiotaPropertiesFriendListFriend)
