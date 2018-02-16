@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace ACE.DatLoader.Entity
 {
@@ -31,6 +32,11 @@ namespace ACE.DatLoader.Entity
             NormalZ = reader.ReadSingle();
 
             UVs.Unpack(reader, numUVs);
+        }
+
+        public Vector3 ToVector()
+        {
+            return new Vector3(X, Y, Z);
         }
     }
 }
