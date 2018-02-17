@@ -56,7 +56,17 @@ namespace ACE.Server.WorldObjects
 
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
-        public ObjectDescriptionFlag DescriptionFlags { get { return CalculatedDescriptionFlag(); } }
+        public ObjectDescriptionFlag DescriptionFlags
+        {
+            get
+            {
+                return CalculatedDescriptionFlag();
+            }
+            set
+            {
+                // FIx compile issues
+            }
+        }
 
         public PhysicsDescriptionFlag PhysicsDescriptionFlag { get; protected set; }
 
