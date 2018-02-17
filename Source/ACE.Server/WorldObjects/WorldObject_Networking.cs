@@ -470,14 +470,14 @@ namespace ACE.Server.WorldObjects
             // the float values 13 - 19 + 165 (nether added way later) are armor resistance and is shown in a different list. Og II
             // 21-22, 26, 62-63 are all sent as part of the weapons profile and not duplicated.
             var propertiesDouble = PropertiesDouble.Where(x => x.PropertyId < 9000
-                                                               && (x.PropertyId < (uint)PropertyDouble.ArmorModVsSlash
-                                                               || x.PropertyId > (uint)PropertyDouble.ArmorModVsElectric)
-                                                               && x.PropertyId != (uint)PropertyDouble.WeaponLength
-                                                               && x.PropertyId != (uint)PropertyDouble.DamageVariance
-                                                               && x.PropertyId != (uint)PropertyDouble.MaximumVelocity
-                                                               && x.PropertyId != (uint)PropertyDouble.WeaponOffense
-                                                               && x.PropertyId != (uint)PropertyDouble.DamageMod
-                                                               && x.PropertyId != (uint)PropertyDouble.ArmorModVsNether).ToList();
+                                                               && (x.PropertyId < (uint)PropertyFloat.ArmorModVsSlash
+                                                               || x.PropertyId > (uint)PropertyFloat.ArmorModVsElectric)
+                                                               && x.PropertyId != (uint)PropertyFloat.WeaponLength
+                                                               && x.PropertyId != (uint)PropertyFloat.DamageVariance
+                                                               && x.PropertyId != (uint)PropertyFloat.MaximumVelocity
+                                                               && x.PropertyId != (uint)PropertyFloat.WeaponOffense
+                                                               && x.PropertyId != (uint)PropertyFloat.DamageMod
+                                                               && x.PropertyId != (uint)PropertyFloat.ArmorModVsNether).ToList();
             if (propertiesDouble.Count > 0)
             {
                 flags |= IdentifyResponseFlags.FloatStatsTable;
@@ -501,9 +501,9 @@ namespace ACE.Server.WorldObjects
 
             // TODO: Move to Armor class
             var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
-                                                         && (x.PropertyId >= (uint)PropertyDouble.ArmorModVsSlash
-                                                         && x.PropertyId <= (uint)PropertyDouble.ArmorModVsElectric))
-                                                         || x.PropertyId == (uint)PropertyDouble.ArmorModVsNether).ToList();
+                                                         && (x.PropertyId >= (uint)PropertyFloat.ArmorModVsSlash
+                                                         && x.PropertyId <= (uint)PropertyFloat.ArmorModVsElectric))
+                                                         || x.PropertyId == (uint)PropertyFloat.ArmorModVsNether).ToList();
             if (propertiesArmor.Count > 0)
             {
                 flags |= IdentifyResponseFlags.ArmorProfile;
@@ -512,11 +512,11 @@ namespace ACE.Server.WorldObjects
             // TODO: Move to Weapon class
             // Weapons Profile
             var propertiesWeaponsD = PropertiesDouble.Where(x => x.PropertyId < 9000
-                                                            && (x.PropertyId == (uint)PropertyDouble.WeaponLength
-                                                            || x.PropertyId == (uint)PropertyDouble.DamageVariance
-                                                            || x.PropertyId == (uint)PropertyDouble.MaximumVelocity
-                                                            || x.PropertyId == (uint)PropertyDouble.WeaponOffense
-                                                            || x.PropertyId == (uint)PropertyDouble.DamageMod)).ToList();
+                                                            && (x.PropertyId == (uint)PropertyFloat.WeaponLength
+                                                            || x.PropertyId == (uint)PropertyFloat.DamageVariance
+                                                            || x.PropertyId == (uint)PropertyFloat.MaximumVelocity
+                                                            || x.PropertyId == (uint)PropertyFloat.WeaponOffense
+                                                            || x.PropertyId == (uint)PropertyFloat.DamageMod)).ToList();
 
             var propertiesWeaponsI = PropertiesInt.Where(x => x.PropertyId < 9000
                                                          && (x.PropertyId == (uint)PropertyInt.Damage

@@ -186,7 +186,7 @@ namespace ACE.Entity.Enum.Properties
         WeaponAuraManaConv             = 171
     }
 
-    public static class PropertyDoubleExtensions
+    public static class PropertyFloatExtensions
     {
         public static string GetDescription(this PropertyFloat prop)
         {

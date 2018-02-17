@@ -99,7 +99,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDouble = Session.Player.GetAllPropertyDouble().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
+            var propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
 
             if (propertiesDouble.Count != 0)
             {
