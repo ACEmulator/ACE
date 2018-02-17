@@ -400,6 +400,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
+        private int? ItemWorkmanship
+        {
+            get => GetProperty(PropertyInt.ItemWorkmanship);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
+        }
+
         public float? Workmanship
         {
             get
@@ -483,6 +489,12 @@ namespace ACE.Server.WorldObjects
         }
 
         public uint? PetOwner { get; set; }
+
+
+
+
+
+
 
 
 
@@ -693,11 +705,7 @@ namespace ACE.Server.WorldObjects
             set { AceObject.PlacementPosition = value; }
         }
 
-        private int? ItemWorkmanship
-        {
-            get => AceObject.ItemWorkmanship;
-            set { AceObject.ItemWorkmanship = value; }
-        }
+
 
 
         public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.EncumbranceVal) ?? 0);
