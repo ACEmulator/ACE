@@ -149,11 +149,11 @@ namespace ACE.Server.Factories
 
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
-        /// It will return null if weenieClassDescription was not found.
+        /// It will return null if weenieClassName was not found.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(string weenieClassDescription)
+        public static WorldObject CreateNewWorldObject(string weenieClassName)
         {
-            var classId = DatabaseManager.World.GetWeenieClassId(weenieClassDescription);
+            var classId = DatabaseManager.World.GetWeenieClassId(weenieClassName);
 
             if (classId == 0)
                 return null;
