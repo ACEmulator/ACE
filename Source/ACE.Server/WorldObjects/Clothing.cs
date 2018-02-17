@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
 
             SetProperty(PropertyDataId.Icon, icon);
             SetProperty(PropertyDataId.PaletteBase, palette);
-            SetProperty(PropertyDouble.Shade, shade);
+            SetProperty(PropertyFloat.Shade, shade);
         }
     }
 }

@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
-    public enum PropertyDouble : ushort
+    public enum PropertyFloat : ushort
     {
         // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
         // http://ac.yotesfan.com/ace_object/not_used_enums.php
@@ -188,7 +188,7 @@ namespace ACE.Entity.Enum.Properties
 
     public static class PropertyDoubleExtensions
     {
-        public static string GetDescription(this PropertyDouble prop)
+        public static string GetDescription(this PropertyFloat prop)
         {
             var description = prop.GetAttributeOfType<DescriptionAttribute>();
             return description?.Description ?? prop.ToString();

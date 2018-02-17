@@ -49,8 +49,8 @@ namespace ACE.Entity
 
             SetProperty(PropertyBool.FirstEnterWorldDone, false);
 
-            SetDoubleTimestamp(PropertyDouble.CreationTimestamp);
-            SetProperty(PropertyInt.CreationTimestamp, (int)GetProperty(PropertyDouble.CreationTimestamp));
+            SetDoubleTimestamp(PropertyFloat.CreationTimestamp);
+            SetProperty(PropertyInt.CreationTimestamp, (int)GetProperty(PropertyFloat.CreationTimestamp));
             SetProperty(PropertyString.DateOfBirth, $"{System.DateTime.UtcNow:dd MMMM yyyy}");
 
             SetProperty(PropertyInt.CreatureType, (int)Enum.CreatureType.Human);
@@ -65,7 +65,7 @@ namespace ACE.Entity
             SetProperty(PropertyInt.ChessGamesWon, 0);
             SetProperty(PropertyInt.FakeFishingSkill, 0);            
 
-            SetProperty(PropertyDouble.GlobalXpMod, 0);
+            SetProperty(PropertyFloat.GlobalXpMod, 0);
             SetProperty(PropertyInt.HealingBoostRating, 0);
             SetProperty(PropertyInt.WeaknessRating, 0);
             SetProperty(PropertyInt.NetherOverTime, 0);
@@ -80,10 +80,10 @@ namespace ACE.Entity
             SetProperty(PropertyInt.OverpowerResist, 0);
             SetProperty(PropertyInt.GearOverpower, 0);
             SetProperty(PropertyInt.GearOverpowerResist, 0);
-            SetProperty(PropertyDouble.WeaponAuraOffense, 0);
-            SetProperty(PropertyDouble.WeaponAuraDefense, 0);
-            SetProperty(PropertyDouble.WeaponAuraElemental, 0);
-            SetProperty(PropertyDouble.WeaponAuraManaConv, 0);
+            SetProperty(PropertyFloat.WeaponAuraOffense, 0);
+            SetProperty(PropertyFloat.WeaponAuraDefense, 0);
+            SetProperty(PropertyFloat.WeaponAuraElemental, 0);
+            SetProperty(PropertyFloat.WeaponAuraManaConv, 0);
             SetInt64Property(PropertyInt64.AvailableLuminance, 0);
             SetInt64Property(PropertyInt64.MaximumLuminance, 0);
             SetProperty(PropertyInt.LumAugDamageRating, 0);

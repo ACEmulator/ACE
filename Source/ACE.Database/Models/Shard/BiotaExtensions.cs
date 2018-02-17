@@ -65,7 +65,7 @@ namespace ACE.Database.Models.Shard
             return biota.BiotaPropertiesEventFilter.FirstOrDefault(x => x.Event == eventId);
         }
 
-        public static double? GetProperty(this Biota biota, PropertyDouble property)
+        public static double? GetProperty(this Biota biota, PropertyFloat property)
         {
             return biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property)?.Value;
         }
@@ -145,7 +145,7 @@ namespace ACE.Database.Models.Shard
                 biota.BiotaPropertiesDID.Add(new BiotaPropertiesDID { Type = (ushort)property, Value = value });
         }
 
-        public static void SetProperty(this Biota biota, PropertyDouble property, double value)
+        public static void SetProperty(this Biota biota, PropertyFloat property, double value)
         {
             var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
             if (result != null)
@@ -224,7 +224,7 @@ namespace ACE.Database.Models.Shard
                 biota.BiotaPropertiesDID.Remove(result);
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyDouble property)
+        public static void RemoveProperty(this Biota biota, PropertyFloat property)
         {
             var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
             if (result != null)
