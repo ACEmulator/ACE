@@ -38,7 +38,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public abstract class WorldObject : IActor
+    public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -56,7 +56,17 @@ namespace ACE.Server.WorldObjects
 
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
-        public ObjectDescriptionFlag DescriptionFlags { get { return CalculatedDescriptionFlag(); } }
+        public ObjectDescriptionFlag DescriptionFlags
+        {
+            get
+            {
+                return CalculatedDescriptionFlag();
+            }
+            set
+            {
+                // FIx compile issues
+            }
+        }
 
         public PhysicsDescriptionFlag PhysicsDescriptionFlag { get { return CalculatedPhysicsDescriptionFlag(); } }
 
