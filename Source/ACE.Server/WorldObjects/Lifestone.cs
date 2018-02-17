@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
             Player player = CurrentLandblock.GetObject(playerId) as Player;
             string serverMessage = null;
             // validate within use range, taking into account the radius of the model itself, as well
-            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId.Value);
+            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
             float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
 
             // Run this animation...
