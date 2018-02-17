@@ -1102,7 +1102,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            loot.ContainerId = session.Player.Guid.Full;
+            loot.ContainerId = (int)session.Player.Guid.Full;
             loot.PlacementPosition = 0;
             session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);

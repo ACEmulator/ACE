@@ -78,6 +78,8 @@ namespace ACE.Server.WorldObjects
 
         public WeenieHeaderFlag WeenieFlags => CalculatedWeenieHeaderFlag();
 
+        public WeenieHeaderFlag2 WeenieFlags2 => CalculatedWeenieHeaderFlag2();
+
         public ObjectDescriptionFlag DescriptionFlags => CalculatedDescriptionFlag();
 
 
@@ -167,10 +169,10 @@ namespace ACE.Server.WorldObjects
                 writer.Write(MaxStackSize ?? (ushort)0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
-                writer.Write(ContainerId ?? 0u);
+                writer.Write(ContainerId ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)
-                writer.Write(WielderId ?? 0u);
+                writer.Write(WielderId ?? 0);
 
             if ((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
                 writer.Write((uint?)ValidLocations ?? 0u);
@@ -321,7 +323,7 @@ namespace ACE.Server.WorldObjects
 
             if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
-                writer.Write(WielderId ?? 0u);
+                writer.Write(WielderId ?? 0);
                 writer.Write(ParentLocation ?? 0);
             }
 

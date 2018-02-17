@@ -929,7 +929,7 @@ namespace ACE.Server.WorldObjects
                 {
                     foreach (WorldObject wo in uqlist)
                     {
-                        wo.ContainerId = Guid.Full;
+                        wo.ContainerId = (int)Guid.Full;
                         wo.PlacementPosition = 0;
                         AddToInventory(wo);
                         Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
@@ -1146,7 +1146,7 @@ namespace ACE.Server.WorldObjects
 
             if (packid != 0)
             {
-                wo.ContainerId = packid;
+                wo.ContainerId = (int)packid;
                 AddToInventory(wo);
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                 if (wo.WeenieType == WeenieType.Container)
@@ -1162,7 +1162,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject AddNewItemToInventory(uint weenieClassId)
         {
             var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-            wo.ContainerId = Guid.Full;
+            wo.ContainerId = (int)Guid.Full;
             wo.PlacementPosition = 0;
             AddToInventory(wo);
             TrackObject(wo);
@@ -1916,7 +1916,7 @@ namespace ACE.Server.WorldObjects
             item.PlacementPosition = null;
             item.ContainerId = null;
             // Set fields needed to be wielded.
-            item.WielderId = wielder.Guid.Full;
+            item.WielderId = (int)wielder.Guid.Full;
             item.CurrentWieldedLocation = currentWieldedLocation;
 
             if (!wielder.WieldedObjects.ContainsKey(item.Guid))
@@ -1955,7 +1955,7 @@ namespace ACE.Server.WorldObjects
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
-            item.ContainerId = container.Guid.Full;
+            item.ContainerId = (int)container.Guid.Full;
             SetInventoryForContainer(item, placement);
 
             RemoveFromWieldedObjects(item.Guid);
@@ -1969,7 +1969,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Set the container stuff
-            item.ContainerId = container.Guid.Full;
+            item.ContainerId = (int)container.Guid.Full;
             item.PlacementPosition = placement;
 
             ActionChain inContainerChain = new ActionChain();
@@ -2012,7 +2012,7 @@ namespace ACE.Server.WorldObjects
         {
             RemoveWorldObjectFromInventory(item.Guid);
 
-            item.ContainerId = container.Guid.Full;
+            item.ContainerId = (int)container.Guid.Full;
             item.PlacementPosition = placement;
 
             container.AddToInventory(item, placement);
