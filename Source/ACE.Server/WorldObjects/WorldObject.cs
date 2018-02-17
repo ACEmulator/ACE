@@ -188,7 +188,7 @@ namespace ACE.Server.WorldObjects
             return results;
         }
 
-        public Dictionary<PropertyFloat, double> GetAllPropertyDouble()
+        public Dictionary<PropertyFloat, double> GetAllPropertyFloat()
         {
             var results = new Dictionary<PropertyFloat, double>();
 
