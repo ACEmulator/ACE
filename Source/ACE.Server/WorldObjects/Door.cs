@@ -59,21 +59,17 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags |= ObjectDescriptionFlag.Door;
 
-            // TODO: convert HasPhysicsBsp to calculated flags version.
-            // This likely will change to be based on reading a dat file to determine if this exists...
-            HasPhysicsBsp = true;
-
             if (!DefaultOpen)
             {
                 CurrentMotionState = motionStateClosed;
                 IsOpen = false;
-                Ethereal = false;
+                //Ethereal = false;
             }
             else
             {
                 CurrentMotionState = motionStateOpen;
                 IsOpen = true;
-                Ethereal = true;
+                //Ethereal = true;
             }
 
             IsLocked = AceObject.Locked ?? false;
@@ -251,9 +247,9 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionStateOpen;
-            Ethereal = true;
+            //Ethereal = true;
             IsOpen = true;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (opener.Full > 0)
                 UseTimestamp++;
@@ -266,9 +262,9 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionStateClosed;
-            Ethereal = false;
+            //Ethereal = false;
             IsOpen = false;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (closer.Full > 0)
                 UseTimestamp++;

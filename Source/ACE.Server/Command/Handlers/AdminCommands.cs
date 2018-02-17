@@ -240,11 +240,11 @@ namespace ACE.Server.Command.Handlers
             switch (parameters?[0].ToLower())
             {
                 case "on":
-                    session.Player.Cloaked = true;
-                    session.Player.Ethereal = true;
-                    session.Player.IgnoreCollision = true;
-                    session.Player.NoDraw = true;
-                    session.Player.ReportCollision = false;
+                    //session.Player.Cloaked = true;
+                    //session.Player.Ethereal = true;
+                    //session.Player.IgnoreCollision = true;
+                    //session.Player.NoDraw = true;
+                    //session.Player.ReportCollision = false;
                     session.Player.EnqueueBroadcastPhysicsState();
                     // var test = session.Player.PhysicsDescriptionFlag;
                     // test |= PhysicsDescriptionFlag.Translucency;
@@ -252,11 +252,11 @@ namespace ACE.Server.Command.Handlers
                     // session.Player.Translucency = 0.5f;
                     break;
                 case "off":
-                    session.Player.Cloaked = false;
-                    session.Player.Ethereal = false;
-                    session.Player.IgnoreCollision = false;
-                    session.Player.NoDraw = false;
-                    session.Player.ReportCollision = true;
+                    //session.Player.Cloaked = false;
+                    //session.Player.Ethereal = false;
+                    //session.Player.IgnoreCollision = false;
+                    //session.Player.NoDraw = false;
+                    //session.Player.ReportCollision = true;
                     session.Player.EnqueueBroadcastPhysicsState();
                     break;
                 case "player":

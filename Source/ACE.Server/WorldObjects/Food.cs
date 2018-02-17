@@ -2,6 +2,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -29,8 +30,7 @@ namespace ACE.Server.WorldObjects
         {
             // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            Food = true;
-            Attackable = true;
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Food;
 
             StackSize = (base.StackSize ?? 1);
 
@@ -47,8 +47,8 @@ namespace ACE.Server.WorldObjects
         {
             Player.ConsumableBuffType buffType;
 
-            if (Food)
-            {
+            //if (Food)
+            //{
                 switch (BoostEnum)
                 {
                     case (int)WorldObjects.Player.ConsumableBuffType.Health:
@@ -61,11 +61,11 @@ namespace ACE.Server.WorldObjects
                         buffType = WorldObjects.Player.ConsumableBuffType.Stamina;
                         break;
                 }
-            }
-            else
-                buffType = WorldObjects.Player.ConsumableBuffType.Spell;
+            //}
+            //else
+            //    buffType = WorldObjects.Player.ConsumableBuffType.Spell;
 
-            session.Player.ApplyComsumable(Name, SolidOrLiquid(), buffType, (uint)Boost, SpellDID);
+            session.Player.ApplyComsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
 
             session.Player.HandleActionRemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
 
@@ -73,19 +73,27 @@ namespace ACE.Server.WorldObjects
             session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
-        private Sound SolidOrLiquid()
+        private Sound GetSoundDid()
         {
-            if ((Name.ToLower().Contains("ale")) || (Name.ToLower().Contains("lager"))
-                || (Name.ToLower().Contains("water")) || (Name.ToLower().Contains("milk"))
-                || (Name.ToLower().Contains("potion")) || (Name.ToLower().Contains("elixir"))
-                || (Name.ToLower().Contains("mead")) || (Name.ToLower().Contains("draught"))
-                || (Name.ToLower().Contains("infusion")) || (Name.ToLower().Contains("tonic"))
-                || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
-                || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
-                || (Name.ToLower().Contains("acidic rejuvenation")) || (Name.ToLower().Contains("tea"))
-                || (Name.ToLower().Contains("saliva invigorator")))
-                return Sound.Drink1;
+            if (GetProperty(PropertyDataId.UseSound).HasValue)
+                return (Sound)GetProperty(PropertyDataId.UseSound);
+
             return Sound.Eat1;
         }
+
+        //private Sound SolidOrLiquid()
+        //{
+        //    if ((Name.ToLower().Contains("ale")) || (Name.ToLower().Contains("lager"))
+        //        || (Name.ToLower().Contains("water")) || (Name.ToLower().Contains("milk"))
+        //        || (Name.ToLower().Contains("potion")) || (Name.ToLower().Contains("elixir"))
+        //        || (Name.ToLower().Contains("mead")) || (Name.ToLower().Contains("draught"))
+        //        || (Name.ToLower().Contains("infusion")) || (Name.ToLower().Contains("tonic"))
+        //        || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
+        //        || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
+        //        || (Name.ToLower().Contains("acidic rejuvenation")) || (Name.ToLower().Contains("tea"))
+        //        || (Name.ToLower().Contains("saliva invigorator")))
+        //        return Sound.Drink1;
+        //    return Sound.Eat1;
+        //}
     }
 }

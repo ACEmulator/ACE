@@ -33,9 +33,6 @@ namespace ACE.Server.WorldObjects
         {
             // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            Stuck = true;
-            Attackable = true;
-
             // Setup game variables...
             // TODO: so much more than what's here now.
         }
