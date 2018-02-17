@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
@@ -13,13 +14,25 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public int TotalSkillCredits
+        {
+            get => GetProperty(PropertyInt.TotalSkillCredits) ?? 0;
+            set => SetProperty(PropertyInt.TotalSkillCredits, value);
+        }
+
+        public int AvailableSkillCredits
+        {
+            get => GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+            set => SetProperty(PropertyInt.AvailableSkillCredits, value);
+        }
+
         public BiotaPropertiesSkill GetSkillProperty(Skill skill)
         {
             var result = Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
 
             if (result == null)
             {
-                result = new BiotaPropertiesSkill() { ObjectId = Biota.Id, Type = (ushort)skill, SAC = (uint)SkillStatus.Untrained };
+                result = new BiotaPropertiesSkill { ObjectId = Biota.Id, Type = (ushort)skill, SAC = (uint)SkillStatus.Untrained };
 
                 Biota.BiotaPropertiesSkill.Add(result);
             }
@@ -37,13 +50,14 @@ namespace ACE.Server.WorldObjects
 
             if (cs.SAC != (uint)SkillStatus.Trained && cs.SAC != (uint)SkillStatus.Specialized)
             {
-                /*if (AvailableSkillCredits >= creditsSpent)
+                if (AvailableSkillCredits >= creditsSpent)
                 {
-                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
-                    SetSkillProperty(skill, newSkill);
+                    cs.SAC = (uint)SkillStatus.Trained;
+                    cs.LevelFromPP = 0;
+                    cs.PP = 0;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
-                }*/
+                }
             }
 
             return false;
@@ -57,13 +71,13 @@ namespace ACE.Server.WorldObjects
         /// </remarks>
         public void TrainSkillGameAction(Skill skill, int creditsSpent)
         {
-            if (Character.AvailableSkillCredits >= creditsSpent)
+            if (AvailableSkillCredits >= creditsSpent)
             {
                 // attempt to train the specified skill
                 bool trainNewSkill = Character.TrainSkill(skill, creditsSpent);
 
                 // create an update to send to the client
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, Character.AvailableSkillCredits);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits);
 
                 // as long as the skill is sent, the train new triangle button on the client will not lock up.
                 // Sending Skill.None with status untrained worked in test
@@ -76,11 +90,11 @@ namespace ACE.Server.WorldObjects
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
                     trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
-                    trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {Character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {AvailableSkillCredits} credits available.";
                 }
                 else
                 {
-                    trainSkillMessageText = $"Failed to train {skill.ToSentence()}! You now have {Character.AvailableSkillCredits} credits available.";
+                    trainSkillMessageText = $"Failed to train {skill.ToSentence()}! You now have {AvailableSkillCredits} credits available.";
                 }
 
                 // create the final game message and send to the client
@@ -90,23 +104,24 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Sets the skill to specialized statuser
+        /// Sets the skill to specialized status
         /// </summary>
         public bool SpecializeSkill(Skill skill, int creditsSpent)
         {
-            /* todo
-            CreatureSkill cs = GetSkillProperty(skill);
-            if (cs != null && cs.Status == SkillStatus.Trained)
+            var cs = GetSkillProperty(skill);
+
+            if (cs.SAC == (uint)SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    RefundXp(cs.ExperienceSpent);
-                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
-                    SetSkillProperty(skill, newSkill);
+                    RefundXp(cs.PP);
+                    cs.SAC = (uint)SkillStatus.Specialized;
+                    cs.LevelFromPP = 0;
+                    cs.PP = 0;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
-            }*/
+            }
 
             return false;
         }
@@ -116,23 +131,25 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool UntrainSkill(Skill skill, int creditsSpent)
         {
-            /* todo
-            CreatureSkill cs = GetSkillProperty(skill);
-            if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            var cs = GetSkillProperty(skill);
+
+            if (cs.SAC != (uint)SkillStatus.Trained && cs.SAC != (uint)SkillStatus.Specialized)
             {
-                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
-                SetSkillProperty(skill, newSkill);
+                cs.SAC = (uint)SkillStatus.Untrained;
+                cs.LevelFromPP = 0;
+                cs.PP = 0;
                 return true;
             }
 
-            if (cs != null && cs.Status == SkillStatus.Trained)
+            if (cs.SAC == (uint)SkillStatus.Trained)
             {
-                RefundXp(cs.ExperienceSpent);
-                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
-                SetSkillProperty(skill, newSkill);
+                RefundXp(cs.PP);
+                cs.SAC = (uint)SkillStatus.Untrained;
+                cs.LevelFromPP = 0;
+                cs.PP = 0;
                 AvailableSkillCredits += creditsSpent;
                 return true;
-            }*/
+            }
 
             return false;
         }
@@ -144,7 +161,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-
+        [Obsolete]
         public Dictionary<Skill, CreatureSkill> Skills => AceObject.AceObjectPropertiesSkills;
 
         /// <summary>
@@ -276,5 +293,40 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        private const uint magicSkillCheckMargin = 50;
+
+        public bool CanReadScroll(MagicSchool school, uint power)
+        {
+            bool ret = false;
+            CreatureSkill creatureSkill;
+
+            switch (school)
+            {
+                case MagicSchool.CreatureEnchantment:
+                    creatureSkill = Skills[Skill.CreatureEnchantment];
+                    break;
+                case MagicSchool.WarMagic:
+                    creatureSkill = Skills[Skill.WarMagic];
+                    break;
+                case MagicSchool.ItemEnchantment:
+                    creatureSkill = Skills[Skill.ItemEnchantment];
+                    break;
+                case MagicSchool.LifeMagic:
+                    creatureSkill = Skills[Skill.LifeMagic];
+                    break;
+                case MagicSchool.VoidMagic:
+                    creatureSkill = Skills[Skill.VoidMagic];
+                    break;
+                default:
+                    // Undefined magic school, something bad happened.
+                    Debug.Assert((int)school > 5 || school <= 0, "Undefined magic school?");
+                    return false;
+            }
+
+            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.ActiveValue >= (power - magicSkillCheckMargin))
+                ret = true;
+
+            return ret;
+        }
     }
 }

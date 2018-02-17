@@ -250,7 +250,7 @@ namespace ACE.Server.Entity
                     {
                         shareAmount = (UInt64)(shareAmount * InRangeOfLeader(member));
                     }
-                    member.EarnXPFromFellowship(shareAmount);
+                    member.EarnXPFromFellowship((long)shareAmount);
                     
                 });
             }
@@ -268,7 +268,7 @@ namespace ACE.Server.Entity
                     if (!IsPlayerInside(member))
                     {
                         UInt64 playerTotal = (UInt64)(member.Level * percentPerLevel * InRangeOfLeader(member));
-                        member.EarnXPFromFellowship(playerTotal);
+                        member.EarnXPFromFellowship((long)playerTotal);
                     }
                 });
             }
