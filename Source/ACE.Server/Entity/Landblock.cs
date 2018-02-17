@@ -404,7 +404,7 @@ namespace ACE.Server.Entity
 
             WorldObject wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             if (wo?.SetupTableId == null) return 0.00f;
-            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(wo.SetupTableId.Value);
+            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(wo.SetupTableId);
             if (wo.UseRadius != null)
                 return (float)Math.Pow(wo.UseRadius.Value + csetup.Radius + 1.5, 2);
             return (float)Math.Pow(0.25 + csetup.Radius + 1.5, 2);
