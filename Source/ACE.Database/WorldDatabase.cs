@@ -125,6 +125,11 @@ namespace ACE.Database
             }
         }
 
+        public Weenie GetWeenie(string weenieClassName)
+        {
+            return GetWeenie(GetWeenieClassId(weenieClassName));
+        }
+
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
 
         /// <summary>

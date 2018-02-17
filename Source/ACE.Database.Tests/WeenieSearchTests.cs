@@ -4,12 +4,17 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using ACE.Common;
+using ACE.Database.Models.World;
+using ACE.Entity.Enum.Properties;
+using System.Linq;
 
 namespace ACE.Database.Tests
 {
     [TestClass]
     public class WeenieSearchTests
     {
+        private static WorldDatabase worldDb;
+
         [ClassInitialize]
         public static void TestSetup(TestContext context)
         {
@@ -17,6 +22,7 @@ namespace ACE.Database.Tests
             File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.json"), ".\\Config.json", true);
 
             ConfigManager.Initialize();
+            worldDb = new WorldDatabase();
         }
 
         // [TestMethod]
@@ -105,21 +111,25 @@ namespace ACE.Database.Tests
         [TestMethod]
         public void GetWeenie_Pyreal_ById_ReturnsObject()
         {
-            throw new NotImplementedException(); /* I don't like these tests. They should use functions the rest of the code uses
-            var results = worldDb.GetAceObjectByWeenie(273);
+            var result = worldDb.GetWeenie(273);
 
-            Assert.IsNotNull(results);
-            Assert.IsTrue(results.Name == "Pyreal");*/
+            var stringName = result.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)PropertyString.Name)?.Value; ;
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(stringName == "Pyreal");
+            Assert.IsTrue(result.GetProperty(PropertyString.Name) == "Pyreal");
         }
 
         [TestMethod]
         public void GetWeenie_Pyreal_ByName_ReturnsObject()
         {
-            throw new NotImplementedException(); /* I don't like these tests. They should use functions the rest of the code uses
-            var results = worldDb.GetAceObjectByWeenie("coinstack");
+            var result = worldDb.GetWeenie("coinstack");
 
-            Assert.IsNotNull(results);
-            Assert.IsTrue(results.Name == "Pyreal");*/
+            var stringName = result.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)PropertyString.Name)?.Value; ;
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(stringName == "Pyreal");
+            Assert.IsTrue(result.GetProperty(PropertyString.Name) == "Pyreal");
         }
     }
 }
