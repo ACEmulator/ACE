@@ -38,8 +38,7 @@ namespace ACE.Server.WorldObjects.Entity
                 abilityTotal = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
             }
 
-            // todo
-            //abilityTotal += this.Ranks + this.Base;
+            abilityTotal += creature.Biota.GetAttribute2nd(ability).LevelFromCP + creature.Biota.GetAttribute2nd(ability).InitLevel;
 
             return abilityTotal;
         }

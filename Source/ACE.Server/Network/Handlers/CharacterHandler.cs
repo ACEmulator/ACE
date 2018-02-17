@@ -302,20 +302,18 @@ namespace ACE.Server.Network.Handlers
 
                 if (skillStatus == SkillStatus.Specialized)
                 {
-                    player.SetSkillTrained(skill, skillCost.TrainingCost);
-                    player.SetSkillSpecialized(skill, skillCost.SpecializationCost);
+                    player.TrainSkill(skill, skillCost.TrainingCost);
+                    player.SpecializeSkill(skill, skillCost.SpecializationCost);
                     // oddly enough, specialized skills don't get any free ranks like trained do
                 }
                 else if (skillStatus == SkillStatus.Trained)
                 {
-                    player.SetSkillTrained(skill, skillCost.TrainingCost);
-                    // Todo adjust for new EF model
-                    //player.Biota.GetProperty(skill).
-                    //character.AceObjectPropertiesSkills[skill].Ranks = 5;
-                    //character.AceObjectPropertiesSkills[skill].ExperienceSpent = 526;
+                    player.TrainSkill(skill, skillCost.TrainingCost);
+                    player.GetSkillProperty(skill).LevelFromPP = 5;
+                    player.GetSkillProperty(skill).PP = 526;
                 }
                 else if (skillCost != null && skillStatus == SkillStatus.Untrained)
-                    player.SetSkillUntrained(skill, skillCost.TrainingCost);
+                    player.UntrainSkill(skill, skillCost.TrainingCost);
             }
 
             // grant starter items based on skills
