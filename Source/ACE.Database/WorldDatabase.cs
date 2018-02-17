@@ -111,11 +111,19 @@ namespace ACE.Database
             }
         }
 
-        public uint GetWeenieClassId(string weenieDescription)
+        public uint GetWeenieClassId(string weenieClassName)
         {
-            throw new NotImplementedException();
-        }
+            using (var context = new WorldDbContext())
+            {
+                var result = context.Weenie.AsNoTracking()
+                    .FirstOrDefault(r => r.ClassName == weenieClassName);
 
+                if (result != null)
+                    return result.ClassId;
+
+                return 0;
+            }
+        }
 
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
 
