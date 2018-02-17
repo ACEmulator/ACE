@@ -736,6 +736,7 @@ namespace ACE.Server.WorldObjects
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
 
+        [Obsolete]
         protected AceObject AceObject { get; set; }
 
         protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }

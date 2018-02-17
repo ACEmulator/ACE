@@ -222,7 +222,7 @@ namespace ACE.Server.Command.Handlers
             {
                 string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
                 // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
-                if (ulong.TryParse(xpAmountToParse, out var xp))
+                if (long.TryParse(xpAmountToParse, out var xp))
                 {
                     session.Player.GrantXp(xp);
                     return;
