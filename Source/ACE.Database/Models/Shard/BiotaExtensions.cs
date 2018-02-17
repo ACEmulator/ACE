@@ -101,7 +101,7 @@ namespace ACE.Database.Models.Shard
             if (result == null)
                 return null;
 
-            return new Position(result.Landblock ?? 0, result.OriginX, result.OriginY, result.OriginZ, result.AnglesX, result.AnglesY, result.AnglesZ, result.AnglesW);
+            return new Position(result.ObjCellId, result.OriginX, result.OriginY, result.OriginZ, result.AnglesX, result.AnglesY, result.AnglesZ, result.AnglesW);
         }
 
         public static BiotaPropertiesSkill GetProperty(this Biota biota, Skill skill)
@@ -190,6 +190,24 @@ namespace ACE.Database.Models.Shard
                 biota.BiotaPropertiesString.Add(new BiotaPropertiesString { Type = (ushort)property, Value = value });
         }
 
+        public static void SetPosition(this Biota biota, PositionType positionType, Position position)
+        {
+            var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
+            if (result != null)
+            {
+                result.ObjCellId = position.Cell;
+                result.OriginX = position.PositionX;
+                result.OriginY = position.PositionY;
+                result.OriginZ = position.PositionZ;
+                result.AnglesW = position.RotationW;
+                result.AnglesX = position.RotationX;
+                result.AnglesY = position.RotationY;
+                result.AnglesZ = position.RotationZ;
+            }
+            else
+                biota.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition { PositionType = (ushort)positionType, ObjCellId = position.Cell, OriginX = position.PositionX, OriginY = position.PositionY, OriginZ = position.PositionZ, AnglesW = position.RotationW, AnglesX = position.RotationX, AnglesY = position.RotationY, AnglesZ = position.RotationZ });
+        }
+
 
 
         public static void RemoveProperty(this Biota biota, PropertyBool property)
@@ -239,6 +257,14 @@ namespace ACE.Database.Models.Shard
             var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
                 biota.BiotaPropertiesString.Remove(result);
+        }
+
+        public static void RemovePosition(this Biota biota, PositionType positionType)
+        {
+            var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
+
+            if (result != null)
+                biota.BiotaPropertiesPosition.Remove(result);
         }
     }
 }

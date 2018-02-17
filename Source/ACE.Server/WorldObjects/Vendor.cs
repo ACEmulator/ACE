@@ -46,10 +46,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Vendor | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Vendor;
         }
 
         #region General Vendor functions

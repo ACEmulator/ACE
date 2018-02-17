@@ -56,8 +56,6 @@ namespace ACE.Server.WorldObjects
         {
             // TODO we shouldn't be auto setting properties that come from our weenie by default
 
-            Attackable = true;
-
             var table = DatManager.PortalDat.SpellTable;
 
             Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";

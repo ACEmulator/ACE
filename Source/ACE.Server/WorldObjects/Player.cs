@@ -60,13 +60,13 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Player;
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
 
-            PhysicsState |= PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide | PhysicsState.Hidden;
+            //PhysicsState |= PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide | PhysicsState.Hidden;
 
-            SetProperty(PropertyBool.IgnoreCollisions, true);
-            SetProperty(PropertyBool.GravityStatus, true);
-            SetProperty(PropertyBool.AllowEdgeSlide, true);
+            //SetProperty(PropertyBool.IgnoreCollisions, true);
+            //SetProperty(PropertyBool.GravityStatus, true);
+            //SetProperty(PropertyBool.AllowEdgeSlide, true);
 
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -2007,9 +2007,9 @@ namespace ACE.Server.WorldObjects
             if (!InWorld)
                 return;
 
-            Hidden = true;
-            IgnoreCollision = true;
-            ReportCollision = false;
+            //Hidden = true;
+            //IgnoreCollision = true;
+            //ReportCollision = false;
             EnqueueBroadcastPhysicsState();
             ExternalUpdatePosition(newPosition);
             InWorld = false;
@@ -2233,11 +2233,12 @@ namespace ACE.Server.WorldObjects
             // I would expect this flag to be set in Admin.cs which would be a subclass of Player
             // FIXME: maybe move to Admin class?
             // TODO: reevaluate class location
+            var immuneCellRestrictions = GetProperty(PropertyBool.IgnoreHouseBarriers) ?? false;
 
-            if (!ImmuneCellRestrictions)
-                ImmuneCellRestrictions = true;
+            if (!immuneCellRestrictions)
+                SetProperty(PropertyBool.IgnoreHouseBarriers, true);
             else
-                ImmuneCellRestrictions = false;
+                SetProperty(PropertyBool.IgnoreHouseBarriers, false);
 
             // The EnqueueBroadcastUpdateObject below sends the player back into teleport. I assume at this point, this was never done to players
             // EnqueueBroadcastUpdateObject();
@@ -2247,9 +2248,9 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, immuneCellRestrictions));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {ImmuneCellRestrictions}", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {immuneCellRestrictions}", ChatMessageType.Broadcast));
         }
 
         public void SendAutonomousPosition()
@@ -3306,38 +3307,38 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (iwo.Inscribable && iwo.ScribeName != "prewritten")
-                {
-                    if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
-                    {
-                        ChatPacket.SendServerMessage(Session,
-                            "Only the original scribe may alter this without the use of an uninscription stone.",
-                            ChatMessageType.Broadcast);
-                    }
-                    else
-                    {
-                        if (inscriptionText != "")
-                        {
-                            iwo.Inscription = inscriptionText;
-                            iwo.ScribeName = this.Name;
-                            iwo.ScribeAccount = Session.Account;
-                            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
-                                iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
-                        }
-                        else
-                        {
-                            iwo.Inscription = null;
-                            iwo.ScribeName = null;
-                            iwo.ScribeAccount = null;
-                        }
-                    }
-                }
-                else
-                {
-                    // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
-                    // I could not find a pcap of a failed inscription. Og II
-                    ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
-                }
+                //if (iwo.Inscribable && iwo.ScribeName != "prewritten")
+                //{
+                //    if (iwo.ScribeName != null && iwo.ScribeName != this.Name)
+                //    {
+                //        ChatPacket.SendServerMessage(Session,
+                //            "Only the original scribe may alter this without the use of an uninscription stone.",
+                //            ChatMessageType.Broadcast);
+                //    }
+                //    else
+                //    {
+                //        if (inscriptionText != "")
+                //        {
+                //            iwo.Inscription = inscriptionText;
+                //            iwo.ScribeName = this.Name;
+                //            iwo.ScribeAccount = Session.Account;
+                //            Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, iwo.Guid.Full,
+                //                iwo.Inscription, iwo.ScribeName, iwo.ScribeAccount));
+                //        }
+                //        else
+                //        {
+                //            iwo.Inscription = null;
+                //            iwo.ScribeName = null;
+                //            iwo.ScribeAccount = null;
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    // Send some cool you cannot inscribe that item message.   Not sure how that was handled live,
+                //    // I could not find a pcap of a failed inscription. Og II
+                //    ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
+                //}
             }).EnqueueChain();
         }
 

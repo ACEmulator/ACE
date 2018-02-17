@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Portal | ObjectDescriptionFlag.Stuck | ObjectDescriptionFlag.Attackable;
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
             SetProperty(PropertyBool.Stuck, true);
             SetProperty(PropertyBool.Attackable, true);

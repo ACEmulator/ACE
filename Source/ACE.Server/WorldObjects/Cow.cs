@@ -32,8 +32,6 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             // TODO we shouldn't be auto setting properties that come from our weenie by default
-            Stuck = true;
-            Attackable = true;
 
             UseRadius = 1;
             IsAlive = true;

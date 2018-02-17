@@ -28,9 +28,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Attackable, true);
         }
 
         /// <summary>

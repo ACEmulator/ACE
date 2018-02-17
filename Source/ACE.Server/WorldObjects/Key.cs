@@ -29,10 +29,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DescriptionFlags |= ObjectDescriptionFlag.Attackable;
-
-            SetProperty(PropertyBool.Attackable, true);
-
             // These shoudl come from the weenie. After confirmation, remove these
             //KeyCode = AceObject.KeyCode ?? "";
             //Structure = AceObject.Structure ?? AceObject.MaxStructure;
