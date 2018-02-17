@@ -184,7 +184,7 @@ namespace ACE.Server.Network.Handlers
 
             // Check the character scale
             if (sex.Scale != 100u)
-                player.SetProperty(PropertyDouble.DefaultScale, (sex.Scale / 100f)); // Scale is stored as a percentage
+                player.SetProperty(PropertyFloat.DefaultScale, (sex.Scale / 100f)); // Scale is stored as a percentage
 
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
             var hairstyle = sex.HairStyleList[Convert.ToInt32(characterCreateInfo.Apperance.HairStyle)];
@@ -206,7 +206,7 @@ namespace ACE.Server.Network.Handlers
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
             player.SetProperty(PropertyDataId.SkinPalette, skinPalSet.GetPaletteID(characterCreateInfo.Apperance.SkinHue));
-            player.SetProperty(PropertyDouble.Shade, characterCreateInfo.Apperance.SkinHue);
+            player.SetProperty(PropertyFloat.Shade, characterCreateInfo.Apperance.SkinHue);
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(characterCreateInfo.Apperance.HairColor)]);

@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
             double timestamp = span.TotalSeconds;
-            SetProperty(PropertyDouble.LoginTimestamp, timestamp);
+            SetProperty(PropertyFloat.LoginTimestamp, timestamp);
 
             var totalLogins = GetProperty(PropertyInt.TotalLogins) ?? 0;
             totalLogins++;

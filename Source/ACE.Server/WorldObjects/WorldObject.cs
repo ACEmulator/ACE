@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
 
         public bool? GetProperty(PropertyBool property) { return Biota.GetProperty(property); }
         public uint? GetProperty(PropertyDataId property) { return Biota.GetProperty(property); }
-        public double? GetProperty(PropertyDouble property) { return Biota.GetProperty(property); }
+        public double? GetProperty(PropertyFloat property) { return Biota.GetProperty(property); }
         public int? GetProperty(PropertyInstanceId property) { return Biota.GetProperty(property); }
         public int? GetProperty(PropertyInt property) { return Biota.GetProperty(property); }
         public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property); }
@@ -147,7 +147,7 @@ namespace ACE.Server.WorldObjects
 
         public void SetProperty(PropertyBool property, bool value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyDataId property, uint value) { Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyDouble property, double value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyFloat property, double value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyInstanceId property, int value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyInt property, int value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyInt64 property, long value) { Biota.SetProperty(property, value); }
@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
 
         public void RemoveProperty(PropertyBool property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyDataId property) { Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyDouble property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyFloat property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyInstanceId property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyInt property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyInt64 property) { Biota.RemoveProperty(property); }
@@ -188,12 +188,12 @@ namespace ACE.Server.WorldObjects
             return results;
         }
 
-        public Dictionary<PropertyDouble, double> GetAllPropertyDouble()
+        public Dictionary<PropertyFloat, double> GetAllPropertyDouble()
         {
-            var results = new Dictionary<PropertyDouble, double>();
+            var results = new Dictionary<PropertyFloat, double>();
 
             foreach (var property in Biota.BiotaPropertiesFloat)
-                results[(PropertyDouble)property.Type] = property.Value;
+                results[(PropertyFloat)property.Type] = property.Value;
 
             return results;
         }
@@ -393,7 +393,7 @@ namespace ACE.Server.WorldObjects
             if (itemUseableInt != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Usable;
 
-            var useRadiusFloat = GetProperty(PropertyDouble.UseRadius);
+            var useRadiusFloat = GetProperty(PropertyFloat.UseRadius);
             if (useRadiusFloat != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.UseRadius;
 
@@ -512,7 +512,7 @@ namespace ACE.Server.WorldObjects
             if ((sharedCooldownInt != null) && (sharedCooldownInt != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
 
-            var cooldownDurationFloat = GetProperty(PropertyDouble.CooldownDuration);
+            var cooldownDurationFloat = GetProperty(PropertyFloat.CooldownDuration);
             if ((cooldownDurationFloat != null) && Math.Abs((float)cooldownDurationFloat) >= 0.001)
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.CooldownDuration;
 
@@ -675,16 +675,16 @@ namespace ACE.Server.WorldObjects
             if ((GetProperty(PropertyInstanceId.Wielder) != null && GetProperty(PropertyInt.ParentLocation) != null))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
-            if ((GetProperty(PropertyDouble.DefaultScale) != null) && (Math.Abs((float)GetProperty(PropertyDouble.DefaultScale)) >= 0.001))
+            if ((GetProperty(PropertyFloat.DefaultScale) != null) && (Math.Abs((float)GetProperty(PropertyFloat.DefaultScale)) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
 
-            if (GetProperty(PropertyDouble.Friction) != null)
+            if (GetProperty(PropertyFloat.Friction) != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Friction;
 
-            if (GetProperty(PropertyDouble.Elasticity) != null)
+            if (GetProperty(PropertyFloat.Elasticity) != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Elasticity;
 
-            if ((GetProperty(PropertyDouble.Translucency) != null) && (Math.Abs((float)GetProperty(PropertyDouble.Translucency)) >= 0.001))
+            if ((GetProperty(PropertyFloat.Translucency) != null) && (Math.Abs((float)GetProperty(PropertyFloat.Translucency)) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
 
             //if (Velocity != null)
@@ -699,7 +699,7 @@ namespace ACE.Server.WorldObjects
             if (CSetup.DefaultScript != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (GetProperty(PropertyDouble.PhysicsScriptIntensity) != null)
+            if (GetProperty(PropertyFloat.PhysicsScriptIntensity) != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
@@ -2223,7 +2223,7 @@ namespace ACE.Server.WorldObjects
                     case "propertiesdouble":
                         foreach (var item in obj.PropertiesDouble)
                         {
-                            debugOutput += $"PropertyDouble.{System.Enum.GetName(typeof(PropertyDouble), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyDouble.{System.Enum.GetName(typeof(PropertyFloat), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
                         }
                         break;
                     case "propertiesdid":
@@ -2418,11 +2418,11 @@ namespace ACE.Server.WorldObjects
             writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.WeaponSkill)?.PropertyValue ?? 0);
             // Signed
             writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.Damage)?.PropertyValue ?? 0);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.DamageVariance)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.DamageMod)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.WeaponLength)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.MaximumVelocity)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyDouble.WeaponOffense)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.DamageVariance)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.DamageMod)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponLength)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.MaximumVelocity)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponOffense)?.PropertyValue ?? 0.00);
             // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
             writer.Write(0u);
         }

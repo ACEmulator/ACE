@@ -45,7 +45,7 @@ namespace ACE.Entity.Enum.Properties
         /// <summary>
         /// returns a list of values for PropertyInt that are NOT [ServerOnly]
         /// </summary>
-        public static List<ushort> PropertiesDouble = GetValues<PropertyDouble, ushort>();
+        public static List<ushort> PropertiesDouble = GetValues<PropertyFloat, ushort>();
 
         /// <summary>
         /// returns a list of values for PropertyInt that are NOT [ServerOnly]

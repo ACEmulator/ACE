@@ -350,8 +350,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public float? UseRadius
         {
-            get { return (float?)GetProperty(PropertyDouble.UseRadius); }
-            set { SetProperty(PropertyDouble.UseRadius, value); }
+            get { return (float?)GetProperty(PropertyFloat.UseRadius); }
+            set { SetProperty(PropertyFloat.UseRadius, value); }
         }
 
         [JsonIgnore]
@@ -546,8 +546,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? CooldownDuration
         {
-            get { return GetProperty(PropertyDouble.CooldownDuration); }
-            set { SetProperty(PropertyDouble.CooldownDuration, value); }
+            get { return GetProperty(PropertyFloat.CooldownDuration); }
+            set { SetProperty(PropertyFloat.CooldownDuration, value); }
         }
 
         // Wielder is Parent, No such thing as PropertyInstanceId.Parent
@@ -568,22 +568,22 @@ namespace ACE.Entity
         [JsonIgnore]
         public float? DefaultScale
         {
-            get { return (float?)GetProperty(PropertyDouble.DefaultScale); }
-            set { SetProperty(PropertyDouble.DefaultScale, value); }
+            get { return (float?)GetProperty(PropertyFloat.DefaultScale); }
+            set { SetProperty(PropertyFloat.DefaultScale, value); }
         }
 
         [JsonIgnore]
         public float? Friction
         {
-            get { return (float?)GetProperty(PropertyDouble.Friction); }
-            set { SetProperty(PropertyDouble.Friction, value); }
+            get { return (float?)GetProperty(PropertyFloat.Friction); }
+            set { SetProperty(PropertyFloat.Friction, value); }
         }
 
         [JsonIgnore]
         public float? Elasticity
         {
-            get { return (float?)GetProperty(PropertyDouble.Elasticity); }
-            set { SetProperty(PropertyDouble.Elasticity, value); }
+            get { return (float?)GetProperty(PropertyFloat.Elasticity); }
+            set { SetProperty(PropertyFloat.Elasticity, value); }
         }
 
         [JsonIgnore]
@@ -596,15 +596,15 @@ namespace ACE.Entity
         [JsonIgnore]
         public float? Translucency
         {
-            get { return (float?)GetProperty(PropertyDouble.Translucency); }
-            set { SetProperty(PropertyDouble.Translucency, value); }
+            get { return (float?)GetProperty(PropertyFloat.Translucency); }
+            set { SetProperty(PropertyFloat.Translucency, value); }
         }
         
         [JsonIgnore]
         public float? PhysicsScriptIntensity
         {
-            get { return (float?)GetProperty(PropertyDouble.PhysicsScriptIntensity); }
-            set { SetProperty(PropertyDouble.PhysicsScriptIntensity, value); }
+            get { return (float?)GetProperty(PropertyFloat.PhysicsScriptIntensity); }
+            set { SetProperty(PropertyFloat.PhysicsScriptIntensity, value); }
         }
 
         [JsonIgnore]
@@ -876,29 +876,29 @@ namespace ACE.Entity
         [JsonIgnore]
         public float? ResetInterval
         {
-            get { return (float?)GetProperty(PropertyDouble.ResetInterval); }
-            set { SetProperty(PropertyDouble.ResetInterval, value); }
+            get { return (float?)GetProperty(PropertyFloat.ResetInterval); }
+            set { SetProperty(PropertyFloat.ResetInterval, value); }
         }
 
         [JsonIgnore]
         public double? ResetTimestamp
         {
-            get { return GetProperty(PropertyDouble.ResetTimestamp); }
-            set { SetDoubleTimestamp(PropertyDouble.ResetTimestamp); }
+            get { return GetProperty(PropertyFloat.ResetTimestamp); }
+            set { SetDoubleTimestamp(PropertyFloat.ResetTimestamp); }
         }
 
         [JsonIgnore]
         public double? UseTimestamp
         {
-            get { return GetProperty(PropertyDouble.UseTimestamp); }
-            set { SetDoubleTimestamp(PropertyDouble.UseTimestamp); }
+            get { return GetProperty(PropertyFloat.UseTimestamp); }
+            set { SetDoubleTimestamp(PropertyFloat.UseTimestamp); }
         }
 
         [JsonIgnore]
         public double? UseLockTimestamp
         {
-            get { return GetProperty(PropertyDouble.UseLockTimestamp); }
-            set { SetDoubleTimestamp(PropertyDouble.UseLockTimestamp); }
+            get { return GetProperty(PropertyFloat.UseLockTimestamp); }
+            set { SetDoubleTimestamp(PropertyFloat.UseLockTimestamp); }
         }
 
         [JsonIgnore]
@@ -1051,8 +1051,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? CreationTimestamp
         {
-            get { return GetProperty(PropertyDouble.CreationTimestamp); }
-            set { SetDoubleTimestamp(PropertyDouble.CreationTimestamp); }
+            get { return GetProperty(PropertyFloat.CreationTimestamp); }
+            set { SetDoubleTimestamp(PropertyFloat.CreationTimestamp); }
         }
 
         [JsonIgnore]
@@ -1433,8 +1433,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? HealkitMod
         {
-            get { return GetProperty(PropertyDouble.HealkitMod); }
-            set { SetProperty(PropertyDouble.HealkitMod, value); }
+            get { return GetProperty(PropertyFloat.HealkitMod); }
+            set { SetProperty(PropertyFloat.HealkitMod, value); }
         }
 
         [JsonIgnore]
@@ -1639,15 +1639,15 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? BuyPrice
         {
-            get { return GetProperty(PropertyDouble.BuyPrice); }
-            set { SetProperty(PropertyDouble.BuyPrice, value); }
+            get { return GetProperty(PropertyFloat.BuyPrice); }
+            set { SetProperty(PropertyFloat.BuyPrice, value); }
         }
 
         [JsonIgnore]
         public double? SellPrice
         {
-            get { return GetProperty(PropertyDouble.SellPrice); }
-            set { SetProperty(PropertyDouble.SellPrice, value); }
+            get { return GetProperty(PropertyFloat.SellPrice); }
+            set { SetProperty(PropertyFloat.SellPrice, value); }
         }
 
         [JsonIgnore]
@@ -1667,8 +1667,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? HeartbeatInterval
         {
-            get { return GetProperty(PropertyDouble.HeartbeatInterval); }
-            set { SetProperty(PropertyDouble.HeartbeatInterval, value); }
+            get { return GetProperty(PropertyFloat.HeartbeatInterval); }
+            set { SetProperty(PropertyFloat.HeartbeatInterval, value); }
         }
 
         [JsonIgnore]
@@ -1681,8 +1681,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? RegenerationInterval
         {
-            get { return GetProperty(PropertyDouble.RegenerationInterval); }
-            set { SetProperty(PropertyDouble.RegenerationInterval, value); }
+            get { return GetProperty(PropertyFloat.RegenerationInterval); }
+            set { SetProperty(PropertyFloat.RegenerationInterval, value); }
         }
 
         [JsonIgnore]
@@ -1695,8 +1695,8 @@ namespace ACE.Entity
         [JsonIgnore]
         public double? Shade
         {
-            get { return GetProperty(PropertyDouble.Shade); }
-            set { SetProperty(PropertyDouble.Shade, value); }
+            get { return GetProperty(PropertyFloat.Shade); }
+            set { SetProperty(PropertyFloat.Shade, value); }
         }
 
         #region Chess
@@ -1966,24 +1966,24 @@ namespace ACE.Entity
             }
         }
 
-        public double? GetProperty(PropertyDouble property)
+        public double? GetProperty(PropertyFloat property)
         {
             return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
         }
 
-        protected List<double> GetDoubleProperties(PropertyDouble property)
+        protected List<double> GetDoubleProperties(PropertyFloat property)
         {
             return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
         }
 
-        public void SetDoubleTimestamp(PropertyDouble propertyId)
+        public void SetDoubleTimestamp(PropertyFloat propertyId)
         {
             TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
             double timestamp = span.TotalSeconds;
             SetProperty(propertyId, timestamp);
         }
 
-        protected void SetProperty(PropertyDouble propertyId, double? value)
+        protected void SetProperty(PropertyFloat propertyId, double? value)
         {
             AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);
             if (value != null)

@@ -65,7 +65,7 @@ namespace ACE.Database.Models.World
             return weenie.WeeniePropertiesEventFilter.FirstOrDefault(x => x.Event == eventId);
         }
 
-        public static double? GetProperty(this Weenie weenie, PropertyDouble property)
+        public static double? GetProperty(this Weenie weenie, PropertyFloat property)
         {
             return weenie.WeeniePropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property)?.Value;
         }
