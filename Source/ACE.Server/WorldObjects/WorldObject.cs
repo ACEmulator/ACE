@@ -57,8 +57,6 @@ namespace ACE.Server.WorldObjects
 
         public UpdatePositionFlag PositionFlag { get; protected set; }
 
-        public WeenieHeaderFlag2 WeenieFlags2 { get { return CalculatedWeenieHeaderFlag2(); } }
-
         public SequenceManager Sequences { get; } = new SequenceManager();
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
@@ -265,6 +263,229 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyInt.ItemType, (int)value);
         }
 
+        public string NamePlural
+        {
+            get => GetProperty(PropertyString.PluralName);
+            set => SetProperty(PropertyString.PluralName, value);
+        }
+
+        public byte? ItemCapacity
+        {
+            get => (byte?)GetProperty(PropertyInt.ItemsCapacity);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemsCapacity); else SetProperty(PropertyInt.ItemsCapacity, value.Value); } }
+
+        public byte? ContainerCapacity
+        {
+            get => (byte?)GetProperty(PropertyInt.ContainersCapacity);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ContainersCapacity); else SetProperty(PropertyInt.ContainersCapacity, value.Value); }
+        }
+
+        public AmmoType? AmmoType
+        {
+            get => (AmmoType?)GetProperty(PropertyInt.AmmoType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AmmoType); else SetProperty(PropertyInt.AmmoType, (int)value.Value); }
+        }
+
+        public virtual int? Value
+        {
+            get => (StackUnitValue * (StackSize ?? 1));
+            set => AceObject.Value = value;
+        }
+
+        public Usable? Usable
+        {
+            get => (Usable ? )GetProperty(PropertyInt.ItemUseable);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemUseable); else SetProperty(PropertyInt.ItemUseable, (int)value.Value); }
+        }
+
+        public float? UseRadius
+        {
+            get => (float?)GetProperty(PropertyFloat.UseRadius);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseRadius); else SetProperty(PropertyFloat.UseRadius, value.Value); }
+        }
+
+        public int? TargetType
+        {
+            get => GetProperty(PropertyInt.TargetType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, value.Value); }
+        }
+
+        public UiEffects? UiEffects
+        {
+            get => (UiEffects?)GetProperty(PropertyInt.UiEffects);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UiEffects); else SetProperty(PropertyInt.UiEffects, (int)value.Value); }
+        }
+
+        public CombatUse? CombatUse
+        {
+            get => (CombatUse?)GetProperty(PropertyInt.CombatUse);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CombatUse); else SetProperty(PropertyInt.CombatUse, (int)value.Value); }
+        }
+
+        /// <summary>
+        /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
+        /// </summary>
+        public ushort? Structure
+        {
+            get => (ushort?)GetProperty(PropertyInt.Structure);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Structure); else SetProperty(PropertyInt.Structure, value.Value); }
+        }
+
+        /// <summary>
+        /// Use Limit - example 50 use healing kit
+        /// </summary>
+        public ushort? MaxStructure
+        {
+            get => (ushort?)GetProperty(PropertyInt.MaxStructure);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
+        }
+
+        public virtual ushort? StackSize
+        {
+            get => (ushort?)GetProperty(PropertyInt.StackSize);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.StackSize); else SetProperty(PropertyInt.StackSize, value.Value); }
+        }
+
+        public ushort? MaxStackSize
+        {
+            get => (ushort?)GetProperty(PropertyInt.MaxStackSize);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStackSize); else SetProperty(PropertyInt.MaxStackSize, value.Value); }
+        }
+
+        public int? ContainerId
+        {
+            get => GetProperty(PropertyInstanceId.Container);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Container); else SetProperty(PropertyInstanceId.Container, value.Value); }
+        }
+
+        public int? WielderId
+        {
+            get => GetProperty(PropertyInstanceId.Wielder);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Wielder); else SetProperty(PropertyInstanceId.Wielder, value.Value); }
+        }
+
+        public EquipMask? ValidLocations
+        {
+            get => (EquipMask?)GetProperty(PropertyInt.ValidLocations);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ValidLocations); else SetProperty(PropertyInt.ValidLocations, (int)value.Value); }
+        }
+
+        public EquipMask? CurrentWieldedLocation
+        {
+            get => (EquipMask?)GetProperty(PropertyInt.CurrentWieldedLocation);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CurrentWieldedLocation); else SetProperty(PropertyInt.CurrentWieldedLocation, (int)value.Value); }
+        }
+
+        public CoverageMask? Priority
+        {
+            get => (CoverageMask?)GetProperty(PropertyInt.ClothingPriority);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ClothingPriority); else SetProperty(PropertyInt.ClothingPriority, (int)value.Value); }
+        }
+
+        public RadarColor? RadarColor
+        {
+            get => (RadarColor?)GetProperty(PropertyInt.RadarBlipColor);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RadarBlipColor); else SetProperty(PropertyInt.RadarBlipColor, (int)value.Value); }
+        }
+
+        public RadarBehavior? RadarBehavior
+        {
+            get => (RadarBehavior?)GetProperty(PropertyInt.ShowableOnRadar);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ShowableOnRadar); else SetProperty(PropertyInt.ShowableOnRadar, (int)value.Value); }
+        }
+
+        public ushort? Script
+        {
+            get => (ushort?)GetProperty(PropertyDataId.PhysicsScript);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
+        }
+
+        public float? Workmanship
+        {
+            get
+            {
+                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
+                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
+
+                return (ItemWorkmanship);
+            }
+            set
+            {
+                if ((Structure != null) && (Structure != 0))
+                    ItemWorkmanship = Convert.ToInt32(value * 10000 * Structure);
+                else
+                    ItemWorkmanship = Convert.ToInt32(value);
+            }
+        }
+
+        public virtual ushort? Burden
+        {
+            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
+            get => (ushort)(StackUnitBurden * (StackSize ?? 1));
+            set => AceObject.EncumbranceVal = value;
+        }
+
+        public Spell? Spell
+        {
+            get => (Spell?)GetProperty(PropertyDataId.Spell);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, (uint)value.Value); }
+        }
+
+        /// <summary>
+        /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
+        /// </summary>
+        public uint? HouseOwner { get; set; }
+
+        public uint? HouseRestrictions { get; set; }
+
+        public ushort? HookItemType
+        {
+            get => (ushort?)GetProperty(PropertyInt.HookItemType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HookItemType); else SetProperty(PropertyInt.HookItemType, value.Value); }
+        }
+
+        public uint? Monarch { get; set; }
+
+        public ushort? HookType
+        {
+            get => (ushort?)GetProperty(PropertyInt.HookType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HookType); else SetProperty(PropertyInt.HookType, value.Value); }
+        }
+
+        public uint? IconOverlayId
+        {
+            get => GetProperty(PropertyDataId.IconOverlay);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlay); else SetProperty(PropertyDataId.IconOverlay, value.Value); }
+        }
+
+        public uint? IconUnderlayId
+        {
+            get => GetProperty(PropertyDataId.IconUnderlay);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); }
+        }
+
+        public Material? MaterialType
+        {
+            get => (Material?)GetProperty(PropertyInt.MaterialType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaterialType); else SetProperty(PropertyInt.MaterialType, (int)value.Value); }
+        }
+
+        public int? CooldownId
+        {
+            get => GetProperty(PropertyInt.SharedCooldown);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SharedCooldown); else SetProperty(PropertyInt.SharedCooldown, value.Value); }
+        }
+
+        public double? CooldownDuration
+        {
+            get => GetProperty(PropertyFloat.CooldownDuration);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CooldownDuration); else SetProperty(PropertyFloat.CooldownDuration, value.Value); }
+        }
+
+        public uint? PetOwner { get; set; }
+
+
+
 
 
 
@@ -462,174 +683,14 @@ namespace ACE.Server.WorldObjects
 
         #endregion
         #region optional
-        public string NamePlural
-        {
-            get => AceObject.PluralName;
-            set { AceObject.PluralName = value; }
-        }
 
-        public byte? ItemCapacity
-        {
-            get => AceObject.ItemsCapacity;
-            set { AceObject.ItemsCapacity = value; }
-        }
-
-        public byte? ContainerCapacity
-        {
-            get => AceObject.ContainersCapacity;
-            set { AceObject.ContainersCapacity = value; }
-        }
-
-        public AmmoType? AmmoType
-        {
-            get => (AmmoType?)AceObject.AmmoType;
-            set { AceObject.AmmoType = (int?)value; }
-        }
-
-        public virtual int? Value
-        {
-            get => (StackUnitValue * (StackSize ?? 1));
-            set { AceObject.Value = value; }
-        }
 
         public virtual int? StackUnitValue => Biota.GetProperty(PropertyInt.StackUnitValue) ?? 0;
-
-        public Usable? Usable
-        {
-            get => (Usable?)AceObject.ItemUseable;
-            set { AceObject.ItemUseable = (int?)value; }
-        }
-
-        public float? UseRadius
-        {
-            get => AceObject.UseRadius;
-            set { AceObject.UseRadius = value; }
-        }
-
-        public int? TargetType
-        {
-            get => AceObject.TargetType;
-            set { AceObject.TargetType = value; }
-        }
-
-        public UiEffects? UiEffects
-        {
-            get => (UiEffects?)AceObject.UiEffects;
-            set { AceObject.UiEffects = (int?)value; }
-        }
-
-        public CombatUse? CombatUse
-        {
-            get => (CombatUse?)AceObject.CombatUse;
-            set { AceObject.CombatUse = (byte?)value; }
-        }
-
-        /// <summary>
-        /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
-        /// </summary>
-        public ushort? Structure
-        {
-            get => AceObject.Structure;
-            set { AceObject.Structure = value; }
-        }
-
-        /// <summary>
-        /// Use Limit - example 50 use healing kit
-        /// </summary>
-        public ushort? MaxStructure
-        {
-            get => AceObject.MaxStructure;
-            set { AceObject.MaxStructure = value; }
-        }
-
-        public virtual ushort? StackSize
-        {
-            get => AceObject.StackSize;
-            set { AceObject.StackSize = value; }
-        }
-
-        public ushort? MaxStackSize
-        {
-            get => AceObject.MaxStackSize;
-            set { AceObject.MaxStackSize = value; }
-        }
-
-        public uint? ContainerId
-        {
-            get => AceObject.ContainerIID;
-            set { AceObject.ContainerIID = value; }
-        }
 
         public int? PlacementPosition
         {
             get => AceObject.PlacementPosition;
             set { AceObject.PlacementPosition = value; }
-        }
-
-        public uint? WielderId
-        {
-            get => AceObject.WielderIID;
-            set { AceObject.WielderIID = value; }
-        }
-
-        // Locations
-        public EquipMask? ValidLocations
-        {
-            get => (EquipMask?)AceObject.ValidLocations;
-            set { AceObject.ValidLocations = (int?)value; }
-        }
-
-        public EquipMask? CurrentWieldedLocation
-        {
-            get => (EquipMask?)AceObject.CurrentWieldedLocation;
-            set { AceObject.CurrentWieldedLocation = (int?)value; }
-        }
-
-        public CoverageMask? Priority
-        {
-            get => (CoverageMask?)AceObject.ClothingPriority;
-            set { AceObject.ClothingPriority = (int?)value; }
-        }
-
-        public RadarColor? RadarColor
-        {
-            get => (RadarColor?)AceObject.RadarBlipColor;
-            set { AceObject.RadarBlipColor = (byte?)value; }
-        }
-
-        public RadarBehavior? RadarBehavior
-        {
-            get => (RadarBehavior?)AceObject.ShowableOnRadar;
-            set { AceObject.ShowableOnRadar = (byte?)value; }
-        }
-
-        public ushort? Script
-        {
-            get => AceObject.PhysicsScriptDID;
-            set { AceObject.PhysicsScriptDID = value; }
-        }
-
-        public float? Workmanship
-        {
-            get
-            {
-                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
-                {
-                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
-                }
-                return (ItemWorkmanship);
-            }
-            set
-            {
-                if ((Structure != null) && (Structure != 0))
-                {
-                    ItemWorkmanship = (int)Convert.ToInt32(value * 10000 * Structure);
-                }
-                else
-                {
-                    ItemWorkmanship = (int)Convert.ToInt32(value);
-                }
-            }
         }
 
         private int? ItemWorkmanship
@@ -638,72 +699,10 @@ namespace ACE.Server.WorldObjects
             set { AceObject.ItemWorkmanship = value; }
         }
 
-        public virtual ushort? Burden
-        {
-            get => (ushort)(StackUnitBurden * (StackSize ?? 1));
-            set { AceObject.EncumbranceVal = value; }
-        }
 
         public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.EncumbranceVal) ?? 0);
 
-        public Spell? Spell
-        {
-            get => (Spell?)AceObject.SpellDID;
-            set { AceObject.SpellDID = (ushort?)value; }
-        }
 
-        /// <summary>
-        /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
-        /// </summary>
-        public uint? HouseOwner { get; set; }
-
-        public uint? HouseRestrictions { get; set; }
-
-        public ushort? HookItemType
-        {
-            get => AceObject.HookItemType;
-            set { AceObject.HookItemType = value; }
-        }
-
-        public uint? Monarch { get; set; }
-
-        public ushort? HookType
-        {
-            get => (ushort?)AceObject.HookType;
-            set { AceObject.HookType = value; }
-        }
-
-        public uint? IconOverlayId
-        {
-            get => AceObject.IconOverlayDID;
-            set { AceObject.IconOverlayDID = value; }
-        }
-
-        public uint? IconUnderlayId
-        {
-            get => AceObject.IconUnderlayDID;
-            set { AceObject.IconUnderlayDID = value; }
-        }
-
-        public Material? MaterialType
-        {
-            get => (Material?)AceObject.MaterialType;
-            set { AceObject.MaterialType = (byte?)value; }
-        }
-
-        public uint? PetOwner { get; set; }
-
-        public int? CooldownId
-        {
-            get => AceObject.SharedCooldown;
-            set { AceObject.SharedCooldown = value; }
-        }
-
-        public double? CooldownDuration
-        {
-            get => AceObject.CooldownDuration;
-            set { AceObject.CooldownDuration = value; }
-        }
         #endregion
         #endregion
 

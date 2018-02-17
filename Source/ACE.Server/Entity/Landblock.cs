@@ -919,7 +919,7 @@ namespace ACE.Server.Entity
             }
 
             RemoveWorldObjectInternal(woGuid, false);
-            wo.ContainerId = container.Guid.Full;
+            wo.ContainerId = (int)container.Guid.Full;
 
             // We are coming off the world we need to be ready to save.
             wo.Location = null;

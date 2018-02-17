@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
                     if (wo != null)
                     {
-                        wo.ContainerId = Guid.Full;
+                        wo.ContainerId = (int)Guid.Full;
                         defaultItemsForSale.Add(wo.Guid, wo);
                     }
                 }
@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
                 if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
                 {
                     wo.Location = null;
-                    wo.ContainerId = Guid.Full;
+                    wo.ContainerId = (int)Guid.Full;
                     wo.PlacementPosition = null;
                     wo.WielderId = null;
                     wo.CurrentWieldedLocation = null;

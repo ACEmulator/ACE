@@ -778,7 +778,7 @@ namespace ACE.Server.Command.Handlers
             foreach (uint weenieId in weaponsTest)
             {
                 WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
+                loot.ContainerId = (int)session.Player.Guid.Full;
                 loot.PlacementPosition = 0;
                 // TODO: Og II
                 // Need this hack because weenies are not cleaned up.   Can be removed once weenies are fixed.
@@ -806,7 +806,7 @@ namespace ACE.Server.Command.Handlers
             foreach (uint weenieId in weaponsTest)
             {
                 WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
+                loot.ContainerId = (int)session.Player.Guid.Full;
                 loot.PlacementPosition = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
@@ -835,7 +835,7 @@ namespace ACE.Server.Command.Handlers
                 var valueEach = loot.Value / loot.StackSize;
                 loot.StackSize = loot.MaxStackSize;
                 loot.Value = loot.StackSize * valueEach;
-                loot.ContainerId = session.Player.Guid.Full;
+                loot.ContainerId = (int)session.Player.Guid.Full;
                 loot.PlacementPosition = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
