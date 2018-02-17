@@ -293,7 +293,6 @@ namespace ACE.Server.Network.Handlers
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             player.SetProperty(PropertyInt.AvailableSkillCredits, (int)cg.HeritageGroups[characterCreateInfo.Heritage].SkillCredits);
 
-            // TODO for the new format
             for (int i = 0; i < characterCreateInfo.SkillStatuses.Count; i++)
             {
                 var skill = (Skill)i;

@@ -124,10 +124,10 @@ namespace ACE.Server.WorldObjects
 
             // TODO: test and remove - this should be coming in from AceObject.
 
-            MotionTableId = Character.MotionTableId;
-            SoundTableId = Character.SoundTableId;
-            PhysicsTableId = Character.PhysicsTableId;
-            SetupTableId = Character.SetupTableId;
+            //MotionTableId = Character.MotionTableId;
+            //SoundTableId = Character.SoundTableId;
+            //PhysicsTableId = Character.PhysicsTableId;
+            //SetupTableId = Character.SetupTableId;
 
             // Start vital ticking, if they need it
             if (Health.Current != Health.MaxValue)
