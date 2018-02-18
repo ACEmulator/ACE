@@ -248,7 +248,13 @@ namespace ACE.Server.WorldObjects
         public uint WeenieClassId
         {
             get => Biota.WeenieClassId;
-            protected set => Biota.WeenieClassId = value;
+            //protected set => Biota.WeenieClassId = value;
+        }
+
+        public WeenieType WeenieType
+        {
+            get => (WeenieType)Biota.WeenieType;
+            //protected set => Biota.WeenieType = (int)value;
         }
 
         public uint IconId
@@ -1421,11 +1427,6 @@ namespace ACE.Server.WorldObjects
         //////}
         //#endregion
 
-        public WeenieType WeenieType
-        {
-            get => (WeenieType?)AceObject.WeenieType ?? WeenieType.Undef;
-            protected set { AceObject.WeenieType = (int)value; }
-        }
 
         public IActor CurrentParent { get; private set; }
 
@@ -1438,10 +1439,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock => CurrentParent as Landblock;
 
-        /// <summary>
-        /// tick-stamp for the last time this object changed in any way.
-        /// </summary>
-        public double LastUpdatedTicks { get; set; }
 
         /// <summary>
         /// Time when this object will despawn, -1 is never.

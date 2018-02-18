@@ -12,7 +12,6 @@ using log4net;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
@@ -109,9 +108,10 @@ namespace ACE.Database
                     context.SaveChanges();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Character name might be in use or some other fault
+                    log.Error($"AddCharacter failed with exception: {ex}");
                     return false;
                 }
             }
@@ -137,8 +137,9 @@ namespace ACE.Database
                     context.SaveChanges();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    log.Error($"DeleteOrRestoreCharacter failed with exception: {ex}");
                     return false;
                 }
             }
@@ -163,8 +164,9 @@ namespace ACE.Database
                     context.SaveChanges();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    log.Error($"MarkCharacterDeleted failed with exception: {ex}");
                     return false;
                 }
             }
@@ -181,9 +183,10 @@ namespace ACE.Database
                     context.SaveChanges();
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Character name might be in use or some other fault
+                    log.Error($"AddBiota failed with exception: {ex}");
                     return false;
                 }
             }

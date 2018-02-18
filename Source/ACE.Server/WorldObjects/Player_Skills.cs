@@ -43,7 +43,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
-        /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, int creditsSpent)
         {
             var cs = GetSkillProperty(skill);
@@ -74,7 +73,7 @@ namespace ACE.Server.WorldObjects
             if (AvailableSkillCredits >= creditsSpent)
             {
                 // attempt to train the specified skill
-                bool trainNewSkill = Character.TrainSkill(skill, creditsSpent);
+                bool trainNewSkill = TrainSkill(skill, creditsSpent);
 
                 // create an update to send to the client
                 var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits);
@@ -83,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 // Sending Skill.None with status untrained worked in test
                 var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
                 // create a string placeholder for the correct after
-                string trainSkillMessageText = "";
+                string trainSkillMessageText;
 
                 // if the skill has already been trained or we do not have enough credits, then trainNewSkill be set false
                 if (trainNewSkill)
@@ -176,10 +175,10 @@ namespace ACE.Server.WorldObjects
             uint ranks = creatureSkill.Ranks;
             uint newValue = creatureSkill.UnbuffedValue;
             var status = creatureSkill.Status;
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, Character.AvailableExperience);
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(this.Guid, Sound.RaiseTrait, 1f);
-            string messageText = "";
+            var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
+            string messageText;
 
             if (result > 0u)
             {
@@ -188,7 +187,7 @@ namespace ACE.Server.WorldObjects
                 if (IsSkillMaxRank(ranks, status))
                 {
                     // fireworks on rank up is 0x8D
-                    PlayParticleEffect(global::ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
                 }
                 else
@@ -200,6 +199,7 @@ namespace ACE.Server.WorldObjects
             {
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
+
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
@@ -251,20 +251,16 @@ namespace ACE.Server.WorldObjects
             else if (amount == rank10)
             {
                 if (rank10Offset > 0u)
-                {
                     rankUps = Convert.ToUInt32(rank10Offset);
-                }
                 else
-                {
                     rankUps = 10u;
-                }
             }
 
             if (rankUps > 0)
             {
                 skill.Ranks += rankUps;
                 skill.ExperienceSpent += amount;
-                this.Character.SpendXp(amount);
+                Character.SpendXp(amount);
                 result = skill.ExperienceSpent;
             }
 
