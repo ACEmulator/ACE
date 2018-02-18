@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateVital : GameMessage
     {
-        public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, CreatureVital cv) :
+        public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, CreatureVitalOld cv) :
             this(session, ability, cv.Ranks, cv.Base, cv.ExperienceSpent, cv.Current) { }
 
         public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)

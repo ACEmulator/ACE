@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace ACE.Entity
 {
-    [DbTable("vw_ace_character")]
+    //[DbTable("vw_ace_character")]
     public class AceCharacter : AceObject, ICreatureStats
     {
         private readonly List<Friend> friends;
@@ -444,12 +444,12 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, int creditsSpent)
         {
-            CreatureSkill cs = GetSkillProperty(skill);
+            CreatureSkillOld cs = GetSkillProperty(skill);
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Trained, 0, 0);
+                    var newSkill = new CreatureSkillOld(this, skill, SkillStatus.Trained, 0, 0);
                     SetProperty(skill, newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
@@ -465,13 +465,13 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool SpecializeSkill(Skill skill, int creditsSpent)
         {
-            CreatureSkill cs = GetSkillProperty(skill);
+            CreatureSkillOld cs = GetSkillProperty(skill);
             if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
                     RefundXp(cs.ExperienceSpent);
-                    var newSkill = new CreatureSkill(this, skill, SkillStatus.Specialized, 0, 0);
+                    var newSkill = new CreatureSkillOld(this, skill, SkillStatus.Specialized, 0, 0);
                     SetProperty(skill, newSkill);
                     AvailableSkillCredits -= creditsSpent;
                     return true;
@@ -487,10 +487,10 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool UntrainSkill(Skill skill, int creditsSpent)
         {
-            CreatureSkill cs = GetSkillProperty(skill);
+            CreatureSkillOld cs = GetSkillProperty(skill);
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized) 
             {
-                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                var newSkill = new CreatureSkillOld(this, skill, SkillStatus.Untrained, 0, 0);
                 SetProperty(skill, newSkill);
                 return true;
             }
@@ -498,7 +498,7 @@ namespace ACE.Entity
             if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 RefundXp(cs.ExperienceSpent);
-                var newSkill = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                var newSkill = new CreatureSkillOld(this, skill, SkillStatus.Untrained, 0, 0);
                 SetProperty(skill, newSkill);
                 AvailableSkillCredits += creditsSpent;
                 return true;

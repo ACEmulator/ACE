@@ -1,26 +1,26 @@
 using System;
 using ACE.Common;
-using MySql.Data.MySqlClient;
+
 using ACE.Entity.Enum;
 using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object_properties_iid")]
+    //[DbTable("ace_object_properties_iid")]
     public class AceObjectPropertiesInstanceId : BaseAceProperty, ICloneable
     {
         private uint? _value = 0;
 
         [JsonProperty("iidPropertyId")]
-        [DbField("iidPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
+        //[DbField("iidPropertyId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public new uint PropertyId { get; set; }
 
         [JsonProperty("index")]
-        [DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
+        //[DbField("propertyIndex", (int)MySqlDbType.Byte, IsCriteria = true, Update = false)]
         public byte Index { get; set; }
 
         [JsonProperty("value")]
-        [DbField("propertyValue", (int)MySqlDbType.UInt32)]
+        //[DbField("propertyValue", (int)MySqlDbType.UInt32)]
         public uint? PropertyValue
         {
             get

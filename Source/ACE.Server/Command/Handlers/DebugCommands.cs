@@ -444,7 +444,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Parse args...
-            CreatureVital vital = null;
+            CreatureVitalOld vital = null;
             if (paramVital == "health" || paramVital == "hp")
             {
                 vital = session.Player.Health;

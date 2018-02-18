@@ -5,7 +5,8 @@ using Newtonsoft.Json.Converters;
 
 namespace ACE.Entity
 {
-    public class CreatureSkill : ICloneable
+    [Obsolete]
+    public class CreatureSkillOld : ICloneable
     {
         private AceObjectPropertiesSkill _backer;
         private Random _random = new Random();
@@ -92,7 +93,7 @@ namespace ACE.Entity
             get { return UnbuffedValue; }
         }
         
-        public CreatureSkill(ICreatureStats character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
+        public CreatureSkillOld(ICreatureStats character, Skill skill, SkillStatus status, uint ranks, uint xpSpent)
         {
             this.character = character;
             _backer = new AceObjectPropertiesSkill();
@@ -104,7 +105,7 @@ namespace ACE.Entity
             SetDirtyFlags();
         }
 
-        public CreatureSkill(ICreatureStats character, AceObjectPropertiesSkill skill)
+        public CreatureSkillOld(ICreatureStats character, AceObjectPropertiesSkill skill)
         {
             this.character = character;
             _backer = skill;
@@ -129,7 +130,7 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            return new CreatureSkill(this.character, (AceObjectPropertiesSkill)_backer.Clone());
+            return new CreatureSkillOld(this.character, (AceObjectPropertiesSkill)_backer.Clone());
         }
 
         public double GetPercentSuccess(uint difficulty)

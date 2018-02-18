@@ -1,13 +1,13 @@
 using System;
 using ACE.Common;
 using ACE.Entity.Enum;
-using MySql.Data.MySqlClient;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object_properties_skill")]
+    //[DbTable("ace_object_properties_skill")]
     public class AceObjectPropertiesSkill : BaseAceProperty, ICloneable
     {
         private uint _xpSpent;
@@ -15,7 +15,7 @@ namespace ACE.Entity
         private ushort _skillStatus;
 
         [JsonIgnore]
-        [DbField("skillId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
+        //[DbField("skillId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort SkillId { get; set; }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        [DbField("skillStatus", (int)MySqlDbType.UInt16)]
+        //[DbField("skillStatus", (int)MySqlDbType.UInt16)]
         public ushort SkillStatus
         {
             get
@@ -56,7 +56,7 @@ namespace ACE.Entity
         }
 
         [JsonProperty("ranks")]
-        [DbField("skillPoints", (int)MySqlDbType.UInt16)]
+        //[DbField("skillPoints", (int)MySqlDbType.UInt16)]
         public ushort SkillPoints
         {
             get
@@ -71,7 +71,7 @@ namespace ACE.Entity
         }
 
         [JsonProperty("experienceSpent")]
-        [DbField("skillXpSpent", (int)MySqlDbType.UInt32)]
+        //[DbField("skillXpSpent", (int)MySqlDbType.UInt32)]
         public uint SkillXpSpent
         {
             get

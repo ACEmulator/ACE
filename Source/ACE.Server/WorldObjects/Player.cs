@@ -224,6 +224,20 @@ namespace ACE.Server.WorldObjects
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -1099,6 +1113,8 @@ namespace ACE.Server.WorldObjects
 
             // TODO: check if player is online first to avoid database hit??
             // Get character record from DB
+            throw new System.NotImplementedException();
+            /* TODO fix for new EF model
             DatabaseManager.Shard.GetObjectInfoByName(friendName, ((ObjectInfo friendInfo) =>
             {
                 if (friendInfo == null)
@@ -1120,7 +1136,7 @@ namespace ACE.Server.WorldObjects
                     // Send packet
                     Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
                 }));
-            }));
+            }));*/
         }
 
         /// <summary>
@@ -1310,86 +1326,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public void Teleport(Position newPosition)
-        {
-            ActionChain chain = GetTeleportChain(newPosition);
-            chain.EnqueueChain();
-        }
 
-        private ActionChain GetTeleportChain(Position newPosition)
-        {
-            ActionChain teleportChain = new ActionChain();
-
-            teleportChain.AddAction(this, () => TeleportInternal(newPosition));
-
-            teleportChain.AddDelaySeconds(3);
-            // Once back in world we can start listening to the game's request for positions
-            teleportChain.AddAction(this, () =>
-            {
-                InWorld = true;
-            });
-
-            return teleportChain;
-        }
-
-        private void TeleportInternal(Position newPosition)
-        {
-            if (!InWorld)
-                return;
-
-            //Hidden = true;
-            //IgnoreCollision = true;
-            //ReportCollision = false;
-            EnqueueBroadcastPhysicsState();
-            ExternalUpdatePosition(newPosition);
-            InWorld = false;
-
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
-            CurrentLandblock.RemoveWorldObject(Guid, false);
-            lock (clientObjectList)
-            {
-                clientObjectList.Clear();
-            }
-        }
-
-        public void RequestUpdatePosition(Position pos)
-        {
-            ExternalUpdatePosition(pos);
-        }
-
-        public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
-        {
-            new ActionChain(this, () =>
-            {
-                // Update our current style
-                if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-                {
-                    MotionStance newStance = (MotionStance)md.CurrentStyle;
-                    if (newStance != stance)
-                    {
-                        stance = (MotionStance)md.CurrentStyle;
-                    }
-                }
-
-                md = md.ConvertToClientAccepted(holdKey, Skills[Skill.Run]);
-                UniversalMotion newMotion = new UniversalMotion(stance, md);
-                // This is a hack to make walking work correctly.   Og II
-                if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
-                    newMotion.IsAutonomous = true;
-                // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
-                // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
-                newMotion.Commands.AddRange(commands);
-                CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
-            }).EnqueueChain();
-        }
-
-        private void ExternalUpdatePosition(Position newPosition)
-        {
-            if (InWorld)
-            {
-                PrepUpdatePosition(newPosition);
-            }
-        }
 
         public void SetTitle(uint title)
         {
@@ -2886,7 +2823,7 @@ namespace ACE.Server.WorldObjects
         }
 
         // FIXME(ddevec): Copy pasted code for prototyping -- clean later
-        protected override void VitalTickInternal(CreatureVital vital)
+        protected override void VitalTickInternal(CreatureVitalOld vital)
         {
             uint oldValue = vital.Current;
             base.VitalTickInternal(vital);
@@ -2917,7 +2854,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        protected override void UpdateVitalInternal(CreatureVital vital, uint newVal)
+        protected override void UpdateVitalInternal(CreatureVitalOld vital, uint newVal)
         {
             uint oldValue = vital.Current;
             base.UpdateVitalInternal(vital, newVal);
@@ -3076,7 +3013,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                CreatureVital creatureVital;
+                CreatureVitalOld creatureVital;
                 string vitalName;
 
                 // Null check for safety

@@ -71,7 +71,7 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
 
-        public CreatureAbility Strength
+        public CreatureAbilityOld Strength
         {
             get => AceObject.StrengthAbility;
             set { AceObject.StrengthAbility = value; }
@@ -81,55 +81,55 @@ namespace ACE.Server.WorldObjects
 
         public AceObject AceCorpse => AceObject;
 
-        public CreatureAbility Endurance
+        public CreatureAbilityOld Endurance
         {
             get => AceObject.EnduranceAbility;
             set { AceObject.EnduranceAbility = value; }
         }
 
-        public CreatureAbility Coordination
+        public CreatureAbilityOld Coordination
         {
             get => AceObject.CoordinationAbility;
             set { AceObject.CoordinationAbility = value; }
         }
 
-        public CreatureAbility Quickness
+        public CreatureAbilityOld Quickness
         {
             get => AceObject.QuicknessAbility;
             set { AceObject.QuicknessAbility = value; }
         }
 
-        public CreatureAbility Focus
+        public CreatureAbilityOld Focus
         {
             get => AceObject.FocusAbility;
             set { AceObject.FocusAbility = value; }
         }
 
-        public CreatureAbility Self
+        public CreatureAbilityOld Self
         {
             get => AceObject.SelfAbility;
             set { AceObject.SelfAbility = value; }
         }
 
-        public CreatureVital Health
+        public CreatureVitalOld Health
         {
             get => AceObject.Health;
             set { AceObject.Health = value; }
         }
 
-        public CreatureVital Stamina
+        public CreatureVitalOld Stamina
         {
             get => AceObject.Stamina;
             set { AceObject.Stamina = value; }
         }
 
-        public CreatureVital Mana
+        public CreatureVitalOld Mana
         {
             get => AceObject.Mana;
             set { AceObject.Mana = value; }
         }
 
-        public Dictionary<Ability, CreatureVital> VitalsOld => AceObject.AceObjectPropertiesAttributes2nd;
+        public Dictionary<Ability, CreatureVitalOld> VitalsOld => AceObject.AceObjectPropertiesAttributes2nd;
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
@@ -233,17 +233,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Updates a vital, returns true if vital is now &lt; max
         /// </summary>
-        public void UpdateVital(CreatureVital vital, uint newVal)
+        public void UpdateVital(CreatureVitalOld vital, uint newVal)
         {
             EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
         }
 
-        public void DeltaVital(CreatureVital vital, long delta)
+        public void DeltaVital(CreatureVitalOld vital, long delta)
         {
             EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
         }
 
-        private void DeltaVitalInternal(CreatureVital vital, long delta)
+        private void DeltaVitalInternal(CreatureVitalOld vital, long delta)
         {
             uint absVal;
 
@@ -263,7 +263,7 @@ namespace ACE.Server.WorldObjects
             UpdateVitalInternal(vital, absVal);
         }
 
-        private void VitalTick(CreatureVital vital)
+        private void VitalTick(CreatureVitalOld vital)
         {
             double tickTime = vital.NextTickTime;
             if (double.IsNegativeInfinity(tickTime))
@@ -282,7 +282,7 @@ namespace ACE.Server.WorldObjects
             tickChain.EnqueueChain();
         }
 
-        protected virtual void VitalTickInternal(CreatureVital vital)
+        protected virtual void VitalTickInternal(CreatureVitalOld vital)
         {
             vital.Tick(WorldManager.PortalYearTicks);
             if (vital.Current != vital.MaxValue)
@@ -602,7 +602,7 @@ namespace ACE.Server.WorldObjects
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, updateMotion);
         }
 
-        protected virtual void UpdateVitalInternal(CreatureVital vital, uint newVal)
+        protected virtual void UpdateVitalInternal(CreatureVitalOld vital, uint newVal)
         {
             uint old = vital.Current;
 

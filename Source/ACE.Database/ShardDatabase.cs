@@ -10,12 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage;
 using log4net;
 
 using ACE.Database.Models.Shard;
-using ACE.Entity;
-using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class ShardDatabase : CommonDatabase
+    public class ShardDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -67,6 +65,7 @@ namespace ACE.Database
                 return maxId;
             }
         }
+
 
         public List<Character> GetCharacters(uint accountId)
         {
@@ -230,175 +229,6 @@ namespace ACE.Database
 
                 return result;
             }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-
-        private enum ShardPreparedStatement
-        {
-            // these are for the world database, but there's a lot of overlap
-            GetContractTracker,
-            GetSpellBarPositions,
-            IsCharacterNameAvailable,
-            DeleteContractTrackers,
-            DeleteSpellBarPositions,
-            InsertContractTracker,
-            InsertSpellBarPositions,
-            DeleteContractTracker,
-        }
-        
-        public void AddFriend(uint characterId, uint friendCharacterId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DeleteFriend(uint characterId, uint friendCharacterId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DeleteContract(AceContractTracker contract)
-        {
-            DatabaseTransaction transaction = BeginTransaction();
-            DeleteAceContractTracker(transaction, contract);
-            return transaction.Commit().Result;
-        }
-
-        public void RemoveAllFriends(uint characterId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DeleteOrRestore(ulong unixTime, uint aceObjectId)
-        {
-            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
-            LoadIntoObject(aceCharacter);
-            aceCharacter.DeleteTime = unixTime;
-
-            aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
-
-            base.SaveObject(aceCharacter);
-
-            return true;
-        }
-
-        public bool DeleteCharacter(uint aceObjectId)
-        {
-            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
-            LoadIntoObject(aceCharacter);
-            aceCharacter.Deleted = true;
-
-            base.SaveObject(aceCharacter);
-
-            return true;
-        }
-
-        protected override void LoadIntoObject(AceObject aceObject)
-        {
-            base.LoadIntoObject(aceObject);
-            aceObject.TrackedContracts = GetAceContractList(aceObject.AceObjectId).ToDictionary(x => x.ContractId, x => x);
-            aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
-        }
-        
-        private List<AceContractTracker> GetAceContractList(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.GetContractTracker, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesSpellBarPositions> GetAceObjectPropertiesSpellBarPositions(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.GetSpellBarPositions, criteria);
-            return objects;
-        }
-
-        public ObjectInfo GetObjectInfoByName(string name)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public uint RenameCharacter(string currentName, string newName)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override bool DeleteObjectDependencies(DatabaseTransaction transaction, AceObject aceObject)
-        {
-            DeleteAceContractTrackers(transaction, aceObject.AceObjectId);
-            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
-            return true;
-        }
-        
-        protected override bool SaveObjectDependencies(DatabaseTransaction transaction, AceObject aceObject)
-        {
-            DeleteAceContractTrackers(transaction, aceObject.AceObjectId);
-            SaveAceContractTracker(transaction, aceObject.AceObjectId, aceObject.TrackedContracts.Select(x => x.Value).ToList());
-
-            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
-            SaveAceObjectPropertiesSpellBarPositions(transaction, aceObject.SpellsInSpellBars);
-
-            return true;
-        }
-        
-        private bool SaveAceContractTracker(DatabaseTransaction transaction, uint aceObjectId, List<AceContractTracker> properties)
-        {
-            properties.ForEach(a => a.AceObjectId = aceObjectId);
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.InsertContractTracker, properties);
-            return true;
-        }
-
-        private bool SaveAceObjectPropertiesSpellBarPositions(DatabaseTransaction transaction, List<AceObjectPropertiesSpellBarPositions> properties)
-        {
-            transaction.AddPreparedInsertListStatement(ShardPreparedStatement.InsertSpellBarPositions, properties);
-            return true;
-        }
-
-        private bool DeleteAceContractTrackers(DatabaseTransaction transaction, uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteContractTrackers, criteria);
-            return true;
-        }
-
-        private bool DeleteAceObjectPropertiesSpellBarPositions(DatabaseTransaction transaction, uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.DeleteSpellBarPositions, criteria);
-            return true;
-        }
-
-        private void DeleteAceContractTracker(DatabaseTransaction transaction, AceContractTracker contract)
-        {
-            transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteContractTracker, contract);
         }
     }
 }

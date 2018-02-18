@@ -1,6 +1,6 @@
 using ACE.Common;
 using ACE.Entity.Enum;
-using MySql.Data.MySqlClient;
+
 using Newtonsoft.Json;
 
 namespace ACE.Entity
@@ -8,7 +8,7 @@ namespace ACE.Entity
     public abstract class BaseAceProperty : IDirty
     {
         [JsonIgnore]
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true, Update = false)]
+        //[DbField("aceObjectId", (int)MySqlDbType.UInt32, IsCriteria = true, ListGet = true, ListDelete = true, Update = false)]
         public uint AceObjectId { get; set; }
 
         [JsonIgnore]

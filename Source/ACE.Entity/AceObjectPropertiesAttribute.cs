@@ -1,11 +1,11 @@
 using System;
 using ACE.Common;
-using MySql.Data.MySqlClient;
+
 using Newtonsoft.Json;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object_properties_attribute")]
+    //[DbTable("ace_object_properties_attribute")]
     public class AceObjectPropertiesAttribute : BaseAceProperty, ICloneable
     {
         private uint _xpSpent;
@@ -13,11 +13,11 @@ namespace ACE.Entity
         private ushort _base;
 
         [JsonProperty("attributeId")]
-        [DbField("attributeId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
+        //[DbField("attributeId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort AttributeId { get; set; }
 
         [JsonProperty("baseValue")]
-        [DbField("attributeBase", (int)MySqlDbType.UInt16)]
+        //[DbField("attributeBase", (int)MySqlDbType.UInt16)]
         public ushort AttributeBase
         {
             get
@@ -32,7 +32,7 @@ namespace ACE.Entity
         }
 
         [JsonProperty("ranks")]
-        [DbField("attributeRanks", (int)MySqlDbType.UInt16)]
+        //[DbField("attributeRanks", (int)MySqlDbType.UInt16)]
         public ushort AttributeRanks
         {
             get
@@ -47,7 +47,7 @@ namespace ACE.Entity
         }
 
         [JsonProperty("experienceSpent")]
-        [DbField("attributeXpSpent", (int)MySqlDbType.UInt32)]
+        //[DbField("attributeXpSpent", (int)MySqlDbType.UInt32)]
         public uint AttributeXpSpent
         {
             get

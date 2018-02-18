@@ -103,7 +103,7 @@ namespace ACE.Server.Entity
 
             var objects = DatabaseManager.World.GetCachedWeenieInstancesByLandblock(Id.Landblock); // Instances
 
-            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
+            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))
@@ -238,16 +238,15 @@ namespace ACE.Server.Entity
         {
             Parallel.ForEach(wolist, (o) =>
             {
-                throw new NotImplementedException(); /* Can't use Guid.IsCreature
-                if (o.Guid.IsCreature())
+                if (o is Creature)
                 {
-                    if ((o as Creature).IsAlive)
+                    if (((Creature)o).IsAlive)
                         player.TrackObject(o);
                 }
                 else
                 {
                     player.TrackObject(o);
-                }*/
+                }
             });
         }
 
@@ -329,9 +328,9 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(objectId))
             {
                 wo = worldObjects[objectId];
-                throw new NotImplementedException(); /* Can't use Guid.IsCreature
-                if (!objectId.IsCreature())
-                    worldObjects.Remove(objectId);*/
+
+                if (!(wo is Creature))
+                    worldObjects.Remove(objectId);
             }
 
             if (wo != null)

@@ -8,17 +8,22 @@ namespace ACE.Server.WorldObjects.Entity
     public class CreatureVital
     {
         private readonly Creature creature;
-        private readonly Ability ability;
+        public readonly Ability Ability;
+
+        // This is the underlying database record
+        private readonly BiotaPropertiesAttribute2nd biotaPropertiesAttribute2nd;
 
         public CreatureVital(Creature creature, Ability ability)
         {
             this.creature = creature;
-            this.ability = ability;
+            Ability = ability;
+
+            biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(ability);
         }
 
         public uint GetUnbuffedMaxValue()
         {
-            var formula = ability.GetFormula();
+            var formula = Ability.GetFormula();
 
             uint derivationTotal = 0;
             uint abilityTotal = 0;
@@ -38,7 +43,7 @@ namespace ACE.Server.WorldObjects.Entity
                 abilityTotal = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
             }
 
-            abilityTotal += creature.Biota.GetAttribute2nd(ability).LevelFromCP + creature.Biota.GetAttribute2nd(ability).InitLevel;
+            abilityTotal += biotaPropertiesAttribute2nd.LevelFromCP + biotaPropertiesAttribute2nd.InitLevel;
 
             return abilityTotal;
         }

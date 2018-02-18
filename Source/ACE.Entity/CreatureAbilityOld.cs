@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace ACE.Entity
 {
-    public class CreatureAbility : ICloneable, ICreatureXpSpendableStat
+    [Obsolete]
+    public class CreatureAbilityOld : ICloneable, ICreatureXpSpendableStat
     {
         private AceObjectPropertiesAttribute _backer;
 
@@ -97,7 +98,7 @@ namespace ACE.Entity
             }
         }
 
-        public CreatureAbility(Ability ability)
+        public CreatureAbilityOld(Ability ability)
         {
             _backer = new AceObjectPropertiesAttribute();
 
@@ -105,7 +106,7 @@ namespace ACE.Entity
             Base = 10;
         }
 
-        public CreatureAbility(AceObjectPropertiesAttribute attrib)
+        public CreatureAbilityOld(AceObjectPropertiesAttribute attrib)
         {
             _backer = attrib;
         }
@@ -129,7 +130,7 @@ namespace ACE.Entity
 
         public object Clone()
         {
-            return new CreatureAbility((AceObjectPropertiesAttribute)_backer.Clone());
+            return new CreatureAbilityOld((AceObjectPropertiesAttribute)_backer.Clone());
         }
     }
 }

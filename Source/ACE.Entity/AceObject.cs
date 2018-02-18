@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using MySql.Data.MySqlClient;
-
 using Newtonsoft.Json;
 
 using ACE.Common;
@@ -12,7 +10,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
-    [DbTable("ace_object")]
+    //[DbTable("ace_object")]
     public class AceObject : ICreatureStats, ICloneable, IDirty
     {
         public const uint WEENIE_MAX = 199999;
@@ -44,7 +42,7 @@ namespace ACE.Entity
         /// will allow us to detect objects that have changed post-installation and generate changesetss
         /// </summary>
         [JsonIgnore]
-        [DbField("userModified", (int)MySqlDbType.Bit)]
+        //[DbField("userModified", (int)MySqlDbType.Bit)]
         public virtual bool UserModified
         {
             get { return true; }
@@ -55,14 +53,14 @@ namespace ACE.Entity
         /// Table field Primary Key
         /// </summary>
         [JsonProperty("aceObjectId")]
-        [DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
+        //[DbField("aceObjectId", (int)MySqlDbType.UInt32, Update = false, IsCriteria = true, ListGet = true, ListDelete = true)]
         public virtual uint AceObjectId { get; set; }
 
         /// <summary>
         /// Table Field Weenie Class
         /// </summary>
         [JsonProperty("weenieClassId")]
-        [DbField("weenieClassId", (int)MySqlDbType.UInt32)]
+        //[DbField("weenieClassId", (int)MySqlDbType.UInt32)]
         public uint WeenieClassId { get; set; }
 
         private uint _aceObjectDescriptionFlags;
@@ -71,7 +69,7 @@ namespace ACE.Entity
         /// Table Field Flags
         /// </summary>
         [JsonIgnore]
-        [DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
+        //[DbField("aceObjectDescriptionFlags", (int)MySqlDbType.UInt32)]
         public uint AceObjectDescriptionFlags
         {
             get { return _aceObjectDescriptionFlags; }
@@ -88,7 +86,7 @@ namespace ACE.Entity
         /// Table Field - Flags
         /// </summary>
         [JsonIgnore]
-        [DbField("physicsDescriptionFlag", (int)MySqlDbType.UInt32)]
+        //[DbField("physicsDescriptionFlag", (int)MySqlDbType.UInt32)]
         public uint PhysicsDescriptionFlag
         {
             get { return _physicsDescriptionFlag; }
@@ -105,7 +103,7 @@ namespace ACE.Entity
         /// Table Field - Flags
         /// </summary>
         [JsonIgnore]
-        [DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
+        //[DbField("weenieHeaderFlags", (int)MySqlDbType.UInt32)]
         public uint WeenieHeaderFlags
         {
             get { return _weenieHeaderFlags; }
@@ -122,7 +120,7 @@ namespace ACE.Entity
         /// Table Field - Flags
         /// </summary>
         [JsonIgnore]
-        [DbField("weenieHeaderFlags2", (int)MySqlDbType.UInt32)]
+        //[DbField("weenieHeaderFlags2", (int)MySqlDbType.UInt32)]
         public uint WeenieHeaderFlags2
         {
             get { return _weenieHeaderFlags2; }
@@ -136,7 +134,7 @@ namespace ACE.Entity
         private string _currentMotionState;
 
         [JsonProperty("currentMotionState")]
-        [DbField("currentMotionState", (int)MySqlDbType.Text)]
+        //[DbField("currentMotionState", (int)MySqlDbType.Text)]
         public string CurrentMotionState
         {
             get { return _currentMotionState; }
@@ -148,63 +146,63 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
-        public CreatureAbility StrengthAbility
+        public CreatureAbilityOld StrengthAbility
         {
             get { return GetAttributeProperty(Ability.Strength); }
             set { SetAttributeProperty(Ability.Strength, value); }
         }
 
         [JsonIgnore]
-        public CreatureAbility EnduranceAbility
+        public CreatureAbilityOld EnduranceAbility
         {
             get { return GetAttributeProperty(Ability.Endurance); }
             set { SetAttributeProperty(Ability.Endurance, value); }
         }
 
         [JsonIgnore]
-        public CreatureAbility CoordinationAbility
+        public CreatureAbilityOld CoordinationAbility
         {
             get { return GetAttributeProperty(Ability.Coordination); }
             set { SetAttributeProperty(Ability.Coordination, value); }
         }
 
         [JsonIgnore]
-        public CreatureAbility QuicknessAbility
+        public CreatureAbilityOld QuicknessAbility
         {
             get { return GetAttributeProperty(Ability.Quickness); }
             set { SetAttributeProperty(Ability.Quickness, value); }
         }
 
         [JsonIgnore]
-        public CreatureAbility FocusAbility
+        public CreatureAbilityOld FocusAbility
         {
             get { return GetAttributeProperty(Ability.Focus); }
             set { SetAttributeProperty(Ability.Focus, value); }
         }
 
         [JsonIgnore]
-        public CreatureAbility SelfAbility
+        public CreatureAbilityOld SelfAbility
         {
             get { return GetAttributeProperty(Ability.Self); }
             set { SetAttributeProperty(Ability.Self, value); }
         }
 
         [JsonIgnore]
-        public CreatureVital Health
+        public CreatureVitalOld Health
         {
             get { return GetAttribute2ndProperty(Ability.Health); }
             set { SetAttribute2ndProperty(Ability.Health, value); }
         }
 
         [JsonIgnore]
-        public CreatureVital Stamina
+        public CreatureVitalOld Stamina
         {
             get { return GetAttribute2ndProperty(Ability.Stamina); }
             set { SetAttribute2ndProperty(Ability.Stamina, value); }
         }
 
         [JsonIgnore]
-        public CreatureVital Mana
+        public CreatureVitalOld Mana
         {
             get { return GetAttribute2ndProperty(Ability.Mana); }
             set { SetAttribute2ndProperty(Ability.Mana, value); }
@@ -1825,13 +1823,13 @@ namespace ACE.Entity
             }
         }
 
-        protected CreatureAbility GetAttributeProperty(Ability ability)
+        protected CreatureAbilityOld GetAttributeProperty(Ability ability)
         {
             bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out var ret);
 
             if (!success || ret == null)
             {
-                ret = new CreatureAbility(ability);
+                ret = new CreatureAbilityOld(ability);
                 AceObjectPropertiesAttributes.Add(ability, ret);
             }
 
@@ -1856,48 +1854,48 @@ namespace ACE.Entity
             }
         }
 
-        protected void SetAttributeProperty(Ability ability, CreatureAbility value)
+        protected void SetAttributeProperty(Ability ability, CreatureAbilityOld value)
         {
             SetProperty(AceObjectPropertiesAttributes, ability, value);
         }
 
-        protected CreatureVital GetAttribute2ndProperty(Ability ability)
+        protected CreatureVitalOld GetAttribute2ndProperty(Ability ability)
         {
             bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var ret);
 
             if (!success || ret == null)
             {
-                ret = new CreatureVital(this, ability, ability.GetRegenRate());
+                ret = new CreatureVitalOld(this, ability, ability.GetRegenRate());
                 AceObjectPropertiesAttributes2nd.Add(ability, ret);
             }
 
             return ret;
         }
 
-        protected void SetAttribute2ndProperty(Ability ability, CreatureVital value)
+        protected void SetAttribute2ndProperty(Ability ability, CreatureVitalOld value)
         {
             SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
         }
 
-        public CreatureSkill GetSkillProperty(Skill skill)
+        public CreatureSkillOld GetSkillProperty(Skill skill)
         {
             bool success = AceObjectPropertiesSkills.TryGetValue(skill, out var ret);
 
             if (!success || ret == null)
             {
-                ret = new CreatureSkill(this, skill, SkillStatus.Untrained, 0, 0);
+                ret = new CreatureSkillOld(this, skill, SkillStatus.Untrained, 0, 0);
                 AceObjectPropertiesSkills.Add(skill, ret);
             }
 
             return ret;
         }
 
-        protected void SetProperty(Skill skill, CreatureSkill value)
+        protected void SetProperty(Skill skill, CreatureSkillOld value)
         {
             SetProperty(AceObjectPropertiesSkills, skill, value);
         }
 
-        public List<CreatureSkill> GetSkills()
+        public List<CreatureSkillOld> GetSkills()
         {
             return AceObjectPropertiesSkills.Values.ToList();
         }
@@ -2108,14 +2106,14 @@ namespace ACE.Entity
         public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
         [JsonProperty("abilities")]
-        public Dictionary<Ability, CreatureAbility> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbility>();
+        public Dictionary<Ability, CreatureAbilityOld> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbilityOld>();
 
         // ReSharper disable once InconsistentNaming
         [JsonProperty("vitals")]
-        public Dictionary<Ability, CreatureVital> AceObjectPropertiesAttributes2nd { get; set; } = new Dictionary<Ability, CreatureVital>();
+        public Dictionary<Ability, CreatureVitalOld> AceObjectPropertiesAttributes2nd { get; set; } = new Dictionary<Ability, CreatureVitalOld>();
 
         [JsonProperty("skills")]
-        public Dictionary<Skill, CreatureSkill> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkill>();
+        public Dictionary<Skill, CreatureSkillOld> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkillOld>();
 
         [JsonProperty("positions")]
         public Dictionary<PositionType, Position> AceObjectPropertiesPositions { get; set; } = new Dictionary<PositionType, Position>();
