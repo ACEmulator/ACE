@@ -65,6 +65,17 @@ namespace ACE.Database
             }
         }
 
+
+        public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
+                callback.Invoke(result);
+            }));
+        }
+
+
         public void GetCharacters(uint accountId, Action<List<Character>> callback)
         {
             _queue.Add(new Task(() =>
@@ -171,123 +182,43 @@ namespace ACE.Database
 
         public void AddFriend(uint characterId, uint friendCharacterId, Action callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.AddFriend(characterId, friendCharacterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            throw new NotImplementedException();
         }
 
         public void DeleteFriend(uint characterId, uint friendCharacterId, Action callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.DeleteFriend(characterId, friendCharacterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            throw new NotImplementedException();
         }
-
-        public void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.DeleteOrRestore(unixTime, id);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void DeleteCharacter(uint id, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.DeleteCharacter(id);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetObjectInfoByName(string name, Action<ObjectInfo> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetObjectInfoByName(name);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
 
         public void RemoveAllFriends(uint characterId, Action callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.RemoveAllFriends(characterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            throw new NotImplementedException();
         }
 
         public void RenameCharacter(string currentName, string newName, Action<uint> callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RenameCharacter(currentName, newName);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+            throw new NotImplementedException();
         }
 
         public void SaveObject(AceObject aceObject, Action<bool> callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveObject(aceObject);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+            throw new NotImplementedException();
         }
 
         public void DeleteObject(AceObject aceObject, Action<bool> callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.DeleteObject(aceObject);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+            throw new NotImplementedException();
         }
 
-        public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
-                callback.Invoke(result);
-            }));
-        }
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SetCharacterAccessLevelByName(name, accessLevel);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
+            throw new NotImplementedException();
         }
 
         public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
         {
-            _queue.Add(new Task(() =>
-                {
-                    bool result = _wrappedDatabase.DeleteContract(contract);
-                    if (callback != null)
-                        callback.Invoke(result);
-            }));
-            return true;
+            throw new NotImplementedException();
         }
     }
 }

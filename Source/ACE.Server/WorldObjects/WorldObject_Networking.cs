@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -16,7 +19,7 @@ using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.WorldObjects
 {
-    partial class WorldObject
+    partial class WorldObject 
     {
         public PhysicsDescriptionFlag PhysicsDescriptionFlag => CalculatedPhysicsDescriptionFlag();
 
@@ -64,6 +67,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyDataId.Setup) ?? 0;
             set => SetProperty(PropertyDataId.Setup, value);
+        }
+
+        public Placement? Placement // Sometimes known as AnimationFrame
+        {
+            get => (Placement?)GetProperty(PropertyInt.Placement);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Placement); else SetProperty(PropertyInt.Placement, (int)value.Value); }
         }
 
         public WeenieHeaderFlag WeenieFlags => CalculatedWeenieHeaderFlag(); // todo remove this. Where it was used, replace with var weenieFlags = CalculatedWeenieHeaderFlag()
@@ -997,6 +1006,74 @@ namespace ACE.Server.WorldObjects
                 flag &= ~ObjectDescriptionFlag.WieldLeft;
 
             return flag;
+        }
+
+
+
+
+        /// <summary>
+        /// Records where the client thinks we are, for use by physics engine later
+        /// </summary>
+        /// <param name="newPosition"></param>
+        protected void PrepUpdatePosition(Position newPosition)
+        {
+            RequestedLocation = newPosition;
+        }
+
+        public void ClearRequestedPositions()
+        {
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+        /// <summary>
+        /// Used by physics engine to actually update the entities position
+        /// Automatically notifies clients of updated position
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void PhysicsUpdatePosition(Position newPosition)
+        {
+            Location = newPosition;
+            SendUpdatePosition();
+
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+        /// <summary>
+        /// Manages action/broadcast infrastructure
+        /// </summary>
+        /// <param name="parent"></param>
+        public void SetParent(IActor parent)
+        {
+            CurrentParent = parent;
+            actionQueue.RemoveParent();
+            actionQueue.SetParent(parent);
+        }
+
+        /// <summary>
+        /// Prepare new action to run on this object
+        /// </summary>
+        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        {
+            return actionQueue.EnqueueAction(action);
+        }
+
+        /// <summary>
+        /// Satisfies action interface
+        /// </summary>
+        /// <param name="node"></param>
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
+        }
+
+        /// <summary>
+        /// Runs all actions pending on this WorldObject
+        /// </summary>
+        public void RunActions()
+        {
+            actionQueue.RunActions();
         }
     }
 }

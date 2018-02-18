@@ -10,7 +10,7 @@ namespace ACE.Server.Tests
         [TestMethod]
         public void FiftyFiftyIsAccurate()
         {
-            var result = CreatureSkill.GetPercentSuccess(100, 100);
+            var result = CreatureSkillOld.GetPercentSuccess(100, 100);
             Assert.AreEqual(0.5d, result);
         }
     }

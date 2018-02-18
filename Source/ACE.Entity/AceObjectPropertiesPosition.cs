@@ -1,9 +1,9 @@
 using System;
 using ACE.Common;
-using MySql.Data.MySqlClient;
+
 namespace ACE.Entity
 {
-    [DbTable("ace_position")]
+    //[DbTable("ace_position")]
     public class AceObjectPropertiesPosition : BaseAceProperty, ICloneable
     {
         // private variables for things that mean "this changed".
@@ -18,7 +18,7 @@ namespace ACE.Entity
         private float _rotationY;
         private float _rotationZ;
         
-        [DbField("landblockRaw", (int)MySqlDbType.UInt32)]
+        //[DbField("landblockRaw", (int)MySqlDbType.UInt32)]
         public uint Cell
         {
             get { return _cell; }
@@ -29,13 +29,13 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("positionType", (int)MySqlDbType.UInt16, Update = false, IsCriteria = true)]
+        //[DbField("positionType", (int)MySqlDbType.UInt16, Update = false, IsCriteria = true)]
         public ushort DbPositionType { get; set; }
 
-        [DbField("positionId", (int)MySqlDbType.UInt32)]
+        //[DbField("positionId", (int)MySqlDbType.UInt32)]
         public uint PositionId { get; set; }
 
-        [DbField("posX", (int)MySqlDbType.Float)]
+        //[DbField("posX", (int)MySqlDbType.Float)]
         public float PositionX
         {
             get { return _positionX; }
@@ -46,7 +46,7 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("posY", (int)MySqlDbType.Float)]
+        //[DbField("posY", (int)MySqlDbType.Float)]
         public float PositionY
         {
             get { return _positionY; }
@@ -57,7 +57,7 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("posZ", (int)MySqlDbType.Float)]
+        //[DbField("posZ", (int)MySqlDbType.Float)]
         public float PositionZ
         {
             get { return _positionZ; }
@@ -68,7 +68,7 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("qW", (int)MySqlDbType.Float)]
+        //[DbField("qW", (int)MySqlDbType.Float)]
         public float RotationW
         {
             get { return _rotationW; }
@@ -79,7 +79,7 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("qX", (int)MySqlDbType.Float)]
+        //[DbField("qX", (int)MySqlDbType.Float)]
         public float RotationX
         {
             get { return _rotationX; }
@@ -90,7 +90,7 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("qY", (int)MySqlDbType.Float)]
+        //[DbField("qY", (int)MySqlDbType.Float)]
         public float RotationY
         {
             get { return _rotationY; }
@@ -101,7 +101,7 @@ namespace ACE.Entity
             }
         }
 
-        [DbField("qZ", (int)MySqlDbType.Float)]
+        //[DbField("qZ", (int)MySqlDbType.Float)]
         public float RotationZ
         {
             get { return _rotationZ; }

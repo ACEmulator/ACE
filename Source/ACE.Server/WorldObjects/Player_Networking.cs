@@ -5,10 +5,13 @@ using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.WorldObjects
@@ -132,6 +135,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void SendFriendStatusUpdates()
         {
+            return;// todo fix
             List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
 
             if (inverseFriends.Count > 0)
@@ -143,6 +147,84 @@ namespace ACE.Server.WorldObjects
                 foreach (var friendSession in inverseFriends)
                     friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
             }
+        }
+
+
+        public void Teleport(Position newPosition)
+        {
+            ActionChain chain = GetTeleportChain(newPosition);
+            chain.EnqueueChain();
+        }
+
+        private ActionChain GetTeleportChain(Position newPosition)
+        {
+            ActionChain teleportChain = new ActionChain();
+
+            teleportChain.AddAction(this, () => TeleportInternal(newPosition));
+
+            teleportChain.AddDelaySeconds(3);
+            // Once back in world we can start listening to the game's request for positions
+            teleportChain.AddAction(this, () => InWorld = true);
+
+            return teleportChain;
+        }
+
+        private void TeleportInternal(Position newPosition)
+        {
+            if (!InWorld)
+                return;
+
+            //Hidden = true;
+            //IgnoreCollision = true;
+            //ReportCollision = false;
+            EnqueueBroadcastPhysicsState();
+            ExternalUpdatePosition(newPosition);
+            InWorld = false;
+
+            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
+            CurrentLandblock.RemoveWorldObject(Guid, false);
+
+            lock (clientObjectList)
+                clientObjectList.Clear();
+        }
+
+
+        public void RequestUpdatePosition(Position pos)
+        {
+            ExternalUpdatePosition(pos);
+        }
+
+        public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
+        {
+            new ActionChain(this, () =>
+            {
+                // Update our current style
+                if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+                {
+                    MotionStance newStance = (MotionStance)md.CurrentStyle;
+
+                    if (newStance != stance)
+                        stance = (MotionStance)md.CurrentStyle;
+                }
+
+                md = md.ConvertToClientAccepted(holdKey, GetCreatureSkill(Skill.Run));
+                UniversalMotion newMotion = new UniversalMotion(stance, md);
+
+                // This is a hack to make walking work correctly.   Og II
+                if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
+                    newMotion.IsAutonomous = true;
+
+                // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
+                // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
+                newMotion.Commands.AddRange(commands);
+                CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
+            }).EnqueueChain();
+        }
+
+        private void ExternalUpdatePosition(Position newPosition)
+        {
+            if (InWorld)
+                PrepUpdatePosition(newPosition);
         }
     }
 }

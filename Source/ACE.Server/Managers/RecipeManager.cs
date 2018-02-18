@@ -10,11 +10,11 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Managers
 {
@@ -81,14 +81,15 @@ namespace ACE.Server.Managers
                     Skill skillId = (Skill)recipe.SkillId.Value;
 
                     // this shouldn't happen, but sanity check for unexpected nulls
-                    if (!player.Skills.ContainsKey(skillId))
+                    skill = player.GetCreatureSkill(skillId);
+
+                    if (skill == null)
                     {
                         log.Warn("Unexpectedly missing skill in Recipe usage");
                         player.SendUseDoneEvent();
                         return;
                     }
 
-                    skill = player.Skills[skillId];
                     percentSuccess = skill.GetPercentSuccess(recipe.SkillDifficulty.Value);
                 }
 
@@ -187,15 +188,15 @@ namespace ACE.Server.Managers
             // there's a skill associated with this
             Skill skillId = (Skill)recipe.SkillId.Value;
 
+            var skill = player.GetCreatureSkill(skillId);
+
             // this shouldn't happen, but sanity check for unexpected nulls
-            if (!player.Skills.ContainsKey(skillId))
+            if (skill == null)
             {
                 log.Warn("Unexpectedly missing skill in Recipe usage");
                 player.SendUseDoneEvent();
                 return;
             }
-
-            CreatureSkill skill = player.Skills[skillId];
 
             // at this point, we've validated that the target is a player, and the target is below max health
 
@@ -257,7 +258,7 @@ namespace ACE.Server.Managers
                     }
                 }
 
-                double percentSuccess = CreatureSkill.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
+                double percentSuccess = CreatureSkillOld.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
 
                 if (_random.NextDouble() <= percentSuccess)
                 {

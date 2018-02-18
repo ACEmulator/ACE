@@ -16,12 +16,4 @@
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj" />
   </ItemGroup>
 
-  <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
-    <ItemGroup>
-      <ReferencePath Condition="'%(FileName)' == 'MySql.Data'">
-        <Aliases>MySqlDataAlias</Aliases>
-      </ReferencePath>
-    </ItemGroup>
-  </Target>
-
 </Project>

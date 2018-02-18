@@ -308,8 +308,8 @@ namespace ACE.Server.Network.Handlers
                 else if (skillStatus == SkillStatus.Trained)
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
-                    player.GetSkillProperty(skill).LevelFromPP = 5;
-                    player.GetSkillProperty(skill).PP = 526;
+                    player.GetCreatureSkill(skill).Ranks = 5;
+                    player.GetCreatureSkill(skill).ExperienceSpent = 526;
                 }
                 else if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     player.UntrainSkill(skill, skillCost.TrainingCost);

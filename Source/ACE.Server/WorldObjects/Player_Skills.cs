@@ -5,10 +5,10 @@ using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -26,7 +26,8 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyInt.AvailableSkillCredits, value);
         }
 
-        public BiotaPropertiesSkill GetSkillProperty(Skill skill)
+
+        private BiotaPropertiesSkill GetSkillProperty(Skill skill)
         {
             var result = Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
 
@@ -39,6 +40,15 @@ namespace ACE.Server.WorldObjects
 
             return result;
         }
+
+        /// <summary>
+        /// This will create a CreatureSkill wrapper around the BiotaPropertiesSkill record cor this player.
+        /// </summary>
+        public CreatureSkill GetCreatureSkill(Skill skill)
+        {
+            return new CreatureSkill(this, skill);
+        }
+
 
         /// <summary>
         /// Sets the skill to trained status for a character
@@ -154,45 +164,32 @@ namespace ACE.Server.WorldObjects
         }
 
 
-
-
-
-
-
-
-        [Obsolete]
-        public Dictionary<Skill, CreatureSkill> Skills => AceObject.AceObjectPropertiesSkills;
-
         /// <summary>
         /// Spend xp Skill ranks
         /// </summary>
         public void SpendXp(Skill skill, uint amount)
         {
             uint baseValue = 0;
-            CreatureSkill creatureSkill = Skills[skill];
+
+            var creatureSkill = GetCreatureSkill(skill);
+
             uint result = SpendSkillXp(creatureSkill, amount);
 
-            uint ranks = creatureSkill.Ranks;
-            uint newValue = creatureSkill.UnbuffedValue;
-            var status = creatureSkill.Status;
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
-            var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, status, ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
             string messageText;
 
             if (result > 0u)
             {
                 // if the skill ranks out at the top of our xp chart
                 // then we will start fireworks effects and have special text!
-                if (IsSkillMaxRank(ranks, status))
+                if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.Status))
                 {
                     // fireworks on rank up is 0x8D
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {skill} is now {newValue} and has reached its upper limit!";
+                    messageText = $"Your base {skill} is now {creatureSkill.UnbuffedValue} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {skill} is now {newValue}!";
+                    messageText = $"Your base {skill} is now {creatureSkill.UnbuffedValue}!";
                 }
             }
             else
@@ -200,6 +197,9 @@ namespace ACE.Server.WorldObjects
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
 
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
+            var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result);
+            var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
         }
@@ -230,30 +230,30 @@ namespace ACE.Server.WorldObjects
             if (skill.Ranks >= (xpList.Count - 1))
                 return result;
 
-            uint rankUps = 0u;
+            ushort rankUps = 0;
             uint currentRankXp = xpList[Convert.ToInt32(skill.Ranks)];
             uint rank1 = xpList[Convert.ToInt32(skill.Ranks) + 1] - currentRankXp;
             uint rank10;
-            int rank10Offset = 0;
+            ushort rank10Offset = 0;
 
             if (skill.Ranks + 10 >= (xpList.Count))
             {
-                rank10Offset = 10 - (Convert.ToInt32(skill.Ranks + 10) - (xpList.Count - 1));
-                rank10 = xpList[Convert.ToInt32(skill.Ranks) + rank10Offset] - currentRankXp;
+                rank10Offset = (ushort)(10 - (skill.Ranks + 10) - (xpList.Count - 1));
+                rank10 = xpList[skill.Ranks + rank10Offset] - currentRankXp;
             }
             else
             {
-                rank10 = xpList[Convert.ToInt32(skill.Ranks) + 10] - currentRankXp;
+                rank10 = xpList[skill.Ranks + 10] - currentRankXp;
             }
 
             if (amount == rank1)
-                rankUps = 1u;
+                rankUps = 1;
             else if (amount == rank10)
             {
-                if (rank10Offset > 0u)
-                    rankUps = Convert.ToUInt32(rank10Offset);
+                if (rank10Offset > 0)
+                    rankUps = rank10Offset;
                 else
-                    rankUps = 10u;
+                    rankUps = 10;
             }
 
             if (rankUps > 0)
@@ -289,6 +289,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+
         private const uint magicSkillCheckMargin = 50;
 
         public bool CanReadScroll(MagicSchool school, uint power)
@@ -299,19 +300,19 @@ namespace ACE.Server.WorldObjects
             switch (school)
             {
                 case MagicSchool.CreatureEnchantment:
-                    creatureSkill = Skills[Skill.CreatureEnchantment];
+                    creatureSkill = GetCreatureSkill(Skill.CreatureEnchantment);
                     break;
                 case MagicSchool.WarMagic:
-                    creatureSkill = Skills[Skill.WarMagic];
+                    creatureSkill = GetCreatureSkill(Skill.WarMagic);
                     break;
                 case MagicSchool.ItemEnchantment:
-                    creatureSkill = Skills[Skill.ItemEnchantment];
+                    creatureSkill = GetCreatureSkill(Skill.ItemEnchantment);
                     break;
                 case MagicSchool.LifeMagic:
-                    creatureSkill = Skills[Skill.LifeMagic];
+                    creatureSkill = GetCreatureSkill(Skill.LifeMagic);
                     break;
                 case MagicSchool.VoidMagic:
-                    creatureSkill = Skills[Skill.VoidMagic];
+                    creatureSkill = GetCreatureSkill(Skill.VoidMagic);
                     break;
                 default:
                     // Undefined magic school, something bad happened.

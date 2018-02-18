@@ -33,10 +33,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="WorldObjects\Entity\" />
-  </ItemGroup>
-
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="copy &quot;$(ProjectDir)Config.json&quot; &quot;$(TargetDir)Config.json&quot;" />
   </Target>

@@ -1,12 +1,12 @@
 using System;
 using ACE.Common;
-using MySql.Data.MySqlClient;
+
 using Newtonsoft.Json;
 
 // ReSharper disable InconsistentNaming
 namespace ACE.Entity
 {
-    [DbTable("ace_object_properties_attribute2nd")]
+    //[DbTable("ace_object_properties_attribute2nd")]
     public class AceObjectPropertiesAttribute2nd : BaseAceProperty, ICloneable
     {
         private uint _xpSpent;
@@ -14,11 +14,11 @@ namespace ACE.Entity
         private uint _value;
 
         [JsonProperty("vitalId")]
-        [DbField("attribute2ndId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
+        //[DbField("attribute2ndId", (int)MySqlDbType.UInt16, IsCriteria = true, Update = false)]
         public ushort Attribute2ndId { get; set; }
 
         [JsonProperty("value")]
-        [DbField("attribute2ndValue", (int)MySqlDbType.UInt24)]
+        //[DbField("attribute2ndValue", (int)MySqlDbType.UInt24)]
         public uint Attribute2ndValue
         {
             get
@@ -33,7 +33,7 @@ namespace ACE.Entity
         }
 
         [JsonProperty("ranks")]
-        [DbField("attribute2ndRanks", (int)MySqlDbType.UInt16)]
+        //[DbField("attribute2ndRanks", (int)MySqlDbType.UInt16)]
         public ushort Attribute2ndRanks
         {
             get
@@ -48,7 +48,7 @@ namespace ACE.Entity
         }
 
         [JsonProperty("experienceSpent")]
-        [DbField("attribute2ndXpSpent", (int)MySqlDbType.UInt32)]
+        //[DbField("attribute2ndXpSpent", (int)MySqlDbType.UInt32)]
         public uint Attribute2ndXpSpent
         {
             get
