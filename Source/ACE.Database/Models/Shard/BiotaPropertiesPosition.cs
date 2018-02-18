@@ -9,7 +9,6 @@ namespace ACE.Database.Models.Shard
         public uint ObjectId { get; set; }
         public ushort PositionType { get; set; }
         public uint ObjCellId { get; set; }
-        public uint? Landblock { get; set; }
         public float OriginX { get; set; }
         public float OriginY { get; set; }
         public float OriginZ { get; set; }
