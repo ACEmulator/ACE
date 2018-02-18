@@ -535,7 +535,6 @@ CREATE TABLE `biota_properties_position` (
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
   `position_Type` smallint(5) unsigned NOT NULL COMMENT 'Type of Position the value applies to (PositionType.????)',
   `obj_Cell_Id` int(10) unsigned NOT NULL,
-  `landblock` int(5) unsigned GENERATED ALWAYS AS ((`obj_Cell_Id` >> 16)) VIRTUAL,
   `origin_X` float NOT NULL,
   `origin_Y` float NOT NULL,
   `origin_Z` float NOT NULL,
@@ -546,7 +545,6 @@ CREATE TABLE `biota_properties_position` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   KEY `wcid_position_idx` (`object_Id`),
-  KEY `landblock_idx` (`landblock`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;

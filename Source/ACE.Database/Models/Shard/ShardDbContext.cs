@@ -1043,9 +1043,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_position");
 
-                entity.HasIndex(e => e.Landblock)
-                    .HasName("landblock_idx");
-
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_position_idx");
 
@@ -1062,8 +1059,6 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.AnglesY).HasColumnName("angles_Y");
 
                 entity.Property(e => e.AnglesZ).HasColumnName("angles_Z");
-
-                entity.Property(e => e.Landblock).HasColumnName("landblock");
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
