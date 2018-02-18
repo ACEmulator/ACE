@@ -174,7 +174,7 @@ namespace ACE.Server.WorldObjects
                 //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
-                this.Character.SpendXp(amount);
+                Character.SpendXp(amount);
                 result = ability.ExperienceSpent;
             }
 

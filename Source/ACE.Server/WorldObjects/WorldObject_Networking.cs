@@ -26,18 +26,8 @@ namespace ACE.Server.WorldObjects
 
         public virtual Position Location
         {
-            get => AceObject.Location;
-            set
-            {
-                /*
-                log.Debug($"{Name} moved to {Position}");
-
-                Position = value;
-                */
-                if (AceObject.Location != null)
-                    LastUpdatedTicks = WorldManager.PortalYearTicks;
-                AceObject.Location = value;
-            }
+            get => GetPosition(PositionType.Location);
+            set => SetPosition(PositionType.Location, value);
         }
 
         /// <summary>
@@ -76,11 +66,11 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyDataId.Setup, value);
         }
 
-        public WeenieHeaderFlag WeenieFlags => CalculatedWeenieHeaderFlag();
+        public WeenieHeaderFlag WeenieFlags => CalculatedWeenieHeaderFlag(); // todo remove this. Where it was used, replace with var weenieFlags = CalculatedWeenieHeaderFlag()
 
-        public WeenieHeaderFlag2 WeenieFlags2 => CalculatedWeenieHeaderFlag2();
+        public WeenieHeaderFlag2 WeenieFlags2 => CalculatedWeenieHeaderFlag2(); // todo same as above
 
-        public ObjectDescriptionFlag DescriptionFlags => CalculatedDescriptionFlag();
+        public ObjectDescriptionFlag DescriptionFlags => CalculatedDescriptionFlag(); // todo same as above
 
 
         public virtual void SerializeCreateObject(BinaryWriter writer)
@@ -550,7 +540,7 @@ namespace ACE.Server.WorldObjects
 
             var movementData = CurrentMotionState?.GetPayload(Guid, Sequences);
 
-            if (CurrentMotionState != null && movementData.Length > 0)
+            if (movementData != null && movementData.Length > 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
             if (GetProperty(PropertyInt.Placement) != null)
@@ -817,9 +807,8 @@ namespace ACE.Server.WorldObjects
             if ((physicsScriptDID != null) && (physicsScriptDID != 0u))
                 weenieHeaderFlag |= WeenieHeaderFlag.PScript;
 
-            //TODO: Ask Mag how to handle this property
-            //if ((Workmanship != null) && (uint?)Workmanship != 0u)
-            //    weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
+            if ((Workmanship != null) && (uint?)Workmanship != 0u)
+                weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
             var encumbranceValInt = GetProperty(PropertyInt.EncumbranceVal);
             if (encumbranceValInt != null)
@@ -890,7 +879,7 @@ namespace ACE.Server.WorldObjects
             // TODO: More uncommentting and wiring up for other flags
             ////None                   = 0x00000000,
             ////Openable               = 0x00000001,
-            if (Biota.WeenieType == (int)WeenieType.Container || Biota.WeenieType == (int)WeenieType.Corpse || Biota.WeenieType == (int)WeenieType.Chest)
+            if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest)
             {
                 if (!((GetProperty(PropertyBool.Locked) ?? false) && (GetProperty(PropertyBool.Open) ?? false)))
                     flag |= ObjectDescriptionFlag.Openable;

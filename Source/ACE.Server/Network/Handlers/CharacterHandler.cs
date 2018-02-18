@@ -466,8 +466,7 @@ namespace ACE.Server.Network.Handlers
 
         public static void CharacterCreateSetDefaultCharacterPositions(Player player, uint startArea)
         {
-            AceCharacter character = new AceCharacter(0); // temp
-            character.Location = CharacterPositionExtensions.StartingPosition(startArea);
+            player.Location = CharacterPositionExtensions.StartingPosition(startArea);
         }
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")

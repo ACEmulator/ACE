@@ -262,6 +262,24 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
         }
 
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        private void SendFriendStatusUpdates()
+        {
+            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
+
+            if (inverseFriends.Count > 0)
+            {
+                Friend playerFriend = new Friend();
+                playerFriend.Id = Guid;
+                playerFriend.Name = Name;
+
+                foreach (var friendSession in inverseFriends)
+                    friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+            }
+        }
+
 
 
 
@@ -1192,24 +1210,7 @@ namespace ACE.Server.WorldObjects
         }
 
    
-        /// <summary>
-        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
-        /// </summary>
-        private void SendFriendStatusUpdates()
-        {
-            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
 
-            if (inverseFriends.Count > 0)
-            {
-                Friend playerFriend = new Friend();
-                playerFriend.Id = Guid;
-                playerFriend.Name = Name;
-                foreach (var friendSession in inverseFriends)
-                {
-                    friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
-                }
-            }
-        }
 
         /// <summary>
         /// Adds a friend and updates the database.
