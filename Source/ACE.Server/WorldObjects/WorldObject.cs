@@ -48,7 +48,6 @@ namespace ACE.Server.WorldObjects
         public Biota Biota { get; }
 
         /// <summary>
-        /// You should only set this once, after initial object creation. Changing this value a 2nd time will most likely cause the end of days.
         /// This is just a wrapper around Biota.Id
         /// </summary>
         public ObjectGuid Guid => new ObjectGuid(Biota.Id);
@@ -534,43 +533,46 @@ namespace ACE.Server.WorldObjects
 
         [Obsolete]
         protected AceObject AceObject { get; set; }
-
+        [Obsolete]
         protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
 
 
-
+        [Obsolete]
         protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
 
         // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
+        [Obsolete]
         protected internal Dictionary<ObjectGuid, AceObject> WieldedItems => AceObject.WieldedItems;
 
         // we need to expose this read only for examine to work. Og II
+        [Obsolete]
         public List<AceObjectPropertiesInt> PropertiesInt => AceObject.IntProperties;
-
+        [Obsolete]
         public List<AceObjectPropertiesInt64> PropertiesInt64 => AceObject.Int64Properties;
-
+        [Obsolete]
         public List<AceObjectPropertiesBool> PropertiesBool => AceObject.BoolProperties;
-
+        [Obsolete]
         public List<AceObjectPropertiesString> PropertiesString => AceObject.StringProperties;
-
+        [Obsolete]
         public List<AceObjectPropertiesDouble> PropertiesDouble => AceObject.DoubleProperties;
-
+        [Obsolete]
         public List<AceObjectPropertiesDataId> PropertiesDid => AceObject.DataIdProperties;
-
+        [Obsolete]
         public List<AceObjectPropertiesInstanceId> PropertiesIid => AceObject.InstanceIdProperties;
-
+        [Obsolete]
         public List<AceObjectPropertiesSpell> PropertiesSpellId => AceObject.SpellIdProperties;
-
+        [Obsolete]
         public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook => AceObject.BookProperties;
 
-
+        [Obsolete]
         private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
-
+        [Obsolete]
         private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
-
+        [Obsolete]
         private readonly List<Model> models = new List<Model>();
 
         // subpalettes
+        [Obsolete]
         public List<ModelPalette> GetPalettes => modelPalettes.ToList();
 
         public void AddPalette(uint paletteId, ushort offset, ushort length)
@@ -1269,133 +1271,6 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
-
-        private WeenieHeaderFlag SetWeenieHeaderFlag()
-        {
-            WeenieHeaderFlag weenieHeaderFlag = WeenieHeaderFlag.None;
-            if (NamePlural != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
-
-            if (ItemCapacity != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.ItemsCapacity;
-
-            if (ContainerCapacity != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.ContainersCapacity;
-
-            if (AmmoType != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.AmmoType;
-
-            if (Value != null && (Value > 0))
-                weenieHeaderFlag |= WeenieHeaderFlag.Value;
-
-            if (Usable != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Usable;
-
-            if (UseRadius != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.UseRadius;
-
-            if (TargetType != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.TargetType;
-
-            if (UiEffects != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.UiEffects;
-
-            if (CombatUse != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.CombatUse;
-
-            if (Structure != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Structure;
-
-            if (MaxStructure != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.MaxStructure;
-
-            if (StackSize != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.StackSize;
-
-            if (MaxStackSize != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.MaxStackSize;
-
-            if (ContainerId != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Container;
-
-            if (WielderId != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Wielder;
-
-            if (ValidLocations != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
-
-            // You can't be in a wielded location if you don't have a wielder.   This is a gurad against crap data. Og II
-            if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (WielderId != null) && (WielderId != 0))
-                weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
-
-            if (Priority != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Priority;
-
-            if (RadarColor != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.RadarBlipColor;
-
-            if (RadarBehavior != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.RadarBehavior;
-
-            if ((Script != null) && (Script != 0u))
-                weenieHeaderFlag |= WeenieHeaderFlag.PScript;
-
-            if ((Workmanship != null) && (uint?)Workmanship != 0u)
-                weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
-
-            if (Burden != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Burden;
-
-            if ((Spell != null) && (Spell != 0))
-                weenieHeaderFlag |= WeenieHeaderFlag.Spell;
-
-            if (HouseOwner != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
-
-            if (HouseRestrictions != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
-
-            if (HookItemType != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.HookItemTypes;
-
-            if (Monarch != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.Monarch;
-
-            if (HookType != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.HookType;
-
-            if ((IconOverlayId != null) && (IconOverlayId != 0))
-                weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
-
-            if (MaterialType != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.MaterialType;
-
-            SetWeenieHeaderFlag2();
-
-            return weenieHeaderFlag;
-        }
-
-        private WeenieHeaderFlag2 SetWeenieHeaderFlag2()
-        {
-            var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
-
-            if ((IconUnderlayId != null) && (IconUnderlayId != 0))
-                weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
-
-            if ((CooldownId != null) && (CooldownId != 0))
-                weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
-
-            if ((CooldownDuration != null) && Math.Abs((float)CooldownDuration) >= 0.001)
-                weenieHeaderFlag2 |= WeenieHeaderFlag2.CooldownDuration;
-
-            if ((PetOwner != null) && (PetOwner != 0))
-                weenieHeaderFlag2 |= WeenieHeaderFlag2.PetOwner;
-
-            return weenieHeaderFlag2;
-        }
-
- 
- 
 
         public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
         {

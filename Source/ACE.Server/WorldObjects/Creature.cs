@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -18,14 +16,13 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Creature : Container
+    public partial class Creature : Container
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        public readonly Dictionary<Ability, Entity.CreatureVital> Vitals = new Dictionary<Ability, Entity.CreatureVital>();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -45,9 +42,19 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            Vitals[Ability.Health] = new Entity.CreatureVital(this, Ability.Health);
-            Vitals[Ability.Stamina] = new Entity.CreatureVital(this, Ability.Stamina);
-            Vitals[Ability.Mana] = new Entity.CreatureVital(this, Ability.Mana);
+            Vitals[Ability.Health] = new CreatureVital(this, Ability.Health);
+            Vitals[Ability.Stamina] = new CreatureVital(this, Ability.Stamina);
+            Vitals[Ability.Mana] = new CreatureVital(this, Ability.Mana);
+
+            Attributes[Ability.Strength] = new CreatureAttribute(this, Ability.Strength);
+            Attributes[Ability.Endurance] = new CreatureAttribute(this, Ability.Endurance);
+            Attributes[Ability.Coordination] = new CreatureAttribute(this, Ability.Coordination);
+            Attributes[Ability.Quickness] = new CreatureAttribute(this, Ability.Quickness);
+            Attributes[Ability.Focus] = new CreatureAttribute(this, Ability.Focus);
+            Attributes[Ability.Self] = new CreatureAttribute(this, Ability.Self);
+
+            foreach (var skillProperty in Biota.BiotaPropertiesSkill)
+                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, (Skill)skillProperty.Type);
         }
 
 
@@ -70,66 +77,15 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-        public CreatureAbilityOld Strength
-        {
-            get => AceObject.StrengthAbility;
-            set { AceObject.StrengthAbility = value; }
-        }
 
         public CombatMode CombatMode { get; private set; }
 
         public AceObject AceCorpse => AceObject;
 
-        public CreatureAbilityOld Endurance
-        {
-            get => AceObject.EnduranceAbility;
-            set { AceObject.EnduranceAbility = value; }
-        }
 
-        public CreatureAbilityOld Coordination
-        {
-            get => AceObject.CoordinationAbility;
-            set { AceObject.CoordinationAbility = value; }
-        }
 
-        public CreatureAbilityOld Quickness
-        {
-            get => AceObject.QuicknessAbility;
-            set { AceObject.QuicknessAbility = value; }
-        }
 
-        public CreatureAbilityOld Focus
-        {
-            get => AceObject.FocusAbility;
-            set { AceObject.FocusAbility = value; }
-        }
 
-        public CreatureAbilityOld Self
-        {
-            get => AceObject.SelfAbility;
-            set { AceObject.SelfAbility = value; }
-        }
-
-        public CreatureVitalOld Health
-        {
-            get => AceObject.Health;
-            set { AceObject.Health = value; }
-        }
-
-        public CreatureVitalOld Stamina
-        {
-            get => AceObject.Stamina;
-            set { AceObject.Stamina = value; }
-        }
-
-        public CreatureVitalOld Mana
-        {
-            get => AceObject.Mana;
-            set { AceObject.Mana = value; }
-        }
-
-        public Dictionary<Ability, CreatureVitalOld> VitalsOld => AceObject.AceObjectPropertiesAttributes2nd;
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
@@ -138,21 +94,7 @@ namespace ACE.Server.WorldObjects
 
         public double RespawnTime { get; set; }
 
-        protected void SetupVitals()
-        {
-            if (Health.Current != Health.MaxValue)
-            {
-                VitalTick(Health);
-            }
-            if (Stamina.Current != Stamina.MaxValue)
-            {
-                VitalTick(Stamina);
-            }
-            if (Mana.Current != Mana.MaxValue)
-            {
-                VitalTick(Mana);
-            }
-        }
+
 
         public virtual void DoOnKill(Session killerSession)
         {
@@ -230,66 +172,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /// <summary>
-        /// Updates a vital, returns true if vital is now &lt; max
-        /// </summary>
-        public void UpdateVital(CreatureVitalOld vital, uint newVal)
-        {
-            EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
-        }
 
-        public void DeltaVital(CreatureVitalOld vital, long delta)
-        {
-            EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
-        }
-
-        private void DeltaVitalInternal(CreatureVitalOld vital, long delta)
-        {
-            uint absVal;
-
-            if (delta < 0 && Math.Abs(delta) > vital.Current)
-            {
-                absVal = (uint)(-1 * vital.Current);
-            }
-            else if (delta + vital.Current > vital.MaxValue)
-            {
-                absVal = vital.MaxValue - vital.Current;
-            }
-            else
-            {
-                absVal = (uint)(vital.Current + delta);
-            }
-
-            UpdateVitalInternal(vital, absVal);
-        }
-
-        private void VitalTick(CreatureVitalOld vital)
-        {
-            double tickTime = vital.NextTickTime;
-            if (double.IsNegativeInfinity(tickTime))
-            {
-                tickTime = vital.RegenRate;
-            }
-            else
-            {
-                tickTime -= WorldManager.PortalYearTicks;
-            }
-
-            // Set up our next tick
-            ActionChain tickChain = new ActionChain();
-            tickChain.AddDelayTicks(tickTime);
-            tickChain.AddAction(this, () => VitalTickInternal(vital));
-            tickChain.EnqueueChain();
-        }
-
-        protected virtual void VitalTickInternal(CreatureVitalOld vital)
-        {
-            vital.Tick(WorldManager.PortalYearTicks);
-            if (vital.Current != vital.MaxValue)
-            {
-                VitalTick(vital);
-            }
-        }
 
         /// <summary>
         /// This method checks to make sure we have a casting device equipped and if so, it sets
@@ -602,24 +485,7 @@ namespace ACE.Server.WorldObjects
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, updateMotion);
         }
 
-        protected virtual void UpdateVitalInternal(CreatureVitalOld vital, uint newVal)
-        {
-            uint old = vital.Current;
 
-            if (newVal > vital.MaxValue)
-            {
-                newVal = (vital.MaxValue - vital.Current);
-            }
-
-            vital.Current = newVal;
-
-            // Check for amount
-            if (old == vital.MaxValue && vital.Current != vital.MaxValue)
-            {
-                // Start up a vital ticker
-                new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
-            }
-        }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
@@ -657,14 +523,14 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
-                writer.Write(obj.Strength.UnbuffedValue);
-                writer.Write(obj.Endurance.UnbuffedValue);
-                writer.Write(obj.Quickness.UnbuffedValue);
-                writer.Write(obj.Coordination.UnbuffedValue);
-                writer.Write(obj.Focus.UnbuffedValue);
-                writer.Write(obj.Self.UnbuffedValue);
-                writer.Write(obj.Stamina.UnbuffedValue);
-                writer.Write(obj.Mana.UnbuffedValue);
+                writer.Write(obj.Strength.Base);
+                writer.Write(obj.Endurance.Base);
+                writer.Write(obj.Quickness.Base);
+                writer.Write(obj.Coordination.Base);
+                writer.Write(obj.Focus.Base);
+                writer.Write(obj.Self.Base);
+                writer.Write(obj.Stamina.Base);
+                writer.Write(obj.Mana.Base);
                 writer.Write(obj.Stamina.MaxValue);
                 writer.Write(obj.Mana.MaxValue);
                 // this only gets sent if the header can be masked with 1

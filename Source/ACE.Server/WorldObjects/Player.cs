@@ -26,7 +26,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
-
+using ACE.Server.WorldObjects.Entity;
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using Position = ACE.Entity.Position;
 
@@ -221,6 +221,30 @@ namespace ACE.Server.WorldObjects
 
 
 
+
+        public bool IsAdmin
+        {
+            get => GetProperty(PropertyBool.IsAdmin) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsAdmin); else SetProperty(PropertyBool.IsAdmin, value); }
+        }
+
+        public bool IsEnvoy
+        {
+            get => GetProperty(PropertyBool.IsSentinel) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
+        }
+
+        public bool IsArch
+        {
+            get => GetProperty(PropertyBool.IsArch) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsArch); else SetProperty(PropertyBool.IsArch, value); }
+        }
+
+        public bool IsPsr
+        {
+            get => GetProperty(PropertyBool.IsPsr) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsPsr); else SetProperty(PropertyBool.IsPsr, value); }
+        }
 
 
 
@@ -523,30 +547,6 @@ namespace ACE.Server.WorldObjects
         public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => Character.CharacterOptions;
 
         public ReadOnlyCollection<Friend> Friends => Character.Friends;
-
-        public bool IsAdmin
-        {
-            get => Character.IsAdmin;
-            set { Character.IsAdmin = value; }
-        }
-
-        public bool IsEnvoy
-        {
-            get => Character.IsEnvoy;
-            set { Character.IsEnvoy = value; }
-        }
-
-        public bool IsArch
-        {
-            get => Character.IsArch;
-            set { Character.IsArch = value; }
-        }
-
-        public bool IsPsr
-        {
-            get => Character.IsPsr;
-            set { Character.IsPsr = value; }
-        }
 
         public int TotalLogins
         {
@@ -2823,7 +2823,7 @@ namespace ACE.Server.WorldObjects
         }
 
         // FIXME(ddevec): Copy pasted code for prototyping -- clean later
-        protected override void VitalTickInternal(CreatureVitalOld vital)
+        protected override void VitalTickInternal(CreatureVital vital)
         {
             uint oldValue = vital.Current;
             base.VitalTickInternal(vital);
@@ -2854,7 +2854,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        protected override void UpdateVitalInternal(CreatureVitalOld vital, uint newVal)
+        protected override void UpdateVitalInternal(CreatureVital vital, uint newVal)
         {
             uint oldValue = vital.Current;
             base.UpdateVitalInternal(vital, newVal);
@@ -2987,7 +2987,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyComsumable(string consumableName, global::ACE.Entity.Enum.Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public void ApplyComsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
             GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
@@ -3013,7 +3013,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                CreatureVitalOld creatureVital;
+                CreatureVital creatureVital;
                 string vitalName;
 
                 // Null check for safety

@@ -11,7 +11,7 @@ using ACE.Entity.Enum;
 namespace ACE.Entity
 {
     //[DbTable("ace_object")]
-    public class AceObject : ICreatureStats, ICloneable, IDirty
+    public class AceObject : ICloneable, IDirty
     {
         public const uint WEENIE_MAX = 199999;
 
@@ -145,86 +145,6 @@ namespace ACE.Entity
             }
         }
 
-        [JsonIgnore]
-        public CreatureAbilityOld StrengthAbility
-        {
-            get { return GetAttributeProperty(Ability.Strength); }
-            set { SetAttributeProperty(Ability.Strength, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureAbilityOld EnduranceAbility
-        {
-            get { return GetAttributeProperty(Ability.Endurance); }
-            set { SetAttributeProperty(Ability.Endurance, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureAbilityOld CoordinationAbility
-        {
-            get { return GetAttributeProperty(Ability.Coordination); }
-            set { SetAttributeProperty(Ability.Coordination, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureAbilityOld QuicknessAbility
-        {
-            get { return GetAttributeProperty(Ability.Quickness); }
-            set { SetAttributeProperty(Ability.Quickness, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureAbilityOld FocusAbility
-        {
-            get { return GetAttributeProperty(Ability.Focus); }
-            set { SetAttributeProperty(Ability.Focus, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureAbilityOld SelfAbility
-        {
-            get { return GetAttributeProperty(Ability.Self); }
-            set { SetAttributeProperty(Ability.Self, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureVitalOld Health
-        {
-            get { return GetAttribute2ndProperty(Ability.Health); }
-            set { SetAttribute2ndProperty(Ability.Health, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureVitalOld Stamina
-        {
-            get { return GetAttribute2ndProperty(Ability.Stamina); }
-            set { SetAttribute2ndProperty(Ability.Stamina, value); }
-        }
-
-        [JsonIgnore]
-        public CreatureVitalOld Mana
-        {
-            get { return GetAttribute2ndProperty(Ability.Mana); }
-            set { SetAttribute2ndProperty(Ability.Mana, value); }
-        }
-
-        [JsonIgnore]
-        public uint Strength { get { return StrengthAbility.MaxValue; } }
-
-        [JsonIgnore]
-        public uint Endurance { get { return EnduranceAbility.MaxValue; } }
-
-        [JsonIgnore]
-        public uint Coordination { get { return CoordinationAbility.MaxValue; } }
-
-        [JsonIgnore]
-        public uint Quickness { get { return QuicknessAbility.MaxValue; } }
-
-        [JsonIgnore]
-        public uint Focus { get { return FocusAbility.MaxValue; } }
-
-        [JsonIgnore]
-        public uint Self { get { return SelfAbility.MaxValue; } }
 
         [JsonIgnore]
         public uint? SetupDID
@@ -1823,18 +1743,7 @@ namespace ACE.Entity
             }
         }
 
-        protected CreatureAbilityOld GetAttributeProperty(Ability ability)
-        {
-            bool success = AceObjectPropertiesAttributes.TryGetValue(ability, out var ret);
 
-            if (!success || ret == null)
-            {
-                ret = new CreatureAbilityOld(ability);
-                AceObjectPropertiesAttributes.Add(ability, ret);
-            }
-
-            return ret;
-        }
 
         private void SetProperty<K, V>(Dictionary<K, V> dict, K key, V value)
         {
@@ -1854,30 +1763,9 @@ namespace ACE.Entity
             }
         }
 
-        protected void SetAttributeProperty(Ability ability, CreatureAbilityOld value)
-        {
-            SetProperty(AceObjectPropertiesAttributes, ability, value);
-        }
 
-        protected CreatureVitalOld GetAttribute2ndProperty(Ability ability)
-        {
-            bool success = AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var ret);
 
-            if (!success || ret == null)
-            {
-                ret = new CreatureVitalOld(this, ability, ability.GetRegenRate());
-                AceObjectPropertiesAttributes2nd.Add(ability, ret);
-            }
-
-            return ret;
-        }
-
-        protected void SetAttribute2ndProperty(Ability ability, CreatureVitalOld value)
-        {
-            SetProperty(AceObjectPropertiesAttributes2nd, ability, value);
-        }
-
-        public CreatureSkillOld GetSkillProperty(Skill skill)
+        /*public CreatureSkillOld GetSkillProperty(Skill skill)
         {
             bool success = AceObjectPropertiesSkills.TryGetValue(skill, out var ret);
 
@@ -1898,7 +1786,7 @@ namespace ACE.Entity
         public List<CreatureSkillOld> GetSkills()
         {
             return AceObjectPropertiesSkills.Values.ToList();
-        }
+        }*/
 
         public int? GetProperty(PropertyInt property)
         {
@@ -2105,15 +1993,10 @@ namespace ACE.Entity
         [JsonProperty("generatorProfiles")]
         public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
-        [JsonProperty("abilities")]
-        public Dictionary<Ability, CreatureAbilityOld> AceObjectPropertiesAttributes { get; set; } = new Dictionary<Ability, CreatureAbilityOld>();
 
-        // ReSharper disable once InconsistentNaming
-        [JsonProperty("vitals")]
-        public Dictionary<Ability, CreatureVitalOld> AceObjectPropertiesAttributes2nd { get; set; } = new Dictionary<Ability, CreatureVitalOld>();
 
-        [JsonProperty("skills")]
-        public Dictionary<Skill, CreatureSkillOld> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkillOld>();
+        //[JsonProperty("skills")]
+        //public Dictionary<Skill, CreatureSkillOld> AceObjectPropertiesSkills { get; set; } = new Dictionary<Skill, CreatureSkillOld>();
 
         [JsonProperty("positions")]
         public Dictionary<PositionType, Position> AceObjectPropertiesPositions { get; set; } = new Dictionary<PositionType, Position>();
@@ -2170,9 +2053,9 @@ namespace ACE.Entity
                 StringProperties = CloneList(StringProperties),
                 GeneratorProfiles = CloneList(GeneratorProfiles),
                 CreateList = CloneList(CreateList),
-                AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
-                AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
-                AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
+                //AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
+                //AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
+                //AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
                 AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
                 SpellIdProperties = CloneList(SpellIdProperties),
                 SpellsInSpellBars = CloneList(SpellsInSpellBars),
@@ -2221,9 +2104,9 @@ namespace ACE.Entity
             this.IsDirty = false;
             this.HasEverBeenSavedToDatabase = true;
 
-            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
-            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            //this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            //this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.ClearDirtyFlags());
+            //this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
             this.IntProperties.ForEach(x => x.ClearDirtyFlags());
             this.Int64Properties.ForEach(x => x.ClearDirtyFlags());
             this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
@@ -2240,9 +2123,9 @@ namespace ACE.Entity
             this.IsDirty = true;
             this.HasEverBeenSavedToDatabase = false;
 
-            this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.SetDirtyFlags());
-            this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.SetDirtyFlags());
-            this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            //this.AceObjectPropertiesAttributes.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            //this.AceObjectPropertiesAttributes2nd.Values.ToList().ForEach(x => x.SetDirtyFlags());
+            //this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.SetDirtyFlags());
             this.IntProperties.ForEach(x => x.SetDirtyFlags());
             this.Int64Properties.ForEach(x => x.SetDirtyFlags());
             this.DoubleProperties.ForEach(x => x.SetDirtyFlags());

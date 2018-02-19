@@ -36,6 +36,7 @@ namespace ACE.Server.WorldObjects
 
         public void SpendXp(Ability ability, uint amount)
         {
+            /* todo fix for EF version
             bool isSecondary = false;
             ICreatureXpSpendableStat creatureStat;
 
@@ -59,10 +60,10 @@ namespace ACE.Server.WorldObjects
                 isSecondary = true;
             }
 
-            uint baseValue = creatureStat.Base;
+            uint baseValue = creatureStat.StartingValue;
             uint result = SpendAbilityXp(creatureStat, amount);
             uint ranks = creatureStat.Ranks;
-            uint newValue = creatureStat.UnbuffedValue;
+            uint newValue = creatureStat.Base;
 
             if (result > 0u)
             {
@@ -95,12 +96,12 @@ namespace ACE.Server.WorldObjects
                 // Needed when increasing health and endurance.
                 if (ability == Ability.Endurance)
                 {
-                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.Base, Health.ExperienceSpent, Health.Current);
+                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
                     Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, healthUpdate);
                 }
                 else if (ability == Ability.Self)
                 {
-                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.Base, Mana.ExperienceSpent, Mana.Current);
+                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
                     Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, manaUpdate);
                 }
                 else
@@ -111,7 +112,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
-            }
+            }*/
         }
 
 
@@ -119,7 +120,7 @@ namespace ACE.Server.WorldObjects
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
+        /*private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
         {
             uint result = 0;
 
@@ -179,7 +180,7 @@ namespace ACE.Server.WorldObjects
             }
 
             return result;
-        }
+        }*/
 
         /// <summary>
         /// Check a rank against the ability charts too determine if the skill is at max

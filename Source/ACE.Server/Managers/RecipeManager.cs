@@ -220,7 +220,8 @@ namespace ACE.Server.Managers
             {
                 // TODO: revalidate range if other player (they could have moved)
 
-                double difficulty = 2 * (targetPlayer.VitalsOld[vital].MaxValue - targetPlayer.VitalsOld[vital].Current);
+                double difficulty = 2 * (targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current);
+
                 if (difficulty <= 0)
                 {
                     // target is at max (or higher?) health, do nothing
@@ -240,7 +241,7 @@ namespace ACE.Server.Managers
                 int boost = source.Boost ?? 0;
                 double multiplier = source.HealkitMod ?? 1;
 
-                double playerSkill = skill.ActiveValue + boost;
+                double playerSkill = skill.Current + boost;
                 if (skill.Status == SkillStatus.Trained)
                     playerSkill *= 1.1;
                 else if (skill.Status == SkillStatus.Specialized)
@@ -258,7 +259,7 @@ namespace ACE.Server.Managers
                     }
                 }
 
-                double percentSuccess = CreatureSkillOld.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
+                double percentSuccess = CreatureSkill.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
 
                 if (_random.NextDouble() <= percentSuccess)
                 {
@@ -271,22 +272,22 @@ namespace ACE.Server.Managers
                     }
 
                     // calculate amount restored
-                    uint maxRestore = targetPlayer.VitalsOld[vital].MaxValue - targetPlayer.VitalsOld[vital].Current;
+                    uint maxRestore = targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current;
 
                     // TODO: get actual forumula for healing.  this is COMPLETELY wrong.  this is 60 + random(1-60).
                     double amountRestored = 60d + _random.Next(1, 61);
                     amountRestored *= multiplier;
 
                     uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
-                    targetPlayer.VitalsOld[vital].Current += actualRestored;
+                    targetPlayer.Vitals[vital].Current += actualRestored;
                     
-                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.VitalsOld[vital].Current);
+                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
                     player.Session.Network.EnqueueSend(updateVital);
 
                     if (targetPlayer.Guid != player.Guid)
                     {
                         // tell the other player they got healed
-                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.VitalsOld[vital].Current);
+                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
                         targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
                     }
 

@@ -24,39 +24,7 @@ namespace ACE.Server.WorldObjects.Entity
         public SkillStatus Status
         {
             get => (SkillStatus)biotaPropertiesSkill.SAC;
-            protected set => biotaPropertiesSkill.SAC = (uint)value;
-        }
-
-        public ushort Ranks
-        {
-            get => biotaPropertiesSkill.LevelFromPP;
-            set => biotaPropertiesSkill.LevelFromPP = value;
-        }
-
-        public uint UnbuffedValue
-        {
-            get
-            {
-                // TODO: buffs? Augs? not sure where they will go
-                var formula = Skill.GetFormula();
-
-                uint skillTotal = 0;
-
-                if (formula != null)
-                {
-                    if ((Status == SkillStatus.Untrained && Skill.GetUsability().UsableUntrained) ||
-                        Status == SkillStatus.Trained ||
-                        Status == SkillStatus.Specialized)
-                    {
-                        throw new NotImplementedException(); // todo fix for new EF model
-                        //skillTotal = formula.CalcBase(creature);
-                    }
-                }
-
-                skillTotal += Ranks;
-
-                return skillTotal;
-            }
+            set => biotaPropertiesSkill.SAC = (uint)value;
         }
 
         public uint ExperienceSpent
@@ -65,18 +33,59 @@ namespace ACE.Server.WorldObjects.Entity
             set => biotaPropertiesSkill.PP = value;
         }
 
-        public uint ActiveValue
+        public ushort Ranks
+        {
+            get => biotaPropertiesSkill.LevelFromPP;
+            set => biotaPropertiesSkill.LevelFromPP = value;
+        }
+
+        public uint Base
         {
             get
             {
-                // FIXME(ddevec) -- buffs?:
-                return UnbuffedValue;
+                var formula = Skill.GetFormula();
+
+                uint total = 0;
+
+                if (formula != null)
+                {
+                    if ((Status == SkillStatus.Untrained && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
+                        total = formula.CalcBase(creature.Strength.Base, creature.Endurance.Base, creature.Coordination.Base, creature.Quickness.Base, creature.Focus.Base, creature.Self.Base);
+                }
+
+                total += Ranks;
+
+                // TODO: augs
+
+                return total;
+            }
+        }
+
+        public uint Current
+        {
+            get
+            {
+                var formula = Skill.GetFormula();
+
+                uint total = 0;
+
+                if (formula != null)
+                {
+                    if ((Status == SkillStatus.Untrained && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
+                        total = formula.CalcBase(creature.Strength.Current, creature.Endurance.Current, creature.Coordination.Current, creature.Quickness.Current, creature.Focus.Current, creature.Self.Current);
+                }
+
+                total += Ranks;
+
+                // TODO: augs + buffs
+
+                return total;
             }
         }
 
         public double GetPercentSuccess(uint difficulty)
         {
-            return GetPercentSuccess(ActiveValue, difficulty);
+            return GetPercentSuccess(Current, difficulty);
         }
 
         public static double GetPercentSuccess(uint skillLevel, uint difficulty)
