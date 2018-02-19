@@ -97,7 +97,7 @@ namespace ACE.Database.Tests
             Assert.IsTrue(results.Count > 0, "no Peerless Healing Kit in the database is bad.");*/
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void GetAndSaveWeenie_ById_DoesNotThrow()
         {
             throw new NotImplementedException(); /* I don't like these tests. They should use functions the rest of the code uses
