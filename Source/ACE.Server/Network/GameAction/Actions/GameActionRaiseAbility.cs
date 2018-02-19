@@ -1,4 +1,5 @@
-﻿using ACE.Entity.Enum.Properties;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,33 +8,36 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.RaiseAbility)]
         public static void Handle(ClientMessage message, Session session)
         {
-            global::ACE.Entity.Enum.Ability ability = global::ACE.Entity.Enum.Ability.None;
             var networkAbility = (PropertyAttribute)message.Payload.ReadUInt32();
+            var xpSpent = message.Payload.ReadUInt32();
+
+            Ability ability = Ability.None;
+
             switch (networkAbility)
             {
                 case PropertyAttribute.Strength:
-                    ability = global::ACE.Entity.Enum.Ability.Strength;
+                    ability = Ability.Strength;
                     break;
                 case PropertyAttribute.Endurance:
-                    ability = global::ACE.Entity.Enum.Ability.Endurance;
+                    ability = Ability.Endurance;
                     break;
                 case PropertyAttribute.Coordination:
-                    ability = global::ACE.Entity.Enum.Ability.Coordination;
+                    ability = Ability.Coordination;
                     break;
                 case PropertyAttribute.Quickness:
-                    ability = global::ACE.Entity.Enum.Ability.Quickness;
+                    ability = Ability.Quickness;
                     break;
                 case PropertyAttribute.Focus:
-                    ability = global::ACE.Entity.Enum.Ability.Focus;
+                    ability =Ability.Focus;
                     break;
                 case PropertyAttribute.Self:
-                    ability = global::ACE.Entity.Enum.Ability.Self;
+                    ability = Ability.Self;
                     break;
                 case PropertyAttribute.Undef:
                     return;
             }
-            var xpSpent = message.Payload.ReadUInt32();
-            session.Player.SpendXp(ability, xpSpent);
+
+            session.Player.RaiseAttribute(ability, xpSpent);
         }
     }
 }
