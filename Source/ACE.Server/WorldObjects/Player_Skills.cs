@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Spend xp Skill ranks
         /// </summary>
-        public void SpendXp(Skill skill, uint amount)
+        public void RaiseSkillGameAction(Skill skill, uint amount)
         {
             uint baseValue = 0;
 
@@ -172,11 +172,10 @@ namespace ACE.Server.WorldObjects
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
 
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
             var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result);
             var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
-            Session.Network.EnqueueSend(xpUpdate, skillUpdate, soundEvent, message);
+            Session.Network.EnqueueSend(skillUpdate, soundEvent, message);
         }
 
         /// <summary>
@@ -213,7 +212,7 @@ namespace ACE.Server.WorldObjects
 
             if (skill.Ranks + 10 >= (xpList.Count))
             {
-                rank10Offset = (ushort)(10 - (skill.Ranks + 10) - (xpList.Count - 1));
+                rank10Offset = (ushort)(10 - ((skill.Ranks + 10) - (xpList.Count - 1)));
                 rank10 = xpList[skill.Ranks + rank10Offset] - currentRankXp;
             }
             else
@@ -235,7 +234,7 @@ namespace ACE.Server.WorldObjects
             {
                 skill.Ranks += rankUps;
                 skill.ExperienceSpent += amount;
-                Character.SpendXp(amount);
+                SpendXp(amount);
                 result = skill.ExperienceSpent;
             }
 

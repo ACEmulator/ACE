@@ -380,14 +380,16 @@ namespace ACE.Server.Network.Handlers
                 }
             }
 
-            player.SetProperty(PropertyString.Name, characterCreateInfo.Name);
+            player.Name = characterCreateInfo.Name;
             player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
 
             // Index used to determine the starting location
             uint startArea = characterCreateInfo.StartArea;
 
-            player.SetProperty(PropertyBool.IsAdmin, characterCreateInfo.IsAdmin);
-            player.SetProperty(PropertyBool.IsSentinel, characterCreateInfo.IsEnvoy);
+            // todo: it's probably not a good idea to set a characters permissions level based on the create packet. Someone can set these to true in the packet without authorization.
+            // todo: what we might want to do is check the account permission level and pull these values from there
+            //player.IsAdmin = characterCreateInfo.IsAdmin;
+            //player.IsEnvoy = characterCreateInfo.IsEnvoy;
 
             DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
             {

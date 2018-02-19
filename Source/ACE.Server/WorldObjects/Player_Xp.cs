@@ -34,29 +34,22 @@ namespace ACE.Server.WorldObjects
         public void GrantXp(long amount)
         {
             UpdateXpAndLevel(amount);
+
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement);
             Session.Network.EnqueueSend(message);
         }
 
-        public void EarnXP(long amount, bool fixedAmount = false, bool sharable = true)
+        public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
         {
-            if (sharable && Fellowship != null && Fellowship.ShareXP)
-                Fellowship.SplitXp((ulong)amount, fixedAmount);
+            if (sharable)
+            {
+                if (Fellowship != null && Fellowship.ShareXP)
+                    Fellowship.SplitXp((ulong) amount, fixedAmount);
+                else
+                    UpdateXpAndLevel(amount);
+            }
             else
                 UpdateXpAndLevel(amount);
-        }
-
-        public void EarnXPFromFellowship(long amount)
-        {
-            UpdateXpAndLevel(amount);
-        }
-
-        /// <summary>
-        /// gives available xp of the amount specified without increasing total xp
-        /// </summary>
-        public void RefundXp(long amount)
-        {
-            AvailableExperience += amount;
         }
 
         private void UpdateXpAndLevel(long amount)
@@ -73,7 +66,9 @@ namespace ACE.Server.WorldObjects
                 if (amount > amountLeftToEnd)
                     amount = amountLeftToEnd;
 
-                GrantXp(amount);
+                AvailableExperience += amount;
+                TotalExperience += amount;
+
                 CheckForLevelup();
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, (ulong)TotalExperience);
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
@@ -98,7 +93,7 @@ namespace ACE.Server.WorldObjects
             var xpTable = DatManager.PortalDat.XpTable;
 
             var startingLevel = Level;
-            var maxLevel = xpTable.CharacterLevelXPList.Count;
+            var maxLevel = xpTable.CharacterLevelXPList.Count - 1;
             bool creditEarned = false;
 
             if (Level == maxLevel) return;
@@ -160,6 +155,34 @@ namespace ACE.Server.WorldObjects
                 // play level up effect
                 PlayParticleEffect(ACE.Entity.Enum.PlayScript.LevelUp, Guid);
             }
+        }
+
+        /// <summary>
+        /// spends the amount of xp specified, deducting it from avaiable experience
+        /// </summary>
+        public bool SpendXp(long amount)
+        {
+            if (AvailableExperience >= amount)
+            {
+                AvailableExperience -= amount;
+
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
+                Session.Network.EnqueueSend(xpUpdate);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// gives available xp of the amount specified without increasing total xp
+        /// </summary>
+        public void RefundXp(long amount)
+        {
+            AvailableExperience += amount;
+
+            // todo: this should also send a network message
         }
     }
 }

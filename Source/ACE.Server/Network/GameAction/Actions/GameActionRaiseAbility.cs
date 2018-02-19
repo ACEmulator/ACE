@@ -37,7 +37,7 @@ namespace ACE.Server.Network.GameAction.Actions
                     return;
             }
 
-            session.Player.RaiseAttribute(ability, xpSpent);
+            session.Player.RaiseAttributeGameAction(ability, xpSpent);
         }
     }
 }

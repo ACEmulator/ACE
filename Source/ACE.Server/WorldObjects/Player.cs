@@ -27,6 +27,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.WorldObjects.Entity;
+
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using Position = ACE.Entity.Position;
 
@@ -224,13 +225,13 @@ namespace ACE.Server.WorldObjects
 
         public bool IsAdmin
         {
-            get => GetProperty(PropertyBool.IsAdmin) ?? false;
+            get { return Session.AccessLevel == AccessLevel.Admin || (GetProperty(PropertyBool.IsAdmin) ?? false); }
             set { if (!value) RemoveProperty(PropertyBool.IsAdmin); else SetProperty(PropertyBool.IsAdmin, value); }
         }
 
         public bool IsEnvoy
         {
-            get => GetProperty(PropertyBool.IsSentinel) ?? false;
+            get { return Session.AccessLevel == AccessLevel.Sentinel || (GetProperty(PropertyBool.IsSentinel) ?? false); }
             set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
         }
 
@@ -340,64 +341,7 @@ namespace ACE.Server.WorldObjects
             ////SendUseDoneEvent();
         }
 
-        /// <summary>
-        ///  The fellowship that this player belongs to
-        /// </summary>
-        public Fellowship Fellowship;
 
-        // todo: Figure out if this is the best place to do this, and whether there are concurrency issues associated with it.
-        public void FellowshipCreate(string fellowshipName, bool shareXP)
-        {
-            this.Fellowship = new Fellowship(this, fellowshipName, shareXP);
-        }
-
-        public void FellowshipSetOpen(bool openness)
-        {
-            if (Fellowship != null)
-                Fellowship.UpdateOpenness(openness);
-        }
-
-        public void FellowshipQuit(bool disband)
-        {
-            Fellowship.QuitFellowship(this, disband);
-            Fellowship = null;
-        }
-
-        public void FellowshipDismissPlayer(Player player)
-        {
-            if (this.Guid.Full == Fellowship.FellowshipLeaderGuid)
-            {
-                Fellowship.RemoveFellowshipMember(player);
-            }
-            else
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
-            }
-        }
-
-        public void FellowshipRecruit(Player newPlayer)
-        {
-            if (newPlayer.GetCharacterOption(CharacterOption.IgnoreFellowshipRequests))
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowing requests.", ChatMessageType.Fellowship));
-            }
-            else if (Fellowship != null)
-            {
-                if (this.Guid.Full == Fellowship.FellowshipLeaderGuid || Fellowship.Open)
-                {
-                    Fellowship.AddFellowshipMember(this, newPlayer);
-                }
-                else
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
-                }
-            }
-        }
-
-        public void FellowshipNewLeader(Player newLeader)
-        {
-            Fellowship.AssignNewLeader(newLeader);
-        }
 
         public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
         {

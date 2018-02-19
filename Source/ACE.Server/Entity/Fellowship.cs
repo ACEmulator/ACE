@@ -236,22 +236,16 @@ namespace ACE.Server.Entity
                 UInt64 shareAmount = amount;
 
                 if (!fixedAmount)
-                {
                     shareAmount = (UInt64)((double)shareAmount * GetMemberSharePercent());
-                }
                 else
-                {
                     shareAmount = (amount / (UInt64)FellowshipMembers.Count);
-                }
 
                 Parallel.ForEach(FellowshipMembers, member =>
                 {
                     if (!IsPlayerInside(member) && !fixedAmount)
-                    {
                         shareAmount = (UInt64)(shareAmount * InRangeOfLeader(member));
-                    }
-                    member.EarnXPFromFellowship((long)shareAmount);
-                    
+
+                    member.EarnXP((long)shareAmount, false);
                 });
             }
             else
@@ -268,7 +262,7 @@ namespace ACE.Server.Entity
                     if (!IsPlayerInside(member))
                     {
                         UInt64 playerTotal = (UInt64)(member.Level * percentPerLevel * InRangeOfLeader(member));
-                        member.EarnXPFromFellowship((long)playerTotal);
+                        member.EarnXP((long)playerTotal, false);
                     }
                 });
             }
