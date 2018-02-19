@@ -545,8 +545,28 @@ CREATE TABLE `biota_properties_position` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   KEY `wcid_position_idx` (`object_Id`),
+  KEY `objCellId_idx` (`obj_Cell_Id`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `biota_properties_shortcut_bar`
+--
+
+DROP TABLE IF EXISTS `biota_properties_shortcut_bar`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `biota_properties_shortcut_bar` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `shortcut_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on this Spell Bar for this Spell',
+  `shortcut_Object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Guid of the object at this Slot',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_shortcutbar_barIndex_ObjectId_uidx` (`object_Id`,`shortcut_Bar_Index`,`shortcut_Object_Id`),
+  KEY `wcid_shortcutbar_idx` (`object_Id`),
+  CONSTRAINT `wcid_shortcutbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ShortcutBar Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -572,6 +592,26 @@ CREATE TABLE `biota_properties_skill` (
   KEY `wcid_skill_idx` (`object_Id`),
   CONSTRAINT `wcid_skill` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Skill Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `biota_properties_spell_bar`
+--
+
+DROP TABLE IF EXISTS `biota_properties_spell_bar`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `biota_properties_spell_bar` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `spell_Bar_Number` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Spell Bar',
+  `spell_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on this Spell Bar for this Spell',
+  `spell_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Spell on this Spell Bar at this Slot',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_spellbar_barId_spellId_uidx` (`object_Id`,`spell_Bar_Number`,`spell_Id`),
+  KEY `wcid_spellbar_idx` (`object_Id`),
+  CONSTRAINT `wcid_spellbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SpellBar Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -663,4 +703,4 @@ CREATE TABLE `character` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-14 13:39:30
+-- Dump completed on 2018-02-18 23:59:49
