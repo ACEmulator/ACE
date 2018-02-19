@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -25,8 +23,6 @@ namespace ACE.Server.WorldObjects
     public partial class Creature : Container
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        public readonly Dictionary<Skill, CreatureSkill> Skills = new Dictionary<Skill, CreatureSkill>();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -56,6 +52,9 @@ namespace ACE.Server.WorldObjects
             Attributes[Ability.Quickness] = new CreatureAttribute(this, Ability.Quickness);
             Attributes[Ability.Focus] = new CreatureAttribute(this, Ability.Focus);
             Attributes[Ability.Self] = new CreatureAttribute(this, Ability.Self);
+
+            foreach (var skillProperty in Biota.BiotaPropertiesSkill)
+                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, (Skill)skillProperty.Type);
         }
 
 
