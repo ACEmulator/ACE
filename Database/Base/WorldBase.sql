@@ -577,6 +577,7 @@ CREATE TABLE `weenie_properties_position` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   KEY `wcid_position_idx` (`object_Id`),
+  KEY `objCellId_idx` (`obj_Cell_Id`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -672,4 +673,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-14 13:39:32
+-- Dump completed on 2018-02-19  0:00:15

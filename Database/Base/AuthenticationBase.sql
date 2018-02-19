@@ -60,42 +60,6 @@ CREATE TABLE `account` (
   CONSTRAINT `fk_accesslevel` FOREIGN KEY (`accessLevel`) REFERENCES `accesslevel` (`level`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `accounts`
---
-
-DROP TABLE IF EXISTS `accounts`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `accounts` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Account Id',
-  `name` varchar(50) NOT NULL COMMENT 'Account Name',
-  `passwordHash` varchar(88) NOT NULL COMMENT 'base64 encoded version of the hashed passwords.  88 characters are needed to base64 encode SHA512 output.',
-  `passwordSalt` varchar(88) NOT NULL COMMENT 'base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.',
-  `securityLevel` int(10) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name_uidx` (`name`),
-  KEY `securitylevel_idx` (`securityLevel`),
-  CONSTRAINT `securityLevel` FOREIGN KEY (`securityLevel`) REFERENCES `securitylevel` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Accounts';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `securitylevel`
---
-
-DROP TABLE IF EXISTS `securitylevel`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `securitylevel` (
-  `id` int(10) unsigned NOT NULL DEFAULT '0',
-  `name` varchar(45) NOT NULL,
-  `prefix` varchar(45) DEFAULT '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -106,7 +70,7 @@ CREATE TABLE `securitylevel` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-14 13:39:27
+-- Dump completed on 2018-02-18 23:59:48
  
 /*
 -- Query: SELECT * FROM ace_auth.accesslevel
@@ -118,19 +82,3 @@ INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (2,'Sentinel','Sentin
 INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (3,'Envoy','Envoy');
 INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (4,'Developer','');
 INSERT INTO `accesslevel` (`level`,`name`,`prefix`) VALUES (5,'Admin','Admin');
-/*
--- Query: SELECT * FROM ace_auth.securitylevel
--- Date: 2018-02-14 13:20
-*/
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (0,'Player','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (1,'Advocate (AiT)','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (2,'Advocate','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (3,'Advocate (Level 3)','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (4,'Advocate (Level 4)','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (5,'Advocate (Level 5)','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (6,'Sentinel (SiT)','Sentinel');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (7,'Sentinel','Sentinel');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (8,'World Overseer','Overseer');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (9,'Envoy','Envoy');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (10,'Arch','');
-INSERT INTO `securitylevel` (`id`,`name`,`prefix`) VALUES (11,'Admin','Admin');
