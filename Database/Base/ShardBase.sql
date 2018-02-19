@@ -560,11 +560,13 @@ DROP TABLE IF EXISTS `biota_properties_shortcut_bar`;
 CREATE TABLE `biota_properties_shortcut_bar` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
-  `shortcut_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on this Spell Bar for this Spell',
+  `shortcut_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on the Shortcut Bar for this Object',
   `shortcut_Object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Guid of the object at this Slot',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_shortcutbar_barIndex_ObjectId_uidx` (`object_Id`,`shortcut_Bar_Index`,`shortcut_Object_Id`),
   KEY `wcid_shortcutbar_idx` (`object_Id`),
+  KEY `wcid_shortcut_objectId_idx` (`shortcut_Object_Id`),
+  CONSTRAINT `wcid_shortcut_objectId` FOREIGN KEY (`shortcut_Object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `wcid_shortcutbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ShortcutBar Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -703,4 +705,4 @@ CREATE TABLE `character` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-18 23:59:49
+-- Dump completed on 2018-02-19  0:08:17
