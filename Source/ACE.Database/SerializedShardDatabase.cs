@@ -150,6 +150,16 @@ namespace ACE.Database
             }));
         }
 
+        public void SaveBiota(Biota biota, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveBiota(biota);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
 
 
 
@@ -196,11 +206,6 @@ namespace ACE.Database
         }
 
         public void RenameCharacter(string currentName, string newName, Action<uint> callback)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SaveObject(AceObject aceObject, Action<bool> callback)
         {
             throw new NotImplementedException();
         }
