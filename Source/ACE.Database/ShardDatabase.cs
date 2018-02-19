@@ -230,5 +230,25 @@ namespace ACE.Database
                 return result;
             }
         }
+
+        public bool SaveBiota(Biota biota)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Biota.Update(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
     }
 }

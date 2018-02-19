@@ -734,7 +734,7 @@ namespace ACE.Server.WorldObjects
         // Gets the ActionChain to save a character
         public ActionChain GetSaveChain()
         {
-            return new ActionChain(this, SaveCharacter);
+            return new ActionChain(this, SavePlayer);
         }
 
         /// <summary>
@@ -784,30 +784,17 @@ namespace ACE.Server.WorldObjects
         /// Internal save character functionality
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
         /// </summary>
-        private void SaveCharacter()
+        private void SavePlayer()
         {
-            if (Character != null)
-            {
-                // Save the current position to persistent storage, only during the server update interval
-                SetPhysicalCharacterPosition();
+            // Save the current position to persistent storage, only during the server update interval
+            SetPhysicalCharacterPosition();
 
-                // Let's get a snapshot of our object lists prior to save.
-                SnapshotWieldedItems();
-                SnapshotInventoryItems();
-                SnapShotTrackedContracts();
+            DatabaseManager.Shard.SaveBiota(Biota, null);
 
-                DatabaseManager.Shard.SaveObject(GetSavableCharacter(), null);
-
-                AceObject.ClearDirtyFlags();
-
-                // FIXME : the issue is here - I still have the inventory in two dictionaries after clone.   I am missing something Og II
-#if DEBUG
-                if (Session.Player != null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
-                }
-#endif
-            }
+            #if DEBUG
+            if (Session.Player != null)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
+            #endif
         }
 
         public void UpdateAge()
