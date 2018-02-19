@@ -120,7 +120,7 @@ namespace ACE.Server.WorldObjects
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
+        /*private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
         {
             uint result = 0;
 
@@ -180,7 +180,7 @@ namespace ACE.Server.WorldObjects
             }
 
             return result;
-        }
+        }*/
 
         /// <summary>
         /// Check a rank against the ability charts too determine if the skill is at max
