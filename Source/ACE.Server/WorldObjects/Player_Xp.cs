@@ -182,7 +182,8 @@ namespace ACE.Server.WorldObjects
         {
             AvailableExperience += amount;
 
-            // todo: this should also send a network message
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
+            Session.Network.EnqueueSend(xpUpdate);
         }
     }
 }

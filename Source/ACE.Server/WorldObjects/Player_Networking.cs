@@ -150,45 +150,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public void Teleport(Position newPosition)
-        {
-            ActionChain chain = GetTeleportChain(newPosition);
-            chain.EnqueueChain();
-        }
-
-        private ActionChain GetTeleportChain(Position newPosition)
-        {
-            ActionChain teleportChain = new ActionChain();
-
-            teleportChain.AddAction(this, () => TeleportInternal(newPosition));
-
-            teleportChain.AddDelaySeconds(3);
-            // Once back in world we can start listening to the game's request for positions
-            teleportChain.AddAction(this, () => InWorld = true);
-
-            return teleportChain;
-        }
-
-        private void TeleportInternal(Position newPosition)
-        {
-            if (!InWorld)
-                return;
-
-            //Hidden = true;
-            //IgnoreCollision = true;
-            //ReportCollision = false;
-            EnqueueBroadcastPhysicsState();
-            ExternalUpdatePosition(newPosition);
-            InWorld = false;
-
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
-            CurrentLandblock.RemoveWorldObject(Guid, false);
-
-            lock (clientObjectList)
-                clientObjectList.Clear();
-        }
-
-
         public void RequestUpdatePosition(Position pos)
         {
             ExternalUpdatePosition(pos);
