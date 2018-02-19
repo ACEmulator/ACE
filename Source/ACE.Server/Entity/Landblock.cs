@@ -65,6 +65,7 @@ namespace ACE.Server.Entity
 
         public LandblockId Id { get; }
 
+        public CellLandblock CellLandblock;
         public LandblockInfo LandblockInfo;
 
         /// <summary>
@@ -75,6 +76,7 @@ namespace ACE.Server.Entity
         public List<ModelMesh> LandObjects;
         public List<ModelMesh> Buildings;
         public List<ModelMesh> WeenieMeshes;
+        public List<ModelMesh> Scenery;
 
         public Landblock(LandblockId id)
         {
@@ -123,12 +125,14 @@ namespace ACE.Server.Entity
         /// </summary>
         public void LoadMeshes(List<AceObject> objects)
         {
+            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw | 0xFFFF);
             LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
 
             LandblockMesh = new LandblockMesh(Id);
             LoadLandObjects();
             LoadBuildings();
             LoadWeenies(objects);
+            LoadScenery();
         }
 
         /// <summary>
@@ -164,6 +168,14 @@ namespace ACE.Server.Entity
             foreach (var obj in objects)
                 WeenieMeshes.Add(new ModelMesh(obj.SetupDID.Value,
                     new DatLoader.Entity.Frame(obj.AceObjectPropertiesPositions.Values.LastOrDefault())));
+        }
+
+        /// <summary>
+        /// Loads the meshes for the scenery on the landblock
+        /// </summary>
+        public void LoadScenery()
+        {
+            Scenery = Entity.Scenery.Load(this);
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
