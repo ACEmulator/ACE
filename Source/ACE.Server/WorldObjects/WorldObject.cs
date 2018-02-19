@@ -1076,11 +1076,6 @@ namespace ACE.Server.WorldObjects
             examiner.Network.EnqueueSend(updateMana);
         }
 
-        public virtual void SerializeUpdateObject(BinaryWriter writer)
-        {
-            // content of these 2 is the same? TODO: Validate that?
-            SerializeCreateObject(writer);
-        }
 
         // This fully replaces the PhysicsState of the WO, use sparingly?
         //public void SetPhysicsState(PhysicsState state, bool packet = true)

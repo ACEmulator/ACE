@@ -69,6 +69,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Placement); else SetProperty(PropertyInt.Placement, (int)value.Value); }
         }
 
+        public virtual void SerializeUpdateObject(BinaryWriter writer)
+        {
+            // content of these 2 is the same? TODO: Validate that?
+            SerializeCreateObject(writer);
+        }
 
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
