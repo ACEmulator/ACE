@@ -3,7 +3,6 @@ using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects

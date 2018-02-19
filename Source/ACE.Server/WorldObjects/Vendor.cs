@@ -5,7 +5,6 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 
@@ -49,7 +48,6 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Vendor;
         }
 
-        #region General Vendor functions
 
         /// <summary>
         /// Fired when Client clicks on the Vendor World Object
@@ -58,10 +56,9 @@ namespace ACE.Server.WorldObjects
         public override void ActOnUse(ObjectGuid playerId)
         {
             Player player = CurrentLandblock.GetObject(playerId) as Player;
+
             if (player == null)
-            {
                 return;
-            }
 
             if (!player.IsWithinUseRadiusOf(this))
                 player.DoMoveTo(this);
@@ -83,12 +80,14 @@ namespace ACE.Server.WorldObjects
                 foreach (AceObjectInventory item in ShopList)
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
                     if (wo != null)
                     {
                         wo.ContainerId = (int)Guid.Full;
                         defaultItemsForSale.Add(wo.Guid, wo);
                     }
                 }
+
                 inventoryloaded = true;
             }
         }
@@ -141,23 +140,18 @@ namespace ACE.Server.WorldObjects
         {
             // default inventory
             List<WorldObject> vendorlist = new List<WorldObject>();
+
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
-            {
                 vendorlist.Add(wo.Value);
-            }
 
             // unique inventory - itmes sold by other players
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in uniqueItemsForSale)
-            {
                 vendorlist.Add(wo.Value);
-            }
 
             player.TrackInteractiveObjects(vendorlist);
             player.ApproachVendor(this, vendorlist);
         }
-        #endregion
 
-        #region BuyTransaction
 
         /// <summary>
         /// Player has started a buy transaction
@@ -184,6 +178,7 @@ namespace ACE.Server.WorldObjects
                     item.WeenieClassId = defaultItemsForSale[item.Guid].WeenieClassId;
                     filteredlist.Add(item);
                 }
+
                 // check unique items / add unique items to purchaselist / remove from vendor list
                 if (uniqueItemsForSale.ContainsKey(item.Guid))
                 {
@@ -234,11 +229,10 @@ namespace ACE.Server.WorldObjects
                         uniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
+
             ApproachVendor(player);
         }
-        #endregion
 
-        #region Sell Transactions
 
         public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
         {
@@ -270,7 +264,5 @@ namespace ACE.Server.WorldObjects
             ApproachVendor(player);
             player.FinalizeSellTransaction(this, true, accepted, payout);
         }
-
-        #endregion
     }
 }

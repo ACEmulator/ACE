@@ -279,10 +279,10 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-    /// <summary>
-    /// This method is used to get anything in our posession.   Inventory in main or any packs,
-    /// </summary>
-    public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
+        /// <summary>
+        /// This method is used to get anything in our posession.   Inventory in main or any packs,
+        /// </summary>
+        public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
             if (InventoryObjects.ContainsKey(objectGuid))
@@ -299,9 +299,7 @@ namespace ACE.Server.WorldObjects
                 if ((container.Value as Container).GetInventoryItem(objectGuid) != null)
                 {
                     if ((container.Value as Container).GetInventoryItem(objectGuid) != null)
-                    {
                         return (container.Value as Container).GetInventoryItem(objectGuid);
-                    }
                 }
             }
 
@@ -315,19 +313,17 @@ namespace ACE.Server.WorldObjects
         {
             // do I have enough space ?
             if (usedPackSlots <= maxPackSlots)
-            {
                 return Guid.Full;
-            }
 
             // do any of my other containers have enough space ?
             var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+
             foreach (var container in containers)
             {
                 if ((container.Value as Container).GetFreePackLocation() != 0)
-                {
                     return (container.Value as Container).GetFreePackLocation();
-                }
             }
+
             return 0;
         }
 
@@ -340,17 +336,15 @@ namespace ACE.Server.WorldObjects
 
             // first search me / add all items of type.
             var localInventory = InventoryObjects.Where(wo => wo.Value.WeenieType == type).ToList();
+
             foreach (var wo in localInventory)
-            {
                 items.Add(wo.Value);
-            }
 
             // next search all containers for coin.. run function again for each container.
             var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+
             foreach (var container in containers)
-            {
                 items.AddRange((container.Value as Container).GetInventoryItemsOfTypeWeenieType(type));
-            }
 
             return items;
         }
@@ -437,6 +431,7 @@ namespace ACE.Server.WorldObjects
                 session.Player.RemoveWorldObjectFromInventory(fromWo.Guid);
             else
                session.Player.RemoveFromWieldedObjects(fromWo.Guid);
+
             GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);
 
