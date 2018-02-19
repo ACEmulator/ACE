@@ -163,10 +163,10 @@ namespace ACE.Server.WorldObjects
             string serverMessage;
 
             Player player = CurrentLandblock.GetObject(playerId) as Player;
+
             if (player == null)
-            {
                 return;
-            }
+
             if (Destination != null)
             {
 #if DEBUG
@@ -296,10 +296,9 @@ namespace ACE.Server.WorldObjects
         public override void ActOnUse(ObjectGuid playerId)
         {
             Player player = CurrentLandblock.GetObject(playerId) as Player;
+
             if (player == null)
-            {
                 return;
-            }
 
             if (!player.IsWithinUseRadiusOf(this))
                 player.DoMoveTo(this);

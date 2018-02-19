@@ -1071,5 +1071,160 @@ namespace ACE.Server.WorldObjects
         {
             actionQueue.RunActions();
         }
+
+
+
+        protected static void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
+        {
+            writer.Write((uint)flags); // Flags
+            writer.Write(Convert.ToUInt32(success)); // Success bool
+        }
+
+        protected static void WriteIdentifyObjectIntProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt> propertiesInt)
+        {
+            const ushort tableSize = 16;
+            var notNull = propertiesInt.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesInt x in notNull)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue.Value);
+            }
+        }
+
+        protected static void WriteIdentifyObjectProperties(BinaryWriter writer, IdentifyResponseFlags flags, Dictionary<PropertyInt, int> properties)
+        {
+            const ushort tableSize = 16;
+
+            if ((flags & IdentifyResponseFlags.IntStatsTable) == 0 || (properties.Count == 0))
+                return;
+
+            writer.Write((ushort)properties.Count);
+            writer.Write(tableSize);
+
+            foreach (var property in properties)
+            {
+                writer.Write((uint)property.Key);
+                writer.Write(property.Value);
+            }
+        }
+
+        protected static void WriteIdentifyObjectInt64Properties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesInt64> propertiesInt64)
+        {
+            const ushort tableSize = 8;
+            var notNull = propertiesInt64.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.Int64StatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesInt64 x in notNull)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue.Value);
+            }
+        }
+
+        protected static void WriteIdentifyObjectBoolProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesBool> propertiesBool)
+        {
+            const ushort tableSize = 8;
+            var notNull = propertiesBool.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.BoolStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesBool x in notNull)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(Convert.ToUInt32(x.PropertyValue.Value));
+            }
+        }
+
+        protected static void WriteIdentifyObjectDoubleProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesDouble)
+        {
+            const ushort tableSize = 8;
+            var notNull = propertiesDouble.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.FloatStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesDouble x in notNull)
+            {
+                writer.Write((uint)x.PropertyId);
+                writer.Write(x.PropertyValue.Value);
+            }
+        }
+
+        protected static void WriteIdentifyObjectStringsProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesString> propertiesStrings)
+        {
+            const ushort tableSize = 8;
+            var notNull = propertiesStrings.Where(p => !string.IsNullOrWhiteSpace(p.PropertyValue)).ToList();
+            if ((flags & IdentifyResponseFlags.StringStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesString x in notNull)
+            {
+                writer.Write((uint)x.PropertyId);
+                writer.WriteString16L(x.PropertyValue);
+            }
+        }
+
+        protected static void WriteIdentifyObjectDidProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDataId> propertiesDid)
+        {
+            const ushort tableSize = 16;
+            var notNull = propertiesDid.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.DidStatsTable) == 0 || (notNull.Count == 0)) return;
+            writer.Write((ushort)notNull.Count);
+            writer.Write(tableSize);
+
+            foreach (AceObjectPropertiesDataId x in notNull)
+            {
+                writer.Write(x.PropertyId);
+                writer.Write(x.PropertyValue.Value);
+            }
+        }
+
+        protected static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        {
+            if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
+            writer.Write((uint)propertiesSpellId.Count);
+
+            foreach (AceObjectPropertiesSpell x in propertiesSpellId)
+            {
+                writer.Write(x.SpellId);
+            }
+        }
+
+        // TODO: Move to Armor class
+        protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        {
+            var notNull = propertiesArmor.Where(p => p.PropertyValue != null).ToList();
+            if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (notNull.Count == 0)) return;
+
+            foreach (AceObjectPropertiesDouble x in notNull)
+                writer.Write((float)x.PropertyValue.Value);
+        }
+
+        // TODO: Move to Weapon class
+        protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesWeaponsD, List<AceObjectPropertiesInt> propertiesWeaponsI)
+        {
+            if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
+            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.DamageType)?.PropertyValue ?? 0);
+            // Signed
+            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.WeaponTime)?.PropertyValue ?? 0);
+            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.WeaponSkill)?.PropertyValue ?? 0);
+            // Signed
+            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.Damage)?.PropertyValue ?? 0);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.DamageVariance)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.DamageMod)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponLength)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.MaximumVelocity)?.PropertyValue ?? 0.00);
+            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponOffense)?.PropertyValue ?? 0.00);
+            // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
+            writer.Write(0u);
+        }
     }
 }

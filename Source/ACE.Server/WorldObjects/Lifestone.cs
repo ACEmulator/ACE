@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
         {
             // All data on a lifestone is constant -- therefore we just run in context of player
             Player player = CurrentLandblock.GetObject(playerId) as Player;
-            string serverMessage = null;
+            string serverMessage;
             // validate within use range, taking into account the radius of the model itself, as well
             var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
             float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
@@ -49,9 +49,7 @@ namespace ACE.Server.WorldObjects
             // Player Enqueue:
             var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
-            var animationEvent = new GameMessageUpdateMotion(player.Guid,
-                                                             player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                             player.Sequences, motionSanctuary);
+            var animationEvent = new GameMessageUpdateMotion(player.Guid, player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance), player.Sequences, motionSanctuary);
 
             // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
             var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);

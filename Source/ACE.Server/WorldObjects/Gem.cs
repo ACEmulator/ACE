@@ -7,7 +7,6 @@ using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -59,29 +58,22 @@ namespace ACE.Server.WorldObjects
             {
                 var spellTable = DatManager.PortalDat.SpellTable;
                 if (!spellTable.Spells.ContainsKey((uint)SpellDID))
-                {
                     return;
-                }
+
                 SpellBase spell = spellTable.Spells[(uint)SpellDID];
+
                 string castMessage = "The gem casts " + spell.Name + " on you";
                 ////These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
                 if (spell.MetaSpellId == 3810)
-                {
                     castMessage = "The gem casts Asheron's Benediction on you";
-                }
                 if (spell.MetaSpellId == 3811)
-                {
                     castMessage = "The gem casts Blackmoor's Favor on you";
-                }
                 if (spell.MetaSpellId == 3953)
-                {
                     castMessage = "The gem casts Carraida's Benediction on you";
-                }
                 if (spell.MetaSpellId == 4024)
-                {
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
-                }
                 castMessage += "."; // If not refreshing/surpassing/less than active spell, which I will check for in the very near future when I get the active enchantment list implemented.
+
                 session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
                 session.Player.PlayParticleEffect((PlayScript)spell.TargetEffect, session.Player.Guid);
                 const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
