@@ -1,0 +1,88 @@
+using System;
+using System.Collections.Generic;
+
+using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
+using ACE.Server.WorldObjects.Entity;
+
+namespace ACE.Server.WorldObjects
+{
+    partial class Creature
+    {
+        public readonly Dictionary<Ability, CreatureVital> Vitals = new Dictionary<Ability, CreatureVital>();
+
+        public CreatureVital Health => Vitals[Ability.Health];
+        public CreatureVital Stamina => Vitals[Ability.Stamina];
+        public CreatureVital Mana => Vitals[Ability.Mana];
+
+
+        public void DeltaVital(CreatureVital vital, long delta)
+        {
+            EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
+        }
+
+        private void DeltaVitalInternal(CreatureVital vital, long delta)
+        {
+            uint absVal;
+
+            if (delta < 0 && Math.Abs(delta) > vital.Current)
+                absVal = (uint)(-1 * vital.Current);
+            else if (delta + vital.Current > vital.MaxValue)
+                absVal = vital.MaxValue - vital.Current;
+            else
+                absVal = (uint)(vital.Current + delta);
+
+            UpdateVitalInternal(vital, absVal);
+        }
+
+        /// <summary>
+        /// Updates a vital, returns true if vital is now &lt; max
+        /// </summary>
+        public void UpdateVital(CreatureVital vital, uint newVal)
+        {
+            EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
+        }
+
+        protected virtual void UpdateVitalInternal(CreatureVital vital, uint newVal)
+        {
+            uint old = vital.Current;
+
+            if (newVal > vital.MaxValue)
+                newVal = (vital.MaxValue - vital.Current);
+
+            vital.Current = newVal;
+
+            // Check for amount
+            if (old == vital.MaxValue && vital.Current != vital.MaxValue)
+            {
+                // Start up a vital ticker
+                new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
+            }
+        }
+
+        private void VitalTick(CreatureVital vital)
+        {
+            double tickTime = vital.NextTickTime;
+
+            if (double.IsNegativeInfinity(tickTime))
+                tickTime = vital.RegenRate;
+            else
+                tickTime -= WorldManager.PortalYearTicks;
+
+            // Set up our next tick
+            ActionChain tickChain = new ActionChain();
+            tickChain.AddDelayTicks(tickTime);
+            tickChain.AddAction(this, () => VitalTickInternal(vital));
+            tickChain.EnqueueChain();
+        }
+
+        protected virtual void VitalTickInternal(CreatureVital vital)
+        {
+            vital.Tick(WorldManager.PortalYearTicks);
+
+            if (vital.Current != vital.MaxValue)
+                VitalTick(vital);
+        }
+    }
+}

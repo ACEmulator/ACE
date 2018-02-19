@@ -1,15 +1,16 @@
-﻿using System;
-using ACE.Entity;
+using System;
+
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateVital : GameMessage
     {
-        public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, CreatureVitalOld cv) :
-            this(session, ability, cv.Ranks, cv.Base, cv.ExperienceSpent, cv.Current) { }
+        public GameMessagePrivateUpdateVital(Session session, Ability ability, CreatureVital cv) :
+            this(session, ability, cv.Ranks, cv.StartingValue, cv.ExperienceSpent, cv.Current) { }
 
-        public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
+        public GameMessagePrivateUpdateVital(Session session, Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
             : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.UIQueue)
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
@@ -18,13 +19,13 @@ namespace ACE.Server.Network.GameMessages.Messages
 
             switch (ability)
             {
-                case global::ACE.Entity.Enum.Ability.Health:
+                case Ability.Health:
                     vital = Vital.Health;
                     break;
-                case global::ACE.Entity.Enum.Ability.Stamina:
+                case Ability.Stamina:
                     vital = Vital.Stamina;
                     break;
-                case global::ACE.Entity.Enum.Ability.Mana:
+                case Ability.Mana:
                     vital = Vital.Mana;
                     break;
                 default:

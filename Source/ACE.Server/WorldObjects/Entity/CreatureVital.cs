@@ -21,31 +21,127 @@ namespace ACE.Server.WorldObjects.Entity
             biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(ability);
         }
 
-        public uint GetUnbuffedMaxValue()
+        /// <summary>
+        /// Total Experience Spent on an attribute
+        /// </summary>
+        public uint ExperienceSpent
         {
-            var formula = Ability.GetFormula();
+            get => biotaPropertiesAttribute2nd.CPSpent;
+            set => biotaPropertiesAttribute2nd.CPSpent = value;
+        }
 
-            uint derivationTotal = 0;
-            uint abilityTotal = 0;
+        public uint StartingValue
+        {
+            get => biotaPropertiesAttribute2nd.InitLevel;
+            set => biotaPropertiesAttribute2nd.InitLevel = value;
+        }
 
-            if (formula != null)
+        public uint Ranks
+        {
+            get => biotaPropertiesAttribute2nd.LevelFromCP;
+            set => biotaPropertiesAttribute2nd.LevelFromCP = value;
+        }
+
+        /// <summary>
+        /// Returns the adjusted Value depending on the current attribute formula
+        /// </summary>
+        public uint Base
+        {
+            get
             {
-                // restricted to endurance and self because those are the only 2 used by abilities
+                var formula = Ability.GetFormula();
 
-                Ability abilities = formula.Abilities;
-                uint end = (uint)((abilities & Ability.Endurance) > 0 ? 1 : 0);
-                uint wil = (uint)((abilities & Ability.Self) > 0 ? 1 : 0);
+                uint derivationTotal = 0;
+                uint total = 0;
 
-                derivationTotal += end * creature.Biota.GetAttribute(Ability.Endurance).InitLevel;
-                derivationTotal += wil * creature.Biota.GetAttribute(Ability.Self).InitLevel;
+                if (formula != null)
+                {
+                    // restricted to endurance and self because those are the only 2 used by vitals
 
-                derivationTotal *= formula.AbilityMultiplier;
-                abilityTotal = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
+                    Ability abilities = formula.Abilities;
+                    uint end = (uint) ((abilities & Ability.Endurance) > 0 ? 1 : 0);
+                    uint wil = (uint) ((abilities & Ability.Self) > 0 ? 1 : 0);
+
+                    derivationTotal += end * creature.Endurance.Base;
+                    derivationTotal += wil * creature.Self.Base;
+
+                    derivationTotal *= formula.AbilityMultiplier;
+                    total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
+                }
+
+                total += StartingValue + Ranks;
+
+                return total;
+            }
+        }
+
+        public uint Current
+        {
+            get => biotaPropertiesAttribute2nd.CurrentLevel;
+            set => biotaPropertiesAttribute2nd.CurrentLevel = value;
+        }
+
+        public uint MaxValue
+        {
+            get
+            {
+                uint total = Base;
+
+                // todo calculate max value. Include buffs
+
+                return total;
+            }
+        }
+
+
+        public double RegenRate { set; get; }
+
+        private double lastTick = double.NegativeInfinity;
+
+        public double NextTickTime
+        {
+            get
+            {
+                if (lastTick == double.NegativeInfinity)
+                    return double.NegativeInfinity;
+
+                return lastTick + RegenRate;
+            }
+        }
+
+        /// <summary>
+        /// Used to determine if health/stamina/mana updates need to be sent periodically
+        /// Returns the "last time" the vitals were updated
+        /// Takes the vital to update, the lastTime it was updated, and the update rate
+        /// </summary>
+        public void Tick(double tickTime)
+        {
+            if (lastTick == double.NegativeInfinity)
+            {
+                lastTick = tickTime;
+                return;
             }
 
-            abilityTotal += biotaPropertiesAttribute2nd.LevelFromCP + biotaPropertiesAttribute2nd.InitLevel;
+            // This shouldn't happen?  maybe?
+            if (tickTime <= lastTick)
+                return;
 
-            return abilityTotal;
+            double timeDiff = tickTime - lastTick;
+
+            uint numTicks = (uint)(timeDiff * RegenRate);
+
+            if (numTicks > 0)
+            {
+                // lastTime is the time at which the last tick would have happened
+                lastTick = lastTick + numTicks / RegenRate;
+
+                // Now, update our value
+                Current = Math.Min(MaxValue, Current + numTicks);
+
+                // Reset last tick, so when we resume we start ticking properly
+                if (Current == MaxValue)
+                    lastTick = double.NegativeInfinity;
+            }
         }
     }
 }

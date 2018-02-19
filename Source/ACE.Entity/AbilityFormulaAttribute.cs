@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Entity.Enum;
 
 namespace ACE.Entity
@@ -26,27 +27,27 @@ namespace ACE.Entity
             Divisor = divisor;
         }
 
-        public uint CalcBase(ICreatureStats stats)
+        public uint CalcBase(uint strength, uint endurance, uint coordination, uint quickness, uint focus, uint self)
         {
             uint sum = 0;
 
-            if (((uint)Abilities & (uint)Ability.Coordination) != 0)
-                sum += stats.Coordination;
+            if (((uint)Abilities & (uint)Ability.Strength) != 0)
+                sum += strength;
 
             if (((uint)Abilities & (uint)Ability.Endurance) != 0)
-                sum += stats.Endurance;
+                sum += endurance;
 
-            if (((uint)Abilities & (uint)Ability.Focus) != 0)
-                sum += stats.Focus;
+            if (((uint)Abilities & (uint)Ability.Coordination) != 0)
+                sum += coordination;
 
             if (((uint)Abilities & (uint)Ability.Quickness) != 0)
-                sum += stats.Quickness;
+                sum += quickness;
+
+            if (((uint)Abilities & (uint)Ability.Focus) != 0)
+                sum += focus;
 
             if (((uint)Abilities & (uint)Ability.Self) != 0)
-                sum += stats.Self;
-
-            if (((uint)Abilities & (uint)Ability.Strength) != 0)
-                sum += stats.Strength;
+                sum += self;
 
             return (uint)Math.Ceiling((double)(sum * AbilityMultiplier) / Divisor);
         }

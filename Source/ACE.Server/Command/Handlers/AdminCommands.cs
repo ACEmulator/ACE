@@ -1263,9 +1263,9 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
 
-            session.Player.Health.Current = session.Player.Health.UnbuffedValue;
-            session.Player.Stamina.Current = session.Player.Stamina.UnbuffedValue;
-            session.Player.Mana.Current = session.Player.Mana.UnbuffedValue;
+            session.Player.Health.Current = session.Player.Health.Base;
+            session.Player.Stamina.Current = session.Player.Stamina.Base;
+            session.Player.Mana.Current = session.Player.Mana.Base;
 
             var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
             var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.Current);

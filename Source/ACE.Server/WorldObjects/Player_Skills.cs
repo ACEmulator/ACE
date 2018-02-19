@@ -27,43 +27,49 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        private BiotaPropertiesSkill GetSkillProperty(Skill skill)
+        /// <summary>
+        /// Will return true if the skill was added, or false if the skill already exists.
+        /// </summary>
+        public bool AddSkill(Skill skill, SkillStatus skillStatus)
         {
             var result = Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
 
             if (result == null)
             {
-                result = new BiotaPropertiesSkill { ObjectId = Biota.Id, Type = (ushort)skill, SAC = (uint)SkillStatus.Untrained };
+                result = new BiotaPropertiesSkill { ObjectId = Biota.Id, Type = (ushort)skill, SAC = (uint)skillStatus };
 
                 Biota.BiotaPropertiesSkill.Add(result);
+
+                return true;
             }
 
-            return result;
+            return false;
         }
 
         /// <summary>
-        /// This will create a CreatureSkill wrapper around the BiotaPropertiesSkill record cor this player.
+        /// This will create a CreatureSkill wrapper around the BiotaPropertiesSkill record for this player.
         /// </summary>
         public CreatureSkill GetCreatureSkill(Skill skill)
         {
+            AddSkill(skill, SkillStatus.Untrained);
+
             return new CreatureSkill(this, skill);
         }
-
 
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
         public bool TrainSkill(Skill skill, int creditsSpent)
         {
-            var cs = GetSkillProperty(skill);
+            var cs = GetCreatureSkill(skill);
 
-            if (cs.SAC != (uint)SkillStatus.Trained && cs.SAC != (uint)SkillStatus.Specialized)
+            if (cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    cs.SAC = (uint)SkillStatus.Trained;
-                    cs.LevelFromPP = 0;
-                    cs.PP = 0;
+                    cs.Status = SkillStatus.Trained;
+                    cs.Ranks = 0;
+                    cs.ExperienceSpent = 0;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -117,16 +123,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool SpecializeSkill(Skill skill, int creditsSpent)
         {
-            var cs = GetSkillProperty(skill);
+            var cs = GetCreatureSkill(skill);
 
-            if (cs.SAC == (uint)SkillStatus.Trained)
+            if (cs.Status == SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    RefundXp(cs.PP);
-                    cs.SAC = (uint)SkillStatus.Specialized;
-                    cs.LevelFromPP = 0;
-                    cs.PP = 0;
+                    RefundXp(cs.ExperienceSpent);
+                    cs.Status = SkillStatus.Specialized;
+                    cs.Ranks = 0;
+                    cs.ExperienceSpent = 0;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -140,22 +146,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool UntrainSkill(Skill skill, int creditsSpent)
         {
-            var cs = GetSkillProperty(skill);
+            var cs = GetCreatureSkill(skill);
 
-            if (cs.SAC != (uint)SkillStatus.Trained && cs.SAC != (uint)SkillStatus.Specialized)
+            if (cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
             {
-                cs.SAC = (uint)SkillStatus.Untrained;
-                cs.LevelFromPP = 0;
-                cs.PP = 0;
+                cs.Status = SkillStatus.Untrained;
+                cs.Ranks = 0;
+                cs.ExperienceSpent = 0;
                 return true;
             }
 
-            if (cs.SAC == (uint)SkillStatus.Trained)
+            if (cs.Status == SkillStatus.Trained)
             {
-                RefundXp(cs.PP);
-                cs.SAC = (uint)SkillStatus.Untrained;
-                cs.LevelFromPP = 0;
-                cs.PP = 0;
+                RefundXp(cs.ExperienceSpent);
+                cs.Status = SkillStatus.Untrained;
+                cs.Ranks = 0;
+                cs.ExperienceSpent = 0;
                 AvailableSkillCredits += creditsSpent;
                 return true;
             }
@@ -185,11 +191,11 @@ namespace ACE.Server.WorldObjects
                 {
                     // fireworks on rank up is 0x8D
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {skill} is now {creatureSkill.UnbuffedValue} and has reached its upper limit!";
+                    messageText = $"Your base {skill} is now {creatureSkill.Base} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {skill} is now {creatureSkill.UnbuffedValue}!";
+                    messageText = $"Your base {skill} is now {creatureSkill.Base}!";
                 }
             }
             else
@@ -320,7 +326,7 @@ namespace ACE.Server.WorldObjects
                     return false;
             }
 
-            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.ActiveValue >= (power - magicSkillCheckMargin))
+            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.Current >= (power - magicSkillCheckMargin))
                 ret = true;
 
             return ret;

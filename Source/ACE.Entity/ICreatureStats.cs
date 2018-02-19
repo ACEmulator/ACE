@@ -2,8 +2,6 @@ namespace ACE.Entity
 {
     public interface ICreatureStats
     {
-        uint AceObjectId { get; }
-
         uint Strength { get; }
         
         uint Endurance { get; }

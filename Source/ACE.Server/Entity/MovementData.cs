@@ -60,12 +60,12 @@ namespace ACE.Server.Entity
 
             if (holdKey == 2)
             {
-                if (run.ActiveValue >= 800)
+                if (run.Current >= 800)
                     baseSpeed = 18f / 4f;
                 else
                 {
                     // TODO(ddevec): Is burden accounted for externally, or as part of the skill?
-                    baseSpeed = (((float)run.ActiveValue / (run.ActiveValue + 200f) * 11f) + 4.0f) / 4.0f;
+                    baseSpeed = (((float)run.Current / (run.Current + 200f) * 11f) + 4.0f) / 4.0f;
                 }
             }
             else

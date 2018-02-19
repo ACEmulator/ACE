@@ -25,7 +25,7 @@ namespace ACE.Entity
         /// Returns the Base Value for a Creature's Ability, for Players this is set durring Character Creation 
         /// </summary>
         [JsonProperty("startingValue")]
-        public uint Base
+        public uint StartingValue
         {
             get { return _backer.AttributeBase; }
             set
@@ -52,7 +52,7 @@ namespace ACE.Entity
         [JsonIgnore]
         public uint Current
         {
-            get { return UnbuffedValue; }
+            get { return Base; }
         }
 
         /// <summary>
@@ -60,12 +60,12 @@ namespace ACE.Entity
         /// For Secondary Abilities, Returns the adjusted Value depending on the current Abiliy formula
         /// </summary>
         [JsonProperty("baseValue")]
-        public uint UnbuffedValue
+        public uint Base
         {
             get
             {
                 // TODO: buffs?  not sure where they will go
-                return this.Ranks + this.Base;
+                return this.Ranks + this.StartingValue;
             }
         }
 
@@ -80,7 +80,7 @@ namespace ACE.Entity
                 // TODO: once buffs are implemented, make sure we have a max Value wich calculates the buffs in, 
                 // as it's needed for the UpdateHealth GameMessage. For now this is just the unbuffed value.
 
-                return UnbuffedValue;
+                return Base;
             }
         }
 
@@ -103,7 +103,7 @@ namespace ACE.Entity
             _backer = new AceObjectPropertiesAttribute();
 
             Ability = ability;
-            Base = 10;
+            StartingValue = 10;
         }
 
         public CreatureAbilityOld(AceObjectPropertiesAttribute attrib)

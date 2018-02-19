@@ -132,7 +132,7 @@ namespace ACE.Entity
             set { SetProperty(PropertyInt.CharacterOptions2, value); }
         }
 
-        public new int TotalLogins
+        public int TotalLogins
         {
             get { return GetProperty(PropertyInt.TotalLogins) ?? 0; }
             set { SetProperty(PropertyInt.TotalLogins, value); }
@@ -144,7 +144,7 @@ namespace ACE.Entity
             set { SetProperty(PropertyBool.IsDeleted, value); }
         }
 
-        public new ulong DeleteTime
+        public ulong DeleteTime
         {
             get { return GetProperty(PropertyInt64.DeleteTime) ?? 0; }
             set { SetInt64Property(PropertyInt64.DeleteTime, value); }
@@ -188,79 +188,79 @@ namespace ACE.Entity
             dirtyOptions = true;
         }
 
-        public new ulong AvailableExperience
+        public ulong AvailableExperience
         {
             get { return GetProperty(PropertyInt64.AvailableExperience) ?? 0; }
             set { SetInt64Property(PropertyInt64.AvailableExperience, value); }
         }
 
-        public new ulong TotalExperience
+        public ulong TotalExperience
         {
             get { return GetProperty(PropertyInt64.TotalExperience) ?? 0; }
             set { SetInt64Property(PropertyInt64.TotalExperience, value); }
         }
 
-        public new int Age
+        public int Age
         {
             get { return GetProperty(PropertyInt.Age) ?? 0; }
             set { SetProperty(PropertyInt.Age, value); }
         }
 
-        public new bool IsDeleted
+        public bool IsDeleted
         {
             get { return GetProperty(PropertyBool.IsDeleted) ?? false; }
             set { SetProperty(PropertyBool.IsDeleted, value); }
         }
 
-        public new int AvailableSkillCredits
+        public int AvailableSkillCredits
         {
             get { return GetProperty(PropertyInt.AvailableSkillCredits) ?? 0; }
             set { SetProperty(PropertyInt.AvailableSkillCredits, value); }
         }
 
-        public new int TotalSkillCredits
+        public int TotalSkillCredits
         {
             get { return GetProperty(PropertyInt.TotalSkillCredits) ?? 0; }
             set { SetProperty(PropertyInt.TotalSkillCredits, value); }
         }
 
-        public new int NumDeaths
+        public int NumDeaths
         {
             get { return GetProperty(PropertyInt.NumDeaths) ?? 0; }
             set { SetProperty(PropertyInt.NumDeaths, value); }
         }
 
-        public new int DeathLevel
+        public int DeathLevel
         {
             get { return GetProperty(PropertyInt.DeathLevel) ?? 0; }
             set { SetProperty(PropertyInt.DeathLevel, value); }
         }
 
-        public new int VitaeCpPool
+        public int VitaeCpPool
         {
             get { return GetProperty(PropertyInt.VitaeCpPool) ?? 0; }
             set { SetProperty(PropertyInt.VitaeCpPool, value); }
         }
 
-        public new bool IsAdmin
+        public bool IsAdmin
         {
             get { return GetProperty(PropertyBool.IsAdmin) ?? false; }
             set { SetProperty(PropertyBool.IsAdmin, value); }
         }
 
-        public new bool IsEnvoy
+        public bool IsEnvoy
         {
             get { return GetProperty(PropertyBool.IsSentinel) ?? false; }
             set { SetProperty(PropertyBool.IsSentinel, value); }
         }
 
-        public new bool IsArch
+        public bool IsArch
         {
             get { return GetProperty(PropertyBool.IsArch) ?? false; }
             set { SetProperty(PropertyBool.IsArch, value); }
         }
 
-        public new bool IsPsr
+        public bool IsPsr
         {
             get { return GetProperty(PropertyBool.IsPsr) ?? false; }
             set { SetProperty(PropertyBool.IsPsr, value); }
@@ -444,7 +444,7 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool TrainSkill(Skill skill, int creditsSpent)
         {
-            CreatureSkillOld cs = GetSkillProperty(skill);
+            /*CreatureSkillOld cs = GetSkillProperty(skill);
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
@@ -454,7 +454,7 @@ namespace ACE.Entity
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
-            }
+            }*/
 
             return false;
         }
@@ -465,7 +465,7 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool SpecializeSkill(Skill skill, int creditsSpent)
         {
-            CreatureSkillOld cs = GetSkillProperty(skill);
+            /*CreatureSkillOld cs = GetSkillProperty(skill);
             if (cs != null && cs.Status == SkillStatus.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
@@ -476,7 +476,7 @@ namespace ACE.Entity
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
-            }
+            }*/
 
             return false;
         }
@@ -487,7 +487,7 @@ namespace ACE.Entity
         /// <param name="skill"></param>
         public bool UntrainSkill(Skill skill, int creditsSpent)
         {
-            CreatureSkillOld cs = GetSkillProperty(skill);
+            /*CreatureSkillOld cs = GetSkillProperty(skill);
             if (cs != null && cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized) 
             {
                 var newSkill = new CreatureSkillOld(this, skill, SkillStatus.Untrained, 0, 0);
@@ -502,7 +502,7 @@ namespace ACE.Entity
                 SetProperty(skill, newSkill);
                 AvailableSkillCredits += creditsSpent;
                 return true;
-            }
+            }*/
 
             return false;
         }

@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
 
             UseRadius = 1;
             IsAlive = true;
-            SetupVitals();
+            //SetupVitals();
         }
 
         private double? resetTimestamp;

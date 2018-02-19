@@ -286,9 +286,9 @@ namespace ACE.Server.Network.Handlers
             //characterCreateInfo.ClassId;
 
             // characters start with max vitals
-            player.Biota.GetAttribute2nd(Ability.Health).CurrentLevel = player.Vitals[Ability.Health].GetUnbuffedMaxValue();
-            player.Biota.GetAttribute2nd(Ability.Stamina).CurrentLevel = player.Vitals[Ability.Stamina].GetUnbuffedMaxValue();
-            player.Biota.GetAttribute2nd(Ability.Mana).CurrentLevel = player.Vitals[Ability.Mana].GetUnbuffedMaxValue();
+            player.Health.Current = player.Health.Base;
+            player.Stamina.Current = player.Stamina.Base;
+            player.Mana.Current = player.Mana.Base;
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             player.SetProperty(PropertyInt.AvailableSkillCredits, (int)cg.HeritageGroups[characterCreateInfo.Heritage].SkillCredits);
