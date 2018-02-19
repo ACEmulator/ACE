@@ -8,7 +8,7 @@ using System.Linq;
 namespace ACE.Entity
 {
     //[DbTable("vw_ace_character")]
-    public class AceCharacter : AceObject, ICreatureStats
+    public class AceCharacter : AceObject
     {
         private readonly List<Friend> friends;
 
