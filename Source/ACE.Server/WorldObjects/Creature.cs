@@ -82,19 +82,12 @@ namespace ACE.Server.WorldObjects
 
         public AceObject AceCorpse => AceObject;
 
-
-
-
-
-
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
         public bool IsAlive { get; set; }
 
         public double RespawnTime { get; set; }
-
-
 
         public virtual void DoOnKill(Session killerSession)
         {
@@ -171,8 +164,6 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock.RemoveWorldObject(Guid, false);
             }
         }
-
-
 
         /// <summary>
         /// This method checks to make sure we have a casting device equipped and if so, it sets
@@ -485,72 +476,6 @@ namespace ACE.Server.WorldObjects
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, updateMotion);
         }
 
-
-
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            bool hideCreatureProfile = NpcLooksLikeObject ?? false;
-
-            if (!hideCreatureProfile)
-            {
-                flags |= IdentifyResponseFlags.CreatureProfile;
-            }
-
-            base.SerializeIdentifyObjectResponse(writer, success, flags);
-
-            if (!hideCreatureProfile)
-            {
-                WriteIdentifyObjectCreatureProfile(writer, this, success);
-            }
-        }
-
-        protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature obj, bool success)
-        {
-            uint header = 0;
-            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
-            if (success)
-                header = 8;
-            writer.Write(header);
-            writer.Write(obj.Health.Current);
-            writer.Write(obj.Health.MaxValue);
-            if (header == 0)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    writer.Write(0u);
-                }
-            }
-            else
-            {
-                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
-                writer.Write(obj.Strength.Base);
-                writer.Write(obj.Endurance.Base);
-                writer.Write(obj.Quickness.Base);
-                writer.Write(obj.Coordination.Base);
-                writer.Write(obj.Focus.Base);
-                writer.Write(obj.Self.Base);
-                writer.Write(obj.Stamina.Base);
-                writer.Write(obj.Mana.Base);
-                writer.Write(obj.Stamina.MaxValue);
-                writer.Write(obj.Mana.MaxValue);
-                // this only gets sent if the header can be masked with 1
-                // Writer.Write(0u);
-            }
-        }
-
-        public void HandleActionWorldBroadcast(string message, ChatMessageType messageType)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoWorldBroadcast(message, messageType));
-            chain.EnqueueChain();
-        }
-
-        public void DoWorldBroadcast(string message, ChatMessageType messageType)
-        {
-            GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
-
-            WorldManager.BroadcastToAll(sysMessage);
-        }
 
         /// <summary>
         /// This signature services MoveToObject and TurnToObject

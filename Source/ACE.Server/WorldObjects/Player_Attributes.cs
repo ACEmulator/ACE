@@ -13,7 +13,10 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public void RaiseAttribute(Ability ability, uint amount)
+        {
 
+        }
 
 
 

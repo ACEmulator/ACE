@@ -100,6 +100,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="worldObject"></param>
         public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
         {
+            // todo MOVE THIS TO CREATURE
+
             // todo see if the wielded location is in use, if so, return false
 
             worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
