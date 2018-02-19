@@ -98,7 +98,6 @@ namespace ACE.Server.WorldObjects
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    RefundXp(cs.ExperienceSpent);
                     cs.Status = SkillStatus.Specialized;
                     cs.Ranks = 0;
                     cs.ExperienceSpent = 0;
@@ -127,7 +126,6 @@ namespace ACE.Server.WorldObjects
 
             if (cs.Status == SkillStatus.Trained)
             {
-                RefundXp(cs.ExperienceSpent);
                 cs.Status = SkillStatus.Untrained;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;

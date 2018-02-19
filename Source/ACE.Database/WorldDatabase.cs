@@ -182,10 +182,23 @@ namespace ACE.Database
 
         public PointsOfInterest GetCachedPointOfInterest(string name)
         {
-            if (cachedAcePositions.TryGetValue(name, out var value))
+            if (cachedAcePositions.TryGetValue(name.ToLower(), out var value))
                 return value;
 
-            throw new NotImplementedException();
+            using (var context = new WorldDbContext())
+            {
+                var result = context.PointsOfInterest
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.Name.ToLower() == name.ToLower());
+
+                if (result != null)
+                {
+                    cachedAcePositions[name.ToLower()] = result;
+                    return result;
+                }
+            }
+
+            return null;
         }
 
 

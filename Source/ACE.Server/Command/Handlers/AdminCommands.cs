@@ -15,6 +15,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Database.Models.World;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -819,12 +820,11 @@ namespace ACE.Server.Command.Handlers
         public static void HandleTeleportPoi(Session session, params string[] parameters)
         {
             var poi = String.Join(" ", parameters);
-            throw new NotImplementedException();/* Use DatabaseManager.World.GetCachedPointOfInterest, then use an extension class to convert that to a Position object to be used here
-            var teleportPOI = AssetManager.GetTeleport(poi);
+            var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
             if (teleportPOI == null)
                 return;
-
-            session.Player.Teleport(teleportPOI);*/
+            var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
+            session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
         }
 
         // teleloc cell x y z [qx qy qz qw]
