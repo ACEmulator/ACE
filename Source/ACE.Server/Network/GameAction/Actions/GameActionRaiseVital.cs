@@ -28,7 +28,7 @@ namespace ACE.Server.Network.GameAction.Actions
                     return;
             }
 
-            session.Player.RaiseVital(ability, xpSpent);
+            session.Player.RaiseVitalGameAction(ability, xpSpent);
         }
     }
 }

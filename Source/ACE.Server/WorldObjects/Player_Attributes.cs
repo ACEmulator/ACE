@@ -1,97 +1,40 @@
 using System;
-using System.Collections.Generic;
 
 using ACE.DatLoader;
-using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void RaiseAttribute(Ability ability, uint amount)
+        public void RaiseAttributeGameAction(Ability ability, uint amount)
         {
+            var creatureAttribute = new CreatureAttribute(this, ability);
 
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public void SpendXp(Ability ability, uint amount)
-        {
-            /* todo fix for EF version
-            bool isSecondary = false;
-            ICreatureXpSpendableStat creatureStat;
-
-            bool success = AceObject.AceObjectPropertiesAttributes.TryGetValue(ability, out var creatureAbility);
-
-            if (success)
-                creatureStat = creatureAbility;
-            else
-            {
-                success = AceObject.AceObjectPropertiesAttributes2nd.TryGetValue(ability, out var v);
-
-                // Invalid ability
-                if (success)
-                    creatureStat = v;
-                else
-                {
-                    log.Error("Invalid ability passed to Player.SpendXp");
-                    return;
-                }
-
-                isSecondary = true;
-            }
-
-            uint baseValue = creatureStat.StartingValue;
-            uint result = SpendAbilityXp(creatureStat, amount);
-            uint ranks = creatureStat.Ranks;
-            uint newValue = creatureStat.Base;
+            uint result = SpendAttributeXp(creatureAttribute, amount);
 
             if (result > 0u)
             {
-                GameMessage abilityUpdate;
-
-                if (!isSecondary)
-                    abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, ranks, baseValue, result);
-                else
-                    abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, ranks, baseValue, result, creatureStat.Current);
+                GameMessage abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
 
                 // checks if max rank is achieved and plays fireworks w/ special text
                 string messageText;
 
-                if (IsAbilityMaxRank(ranks, isSecondary))
+                if (IsAttributeMaxRank(creatureAttribute.Ranks))
                 {
                     // fireworks
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {ability} is now {newValue} and has reached its upper limit!";
+                    messageText = $"Your base {ability} is now {creatureAttribute.Base} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {ability} is now {newValue}!";
+                    messageText = $"Your base {ability} is now {creatureAttribute.Base}!";
                 }
 
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (ulong)AvailableExperience);
                 var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
                 var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
 
@@ -100,47 +43,33 @@ namespace ACE.Server.WorldObjects
                 if (ability == Ability.Endurance)
                 {
                     var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
-                    Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, healthUpdate);
+                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
                 }
                 else if (ability == Ability.Self)
                 {
                     var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
-                    Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message, manaUpdate);
+                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(abilityUpdate, xpUpdate, soundEvent, message);
+                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
                 }
             }
             else
             {
                 ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
-            }*/
+            }
         }
-
 
         /// <summary>
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        /*private uint SpendAbilityXp(ICreatureXpSpendableStat ability, uint amount)
+        private uint SpendAttributeXp(CreatureAttribute ability, uint amount)
         {
             uint result = 0;
 
-            List<uint> xpList;
-            var xpTable = DatManager.PortalDat.XpTable;
-
-            switch (ability.Ability)
-            {
-                case Ability.Health:
-                case Ability.Stamina:
-                case Ability.Mana:
-                    xpList = xpTable.VitalXpList;
-                    break;
-                default:
-                    xpList = xpTable.AbilityXpList;
-                    break;
-            }
+            var xpList = DatManager.PortalDat.XpTable.AbilityXpList;
 
             // do not advance if we cannot spend xp to rank up our skill by 1 point
             if (ability.Ranks >= (xpList.Count - 1))
@@ -178,33 +107,25 @@ namespace ACE.Server.WorldObjects
                 //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
-                Character.SpendXp(amount);
+                SpendXp(amount);
                 result = ability.ExperienceSpent;
             }
 
             return result;
-        }*/
+        }
 
         /// <summary>
         /// Check a rank against the ability charts too determine if the skill is at max
         /// </summary>
         /// <returns>Returns true if ability is max rank; false if ability is below max rank</returns>
-        private bool IsAbilityMaxRank(uint rank, bool isAbilityVitals)
+        private static bool IsAttributeMaxRank(uint rank)
         {
-            List<uint> xpList;
-            var xpTable = DatManager.PortalDat.XpTable;
-
-            if (isAbilityVitals)
-                xpList = xpTable.VitalXpList;
-            else
-                xpList = xpTable.AbilityXpList;
+            var xpList = DatManager.PortalDat.XpTable.AbilityXpList;
 
             if (rank == (xpList.Count - 1))
                 return true;
 
             return false;
         }
-
-
     }
 }
