@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -11,7 +10,6 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -21,10 +19,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject 
     {
-        public PhysicsDescriptionFlag PhysicsDescriptionFlag => CalculatedPhysicsDescriptionFlag();
-
-        public PhysicsState PhysicsState => CalculatedPhysicsState();
-
         public MotionState CurrentMotionState { get; set; }
 
         public virtual Position Location
@@ -75,12 +69,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Placement); else SetProperty(PropertyInt.Placement, (int)value.Value); }
         }
 
-        public WeenieHeaderFlag WeenieFlags => CalculatedWeenieHeaderFlag(); // todo remove this. Where it was used, replace with var weenieFlags = CalculatedWeenieHeaderFlag()
-
-        public WeenieHeaderFlag2 WeenieFlags2 => CalculatedWeenieHeaderFlag2(); // todo same as above
-
-        public ObjectDescriptionFlag DescriptionFlags => CalculatedDescriptionFlag(); // todo same as above
-
 
         public virtual void SerializeCreateObject(BinaryWriter writer)
         {
@@ -114,123 +102,127 @@ namespace ACE.Server.WorldObjects
                 SerializePhysicsData(writer);
             }
 
-            writer.Write((uint)WeenieFlags);
+            var weenieFlags = CalculatedWeenieHeaderFlag();
+            var weenieFlags2 = CalculatedWeenieHeaderFlag2();
+            var descriptionFlags = CalculatedDescriptionFlag();
+
+            writer.Write((uint)weenieFlags);
             writer.WriteString16L(Name);
-            writer.WritePackedDword(Biota.WeenieClassId);
+            writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
-            writer.Write((uint)DescriptionFlags);
+            writer.Write((uint)descriptionFlags);
             writer.Align();
 
-            if ((DescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
-                writer.Write((uint)WeenieFlags2);
+            if ((descriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
+                writer.Write((uint)weenieFlags2);
 
-            if ((WeenieFlags & WeenieHeaderFlag.PluralName) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.PluralName) != 0)
                 writer.WriteString16L(NamePlural);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ItemsCapacity) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.ItemsCapacity) != 0)
                 writer.Write(ItemCapacity ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ContainersCapacity) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.ContainersCapacity) != 0)
                 writer.Write(ContainerCapacity ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.AmmoType) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.AmmoType) != 0)
                 writer.Write((ushort?)AmmoType ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Value) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Value) != 0)
                 writer.Write(Value ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Usable) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Usable) != 0)
                 writer.Write((uint?)Usable ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.UseRadius) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.UseRadius) != 0)
                 writer.Write(UseRadius ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.TargetType) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.TargetType) != 0)
                 writer.Write(TargetType ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.UiEffects) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.UiEffects) != 0)
                 writer.Write((uint?)UiEffects ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.CombatUse) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.CombatUse) != 0)
                 writer.Write((sbyte?)CombatUse ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Structure) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Structure) != 0)
                 writer.Write(Structure ?? (ushort)0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.MaxStructure) != 0)
                 writer.Write(MaxStructure ?? (ushort)0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.StackSize) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.StackSize) != 0)
                 writer.Write(StackSize ?? (ushort)0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
                 writer.Write(MaxStackSize ?? (ushort)0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Container) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Container) != 0)
                 writer.Write(ContainerId ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Wielder) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Wielder) != 0)
                 writer.Write(WielderId ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.ValidLocations) != 0)
                 writer.Write((uint?)ValidLocations ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.CurrentlyWieldedLocation) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.CurrentlyWieldedLocation) != 0)
                 writer.Write((uint?)CurrentWieldedLocation ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Priority) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Priority) != 0)
                 writer.Write((uint?)Priority ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.RadarBlipColor) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.RadarBlipColor) != 0)
                 writer.Write((byte?)RadarColor ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.RadarBehavior) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.RadarBehavior) != 0)
                 writer.Write((byte?)RadarBehavior ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.PScript) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.PScript) != 0)
                 writer.Write(Script ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Workmanship) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Workmanship) != 0)
                 writer.Write(Workmanship ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Burden) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Burden) != 0)
                 writer.Write(Burden ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Spell) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Spell) != 0)
                 writer.Write((ushort?)Spell ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
                 writer.Write(HouseOwner ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
                 writer.Write(HouseRestrictions ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
                 writer.Write(HookItemType ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.Monarch) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.Monarch) != 0)
                 writer.Write(Monarch ?? 0u);
 
-            if ((WeenieFlags & WeenieHeaderFlag.HookType) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.HookType) != 0)
                 writer.Write(HookType ?? 0);
 
-            if ((WeenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.IconOverlay) != 0)
                 writer.WritePackedDwordOfKnownType((IconOverlayId ?? 0), 0x6000000);
 
-            if ((WeenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
+            if ((weenieFlags2 & WeenieHeaderFlag2.IconUnderlay) != 0)
                 writer.WritePackedDwordOfKnownType((IconUnderlayId ?? 0), 0x6000000);
 
-            if ((WeenieFlags & WeenieHeaderFlag.MaterialType) != 0)
+            if ((weenieFlags & WeenieHeaderFlag.MaterialType) != 0)
                 writer.Write((uint)(MaterialType ?? 0u));
 
-            if ((WeenieFlags2 & WeenieHeaderFlag2.Cooldown) != 0)
+            if ((weenieFlags2 & WeenieHeaderFlag2.Cooldown) != 0)
                 writer.Write(CooldownId ?? 0);
 
-            if ((WeenieFlags2 & WeenieHeaderFlag2.CooldownDuration) != 0)
+            if ((weenieFlags2 & WeenieHeaderFlag2.CooldownDuration) != 0)
                 writer.Write((double?)CooldownDuration ?? 0u);
 
-            if ((WeenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
+            if ((weenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
                 writer.Write(PetOwner ?? 0u);
 
             writer.Align();
@@ -271,13 +263,16 @@ namespace ACE.Server.WorldObjects
         // todo: return bytes of data for network write ? ?
         private void SerializePhysicsData(BinaryWriter writer)
         {
-            writer.Write((uint)PhysicsDescriptionFlag);
+            var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
+            var physicsState = CalculatedPhysicsState();
 
-            writer.Write((uint)PhysicsState);
+            writer.Write((uint)physicsDescriptionFlag);
+
+            writer.Write((uint)physicsState);
 
             // PhysicsDescriptionFlag.Movement takes priorty over PhysicsDescription.FlagAnimationFrame
             // If both are set, only Movement is written.
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
                 if (CurrentMotionState != null)
                 {
@@ -302,31 +297,31 @@ namespace ACE.Server.WorldObjects
                     writer.Write(0u);
                 }
             }
-            else if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
+            else if ((physicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
                 writer.Write(((uint)(Placement ?? ACE.Entity.Enum.Placement.Default)));
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Position) != 0)
                 Location.Serialize(writer);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.MTable) != 0)
                 writer.Write(MotionTableId);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.STable) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.STable) != 0)
                 writer.Write(SoundTableId);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.PeTable) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.PeTable) != 0)
                 writer.Write(PhysicsTableId);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.CSetup) != 0)
                 writer.Write(SetupTableId);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
                 writer.Write(WielderId ?? 0);
                 writer.Write(ParentLocation ?? 0);
             }
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
             {
                 writer.Write(Children.Count);
                 foreach (var child in Children)
@@ -336,37 +331,37 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
                 writer.Write(ObjScale ?? 0u);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
                 writer.Write(Friction ?? 0u);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
                 writer.Write(Elasticity ?? 0u);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
                 writer.Write(Translucency ?? 0u);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
                 Velocity.Serialize(writer);
             }
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
                 Acceleration.Serialize(writer);
             }
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
                 Omega.Serialize(writer);
             }
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
                 writer.Write(DefaultScriptId ?? 0u);
 
-            if ((PhysicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
+            if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
                 writer.Write(DefaultScriptIntensity ?? 0u);
 
             // timestamps
@@ -543,7 +538,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        private PhysicsDescriptionFlag CalculatedPhysicsDescriptionFlag()
+        protected PhysicsDescriptionFlag CalculatedPhysicsDescriptionFlag()
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
@@ -724,7 +719,7 @@ namespace ACE.Server.WorldObjects
             return physicsState;
         }
 
-        private WeenieHeaderFlag CalculatedWeenieHeaderFlag()
+        protected WeenieHeaderFlag CalculatedWeenieHeaderFlag()
         {
             var weenieHeaderFlag = WeenieHeaderFlag.None;
 
@@ -884,6 +879,7 @@ namespace ACE.Server.WorldObjects
         private ObjectDescriptionFlag CalculatedDescriptionFlag()
         {
             var flag = BaseDescriptionFlags;
+            var weenieFlags2 = CalculatedWeenieHeaderFlag2();
 
             // TODO: More uncommentting and wiring up for other flags
             ////None                   = 0x00000000,
@@ -984,7 +980,7 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.PkLiteStatus ?? false)
             //    PkLiteStatus = true;
             ////IncludesSecondHeader   = 0x04000000,
-            if (WeenieFlags2 > WeenieHeaderFlag2.None)
+            if (weenieFlags2 > WeenieHeaderFlag2.None)
                 flag |= ObjectDescriptionFlag.IncludesSecondHeader;
             else
                 flag &= ~ObjectDescriptionFlag.IncludesSecondHeader;

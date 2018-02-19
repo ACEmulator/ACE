@@ -254,29 +254,23 @@ namespace ACE.Server.Network.Handlers
             uint totalAttributeCredits = cg.HeritageGroups[characterCreateInfo.Heritage].AttributeCredits;
             uint usedAttributeCredits = 0;
 
-            var strength = player.Biota.GetAttribute(Ability.Strength);
-            strength.InitLevel = ValidateAttributeCredits(characterCreateInfo.StrengthAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += strength.InitLevel;
+            player.Strength.StartingValue = ValidateAttributeCredits(characterCreateInfo.StrengthAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += player.Strength.StartingValue;
 
-            var endurance = player.Biota.GetAttribute(Ability.Endurance);
-            endurance.InitLevel = ValidateAttributeCredits(characterCreateInfo.EnduranceAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += endurance.InitLevel;
+            player.Endurance.StartingValue = ValidateAttributeCredits(characterCreateInfo.EnduranceAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += player.Endurance.StartingValue;
 
-            var coordination = player.Biota.GetAttribute(Ability.Coordination);
-            coordination.InitLevel = ValidateAttributeCredits(characterCreateInfo.CoordinationAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += coordination.InitLevel;
+            player.Coordination.StartingValue = ValidateAttributeCredits(characterCreateInfo.CoordinationAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += player.Coordination.StartingValue;
 
-            var quickness = player.Biota.GetAttribute(Ability.Quickness);
-            quickness.InitLevel = ValidateAttributeCredits(characterCreateInfo.QuicknessAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += quickness.InitLevel;
+            player.Quickness.StartingValue = ValidateAttributeCredits(characterCreateInfo.QuicknessAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += player.Quickness.StartingValue;
 
-            var focus = player.Biota.GetAttribute(Ability.Focus);
-            focus.InitLevel = ValidateAttributeCredits(characterCreateInfo.FocusAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += focus.InitLevel;
+            player.Focus.StartingValue = ValidateAttributeCredits(characterCreateInfo.FocusAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += player.Focus.StartingValue;
 
-            var self = player.Biota.GetAttribute(Ability.Self);
-            self.InitLevel = ValidateAttributeCredits(characterCreateInfo.SelfAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += self.InitLevel;
+            player.Self.StartingValue = ValidateAttributeCredits(characterCreateInfo.SelfAbility, usedAttributeCredits, totalAttributeCredits);
+            usedAttributeCredits += player.Self.StartingValue;
 
             // Validate this is equal to actual attribute credits (330 for all but "Olthoi", which have 60
             // todo if (usedAttributeCredits > .....
@@ -317,16 +311,14 @@ namespace ACE.Server.Network.Handlers
 
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
-            List<uint> grantedItems = new List<uint>();
+            var grantedItems = new List<uint>();
 
             foreach (var skillGear in starterGearConfig.Skills)
             {
-                // TODO for the new format
-                /*
-                var charSkill = character.AceObjectPropertiesSkills[(Skill)skillGear.SkillId];
+                var charSkill = player.Skills[(Skill)skillGear.SkillId];
                 if (charSkill.Status == SkillStatus.Trained || charSkill.Status == SkillStatus.Specialized)
                 {
-                    foreach (var item in skillGear.Gear)
+                    /*foreach (var item in skillGear.Gear)
                     {
                         if (grantedItems.Contains(item.WeenieId))
                         {
@@ -346,7 +338,7 @@ namespace ACE.Server.Network.Handlers
                         grantedItems.Add(item.WeenieId);
                     }
 
-                    var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == character.Heritage);
+                    var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == characterCreateInfo.Heritage);
                     if (heritageLoot != null)
                     {
                         foreach (var item in heritageLoot.Gear)
@@ -368,24 +360,24 @@ namespace ACE.Server.Network.Handlers
                             //character.Inventory.Add(loot.Guid, loot); TODO FIX THIS FOR NEW MODEL
                             grantedItems.Add(item.WeenieId);
                         }
-                    }
+                    }*/
                     
                     foreach (var spell in skillGear.Spells)
                     {
                         // Olthoi Spitter is a special case
-                        if (character.Heritage == (int)HeritageGroup.OlthoiAcid)
+                        if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid)
                         {
-                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = guid.Full, SpellId = spell.SpellId });
+                            player.AddSpell((int)spell.SpellId);
                             // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
                             continue;
                         }
 
                         if (charSkill.Status == SkillStatus.Trained && spell.SpecializedOnly == false)
-                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = guid.Full, SpellId = spell.SpellId });
+                            player.AddSpell((int)spell.SpellId);
                         else if (charSkill.Status == SkillStatus.Specialized)
-                            character.SpellIdProperties.Add(new AceObjectPropertiesSpell() { AceObjectId = guid.Full, SpellId = spell.SpellId });
+                            player.AddSpell((int)spell.SpellId);
                     }
-                }*/
+                }
             }
 
             player.SetProperty(PropertyString.Name, characterCreateInfo.Name);

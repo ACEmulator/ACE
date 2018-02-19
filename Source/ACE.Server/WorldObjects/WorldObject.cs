@@ -244,17 +244,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public uint WeenieClassId
-        {
-            get => Biota.WeenieClassId;
-            //protected set => Biota.WeenieClassId = value;
-        }
+        public uint WeenieClassId => Biota.WeenieClassId;
 
-        public WeenieType WeenieType
-        {
-            get => (WeenieType)Biota.WeenieType;
-            //protected set => Biota.WeenieType = (int)value;
-        }
+        public WeenieType WeenieType => (WeenieType)Biota.WeenieType;
 
         public uint IconId
         {
@@ -293,6 +285,7 @@ namespace ACE.Server.WorldObjects
 
         public virtual int? Value
         {
+            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
             get => (StackUnitValue * (StackSize ?? 1));
             set => AceObject.Value = value;
         }
@@ -936,13 +929,16 @@ namespace ACE.Server.WorldObjects
                         debugOutput += $"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.Guid.Type.ToString()})" + "\n";
                         break;
                     case "descriptionflags":
-                        debugOutput += $"{prop.Name} = {obj.DescriptionFlags.ToString()}" + " (" + (uint)obj.DescriptionFlags + ")" + "\n";
+                        var descriptionFlags = CalculatedDescriptionFlag();
+                        debugOutput += $"{prop.Name} = {descriptionFlags.ToString()}" + " (" + (uint)descriptionFlags + ")" + "\n";
                         break;
                     case "weenieflags":
-                        debugOutput += $"{prop.Name} = {obj.WeenieFlags.ToString()}" + " (" + (uint)obj.WeenieFlags + ")" + "\n";
+                        var weenieFlags = CalculatedWeenieHeaderFlag();
+                        debugOutput += $"{prop.Name} = {weenieFlags.ToString()}" + " (" + (uint)weenieFlags + ")" + "\n";
                         break;
                     case "weenieflags2":
-                        debugOutput += $"{prop.Name} = {obj.WeenieFlags2.ToString()}" + " (" + (uint)obj.WeenieFlags2 + ")" + "\n";
+                        var weenieFlags2 = CalculatedWeenieHeaderFlag2();
+                        debugOutput += $"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")" + "\n";
                         break;
                     case "positionflag":
                         debugOutput += $"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")" + "\n";
@@ -963,10 +959,12 @@ namespace ACE.Server.WorldObjects
                         debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
                         break;
                     case "physicsdescriptionflag":
-                        debugOutput += $"{prop.Name} = {obj.PhysicsDescriptionFlag.ToString()}" + " (" + (uint)obj.PhysicsDescriptionFlag + ")" + "\n";
+                        var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
+                        debugOutput += $"{prop.Name} = {physicsDescriptionFlag.ToString()}" + " (" + (uint)physicsDescriptionFlag + ")" + "\n";
                         break;
                     case "physicsstate":
-                        debugOutput += $"{prop.Name} = {obj.PhysicsState.ToString()}" + " (" + (uint)obj.PhysicsState + ")" + "\n";
+                        var physicsState = CalculatedPhysicsState();
+                        debugOutput += $"{prop.Name} = {physicsState.ToString()}" + " (" + (uint)physicsState + ")" + "\n";
                         break;
                     case "propertiesint":
                         foreach (var item in obj.PropertiesInt)
@@ -1258,7 +1256,8 @@ namespace ACE.Server.WorldObjects
         {
             if (CurrentLandblock != null)
             {
-                GameMessage msg = new GameMessageSetState(this, PhysicsState);
+                var physicsState = CalculatedPhysicsState();
+                GameMessage msg = new GameMessageSetState(this, physicsState);
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }

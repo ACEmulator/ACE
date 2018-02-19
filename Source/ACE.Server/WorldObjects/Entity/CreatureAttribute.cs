@@ -12,12 +12,21 @@ namespace ACE.Server.WorldObjects.Entity
         // This is the underlying database record
         private readonly BiotaPropertiesAttribute biotaPropertiesAttribute;
 
+        /// <summary>
+        /// If the creatures biota does not contain this attribute, a new record will be created.
+        /// </summary>
         public CreatureAttribute(Creature creature, Ability ability)
         {
             this.creature = creature;
             Ability = ability;
 
             biotaPropertiesAttribute = creature.Biota.GetAttribute(ability);
+
+            if (biotaPropertiesAttribute == null)
+            {
+                creature.Biota.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute {ObjectId = creature.Biota.Id, Type = (ushort) ability});
+                biotaPropertiesAttribute = creature.Biota.GetAttribute(ability);
+            }
         }
 
         /// <summary>

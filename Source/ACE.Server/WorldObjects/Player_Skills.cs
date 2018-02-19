@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -26,35 +24,6 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyInt.AvailableSkillCredits, value);
         }
 
-
-        /// <summary>
-        /// Will return true if the skill was added, or false if the skill already exists.
-        /// </summary>
-        public bool AddSkill(Skill skill, SkillStatus skillStatus)
-        {
-            var result = Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
-
-            if (result == null)
-            {
-                result = new BiotaPropertiesSkill { ObjectId = Biota.Id, Type = (ushort)skill, SAC = (uint)skillStatus };
-
-                Biota.BiotaPropertiesSkill.Add(result);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// This will create a CreatureSkill wrapper around the BiotaPropertiesSkill record for this player.
-        /// </summary>
-        public CreatureSkill GetCreatureSkill(Skill skill)
-        {
-            AddSkill(skill, SkillStatus.Untrained);
-
-            return new CreatureSkill(this, skill);
-        }
 
         /// <summary>
         /// Sets the skill to trained status for a character
