@@ -49,115 +49,120 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write(0x0Au);
 
-            var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
+            var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
-            if (propertiesInt.Count != 0)
+            var propertiesInt = aceObj?.IntProperties.Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.PropertyId)).ToList();
+
+            if (propertiesInt != null && propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
 
                 Writer.Write((ushort)propertiesInt.Count);
                 Writer.Write((ushort)0x40);
 
-                foreach (var property in propertiesInt)
+                var notNull = propertiesInt.Where(x => x != null);
+                foreach (var uintProperty in notNull)
                 {
-                    Writer.Write((uint)property.Key);
-                    Writer.Write(property.Value);
+                    Writer.Write((uint)uintProperty.PropertyId);
+                    Writer.Write(uintProperty.PropertyValue.Value);
                 }
             }
 
-            var propertiesInt64 = Session.Player.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToList();
+            var propertiesInt64 = aceObj?.Int64Properties.Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.PropertyId)).ToList();
 
-            if (propertiesInt64.Count != 0)
+            if (propertiesInt64 != null && propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
 
                 Writer.Write((ushort)propertiesInt64.Count);
                 Writer.Write((ushort)0x40);
 
-                foreach (var property in propertiesInt64)
+                var notNull = propertiesInt64.Where(x => x != null);
+                foreach (var uint64Property in notNull)
                 {
-                    Writer.Write((uint)property.Key);
-                    Writer.Write(property.Value);
+                    Writer.Write((uint)uint64Property.PropertyId);
+                    Writer.Write(uint64Property.PropertyValue.Value);
                 }
             }
 
-            var propertiesBool = Session.Player.GetAllPropertyBools().Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
+            var propertiesBool = aceObj?.BoolProperties.Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.PropertyId)).ToList();
 
-            if (propertiesBool.Count != 0)
+            if (propertiesBool != null && propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
 
                 Writer.Write((ushort)propertiesBool.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var property in propertiesBool)
+                foreach (var boolProperty in propertiesBool)
                 {
-                    Writer.Write((uint)property.Key);
-                    Writer.Write(Convert.ToUInt32(property.Value)); // just as fast as inlining
+                    Writer.Write((uint)boolProperty.PropertyId);
+                    Writer.Write(Convert.ToUInt32(boolProperty.PropertyValue)); // just as fast as inlining
                 }
             }
 
-            var propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
+            var propertiesDouble = aceObj?.DoubleProperties.Where(x => ClientProperties.PropertiesDouble.Contains(x.PropertyId)).ToList();
 
-            if (propertiesDouble.Count != 0)
+            if (propertiesDouble != null && propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
 
                 Writer.Write((ushort)propertiesDouble.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var property in propertiesDouble)
+                var notNull = propertiesDouble.Where(x => x != null);
+                foreach (var doubleProperty in notNull)
                 {
-                    Writer.Write((uint)property.Key);
-                    Writer.Write(property.Value);
+                    Writer.Write((uint)doubleProperty.PropertyId);
+                    Writer.Write(doubleProperty.PropertyValue.Value);
                 }
             }
 
-            var propertiesString = Session.Player.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
+            var propertiesString = aceObj?.StringProperties.Where(x => ClientProperties.PropertiesString.Contains(x.PropertyId)).ToList();
 
-            if (propertiesString.Count != 0)
+            if (propertiesString != null && propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
 
                 Writer.Write((ushort)propertiesString.Count);
                 Writer.Write((ushort)0x10);
 
-                foreach (var property in propertiesString)
+                foreach (var stringProperty in propertiesString)
                 {
-                    Writer.Write((uint)property.Key);
-                    Writer.WriteString16L(property.Value);
+                    Writer.Write((uint)stringProperty.PropertyId);
+                    Writer.WriteString16L(stringProperty.PropertyValue);
                 }
             }
 
-            var propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
+            var propertiesDid = aceObj?.DataIdProperties.Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.PropertyId)).ToList();
 
-            if (propertiesDid.Count != 0)
+            if (propertiesDid != null && propertiesDid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDid;
 
                 Writer.Write((ushort)propertiesDid.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var property in propertiesDid)
+                foreach (var didProperty in propertiesDid)
                 {
-                    Writer.Write((ushort)property.Key);
-                    Writer.Write(property.Value);
+                    Writer.Write(didProperty.PropertyId);
+                    Writer.Write(didProperty.PropertyValue.Value);
                 }
             }
 
-            var propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToList();
+            var propertiesIid = aceObj?.InstanceIdProperties.Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.PropertyId)).ToList();
 
-            if (propertiesIid.Count != 0)
+            if (propertiesIid != null && propertiesIid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyIid;
 
                 Writer.Write((ushort)propertiesIid.Count);
                 Writer.Write((ushort)0x20);
 
-                foreach (var property in propertiesIid)
+                foreach (var iidProperty in propertiesIid)
                 {
-                    Writer.Write((ushort)property.Key);
-                    Writer.Write(property.Value);
+                    Writer.Write(iidProperty.PropertyId);
+                    Writer.Write(iidProperty.PropertyValue.Value);
                 }
             }
 
@@ -174,14 +179,11 @@ namespace ACE.Server.Network.GameEvent.Events
             }*/
 
             Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
-var aceObj = Session.Player.GetAceObject() as AceCharacter;
-            // todo fix to not use aceobj
-            DescriptionVectorFlag vectorFlags = 0;//DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
 
-            /* todo fix for player, not use aceobj
-            var propertiesSpells = aceObj.SpellIdProperties.ToList();
-            if (propertiesSpells.Count > 0)
-                vectorFlags |= DescriptionVectorFlag.Spell;*/
+            DescriptionVectorFlag vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
+
+            if (Session.Player.Biota.BiotaPropertiesSpellBook.Count > 0)
+                vectorFlags |= DescriptionVectorFlag.Spell;
 
             Writer.Write((uint)vectorFlags);
             Writer.Write(1u);
@@ -194,42 +196,42 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
                 if ((attributeFlags & Ability.Strength) != 0)
                 {
                     Writer.Write(Session.Player.Strength.Ranks); // ranks
-                    Writer.Write(Session.Player.Strength.StartingValue);
+                    Writer.Write(Session.Player.Strength.Base);
                     Writer.Write(Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Endurance) != 0)
                 {
                     Writer.Write(Session.Player.Endurance.Ranks); // ranks
-                    Writer.Write(Session.Player.Endurance.StartingValue);
+                    Writer.Write(Session.Player.Endurance.Base);
                     Writer.Write(Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Quickness) != 0)
                 {
                     Writer.Write(Session.Player.Quickness.Ranks); // ranks
-                    Writer.Write(Session.Player.Quickness.StartingValue);
+                    Writer.Write(Session.Player.Quickness.Base);
                     Writer.Write(Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Coordination) != 0)
                 {
                     Writer.Write(Session.Player.Coordination.Ranks); // ranks
-                    Writer.Write(Session.Player.Coordination.StartingValue);
+                    Writer.Write(Session.Player.Coordination.Base);
                     Writer.Write(Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Focus) != 0)
                 {
                     Writer.Write(Session.Player.Focus.Ranks); // ranks
-                    Writer.Write(Session.Player.Focus.StartingValue);
+                    Writer.Write(Session.Player.Focus.Base);
                     Writer.Write(Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Self) != 0)
                 {
                     Writer.Write(Session.Player.Self.Ranks); // ranks
-                    Writer.Write(Session.Player.Self.StartingValue);
+                    Writer.Write(Session.Player.Self.Base);
                     Writer.Write(Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
@@ -260,78 +262,64 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
 
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                // FIXME(ddevec): This should be a property of the player -- the AceObject does not track buffs.
-                /* todo fix for new EF model
-                var skills = aceObj.GetSkills();
-
-                Writer.Write((ushort)skills.Count);
+                Writer.Write((ushort)Session.Player.Skills.Count);
                 Writer.Write((ushort)0x20); // unknown
 
-                foreach (var skill in skills)
+                foreach (var kvp in Session.Player.Skills)
                 {
-                    Writer.Write((uint)skill.Skill); // skill id
-                    Writer.Write((ushort)skill.Ranks); // points raised
+                    Writer.Write((uint)kvp.Key); // skill id
+                    Writer.Write((ushort)kvp.Value.Ranks); // points raised
                     Writer.Write((ushort)1u);
-                    Writer.Write((uint)skill.Status); // skill state
-                    Writer.Write((uint)skill.ExperienceSpent); // xp spent on this skill
-                    if (skill.Status == SkillStatus.Specialized)
+                    Writer.Write((uint)kvp.Value.Status); // skill state
+                    Writer.Write((uint)kvp.Value.ExperienceSpent); // xp spent on this skill
+                    if (kvp.Value.Status == SkillStatus.Specialized)
                         Writer.Write(10u);  // init_level, for specialization bonus -- buffs are not part of this message
                     else
                         Writer.Write(0u); // no init_level
                     Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"
                     Writer.Write(0d); // last_time_used
-                }*/
+                }
             }
 
             if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
-            {/* todo fix for not aceobj
-                Writer.Write((ushort)propertiesSpells.Count);
+            {
+                Writer.Write((ushort)Session.Player.Biota.BiotaPropertiesSpellBook.Count);
                 Writer.Write((ushort)64);
 
+                foreach (var spell in Session.Player.Biota.BiotaPropertiesSpellBook)
                 {
-                    foreach (AceObjectPropertiesSpell spell in propertiesSpells)
-                    {
-                        Writer.Write(spell.SpellId);
-                        // This sets a flag to use new spell configuration always 2
-                        Writer.Write(2f);
-                    }
-                }*/
+                    Writer.Write(spell.Spell);
+                    // This sets a flag to use new spell configuration always 2
+                    Writer.Write(2f);
+                }
             }
 
             /*if ((vectorFlags & DescriptionVectorFlag.Enchantment) != 0)
             {
             }*/
 
-            // FIXME(ddevec): We have duplicated data everywhere.  There is an AceObject CharacterOption flag, and a Player.CharacterOptions...
-            //    Which one is right?  I have no idea.  Right now the aceObject works...  we should probably do a refactoring once we've restored functionality
-
             // TODO: Refactor this to set all of these flags based on data. Og II
             CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
-            // todo fix to not use aceobj
+
+            // todo EF fix
             //if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
             //    optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
             Writer.Write((uint)optionFlags);
-            /*
-            Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions1Flag());
-            */
-            Writer.Write(0 /* todo fix for not use aceobj aceObj.CharacterOptions1Mapping*/);
+            Writer.Write((int)(Session.Player.GetProperty(PropertyInt.CharacterOptions1) ?? 0));
 
             /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
             {
             }*/
+
             if ((optionFlags & CharacterOptionDataFlag.SpellLists8) != 0)
             {
                 for (int i = 0; i <= 7; i++)
                 {
-                    var sorted =
-                        Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == aceObj.AceObjectId && x.SpellBarId == i)
-                            .OrderBy(s => s.SpellBarPositionId);
+                    var sorted = Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == aceObj.AceObjectId && x.SpellBarId == i).OrderBy(s => s.SpellBarPositionId);
                     Writer.Write(sorted.Count());
                     foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
-                    {
                         Writer.Write(spells.SpellId);
-                    }
                 }
             }
             else
@@ -347,8 +335,7 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
                 Writer.Write(0u);
 
             if ((optionFlags & CharacterOptionDataFlag.CharacterOptions2) != 0)
-                // Writer.Write(this.Session.Player.CharacterOptions.GetCharacterOptions2Flag());
-                Writer.Write(0 /* todo fix for not ueaceobj aceObj.CharacterOptions2Mapping*/);
+                Writer.Write((int)(Session.Player.GetProperty(PropertyInt.CharacterOptions2) ?? 0));
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {
@@ -363,7 +350,7 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
             }*/
 
             // Write total count.
-            Writer.Write(0 /* todo fix for not useaceobj (uint)aceObj.Inventory.Count*/);
+            Writer.Write((uint) 0);//aceObj.Inventory.Count);
             // write out all of the non-containers and foci
             /*foreach (var inv in aceObj.Inventory.Where(i => !i.Value.UseBackpackSlot))
             {
@@ -381,7 +368,7 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
             }*/
 
             // TODO: This is where what we have equipped is sent.
-            Writer.Write(0 /* todo fix for not use aceobj (uint)aceObj.WieldedItems.Count*/);
+            Writer.Write((uint) 0);//aceObj.WieldedItems.Count);
             /*foreach (var wieldedItem in aceObj.WieldedItems)
             {
                 Writer.Write(wieldedItem.Value.AceObjectId);
