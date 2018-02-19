@@ -196,42 +196,42 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
                 if ((attributeFlags & Ability.Strength) != 0)
                 {
                     Writer.Write(this.Session.Player.Strength.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Strength.Base);
+                    Writer.Write(this.Session.Player.Strength.StartingValue);
                     Writer.Write(this.Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Endurance) != 0)
                 {
                     Writer.Write(this.Session.Player.Endurance.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Endurance.Base);
+                    Writer.Write(this.Session.Player.Endurance.StartingValue);
                     Writer.Write(this.Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Quickness) != 0)
                 {
                     Writer.Write(this.Session.Player.Quickness.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Quickness.Base);
+                    Writer.Write(this.Session.Player.Quickness.StartingValue);
                     Writer.Write(this.Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Coordination) != 0)
                 {
                     Writer.Write(this.Session.Player.Coordination.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Coordination.Base);
+                    Writer.Write(this.Session.Player.Coordination.StartingValue);
                     Writer.Write(this.Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Focus) != 0)
                 {
                     Writer.Write(this.Session.Player.Focus.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Focus.Base);
+                    Writer.Write(this.Session.Player.Focus.StartingValue);
                     Writer.Write(this.Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Self) != 0)
                 {
                     Writer.Write(this.Session.Player.Self.Ranks); // ranks
-                    Writer.Write(this.Session.Player.Self.Base);
+                    Writer.Write(this.Session.Player.Self.StartingValue);
                     Writer.Write(this.Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
@@ -263,6 +263,7 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
                 // FIXME(ddevec): This should be a property of the player -- the AceObject does not track buffs.
+                /* todo fix for new EF model
                 var skills = aceObj.GetSkills();
 
                 Writer.Write((ushort)skills.Count);
@@ -281,7 +282,7 @@ var aceObj = Session.Player.GetAceObject() as AceCharacter;
                         Writer.Write(0u); // no init_level
                     Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"
                     Writer.Write(0d); // last_time_used
-                }
+                }*/
             }
 
             if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)

@@ -14,6 +14,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -444,19 +445,13 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Parse args...
-            CreatureVitalOld vital = null;
+            CreatureVital vital;
             if (paramVital == "health" || paramVital == "hp")
-            {
                 vital = session.Player.Health;
-            }
             else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
-            {
                 vital = session.Player.Stamina;
-            }
             else if (paramVital == "mana" || paramVital == "mp")
-            {
                 vital = session.Player.Mana;
-            }
             else
             {
                 ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
@@ -464,13 +459,9 @@ namespace ACE.Server.Command.Handlers
             }
 
             if (!relValue)
-            {
                 session.Player.UpdateVital(vital, (uint)value);
-            }
             else
-            {
                 session.Player.DeltaVital(vital, value);
-            }
         }
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,

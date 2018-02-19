@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
         public Monster(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             IsAlive = true;
-            SetupVitals();
+            //SetupVitals();
 
             SetEphemeralValues();
         }
