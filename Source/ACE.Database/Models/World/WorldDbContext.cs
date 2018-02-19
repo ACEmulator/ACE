@@ -1103,6 +1103,9 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_position");
 
+                entity.HasIndex(e => e.ObjCellId)
+                    .HasName("objCellId_idx");
+
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_position_idx");
 

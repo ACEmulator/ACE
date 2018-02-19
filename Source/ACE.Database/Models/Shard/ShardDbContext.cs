@@ -28,7 +28,9 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesInt64> BiotaPropertiesInt64 { get; set; }
         public virtual DbSet<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; }
         public virtual DbSet<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; }
+        public virtual DbSet<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBar { get; set; }
         public virtual DbSet<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; }
+        public virtual DbSet<BiotaPropertiesSpellBar> BiotaPropertiesSpellBar { get; set; }
         public virtual DbSet<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }
         public virtual DbSet<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public virtual DbSet<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
@@ -1043,6 +1045,9 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_position");
 
+                entity.HasIndex(e => e.ObjCellId)
+                    .HasName("objCellId_idx");
+
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_position_idx");
 
@@ -1076,6 +1081,45 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesPosition)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_position");
+            });
+
+            modelBuilder.Entity<BiotaPropertiesShortcutBar>(entity =>
+            {
+                entity.ToTable("biota_properties_shortcut_bar");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_shortcutbar_idx");
+
+                entity.HasIndex(e => e.ShortcutObjectId)
+                    .HasName("wcid_shortcut_objectId_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.ShortcutBarIndex, e.ShortcutObjectId })
+                    .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ShortcutBarIndex)
+                    .HasColumnName("shortcut_Bar_Index")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ShortcutObjectId)
+                    .HasColumnName("shortcut_Object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.BiotaPropertiesShortcutBarObject)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_shortcutbar");
+
+                entity.HasOne(d => d.ShortcutObject)
+                    .WithMany(p => p.BiotaPropertiesShortcutBarShortcutObject)
+                    .HasForeignKey(d => d.ShortcutObjectId)
+                    .HasConstraintName("wcid_shortcut_objectId");
             });
 
             modelBuilder.Entity<BiotaPropertiesSkill>(entity =>
@@ -1131,6 +1175,41 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesSkill)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_skill");
+            });
+
+            modelBuilder.Entity<BiotaPropertiesSpellBar>(entity =>
+            {
+                entity.ToTable("biota_properties_spell_bar");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_spellbar_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.SpellBarNumber, e.SpellId })
+                    .HasName("wcid_spellbar_barId_spellId_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellBarIndex)
+                    .HasColumnName("spell_Bar_Index")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellBarNumber)
+                    .HasColumnName("spell_Bar_Number")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellId)
+                    .HasColumnName("spell_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.BiotaPropertiesSpellBar)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_spellbar");
             });
 
             modelBuilder.Entity<BiotaPropertiesSpellBook>(entity =>
