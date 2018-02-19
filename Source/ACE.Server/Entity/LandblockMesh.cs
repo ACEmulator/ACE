@@ -76,7 +76,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Reads the heights for each vertex in the landblock cells
         /// </summary>
-        /// <param name="cellLandblock">A landblock from the cell database</param>
         /// <returns>The vertex heights for the landblock cells</returns>
         public float[,] GetVertexHeights()
         {
@@ -206,10 +205,16 @@ namespace ACE.Server.Entity
         /// <returns>The cell that contains these coordinates</returns>
         public static Vector2 GetCell(Vector2 point)
         {
-            return new Vector2(
-                (float)Math.Floor(point.X / LandblockMesh.CellSize),
-                (float)Math.Floor(point.Y / LandblockMesh.CellSize)
-            );
+            var cellX = (float)Math.Floor(point.X / CellSize);
+            var cellY = (float)Math.Floor(point.Y / CellSize);
+
+            if (cellX < 0) cellX = 0;
+            if (cellY < 0) cellY = 0;
+
+            if (cellX >= CellDim) cellX = CellDim - 1;
+            if (cellY >= CellDim) cellY = CellDim - 1;
+
+            return new Vector2(cellX, cellY);
         }
 
         /// <summary>

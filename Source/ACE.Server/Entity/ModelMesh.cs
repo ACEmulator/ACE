@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Numerics;
 using ACE.DatLoader.Entity;
+using ACE.Server.Physics;
 
 namespace ACE.Server.Entity
 {
@@ -23,8 +25,44 @@ namespace ACE.Server.Entity
 
         /// <summary>
         /// The position and orientation
+        /// from the original data
         /// </summary>
         public Frame Frame;
+
+        /// <summary>
+        /// The position backing store
+        /// </summary>
+        private Vector3? _position;
+
+        /// <summary>
+        /// The position of the model
+        /// </summary>
+        public Vector3 Position
+        {
+            get
+            {
+                return _position == null ? Frame.Origin : _position.Value;
+            }
+            set
+            {
+                _position = value;
+            }
+        }
+
+        /// <summary>
+        /// The cell offsets within the landblock
+        /// </summary>
+        public Vector2 Cell = Vector2.Zero;
+
+        /// <summary>
+        /// The scale of the model
+        /// </summary>
+        public float Scale = 1.0f;
+
+        /// <summary>
+        /// For scenery object types
+        /// </summary>
+        public ObjectDesc ObjectDesc;
 
         /// <summary>
         /// The list of polygons comprising the mesh
@@ -32,13 +70,16 @@ namespace ACE.Server.Entity
         public List<Polygon> Polygons;
 
         /// <summary>
+        /// The bounding box for collision detection
+        /// </summary>
+        public BoundingBox BoundingBox;
+
+        /// <summary>
         /// Constructs a static mesh instance from a model and frame
         /// </summary>
         public ModelMesh(uint modelId, Frame frame)
         {
-            GetMesh(modelId);
-            Frame = frame;
-            BuildPolygons();
+            Init(modelId, frame);
         }
 
         /// <summary>
@@ -46,9 +87,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public ModelMesh(Stab stab)
         {
-            GetMesh(stab.Id);
-            Frame = stab.Frame;
-            BuildPolygons();
+            Init(stab.Id, stab.Frame);
         }
 
         /// <summary>
@@ -56,9 +95,21 @@ namespace ACE.Server.Entity
         /// </summary>
         public ModelMesh(BuildInfo buildInfo)
         {
-            GetMesh(buildInfo.ModelId);
-            Frame = buildInfo.Frame;
+            Init(buildInfo.ModelId, buildInfo.Frame);
+        }
+
+        /// <summary>
+        /// Initializes a new mesh instance
+        /// </summary>
+        /// <param name="modelId">The modelID of the mesh to load</param>
+        /// <param name="frame">The position/orientation info</param>
+        public void Init(uint modelId, Frame frame)
+        {
+            GetMesh(modelId);
+            Frame = frame;
+
             BuildPolygons();
+            BuildBoundingBox();
         }
 
         /// <summary>
@@ -79,8 +130,16 @@ namespace ACE.Server.Entity
 
             foreach (var polygon in StaticMesh.Polygons)
             {
-                Polygons.Add(new Polygon(polygon, Frame));
+                Polygons.Add(new Polygon(polygon, Position, Frame.Orientation, Scale));
             }
+        }
+
+        /// <summary>
+        /// Builds a bounding box for the model mesh
+        /// </summary>
+        public void BuildBoundingBox()
+        {
+            BoundingBox = new BoundingBox(this);
         }
     }
 }
