@@ -155,19 +155,6 @@ namespace ACE.Entity
             RotationW = 1.0f;
         }
 
-        public Position(AceObjectPropertiesPosition aoPos)
-        {
-            Cell = aoPos.Cell;
-            LandblockId = new LandblockId(Cell);
-            PositionX = aoPos.PositionX;
-            PositionY = aoPos.PositionY;
-            PositionZ = aoPos.PositionZ;
-            RotationW = aoPos.RotationW;
-            RotationX = aoPos.RotationX;
-            RotationY = aoPos.RotationY;
-            RotationZ = aoPos.RotationZ;
-        }
-
         public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, int animationFrame, bool writeLandblock = true)
         {
             payload.Write((uint)updatePositionFlags);
@@ -300,29 +287,6 @@ namespace ACE.Entity
         public string ToLOCString()
         {
             return $"0x{LandblockId.Raw:X} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
-        }
-
-        public AceObjectPropertiesPosition GetAceObjectPosition(ObjectGuid guid, PositionType type)
-        {
-            return GetAceObjectPosition(guid.Full, type);
-        }
-
-        public AceObjectPropertiesPosition GetAceObjectPosition(uint guid, PositionType type)
-        {
-            AceObjectPropertiesPosition ret = new AceObjectPropertiesPosition();
-            ret.AceObjectId = guid;
-            ret.DbPositionType = (ushort)type;
-            ret.PositionId = 0;
-            ret.Cell = Cell;
-            ret.PositionX = PositionX;
-            ret.PositionY = PositionY;
-            ret.PositionZ = PositionZ;
-            ret.RotationW = RotationW;
-            ret.RotationX = RotationX;
-            ret.RotationY = RotationY;
-            ret.RotationZ = RotationZ;
-
-            return ret;
         }
 
         public object Clone()
