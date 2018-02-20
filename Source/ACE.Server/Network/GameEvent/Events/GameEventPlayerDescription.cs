@@ -188,42 +188,42 @@ namespace ACE.Server.Network.GameEvent.Events
                 if ((attributeFlags & Ability.Strength) != 0)
                 {
                     Writer.Write(Session.Player.Strength.Ranks); // ranks
-                    Writer.Write(Session.Player.Strength.Base);
+                    Writer.Write(Session.Player.Strength.StartingValue);
                     Writer.Write(Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Endurance) != 0)
                 {
                     Writer.Write(Session.Player.Endurance.Ranks); // ranks
-                    Writer.Write(Session.Player.Endurance.Base);
+                    Writer.Write(Session.Player.Endurance.StartingValue);
                     Writer.Write(Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Quickness) != 0)
                 {
                     Writer.Write(Session.Player.Quickness.Ranks); // ranks
-                    Writer.Write(Session.Player.Quickness.Base);
+                    Writer.Write(Session.Player.Quickness.StartingValue);
                     Writer.Write(Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Coordination) != 0)
                 {
                     Writer.Write(Session.Player.Coordination.Ranks); // ranks
-                    Writer.Write(Session.Player.Coordination.Base);
+                    Writer.Write(Session.Player.Coordination.StartingValue);
                     Writer.Write(Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Focus) != 0)
                 {
                     Writer.Write(Session.Player.Focus.Ranks); // ranks
-                    Writer.Write(Session.Player.Focus.Base);
+                    Writer.Write(Session.Player.Focus.StartingValue);
                     Writer.Write(Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
                 if ((attributeFlags & Ability.Self) != 0)
                 {
                     Writer.Write(Session.Player.Self.Ranks); // ranks
-                    Writer.Write(Session.Player.Self.Base);
+                    Writer.Write(Session.Player.Self.StartingValue);
                     Writer.Write(Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
