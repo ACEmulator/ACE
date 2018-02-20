@@ -1540,11 +1540,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+            if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
             // Check if the player model has data. Gear Knights, this is usually you.
             {
                 // Add the model and texture(s)
-                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
                 foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                 {
                     byte partNum = (byte)t.Index;
@@ -1638,11 +1638,11 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+                    if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
                     // Check if the player model has data. Gear Knights, this is usually you.
                     {
                         // Add the model and texture(s)
-                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
                         foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                         {
                             byte partNum = (byte)t.Index;
@@ -1690,7 +1690,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
             // Add the "naked" body parts. These are the ones not already covered.
-            if (SetupTableId != null)
+            if (SetupTableId > 0)
             {
                 var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
                 for (byte i = 0; i < baseSetup.Parts.Count; i++)

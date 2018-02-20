@@ -1013,13 +1013,13 @@ namespace ACE.Server.WorldObjects
             return weenieHeaderFlag2;
         }
 
-        public bool? Open
+        public bool? IsOpen
         {
             get => GetProperty(PropertyBool.Open);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value.Value); }
         }
 
-        public bool? Locked
+        public bool? IsLocked
         {
             get => GetProperty(PropertyBool.Locked);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value.Value); }
@@ -1130,7 +1130,7 @@ namespace ACE.Server.WorldObjects
             ////Openable               = 0x00000001,
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest)
             {
-                if (!((Locked ?? false) && (Open ?? false)))
+                if (!((IsLocked ?? false) && (IsOpen ?? false)))
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;
