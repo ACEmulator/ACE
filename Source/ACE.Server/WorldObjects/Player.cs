@@ -63,11 +63,7 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
 
-            //PhysicsState |= PhysicsState.IgnoreCollision | PhysicsState.Gravity | PhysicsState.EdgeSlide | PhysicsState.Hidden;
-
-            //SetProperty(PropertyBool.IgnoreCollisions, true);
-            //SetProperty(PropertyBool.GravityStatus, true);
-            //SetProperty(PropertyBool.AllowEdgeSlide, true);
+            IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
 
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -1002,9 +998,8 @@ namespace ACE.Server.WorldObjects
             // I would expect this flag to be set in Admin.cs which would be a subclass of Player
             // FIXME: maybe move to Admin class?
             // TODO: reevaluate class location
-            var immuneCellRestrictions = GetProperty(PropertyBool.IgnoreHouseBarriers) ?? false;
 
-            if (!immuneCellRestrictions)
+            if (!IgnoreHouseBarriers ?? false)
                 SetProperty(PropertyBool.IgnoreHouseBarriers, true);
             else
                 SetProperty(PropertyBool.IgnoreHouseBarriers, false);
@@ -1017,9 +1012,9 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, immuneCellRestrictions));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {immuneCellRestrictions}", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
 
         public void SendAutonomousPosition()
@@ -1691,7 +1686,7 @@ namespace ACE.Server.WorldObjects
             }
             if (item.CurrentWieldedLocation != null)
                 container.Children.Add(new HeldItem(item.Guid.Full, childLocation, (EquipMask)item.CurrentWieldedLocation));
-            item.ParentLocation = childLocation;
+            item.ParentLocation = (ParentLocation)childLocation;
             item.Location = Location;
             item.Placement = (Placement)placementId;
         }

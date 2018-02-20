@@ -198,7 +198,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((ushort?)Spell ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
-                writer.Write(HouseOwner ?? 0u);
+                writer.Write(HouseOwner ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
                 writer.Write(HouseRestrictions ?? 0u);
@@ -207,7 +207,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(HookItemType ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Monarch) != 0)
-                writer.Write(Monarch ?? 0u);
+                writer.Write(Monarch ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HookType) != 0)
                 writer.Write(HookType ?? 0);
@@ -228,7 +228,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((double?)CooldownDuration ?? 0u);
 
             if ((weenieFlags2 & WeenieHeaderFlag2.PetOwner) != 0)
-                writer.Write(PetOwner ?? 0u);
+                writer.Write(PetOwner ?? 0);
 
             writer.Align();
         }
@@ -323,7 +323,7 @@ namespace ACE.Server.WorldObjects
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Parent) != 0)
             {
                 writer.Write(WielderId ?? 0);
-                writer.Write(ParentLocation ?? 0);
+                writer.Write((uint)(ParentLocation ?? 0));
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Children) != 0)
@@ -433,25 +433,28 @@ namespace ACE.Server.WorldObjects
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
             // Excluding some times that are sent later as weapon status Og II
-            var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
-                                                          && x.PropertyId != (uint)PropertyInt.Damage
-                                                          && x.PropertyId != (uint)PropertyInt.DamageType
-                                                          && x.PropertyId != (uint)PropertyInt.WeaponSkill
-                                                          && x.PropertyId != (uint)PropertyInt.WeaponTime).ToList();
+            //var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
+            //                                              && x.PropertyId != (uint)PropertyInt.Damage
+            //                                              && x.PropertyId != (uint)PropertyInt.DamageType
+            //                                              && x.PropertyId != (uint)PropertyInt.WeaponSkill
+            //                                              && x.PropertyId != (uint)PropertyInt.WeaponTime).ToList();
+            var propertiesInt = GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
 
             if (propertiesInt.Count > 0)
             {
                 flags |= IdentifyResponseFlags.IntStatsTable;
             }
 
-            var propertiesInt64 = PropertiesInt64.Where(x => x.PropertyId < 9000).ToList();
+            //var propertiesInt64 = PropertiesInt64.Where(x => x.PropertyId < 9000).ToList();
+            var propertiesInt64 = GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToList();
 
             if (propertiesInt64.Count > 0)
             {
                 flags |= IdentifyResponseFlags.Int64StatsTable;
             }
 
-            var propertiesBool = PropertiesBool.Where(x => x.PropertyId < 9000).ToList();
+            //var propertiesBool = PropertiesBool.Where(x => x.PropertyId < 9000).ToList();
+            var propertiesBool = GetAllPropertyBools().Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
 
             if (propertiesBool.Count > 0)
             {
@@ -460,86 +463,94 @@ namespace ACE.Server.WorldObjects
 
             // the float values 13 - 19 + 165 (nether added way later) are armor resistance and is shown in a different list. Og II
             // 21-22, 26, 62-63 are all sent as part of the weapons profile and not duplicated.
-            var propertiesDouble = PropertiesDouble.Where(x => x.PropertyId < 9000
-                                                               && (x.PropertyId < (uint)PropertyFloat.ArmorModVsSlash
-                                                               || x.PropertyId > (uint)PropertyFloat.ArmorModVsElectric)
-                                                               && x.PropertyId != (uint)PropertyFloat.WeaponLength
-                                                               && x.PropertyId != (uint)PropertyFloat.DamageVariance
-                                                               && x.PropertyId != (uint)PropertyFloat.MaximumVelocity
-                                                               && x.PropertyId != (uint)PropertyFloat.WeaponOffense
-                                                               && x.PropertyId != (uint)PropertyFloat.DamageMod
-                                                               && x.PropertyId != (uint)PropertyFloat.ArmorModVsNether).ToList();
+            //var propertiesDouble = PropertiesDouble.Where(x => x.PropertyId < 9000
+            //                                                   && (x.PropertyId < (uint)PropertyFloat.ArmorModVsSlash
+            //                                                   || x.PropertyId > (uint)PropertyFloat.ArmorModVsElectric)
+            //                                                   && x.PropertyId != (uint)PropertyFloat.WeaponLength
+            //                                                   && x.PropertyId != (uint)PropertyFloat.DamageVariance
+            //                                                   && x.PropertyId != (uint)PropertyFloat.MaximumVelocity
+            //                                                   && x.PropertyId != (uint)PropertyFloat.WeaponOffense
+            //                                                   && x.PropertyId != (uint)PropertyFloat.DamageMod
+            //                                                   && x.PropertyId != (uint)PropertyFloat.ArmorModVsNether).ToList();
+
+            var propertiesDouble = GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
+
             if (propertiesDouble.Count > 0)
             {
                 flags |= IdentifyResponseFlags.FloatStatsTable;
             }
 
-            var propertiesDid = PropertiesDid.Where(x => x.PropertyId < 9000).ToList();
+            //var propertiesDid = PropertiesDid.Where(x => x.PropertyId < 9000).ToList();
+            var propertiesDid = GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
 
             if (propertiesDid.Count > 0)
             {
                 flags |= IdentifyResponseFlags.DidStatsTable;
             }
 
-            var propertiesString = PropertiesString.Where(x => x.PropertyId < 9000).ToList();
+            //var propertiesString = PropertiesString.Where(x => x.PropertyId < 9000).ToList();
 
-            var propertiesSpellId = PropertiesSpellId.ToList();
+            var propertiesString = GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
 
-            if (propertiesSpellId.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.SpellBook;
-            }
+            //var propertiesSpellId = PropertiesSpellId.ToList();
+
+            //if (propertiesSpellId.Count > 0)
+            //{
+            //    flags |= IdentifyResponseFlags.SpellBook;
+            //}
 
             // TODO: Move to Armor class
-            var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
-                                                         && (x.PropertyId >= (uint)PropertyFloat.ArmorModVsSlash
-                                                         && x.PropertyId <= (uint)PropertyFloat.ArmorModVsElectric))
-                                                         || x.PropertyId == (uint)PropertyFloat.ArmorModVsNether).ToList();
-            if (propertiesArmor.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.ArmorProfile;
-            }
+            //var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
+            //                                             && (x.PropertyId >= (uint)PropertyFloat.ArmorModVsSlash
+            //                                             && x.PropertyId <= (uint)PropertyFloat.ArmorModVsElectric))
+            //                                             || x.PropertyId == (uint)PropertyFloat.ArmorModVsNether).ToList();
+
+            //if (propertiesArmor.Count > 0)
+            //{
+            //    flags |= IdentifyResponseFlags.ArmorProfile;
+            //}
 
             // TODO: Move to Weapon class
             // Weapons Profile
-            var propertiesWeaponsD = PropertiesDouble.Where(x => x.PropertyId < 9000
-                                                            && (x.PropertyId == (uint)PropertyFloat.WeaponLength
-                                                            || x.PropertyId == (uint)PropertyFloat.DamageVariance
-                                                            || x.PropertyId == (uint)PropertyFloat.MaximumVelocity
-                                                            || x.PropertyId == (uint)PropertyFloat.WeaponOffense
-                                                            || x.PropertyId == (uint)PropertyFloat.DamageMod)).ToList();
+            //var propertiesWeaponsD = PropertiesDouble.Where(x => x.PropertyId < 9000
+            //                                                && (x.PropertyId == (uint)PropertyFloat.WeaponLength
+            //                                                || x.PropertyId == (uint)PropertyFloat.DamageVariance
+            //                                                || x.PropertyId == (uint)PropertyFloat.MaximumVelocity
+            //                                                || x.PropertyId == (uint)PropertyFloat.WeaponOffense
+            //                                                || x.PropertyId == (uint)PropertyFloat.DamageMod)).ToList();
 
-            var propertiesWeaponsI = PropertiesInt.Where(x => x.PropertyId < 9000
-                                                         && (x.PropertyId == (uint)PropertyInt.Damage
-                                                         || x.PropertyId == (uint)PropertyInt.DamageType
-                                                         || x.PropertyId == (uint)PropertyInt.WeaponSkill
-                                                         || x.PropertyId == (uint)PropertyInt.WeaponTime)).ToList();
+            //var propertiesWeaponsI = PropertiesInt.Where(x => x.PropertyId < 9000
+            //                                             && (x.PropertyId == (uint)PropertyInt.Damage
+            //                                             || x.PropertyId == (uint)PropertyInt.DamageType
+            //                                             || x.PropertyId == (uint)PropertyInt.WeaponSkill
+            //                                             || x.PropertyId == (uint)PropertyInt.WeaponTime)).ToList();
 
-            if (propertiesWeaponsI.Count + propertiesWeaponsD.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.WeaponProfile;
-            }
+            //if (propertiesWeaponsI.Count + propertiesWeaponsD.Count > 0)
+            //{
+            //    flags |= IdentifyResponseFlags.WeaponProfile;
+            //}
 
-            if (propertiesString.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.StringStatsTable;
-            }
+            //if (propertiesString.Count > 0)
+            //{
+            //    flags |= IdentifyResponseFlags.StringStatsTable;
+            //}
 
             // Ok Down to business - let's identify all of this stuff.
+            flags = IdentifyResponseFlags.None;
             WriteIdentifyObjectHeader(writer, flags, success);
-            WriteIdentifyObjectIntProperties(writer, flags, propertiesInt);
-            WriteIdentifyObjectInt64Properties(writer, flags, propertiesInt64);
-            WriteIdentifyObjectBoolProperties(writer, flags, propertiesBool);
-            WriteIdentifyObjectDoubleProperties(writer, flags, propertiesDouble);
-            WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
-            WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
-            WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
+            //WriteIdentifyObjectIntProperties(writer, flags, propertiesInt);
+            //WriteIdentifyObjectInt64Properties(writer, flags, propertiesInt64);
+            //WriteIdentifyObjectBoolProperties(writer, flags, propertiesBool);
+            //WriteIdentifyObjectDoubleProperties(writer, flags, propertiesDouble);
+            //WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
+            //WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
+            //WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
 
             // TODO: Move to Armor class
-            WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
+            //WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
 
             // TODO: Move to Weapon class
-            WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
+            //WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
         }
 
 
@@ -552,126 +563,279 @@ namespace ACE.Server.WorldObjects
             if (movementData != null && movementData.Length > 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if (GetProperty(PropertyInt.Placement) != null)
+            if (Placement != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
-            if (GetPosition(PositionType.Location) != null)
+            if (Location != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
 
-            if (GetProperty(PropertyDataId.MotionTable) != 0)
+            if (MotionTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.MTable;
 
-            if (GetProperty(PropertyDataId.SoundTable) != 0)
+            if (SoundTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.STable;
 
-            if (GetProperty(PropertyDataId.PhysicsEffectTable) != 0)
+            if (PhysicsTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.PeTable;
 
-            if (GetProperty(PropertyDataId.Setup) != 0)
+            if (SetupTableId != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.CSetup;
 
             if (Children.Count != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Children;
 
-            if ((GetProperty(PropertyInstanceId.Wielder) != null && GetProperty(PropertyInt.ParentLocation) != null))
+            if ((WielderId != null && ParentLocation != null))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
-            if ((GetProperty(PropertyFloat.DefaultScale) != null) && (Math.Abs(GetProperty(PropertyFloat.DefaultScale) ?? 0) >= 0.001))
+            if ((ObjScale != null) && (Math.Abs(ObjScale ?? 0) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
 
-            if (GetProperty(PropertyFloat.Friction) != null)
+            if (Friction != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Friction;
 
-            if (GetProperty(PropertyFloat.Elasticity) != null)
+            if (Elasticity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Elasticity;
 
-            if ((GetProperty(PropertyFloat.Translucency) != null) && (Math.Abs(GetProperty(PropertyFloat.Translucency) ?? 0) >= 0.001))
+            if ((Translucency != null) && (Math.Abs(Translucency ?? 0) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
 
-            //if (Velocity != null)
-            //    physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
+            if (Velocity != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
 
-            //if (Acceleration != null)
-            //    physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
+            if (Acceleration != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
 
-            //if (Omega != null)
-            //    physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
+            if (Omega != null)
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
             if (CSetup.DefaultScript != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (GetProperty(PropertyFloat.PhysicsScriptIntensity) != null)
+            if (DefaultScriptIntensity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
         }
 
+        public bool? Static { get; set; }
+
+        public bool? Ethereal
+        {
+            get => GetProperty(PropertyBool.Ethereal);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Ethereal); else SetProperty(PropertyBool.Ethereal, value.Value); }
+        }
+
+        public bool? ReportCollisions
+        {
+            get => GetProperty(PropertyBool.ReportCollisions);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.ReportCollisions); else SetProperty(PropertyBool.ReportCollisions, value.Value); }
+        }
+
+        public bool? IgnoreCollisions
+        {
+            get => GetProperty(PropertyBool.IgnoreCollisions);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCollisions); else SetProperty(PropertyBool.IgnoreCollisions, value.Value); }
+        }
+
+        public bool? NoDraw
+        {
+            get => GetProperty(PropertyBool.NoDraw);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.NoDraw); else SetProperty(PropertyBool.NoDraw, value.Value); }
+        }
+
+        public bool? Missile { get; set; }
+
+        public bool? Pushable { get; set; }
+
+        public bool? AlignPath { get; set; }
+
+        public bool? PathClipped { get; set; }
+
+        public bool? GravityStatus
+        {
+            get => GetProperty(PropertyBool.GravityStatus);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.GravityStatus); else SetProperty(PropertyBool.GravityStatus, value.Value); }
+        }
+
+        public bool? LightsStatus
+        {
+            get => GetProperty(PropertyBool.LightsStatus);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.LightsStatus); else SetProperty(PropertyBool.LightsStatus, value.Value); }
+        }
+
+        public bool? ParticleEmitter { get; set; }
+
+        public bool? Hidden { get; set; }
+
+        public bool? ScriptedCollision
+        {
+            get => GetProperty(PropertyBool.ScriptedCollision);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.ScriptedCollision); else SetProperty(PropertyBool.ScriptedCollision, value.Value); }
+        }
+
+        public bool? Inelastic
+        {
+            get => GetProperty(PropertyBool.Inelastic);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Inelastic); else SetProperty(PropertyBool.Inelastic, value.Value); }
+        }
+
+        public bool? Cloaked { get; set; }
+
+        public bool? ReportCollisionsAsEnvironment
+        {
+            get => GetProperty(PropertyBool.ReportCollisionsAsEnvironment);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.ReportCollisionsAsEnvironment); else SetProperty(PropertyBool.ReportCollisionsAsEnvironment, value.Value); }
+        }
+
+        public bool? AllowEdgeSlide
+        {
+            get => GetProperty(PropertyBool.AllowEdgeSlide);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.AllowEdgeSlide); else SetProperty(PropertyBool.AllowEdgeSlide, value.Value); }
+        }
+
+        public bool? Sledding { get; set; }
+
+        public bool? IsFrozen
+        {
+            get => GetProperty(PropertyBool.IsFrozen);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IsFrozen); else SetProperty(PropertyBool.IsFrozen, value.Value); }
+        }
+
         private PhysicsState CalculatedPhysicsState()
         {
+            // Read in Object's Default PhysicsState
             var physicsState = (PhysicsState)(GetProperty(PropertyInt.PhysicsState) ?? 0);
 
+            if (physicsState.HasFlag(PhysicsState.Static))
+                if (!Static.HasValue)
+                    Static = true;
+            if (physicsState.HasFlag(PhysicsState.Ethereal))
+                if (!Ethereal.HasValue)
+                    Ethereal = true;
+            if (physicsState.HasFlag(PhysicsState.ReportCollision))
+                if (!ReportCollisions.HasValue)
+                    ReportCollisions = true;
+            if (physicsState.HasFlag(PhysicsState.IgnoreCollision))
+                if (!IgnoreCollisions.HasValue)
+                    IgnoreCollisions = true;
+            if (physicsState.HasFlag(PhysicsState.NoDraw))
+                if (!NoDraw.HasValue)
+                    NoDraw = true;
+            if (physicsState.HasFlag(PhysicsState.Missile))
+                if (!Missile.HasValue)
+                    Missile = true;
+            if (physicsState.HasFlag(PhysicsState.Pushable))
+                if (!Pushable.HasValue)
+                    Pushable = true;
+            if (physicsState.HasFlag(PhysicsState.AlignPath))
+                if (!AlignPath.HasValue)
+                    AlignPath = true;
+            if (physicsState.HasFlag(PhysicsState.PathClipped))
+                if (!PathClipped.HasValue)
+                    PathClipped = true;
+            if (physicsState.HasFlag(PhysicsState.Gravity))
+                if (!GravityStatus.HasValue)
+                    GravityStatus = true;
+            if (physicsState.HasFlag(PhysicsState.LightingOn))
+                if (!LightsStatus.HasValue)
+                    LightsStatus = true;
+            if (physicsState.HasFlag(PhysicsState.ParticleEmitter))
+                if (!ParticleEmitter.HasValue)
+                    ParticleEmitter = true;
+            if (physicsState.HasFlag(PhysicsState.Hidden))
+                if (!Hidden.HasValue)
+                    Hidden = true;
+            if (physicsState.HasFlag(PhysicsState.ScriptedCollision))
+                if (!ScriptedCollision.HasValue)
+                    ScriptedCollision = true;
+            if (physicsState.HasFlag(PhysicsState.Inelastic))
+                if (!Inelastic.HasValue)
+                    Inelastic = true;
+            if (physicsState.HasFlag(PhysicsState.Cloaked))
+                if (!Cloaked.HasValue)
+                    Cloaked = true;
+            if (physicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment))
+                if (!ReportCollisionsAsEnvironment.HasValue)
+                    ReportCollisionsAsEnvironment = true;
+            if (physicsState.HasFlag(PhysicsState.EdgeSlide))
+                if (!AllowEdgeSlide.HasValue)
+                    AllowEdgeSlide = true;
+            if (physicsState.HasFlag(PhysicsState.Sledding))
+                if (!Sledding.HasValue)
+                    Sledding = true;
+            if (physicsState.HasFlag(PhysicsState.Frozen))
+                if (!IsFrozen.HasValue)
+                    IsFrozen = true;
+
             ////Static                      = 0x00000001,
-            // if (AceObject.Static ?? false)
-            //    Static = true;
+            if (Static ?? false)
+                physicsState |= PhysicsState.Static;
+            else
+                physicsState &= ~PhysicsState.Static;
             ////Unused1                     = 0x00000002,
             ////Ethereal                    = 0x00000004,
-            var etherealBool = GetProperty(PropertyBool.Ethereal) ?? false;
-            if (etherealBool)
+            if (Ethereal ?? false)
                 physicsState |= PhysicsState.Ethereal;
             else
                 physicsState &= ~PhysicsState.Ethereal;
             ////ReportCollision             = 0x00000008,
-            var reportCollisionBool = GetProperty(PropertyBool.ReportCollisions) ?? false;
-            if (reportCollisionBool)
+            if (ReportCollisions ?? false)
                 physicsState |= PhysicsState.ReportCollision;
             else
                 physicsState &= ~PhysicsState.ReportCollision;
             ////IgnoreCollision             = 0x00000010,
-            var ignoreCollisionsBool = GetProperty(PropertyBool.IgnoreCollisions) ?? false;
-            if (ignoreCollisionsBool)
+            if (IgnoreCollisions ?? false)
                 physicsState |= PhysicsState.IgnoreCollision;
             else
                 physicsState &= ~PhysicsState.IgnoreCollision;
             ////NoDraw                      = 0x00000020,
-            var noDrawBool = GetProperty(PropertyBool.NoDraw) ?? false;
-            if (noDrawBool)
+            if (NoDraw ?? false)
                 physicsState |= PhysicsState.NoDraw;
             else
                 physicsState &= ~PhysicsState.NoDraw;
             ////Missile                     = 0x00000040,
-            // if (AceObject.Missile ?? false)
-            //    Missile = true;
+            if (Missile ?? false)
+                physicsState |= PhysicsState.Missile;
+            else
+                physicsState &= ~PhysicsState.Missile;
             ////Pushable                    = 0x00000080,
-            // if (AceObject.Pushable ?? false)
-            //    Pushable = true;
+            if (Pushable ?? false)
+                physicsState |= PhysicsState.Pushable;
+            else
+                physicsState &= ~PhysicsState.Pushable;
             ////AlignPath                   = 0x00000100,
-            // if (AceObject.AlignPath ?? false)
-            //    AlignPath = true;
+            if (AlignPath ?? false)
+                physicsState |= PhysicsState.AlignPath;
+            else
+                physicsState &= ~PhysicsState.AlignPath;
             ////PathClipped                 = 0x00000200,
-            // if (AceObject.PathClipped ?? false)
-            //    PathClipped = true;
+            if (PathClipped ?? false)
+                physicsState |= PhysicsState.PathClipped;
+            else
+                physicsState &= ~PhysicsState.PathClipped;
             ////Gravity                     = 0x00000400,
-            var gravityStatusBool = GetProperty(PropertyBool.GravityStatus) ?? false;
-            if (gravityStatusBool)
+            if (GravityStatus ?? false)
                 physicsState |= PhysicsState.Gravity;
             else
                 physicsState &= ~PhysicsState.Gravity;
             ////LightingOn                  = 0x00000800,
-            var lightsStatusBool = GetProperty(PropertyBool.LightsStatus) ?? false;
-            if (lightsStatusBool)
+            if (LightsStatus ?? false)
                 physicsState |= PhysicsState.LightingOn;
             else
                 physicsState &= ~PhysicsState.LightingOn;
             ////ParticleEmitter             = 0x00001000,
-            // if (AceObject.ParticleEmitter ?? false)
-            //    ParticleEmitter = true;
+            if (ParticleEmitter ?? false)
+                physicsState |= PhysicsState.ParticleEmitter;
+            else
+                physicsState &= ~PhysicsState.ParticleEmitter;
             ////Unused2                     = 0x00002000,
             ////Hidden                      = 0x00004000,
-            // if (AceObject.Hidden ?? false) // Probably PropertyBool.Visibility which would make me think if true, Hidden is false... Opposite of most other bools
-            //    Hidden = true;
+            if (Hidden ?? false)
+                physicsState |= PhysicsState.Hidden;
+            else
+                physicsState &= ~PhysicsState.Hidden;
             ////ScriptedCollision           = 0x00008000,
-            var scriptedCollisionBool = GetProperty(PropertyBool.ScriptedCollision) ?? false;
-            if (scriptedCollisionBool)
+            if (ScriptedCollision ?? false)
                 physicsState |= PhysicsState.ScriptedCollision;
             else
                 physicsState &= ~PhysicsState.ScriptedCollision;
@@ -681,8 +845,7 @@ namespace ACE.Server.WorldObjects
             else
                 physicsState &= ~PhysicsState.HasPhysicsBsp;
             ////Inelastic                   = 0x00020000,
-            var inelasticBool = GetProperty(PropertyBool.Inelastic) ?? false;
-            if (inelasticBool)
+            if (Inelastic ?? false)
                 physicsState |= PhysicsState.Inelastic;
             else
                 physicsState &= ~PhysicsState.Inelastic;
@@ -697,26 +860,27 @@ namespace ACE.Server.WorldObjects
             else
                 physicsState &= ~PhysicsState.HasDefaultScript;
             ////Cloaked                     = 0x00100000,
-            // if (AceObject.Cloaked ?? false) // PropertyInt.CloakStatus probably plays in to this.
-            //    Cloaked = true;
+            if (Cloaked ?? false)
+                physicsState |= PhysicsState.Cloaked;
+            else
+                physicsState &= ~PhysicsState.Cloaked;
             ////ReportCollisionAsEnviroment = 0x00200000,
-            var reportCollisionsAsEnvironmentBool = GetProperty(PropertyBool.ReportCollisionsAsEnvironment) ?? false;
-            if (reportCollisionsAsEnvironmentBool)
+            if (ReportCollisionsAsEnvironment ?? false)
                 physicsState |= PhysicsState.ReportCollisionAsEnviroment;
             else
                 physicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
             ////EdgeSlide                   = 0x00400000,
-            var allowEdgeSlideBool = GetProperty(PropertyBool.AllowEdgeSlide) ?? false;
-            if (allowEdgeSlideBool)
+            if (AllowEdgeSlide ?? false)
                 physicsState |= PhysicsState.EdgeSlide;
             else
                 physicsState &= ~PhysicsState.EdgeSlide;
             ////Sledding                    = 0x00800000,
-            // if (AceObject.Sledding ?? false)
-            //    Sledding = true;
+            if (Sledding ?? false)
+                physicsState |= PhysicsState.Sledding;
+            else
+                physicsState &= ~PhysicsState.Sledding;
             ////Frozen                      = 0x01000000,
-            var isFrozenBool = GetProperty(PropertyBool.IsFrozen) ?? false;
-            if (isFrozenBool)
+            if (IsFrozen ?? false)
                 physicsState |= PhysicsState.Frozen;
             else
                 physicsState &= ~PhysicsState.Frozen;
@@ -728,88 +892,67 @@ namespace ACE.Server.WorldObjects
         {
             var weenieHeaderFlag = WeenieHeaderFlag.None;
 
-            var pluralNameString = GetProperty(PropertyString.PluralName);
-            if (pluralNameString != null)
+            if (NamePlural != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
-            var itemsCapacityInt = GetProperty(PropertyInt.ItemsCapacity);
-            if (itemsCapacityInt != null)
+            if (ItemCapacity != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ItemsCapacity;
 
-            var containersCapacityInt = GetProperty(PropertyInt.ContainersCapacity);
-            if (containersCapacityInt != null)
+            if (ContainerCapacity != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ContainersCapacity;
 
-            var ammoTypeInt = GetProperty(PropertyInt.AmmoType);
-            if (ammoTypeInt != null)
+            if (AmmoType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.AmmoType;
 
-            var valueInt = GetProperty(PropertyInt.Value);
-            if (valueInt != null && (ammoTypeInt > 0))
+            if (Value != null && (Value > 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Value;
 
-            var itemUseableInt = GetProperty(PropertyInt.ItemUseable);
-            if (itemUseableInt != null)
+            if (Usable != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Usable;
 
-            var useRadiusFloat = GetProperty(PropertyFloat.UseRadius);
-            if (useRadiusFloat != null)
+            if (UseRadius != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.UseRadius;
 
-            var targetTypeInt = GetProperty(PropertyInt.TargetType);
-            if (targetTypeInt != null)
+            if (TargetType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.TargetType;
 
-            var uiEffectsInt = GetProperty(PropertyInt.UiEffects);
-            if (uiEffectsInt != null)
+            if (UiEffects != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.UiEffects;
 
-            var combatUseInt = GetProperty(PropertyInt.CombatUse);
-            if (combatUseInt != null)
+            if (CombatUse != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.CombatUse;
 
-            var structureInt = GetProperty(PropertyInt.Structure);
-            if (structureInt != null)
+            if (Structure != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Structure;
 
-            var maxStructureInt = GetProperty(PropertyInt.MaxStructure);
-            if (maxStructureInt != null)
+            if (MaxStructure != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaxStructure;
 
-            var stackSizeInt = GetProperty(PropertyInt.StackSize);
-            if (stackSizeInt != null)
+            if (StackSize != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.StackSize;
 
-            var maxStackSizeInt = GetProperty(PropertyInt.MaxStackSize);
-            if (maxStackSizeInt != null)
+            if (MaxStackSize != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaxStackSize;
 
-            var containerIID = GetProperty(PropertyInstanceId.Container);
-            if (containerIID != null)
+            if (ContainerId != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Container;
 
-            var wielderIID = GetProperty(PropertyInstanceId.Wielder);
-            if (wielderIID != null)
+            if (WielderId != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Wielder;
 
-            var validLocationsInt = GetProperty(PropertyInt.ValidLocations);
-            if (validLocationsInt != null)
+            if (ValidLocations != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.ValidLocations;
 
-            var currentWieldedLocationInt = GetProperty(PropertyInt.CurrentWieldedLocation);
-            if ((currentWieldedLocationInt != null) && (currentWieldedLocationInt != 0) && (wielderIID != null) && (wielderIID != 0))
+            if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (WielderId != null) && (WielderId != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 
-            var clothingPriorityInt = GetProperty(PropertyInt.ClothingPriority);
-            if (clothingPriorityInt != null)
+            if (Priority != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Priority;
 
-            var radarBlipColorInt = GetProperty(PropertyInt.RadarBlipColor);
-            if (radarBlipColorInt != null)
+            if (RadarColor != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBlipColor;
 
-            var showableOnRadarInt = GetProperty(PropertyInt.ShowableOnRadar);
-            if (showableOnRadarInt != null)
+            if (RadarBehavior != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.RadarBehavior;
 
             var physicsScriptDID = GetProperty(PropertyDataId.PhysicsScript);
@@ -819,19 +962,16 @@ namespace ACE.Server.WorldObjects
             if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
-            var encumbranceValInt = GetProperty(PropertyInt.EncumbranceVal);
-            if (encumbranceValInt != null)
+            if (Burden != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
-            var spellDID = GetProperty(PropertyDataId.Spell);
-            if ((spellDID != null) && (spellDID != 0))
+            if ((Spell != null) && (Spell != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
-            var houseOwnerIID = GetProperty(PropertyInstanceId.HouseOwner);
-            if (houseOwnerIID != null)
+            if (HouseOwner != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
 
-            //TODO: HousingRestriction ACL
+            //TODO: HousingRestriction ACL property
             //if (HouseRestrictions != null)
             //    weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
@@ -839,20 +979,16 @@ namespace ACE.Server.WorldObjects
             if (hookItemTypeInt != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookItemTypes;
 
-            var monarchIID = GetProperty(PropertyInstanceId.Monarch);
-            if (monarchIID != null)
+            if (Monarch != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Monarch;
 
-            var hookTypeInt = GetProperty(PropertyInt.HookType);
-            if (hookTypeInt != null)
+            if (HookType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookType;
 
-            var iconOverlayDID = GetProperty(PropertyDataId.IconOverlay);
-            if ((iconOverlayDID != null) && (iconOverlayDID != 0))
+            if ((IconOverlayId != null) && (IconOverlayId != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.IconOverlay;
 
-            var materialTypeInt = GetProperty(PropertyInt.MaterialType);
-            if (materialTypeInt != null)
+            if (MaterialType != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.MaterialType;
 
             return weenieHeaderFlag;
@@ -862,23 +998,91 @@ namespace ACE.Server.WorldObjects
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
-            var iconUnderlayDID = GetProperty(PropertyDataId.IconUnderlay);
-            if ((iconUnderlayDID != null) && (iconUnderlayDID != 0))
+            if ((IconUnderlayId != null) && (IconUnderlayId != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.IconUnderlay;
 
-            var sharedCooldownInt = GetProperty(PropertyInt.SharedCooldown);
-            if ((sharedCooldownInt != null) && (sharedCooldownInt != 0))
+            if ((CooldownId != null) && (CooldownId != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.Cooldown;
 
-            var cooldownDurationFloat = GetProperty(PropertyFloat.CooldownDuration);
-            if ((cooldownDurationFloat != null) && Math.Abs((float)cooldownDurationFloat) >= 0.001)
+            if ((CooldownDuration != null) && Math.Abs((float)CooldownDuration) >= 0.001)
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.CooldownDuration;
 
-            var petOwnerIID = GetProperty(PropertyInstanceId.PetOwner);
-            if ((petOwnerIID != null) && (petOwnerIID != 0))
+            if ((PetOwner != null) && (PetOwner != 0))
                 weenieHeaderFlag2 |= WeenieHeaderFlag2.PetOwner;
 
             return weenieHeaderFlag2;
+        }
+
+        public bool? Open
+        {
+            get => GetProperty(PropertyBool.Open);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value.Value); }
+        }
+
+        public bool? Locked
+        {
+            get => GetProperty(PropertyBool.Locked);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value.Value); }
+        }
+
+        public bool? Inscribable
+        {
+            get => GetProperty(PropertyBool.Inscribable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Inscribable); else SetProperty(PropertyBool.Inscribable, value.Value); }
+        }
+
+        public bool? Stuck
+        {
+            get => GetProperty(PropertyBool.Stuck);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Stuck); else SetProperty(PropertyBool.Stuck, value.Value); }
+        }
+
+        public bool? Attackable
+        {
+            get => GetProperty(PropertyBool.Attackable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value.Value); }
+        }
+
+        public bool? HiddenAdmin
+        {
+            get => GetProperty(PropertyBool.HiddenAdmin);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.HiddenAdmin); else SetProperty(PropertyBool.HiddenAdmin, value.Value); }
+        }
+
+        public bool? UiHidden
+        {
+            get => GetProperty(PropertyBool.UiHidden);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.UiHidden); else SetProperty(PropertyBool.UiHidden, value.Value); }
+        }
+
+        public bool? IgnoreHouseBarriers
+        {
+            get => GetProperty(PropertyBool.IgnoreHouseBarriers);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreHouseBarriers); else SetProperty(PropertyBool.IgnoreHouseBarriers, value.Value); }
+        }
+
+        public bool? RequiresBackpackSlot
+        {
+            get => GetProperty(PropertyBool.RequiresBackpackSlot);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.RequiresBackpackSlot); else SetProperty(PropertyBool.RequiresBackpackSlot, value.Value); }
+        }
+
+        public bool? Retained
+        {
+            get => GetProperty(PropertyBool.Retained);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Retained); else SetProperty(PropertyBool.Retained, value.Value); }
+        }
+
+        public bool? WieldOnUse
+        {
+            get => GetProperty(PropertyBool.WieldOnUse);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.WieldOnUse); else SetProperty(PropertyBool.WieldOnUse, value.Value); }
+        }
+
+        public bool? AutowieldLeft
+        {
+            get => GetProperty(PropertyBool.AutowieldLeft);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value.Value); }
         }
 
         private ObjectDescriptionFlag CalculatedDescriptionFlag()
@@ -886,23 +1090,58 @@ namespace ACE.Server.WorldObjects
             var flag = BaseDescriptionFlags;
             var weenieFlags2 = CalculatedWeenieHeaderFlag2();
 
+
+            //if (flag.HasFlag(ObjectDescriptionFlag.Openable))
+            //    if (!Open.HasValue)
+            //        Open = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.Inscribable))
+                if (!Inscribable.HasValue)
+                    Inscribable = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.Stuck))
+                if (!Stuck.HasValue)
+                    Stuck = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.Attackable))
+                if (!Attackable.HasValue)
+                    Attackable = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.HiddenAdmin))
+                if (!HiddenAdmin.HasValue)
+                    HiddenAdmin = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.UiHidden))
+                if (!UiHidden.HasValue)
+                    UiHidden = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions))
+                if (!IgnoreHouseBarriers.HasValue)
+                    IgnoreHouseBarriers = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.RequiresPackSlot))
+                if (!RequiresBackpackSlot.HasValue)
+                    RequiresBackpackSlot = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.Retained))
+                if (!Retained.HasValue)
+                    Retained = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.WieldOnUse))
+                if (!WieldOnUse.HasValue)
+                    WieldOnUse = true;
+            if (flag.HasFlag(ObjectDescriptionFlag.WieldLeft))
+                if (!AutowieldLeft.HasValue)
+                    AutowieldLeft = true;
+
             // TODO: More uncommentting and wiring up for other flags
             ////None                   = 0x00000000,
             ////Openable               = 0x00000001,
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest)
             {
-                if (!((GetProperty(PropertyBool.Locked) ?? false) && (GetProperty(PropertyBool.Open) ?? false)))
+                if (!((Locked ?? false) && (Open ?? false)))
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;
             }
             ////Inscribable            = 0x00000002,
-            if (GetProperty(PropertyBool.Inscribable) ?? false)
+            if (Inscribable ?? false)
                 flag |= ObjectDescriptionFlag.Inscribable;
             else
                 flag &= ~ObjectDescriptionFlag.Inscribable;
             ////Stuck                  = 0x00000004,
-            if (GetProperty(PropertyBool.Stuck) ?? false)
+            if (Stuck ?? false)
                 flag |= ObjectDescriptionFlag.Stuck;
             else
                 flag &= ~ObjectDescriptionFlag.Stuck;
@@ -910,7 +1149,7 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.Player ?? false)
             //    Player = true;
             ////Attackable             = 0x00000010,
-            if (GetProperty(PropertyBool.Attackable) ?? false)
+            if (Attackable ?? false)
                 flag |= ObjectDescriptionFlag.Attackable;
             else
                 flag &= ~ObjectDescriptionFlag.Attackable;
@@ -918,12 +1157,12 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.PlayerKiller ?? false)
             //    PlayerKiller = true;
             ////HiddenAdmin            = 0x00000040,
-            if (GetProperty(PropertyBool.HiddenAdmin) ?? false)
+            if (HiddenAdmin ?? false)
                 flag |= ObjectDescriptionFlag.HiddenAdmin;
             else
                 flag &= ~ObjectDescriptionFlag.HiddenAdmin;
             ////UiHidden               = 0x00000080,
-            if (GetProperty(PropertyBool.UiHidden) ?? false)
+            if (UiHidden ?? false)
                 flag |= ObjectDescriptionFlag.UiHidden;
             else
                 flag &= ~ObjectDescriptionFlag.UiHidden;
@@ -967,17 +1206,17 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.FreePkStatus ?? false)
             //    FreePkStatus = true;
             ////ImmuneCellRestrictions = 0x00400000,
-            if (GetProperty(PropertyBool.IgnoreHouseBarriers) ?? false)
+            if (IgnoreHouseBarriers ?? false)
                 flag |= ObjectDescriptionFlag.ImmuneCellRestrictions;
             else
                 flag &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
             ////RequiresPackSlot       = 0x00800000,
-            if (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false)
+            if (RequiresBackpackSlot ?? false)
                 flag |= ObjectDescriptionFlag.RequiresPackSlot;
             else
                 flag &= ~ObjectDescriptionFlag.RequiresPackSlot;
             ////Retained               = 0x01000000,
-            if (GetProperty(PropertyBool.Retained) ?? false)
+            if (Retained ?? false)
                 flag |= ObjectDescriptionFlag.Retained;
             else
                 flag &= ~ObjectDescriptionFlag.Retained;
@@ -996,12 +1235,12 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.VolatileRare ?? false)
             //    VolatileRare = true;
             ////WieldOnUse             = 0x20000000,
-            if (GetProperty(PropertyBool.WieldOnUse) ?? false)
+            if (WieldOnUse ?? false)
                 flag |= ObjectDescriptionFlag.WieldOnUse;
             else
                 flag &= ~ObjectDescriptionFlag.WieldOnUse;
             ////WieldLeft              = 0x40000000,
-            if (GetProperty(PropertyBool.AutowieldLeft) ?? false)
+            if (AutowieldLeft ?? false)
                 flag |= ObjectDescriptionFlag.WieldLeft;
             else
                 flag &= ~ObjectDescriptionFlag.WieldLeft;
