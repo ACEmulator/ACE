@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -293,9 +292,7 @@ namespace ACE.Server.Network.GameEvent.Events
             // TODO: Refactor this to set all of these flags based on data. Og II
             CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
 
-            // todo EF fix
-            //if (Session.Player.SpellsInSpellBars.Exists(x => x.AceObjectId == aceObj.AceObjectId))
-            //    optionFlags |= CharacterOptionDataFlag.SpellLists8;
+            optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
             Writer.Write((uint)optionFlags);
             Writer.Write((int)(Session.Player.GetProperty(PropertyInt.CharacterOptions1) ?? 0));
@@ -310,10 +307,9 @@ namespace ACE.Server.Network.GameEvent.Events
                 {
                     var spells = Session.Player.GetSpellsInSpellBar(i);
 
-                    /*var sorted = Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == Session.Player.Biota.Id && x.SpellBarId == i).OrderBy(s => s.SpellBarPositionId);
-                    Writer.Write(sorted.Count());
-                    foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
-                        Writer.Write(spells.SpellId);*/
+                    Writer.Write(spells.Count);
+                    foreach (var spell in spells)
+                        Writer.Write(spell.SpellId);
                 }
             }
             else

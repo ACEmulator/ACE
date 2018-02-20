@@ -150,6 +150,9 @@ namespace ACE.Server.WorldObjects
         public void SetProperty(PropertyInt64 property, long value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyString property, string value) { Biota.SetProperty(property, value); }
 
+        // todo: We also need to manually remove the property from the shard db.
+        // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
+        // todo: fix this in BiotaExcentions. Add code there that removes the entry from teh shard
         public void RemoveProperty(PropertyBool property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyDataId property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyFloat property) { Biota.RemoveProperty(property); }
@@ -162,6 +165,9 @@ namespace ACE.Server.WorldObjects
 
         public void SetPosition(PositionType positionType, Position position) { Biota.SetPosition(positionType, position); }
 
+        // todo: We also need to manually remove the property from the shard db.
+        // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
+        // todo: fix this in BiotaExcentions. Add code there that removes the entry from teh shard
         public void RemovePosition(PositionType positionType) { Biota.RemovePosition(positionType); }
 
         public Dictionary<PropertyBool, bool> GetAllPropertyBools()
