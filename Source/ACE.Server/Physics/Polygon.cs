@@ -5,9 +5,9 @@ namespace ACE.Server.Physics
 {
     public enum SimplePolygonType
     {
-        SIMPLE_POLYGON = 0x0,
-        PATH_POLYGON = 0x1,
-        PLANAR_POLYGON = 0x2
+        SimplePolygon   = 0x0,
+        PathPolygon     = 0x1,
+        PlanarPolygon   = 0x2
     };
 
     public class Polygon

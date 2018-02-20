@@ -8,7 +8,7 @@ namespace ACE.Server.Physics.Animation
         public List<AnimSequenceNode> AnimList;
         public AnimSequenceNode FirstCyclic;
         public Vector3 Velocity;
-        public Vector3 OMega;
+        public Vector3 Omega;
         public PhysicsObj HookObj;
         public double FrameNumber;
         public AnimSequenceNode CurrAnim;
