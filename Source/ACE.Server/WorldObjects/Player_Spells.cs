@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -12,10 +12,17 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public bool SpellIsKnown(uint spellId)
+        {
+            var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
+
+            return (result != null);
+        }
+
         /// <summary>
         /// Will return true if the spell was added, or false if the spell already exists.
         /// </summary>
-        public bool AddSpell(int spellId)
+        public bool AddKnownSpell(int spellId)
         {
             var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
 
@@ -31,36 +38,10 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-
-
-
-
-
-
-
-
-
-        public bool UnknownSpell(uint spellId)
-        {
-            return !(AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId));
-        }
-
-        public void MagicRemoveSpellId(uint spellId)
-        {
-            if (!AceObject.SpellIdProperties.Exists(x => x.SpellId == spellId))
-            {
-                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
-                return;
-            }
-
-            AceObject.SpellIdProperties.RemoveAt(AceObject.SpellIdProperties.FindIndex(x => x.SpellId == spellId));
-            GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
-            Session.Network.EnqueueSend(removeSpellEvent);
-        }
-
         public void LearnSpell(uint spellId)
         {
             var spells = DatManager.PortalDat.SpellTable;
+
             if (!spells.Spells.ContainsKey(spellId))
             {
                 GameMessageSystemChat errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
@@ -68,30 +49,43 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!UnknownSpell(spellId))
+            if (SpellIsKnown(spellId))
             {
                 GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(errorMessage);
                 return;
             }
 
-            AceObjectPropertiesSpell newSpell = new AceObjectPropertiesSpell
-            {
-                AceObjectId = this.Guid.Full,
-                SpellId = spellId
-            };
+            Biota.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook { ObjectId = Biota.Id, Spell = (int)spellId });
 
-            AceObject.SpellIdProperties.Add(newSpell);
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
 
             // Always seems to be this SkillUpPurple effect
-            Session.Player.ApplyVisualEffects(global::ACE.Entity.Enum.PlayScript.SkillUpPurple);
+            Session.Player.ApplyVisualEffects(ACE.Entity.Enum.PlayScript.SkillUpPurple);
 
             string spellName = spells.Spells[spellId].Name;
             string message = "You learn the " + spellName + " spell.\n";
             GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(learnMessage);
+        }
+
+        public void RemoveSpellIdGameAction(uint spellId)
+        {
+            var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
+
+            if (result == null)
+            {
+                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                return;
+            }
+
+            DatabaseManager.Shard.RemoveSpellBookEntry(result, null);
+
+            Biota.BiotaPropertiesSpellBook.Remove(result);
+
+            GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+            Session.Network.EnqueueSend(removeSpellEvent);
         }
 
 
@@ -101,16 +95,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellId"></param>
         /// <param name="spellBarPositionId"></param>
         /// <param name="spellBarId"></param>
-        public void AddSpellToSpellBar(uint spellId, uint spellBarPositionId, uint spellBarId)
+        public void AddSpellFavoriteGameAction(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
             // The spell bar magic happens here.
-            SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
+            /*SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
             {
                 AceObjectId = AceObject.AceObjectId,
                 SpellId = spellId,
                 SpellBarId = spellBarId,
                 SpellBarPositionId = spellBarPositionId
-            });
+            });*/
         }
 
         /// <summary>
@@ -118,9 +112,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="spellId"></param>
         /// <param name="spellBarId"></param>
-        public void RemoveSpellToSpellBar(uint spellId, uint spellBarId)
+        public void RemoveSpellFavoriteGameAction(uint spellId, uint spellBarId)
         {
-            // More spell bar magic happens here.
+            /*// More spell bar magic happens here.
             SpellsInSpellBars.Remove(SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
             // Now I have to reorder
             var sorted = SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
@@ -129,16 +123,12 @@ namespace ACE.Server.WorldObjects
             {
                 spells.SpellBarPositionId = newSpellBarPosition;
                 newSpellBarPosition++;
-            }
+            }*/
         }
 
-        public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars
+        public List<SpellBarPositions> GetSpellsInSpellBar(int barId)
         {
-            get => AceObject.SpellsInSpellBars;
-            set
-            {
-                AceObject.SpellsInSpellBars = value;
-            }
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -367,15 +367,15 @@ namespace ACE.Server.Network.Handlers
                         // Olthoi Spitter is a special case
                         if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid)
                         {
-                            player.AddSpell((int)spell.SpellId);
+                            player.AddKnownSpell((int)spell.SpellId);
                             // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
                             continue;
                         }
 
                         if (charSkill.Status == SkillStatus.Trained && spell.SpecializedOnly == false)
-                            player.AddSpell((int)spell.SpellId);
+                            player.AddKnownSpell((int)spell.SpellId);
                         else if (charSkill.Status == SkillStatus.Specialized)
-                            player.AddSpell((int)spell.SpellId);
+                            player.AddKnownSpell((int)spell.SpellId);
                     }
                 }
             }

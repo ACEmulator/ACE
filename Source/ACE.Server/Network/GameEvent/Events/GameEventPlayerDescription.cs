@@ -308,10 +308,12 @@ namespace ACE.Server.Network.GameEvent.Events
             {
                 for (int i = 0; i <= 7; i++)
                 {
-                    var sorted = Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == Session.Player.Biota.Id && x.SpellBarId == i).OrderBy(s => s.SpellBarPositionId);
+                    var spells = Session.Player.GetSpellsInSpellBar(i);
+
+                    /*var sorted = Session.Player.SpellsInSpellBars.FindAll(x => x.AceObjectId == Session.Player.Biota.Id && x.SpellBarId == i).OrderBy(s => s.SpellBarPositionId);
                     Writer.Write(sorted.Count());
                     foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
-                        Writer.Write(spells.SpellId);
+                        Writer.Write(spells.SpellId);*/
                 }
             }
             else

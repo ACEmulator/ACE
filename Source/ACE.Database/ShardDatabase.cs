@@ -191,6 +191,7 @@ namespace ACE.Database
             }
         }
 
+
         /// <summary>
         /// Will return a biota from the db with tracking enabled.
         /// This will populate all sub collections except the followign: BiotaPropertiesEmoteAction
@@ -248,6 +249,29 @@ namespace ACE.Database
                 {
                     // Character name might be in use or some other fault
                     log.Error($"SaveBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
+        /// </summary>
+        public bool RemoveSpellBookEntry(BiotaPropertiesSpellBook entry)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.BiotaPropertiesSpellBook.Remove(entry);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"RemoveSpellBookEntry failed with exception: {ex}");
                     return false;
                 }
             }

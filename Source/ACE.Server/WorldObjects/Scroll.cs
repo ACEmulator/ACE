@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (!session.Player.UnknownSpell(SpellId))
+            if (session.Player.SpellIsKnown(SpellId))
             {
                 success = false;
                 failReason = "You already know the spell inscribed upon this scroll.";

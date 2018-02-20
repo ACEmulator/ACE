@@ -1196,11 +1196,11 @@ namespace ACE.Server.WorldObjects
         {
             if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
             writer.Write((uint)propertiesSpellId.Count);
-
+            /* todo fix for new EF model
             foreach (AceObjectPropertiesSpell x in propertiesSpellId)
             {
                 writer.Write(x.SpellId);
-            }
+            }*/
         }
 
         // TODO: Move to Armor class
