@@ -1590,11 +1590,11 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    if (SetupTableId != null && item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+                    if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
                     // Check if the player model has data. Gear Knights, this is usually you.
                     {
                         // Add the model and texture(s)
-                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
                         foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                         {
                             byte partNum = (byte)t.Index;
@@ -1610,9 +1610,9 @@ namespace ACE.Server.WorldObjects
                 }
             }
             // Add the "naked" body parts. These are the ones not already covered.
-            if (SetupTableId != null)
+            if (SetupTableId > 0)
             {
-                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
+                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
                 for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()

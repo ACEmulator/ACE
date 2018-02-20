@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
             ////    IsLocked = false;
 
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
-            if (IsLocked)
+            if (IsLocked ?? false)
                 DefaultLocked = true;
 
             movementOpen.ForwardCommand = (uint)MotionCommand.On;
@@ -92,18 +92,6 @@ namespace ACE.Server.WorldObjects
 
             if (UseRadius < 2)
                 UseRadius = 2;
-        }
-
-        private bool IsOpen
-        {
-            get;
-            set;
-        }
-
-        private bool IsLocked
-        {
-            get { return AceObject.Locked ?? false; }
-            set { AceObject.Locked = value; }
         }
 
         private bool DefaultLocked
@@ -210,9 +198,9 @@ namespace ACE.Server.WorldObjects
 
                 checkDoorChain.AddAction(this, () =>
                 {
-                    if (!IsLocked)
+                    if (!IsLocked ?? false)
                     {
-                        if (!IsOpen)
+                        if (!IsOpen ?? false)
                         {
                             Open(playerId);
                         }
@@ -250,7 +238,7 @@ namespace ACE.Server.WorldObjects
             Ethereal = true;
             IsOpen = true;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal ?? true));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen ?? true));
             if (opener.Full > 0)
                 UseTimestamp++;
         }
@@ -265,7 +253,7 @@ namespace ACE.Server.WorldObjects
             Ethereal = false;
             IsOpen = false;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal ?? false));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen ?? false));
             if (closer.Full > 0)
                 UseTimestamp++;
         }
@@ -281,7 +269,7 @@ namespace ACE.Server.WorldObjects
                 if (DefaultLocked)
                 {
                     IsLocked = true;
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked ?? true));
                     // CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess); // TODO: need to find the lock sound
                 }
             }
@@ -302,11 +290,11 @@ namespace ACE.Server.WorldObjects
 
             if (playerLockpickSkillLvl >= ResistLockpick)
             {
-                if (!IsLocked)
+                if (!IsLocked ?? false)
                     return UnlockDoorResults.AlreadyUnlocked;
 
                 IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked ?? false));
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
@@ -319,16 +307,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public UnlockDoorResults UnlockDoor(string keyCode)
         {
-            if (IsOpen)
+            if (IsOpen ?? false)
                 return UnlockDoorResults.DoorOpen;
 
             if (keyCode == LockCode)
             {
-                if (!IsLocked)
+                if (!IsLocked ?? false)
                     return UnlockDoorResults.AlreadyUnlocked;
 
                 IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Locked, IsLocked ?? false));
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
