@@ -126,6 +126,7 @@ namespace ACE.Database
             }));
         }
 
+
         public void AddBiota(Biota biota, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -155,6 +156,19 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.SaveBiota(biota);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
+
+        /// <summary>
+        /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
+        /// </summary>
+        public void RemoveSpellBookEntry(BiotaPropertiesSpellBook entry, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveSpellBookEntry(entry);
                 if (callback != null)
                     callback.Invoke(result);
             }));

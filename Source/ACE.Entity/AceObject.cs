@@ -1966,7 +1966,7 @@ namespace ACE.Entity
         public List<AceObjectPropertiesSpell> SpellIdProperties { get; set; } = new List<AceObjectPropertiesSpell>();
 
         [JsonProperty("spellbars")]
-        public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars { get; set; } = new List<AceObjectPropertiesSpellBarPositions>();
+        //public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars { get; set; } = new List<AceObjectPropertiesSpellBarPositions>();
 
         [JsonIgnore]
         public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
@@ -2058,7 +2058,7 @@ namespace ACE.Entity
                 //AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
                 AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
                 SpellIdProperties = CloneList(SpellIdProperties),
-                SpellsInSpellBars = CloneList(SpellsInSpellBars),
+                //SpellsInSpellBars = CloneList(SpellsInSpellBars),
                 BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
                 WieldedItems = CloneDict(WieldedItems),
@@ -2090,7 +2090,7 @@ namespace ACE.Entity
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
             ret.CreateList.ForEach(c => c.AceObjectId = guid);
-            ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
+            //ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
 
             // No need to change Dictionary guids per DDEVEC
