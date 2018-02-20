@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
-using ACE.DatLoader.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Physics
 {
