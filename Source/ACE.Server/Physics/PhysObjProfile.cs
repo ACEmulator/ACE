@@ -1,3 +1,4 @@
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Sound;
 
@@ -15,7 +16,7 @@ namespace ACE.Server.Physics
         public double Friction;
         public double Elasticity;
         public double Translucency;
-        public PScriptType DefaultScript;
+        public PlayScript DefaultScript;
         public double DefaultScriptIntensity;
     }
 }

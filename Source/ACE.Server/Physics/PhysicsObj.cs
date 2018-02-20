@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -18,7 +19,7 @@ namespace ACE.Server.Physics
         public bool bExaminationObject;
         public ScriptManager ScriptManager;
         public PhysicsScriptTable PhysicsScriptTable;
-        public PScriptType DefaultScript;
+        public PlayScript DefaultScript;
         public float DefaultScriptIntensity;
         public PhysicsObj Parent;
         public List<PhysicsObj> Children;

@@ -1,5 +1,5 @@
 using System.Numerics;
-using ACE.Server.Physics.Animation;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics
 {

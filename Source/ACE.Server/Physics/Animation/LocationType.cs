@@ -1,3 +1,5 @@
+using ACE.DatLoader.Entity;
+
 namespace ACE.Server.Physics.Animation
 {
     public class LocationType
