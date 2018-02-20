@@ -92,9 +92,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This method implements player spell bar management for - adding a spell to a specific spell bar (0 based) at a specific slot (0 based).
         /// </summary>
-        /// <param name="spellId"></param>
-        /// <param name="spellBarPositionId"></param>
-        /// <param name="spellBarId"></param>
         public void AddSpellFavoriteGameAction(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
             // The spell bar magic happens here.
@@ -110,8 +107,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This method implements player spell bar management for - removing a spell to a specific spell bar (0 based)
         /// </summary>
-        /// <param name="spellId"></param>
-        /// <param name="spellBarId"></param>
         public void RemoveSpellFavoriteGameAction(uint spellId, uint spellBarId)
         {
             /*// More spell bar magic happens here.
@@ -126,9 +121,13 @@ namespace ACE.Server.WorldObjects
             }*/
         }
 
+        /// <summary>
+        /// Will return the spells in the bar, sorted by their position
+        /// </summary>
         public List<SpellBarPositions> GetSpellsInSpellBar(int barId)
         {
-            throw new System.NotImplementedException();
+            // todo fix for new EF model
+            return new List<SpellBarPositions>();
         }
     }
 }
