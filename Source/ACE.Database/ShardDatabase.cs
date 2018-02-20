@@ -201,6 +201,7 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
             {
                 var result = context.Biota
+                    // Should we add .AsNoTracking() here since we're disposing of the context anyway?
                     .Include(r => r.BiotaPropertiesAnimPart)
                     .Include(r => r.BiotaPropertiesAttribute)
                     .Include(r => r.BiotaPropertiesAttribute2nd)
