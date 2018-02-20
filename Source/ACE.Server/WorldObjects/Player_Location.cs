@@ -126,9 +126,9 @@ namespace ACE.Server.WorldObjects
             if (!InWorld)
                 return;
 
-            //Hidden = true;
-            //IgnoreCollision = true;
-            //ReportCollision = false;
+            Hidden = true;
+            IgnoreCollisions = true;
+            ReportCollisions = false;
             EnqueueBroadcastPhysicsState();
             ExternalUpdatePosition(newPosition);
             InWorld = false;

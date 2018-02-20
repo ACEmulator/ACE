@@ -247,9 +247,9 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionStateOpen;
-            //Ethereal = true;
+            Ethereal = true;
             IsOpen = true;
-            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal ?? true));
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (opener.Full > 0)
                 UseTimestamp++;
@@ -262,9 +262,9 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionStateClosed;
-            //Ethereal = false;
+            Ethereal = false;
             IsOpen = false;
-            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Ethereal, Ethereal ?? false));
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this.Sequences, PropertyBool.Open, IsOpen));
             if (closer.Full > 0)
                 UseTimestamp++;

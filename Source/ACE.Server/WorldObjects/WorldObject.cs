@@ -444,7 +444,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
         /// </summary>
-        public uint? HouseOwner { get; set; }
+        public int? HouseOwner
+        {
+            get => GetProperty(PropertyInstanceId.HouseOwner);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
+        }
 
         public uint? HouseRestrictions { get; set; }
 
@@ -454,7 +458,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookItemType); else SetProperty(PropertyInt.HookItemType, value.Value); }
         }
 
-        public uint? Monarch { get; set; }
+        public int? Monarch
+        {
+            get => GetProperty(PropertyInstanceId.Monarch);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
+        }
 
         public ushort? HookType
         {
@@ -492,7 +500,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.CooldownDuration); else SetProperty(PropertyFloat.CooldownDuration, value.Value); }
         }
 
-        public uint? PetOwner { get; set; }
+        public int? PetOwner
+        {
+            get => GetProperty(PropertyInstanceId.PetOwner);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.PetOwner); else SetProperty(PropertyInstanceId.PetOwner, value.Value); }
+        }
 
 
 
@@ -533,7 +545,7 @@ namespace ACE.Server.WorldObjects
         [Obsolete]
         protected AceObject AceObject { get; set; }
         [Obsolete]
-        protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; }
+        protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; } = new Dictionary<ObjectGuid, WorldObject>();
 
 
         [Obsolete]
@@ -609,38 +621,38 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public int? ParentLocation
+        public ParentLocation? ParentLocation
         {
-            get => AceObject.ParentLocation;
-            set { AceObject.ParentLocation = value; }
+            get => (ParentLocation?)GetProperty(PropertyInt.ParentLocation);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ParentLocation); else SetProperty(PropertyInt.ParentLocation, (int)value.Value); }
         }
 
         public List<HeldItem> Children { get; } = new List<HeldItem>();
 
         public float? ObjScale
         {
-            get => AceObject.DefaultScale;
-            set { AceObject.DefaultScale = value; }
+            get => (float?)GetProperty(PropertyFloat.DefaultScale);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.DefaultScale); else SetProperty(PropertyFloat.DefaultScale, value.Value); }
         }
 
         public float? Friction
         {
-            get => AceObject.Friction;
-            set { AceObject.Friction = value; }
+            get => (float?)GetProperty(PropertyFloat.Friction);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Friction); else SetProperty(PropertyFloat.Friction, value.Value); }
         }
 
         public float? Elasticity
         {
-            get => AceObject.Elasticity;
-            set { AceObject.Elasticity = value; }
+            get => (float?)GetProperty(PropertyFloat.Elasticity);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Elasticity); else SetProperty(PropertyFloat.Elasticity, value.Value); }
         }
 
         public AceVector3 Acceleration { get; set; }
 
         public float? Translucency
         {
-            get => AceObject.Translucency;
-            set { AceObject.Translucency = value; }
+            get => (float?)GetProperty(PropertyFloat.Translucency);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Translucency); else SetProperty(PropertyFloat.Translucency, value.Value); }
         }
 
         public AceVector3 Velocity = null;
@@ -652,14 +664,15 @@ namespace ACE.Server.WorldObjects
 
         public uint? DefaultScriptId
         {
+            // Is this CSetup.DefaultScript?
             get => Script;
             set { Script = (ushort?)value; }
         }
 
         public float? DefaultScriptIntensity
         {
-            get => AceObject.PhysicsScriptIntensity;
-            set { AceObject.PhysicsScriptIntensity = value; }
+            get => (float?)GetProperty(PropertyFloat.PhysicsScriptIntensity);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.PhysicsScriptIntensity); else SetProperty(PropertyFloat.PhysicsScriptIntensity, value.Value); }
         }
 
         // pos
@@ -672,14 +685,14 @@ namespace ACE.Server.WorldObjects
 
         public int? PlacementPosition
         {
-            get => AceObject.PlacementPosition;
-            set { AceObject.PlacementPosition = value; }
+            get => GetProperty(PropertyInt.PlacementPosition);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlacementPosition); else SetProperty(PropertyInt.PlacementPosition, value.Value); }
         }
 
 
 
 
-        public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.EncumbranceVal) ?? 0);
+        public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0);
 
 
 
@@ -759,8 +772,8 @@ namespace ACE.Server.WorldObjects
 
         public bool? NpcLooksLikeObject
         {
-            get => AceObject.NpcLooksLikeObject;
-            set { AceObject.NpcLooksLikeObject = value; }
+            get => GetProperty(PropertyBool.NpcLooksLikeObject);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.NpcLooksLikeObject); else SetProperty(PropertyBool.NpcLooksLikeObject, value.Value); }
         }
 
         public bool? SuppressGenerateEffect
