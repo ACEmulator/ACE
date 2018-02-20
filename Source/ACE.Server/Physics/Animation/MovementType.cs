@@ -12,6 +12,5 @@ namespace ACE.Server.Physics.Animation
         MoveToPosition = 0x7,
         TurnToObject = 0x8,
         TurnToHeading = 0x9,
-        FORCE_Type_32_BIT = 0x7FFFFFFF,
     };
 }

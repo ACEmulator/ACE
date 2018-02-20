@@ -5,10 +5,9 @@ namespace ACE.Server.Physics.Animation
 {
     public enum InsertType
     {
-        TRANSITION_INSERT = 0x0,
-        PLACEMENT_INSERT = 0x1,
-        INITIAL_PLACEMENT_INSERT = 0x2,
-        FORCE_InsertType_32_BIT = 0x7FFFFFFF,
+        TransitionInsert = 0x0,
+        PlacementInsert = 0x1,
+        InitialPlacementInsert = 0x2,
     };
     public class SpherePath
     {
