@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
             InWorld = false;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
-            CurrentLandblock.RemoveWorldObject(Guid, false);
+            //CurrentLandblock.RemoveWorldObject(Guid, false); // Reasonably sure this is the culprit of the failed teleports.
 
             lock (clientObjectList)
                 clientObjectList.Clear();
