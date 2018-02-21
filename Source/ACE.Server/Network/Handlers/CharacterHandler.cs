@@ -55,6 +55,10 @@ namespace ACE.Server.Network.Handlers
             session.State = SessionState.WorldConnected;
 
             LandblockManager.PlayerEnterWorld(session, new ObjectGuid(cachedCharacter.BiotaId));
+
+            // Save the the LoginTimestamp
+            cachedCharacter.LastLoginTimestamp = Time.GetTimestamp();
+            DatabaseManager.Shard.SaveCharacter(cachedCharacter, null);
         }
 
         [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]

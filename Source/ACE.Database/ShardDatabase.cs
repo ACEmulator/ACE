@@ -171,6 +171,26 @@ namespace ACE.Database
             }
         }
 
+        public bool SaveCharacter(Character character)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Character.Update(character);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveCharacter failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
         public bool AddBiota(Biota biota)
         {
             using (var context = new ShardDbContext())

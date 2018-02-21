@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -21,9 +21,7 @@ namespace ACE.Server.WorldObjects
         public void PlayerEnterWorld()
         {
             // Save the the LoginTimestamp
-            TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
-            double timestamp = span.TotalSeconds;
-            SetProperty(PropertyFloat.LoginTimestamp, timestamp);
+            SetProperty(PropertyFloat.LoginTimestamp, Time.GetTimestamp());
 
             var totalLogins = GetProperty(PropertyInt.TotalLogins) ?? 0;
             totalLogins++;

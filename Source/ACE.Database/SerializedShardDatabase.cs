@@ -126,6 +126,15 @@ namespace ACE.Database
             }));
         }
 
+        public void SaveCharacter(Character character, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveCharacter(character);
+                if (callback != null)
+                    callback.Invoke(result);
+            }));
+        }
 
         public void AddBiota(Biota biota, Action<bool> callback)
         {
