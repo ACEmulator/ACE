@@ -28,8 +28,7 @@ namespace ACE.Entity.Enum.Properties
         LightsStatus                     = 15,
         ScriptedCollision                = 16,
         Inelastic                        = 17,
-        Visibility                       = 18,
-        [Ephemeral]
+        Visibility                       = 18,        
         Attackable                       = 19,
         SafeSpellComponents              = 20,
         AdvocateState                    = 21,
@@ -55,8 +54,11 @@ namespace ACE.Entity.Enum.Properties
         ReportCollisionsAsEnvironment    = 41,
         AllowEdgeSlide                   = 42,
         AdvocateQuest                    = 43,
+        [Ephemeral]
         IsAdmin                          = 44,
+        [Ephemeral]
         IsArch                           = 45,
+        [Ephemeral]
         IsSentinel                       = 46,
         IsAdvocate                       = 47,
         CurrentlyPoweringUp              = 48,
