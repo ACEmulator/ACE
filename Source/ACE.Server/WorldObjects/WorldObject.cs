@@ -72,10 +72,29 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Restore a WorldObject from the database.
+        /// Any properties tagged as Ephemeral will be removed from the biota.
         /// </summary>
         protected WorldObject(Biota biota)
         {
             Biota = biota;
+
+            // Before we continue with the construction of this object, we must remove Ephemeral values that were loaded from the database.
+            // In the case of ACE, all properties are saved to the database. This is a very efficient way to do it via Entity Framework. Save happens many times per session, create happens once per session.
+            // Our work around is to just remove those properties on restore instead of save.
+            foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesBool.Remove(x);
+            foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesDID.Remove(x);
+            foreach (var x in Biota.BiotaPropertiesFloat.Where(i => EphemeralProperties.PropertiesDouble.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesFloat.Remove(x);
+            foreach (var x in Biota.BiotaPropertiesIID.Where(i => EphemeralProperties.PropertiesInstanceId.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesIID.Remove(x);
+            foreach (var x in Biota.BiotaPropertiesInt.Where(i => EphemeralProperties.PropertiesInt.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesInt.Remove(x);
+            foreach (var x in Biota.BiotaPropertiesInt64.Where(i => EphemeralProperties.PropertiesInt64.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesInt64.Remove(x);
+            foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
+                Biota.BiotaPropertiesString.Remove(x);
 
             SetEphemeralValues();
         }

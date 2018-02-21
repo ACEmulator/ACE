@@ -64,6 +64,7 @@ namespace ACE.Server.Factories
 
         /// <summary>
         /// Restore a WorldObject from the database.
+        /// Any properties tagged as Ephemeral will be removed from the biota.
         /// </summary>
         public static WorldObject CreateWorldObject(Biota biota)
         {
