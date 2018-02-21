@@ -73,6 +73,21 @@ namespace ACE.Server.WorldObjects
             // radius for object updates
             ListeningRadius = 5f;
 
+            if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (Session.AccessLevel == AccessLevel.Admin)
+                    IsAdmin = true;
+                if (Session.AccessLevel == AccessLevel.Developer)
+                    IsArch = true;
+                if (Session.AccessLevel == AccessLevel.Envoy)
+                    IsEnvoy = true;
+                // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
+                // if (Session.AccessLevel == AccessLevel.Sentinel)
+                //    character.IsSentinel = true;
+                // if (Session.AccessLevel == AccessLevel.Advocate)
+                //    character.IsAdvocate= true;
+            }
+
             return; // todo
 
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -153,13 +168,19 @@ namespace ACE.Server.WorldObjects
 
         public bool IsAdmin
         {
-            get { return Session.AccessLevel == AccessLevel.Admin || (GetProperty(PropertyBool.IsAdmin) ?? false); }
+            get => GetProperty(PropertyBool.IsAdmin) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsAdmin); else SetProperty(PropertyBool.IsAdmin, value); }
+        }
+
+        public bool IsSentinel
+        {
+            get => GetProperty(PropertyBool.IsSentinel) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
         }
 
         public bool IsEnvoy
         {
-            get { return Session.AccessLevel == AccessLevel.Sentinel || (GetProperty(PropertyBool.IsSentinel) ?? false); }
+            get => GetProperty(PropertyBool.IsSentinel) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
         }
 
