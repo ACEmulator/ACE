@@ -397,11 +397,12 @@ namespace ACE.Server.Managers
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
             // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
             // This crashes sometimes with the following exception: System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-            /*Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+            Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
             {
                 foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                 {
                     Position newPosition = wo.Location;
+
                     if (wo.ForcedLocation != null)
                     {
                         newPosition = wo.ForcedLocation;
@@ -420,7 +421,7 @@ namespace ACE.Server.Managers
 
                     wo.ClearRequestedPositions();
                 }
-            });*/
+            });
 
             return movedObjects;
         }

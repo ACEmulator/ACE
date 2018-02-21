@@ -180,31 +180,31 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
-            if (Player != null)
-            {
-                if (lastSaveTime == DateTime.MinValue)
-                    lastSaveTime = DateTime.UtcNow;
-                if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
-                {
-                    SaveSession();
-                    lastSaveTime = DateTime.UtcNow;
-                }
+            //if (Player != null)
+            //{
+            //    if (lastSaveTime == DateTime.MinValue)
+            //        lastSaveTime = DateTime.UtcNow;
+            //    if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
+            //    {
+            //        SaveSession();
+            //        lastSaveTime = DateTime.UtcNow;
+            //    }
 
-                if (lastAgeIntUpdateTime == DateTime.MinValue)
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-                {
-                    Player.UpdateAge();
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                }
-                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-                {
-                    Player.SendAgeInt();
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }
-            }
+            //    if (lastAgeIntUpdateTime == DateTime.MinValue)
+            //        lastAgeIntUpdateTime = DateTime.UtcNow;
+            //    if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
+            //    {
+            //        Player.UpdateAge();
+            //        lastAgeIntUpdateTime = DateTime.UtcNow;
+            //    }
+            //    if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+            //        lastSendAgeIntUpdateTime = DateTime.UtcNow;
+            //    if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
+            //    {
+            //        Player.SendAgeInt();
+            //        lastSendAgeIntUpdateTime = DateTime.UtcNow;
+            //    }
+            //}
         }
 
         public void SaveSession()

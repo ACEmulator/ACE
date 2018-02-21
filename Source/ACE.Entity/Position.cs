@@ -144,6 +144,7 @@ namespace ACE.Entity
             const float zOffset = 0.0f;
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
+            Cell = LandblockId.Raw;
             // Offset
             PositionX = xOffset;
             PositionY = yOffset;

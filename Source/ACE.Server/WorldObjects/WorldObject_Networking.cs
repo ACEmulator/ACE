@@ -25,7 +25,19 @@ namespace ACE.Server.WorldObjects
         {
             get => GetPosition(PositionType.Location);
             set => SetPosition(PositionType.Location, value);
+            //set
+            //{
+            //    /*
+            //    log.Debug($"{Name} moved to {Position}");
+            //    Position = value;
+            //    */
+            //    if (GetPosition(PositionType.Location) != null)
+            //        LastUpdatedTicks = WorldManager.PortalYearTicks;
+            //    SetPosition(PositionType.Location, value);
+            //}
         }
+
+        //public double LastUpdatedTicks { get; set; }
 
         /// <summary>
         /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.

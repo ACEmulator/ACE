@@ -161,9 +161,45 @@ namespace ACE.Server.WorldObjects
         public void RemoveProperty(PropertyInt64 property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyString property) { Biota.RemoveProperty(property); }
 
-        public Position GetPosition(PositionType positionType) { return Biota.GetPosition(positionType); }
+        //public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
 
-        public void SetPosition(PositionType positionType, Position position) { Biota.SetPosition(positionType, position); }
+        public Position GetPosition(PositionType positionType) // { return Biota.GetPosition(positionType); }
+        {
+            bool success = Positions.TryGetValue(positionType, out var ret);
+
+            if (!success)
+            {
+                var result = Biota.GetPosition(positionType);
+
+                if (result != null)
+                    Positions.TryAdd(positionType, result);
+
+                return result;
+            }
+
+            //if (!success)
+            //{
+            //    return null;
+            //}
+            return ret;
+        }
+
+        public void SetPosition(PositionType positionType, Position position) // { Biota.SetPosition(positionType, position); }
+        {
+            if (position == null)
+            {
+                Positions.Remove(positionType);
+                Biota.RemovePosition(positionType);
+            }
+            else
+            {
+                if (!Positions.ContainsKey(positionType))
+                    Positions.TryAdd(positionType, position);
+                else
+                    Positions[positionType] = position;
+                Biota.SetPosition(positionType, position);
+            }
+        }
 
         // todo: We also need to manually remove the property from the shard db.
         // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
