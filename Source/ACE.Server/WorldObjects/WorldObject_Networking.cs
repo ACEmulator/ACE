@@ -568,6 +568,11 @@ namespace ACE.Server.WorldObjects
 
         private PhysicsState CalculatedPhysicsState()
         {
+            // todo: This is doing 2 things. It's pulling the flag values from the PropertyInt.PhysicsState, then in turn, setting the bool value counterparts.
+            // That seem a bit redundant
+            // If we really want to set default states on create or load, we need to separate this function into two parts.
+            // Right now, every time this is called, defaults are being set.
+
             // Read in Object's Default PhysicsState
             var physicsState = (PhysicsState)(GetProperty(PropertyInt.PhysicsState) ?? 0);
 
