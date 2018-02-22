@@ -1,14 +1,16 @@
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Animation
 {
     public class Setup
     {
+        public int m_DID;
         public int NumParts;
-        public List<int> Parts;
+        public List<PhysicsPart> Parts;
         public int ParentIndex;
-        public Vector3 DefaultScale;
+        public List<Vector3> DefaultScale;
         public int NumCylsphere;
         public CylSphere CylSphere;
         public int NumSphere;
@@ -26,11 +28,22 @@ namespace ACE.Server.Physics.Animation
         public Vector3 AnimScale;
         public HashSet<LocationType> HoldingLocations;
         public HashSet<LocationType> ConnectionPoints;
-        public HashSet<PlacementType> PlacementFrames;
+        public Dictionary<int, PlacementType> PlacementFrames;
         public int DefaultAnimID;
         public int DefaultScriptID;
         public int DefaultMTableID;
         public int DefaultSTableID;
         public int DefaultPhsTableID;
+        public PhysicsObj Owner;
+
+        public static Setup MakeSimpleSetup(int meshDID)
+        {
+            return null;
+        }
+
+        public static Setup MakeParticleSetup(int numParts)
+        {
+            return null;
+        }
     }
 }

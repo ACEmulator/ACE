@@ -35,6 +35,13 @@ namespace ACE.Server.Physics
         public Vector3 Size;
 
         /// <summary>
+        /// Empty constructor
+        /// </summary>
+        public BoundingBox()
+        {
+        }
+        
+        /// <summary>
         /// Constructs a new bounding box
         /// for a model
         /// </summary>
@@ -43,7 +50,7 @@ namespace ACE.Server.Physics
             Model = model;
             BuildBox(model);
         }
-
+        
         /// <summary>
         /// Builds a bounding box for a model
         /// </summary>
@@ -138,22 +145,27 @@ namespace ACE.Server.Physics
                    (Min.Z <= b.Max.Z && Max.Z >= b.Min.Z);
         }
 
+        public void ConvertToGlobal()
+        {
+
+        }
+
         /// <summary>
         /// Returns 8 corner points of the bounding box
         /// </summary>
         public List<Vector3> GetCornerPoints()
         {
             // lower corner points
-            var lowerNW = new Vector3(Min.X, Min.Y, Max.Z);
-            var lowerNE = new Vector3(Max.X, Min.Y, Max.Z);
+            var lowerNW = new Vector3(Min.X, Max.Y, Min.Z);
+            var lowerNE = new Vector3(Max.X, Max.Y, Min.Z);
             var lowerSW = new Vector3(Min.X, Min.Y, Min.Z);
             var lowerSE = new Vector3(Max.X, Min.Y, Min.Z);
 
             // upper corner points
             var upperNW = new Vector3(Min.X, Max.Y, Max.Z);
             var upperNE = new Vector3(Max.X, Max.Y, Max.Z);
-            var upperSW = new Vector3(Min.X, Max.Y, Min.Z);
-            var upperSE = new Vector3(Max.X, Max.Y, Min.Z);
+            var upperSW = new Vector3(Min.X, Min.Y, Max.Z);
+            var upperSE = new Vector3(Max.X, Min.Y, Max.Z);
 
             return new List<Vector3>() { lowerNW, lowerNE, lowerSW, lowerSE, upperNW, upperNE, upperSW, upperSE };
         }

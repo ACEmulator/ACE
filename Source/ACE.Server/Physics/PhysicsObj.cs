@@ -11,7 +11,8 @@ namespace ACE.Server.Physics
 {
     public class PhysicsObj
     {
-        public List<PhysicsPart> Parts;
+        public int ID;
+        public PartArray PartArray;
         public Vector3 PlayerVector;
         public float PlayerDistance;
         public float CYpt;
@@ -61,6 +62,19 @@ namespace ACE.Server.Physics
 
         public PhysicsObj()
         {
+        }
+
+        public float GetRadius()
+        {
+            if (PartArray != null)
+                return PartArray.GetRadius();
+            else
+                return 0;
+        }
+
+        public void InitDefaults(PartArray partArray)
+        {
+
         }
     }
 }
