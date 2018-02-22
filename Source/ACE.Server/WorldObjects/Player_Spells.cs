@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DatabaseManager.Shard.RemoveSpellBookEntry(result, null);
+            DatabaseManager.Shard.RemoveEntity(result, null);
 
             Biota.BiotaPropertiesSpellBook.Remove(result);
 

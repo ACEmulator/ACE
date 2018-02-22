@@ -278,11 +278,11 @@ namespace ACE.Database
         /// <summary>
         /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
         /// </summary>
-        public bool RemoveSpellBookEntry(BiotaPropertiesSpellBook entry)
+        public bool RemoveEntity(object entity)
         {
             using (var context = new ShardDbContext())
             {
-                context.BiotaPropertiesSpellBook.Remove(entry);
+                context.Remove(entity);
 
                 try
                 {
@@ -292,7 +292,7 @@ namespace ACE.Database
                 catch (Exception ex)
                 {
                     // Character name might be in use or some other fault
-                    log.Error($"RemoveSpellBookEntry failed with exception: {ex}");
+                    log.Error($"RemoveEntity failed with exception: {ex}");
                     return false;
                 }
             }

@@ -71,7 +71,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
-                callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -81,8 +81,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.GetCharacters(accountId);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -91,8 +90,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.IsCharacterNameAvailable(name);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -101,8 +99,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.AddCharacter(character, biota);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -111,8 +108,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.DeleteOrRestoreCharacter(unixTime, guid);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -121,8 +117,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.MarkCharacterDeleted(guid);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -131,8 +126,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.SaveCharacter(character);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -141,8 +135,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.AddBiota(biota);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
@@ -155,8 +148,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var c = _wrappedDatabase.GetBiota(id);
-                if (callback != null)
-                    callback.Invoke(c);
+                callback?.Invoke(c);
             }));
         }
 
@@ -165,21 +157,19 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.SaveBiota(biota);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
         }
 
         /// <summary>
         /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
         /// </summary>
-        public void RemoveSpellBookEntry(BiotaPropertiesSpellBook entry, Action<bool> callback)
+        public void RemoveEntity(object entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.RemoveSpellBookEntry(entry);
-                if (callback != null)
-                    callback.Invoke(result);
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
             }));
         }
 

@@ -214,49 +214,70 @@ namespace ACE.Database.Models.Shard
         {
             var result = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesBool.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemoveProperty(this Biota biota, PropertyDataId property)
         {
             var result = biota.BiotaPropertiesDID.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesDID.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemoveProperty(this Biota biota, PropertyFloat property)
         {
             var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesFloat.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemoveProperty(this Biota biota, PropertyInstanceId property)
         {
             var result = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesIID.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemoveProperty(this Biota biota, PropertyInt property)
         {
             var result = biota.BiotaPropertiesInt.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesInt.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemoveProperty(this Biota biota, PropertyInt64 property)
         {
             var result = biota.BiotaPropertiesInt64.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesInt64.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemoveProperty(this Biota biota, PropertyString property)
         {
             var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)
+            {
                 biota.BiotaPropertiesString.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
 
         public static void RemovePosition(this Biota biota, PositionType positionType)
@@ -264,7 +285,10 @@ namespace ACE.Database.Models.Shard
             var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
 
             if (result != null)
+            {
                 biota.BiotaPropertiesPosition.Remove(result);
+                DatabaseManager.Shard.RemoveEntity(result, null);
+            }
         }
     }
 }
