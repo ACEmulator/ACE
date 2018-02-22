@@ -1099,7 +1099,7 @@ namespace ACE.Server.WorldObjects
                                 break;
                         }
 
-                        wo.GeneratorId = Guid.Full;
+                        wo.GeneratorId = (int)Guid.Full;
 
                         // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
                         GeneratorRegistry.Add(wo.Guid.Full, rNode);
