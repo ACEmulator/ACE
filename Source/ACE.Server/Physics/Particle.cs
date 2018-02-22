@@ -16,5 +16,11 @@ namespace ACE.Server.Physics
         public float FinalScale;
         public float StartTrans;
         public float FinalTrans;
+        public PhysicsObj Owner;
+
+        public bool InitParts()
+        {
+            return false;
+        }
     }
 }

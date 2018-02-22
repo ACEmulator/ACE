@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -15,5 +16,50 @@ namespace ACE.Server.Physics.Animation
         public AnimFrame PlacementFrame;
         public int PlacementFrameId;
         public int IsTrivial;
+
+        public Sequence()
+        {
+
+        }
+
+        public Sequence(Frame frame)
+        {
+
+        }
+
+        public Sequence(List<PhysicsPart> parts)
+        {
+
+        }
+
+        public void SetObject(PhysicsObj physObj)
+        {
+
+        }
+
+        public bool HasAnims()
+        {
+            return false;
+        }
+
+        public void ClearAnimations()
+        {
+
+        }
+
+        public void AppendAnimation(AnimData animData)
+        {
+
+        }
+
+        public void Update(float quantum, Frame offsetFrame)
+        {
+
+        }
+
+        public AnimFrame GetCurrAnimFrame()
+        {
+            return null;
+        }
     }
 }

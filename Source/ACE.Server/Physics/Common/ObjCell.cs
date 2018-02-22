@@ -19,5 +19,10 @@ namespace ACE.Server.Physics.Common
         public int SeenOutside;
         public HashSet<int> VoyeurTable;
         public int MyLandBlock;
+
+        public void RemovePart(PhysicsPart part)
+        {
+
+        }
     }
 }

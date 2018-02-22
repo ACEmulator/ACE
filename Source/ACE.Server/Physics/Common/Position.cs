@@ -1,4 +1,5 @@
 using ACE.Entity;
+using System.Numerics;
 
 namespace ACE.Server.Physics.Common
 {
@@ -6,5 +7,15 @@ namespace ACE.Server.Physics.Common
     {
         public int ObjCellID;
         public Frame Frame;
+
+        public Position()
+        {
+            Frame = new Frame();
+        }
+
+        public Vector3 LocalToGlobal(Position checkPos, Position p, Vector3 v)
+        {
+            return v;
+        }
     }
 }
