@@ -2,7 +2,7 @@ using System;
 
 namespace ACE.Entity.Enum.Properties
 {
-    public class AssessmentPropertyAttributeAttribute : Attribute
+    public class AssessmentPropertyAttribute : Attribute
     {
     }
 }
