@@ -270,8 +270,8 @@ namespace ACE.Server.WorldObjects
 
         public uint? PaletteBaseId
         {
-            get => AceObject.PaletteBaseDID;
-            set { AceObject.PaletteBaseDID = value; }
+            get => GetProperty(PropertyDataId.PaletteBase);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
         }
 
 
@@ -368,16 +368,16 @@ namespace ACE.Server.WorldObjects
             set { AceObject.DefaultCombatStyle = (int?)value; }
         }
 
-        public uint? GeneratorId
+        public int? GeneratorId
         {
-            get => AceObject.GeneratorIID;
-            set { AceObject.GeneratorIID = value; }
+            get => GetProperty(PropertyInstanceId.Generator);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Generator); else SetProperty(PropertyInstanceId.Generator, value.Value); }
         }
 
         public uint? ClothingBase
         {
-            get => AceObject.ClothingBaseDID;
-            set { AceObject.ClothingBaseDID = value; }
+            get => GetProperty(PropertyDataId.ClothingBase);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ClothingBase); else SetProperty(PropertyDataId.ClothingBase, value.Value); }
         }
 
         public int? ItemCurMana
