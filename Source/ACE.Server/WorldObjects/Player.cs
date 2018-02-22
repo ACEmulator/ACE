@@ -17,7 +17,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
@@ -28,7 +27,6 @@ using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.WorldObjects.Entity;
 
-using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -166,35 +164,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public bool IsAdmin
-        {
-            get => GetProperty(PropertyBool.IsAdmin) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IsAdmin); else SetProperty(PropertyBool.IsAdmin, value); }
-        }
 
-        public bool IsSentinel
-        {
-            get => GetProperty(PropertyBool.IsSentinel) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
-        }
-
-        public bool IsEnvoy
-        {
-            get => GetProperty(PropertyBool.IsSentinel) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
-        }
-
-        public bool IsArch
-        {
-            get => GetProperty(PropertyBool.IsArch) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IsArch); else SetProperty(PropertyBool.IsArch, value); }
-        }
-
-        public bool IsPsr
-        {
-            get => GetProperty(PropertyBool.IsPsr) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IsPsr); else SetProperty(PropertyBool.IsPsr, value); }
-        }
 
 
 
