@@ -116,14 +116,35 @@ namespace ACE.Server.WorldObjects
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
 
-            foreach (PropertyBool x in EphemeralProperties.PropertiesBool.ToList())
-                EphemeralPropertyBools.TryAdd(x, null);
+            foreach (var x in EphemeralProperties.PropertiesBool.ToList())
+                EphemeralPropertyBools.TryAdd((PropertyBool)x, null);
+            foreach (var x in EphemeralProperties.PropertiesDataId.ToList())
+                EphemeralPropertyDataIds.TryAdd((PropertyDataId)x, null);
+            foreach (var x in EphemeralProperties.PropertiesDouble.ToList())
+                EphemeralPropertyFloats.TryAdd((PropertyFloat)x, null);
+            foreach (var x in EphemeralProperties.PropertiesInstanceId.ToList())
+                EphemeralPropertyInstanceIds.TryAdd((PropertyInstanceId)x, null);
+            foreach (var x in EphemeralProperties.PropertiesInt.ToList())
+                EphemeralPropertyInts.TryAdd((PropertyInt)x, null);
+            foreach (var x in EphemeralProperties.PropertiesInt64.ToList())
+                EphemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
+            foreach (var x in EphemeralProperties.PropertiesString.ToList())
+                EphemeralPropertyStrings.TryAdd((PropertyString)x, null);
 
             foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
-            {
-                if (EphemeralPropertyBools.ContainsKey((PropertyBool)x.Type))
-                    EphemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
-            }
+                EphemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
+            foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
+                EphemeralPropertyDataIds[(PropertyDataId)x.Type] = x.Value;
+            foreach (var x in Biota.BiotaPropertiesFloat.Where(i => EphemeralProperties.PropertiesDouble.Contains(i.Type)).ToList())
+                EphemeralPropertyFloats[(PropertyFloat)x.Type] = x.Value;
+            foreach (var x in Biota.BiotaPropertiesIID.Where(i => EphemeralProperties.PropertiesInstanceId.Contains(i.Type)).ToList())
+                EphemeralPropertyInstanceIds[(PropertyInstanceId)x.Type] = x.Value;
+            foreach (var x in Biota.BiotaPropertiesInt.Where(i => EphemeralProperties.PropertiesInt.Contains(i.Type)).ToList())
+                EphemeralPropertyInts[(PropertyInt)x.Type] = x.Value;
+            foreach (var x in Biota.BiotaPropertiesInt64.Where(i => EphemeralProperties.PropertiesInt64.Contains(i.Type)).ToList())
+                EphemeralPropertyInt64s[(PropertyInt64)x.Type] = x.Value;
+            foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
+                EphemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck;
 

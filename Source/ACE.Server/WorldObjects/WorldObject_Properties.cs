@@ -33,9 +33,6 @@ namespace ACE.Server.WorldObjects
         public void SetProperty(PropertyInt64 property, long value) { if (EphemeralPropertyInt64s.ContainsKey(property)) EphemeralPropertyInt64s[property] = value; else Biota.SetProperty(property, value); }
         public void SetProperty(PropertyString property, string value) { if (EphemeralPropertyStrings.ContainsKey(property)) EphemeralPropertyStrings[property] = value; else Biota.SetProperty(property, value); }
 
-        // todo: We also need to manually remove the property from the shard db.
-        // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
-        // todo: fix this in BiotaExcentions. Add code there that removes the entry from teh shard
         public void RemoveProperty(PropertyBool property) { if (EphemeralPropertyBools.ContainsKey(property)) EphemeralPropertyBools[property] = null; else Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyDataId property) { if (EphemeralPropertyDataIds.ContainsKey(property)) EphemeralPropertyDataIds[property] = null; else Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyFloat property) { if (EphemeralPropertyFloats.ContainsKey(property)) EphemeralPropertyFloats[property] = null; else Biota.RemoveProperty(property); }
