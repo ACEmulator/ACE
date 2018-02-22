@@ -135,6 +135,15 @@ namespace ACE.Server.WorldObjects
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
 
+            foreach (PropertyBool x in EphemeralProperties.PropertiesBool.ToList())
+                EphemeralPropertyBools.TryAdd(x, null);
+
+            foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
+            {
+                if (EphemeralPropertyBools.ContainsKey((PropertyBool)x.Type))
+                    EphemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
+            }
+
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck;
 
             return;
@@ -153,7 +162,15 @@ namespace ACE.Server.WorldObjects
             GenerateWieldList();
         }
 
-        public bool? GetProperty(PropertyBool property) { return Biota.GetProperty(property); }
+        public bool? GetProperty(PropertyBool property)
+        {
+            if (EphemeralPropertyBools.ContainsKey(property))
+                return EphemeralPropertyBools[property];
+
+            return Biota.GetProperty(property);
+        }
+
+
         public uint? GetProperty(PropertyDataId property) { return Biota.GetProperty(property); }
         public double? GetProperty(PropertyFloat property) { return Biota.GetProperty(property); }
         public int? GetProperty(PropertyInstanceId property) { return Biota.GetProperty(property); }
@@ -161,7 +178,18 @@ namespace ACE.Server.WorldObjects
         public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property); }
         public string GetProperty(PropertyString property) { return Biota.GetProperty(property); }
 
-        public void SetProperty(PropertyBool property, bool value) { Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyBool property, bool value)
+        {
+            if (EphemeralPropertyBools.ContainsKey(property))
+            {
+                EphemeralPropertyBools[property] = value;
+                return;
+            }
+
+            Biota.SetProperty(property, value);
+        }
+
+
         public void SetProperty(PropertyDataId property, uint value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyFloat property, double value) { Biota.SetProperty(property, value); }
         public void SetProperty(PropertyInstanceId property, int value) { Biota.SetProperty(property, value); }
@@ -172,7 +200,18 @@ namespace ACE.Server.WorldObjects
         // todo: We also need to manually remove the property from the shard db.
         // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
         // todo: fix this in BiotaExcentions. Add code there that removes the entry from teh shard
-        public void RemoveProperty(PropertyBool property) { Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyBool property)
+        {
+            if (EphemeralPropertyBools.ContainsKey(property))
+            {
+                EphemeralPropertyBools[property] = null;
+                return;
+            }
+
+            Biota.RemoveProperty(property);
+        }
+
+
         public void RemoveProperty(PropertyDataId property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyFloat property) { Biota.RemoveProperty(property); }
         public void RemoveProperty(PropertyInstanceId property) { Biota.RemoveProperty(property); }
@@ -231,6 +270,10 @@ namespace ACE.Server.WorldObjects
 
             foreach (var property in Biota.BiotaPropertiesBool)
                 results[(PropertyBool)property.Type] = property.Value;
+
+            foreach (var property in EphemeralPropertyBools)
+                if (property.Value.HasValue)
+                    results[property.Key] = (bool)property.Value;
 
             return results;
         }
@@ -294,6 +337,9 @@ namespace ACE.Server.WorldObjects
 
             return results;
         }
+
+
+        public Dictionary<PropertyBool, bool?> EphemeralPropertyBools = new Dictionary<PropertyBool, bool?>();
 
 
         public string Name
