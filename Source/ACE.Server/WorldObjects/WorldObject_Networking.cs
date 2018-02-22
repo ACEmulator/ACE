@@ -12,76 +12,13 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.WorldObjects
 {
     partial class WorldObject 
     {
-        public MotionState CurrentMotionState { get; set; }
-
-        public virtual Position Location
-        {
-            get => GetPosition(PositionType.Location);
-            set => SetPosition(PositionType.Location, value);
-            //set
-            //{
-            //    /*
-            //    log.Debug($"{Name} moved to {Position}");
-            //    Position = value;
-            //    */
-            //    if (GetPosition(PositionType.Location) != null)
-            //        LastUpdatedTicks = WorldManager.PortalYearTicks;
-            //    SetPosition(PositionType.Location, value);
-            //}
-        }
-
-        //public double LastUpdatedTicks { get; set; }
-
-        /// <summary>
-        /// mtable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
-        /// </summary>
-        public uint MotionTableId
-        {
-            get => GetProperty(PropertyDataId.MotionTable) ?? 0;
-            set => SetProperty(PropertyDataId.MotionTable, value);
-        }
-
-        /// <summary>
-        /// stable_id in aclogviewer This is the sound table for the object.   Looked up from dat file.
-        /// </summary>
-        public uint SoundTableId
-        {
-            get => GetProperty(PropertyDataId.SoundTable) ?? 0;
-            set => SetProperty(PropertyDataId.SoundTable, value);
-        }
-
-        /// <summary>
-        /// phstable_id in aclogviewer This is the physics table for the object.   Looked up from dat file.
-        /// </summary>
-        public uint PhysicsTableId
-        {
-            get => GetProperty(PropertyDataId.PhysicsEffectTable) ?? 0;
-            set => SetProperty(PropertyDataId.PhysicsEffectTable, value);
-        }
-
-        /// <summary>
-        /// setup_id in aclogviewer - used to get the correct model out of the dat file
-        /// </summary>
-        public uint SetupTableId
-        {
-            get => GetProperty(PropertyDataId.Setup) ?? 0;
-            set => SetProperty(PropertyDataId.Setup, value);
-        }
-
-        public Placement? Placement // Sometimes known as AnimationFrame
-        {
-            get => (Placement?)GetProperty(PropertyInt.Placement);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.Placement); else SetProperty(PropertyInt.Placement, (int)value.Value); }
-        }
-
-        public virtual void SerializeUpdateObject(BinaryWriter writer)
+         public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
             SerializeCreateObject(writer);
@@ -627,90 +564,6 @@ namespace ACE.Server.WorldObjects
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
-        }
-
-        public bool? Static { get; set; }
-
-        public bool? Ethereal
-        {
-            get => GetProperty(PropertyBool.Ethereal);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Ethereal); else SetProperty(PropertyBool.Ethereal, value.Value); }
-        }
-
-        public bool? ReportCollisions
-        {
-            get => GetProperty(PropertyBool.ReportCollisions);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.ReportCollisions); else SetProperty(PropertyBool.ReportCollisions, value.Value); }
-        }
-
-        public bool? IgnoreCollisions
-        {
-            get => GetProperty(PropertyBool.IgnoreCollisions);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCollisions); else SetProperty(PropertyBool.IgnoreCollisions, value.Value); }
-        }
-
-        public bool? NoDraw
-        {
-            get => GetProperty(PropertyBool.NoDraw);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.NoDraw); else SetProperty(PropertyBool.NoDraw, value.Value); }
-        }
-
-        public bool? Missile { get; set; }
-
-        public bool? Pushable { get; set; }
-
-        public bool? AlignPath { get; set; }
-
-        public bool? PathClipped { get; set; }
-
-        public bool? GravityStatus
-        {
-            get => GetProperty(PropertyBool.GravityStatus);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.GravityStatus); else SetProperty(PropertyBool.GravityStatus, value.Value); }
-        }
-
-        public bool? LightsStatus
-        {
-            get => GetProperty(PropertyBool.LightsStatus);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.LightsStatus); else SetProperty(PropertyBool.LightsStatus, value.Value); }
-        }
-
-        public bool? ParticleEmitter { get; set; }
-
-        public bool? Hidden { get; set; }
-
-        public bool? ScriptedCollision
-        {
-            get => GetProperty(PropertyBool.ScriptedCollision);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.ScriptedCollision); else SetProperty(PropertyBool.ScriptedCollision, value.Value); }
-        }
-
-        public bool? Inelastic
-        {
-            get => GetProperty(PropertyBool.Inelastic);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Inelastic); else SetProperty(PropertyBool.Inelastic, value.Value); }
-        }
-
-        public bool? Cloaked { get; set; }
-
-        public bool? ReportCollisionsAsEnvironment
-        {
-            get => GetProperty(PropertyBool.ReportCollisionsAsEnvironment);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.ReportCollisionsAsEnvironment); else SetProperty(PropertyBool.ReportCollisionsAsEnvironment, value.Value); }
-        }
-
-        public bool? AllowEdgeSlide
-        {
-            get => GetProperty(PropertyBool.AllowEdgeSlide);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.AllowEdgeSlide); else SetProperty(PropertyBool.AllowEdgeSlide, value.Value); }
-        }
-
-        public bool? Sledding { get; set; }
-
-        public bool? IsFrozen
-        {
-            get => GetProperty(PropertyBool.IsFrozen);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.IsFrozen); else SetProperty(PropertyBool.IsFrozen, value.Value); }
         }
 
         private PhysicsState CalculatedPhysicsState()

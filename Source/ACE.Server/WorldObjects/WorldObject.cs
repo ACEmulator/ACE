@@ -166,270 +166,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public string Name
-        {
-            get => GetProperty(PropertyString.Name);
-            set => SetProperty(PropertyString.Name, value);
-        }
 
-        /// <summary>
-        /// wcid - stands for weenie class id
-        /// </summary>
-        public uint WeenieClassId => Biota.WeenieClassId;
-
-        public WeenieType WeenieType => (WeenieType)Biota.WeenieType;
-
-        public uint IconId
-        {
-            get => GetProperty(PropertyDataId.Icon) ?? 0;
-            set => SetProperty(PropertyDataId.Icon, value);
-        }
-
-        public ItemType ItemType
-        {
-            get => (ItemType)(GetProperty(PropertyInt.ItemType) ?? 0);
-            set => SetProperty(PropertyInt.ItemType, (int)value);
-        }
-
-        public string NamePlural
-        {
-            get => GetProperty(PropertyString.PluralName);
-            set => SetProperty(PropertyString.PluralName, value);
-        }
-
-        public byte? ItemCapacity
-        {
-            get => (byte?)GetProperty(PropertyInt.ItemsCapacity);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemsCapacity); else SetProperty(PropertyInt.ItemsCapacity, value.Value); } }
-
-        public byte? ContainerCapacity
-        {
-            get => (byte?)GetProperty(PropertyInt.ContainersCapacity);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ContainersCapacity); else SetProperty(PropertyInt.ContainersCapacity, value.Value); }
-        }
-
-        public AmmoType? AmmoType
-        {
-            get => (AmmoType?)GetProperty(PropertyInt.AmmoType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AmmoType); else SetProperty(PropertyInt.AmmoType, (int)value.Value); }
-        }
-
-        public virtual int? Value
-        {
-            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
-            get => (StackUnitValue * (StackSize ?? 1));
-            set => AceObject.Value = value;
-        }
-
-        public Usable? Usable
-        {
-            get => (Usable ? )GetProperty(PropertyInt.ItemUseable);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemUseable); else SetProperty(PropertyInt.ItemUseable, (int)value.Value); }
-        }
-
-        public float? UseRadius
-        {
-            get => (float?)GetProperty(PropertyFloat.UseRadius);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseRadius); else SetProperty(PropertyFloat.UseRadius, value.Value); }
-        }
-
-        public int? TargetType
-        {
-            get => GetProperty(PropertyInt.TargetType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, value.Value); }
-        }
-
-        public UiEffects? UiEffects
-        {
-            get => (UiEffects?)GetProperty(PropertyInt.UiEffects);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.UiEffects); else SetProperty(PropertyInt.UiEffects, (int)value.Value); }
-        }
-
-        public CombatUse? CombatUse
-        {
-            get => (CombatUse?)GetProperty(PropertyInt.CombatUse);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CombatUse); else SetProperty(PropertyInt.CombatUse, (int)value.Value); }
-        }
-
-        /// <summary>
-        /// This is used to indicate the number of uses remaining.  Example 32 uses left out of 50 (MaxStructure)
-        /// </summary>
-        public ushort? Structure
-        {
-            get => (ushort?)GetProperty(PropertyInt.Structure);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.Structure); else SetProperty(PropertyInt.Structure, value.Value); }
-        }
-
-        /// <summary>
-        /// Use Limit - example 50 use healing kit
-        /// </summary>
-        public ushort? MaxStructure
-        {
-            get => (ushort?)GetProperty(PropertyInt.MaxStructure);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
-        }
-
-        public virtual ushort? StackSize
-        {
-            get => (ushort?)GetProperty(PropertyInt.StackSize);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.StackSize); else SetProperty(PropertyInt.StackSize, value.Value); }
-        }
-
-        public ushort? MaxStackSize
-        {
-            get => (ushort?)GetProperty(PropertyInt.MaxStackSize);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStackSize); else SetProperty(PropertyInt.MaxStackSize, value.Value); }
-        }
-
-        public int? ContainerId
-        {
-            get => GetProperty(PropertyInstanceId.Container);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Container); else SetProperty(PropertyInstanceId.Container, value.Value); }
-        }
-
-        public int? WielderId
-        {
-            get => GetProperty(PropertyInstanceId.Wielder);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Wielder); else SetProperty(PropertyInstanceId.Wielder, value.Value); }
-        }
-
-        public EquipMask? ValidLocations
-        {
-            get => (EquipMask?)GetProperty(PropertyInt.ValidLocations);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ValidLocations); else SetProperty(PropertyInt.ValidLocations, (int)value.Value); }
-        }
-
-        public EquipMask? CurrentWieldedLocation
-        {
-            get => (EquipMask?)GetProperty(PropertyInt.CurrentWieldedLocation);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CurrentWieldedLocation); else SetProperty(PropertyInt.CurrentWieldedLocation, (int)value.Value); }
-        }
-
-        public CoverageMask? Priority
-        {
-            get => (CoverageMask?)GetProperty(PropertyInt.ClothingPriority);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ClothingPriority); else SetProperty(PropertyInt.ClothingPriority, (int)value.Value); }
-        }
-
-        public RadarColor? RadarColor
-        {
-            get => (RadarColor?)GetProperty(PropertyInt.RadarBlipColor);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.RadarBlipColor); else SetProperty(PropertyInt.RadarBlipColor, (int)value.Value); }
-        }
-
-        public RadarBehavior? RadarBehavior
-        {
-            get => (RadarBehavior?)GetProperty(PropertyInt.ShowableOnRadar);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ShowableOnRadar); else SetProperty(PropertyInt.ShowableOnRadar, (int)value.Value); }
-        }
-
-        public ushort? Script
-        {
-            get => (ushort?)GetProperty(PropertyDataId.PhysicsScript);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
-        }
-
-        private int? ItemWorkmanship
-        {
-            get => GetProperty(PropertyInt.ItemWorkmanship);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
-        }
-
-        public float? Workmanship
-        {
-            get
-            {
-                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
-                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
-
-                return (ItemWorkmanship);
-            }
-            set
-            {
-                if ((Structure != null) && (Structure != 0))
-                    ItemWorkmanship = Convert.ToInt32(value * 10000 * Structure);
-                else
-                    ItemWorkmanship = Convert.ToInt32(value);
-            }
-        }
-
-        public virtual ushort? Burden
-        {
-            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
-            get => (ushort)(StackUnitBurden * (StackSize ?? 1));
-            set => AceObject.EncumbranceVal = value;
-        }
-
-        public Spell? Spell
-        {
-            get => (Spell?)GetProperty(PropertyDataId.Spell);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, (uint)value.Value); }
-        }
-
-        /// <summary>
-        /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
-        /// </summary>
-        public int? HouseOwner
-        {
-            get => GetProperty(PropertyInstanceId.HouseOwner);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
-        }
-
-        public uint? HouseRestrictions { get; set; }
-
-        public ushort? HookItemType
-        {
-            get => (ushort?)GetProperty(PropertyInt.HookItemType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.HookItemType); else SetProperty(PropertyInt.HookItemType, value.Value); }
-        }
-
-        public int? Monarch
-        {
-            get => GetProperty(PropertyInstanceId.Monarch);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
-        }
-
-        public ushort? HookType
-        {
-            get => (ushort?)GetProperty(PropertyInt.HookType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.HookType); else SetProperty(PropertyInt.HookType, value.Value); }
-        }
-
-        public uint? IconOverlayId
-        {
-            get => GetProperty(PropertyDataId.IconOverlay);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlay); else SetProperty(PropertyDataId.IconOverlay, value.Value); }
-        }
-
-        public uint? IconUnderlayId
-        {
-            get => GetProperty(PropertyDataId.IconUnderlay);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); }
-        }
-
-        public Material? MaterialType
-        {
-            get => (Material?)GetProperty(PropertyInt.MaterialType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaterialType); else SetProperty(PropertyInt.MaterialType, (int)value.Value); }
-        }
-
-        public int? CooldownId
-        {
-            get => GetProperty(PropertyInt.SharedCooldown);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.SharedCooldown); else SetProperty(PropertyInt.SharedCooldown, value.Value); }
-        }
-
-        public double? CooldownDuration
-        {
-            get => GetProperty(PropertyFloat.CooldownDuration);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CooldownDuration); else SetProperty(PropertyFloat.CooldownDuration, value.Value); }
-        }
-
-        public int? PetOwner
-        {
-            get => GetProperty(PropertyInstanceId.PetOwner);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.PetOwner); else SetProperty(PropertyInstanceId.PetOwner, value.Value); }
-        }
 
 
 
@@ -500,12 +237,6 @@ namespace ACE.Server.WorldObjects
         [Obsolete]
         public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook => AceObject.BookProperties;
 
-        [Obsolete]
-        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
-        [Obsolete]
-        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
-        [Obsolete]
-        private readonly List<Model> models = new List<Model>();
 
         // subpalettes
         [Obsolete]
@@ -552,53 +283,19 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ParentLocation); else SetProperty(PropertyInt.ParentLocation, (int)value.Value); }
         }
 
-        public List<HeldItem> Children { get; } = new List<HeldItem>();
+   
 
-        public float? ObjScale
-        {
-            get => (float?)GetProperty(PropertyFloat.DefaultScale);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.DefaultScale); else SetProperty(PropertyFloat.DefaultScale, value.Value); }
-        }
 
-        public float? Friction
-        {
-            get => (float?)GetProperty(PropertyFloat.Friction);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Friction); else SetProperty(PropertyFloat.Friction, value.Value); }
-        }
 
-        public float? Elasticity
-        {
-            get => (float?)GetProperty(PropertyFloat.Elasticity);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Elasticity); else SetProperty(PropertyFloat.Elasticity, value.Value); }
-        }
 
-        public AceVector3 Acceleration { get; set; }
-
-        public float? Translucency
-        {
-            get => (float?)GetProperty(PropertyFloat.Translucency);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Translucency); else SetProperty(PropertyFloat.Translucency, value.Value); }
-        }
-
-        public AceVector3 Velocity = null;
-
-        public AceVector3 Omega = null;
+        
 
         // movement_buffer
 
 
-        public uint? DefaultScriptId
-        {
-            // Is this CSetup.DefaultScript?
-            get => Script;
-            set { Script = (ushort?)value; }
-        }
 
-        public float? DefaultScriptIntensity
-        {
-            get => (float?)GetProperty(PropertyFloat.PhysicsScriptIntensity);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.PhysicsScriptIntensity); else SetProperty(PropertyFloat.PhysicsScriptIntensity, value.Value); }
-        }
+
+
 
         // pos
 
@@ -713,7 +410,6 @@ namespace ACE.Server.WorldObjects
             set { AceObject.CreatureType = (int)value; }
         }
 
-        public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
 
         /// <summary>
         /// This is used to determine how close you need to be to use an item.
@@ -1439,8 +1135,8 @@ namespace ACE.Server.WorldObjects
 
         public bool? Visibility
         {
-            get => AceObject.Visibility;
-            set { AceObject.Visibility = value; }
+            get => GetProperty(PropertyBool.Visibility);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value.Value); }
         }
 
         public int? PaletteTemplate
