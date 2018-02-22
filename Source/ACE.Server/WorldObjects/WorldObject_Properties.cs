@@ -25,24 +25,24 @@ namespace ACE.Server.WorldObjects
         public long? GetProperty(PropertyInt64 property) { if (EphemeralPropertyInt64s.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public string GetProperty(PropertyString property) { if (EphemeralPropertyStrings.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
 
-        public void SetProperty(PropertyBool property, bool value) { if (EphemeralPropertyBools.ContainsKey(property)) { EphemeralPropertyBools[property] = value; return; } Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyDataId property, uint value) { if (EphemeralPropertyDataIds.ContainsKey(property)) { EphemeralPropertyDataIds[property] = value; return; } Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyFloat property, double value) { if (EphemeralPropertyFloats.ContainsKey(property)) { EphemeralPropertyFloats[property] = value; return; } Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInstanceId property, int value) { if (EphemeralPropertyInstanceIds.ContainsKey(property)) { EphemeralPropertyInstanceIds[property] = value; return; } Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInt property, int value) { if (EphemeralPropertyInts.ContainsKey(property)) { EphemeralPropertyInts[property] = value; return; } Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInt64 property, long value) { if (EphemeralPropertyInt64s.ContainsKey(property)) { EphemeralPropertyInt64s[property] = value; return; } Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyString property, string value) { if (EphemeralPropertyStrings.ContainsKey(property)) { EphemeralPropertyStrings[property] = value; return; } Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyBool property, bool value) { if (EphemeralPropertyBools.ContainsKey(property)) EphemeralPropertyBools[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyDataId property, uint value) { if (EphemeralPropertyDataIds.ContainsKey(property)) EphemeralPropertyDataIds[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyFloat property, double value) { if (EphemeralPropertyFloats.ContainsKey(property)) EphemeralPropertyFloats[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInstanceId property, int value) { if (EphemeralPropertyInstanceIds.ContainsKey(property)) EphemeralPropertyInstanceIds[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt property, int value) { if (EphemeralPropertyInts.ContainsKey(property)) EphemeralPropertyInts[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInt64 property, long value) { if (EphemeralPropertyInt64s.ContainsKey(property)) EphemeralPropertyInt64s[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyString property, string value) { if (EphemeralPropertyStrings.ContainsKey(property)) EphemeralPropertyStrings[property] = value; else Biota.SetProperty(property, value); }
 
         // todo: We also need to manually remove the property from the shard db.
         // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
         // todo: fix this in BiotaExcentions. Add code there that removes the entry from teh shard
-        public void RemoveProperty(PropertyBool property) { if (EphemeralPropertyBools.ContainsKey(property)) { EphemeralPropertyBools[property] = null; return; } Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyDataId property) { if (EphemeralPropertyDataIds.ContainsKey(property)) { EphemeralPropertyDataIds[property] = null; return; } Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyFloat property) { if (EphemeralPropertyFloats.ContainsKey(property)) { EphemeralPropertyFloats[property] = null; return; } Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyInstanceId property) { if (EphemeralPropertyInstanceIds.ContainsKey(property)) { EphemeralPropertyInstanceIds[property] = null; return; } Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyInt property) { if (EphemeralPropertyInts.ContainsKey(property)) { EphemeralPropertyInts[property] = null; return; } Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyInt64 property) { if (EphemeralPropertyInt64s.ContainsKey(property)) { EphemeralPropertyInt64s[property] = null; return; } Biota.RemoveProperty(property); }
-        public void RemoveProperty(PropertyString property) { if (EphemeralPropertyStrings.ContainsKey(property)) { EphemeralPropertyStrings[property] = null; return; } Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyBool property) { if (EphemeralPropertyBools.ContainsKey(property)) EphemeralPropertyBools[property] = null; else Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyDataId property) { if (EphemeralPropertyDataIds.ContainsKey(property)) EphemeralPropertyDataIds[property] = null; else Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyFloat property) { if (EphemeralPropertyFloats.ContainsKey(property)) EphemeralPropertyFloats[property] = null; else Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInstanceId property) { if (EphemeralPropertyInstanceIds.ContainsKey(property)) EphemeralPropertyInstanceIds[property] = null; else Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInt property) { if (EphemeralPropertyInts.ContainsKey(property)) EphemeralPropertyInts[property] = null; else Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyInt64 property) { if (EphemeralPropertyInt64s.ContainsKey(property)) EphemeralPropertyInt64s[property] = null; else Biota.RemoveProperty(property); }
+        public void RemoveProperty(PropertyString property) { if (EphemeralPropertyStrings.ContainsKey(property)) EphemeralPropertyStrings[property] = null; else Biota.RemoveProperty(property); }
 
         public Dictionary<PropertyBool, bool> GetAllPropertyBools()
         {
