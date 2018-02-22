@@ -27,11 +27,11 @@ namespace ACE.Entity.Enum.Properties
         ClothingBase               = 7,
         [ServerOnly]
         Icon                       = 8,
-        [AssessmentPropertyAttribute]
+        [AssessmentProperty]
         EyesTexture                = 9,
-        [AssessmentPropertyAttribute]
+        [AssessmentProperty]
         NoseTexture                = 10,
-        [AssessmentPropertyAttribute]
+        [AssessmentProperty]
         MouthTexture               = 11,
         [ServerOnly]
         DefaultEyesTexture         = 12,
@@ -39,11 +39,11 @@ namespace ACE.Entity.Enum.Properties
         DefaultNoseTexture         = 13,
         [ServerOnly]
         DefaultMouthTexture        = 14,
-        [AssessmentPropertyAttribute]
+        [AssessmentProperty]
         HairPalette                = 15,
-        [AssessmentPropertyAttribute]
+        [AssessmentProperty]
         EyesPalette                = 16,
-        [AssessmentPropertyAttribute]
+        [AssessmentProperty]
         SkinPalette                = 17,
         [ServerOnly]
         HeadObject                 = 18,
