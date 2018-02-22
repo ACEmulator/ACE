@@ -1,0 +1,16 @@
+﻿using ACE.Server.Physics.Common;
+
+namespace ACE.Server.Physics.Animation
+{
+    public class MovementStruct
+    {
+        public MovementType Type;
+        public int Motion;
+        public int ObjectId;
+        public int TopLevelId;
+        public Position Position;
+        public float Radius;
+        public float Height;
+        public MovementParameters Params;
+    }
+}
