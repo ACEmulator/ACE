@@ -80,7 +80,7 @@ namespace ACE.Server.Tests.Physics
 
             // represents the movement path
             var transition = new Transition();
-            transition.SpherePath.GlobalCurrCenter.Add(new Vector3(20, 20, 20));    
+            transition.SpherePath.GlobalCurrCenter.Add(new Sphere(new Vector3(20, 20, 20), 5.0f));    
 
             // the point we are checking against is represented with this sphere...
             var checkPos = new Sphere(new Vector3(10, 10, 10), 0);
@@ -102,7 +102,7 @@ namespace ACE.Server.Tests.Physics
             Assert.IsTrue(transitionState == TransitionState.Collided);
 
             // not enough distance to make it this time
-            transition.SpherePath.GlobalCurrCenter[0] = new Vector3(1, 1, 1);
+            transition.SpherePath.GlobalCurrCenter[0] = new Sphere(new Vector3(1, 1, 1), 5.0f);
             transitionState = sphere.CollideWithPoint(transition, checkPos, disp, radsum, sphereNum);
             Assert.IsTrue(transitionState == TransitionState.Adjusted);
         }
@@ -120,7 +120,7 @@ namespace ACE.Server.Tests.Physics
             transition.SpherePath.InsertType = InsertType.Placement;
             transition.SpherePath.GlobalSphere.Add(sphereNonCollide);
             transition.SpherePath.GlobalSphere.Add(null);
-            transition.SpherePath.GlobalCurrCenter.AddRange(new List<Vector3>() { Vector3.Zero, Vector3.Zero });
+            transition.SpherePath.GlobalCurrCenter.AddRange(new List<Sphere>() { new Sphere(Vector3.Zero, 0), new Sphere(Vector3.Zero, 0) });
 
             Sphere_IntersectsSphere_Inner(sphere, transition, sphereCollide, sphereNonCollide);
 
@@ -176,10 +176,7 @@ namespace ACE.Server.Tests.Physics
         public void SetCenter(Transition transition)
         {
             // refactor this mapping
-            transition.SpherePath.GlobalCurrCenter[0] = transition.SpherePath.GlobalSphere[0].Center;
-
-            if (transition.SpherePath.NumSphere > 1)
-                transition.SpherePath.GlobalCurrCenter[1] = transition.SpherePath.GlobalSphere[1].Center;
+            transition.SpherePath.GlobalCurrCenter = transition.SpherePath.GlobalSphere;
         }
 
         [TestMethod]
@@ -189,14 +186,14 @@ namespace ACE.Server.Tests.Physics
             var transition = new Transition();
 
             // defines the collision normal
-            transition.SpherePath.GlobalCurrCenter.Add(new Vector3(0, 0, -1));
+            transition.SpherePath.GlobalCurrCenter.Add(new Sphere(new Vector3(0, 0, -1), 5.0f));
 
             // test collision
             var transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
             Assert.AreEqual(transitionState, TransitionState.Collided);
 
             // test adjusted
-            transition.SpherePath.GlobalCurrCenter[0] = new Vector3(0, 0, 0.0001f);
+            transition.SpherePath.GlobalCurrCenter[0] = new Sphere(new Vector3(0, 0, 0.0001f), 5.0f);
             transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
             Assert.AreEqual(transitionState, TransitionState.Adjusted);
             Assert.AreEqual(transition.SpherePath.Collide, true);

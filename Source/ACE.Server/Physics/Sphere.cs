@@ -54,7 +54,7 @@ namespace ACE.Server.Physics
             var path = transition.SpherePath;
             var collisions = transition.CollisionInfo;
 
-            var gCenter = path.GlobalCurrCenter[sphereNum];
+            var gCenter = path.GlobalCurrCenter[sphereNum].Center;
             var globalOffset = gCenter - Center;
 
             // if set to PerfectClip, does a more precise check
@@ -94,7 +94,7 @@ namespace ACE.Server.Physics
             // original implementation with FPU flag
 
             // is touching/equal considered a collision here?
-            return otherSphere.LengthSquared() < radsum * radsum;      
+            return otherSphere.LengthSquared() < radsum * radsum;
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace ACE.Server.Physics
 
             var cDist = Math.Sqrt(nonCollideB);
             if (similar - cDist < 0)
-                return -1 * (cDist  + similar) / distSq;
+                return -1 * (cDist + similar) / distSq;
             else
                 return -1 * (similar - cDist) / distSq;
         }
@@ -228,12 +228,12 @@ namespace ACE.Server.Physics
 
                 if (isCreature)
                     return TransitionState.OK;
-                
+
                 // handles movement interpolation
                 if (CollidesWithSphere(disp, radsum) || (transition.SpherePath.NumSphere > 1 && CollidesWithSphere(disp_, radsum)))
                 {
                     var blockOffset = transition.SpherePath.GetCurPosCheckPosBlockOffset();
-                    var movement = transition.SpherePath.GlobalCurrCenter[1] - globSphere.Center - blockOffset;      // verify offset 14
+                    var movement = transition.SpherePath.GlobalCurrCenter[1].Center - globSphere.Center - blockOffset;      // verify offset 14
                     radsum += PhysicsGlobals.EPSILON;
                     var lenSq = movement.LengthSquared();
                     var diff = -Vector3.Dot(movement, disp);
@@ -278,7 +278,7 @@ namespace ACE.Server.Physics
         {
             var path = transition.SpherePath;
 
-            var collisionNormal = path.GlobalCurrCenter[0] - Center;
+            var collisionNormal = path.GlobalCurrCenter[0].Center - Center;
 
             if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
@@ -300,7 +300,7 @@ namespace ACE.Server.Physics
 
             var globSphere = path.GlobalSphere[sphereNum];
 
-            var collisionNormal = path.GlobalCurrCenter[sphereNum] - Center;
+            var collisionNormal = path.GlobalCurrCenter[sphereNum].Center - Center;
             if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
 
@@ -344,7 +344,7 @@ namespace ACE.Server.Physics
         /// </summary>
         public TransitionState SlideSphere(Transition transition, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
         {
-            var globalCenter = transition.SpherePath.GlobalCurrCenter[sphereNum];
+            var globalCenter = transition.SpherePath.GlobalCurrCenter[sphereNum].Center;
 
             var collisionNormal = globalCenter - Center;
 
@@ -459,7 +459,7 @@ namespace ACE.Server.Physics
                 return SlideSphere(transition, disp, radsum, 0);
             else
             {
-                var globCenter = transition.SpherePath.GlobalCurrCenter[0];
+                var globCenter = transition.SpherePath.GlobalCurrCenter[0].Center;
                 var collisionNormal = globCenter - Center;
                 if (transition.StepUp(collisionNormal))
                     return TransitionState.OK;

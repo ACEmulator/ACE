@@ -17,5 +17,10 @@ namespace ACE.Entity
         {
 
         }
+
+        public Vector3 LocalToGlobalVec(Vector3 v)
+        {
+            return v;
+        }
     }
 }
