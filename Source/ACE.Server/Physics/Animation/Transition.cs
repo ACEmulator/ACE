@@ -21,6 +21,15 @@ namespace ACE.Server.Physics.Animation
         public List<ObjCell> CellArray;
         public ObjCell NewCellPtr;
 
+        public Transition()
+        {
+            ObjectInfo = new ObjectInfo();
+            SpherePath = new SpherePath();
+            CollisionInfo = new CollisionInfo();
+            CellArray = new List<ObjCell>();
+            NewCellPtr = new ObjCell();
+        }
+
         public void CacheLocalSpaceSphere(Position pos, float scaleZ)
         {
 

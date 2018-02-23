@@ -7,61 +7,63 @@ namespace ACE.Server.Physics.Animation
 {
     public enum InsertType
     {
-        TransitionInsert = 0x0,
-        PlacementInsert = 0x1,
-        InitialPlacementInsert = 0x2,
+        Transition = 0x0,
+        Placement = 0x1,
+        InitialPlacement = 0x2,
     };
     public class SpherePath
     {
-        public int NumSphere;                       // 4
-        public Sphere LocalSphere;                  // 8
-        public Vector3 LocalLowPoint;               // 12
-        public List<Sphere> GlobalSphere;           // 16
-        public Vector3 GlobalLowPoint;              // 20
-        public Sphere LocalSpaceSphere;             // 24
-        public Vector3 LocalSpaceLowPoint;          // 28
-        public Vector3 LocalSpaceCurrCenter;        // 32
-        public List<Vector3> GlobalCurrCenter;      // 36
-        public Position LocalSpacePos;              // 40
-        public Vector3 LocalSpaceZ;                 // 44
-        public ObjCell BeginCell;                   // 48
-        public Position BeginPos;                   // 52
-        public Position EndPos;                     // 56
-        public ObjCell CurCell;                     // 60 
-        public Position CurPos;                     // 64
-        public Vector3 GlobalOffset;                // 68
-        public bool StepUp;                         // 72
-        public Vector3 StepUpNormal;                // 76
-        public bool Collide;                        // 80
-        public ObjCell CheckCell;                   // 84
-        public Position CheckPos;                   // 88
-        public InsertType InsertType;               // 92
-        public int StepDown;                        // 96
-        public InsertType Backup;                   // 100
-        public ObjCell BackupCell;                  // 104
-        public Position BackupCheckPos;             // 108
-        public bool ObstructionEthereal;            // 112
-        public int HitsInteriorCell;                // 116
-        public int BldgCheck;                       // 120
-        public float WalkableAllowance;             // 124
-        public float WalkInterp;
-        public float StepDownAmt;
-        public Sphere WalkableCheckPos;
-        public Polygon Walkable;
-        public int CheckWalkable;
-        public Vector3 WalkableUp;
-        public Position WalkablePos;
-        public float WalkableScale;
-        public bool CellArrayValid;
-        public int NegStepUp;
-        public Vector3 NegCollisionNormal;
-        public int NegPollyHit;
-        public int PlacementAllowsSliding;
+        public int NumSphere;                       // 0
+        public Sphere LocalSphere;                  // 2
+        public Vector3 LocalLowPoint;               // 6
+        public List<Sphere> GlobalSphere;           // 10
+        public Vector3 GlobalLowPoint;              // 14
+        public Sphere LocalSpaceSphere;             // 20
+        public Vector3 LocalSpaceLowPoint;          // 24
+        public Vector3 LocalSpaceCurrCenter;        // 28
+        public List<Vector3> GlobalCurrCenter;      // 32
+        public Position LocalSpacePos;              // 36
+        public Vector3 LocalSpaceZ;                 // 40
+        public ObjCell BeginCell;                   // 44
+        public Position BeginPos;                   // 48
+        public Position EndPos;                     // 52
+        public ObjCell CurCell;                     // 56 
+        public Position CurPos;                     // 60
+        public Vector3 GlobalOffset;                // 64
+        public bool StepUp;                         // 68
+        public Vector3 StepUpNormal;                // 69
+        public bool Collide;                        // 73
+        public ObjCell CheckCell;                   // 77
+        public Position CheckPos;                   // 81
+        public InsertType InsertType;               // 85
+        public bool StepDown;                       // 86
+        public InsertType Backup;                   // 87
+        public ObjCell BackupCell;                  // 88
+        public Position BackupCheckPos;             // 92
+        public bool ObstructionEthereal;            // 96
+        public bool HitsInteriorCell;               // 97
+        public bool BldgCheck;                      // 98
+        public float WalkableAllowance;             // 99
+        public float WalkInterp;                    // 111 *
+        public float StepDownAmt;                   // 107
+        public Sphere WalkableCheckPos;             // 111
+        public Polygon Walkable;                    // 115
+        public bool CheckWalkable;                  // 119
+        public Vector3 WalkableUp;                  // 120
+        public Position WalkablePos;                // 124
+        public float WalkableScale;                 // 128
+        public bool CellArrayValid;                 // 132
+        public int NegStepUp;                       // 136
+        public Vector3 NegCollisionNormal;          // 140
+        public int NegPollyHit;                     // 144
+        public int PlacementAllowsSliding;          // 148
 
         public SpherePath()
         {
             CurPos = new Position();
             CheckPos = new Position();
+            GlobalCurrCenter = new List<Vector3>();
+            GlobalSphere = new List<Sphere>();
         }
 
         public Vector3 GetCurPosCheckPosBlockOffset()
@@ -96,7 +98,7 @@ namespace ACE.Server.Physics.Animation
             WalkInterp = 0; // 1065353216 & 0x0000FFFF;
         }
 
-        public TransitionState StepUpSlide(ObjectInfo obj, CollisionInfo collisions)
+        public TransitionState StepUpSlide(Transition transition)
         {
             return TransitionState.OK;
         }
