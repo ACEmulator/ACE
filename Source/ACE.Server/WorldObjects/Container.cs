@@ -77,53 +77,6 @@ namespace ACE.Server.WorldObjects
 
         // todo I want to rework the tracked equipment/wielded items
 
-        /// <summary>
-        /// Use EquipObject() and DequipObject() to manipulate this dictionary..
-        /// </summary>
-        public Dictionary<ObjectGuid, WorldObject> EquippedObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
-
-        /// <summary>
-        /// This will set the wielder property on worldObject to this guid, and will add it to the EquippedObjects dictionary.
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public bool TryEquipObject(WorldObject worldObject)
-        {
-            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
-            EquippedObjects[worldObject.Guid] = worldObject;
-
-            return true;
-        }
-
-        /// <summary>
-        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
-        {
-            // todo MOVE THIS TO CREATURE
-
-            // todo see if the wielded location is in use, if so, return false
-
-            worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
-
-            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
-            EquippedObjects[worldObject.Guid] = worldObject;
-
-            return true;
-        }
-
-        /// <summary>
-        /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public bool TryDequipObject(WorldObject worldObject)
-        {
-            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
-            EquippedObjects.Remove(worldObject.Guid);
-
-            return true;
-        }
-
 
         public Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
 
