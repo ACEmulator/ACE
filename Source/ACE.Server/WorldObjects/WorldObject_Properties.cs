@@ -688,6 +688,83 @@ namespace ACE.Server.WorldObjects
 
 
         // ========================================
+        // ======== Description Properties ========
+        // ========================================
+        // used in CalculatedDescriptionFlag()
+        public bool? IsOpen
+        {
+            get => GetProperty(PropertyBool.Open);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value.Value); }
+        }
+
+        public bool? IsLocked
+        {
+            get => GetProperty(PropertyBool.Locked);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value.Value); }
+        }
+
+        public bool? Inscribable
+        {
+            get => GetProperty(PropertyBool.Inscribable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Inscribable); else SetProperty(PropertyBool.Inscribable, value.Value); }
+        }
+
+        public bool? Stuck
+        {
+            get => GetProperty(PropertyBool.Stuck);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Stuck); else SetProperty(PropertyBool.Stuck, value.Value); }
+        }
+
+        public bool? Attackable
+        {
+            get => GetProperty(PropertyBool.Attackable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value.Value); }
+        }
+
+        public bool? HiddenAdmin
+        {
+            get => GetProperty(PropertyBool.HiddenAdmin);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.HiddenAdmin); else SetProperty(PropertyBool.HiddenAdmin, value.Value); }
+        }
+
+        public bool? UiHidden
+        {
+            get => GetProperty(PropertyBool.UiHidden);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.UiHidden); else SetProperty(PropertyBool.UiHidden, value.Value); }
+        }
+
+        public bool? IgnoreHouseBarriers
+        {
+            get => GetProperty(PropertyBool.IgnoreHouseBarriers);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreHouseBarriers); else SetProperty(PropertyBool.IgnoreHouseBarriers, value.Value); }
+        }
+
+        public bool? RequiresBackpackSlot
+        {
+            get => GetProperty(PropertyBool.RequiresBackpackSlot);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.RequiresBackpackSlot); else SetProperty(PropertyBool.RequiresBackpackSlot, value.Value); }
+        }
+
+        public bool? Retained
+        {
+            get => GetProperty(PropertyBool.Retained);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Retained); else SetProperty(PropertyBool.Retained, value.Value); }
+        }
+
+        public bool? WieldOnUse
+        {
+            get => GetProperty(PropertyBool.WieldOnUse);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.WieldOnUse); else SetProperty(PropertyBool.WieldOnUse, value.Value); }
+        }
+
+        public bool? AutowieldLeft
+        {
+            get => GetProperty(PropertyBool.AutowieldLeft);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value.Value); }
+        }
+
+
+        // ========================================
         //= ========== Other Properties ===========
         // ========================================
         public int? CharacterOptions1Mapping
