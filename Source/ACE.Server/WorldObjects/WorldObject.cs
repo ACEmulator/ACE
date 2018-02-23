@@ -1448,9 +1448,9 @@ namespace ACE.Server.WorldObjects
 
             if (!Heritage.HasValue)
             {
-                if (HeritageGroup != "")
+                if (!String.IsNullOrEmpty(HeritageGroup))
                 {
-                    HeritageGroup parsed = (HeritageGroup)System.Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
+                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
                     if (parsed != 0)
                         Heritage = (int)parsed;
                 }
@@ -1458,13 +1458,16 @@ namespace ACE.Server.WorldObjects
 
             if (!Gender.HasValue)
             {
-                if (Sex != "")
+                if (!String.IsNullOrEmpty(Sex))
                 {
-                    Gender parsed = (Gender)System.Enum.Parse(typeof(Gender), Sex);
+                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex);
                     if (parsed != 0)
                         Gender = (int)parsed;
                 }
             }
+
+            if (!Heritage.HasValue || !Gender.HasValue)
+                return;
 
             SexCG sex = cg.HeritageGroups[(uint)Heritage].Genders[(int)Gender];
 
