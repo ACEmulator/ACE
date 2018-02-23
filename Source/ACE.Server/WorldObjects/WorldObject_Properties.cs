@@ -765,7 +765,108 @@ namespace ACE.Server.WorldObjects
 
 
         // ========================================
-        //= ========== Other Properties ===========
+        // ======== Appearance Properties =========
+        // ========================================
+        // Used in RandomizeFace()
+        public int? Heritage
+        {
+            get => GetProperty(PropertyInt.HeritageGroup);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HeritageGroup); else SetProperty(PropertyInt.HeritageGroup, value.Value); }
+        }
+
+        public int? Gender
+        {
+            get => GetProperty(PropertyInt.Gender);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Gender); else SetProperty(PropertyInt.Gender, value.Value); }
+        }
+
+        public string HeritageGroup
+        {
+            get => GetProperty(PropertyString.HeritageGroup);
+            set { if (value == null) RemoveProperty(PropertyString.HeritageGroup); else SetProperty(PropertyString.HeritageGroup, value); }
+        }
+
+        public string Sex
+        {
+            get => GetProperty(PropertyString.Sex);
+            set { if (value == null) RemoveProperty(PropertyString.Sex); else SetProperty(PropertyString.Sex, value); }
+        }
+
+        public uint? HeadObjectDID
+        {
+            get => GetProperty(PropertyDataId.HeadObject);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HeadObject); else SetProperty(PropertyDataId.HeadObject, value.Value); }
+        }
+
+        public uint? HairTextureDID
+        {
+            get => GetProperty(PropertyDataId.HairTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairTexture); else SetProperty(PropertyDataId.HairTexture, value.Value); }
+        }
+
+        public uint? DefaultHairTextureDID
+        {
+            get => GetProperty(PropertyDataId.DefaultHairTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
+        }
+
+        public uint? HairPaletteDID
+        {
+            get => GetProperty(PropertyDataId.HairPalette);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairPalette); else SetProperty(PropertyDataId.HairPalette, value.Value); }
+        }
+
+        public uint? SkinPaletteDID
+        {
+            get => GetProperty(PropertyDataId.SkinPalette);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.SkinPalette); else SetProperty(PropertyDataId.SkinPalette, value.Value); }
+        }
+
+        public uint? EyesPaletteDID
+        {
+            get => GetProperty(PropertyDataId.EyesPalette);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesPalette); else SetProperty(PropertyDataId.EyesPalette, value.Value); }
+        }
+
+        public uint? EyesTextureDID
+        {
+            get => GetProperty(PropertyDataId.EyesTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesTexture); else SetProperty(PropertyDataId.EyesTexture, value.Value); }
+        }
+
+        public uint? DefaultEyesTextureDID
+        {
+            get => GetProperty(PropertyDataId.DefaultEyesTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultEyesTexture); else SetProperty(PropertyDataId.DefaultEyesTexture, value.Value); }
+        }
+
+        public uint? NoseTextureDID
+        {
+            get => GetProperty(PropertyDataId.NoseTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.NoseTexture); else SetProperty(PropertyDataId.NoseTexture, value.Value); }
+        }
+
+        public uint? DefaultNoseTextureDID
+        {
+            get => GetProperty(PropertyDataId.DefaultNoseTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultNoseTexture); else SetProperty(PropertyDataId.DefaultNoseTexture, value.Value); }
+        }
+
+        public uint? MouthTextureDID
+        {
+            get => GetProperty(PropertyDataId.MouthTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MouthTexture); else SetProperty(PropertyDataId.MouthTexture, value.Value); }
+        }
+
+        public uint? DefaultMouthTextureDID
+        {
+            get => GetProperty(PropertyDataId.DefaultMouthTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultMouthTexture); else SetProperty(PropertyDataId.DefaultMouthTexture, value.Value); }
+        }
+
+
+        // ========================================
+        // =========== Other Properties ===========
         // ========================================
         public int? CharacterOptions1Mapping
         {
