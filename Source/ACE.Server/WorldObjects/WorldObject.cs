@@ -148,12 +148,14 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck;
 
-            return;
+            UpdateBaseAppearance();
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             GetClothingBase();
+
+            return;
 
             SelectGeneratorProfiles();
             UpdateGeneratorInts();
