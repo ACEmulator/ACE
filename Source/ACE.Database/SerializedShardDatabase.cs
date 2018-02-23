@@ -139,6 +139,15 @@ namespace ACE.Database
             }));
         }
 
+        public void AddBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddBiotas(biotas);
+                callback?.Invoke(result);
+            }));
+        }
+
         /// <summary>
         /// Will return a biota from the db with tracking enabled.
         /// This will populate all sub collections except the followign: BiotaPropertiesEmoteAction
@@ -157,6 +166,15 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.SaveBiota(biota);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveBiotas(biotas);
                 callback?.Invoke(result);
             }));
         }
