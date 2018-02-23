@@ -95,11 +95,11 @@ namespace ACE.Database
 
         public bool AddCharacter(Character character, Biota biota)
         {
+            if (!AddBiota(biota))
+                return false; // Biota save failed which mean Character fails.
+
             using (var context = new ShardDbContext())
             {
-                if (!AddBiota(biota))
-                    return false; // Biota save failed which mean Character fails.
-
                 context.Character.Add(character);
 
                 try
@@ -211,6 +211,27 @@ namespace ACE.Database
             }
         }
 
+        public bool AddBiotas(IEnumerable<Biota> biotas)
+        {
+            using (var context = new ShardDbContext())
+            {
+                foreach (var biota in biotas)
+                    context.Biota.Add(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"AddBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
 
         /// <summary>
         /// Will return a biota from the db with tracking enabled.
@@ -260,6 +281,27 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
             {
                 context.Biota.Update(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool SaveBiotas(IEnumerable<Biota> biotas)
+        {
+            using (var context = new ShardDbContext())
+            {
+                foreach (var biota in biotas)
+                    context.Biota.Update(biota);
 
                 try
                 {
