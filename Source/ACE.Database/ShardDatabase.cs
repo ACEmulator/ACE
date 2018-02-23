@@ -93,10 +93,13 @@ namespace ACE.Database
             }
         }
 
-        public bool AddCharacter(Character character, Biota biota)
+        public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory)
         {
             if (!AddBiota(biota))
                 return false; // Biota save failed which mean Character fails.
+
+            if (!AddBiotas(inventory))
+                return false;
 
             using (var context = new ShardDbContext())
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Common;
@@ -414,8 +415,12 @@ namespace ACE.Server.Network.Handlers
                 CharacterCreateSetDefaultCharacterOptions(player);
                 CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
+                var inventoryBiotas =new Collection<Biota>();
+                foreach (var item in player.Inventory.Values)
+                    inventoryBiotas.Add(item.Biota);
+
                 // We must await here -- 
-                DatabaseManager.Shard.AddCharacter(character, player.Biota, saveSuccess =>
+                DatabaseManager.Shard.AddCharacter(character, player.Biota, inventoryBiotas, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {

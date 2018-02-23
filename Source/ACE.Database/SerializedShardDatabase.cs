@@ -94,11 +94,11 @@ namespace ACE.Database
             }));
         }
 
-        public void AddCharacter(Character character, Biota biota, Action<bool> callback)
+        public void AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.AddCharacter(character, biota);
+                var result = _wrappedDatabase.AddCharacter(character, biota, inventory);
                 callback?.Invoke(result);
             }));
         }
