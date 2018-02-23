@@ -186,9 +186,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        // todo: We also need to manually remove the property from the shard db.
-        // todo: Using these fn's will only remove the property for this session, but the property will return next session since the record isn't removed from the db.
-        // todo: fix this in BiotaExcentions. Add code there that removes the entry from teh shard
         public void RemovePosition(PositionType positionType) { Biota.RemovePosition(positionType); }
 
 
