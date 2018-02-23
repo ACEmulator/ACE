@@ -687,6 +687,9 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        // ========================================
+        //= ========== Other Properties ===========
+        // ========================================
         public int? CharacterOptions1Mapping
         {
             get => GetProperty(PropertyInt.CharacterOptions1);
@@ -1571,9 +1574,9 @@ namespace ACE.Server.WorldObjects
 
 
 
-        #region Positions
-
-
+        // ========================================
+        //= ======== Position Properties ==========
+        // ========================================
         //public Position Location
         //{
         //    get { return GetPosition(PositionType.Location); }
@@ -1761,9 +1764,5 @@ namespace ACE.Server.WorldObjects
             get { return GetPosition(PositionType.TeleportedCharacter); }
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
-        #endregion
-
-        
-        
     }
 }
