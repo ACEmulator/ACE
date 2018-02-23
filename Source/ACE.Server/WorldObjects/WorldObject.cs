@@ -211,31 +211,41 @@ namespace ACE.Server.WorldObjects
 
 
         [Obsolete]
-        protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
+        //protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
+        public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
         // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
         [Obsolete]
-        protected internal Dictionary<ObjectGuid, AceObject> WieldedItems => AceObject.WieldedItems;
+        //protected internal Dictionary<ObjectGuid, AceObject> WieldedItems => AceObject.WieldedItems;
+        public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
         // we need to expose this read only for examine to work. Og II
-        [Obsolete]
-        public List<AceObjectPropertiesInt> PropertiesInt => AceObject.IntProperties;
-        [Obsolete]
-        public List<AceObjectPropertiesInt64> PropertiesInt64 => AceObject.Int64Properties;
-        [Obsolete]
-        public List<AceObjectPropertiesBool> PropertiesBool => AceObject.BoolProperties;
-        [Obsolete]
-        public List<AceObjectPropertiesString> PropertiesString => AceObject.StringProperties;
-        [Obsolete]
-        public List<AceObjectPropertiesDouble> PropertiesDouble => AceObject.DoubleProperties;
-        [Obsolete]
-        public List<AceObjectPropertiesDataId> PropertiesDid => AceObject.DataIdProperties;
-        [Obsolete]
-        public List<AceObjectPropertiesInstanceId> PropertiesIid => AceObject.InstanceIdProperties;
-        [Obsolete]
-        public List<AceObjectPropertiesSpell> PropertiesSpellId => AceObject.SpellIdProperties;
-        [Obsolete]
-        public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook => AceObject.BookProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesInt> PropertiesInt => AceObject.IntProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesInt64> PropertiesInt64 => AceObject.Int64Properties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesBool> PropertiesBool => AceObject.BoolProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesString> PropertiesString => AceObject.StringProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesDouble> PropertiesDouble => AceObject.DoubleProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesDataId> PropertiesDid => AceObject.DataIdProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesInstanceId> PropertiesIid => AceObject.InstanceIdProperties;
+        //[Obsolete]
+        //public List<AceObjectPropertiesSpell> PropertiesSpellId => AceObject.SpellIdProperties;
+        //[Obsolete]
+        //public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook => AceObject.BookProperties;
+
+        public Dictionary<PropertyInt, int> PropertiesInt => GetAllPropertyInt();
+        public Dictionary<PropertyInt64, long> PropertiesInt64 => GetAllPropertyInt64();
+        public Dictionary<PropertyBool, bool> PropertiesBool => GetAllPropertyBools();
+        public Dictionary<PropertyString, string> PropertiesString => GetAllPropertyString();
+        public Dictionary<PropertyFloat, double> PropertiesDouble => GetAllPropertyFloat();
+        public Dictionary<PropertyDataId, uint> PropertiesDid => GetAllPropertyDataId();
+        public Dictionary<PropertyInstanceId, int> PropertiesIid => GetAllPropertyInstanceId();
 
 
         // subpalettes
@@ -364,8 +374,8 @@ namespace ACE.Server.WorldObjects
 
         public CombatStyle? DefaultCombatStyle
         {
-            get => (CombatStyle?)AceObject.DefaultCombatStyle;
-            set { AceObject.DefaultCombatStyle = (int?)value; }
+            get => (CombatStyle?)GetProperty(PropertyInt.DefaultCombatStyle);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DefaultCombatStyle); else SetProperty(PropertyInt.DefaultCombatStyle, (int)value.Value); }
         }
 
         public int? GeneratorId
@@ -382,14 +392,14 @@ namespace ACE.Server.WorldObjects
 
         public int? ItemCurMana
         {
-            get => AceObject.ItemCurMana;
-            set { AceObject.ItemCurMana = value; }
+            get => GetProperty(PropertyInt.ItemCurMana);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemCurMana); else SetProperty(PropertyInt.ItemCurMana, value.Value); }
         }
 
         public int? ItemMaxMana
         {
-            get => AceObject.ItemMaxMana;
-            set { AceObject.ItemMaxMana = value; }
+            get => GetProperty(PropertyInt.ItemMaxMana);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemMaxMana); else SetProperty(PropertyInt.ItemMaxMana, value.Value); }
         }
 
         public bool? NpcLooksLikeObject
@@ -400,14 +410,14 @@ namespace ACE.Server.WorldObjects
 
         public bool? SuppressGenerateEffect
         {
-            get => AceObject.SuppressGenerateEffect;
-            set { AceObject.SuppressGenerateEffect = value; }
+            get => GetProperty(PropertyBool.SuppressGenerateEffect);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.SuppressGenerateEffect); else SetProperty(PropertyBool.SuppressGenerateEffect, value.Value); }
         }
 
         public CreatureType? CreatureType
         {
-            get => (CreatureType?)AceObject.CreatureType;
-            set { AceObject.CreatureType = (int)value; }
+            get => (CreatureType?)GetProperty(PropertyInt.CreatureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CreatureType); else SetProperty(PropertyInt.CreatureType, (int)value.Value); }
         }
 
 
@@ -426,44 +436,44 @@ namespace ACE.Server.WorldObjects
 
         public string LongDesc
         {
-            get => AceObject.LongDesc;
-            set { AceObject.LongDesc = value; }
+            get => GetProperty(PropertyString.LongDesc);
+            set { if (value == null) RemoveProperty(PropertyString.LongDesc); else SetProperty(PropertyString.LongDesc, value); }
         }
 
         public string Use
         {
-            get => AceObject.Use;
-            set { AceObject.Use = value; }
+            get => GetProperty(PropertyString.Use);
+            set { if (value == null) RemoveProperty(PropertyString.Use); else SetProperty(PropertyString.Use, value); }
         }
 
         public int? Boost
         {
-            get => AceObject.Boost;
-            set { AceObject.Boost = value; }
+            get => GetProperty(PropertyInt.BoostValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, (int)value.Value); }
         }
 
         public uint? SpellDID
         {
-            get => AceObject.SpellDID ?? null;
-            set { AceObject.SpellDID = value; }
+            get => GetProperty(PropertyDataId.Spell);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, value.Value); }
         }
 
         public int? BoostEnum
         {
-            get => AceObject.BoostEnum ?? 0;
-            set { AceObject.BoostEnum = value; }
+            get => GetProperty(PropertyInt.BoosterEnum);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value.Value); }
         }
 
         public double? HealkitMod
         {
-            get => AceObject.HealkitMod;
-            set { AceObject.HealkitMod = value; }
+            get => GetProperty(PropertyFloat.HealkitMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
         }
 
         public virtual int? CoinValue
         {
-            get => AceObject.CoinValue;
-            set { AceObject.CoinValue = value; }
+            get => GetProperty(PropertyInt.CoinValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }
         }
 
 
@@ -526,19 +536,19 @@ namespace ACE.Server.WorldObjects
 
         public void ReadBookPage(Session reader, uint pageNum)
         {
-            PageData pageData = new PageData();
-            AceObjectPropertiesBook bookPage = PropertiesBook[pageNum];
+            //PageData pageData = new PageData();
+            //AceObjectPropertiesBook bookPage = PropertiesBook[pageNum];
 
-            pageData.AuthorID = bookPage.AuthorId;
-            pageData.AuthorName = bookPage.AuthorName;
-            pageData.AuthorAccount = bookPage.AuthorAccount;
-            pageData.PageIdx = pageNum;
-            pageData.PageText = bookPage.PageText;
-            pageData.IgnoreAuthor = false;
-            // TODO - check for PropertyBool.IgnoreAuthor flag
+            //pageData.AuthorID = bookPage.AuthorId;
+            //pageData.AuthorName = bookPage.AuthorName;
+            //pageData.AuthorAccount = bookPage.AuthorAccount;
+            //pageData.PageIdx = pageNum;
+            //pageData.PageText = bookPage.PageText;
+            //pageData.IgnoreAuthor = false;
+            //// TODO - check for PropertyBool.IgnoreAuthor flag
 
-            var bookDataResponse = new GameEventBookPageDataResponse(reader, Guid.Full, pageData);
-            reader.Network.EnqueueSend(bookDataResponse);
+            //var bookDataResponse = new GameEventBookPageDataResponse(reader, Guid.Full, pageData);
+            //reader.Network.EnqueueSend(bookDataResponse);
         }
 
  
@@ -607,53 +617,53 @@ namespace ACE.Server.WorldObjects
                         debugOutput += $"{prop.Name} = {physicsState.ToString()}" + " (" + (uint)physicsState + ")" + "\n";
                         break;
                     case "propertiesint":
-                        foreach (var item in obj.PropertiesInt)
+                        foreach (var item in obj.GetAllPropertyInt())
                         {
-                            debugOutput += $"PropertyInt.{System.Enum.GetName(typeof(PropertyInt), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyInt.{System.Enum.GetName(typeof(PropertyInt), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
                     case "propertiesint64":
-                        foreach (var item in obj.PropertiesInt64)
+                        foreach (var item in obj.GetAllPropertyInt64())
                         {
-                            debugOutput += $"PropertyInt64.{System.Enum.GetName(typeof(PropertyInt64), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyInt64.{System.Enum.GetName(typeof(PropertyInt64), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
                     case "propertiesbool":
-                        foreach (var item in obj.PropertiesBool)
+                        foreach (var item in obj.GetAllPropertyBools())
                         {
-                            debugOutput += $"PropertyBool.{System.Enum.GetName(typeof(PropertyBool), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyBool.{System.Enum.GetName(typeof(PropertyBool), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
                     case "propertiesstring":
-                        foreach (var item in obj.PropertiesString)
+                        foreach (var item in obj.GetAllPropertyString())
                         {
-                            debugOutput += $"PropertyString.{System.Enum.GetName(typeof(PropertyString), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyString.{System.Enum.GetName(typeof(PropertyString), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
                     case "propertiesdouble":
-                        foreach (var item in obj.PropertiesDouble)
+                        foreach (var item in obj.GetAllPropertyFloat())
                         {
-                            debugOutput += $"PropertyDouble.{System.Enum.GetName(typeof(PropertyFloat), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyDouble.{System.Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
                     case "propertiesdid":
-                        foreach (var item in obj.PropertiesDid)
+                        foreach (var item in obj.GetAllPropertyDataId())
                         {
-                            debugOutput += $"PropertyDataId.{System.Enum.GetName(typeof(PropertyDataId), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyDataId.{System.Enum.GetName(typeof(PropertyDataId), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
                     case "propertiesiid":
-                        foreach (var item in obj.PropertiesIid)
+                        foreach (var item in obj.GetAllPropertyInstanceId())
                         {
-                            debugOutput += $"PropertyInstanceId.{System.Enum.GetName(typeof(PropertyInstanceId), item.PropertyId)} ({item.PropertyId}) = {item.PropertyValue}" + "\n";
+                            debugOutput += $"PropertyInstanceId.{System.Enum.GetName(typeof(PropertyInstanceId), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
                         }
                         break;
-                    case "propertiesspellid":
-                        foreach (var item in obj.PropertiesSpellId)
-                        {
-                            debugOutput += $"PropertySpellId.{System.Enum.GetName(typeof(Spell), item.SpellId)} ({item.SpellId})" + "\n";
-                        }
-                        break;
+                    //case "propertiesspellid":
+                    //    foreach (var item in obj.PropertiesSpellId)
+                    //    {
+                    //        debugOutput += $"PropertySpellId.{System.Enum.GetName(typeof(Spell), item.SpellId)} ({item.SpellId})" + "\n";
+                    //    }
+                    //    break;
                     case "validlocations":
                         debugOutput += $"{prop.Name} = {obj.ValidLocations}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
                         break;
@@ -801,26 +811,26 @@ namespace ACE.Server.WorldObjects
 
         public int? ChessGamesLost
         {
-            get => AceObject.ChessGamesLost;
-            set { AceObject.ChessGamesLost = value; }
+            get => GetProperty(PropertyInt.ChessGamesLost);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessGamesLost); else SetProperty(PropertyInt.ChessGamesLost, value.Value); }
         }
 
         public int? ChessGamesWon
         {
-            get => AceObject.ChessGamesWon;
-            set { AceObject.ChessGamesWon = value; }
+            get => GetProperty(PropertyInt.ChessGamesWon);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessGamesWon); else SetProperty(PropertyInt.ChessGamesWon, value.Value); }
         }
 
         public int? ChessRank
         {
-            get => AceObject.ChessRank;
-            set { AceObject.ChessRank = value; }
+            get => GetProperty(PropertyInt.ChessRank);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessRank); else SetProperty(PropertyInt.ChessRank, value.Value); }
         }
 
         public int? ChessTotalGames
         {
-            get => AceObject.ChessTotalGames;
-            set { AceObject.ChessTotalGames = value; }
+            get => GetProperty(PropertyInt.ChessTotalGames);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessTotalGames); else SetProperty(PropertyInt.ChessTotalGames, value.Value); }
         }
 
         public void HandleActionMotion(UniversalMotion motion)
@@ -855,7 +865,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public List<AceObjectInventory> CreateList => AceObject.CreateList;
+        //public List<AceObjectInventory> CreateList => AceObject.CreateList;
+        public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
 
         public List<AceObjectInventory> WieldList
         {
@@ -869,52 +880,53 @@ namespace ACE.Server.WorldObjects
 
         public int? MerchandiseItemTypes
         {
-            get => AceObject.MerchandiseItemTypes;
-            set { AceObject.MerchandiseItemTypes = value; }
+            get => GetProperty(PropertyInt.MerchandiseItemTypes);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseItemTypes); else SetProperty(PropertyInt.MerchandiseItemTypes, value.Value); }
         }
 
         public int? MerchandiseMinValue
         {
-            get => AceObject.MerchandiseMinValue;
-            set { AceObject.MerchandiseMinValue = value; }
+            get => GetProperty(PropertyInt.MerchandiseMinValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMinValue); else SetProperty(PropertyInt.MerchandiseMinValue, value.Value); }
         }
 
         public int? MerchandiseMaxValue
         {
-            get => AceObject.MerchandiseMaxValue;
-            set { AceObject.MerchandiseMaxValue = value; }
+            get => GetProperty(PropertyInt.MerchandiseMaxValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMaxValue); else SetProperty(PropertyInt.MerchandiseMaxValue, value.Value); }
         }
 
         public double? BuyPrice
         {
-            get => AceObject.BuyPrice;
-            set { AceObject.BuyPrice = (double)value; }
+            get => GetProperty(PropertyFloat.BuyPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BuyPrice); else SetProperty(PropertyFloat.BuyPrice, value.Value); }
         }
 
         public double? SellPrice
         {
-            get => AceObject.SellPrice;
-            set { AceObject.SellPrice = (double)value; }
+            get => GetProperty(PropertyFloat.SellPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.SellPrice, value.Value); }
         }
 
         public bool? DealMagicalItems
         {
-            get => AceObject.DealMagicalItems;
-            set { AceObject.DealMagicalItems = value; }
+            get => GetProperty(PropertyBool.DealMagicalItems);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
         }
 
         public uint? AlternateCurrencyDID
         {
-            get => AceObject.AlternateCurrencyDID;
-            set { AceObject.AlternateCurrencyDID = value; }
+            get => GetProperty(PropertyDataId.AlternateCurrency);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
         }
 
-        public List<AceObjectGeneratorProfile> GeneratorProfiles => AceObject.GeneratorProfiles;
+        //public List<AceObjectGeneratorProfile> GeneratorProfiles => AceObject.GeneratorProfiles;
+        public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
         public double? HeartbeatInterval
         {
-            get => AceObject.HeartbeatInterval;
-            set { AceObject.HeartbeatInterval = (double)value; }
+            get => GetProperty(PropertyFloat.HeartbeatInterval);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.HeartbeatInterval, value.Value); }
         }
 
         public void EnterWorld()
@@ -923,7 +935,7 @@ namespace ACE.Server.WorldObjects
             {
                 LandblockManager.AddObject(this);
                 if (SuppressGenerateEffect != true)
-                    ApplyVisualEffects(global::ACE.Entity.Enum.PlayScript.Create);
+                    ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
             }
         }
 
@@ -933,26 +945,26 @@ namespace ACE.Server.WorldObjects
 
         public int? InitGeneratedObjects
         {
-            get => AceObject.InitGeneratedObjects;
-            set { AceObject.InitGeneratedObjects = value; }
+            get => GetProperty(PropertyInt.InitGeneratedObjects);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.InitGeneratedObjects); else SetProperty(PropertyInt.InitGeneratedObjects, value.Value); }
         }
 
         public int? MaxGeneratedObjects
         {
-            get => AceObject.MaxGeneratedObjects;
-            set { AceObject.MaxGeneratedObjects = value; }
+            get => GetProperty(PropertyInt.MaxGeneratedObjects);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxGeneratedObjects); else SetProperty(PropertyInt.MaxGeneratedObjects, value.Value); }
         }
 
         public double? RegenerationInterval
         {
-            get => AceObject.RegenerationInterval;
-            set { AceObject.RegenerationInterval = (double)value; }
+            get => GetProperty(PropertyFloat.RegenerationInterval);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value.Value); }
         }
 
         public bool? GeneratorEnteredWorld
         {
-            get => AceObject.GeneratorEnteredWorld;
-            set { AceObject.GeneratorEnteredWorld = value; }
+            get => GetProperty(PropertyBool.GeneratorEnteredWorld);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value.Value); }
         }
 
         public virtual void HeartBeat()
@@ -1141,14 +1153,14 @@ namespace ACE.Server.WorldObjects
 
         public int? PaletteTemplate
         {
-            get => AceObject.PaletteTemplate;
-            set { AceObject.PaletteTemplate = value; }
+            get => GetProperty(PropertyInt.PaletteTemplate);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PaletteTemplate); else SetProperty(PropertyInt.PaletteTemplate, value.Value); }
         }
 
         public double? Shade
         {
-            get => AceObject.Shade;
-            set { AceObject.Shade = value; }
+            get => GetProperty(PropertyFloat.Shade);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
         }
 
         public void GetClothingBase()
@@ -1334,98 +1346,98 @@ namespace ACE.Server.WorldObjects
 
         public int? Heritage
         {
-            get => AceObject.Heritage;
-            set { AceObject.Heritage = value; }
+            get => GetProperty(PropertyInt.HeritageGroup);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HeritageGroup); else SetProperty(PropertyInt.HeritageGroup, value.Value); }
         }
 
         public int? Gender
         {
-            get => AceObject.Gender;
-            set { AceObject.Gender = value; }
+            get => GetProperty(PropertyInt.Gender);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Gender); else SetProperty(PropertyInt.Gender, value.Value); }
         }
 
         public string HeritageGroup
         {
-            get => AceObject.HeritageGroup;
-            set { AceObject.HeritageGroup = value; }
+            get => GetProperty(PropertyString.HeritageGroup);
+            set { if (value == null) RemoveProperty(PropertyString.HeritageGroup); else SetProperty(PropertyString.HeritageGroup, value); }
         }
 
         public string Sex
         {
-            get => AceObject.Sex;
-            set { AceObject.Sex = value; }
+            get => GetProperty(PropertyString.Sex);
+            set { if (value == null) RemoveProperty(PropertyString.Sex); else SetProperty(PropertyString.Sex, value); }
         }
 
         public uint? HeadObjectDID
         {
-            get => AceObject.HeadObjectDID ?? null;
-            set { AceObject.HeadObjectDID = value; }
+            get => GetProperty(PropertyDataId.HeadObject);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HeadObject); else SetProperty(PropertyDataId.HeadObject, value.Value); }
         }
 
         public uint? HairTextureDID
         {
-            get => AceObject.HairTextureDID ?? null;
-            set { AceObject.HairTextureDID = value; }
+            get => GetProperty(PropertyDataId.HairTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairTexture); else SetProperty(PropertyDataId.HairTexture, value.Value); }
         }
 
         public uint? DefaultHairTextureDID
         {
-            get => AceObject.DefaultHairTextureDID ?? null;
-            set { AceObject.DefaultHairTextureDID = value; }
+            get => GetProperty(PropertyDataId.DefaultHairTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
         }
 
         public uint? HairPaletteDID
         {
-            get => AceObject.HairPaletteDID ?? null;
-            set { AceObject.HairPaletteDID = value; }
+            get => GetProperty(PropertyDataId.HairPalette);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairPalette); else SetProperty(PropertyDataId.HairPalette, value.Value); }
         }
 
         public uint? SkinPaletteDID
         {
-            get => AceObject.SkinPaletteDID ?? null;
-            set { AceObject.SkinPaletteDID = value; }
+            get => GetProperty(PropertyDataId.SkinPalette);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.SkinPalette); else SetProperty(PropertyDataId.SkinPalette, value.Value); }
         }
 
         public uint? EyesPaletteDID
         {
-            get => AceObject.EyesPaletteDID ?? null;
-            set { AceObject.EyesPaletteDID = value; }
+            get => GetProperty(PropertyDataId.EyesPalette);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesPalette); else SetProperty(PropertyDataId.EyesPalette, value.Value); }
         }
 
         public uint? EyesTextureDID
         {
-            get => AceObject.EyesTextureDID ?? null;
-            set { AceObject.EyesTextureDID = value; }
+            get => GetProperty(PropertyDataId.EyesTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesTexture); else SetProperty(PropertyDataId.EyesTexture, value.Value); }
         }
 
         public uint? DefaultEyesTextureDID
         {
-            get => AceObject.DefaultEyesTextureDID ?? null;
-            set { AceObject.DefaultEyesTextureDID = value; }
+            get => GetProperty(PropertyDataId.DefaultEyesTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultEyesTexture); else SetProperty(PropertyDataId.DefaultEyesTexture, value.Value); }
         }
 
         public uint? NoseTextureDID
         {
-            get => AceObject.NoseTextureDID ?? null;
-            set { AceObject.NoseTextureDID = value; }
+            get => GetProperty(PropertyDataId.NoseTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.NoseTexture); else SetProperty(PropertyDataId.NoseTexture, value.Value); }
         }
 
         public uint? DefaultNoseTextureDID
         {
-            get => AceObject.DefaultNoseTextureDID ?? null;
-            set { AceObject.DefaultNoseTextureDID = value; }
+            get => GetProperty(PropertyDataId.DefaultNoseTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultNoseTexture); else SetProperty(PropertyDataId.DefaultNoseTexture, value.Value); }
         }
 
         public uint? MouthTextureDID
         {
-            get => AceObject.MouthTextureDID ?? null;
-            set { AceObject.MouthTextureDID = value; }
+            get => GetProperty(PropertyDataId.MouthTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MouthTexture); else SetProperty(PropertyDataId.MouthTexture, value.Value); }
         }
 
         public uint? DefaultMouthTextureDID
         {
-            get => AceObject.DefaultMouthTextureDID ?? null;
-            set { AceObject.DefaultMouthTextureDID = value; }
+            get => GetProperty(PropertyDataId.DefaultMouthTexture);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultMouthTexture); else SetProperty(PropertyDataId.DefaultMouthTexture, value.Value); }
         }
 
         public void RandomizeFace()

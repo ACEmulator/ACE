@@ -10,7 +10,7 @@ namespace ACE.Server.WorldObjects
 {
     public sealed class Portal : WorldObject
     {
-        public Position Destination { get; private set; }
+        //public Position Destination { get; private set; }
 
         // private byte portalSocietyId;
 

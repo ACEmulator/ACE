@@ -395,6 +395,8 @@ namespace ACE.Server.Network.Handlers
             //player.IsAdmin = characterCreateInfo.IsAdmin;
             //player.IsEnvoy = characterCreateInfo.IsEnvoy;
 
+            player.UpdateAppearance(player);
+
             DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
             {
                 if (!isAvailable)

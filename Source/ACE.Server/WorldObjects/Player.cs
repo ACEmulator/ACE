@@ -86,6 +86,12 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }
 
+            ContainerCapacity = 7;
+
+            //AddCharacterBaseModelData();
+
+            UpdateAppearance(this);
+
             return; // todo
 
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -128,16 +134,8 @@ namespace ACE.Server.WorldObjects
 
             FirstEnterWorldDone = false;
 
-            Location = character.Location;
             IsAlive = true;
-            IsOnline = true;
-
-            // TODO: test and remove - this should be coming in from AceObject.
-
-            //MotionTableId = Character.MotionTableId;
-            //SoundTableId = Character.SoundTableId;
-            //PhysicsTableId = Character.PhysicsTableId;
-            //SetupTableId = Character.SetupTableId;
+            IsOnline = true;            
 
             // Start vital ticking, if they need it
             if (Health.Current != Health.MaxValue)
@@ -151,12 +149,6 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 7;
 
-            if (Character.DefaultScale != null)
-                ObjScale = Character.DefaultScale;
-
-            AddCharacterBaseModelData();
-
-            UpdateAppearance(this);
             ////Burden = UpdateBurden();
         }
 
@@ -279,9 +271,10 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => Character.CharacterOptions;
+        //public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => CharacterOptions;
 
-        public ReadOnlyCollection<Friend> Friends => Character.Friends;
+        //public ReadOnlyCollection<Friend> Friends => Friends;
+        public ReadOnlyCollection<Friend> Friends { get; set; }
 
         /// <summary>
         ///  Gets a list of Tracked Objects.
@@ -296,9 +289,6 @@ namespace ACE.Server.WorldObjects
 
         public bool FirstEnterWorldDone;
 
-        public int Age => Character.Age;
-
-        public uint CreationTimestamp => (uint)Character.CreationTimestamp;
 
         public AceObject GetAceObject()
         {
@@ -312,37 +302,31 @@ namespace ACE.Server.WorldObjects
         private void AddCharacterBaseModelData()
         {
             // Hair/head
-            AddModel(0x10, Character.HeadObject);
-            AddTexture(0x10, Character.DefaultHairTexture, Character.HairTexture);
-            AddPalette(Character.HairPalette, 0x18, 0x8);
+            if (HeadObjectDID.HasValue)
+                AddModel(0x10, HeadObjectDID.Value);
+            if (DefaultHairTextureDID.HasValue && HairTextureDID.HasValue)
+                AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
+            if (HairPaletteDID.HasValue)
+                AddPalette(HairPaletteDID.Value, 0x18, 0x8);
 
             // Skin
-            PaletteBaseId = Character.PaletteId;
-            AddPalette(Character.SkinPalette, 0x0, 0x18);
+            // PaletteBaseId = PaletteBaseDID;
+            if (SkinPalette.HasValue)
+                AddPalette(SkinPalette.Value, 0x0, 0x18);
 
             // Eyes
-            AddTexture(0x10, Character.DefaultEyesTexture, Character.EyesTexture);
-            AddPalette(Character.EyesPalette, 0x20, 0x8);
+            if (DefaultEyesTextureDID.HasValue && EyesTextureDID.HasValue)
+                AddTexture(0x10, DefaultEyesTextureDID.Value, EyesTextureDID.Value);
+            if (EyesPaletteDID.HasValue)
+                AddPalette(EyesPaletteDID.Value, 0x20, 0x8);
 
             // Nose & Mouth
-            AddTexture(0x10, Character.DefaultNoseTexture, Character.NoseTexture);
-            AddTexture(0x10, Character.DefaultMouthTexture, Character.MouthTexture);
+            if (NoseTextureDID.HasValue && NoseTextureDID.HasValue)
+                AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
+            if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
+                AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
         }
 
-        public AceObject GetSavableCharacter()
-        {
-            // Clone Character
-            AceObject obj = (AceObject)Character.Clone();
-
-            // These don't usually get saved back to the object so setting here for now.
-            // Realisticly speaking, I think it will be possible to eliminate WeenieHeaderFlags and PhysicsDescriptionFlag from the datbase
-            // AceObjectDescriptionFlag possibly could be eliminated as well... -Ripley
-            // actually we do use those without creating a wo - so it would be needed to keep them in the database Og II
-            obj.WeenieHeaderFlags = (uint)CalculatedWeenieHeaderFlag();
-            obj.PhysicsDescriptionFlag = (uint)CalculatedPhysicsDescriptionFlag();
-
-            return obj;
-        }
         
 
 
@@ -406,11 +390,11 @@ namespace ACE.Server.WorldObjects
 
             IsAlive = false;
             Health.Current = 0; // Set the health to zero
-            Character.NumDeaths++; // Increase the NumDeaths counter
-            Character.DeathLevel++; // Increase the DeathLevel
+            NumDeaths++; // Increase the NumDeaths counter
+            DeathLevel++; // Increase the DeathLevel
 
             // TODO: Find correct vitae formula/value
-            Character.VitaeCpPool = 0; // Set vitae
+            VitaeCpPool = 0; // Set vitae
 
             // TODO: Generate a death message based on the damage type to pass in to each death message:
             string currentDeathMessage = $"died to {killerSession.Player.Name}.";
@@ -419,9 +403,9 @@ namespace ACE.Server.WorldObjects
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.NumDeaths, Character.NumDeaths);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.DeathLevel, Character.DeathLevel);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.VitaeCpPool, Character.VitaeCpPool);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.NumDeaths, NumDeaths.Value);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.DeathLevel, DeathLevel.Value);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
@@ -610,7 +594,7 @@ namespace ACE.Server.WorldObjects
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
 
             // Check if friend exists
-            if (Character.Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+            if (Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
                 ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
 
             // TODO: check if player is online first to avoid database hit??
@@ -647,7 +631,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public void RemoveFriend(ObjectGuid friendId)
         {
-            Friend friendToRemove = Character.Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
+            Friend friendToRemove = Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
 
             // Not in friend list
             if (friendToRemove == null)
@@ -660,7 +644,7 @@ namespace ACE.Server.WorldObjects
             DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low, (() =>
             {
                 // Remove from character object
-                Character.RemoveFriend(friendId.Low);
+                RemoveFriend(friendId);
 
                 // Send packet
                 Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
@@ -676,7 +660,7 @@ namespace ACE.Server.WorldObjects
             DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
 
             // Remove from character object
-            Character.RemoveAllFriends();
+            RemoveAllFriends();
         }
 
         /// <summary>
@@ -724,48 +708,48 @@ namespace ACE.Server.WorldObjects
             return new ActionChain(this, SavePlayer);
         }
 
-        /// <summary>
-        /// This method is used to clear the wielded items list ( the list of ace objects used to save wielded items ) and loads it with a snapshot
-        /// of the aceObjects from the current list of wielded world objects. Og II
-        /// </summary>
-        public void SnapshotWieldedItems(bool clearDirtyFlags = false)
-        {
-            WieldedItems.Clear();
-            foreach (var wo in WieldedObjects)
-            {
-                WieldedItems.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
-            }
-        }
+        ///// <summary>
+        ///// This method is used to clear the wielded items list ( the list of ace objects used to save wielded items ) and loads it with a snapshot
+        ///// of the aceObjects from the current list of wielded world objects. Og II
+        ///// </summary>
+        //public void SnapshotWieldedItems(bool clearDirtyFlags = false)
+        //{
+        //    WieldedItems.Clear();
+        //    foreach (var wo in WieldedObjects)
+        //    {
+        //        WieldedItems.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
+        //    }
+        //}
 
-        /// <summary>
-        /// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
-        /// of the aceObjects from the current list of inventory world objects by container. Og II
-        /// </summary>
-        public void SnapshotInventoryItems(bool clearDirtyFlags = false)
-        {
-            Inventory.Clear();
-            foreach (var wo in InventoryObjects)
-            {
-                Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
-                if (wo.Value.WeenieType == WeenieType.Container)
-                {
-                    wo.Value.Inventory.Clear();
-                    throw new System.NotImplementedException();/*
-                    foreach (var item in wo.Value.InventoryObjects)
-                    {
-                        wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
-                    }*/
-                }
-            }
-        }
+        ///// <summary>
+        ///// This method is used to clear the inventory lists of all containers. ( the list of ace objects used to save inventory items items ) and loads each with a snapshot
+        ///// of the aceObjects from the current list of inventory world objects by container. Og II
+        ///// </summary>
+        //public void SnapshotInventoryItems(bool clearDirtyFlags = false)
+        //{
+        //    Inventory.Clear();
+        //    foreach (var wo in InventoryObjects)
+        //    {
+        //        Inventory.Add(wo.Value.Guid, wo.Value.SnapShotOfAceObject(clearDirtyFlags));
+        //        if (wo.Value.WeenieType == WeenieType.Container)
+        //        {
+        //            wo.Value.Inventory.Clear();
+        //            throw new System.NotImplementedException();/*
+        //            foreach (var item in wo.Value.InventoryObjects)
+        //            {
+        //                wo.Value.Inventory.Add(item.Value.Guid, item.Value.SnapShotOfAceObject(clearDirtyFlags));
+        //            }*/
+        //        }
+        //    }
+        //}
 
-        public void SnapShotTrackedContracts()
-        {
-            foreach (var tc in TrackedContracts)
-            {
-                AceObject.SetTrackedContract(tc.Key, tc.Value.SnapShotOfAceContractTracker());
-            }
-        }
+        //public void SnapShotTrackedContracts()
+        //{
+        //    foreach (var tc in TrackedContracts)
+        //    {
+        //        AceObject.SetTrackedContract(tc.Key, tc.Value.SnapShotOfAceContractTracker());
+        //    }
+        //}
 
         /// <summary>
         /// Internal save character functionality
@@ -786,15 +770,15 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateAge()
         {
-            if (Character != null)
-                Character.Age++;
+            //if (Character != null)
+                Age++;
         }
 
         public void SendAgeInt()
         {
             try
             {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Age, Character.Age));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Age, Age.Value));
             }
             catch (NullReferenceException)
             {
@@ -807,7 +791,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool GetVirtualOnlineStatus()
         {
-            if (Character.CharacterOptions[CharacterOption.AppearOffline])
+            //if (CharacterOptions[CharacterOption.AppearOffline])
                 return false;
 
             return IsOnline;
@@ -1026,25 +1010,25 @@ namespace ACE.Server.WorldObjects
         {
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
-            Character.HeadObject = message.Payload.ReadUInt32();
-            Character.HairTexture = message.Payload.ReadUInt32();
-            Character.DefaultHairTexture = message.Payload.ReadUInt32();
-            Character.EyesTexture = message.Payload.ReadUInt32();
-            Character.DefaultEyesTexture = message.Payload.ReadUInt32();
-            Character.NoseTexture = message.Payload.ReadUInt32();
-            Character.DefaultNoseTexture = message.Payload.ReadUInt32();
-            Character.MouthTexture = message.Payload.ReadUInt32();
-            Character.DefaultMouthTexture = message.Payload.ReadUInt32();
-            Character.SkinPalette = message.Payload.ReadUInt32();
-            Character.HairPalette = message.Payload.ReadUInt32();
-            Character.EyesPalette = message.Payload.ReadUInt32();
-            Character.SetupTableId = message.Payload.ReadUInt32();
+            HeadObject = message.Payload.ReadUInt32();
+            HairTexture = message.Payload.ReadUInt32();
+            DefaultHairTexture = message.Payload.ReadUInt32();
+            EyesTexture = message.Payload.ReadUInt32();
+            DefaultEyesTexture = message.Payload.ReadUInt32();
+            NoseTexture = message.Payload.ReadUInt32();
+            DefaultNoseTexture = message.Payload.ReadUInt32();
+            MouthTexture = message.Payload.ReadUInt32();
+            DefaultMouthTexture = message.Payload.ReadUInt32();
+            SkinPalette = message.Payload.ReadUInt32();
+            HairPalette = message.Payload.ReadUInt32();
+            EyesPalette = message.Payload.ReadUInt32();
+            SetupTableId = message.Payload.ReadUInt32();
 
             uint option_bound = message.Payload.ReadUInt32(); // Supress Levitation - Empyrean Only
             uint option_unk = message.Payload.ReadUInt32(); // Unknown - Possibly set aside for future use?
 
             // Check if Character is Empyrean, and if we need to set/change/send new motion table
-            if (Character.Heritage == 9)
+            if (Heritage == 9)
             {
                 // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
                 const uint EmpyreanMaleFloatMotionDID = 0x0900020Bu;
@@ -1053,30 +1037,30 @@ namespace ACE.Server.WorldObjects
                 const uint EmpyreanFemaleMotionDID = 0x0900020Du;
 
                 // Check for the Levitation option for Empyrean. Shadow crown and Undead flames are handled by client.
-                if (Character.Gender == 1) // Male
+                if (Gender == 1) // Male
                 {
-                    if (option_bound == 1 && Character.MotionTableId != EmpyreanMaleMotionDID)
+                    if (option_bound == 1 && MotionTableId != EmpyreanMaleMotionDID)
                     {
-                        Character.MotionTableId = EmpyreanMaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                        MotionTableId = EmpyreanMaleMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
-                    else if (option_bound == 0 && Character.MotionTableId != EmpyreanMaleFloatMotionDID)
+                    else if (option_bound == 0 && MotionTableId != EmpyreanMaleFloatMotionDID)
                     {
-                        Character.MotionTableId = EmpyreanMaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                        MotionTableId = EmpyreanMaleFloatMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
                 else // Female
                 {
-                    if (option_bound == 1 && Character.MotionTableId != EmpyreanFemaleMotionDID)
+                    if (option_bound == 1 && MotionTableId != EmpyreanFemaleMotionDID)
                     {
-                        Character.MotionTableId = EmpyreanFemaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                        MotionTableId = EmpyreanFemaleMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
-                    else if (option_bound == 0 && Character.MotionTableId != EmpyreanFemaleFloatMotionDID)
+                    else if (option_bound == 0 && MotionTableId != EmpyreanFemaleFloatMotionDID)
                     {
-                        Character.MotionTableId = EmpyreanFemaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)Character.MotionTableId));
+                        MotionTableId = EmpyreanFemaleFloatMotionDID;
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
             }

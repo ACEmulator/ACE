@@ -96,9 +96,9 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            ScrollPropertiesInt = PropertiesInt.Where(x => x.PropertyId == (uint)PropertyInt.Value
-                                                           || x.PropertyId == (uint)PropertyInt.EncumbranceVal)
-                .ToList();
+            //ScrollPropertiesInt = GetAllPropertyInt().Where(x => x.Key == PropertyInt.Value
+            //                                               || x.Key == PropertyInt.EncumbranceVal)
+            //    .ToList();
 
             if (ScrollPropertiesString == null)
                 ScrollPropertiesString = new List<AceObjectPropertiesString>();

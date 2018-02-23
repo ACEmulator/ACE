@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Common.Extensions;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime();
-            playerDOB = playerDOB.AddSeconds(session.Player.Age);
+            playerDOB = playerDOB.AddSeconds(session.Player.Age.Value);
             TimeSpan tsAge = playerDOB - new DateTime();
 
             string age = "";
