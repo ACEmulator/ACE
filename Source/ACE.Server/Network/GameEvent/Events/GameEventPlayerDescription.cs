@@ -340,22 +340,22 @@ namespace ACE.Server.Network.GameEvent.Events
             }*/
 
             // Write total count.
-            Writer.Write((uint) 0);//aceObj.Inventory.Count); todo fix for EF
+            Writer.Write((uint)Session.Player.Inventory.Count);
             // write out all of the non-containers and foci
-            /*foreach (var inv in aceObj.Inventory.Where(i => !i.Value.UseBackpackSlot))
+            foreach (var inv in Session.Player.Inventory.Values.Where(i => !i.UseBackpackSlot))
             {
-                Writer.Write(inv.Value.AceObjectId);
+                Writer.Write(inv.Guid.Full);
                 Writer.Write((uint)ContainerType.NonContainer);
             }
             // Containers and foci go in side slots, they come last with their own placement order.
-            foreach (var inv in aceObj.Inventory.Where(i => i.Value.UseBackpackSlot))
+            foreach (var inv in Session.Player.Inventory.Values.Where(i => i.UseBackpackSlot))
             {
-                Writer.Write(inv.Value.AceObjectId);
-                if ((WeenieType)inv.Value.WeenieType == WeenieType.Container)
+                Writer.Write(inv.Guid.Full);
+                if (inv.WeenieType == WeenieType.Container)
                     Writer.Write((uint)ContainerType.Container);
                 else
                     Writer.Write((uint)ContainerType.Foci);
-            }*/
+            }
 
             // TODO: This is where what we have equipped is sent.
             Writer.Write((uint) 0);//aceObj.WieldedItems.Count); todo fix for EF

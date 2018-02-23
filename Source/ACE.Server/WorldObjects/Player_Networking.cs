@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="session"></param>
         public void SendInventoryAndWieldedItems(Session session)
         {
-            foreach (WorldObject invItem in InventoryObjects.Values)
+            foreach (WorldObject invItem in Inventory.Values)
             {
                 session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
                 // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II

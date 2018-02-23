@@ -1678,7 +1678,7 @@ namespace ACE.Server.WorldObjects
                 if (item != null)
                 {
                     ObjectGuid containerGuid = ObjectGuid.Invalid;
-                    var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+                    var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
                     foreach (var subpack in containers)
                     {
                         throw new System.NotImplementedException();/*

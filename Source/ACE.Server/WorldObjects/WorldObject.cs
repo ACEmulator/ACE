@@ -205,9 +205,9 @@ namespace ACE.Server.WorldObjects
         protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; } = new Dictionary<ObjectGuid, WorldObject>();
 
 
-        [Obsolete]
+        //[Obsolete]
         //protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
-        public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
+        //public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
         // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
         [Obsolete]

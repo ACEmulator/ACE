@@ -1680,17 +1680,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        //public bool UseBackpackSlot
-        //{
-        //    get
-        //    {
-        //        return (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) ||
-        //                GetProperty(PropertyInt.WeenieType) == (uint)WeenieType.Container;
-        //    }
-        //}
-
-
-
+        public bool UseBackpackSlot => (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) || GetProperty(PropertyInt.WeenieType) == (uint)WeenieType.Container;
 
 
         //public uint? AllowedActivator
@@ -1753,8 +1743,6 @@ namespace ACE.Server.WorldObjects
         //    get { return GetProperty(PropertyInt.AvailableCharacter); }
         //    set { SetProperty(PropertyInt.AvailableCharacter, value); }
         //}
-
-
 
 
         // ========================================
