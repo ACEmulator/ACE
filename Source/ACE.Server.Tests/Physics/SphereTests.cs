@@ -181,5 +181,74 @@ namespace ACE.Server.Tests.Physics
             if (transition.SpherePath.NumSphere > 1)
                 transition.SpherePath.GlobalCurrCenter[1] = transition.SpherePath.GlobalSphere[1].Center;
         }
+
+        [TestMethod]
+        public void Sphere_LandOnSphere()
+        {
+            var sphere = new Sphere(Vector3.Zero, 5.0f);
+            var transition = new Transition();
+
+            // defines the collision normal
+            transition.SpherePath.GlobalCurrCenter.Add(new Vector3(0, 0, -1));
+
+            // test collision
+            var transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
+            Assert.AreEqual(transitionState, TransitionState.Collided);
+
+            // test adjusted
+            transition.SpherePath.GlobalCurrCenter[0] = new Vector3(0, 0, 0.0001f);
+            transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
+            Assert.AreEqual(transitionState, TransitionState.Adjusted);
+            Assert.AreEqual(transition.SpherePath.Collide, true);
+        }
+
+        //[TestMethod]
+        public void Sphere_StepSphereUp()
+        {
+            var sphere = new Sphere(Vector3.Zero, 5.0f);
+            var transition = new Transition();
+
+            // the location being stepped up to
+            var disp = new Vector3(0, 0, 1);
+            var checkPos = new Sphere();
+
+            var transitionState = sphere.StepSphereUp(transition, checkPos, disp, sphere.Radius * 2.0f);
+            // TODO: implement SpherePath.StepUpSlide()
+        }
+
+        [TestMethod]
+        public void Sphere_StepSphereDown()
+        {
+            var sphere = new Sphere(Vector3.Zero, 5.0f);
+
+            var transition = new Transition();
+            transition.SpherePath.StepDownAmt = -10.0f;     // the amount being stepped down this frame
+            transition.SpherePath.WalkInterp = 10.0f;
+
+            // the location being stepped down to
+            var disp = new Vector3(0, 0, -10);
+            var checkPos = new Sphere();
+
+            var transitionState = sphere.StepSphereDown(transition, checkPos, disp, sphere.Radius * 2.0f);
+            Assert.AreEqual(transitionState, TransitionState.Adjusted);
+        }
+
+        [TestMethod]
+        public void Sphere_SlideSphere()
+        {
+            var sphere = new Sphere(Vector3.Zero, 5.0f);
+            var collisionNormal = new Vector3(0, 0, -1);
+
+            var transition = new Transition();
+
+            var transitionState = sphere.SlideSphere(transition, collisionNormal, Vector3.Zero);
+            Assert.AreEqual(transitionState, TransitionState.Slid);
+
+            transition.CollisionInfo.LastKnownContactPlaneValid = true;
+            transition.CollisionInfo.LastKnownContactPlane = new Plane(new Vector3(0, 0, 1), 0);
+
+            transitionState = sphere.SlideSphere(transition, collisionNormal, Vector3.Zero);
+            Assert.AreEqual(transitionState, TransitionState.Collided);
+        }
     }
 }

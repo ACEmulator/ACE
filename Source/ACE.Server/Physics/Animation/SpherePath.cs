@@ -64,6 +64,7 @@ namespace ACE.Server.Physics.Animation
             CheckPos = new Position();
             GlobalCurrCenter = new List<Vector3>();
             GlobalSphere = new List<Sphere>();
+            BackupCheckPos = new Position();
         }
 
         public Vector3 GetCurPosCheckPosBlockOffset()
