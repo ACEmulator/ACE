@@ -17,7 +17,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
@@ -26,12 +25,6 @@ using ACE.Server.Network.Sequence;
 
 using AceObjectGeneratorProfile = ACE.Entity.AceObjectGeneratorProfile;
 using AceObjectInventory = ACE.Entity.AceObjectInventory;
-using AceObjectPropertiesBook = ACE.Entity.AceObjectPropertiesBook;
-using AceObjectPropertiesBool = ACE.Entity.AceObjectPropertiesBool;
-using AceObjectPropertiesDouble = ACE.Entity.AceObjectPropertiesDouble;
-using AceObjectPropertiesInt = ACE.Entity.AceObjectPropertiesInt;
-using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
-using AceObjectPropertiesString = ACE.Entity.AceObjectPropertiesString;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
