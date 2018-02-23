@@ -19,11 +19,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is ace_object_property_int #349.   It links a contract weenie with the quest that it will add to your quest panel.
         /// </summary>
-        public int? UseCreateContractId
-        {
-            get { return AceObject.UseCreateContractId; }
-            set { AceObject.UseCreateContractId = value; }
-        }
+        //public int? UseCreateContractId
+        //{
+        //    get { return AceObject.UseCreateContractId; }
+        //    set { AceObject.UseCreateContractId = value; }
+        //}
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

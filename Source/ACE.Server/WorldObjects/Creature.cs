@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
 
         public CombatMode CombatMode { get; private set; }
 
-        public AceObject AceCorpse => AceObject;
+        //public AceObject AceCorpse => AceObject;
 
         /// <summary>
         /// This will be false when creature is dead and waits for respawn

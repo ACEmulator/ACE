@@ -72,10 +72,10 @@ namespace ACE.Server.WorldObjects
                 //Ethereal = true;
             }
 
-            IsLocked = AceObject.Locked ?? false;
-            ResetInterval = AceObject.ResetInterval ?? 30.0f;
-            ResistLockpick = AceObject.ResistLockpick ?? 0;
-            LockCode = AceObject.LockCode ?? "";
+            //IsLocked = AceObject.Locked ?? false;
+            //ResetInterval = AceObject.ResetInterval ?? 30.0f;
+            //ResistLockpick = AceObject.ResistLockpick ?? 0;
+            //LockCode = AceObject.LockCode ?? "";
 
             // If we had the base weenies this would be the way to go
             ////if (DefaultLocked)
