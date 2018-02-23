@@ -13,6 +13,11 @@ using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
+    // todo: After we have all the properties moved here, we should set them all to private. Only what's needed should be protected/public.
+    // todo: In addition, unused setters should be commented (not removed).
+    //
+    // todo: Also, properties only used by certain WorldObjectTypes should be moved to that worldobject type class and not remain here in the base.
+    // todo: For example, ChessGamesWon would only be used by a player. That property doesn't need to be in WorldObject and thus accessable to all WorldObject classes.
     partial class WorldObject
     {
         public Dictionary<PropertyBool, bool?> EphemeralPropertyBools = new Dictionary<PropertyBool, bool?>();
