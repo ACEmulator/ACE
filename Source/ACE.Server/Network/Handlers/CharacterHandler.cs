@@ -276,8 +276,12 @@ namespace ACE.Server.Network.Handlers
             player.Self.StartingValue = ValidateAttributeCredits(characterCreateInfo.SelfAbility, usedAttributeCredits, totalAttributeCredits);
             usedAttributeCredits += player.Self.StartingValue;
 
-            // Validate this is equal to actual attribute credits (330 for all but "Olthoi", which have 60
-            // todo if (usedAttributeCredits > .....
+            // Validate this is equal to actual attribute credits. 330 for all but "Olthoi", which have 60
+            if (usedAttributeCredits > 330 || ((characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi || characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid) && usedAttributeCredits > 60))
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
+                return;
+            }
 
             // data we don't care about
             //characterCreateInfo.CharacterSlot;
