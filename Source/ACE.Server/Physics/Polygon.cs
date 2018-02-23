@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics
 {
@@ -24,5 +25,15 @@ namespace ACE.Server.Physics
         public short PosSurface;
         public short NegSurface;
         public Plane Plane;
+
+        public bool CheckWalkable(Sphere sphere, Vector3 up)
+        {
+            return true;
+        }
+
+        public Vector3 FindCrossedEdge(Sphere sphere, Vector3 up)
+        {
+            return Vector3.Zero;
+        }
     }
 }
