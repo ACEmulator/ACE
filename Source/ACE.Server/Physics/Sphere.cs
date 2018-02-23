@@ -42,19 +42,22 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Redirects a sphere to be on collision course towards a point
         /// </summary>
-        /// <param name="obj">If set to PerfectClip, does a more precise check</param>
-        /// <param name="path">The path information for the sphere</param>
-        /// <param name="collisions">The collision information for the sphere</param>
+        /// <param name="transition">The transition information for the sphere</param>
         /// <param name="checkPos">The spherical point to redirect towards</param>
         /// <param name="disp">Currently doesn't seem to be used?</param>
         /// <param name="radsum">The sum of the sphere and spherical point radii</param>
         /// <param name="sphereNum">Used as an offset in path.GlobalCurrCenter to determine movement</param>
         /// <returns>The TransitionState either collided or adjusted</returns>
-        public TransitionState CollideWithPoint(ObjectInfo obj, SpherePath path, CollisionInfo collisions, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
+        public TransitionState CollideWithPoint(Transition transition, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
         {
+            var obj = transition.ObjectInfo;
+            var path = transition.SpherePath;
+            var collisions = transition.CollisionInfo;
+
             var gCenter = path.GlobalCurrCenter[sphereNum];
             var globalOffset = gCenter - Center;
 
+            // if set to PerfectClip, does a more precise check
             if (obj.State.HasFlag(ObjectInfoState.PerfectClip))
             {
                 var blockOffset = LandDefs.GetBlockOffset(path.CurPos.ObjCellID, path.CheckPos.ObjCellID);
@@ -89,8 +92,7 @@ namespace ACE.Server.Physics
         public static bool CollidesWithSphere(Vector3 otherSphere, float diameter)
         {
             // original implementation with FPU flag
-            // perform inline, possibly replacing the calls to Sphere.Intersect()
-            return false;
+            return otherSphere.Length() < diameter;     // is touching considered collision?
         }
 
         /// <summary>
@@ -110,15 +112,15 @@ namespace ACE.Server.Physics
             var nonCollide = spherePos.LengthSquared() - radSum * radSum;
             if (nonCollide < PhysicsGlobals.EPSILON) return -1;
 
-            var cDistSq = -(spherePos.X * movement.X + spherePos.Y * movement.Y + spherePos.Z * movement.Z);
-            var nonCollideB = cDistSq * cDistSq - nonCollide * distSq;
+            var similar = -Vector3.Dot(spherePos, movement);
+            var nonCollideB = similar * similar - nonCollide * distSq;
             if (nonCollideB < 0) return -1;
 
             var cDist = Math.Sqrt(nonCollideB);
-            if (cDistSq - cDist < 0)
-                return -1 * (cDist - (spherePos.X * movement.X + spherePos.Y * movement.Y + spherePos.Z * movement.Z)) / distSq;
+            if (similar - cDist < 0)
+                return -1 * (cDist  + similar) / distSq;
             else
-                return -1 * (cDistSq - cDist) / distSq;
+                return -1 * (similar - cDist) / distSq;
         }
 
         /// <summary>
@@ -136,8 +138,8 @@ namespace ACE.Server.Physics
         /// </summary>
         public TransitionState IntersectsSphere(Position position, float scale, Transition transition, bool isCreature)
         {
-            var globalPos = position.LocalToGlobal(transition.SpherePath.CheckPos, position, Center * scale);
-            return new Sphere(globalPos, Radius * scale).IntersectsSphere(transition, isCreature);    // check scaling
+            var globPos = transition.SpherePath.CheckPos.LocalToGlobal(position, Center * scale);
+            return new Sphere(globPos, Radius * scale).IntersectsSphere(transition, isCreature);    // check scaling
         }
 
         /// <summary>
@@ -149,76 +151,74 @@ namespace ACE.Server.Physics
         public TransitionState IntersectsSphere(Transition transition, bool isCreature)
         {
             var globSphere = transition.SpherePath.GlobalSphere[0];
-            var dx = globSphere.Center.X - Center.X;
-            var dy = globSphere.Center.Y - Center.Y;
-            var dz = globSphere.Center.Z - Center.Z;
-            var radsum = globSphere.Radius + Radius - PhysicsGlobals.EPSILON;   // set transition info?
+            var disp = globSphere.Center - Center;
 
-            var disp = new Vector3(globSphere.Center.X - Center.X, globSphere.Center.Y - Center.Y, globSphere.Center.Z - Center.Z);     // offset 1?
+            Sphere globSphere_ = null;
+            Vector3 disp_ = Vector3.Zero;
 
-            if (transition.SpherePath.ObstructionEthereal || transition.SpherePath.CheckPos.ObjCellID == 1)   // verify last bit
+            if (transition.SpherePath.NumSphere > 1)
             {
-                if (dx * dx + dy * dy + dz * dz <= radsum)
+                globSphere_ = transition.SpherePath.GlobalSphere[1];
+                disp_ = globSphere_.Center - Center;
+            }
+
+            var radsum = globSphere.Radius + Radius - PhysicsGlobals.EPSILON;
+
+            if (transition.SpherePath.ObstructionEthereal || transition.SpherePath.InsertType == InsertType.Placement)
+            {
+                if (disp.LengthSquared() <= radsum)
                     return TransitionState.Collided;
 
                 if (transition.SpherePath.NumSphere > 1)
                 {
-                    if (CollidesWithSphere(disp, radsum))
+                    if (CollidesWithSphere(disp_, radsum))
                         return TransitionState.Collided;
-                    else
-                        return TransitionState.OK;
                 }
                 return TransitionState.OK;
             }
 
-            if (transition.SpherePath.CheckPos.Frame == null)   // verify these offsets, 86
+            if (!transition.SpherePath.StepDown)
             {
-                if (transition.SpherePath.BackupCheckPos != null)   // offset 118
+                if (transition.SpherePath.CheckWalkable)
                 {
                     if (CollidesWithSphere(disp, radsum))
+                        return TransitionState.Collided;
+
+                    if (transition.SpherePath.NumSphere > 1)
                     {
-                        if (transition.SpherePath.NumSphere > 1)
-                        {
-                            var sDiff = globSphere.Center - Center;     // take contact plane into account
-                            if (CollidesWithSphere(sDiff, radsum))
-                                return TransitionState.Collided;
-                            else
-                                return TransitionState.OK;
-                        }
-                        return TransitionState.OK;
+                        if (CollidesWithSphere(disp_, radsum))
+                            return TransitionState.Collided;
                     }
-                    return TransitionState.Collided;
+                    return TransitionState.OK;
                 }
-                if (transition.SpherePath.StepUp /*transition.SpherePath.CurPos != null*/)   // offset 64
+                if (transition.SpherePath.StepUp)
                 {
                     if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact) ||
                         transition.ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
                     {
                         if (CollidesWithSphere(disp, radsum))
-                            return StepSphereUp(transition, globSphere, disp, radsum);      // check last param
+                            return StepSphereUp(transition, globSphere, disp, radsum);
 
                         if (transition.SpherePath.NumSphere > 1)
                         {
-                            var sDiff = globSphere.Center - Center;     // middle param 0
-                            if (CollidesWithSphere(sDiff, radsum))
-                                return SlideSphere(transition.ObjectInfo, transition.SpherePath, transition.CollisionInfo, globSphere, sDiff, radsum, 0);
+                            if (CollidesWithSphere(disp_, radsum))
+                                return SlideSphere(transition, globSphere_, disp_, radsum, 1);
                         }
                     }
                     else if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.PathClipped))
                     {
                         if (CollidesWithSphere(disp, radsum))
-                            return CollideWithPoint(transition.ObjectInfo, transition.SpherePath, null, globSphere, disp, radsum, 0);
+                            return CollideWithPoint(transition, globSphere, disp, radsum, 0);
                     }
                     else
                     {
                         if (CollidesWithSphere(disp, radsum))
-                            return LandOnSphere(transition.ObjectInfo, transition.SpherePath, null, globSphere, disp, radsum, 0);
+                            return LandOnSphere(transition, globSphere, disp, radsum);
 
                         if (transition.SpherePath.NumSphere > 1)
                         {
-                            var sDiff = globSphere.Center - Center;
-                            if (CollidesWithSphere(sDiff, radsum))
-                                return CollideWithPoint(transition.ObjectInfo, transition.SpherePath, null, globSphere, disp, radsum, 0);
+                            if (CollidesWithSphere(disp_, radsum))
+                                return CollideWithPoint(transition, globSphere_, disp_, radsum, 1);
                         }
                     }
                     return TransitionState.OK;
@@ -226,50 +226,45 @@ namespace ACE.Server.Physics
 
                 if (isCreature)
                     return TransitionState.OK;
-
-                if (CollidesWithSphere(disp, radsum) || transition.SpherePath.NumSphere > 1)
+                
+                // handles movement interpolation
+                if (CollidesWithSphere(disp, radsum) || (transition.SpherePath.NumSphere > 1 && CollidesWithSphere(disp_, radsum)))
                 {
-                    var sDiff = globSphere.Center - Center;     // middle param 0
-                    if (CollidesWithSphere(sDiff, radsum))
-                    {
-                        var curPos = transition.SpherePath.GetCurPosCheckPosBlockOffset();
-                        var pathDiff = transition.SpherePath.GlobalCurrCenter[0] - globSphere.Center;  // offset 14
-                        var delta = pathDiff - curPos;
-                        radsum += PhysicsGlobals.EPSILON;
-                        var sqLen = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z;
-                        var b = -(dx * delta.X * + dy * delta.Y * + dz * delta.Z);
-                        if (Math.Abs(sqLen) >= PhysicsGlobals.EPSILON)
-                        {
-                            var c = Math.Sqrt(b * b - (dx * dx + dy * dy + dz * dz - radsum * radsum) * sqLen) - sqLen;
-                            if (c > 1)
-                                c = b * 2 - c;
-                            var d = c / sqLen;
-                            var timecheck = (1 - d) * transition.SpherePath.WalkableAllowance;     // offset 111
-                            if (timecheck < transition.SpherePath.WalkableAllowance && timecheck >= -0.1f)
-                            {
-                                var dPathDiff = new Vector3((float)(pathDiff.X * d), (float)(pathDiff.Y * d), (float)(pathDiff.Z * d)) / radsum;
-                                if (transition.SpherePath.IsWalkableAllowable((float)(pathDiff.Z * d)))
-                                {
-                                    var contact_plane = new Plane();    // determined above
-                                    var f = Plane.Transform(contact_plane, Matrix4x4.CreateScale(globSphere.Radius));
-                                    var collisionPlane = new Plane(globSphere.Center.X - f.Normal.X, globSphere.Center.Y - f.Normal.Y, globSphere.Center.Z - f.Normal.Z, f.D);
-                                    transition.CollisionInfo.SetContactPlane(collisionPlane, true);
-                                    transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CurPos.ObjCellID;
-                                    transition.SpherePath.WalkableAllowance = (float)timecheck;     // check offset 111
-                                    transition.SpherePath.AddOffsetToCheckPos(dPathDiff, globSphere.Radius);
-                                    return TransitionState.Adjusted;
-                                }
-                                return TransitionState.OK;
-                            }
-                        }
+                    var blockOffset = transition.SpherePath.GetCurPosCheckPosBlockOffset();
+                    var movement = transition.SpherePath.GlobalCurrCenter[1] - globSphere.Center - blockOffset;      // verify offset 14
+                    radsum += PhysicsGlobals.EPSILON;
+                    var lenSq = movement.LengthSquared();
+                    var diff = -Vector3.Dot(movement, disp);
+                    if (Math.Abs(lenSq) < PhysicsGlobals.EPSILON)
                         return TransitionState.Collided;
-                    }
+
+                    var t = Math.Sqrt(diff * diff - (disp.LengthSquared() - radsum * radsum) * lenSq) + diff;   // solve for t
+                    if (t > 1)
+                        t = diff * 2 - diff;
+                    var time = diff / lenSq;
+                    var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
+                    if (timecheck < transition.SpherePath.WalkableAllowance && timecheck < -0.1f)
+                        return TransitionState.Collided;
+
+                    movement *= time;
+                    disp = (disp + movement) / radsum;
+
+                    if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
+                        return TransitionState.OK;  // ??
+
+                    var contactPlane = new Plane(disp, (globSphere.Center - disp * globSphere.Radius).Length());   // verify, convert normal
+                    transition.CollisionInfo.SetContactPlane(contactPlane, true);
+                    transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
+                    transition.SpherePath.WalkInterp = timecheck;
+                    transition.SpherePath.AddOffsetToCheckPos(movement, globSphere.Radius);
+                    return TransitionState.Adjusted;
                 }
+
                 return TransitionState.OK;
             }
 
             if (!isCreature)
-                return StepSphereDown(transition.ObjectInfo, transition.SpherePath, transition.CollisionInfo, globSphere, disp, radsum);
+                return StepSphereDown(transition, globSphere, disp, radsum);
 
             return TransitionState.OK;
         }
@@ -277,8 +272,10 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Handles the collision when an object lands on a sphere
         /// </summary>
-        public TransitionState LandOnSphere(ObjectInfo obj, SpherePath path, CollisionInfo collisions, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
+        public TransitionState LandOnSphere(Transition transition, Sphere checkPos, Vector3 disp, float radsum)
         {
+            var path = transition.SpherePath;
+
             var collisionNormal = new Vector3(path.GlobalCurrCenter[0].X - Center.X, path.GlobalCurrCenter[0].Y - Center.Y, path.GlobalCurrCenter[0].Z - Center.Z);
             if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
@@ -293,8 +290,11 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Attempts to slide the sphere from a collision
         /// </summary>
-        public TransitionState SlideSphere(ObjectInfo obj, SpherePath path, CollisionInfo collisions, Vector3 disp, float radsum, int sphereNum)
+        public TransitionState SlideSphere(Transition transition, Vector3 disp, float radsum, int sphereNum)
         {
+            var path = transition.SpherePath;
+            var collisions = transition.CollisionInfo;
+
             var globSphere = path.GlobalSphere[sphereNum];
             var center = path.GlobalCurrCenter[sphereNum];
             var collisionNormal = new Vector3(center.X - Center.X, center.Y - Center.Y, center.Z - Center.Z);
@@ -328,21 +328,27 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Attempts to slide a sphere from a collision
         /// </summary>
-        public TransitionState SlideSphere(ObjectInfo obj, SpherePath path, CollisionInfo collisions, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
+        public TransitionState SlideSphere(Transition transition, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
         {
+            var path = transition.SpherePath;
+            var collisions = transition.CollisionInfo;
+
             var center = path.GlobalCurrCenter[sphereNum];
             var collisionNormal = new Vector3(center.X - Center.X, center.Y - Center.Y, center.Z - Center.Z);
             if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
             else
-                return checkPos.SlideSphere(path, collisions, collisionNormal, center);
+                return checkPos.SlideSphere(transition, collisionNormal, center);
         }
 
         /// <summary>
         /// Attempts to slide a sphere from a collision
         /// </summary>
-        public TransitionState SlideSphere(SpherePath path, CollisionInfo collisions, Vector3 collisionNormal, Vector3 currPos)
+        public TransitionState SlideSphere(Transition transition, Vector3 collisionNormal, Vector3 currPos)
         {
+            var path = transition.SpherePath;
+            var collisions = transition.CollisionInfo;
+
             if (collisionNormal.Equals(Vector3.Zero))
             {
                 var deltaPos = new Vector3(currPos.X - Center.X, currPos.Y - Center.Y, currPos.Z - Center.Z);
@@ -389,8 +395,11 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Attempts to move the sphere down from a collision
         /// </summary>
-        public TransitionState StepSphereDown(ObjectInfo obj, SpherePath path, CollisionInfo collisions, Sphere checkPos, Vector3 disp, float radsum)
+        public TransitionState StepSphereDown(Transition transition, Sphere checkPos, Vector3 disp, float radsum)
         {
+            var path = transition.SpherePath;
+            var collisions = transition.CollisionInfo;
+
             if (disp.X * disp.X + disp.Y * disp.Y + disp.Z * disp.Z > radsum * radsum)
             {
                 if (path.NumSphere <= 1)
@@ -435,7 +444,7 @@ namespace ACE.Server.Physics
         {
             radsum += PhysicsGlobals.EPSILON;
             if (transition.ObjectInfo.StepUpHeight < radsum - disp.Z)
-                return SlideSphere(transition.ObjectInfo, transition.SpherePath, transition.CollisionInfo, disp, radsum, 0);
+                return SlideSphere(transition, disp, radsum, 0);
             else
             {
                 var globCenter = transition.SpherePath.GlobalCurrCenter[0];
@@ -443,7 +452,7 @@ namespace ACE.Server.Physics
                 if (transition.StepUp(collisionNormal))
                     return TransitionState.OK;
                 else
-                    return transition.SpherePath.StepUpSlide(transition.ObjectInfo, transition.CollisionInfo);
+                    return transition.SpherePath.StepUpSlide(transition);
             }
         }
 

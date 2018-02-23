@@ -13,7 +13,7 @@ namespace ACE.Server.Physics.Common
             Frame = new Frame();
         }
 
-        public Vector3 LocalToGlobal(Position checkPos, Position p, Vector3 v)
+        public Vector3 LocalToGlobal(Position p, Vector3 v)
         {
             return v;
         }
