@@ -319,19 +319,19 @@ namespace ACE.Server.Network.Handlers
 
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
-            var grantedItems = new List<uint>();
+            var grantedWeenies = new List<uint>();
 
             foreach (var skillGear in starterGearConfig.Skills)
             {
                 var charSkill = player.Skills[(Skill)skillGear.SkillId];
                 if (charSkill.Status == SkillStatus.Trained || charSkill.Status == SkillStatus.Specialized)
                 {
-                    /*foreach (var item in skillGear.Gear)
+                    foreach (var item in skillGear.Gear)
                     {
-                        if (grantedItems.Contains(item.WeenieId))
+                        if (grantedWeenies.Contains(item.WeenieId))
                         {
-                            var existingItem = character.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
-                            if ((existingItem?.MaxStackSize ?? 1) <= 1)
+                            var existingItem = player.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
+                            if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
                                 continue;
 
                             existingItem.StackSize += item.StackSize;
@@ -339,11 +339,8 @@ namespace ACE.Server.Network.Handlers
                         }
 
                         var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
-                        loot.SetProperty(PropertyInt.Placement, 0);
-                        loot.SetProperty(PropertyInstanceId.Container, (int)guid.Full);
-                        if (item.StackSize > 1) loot.SetProperty(PropertyInt.StackSize, item.StackSize);
-                        //character.Inventory.Add(loot.Guid, loot); TODO FIX THIS FOR NEW MODEL
-                        grantedItems.Add(item.WeenieId);
+                        if (player.TryAddToInventory(loot))
+                            grantedWeenies.Add(item.WeenieId);
                     }
 
                     var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == characterCreateInfo.Heritage);
@@ -351,10 +348,10 @@ namespace ACE.Server.Network.Handlers
                     {
                         foreach (var item in heritageLoot.Gear)
                         {
-                            if (grantedItems.Contains(item.WeenieId))
+                            if (grantedWeenies.Contains(item.WeenieId))
                             {
-                                var existingItem = character.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
-                                if ((existingItem?.MaxStackSize ?? 1) <= 1)
+                                var existingItem = player.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
+                                if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
                                     continue;
 
                                 existingItem.StackSize += item.StackSize;
@@ -362,13 +359,10 @@ namespace ACE.Server.Network.Handlers
                             }
 
                             var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
-                            loot.SetProperty(PropertyInt.Placement, 0);
-                            loot.SetProperty(PropertyInstanceId.Container, (int)guid.Full);
-                            if (item.StackSize > 1) loot.SetProperty(PropertyInt.StackSize, item.StackSize);
-                            //character.Inventory.Add(loot.Guid, loot); TODO FIX THIS FOR NEW MODEL
-                            grantedItems.Add(item.WeenieId);
+                            if (player.TryAddToInventory(loot))
+                                grantedWeenies.Add(item.WeenieId);
                         }
-                    }*/
+                    }
                     
                     foreach (var spell in skillGear.Spells)
                     {

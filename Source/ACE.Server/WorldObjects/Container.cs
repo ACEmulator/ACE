@@ -42,21 +42,20 @@ namespace ACE.Server.WorldObjects
             //SetProperty(PropertyInt.EncumbranceVal, 0);
             //SetProperty(PropertyInt.Value, 0);
 
-            // todo
+            // todo query the object for all biotas this container is the parent of.
+            // If any of those biotas are also containers, their contents should also be returned.
+            // This will look something like var results = DatabaseManager.Shard.GetInventory(Guid.Full)
+            //
+            // We also need to save inventory to the db on creation
+            // We also need to delete inventory from the db on destroy
+            // What's the best way to do this?
+            // I think when a player is saved, all of hteir inventory should also be saved. This would handle inventory rearranging
+            // When an inventory item is destroyed, we SHOULD be able to unlik the item from the player and remove it from the db without having to save the player as well
+            // My thoughts with that are, what if an item is destroyed from the db. The player items are all shifted in the main pack, but the server crashes before the player (and the remaining items) are saved.
+            // What we end up with is a missing item in the players inventory. One of the inventory slots will be empty. The Placement property may jump from 4 to 6 where 5 was the one that was destroyed.
+            // Same goes for addition
+
             /*
-            WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
-            foreach (var wieldedItem in WieldedItems)
-            {
-                ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                throw new System.NotImplementedException();
-                //WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
-
-                Burden += wieldedItem.Value.EncumbranceVal;
-                log.Debug($"{weenie.GetProperty(PropertyString.Name)} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
-
-                Value += wieldedItem.Value.Value;
-            }
-
             InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
             foreach (var inventoryItem in Inventory)
             {
@@ -72,26 +71,41 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
             }
             */
+
+            // todo
+            /*
+            WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
+            foreach (var wieldedItem in WieldedItems)
+            {
+                ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
+                throw new System.NotImplementedException();
+                //WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
+
+                Burden += wieldedItem.Value.EncumbranceVal;
+                log.Debug($"{weenie.GetProperty(PropertyString.Name)} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
+
+                Value += wieldedItem.Value.Value;
+            }*/
         }
 
 
         // todo I want to rework the tracked equipment/wielded items
 
-
-        public Dictionary<ObjectGuid, WorldObject> InventoryObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
+        public Dictionary<ObjectGuid, WorldObject> Inventory { get; } = new Dictionary<ObjectGuid, WorldObject>();
 
         public bool TryAddToInventory(WorldObject worldObject)
         {
-            // todo
-            /*
-            iouObj.SetProperty(PropertyInstanceId.Container, (int)player.Guid.Full);
+            // For now, we don't do any checking
+            // todo check stuff and what not
 
+            worldObject.SetProperty(PropertyInstanceId.Container, (int)Guid.Full);
             // FIXME: This is wrong and should also be unnecessary but we're not handling storing and reading back object placement within a container correctly so this is here to make it work.
             // TODO: fix placement (order or slot) issues within containers.
-            iouObj.SetProperty(PropertyInt.Placement, 0);
-            */
+            worldObject.SetProperty(PropertyInt.Placement, 0);
 
-            return false;
+            Inventory.Add(worldObject.Guid, worldObject);
+
+            return true;
         }
 
 
@@ -180,16 +194,16 @@ namespace ACE.Server.WorldObjects
 
             inventoryItem.PlacementPosition = placement;
             inventoryItem.Location = null;
-            InventoryObjects.Add(inventoryItem.Guid, inventoryItem);
+            Inventory.Add(inventoryItem.Guid, inventoryItem);
         }
 
         public bool HasItem(ObjectGuid itemGuid)
         {
-            bool foundItem = InventoryObjects.ContainsKey(itemGuid) || WieldedObjects.ContainsKey(itemGuid);
+            bool foundItem = Inventory.ContainsKey(itemGuid) || WieldedObjects.ContainsKey(itemGuid);
             if (foundItem)
                 return true;
 
-            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
             throw new System.NotImplementedException();/* Fix this to use the new inventory objects
             return containers.Any(cnt => (cnt.Value).InventoryObjects.ContainsKey(itemGuid));*/
         }
@@ -197,35 +211,35 @@ namespace ACE.Server.WorldObjects
         public virtual void RemoveWorldObjectFromInventory(ObjectGuid objectguid)
         {
             // first search me / add all items of type.
-            if (InventoryObjects.ContainsKey(objectguid))
+            if (Inventory.ContainsKey(objectguid))
             {
                 // defrag the pack
-                int placement = InventoryObjects[objectguid].PlacementPosition ?? 0;
-                InventoryObjects.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
+                int placement = Inventory[objectguid].PlacementPosition ?? 0;
+                Inventory.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
 
                 // todo calculate burdon / value / container properly
 
                 // clear objects out maybe for db ?
-                InventoryObjects[objectguid].ContainerId = null;
-                InventoryObjects[objectguid].PlacementPosition = null;
+                Inventory[objectguid].ContainerId = null;
+                Inventory[objectguid].PlacementPosition = null;
 
-                Burden -= InventoryObjects[objectguid].Burden;
+                Burden -= Inventory[objectguid].Burden;
 
-                log.Debug($"Remove {InventoryObjects[objectguid].Name} in inventory, removing {InventoryObjects[objectguid].Burden}, current Burden = {Burden}");
+                log.Debug($"Remove {Inventory[objectguid].Name} in inventory, removing {Inventory[objectguid].Burden}, current Burden = {Burden}");
 
                 // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
-                Value -= InventoryObjects[objectguid].Value;
+                Value -= Inventory[objectguid].Value;
 
                 // decrease pack counter if item is not a container!
-                if (InventoryObjects[objectguid].WeenieType != WeenieType.Container)
+                if (Inventory[objectguid].WeenieType != WeenieType.Container)
                     usedPackSlots -= 1;
 
-                InventoryObjects.Remove(objectguid);
+                Inventory.Remove(objectguid);
                 return;
             }
 
             // next search all containers for item.. run function again for each container.
-            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
             foreach (var container in containers)
             {
                 ((Container)container.Value).RemoveWorldObjectFromInventory(objectguid);
@@ -238,15 +252,15 @@ namespace ACE.Server.WorldObjects
         public virtual WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // first search me for this item..
-            if (InventoryObjects.ContainsKey(objectGuid))
+            if (Inventory.ContainsKey(objectGuid))
             {
-                if (InventoryObjects.TryGetValue(objectGuid, out var inventoryItem))
+                if (Inventory.TryGetValue(objectGuid, out var inventoryItem))
                     return inventoryItem;
             }
 
             // continue searching other packs..
             // next search all containers for item.. run function again for each container.
-            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
             foreach (var container in containers)
             {
                 if ((container.Value as Container).GetInventoryItem(objectGuid) != null)
@@ -269,7 +283,7 @@ namespace ACE.Server.WorldObjects
                 return Guid.Full;
 
             // do any of my other containers have enough space ?
-            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
 
             foreach (var container in containers)
             {
@@ -288,13 +302,13 @@ namespace ACE.Server.WorldObjects
             List<WorldObject> items = new List<WorldObject>();
 
             // first search me / add all items of type.
-            var localInventory = InventoryObjects.Where(wo => wo.Value.WeenieType == type).ToList();
+            var localInventory = Inventory.Where(wo => wo.Value.WeenieType == type).ToList();
 
             foreach (var wo in localInventory)
                 items.Add(wo.Value);
 
             // next search all containers for coin.. run function again for each container.
-            var containers = InventoryObjects.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
+            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
 
             foreach (var container in containers)
                 items.AddRange((container.Value as Container).GetInventoryItemsOfTypeWeenieType(type));
