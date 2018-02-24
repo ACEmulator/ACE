@@ -415,7 +415,7 @@ namespace ACE.Server.Network.Handlers
                 CharacterCreateSetDefaultCharacterOptions(player);
                 CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
-                var inventoryBiotas =new Collection<Biota>();
+                var inventoryBiotas = new Collection<Biota>();
                 foreach (var item in player.Inventory.Values)
                     inventoryBiotas.Add(item.Biota);
 

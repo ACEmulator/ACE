@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
 
-            //SendInventoryAndWieldedItems(Session); todo fix for new ef not use aceobj
+            SendInventoryAndWieldedItems(Session);
 
             // SendContractTrackerTable(); todo fix for new ef not use aceobj
         }

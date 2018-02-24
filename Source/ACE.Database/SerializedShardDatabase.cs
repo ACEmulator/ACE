@@ -192,6 +192,12 @@ namespace ACE.Database
         }
 
 
+        public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
+        {
+            return _wrappedDatabase.GetInventory(parentId, includedNestedItems);
+        }
+
+
 
 
 

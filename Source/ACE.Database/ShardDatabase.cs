@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using log4net;
 
 using ACE.Database.Models.Shard;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
@@ -243,40 +245,41 @@ namespace ACE.Database
         public Biota GetBiota(uint id)
         {
             using (var context = new ShardDbContext())
-            {
-                var result = context.Biota
-                    // Should we add .AsNoTracking() here since we're disposing of the context anyway?
-                    .Include(r => r.BiotaPropertiesAnimPart)
-                    .Include(r => r.BiotaPropertiesAttribute)
-                    .Include(r => r.BiotaPropertiesAttribute2nd)
-                    .Include(r => r.BiotaPropertiesBodyPart)
-                    .Include(r => r.BiotaPropertiesBookPageData)
-                    .Include(r => r.BiotaPropertiesBool)
-                    .Include(r => r.BiotaPropertiesContract)
-                    .Include(r => r.BiotaPropertiesCreateList)
-                    .Include(r => r.BiotaPropertiesDID)
-                    .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
-                    .Include(r => r.BiotaPropertiesEmoteAction)
-                    .Include(r => r.BiotaPropertiesEventFilter)
-                    .Include(r => r.BiotaPropertiesFloat)
-                    .Include(r => r.BiotaPropertiesFriendListFriend)
-                    .Include(r => r.BiotaPropertiesFriendListObject)
-                    .Include(r => r.BiotaPropertiesGenerator)
-                    .Include(r => r.BiotaPropertiesIID)
-                    .Include(r => r.BiotaPropertiesInt)
-                    .Include(r => r.BiotaPropertiesInt64)
-                    .Include(r => r.BiotaPropertiesPalette)
-                    .Include(r => r.BiotaPropertiesPosition)
-                    .Include(r => r.BiotaPropertiesShortcutBarObject)
-                    .Include(r => r.BiotaPropertiesSkill)
-                    .Include(r => r.BiotaPropertiesSpellBar)
-                    .Include(r => r.BiotaPropertiesSpellBook)
-                    .Include(r => r.BiotaPropertiesString)
-                    .Include(r => r.BiotaPropertiesTextureMap)
-                    .FirstOrDefault(r => r.Id == id);
+                return GetBiota(id, context);
+        }
 
-                return result;
-            }
+        private Biota GetBiota(uint id, ShardDbContext context)
+        {
+            return context.Biota
+                // Should we add .AsNoTracking() here since we're disposing of the context anyway?
+                .Include(r => r.BiotaPropertiesAnimPart)
+                .Include(r => r.BiotaPropertiesAttribute)
+                .Include(r => r.BiotaPropertiesAttribute2nd)
+                .Include(r => r.BiotaPropertiesBodyPart)
+                .Include(r => r.BiotaPropertiesBookPageData)
+                .Include(r => r.BiotaPropertiesBool)
+                .Include(r => r.BiotaPropertiesContract)
+                .Include(r => r.BiotaPropertiesCreateList)
+                .Include(r => r.BiotaPropertiesDID)
+                .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
+                .Include(r => r.BiotaPropertiesEmoteAction)
+                .Include(r => r.BiotaPropertiesEventFilter)
+                .Include(r => r.BiotaPropertiesFloat)
+                .Include(r => r.BiotaPropertiesFriendListFriend)
+                .Include(r => r.BiotaPropertiesFriendListObject)
+                .Include(r => r.BiotaPropertiesGenerator)
+                .Include(r => r.BiotaPropertiesIID)
+                .Include(r => r.BiotaPropertiesInt)
+                .Include(r => r.BiotaPropertiesInt64)
+                .Include(r => r.BiotaPropertiesPalette)
+                .Include(r => r.BiotaPropertiesPosition)
+                .Include(r => r.BiotaPropertiesShortcutBarObject)
+                .Include(r => r.BiotaPropertiesSkill)
+                .Include(r => r.BiotaPropertiesSpellBar)
+                .Include(r => r.BiotaPropertiesSpellBook)
+                .Include(r => r.BiotaPropertiesString)
+                .Include(r => r.BiotaPropertiesTextureMap)
+                .FirstOrDefault(r => r.Id == id);
         }
 
         public bool SaveBiota(Biota biota)
@@ -341,6 +344,36 @@ namespace ACE.Database
                     return false;
                 }
             }
+        }
+
+
+        public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
+        {
+            var inventory = new List<Biota>();
+
+            using (var context = new ShardDbContext())
+            {
+                var results = context.BiotaPropertiesIID
+                    .AsNoTracking()
+                    .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
+
+                foreach (var result in results)
+                {
+                    var biota = GetBiota(result.ObjectId);
+
+                    if (biota != null)
+                    {
+                        inventory.Add(biota);
+
+                        if (includedNestedItems && biota.WeenieType == (int) WeenieType.Container)
+                        {
+                            // todo
+                        }
+                    }
+                }
+            }
+
+            return inventory;
         }
     }
 }
