@@ -17,5 +17,10 @@ namespace ACE.Server.Physics.Common
         {
             return v;
         }
+
+        public Vector3 LocalToGlobalVec(Vector3 v)
+        {
+            return v;
+        }
     }
 }

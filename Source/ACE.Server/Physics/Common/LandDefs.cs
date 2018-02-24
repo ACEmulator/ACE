@@ -21,7 +21,7 @@ namespace ACE.Server.Physics.Common
             if (cellTo != 0)
             {
                 yShift21 = (cellTo >> 21) & 0x7F8;
-                yShift16 = 8 * (cellTo >> 16) & 0xFF;
+                yShift16 = 8 * ((cellTo >> 16) & 0xFF);
             }
             else
                 yShift21 = yShift16 = cellFrom;
