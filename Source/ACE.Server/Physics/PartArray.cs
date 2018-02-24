@@ -220,7 +220,7 @@ namespace ACE.Server.Physics
             }
 
             if (Owner != null)
-                Owner.InitDefaults(this);
+                Owner.InitDefaults(Setup);
         }
 
         public void InitializeMotionTables()

@@ -6,19 +6,6 @@ namespace ACE.Server.Physics.Collision
 {
     public class CollisionInfo
     {
-        /// <summary>
-        /// The walkable allowance when landing on the ground
-        /// </summary>
-        public static readonly float LandingZ = 0.0871557f;
-
-        public static readonly float DefaultFriction = 0.94999999f;
-
-        public static readonly float DefaultElasticity = 0.050000001f;
-
-        public static readonly float DefaultTranslucency = 0.0f;
-
-        public static readonly float DummySphereRadius = 0.1f;
-
         public bool LastKnownContactPlaneValid;
         public Plane LastKnownContactPlane;
         public bool LastKnownContactPlaneIsWater;
