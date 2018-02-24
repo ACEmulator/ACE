@@ -49,6 +49,8 @@ namespace ACE.Server.WorldObjects
             // What we end up with is a missing item in the players inventory. One of the inventory slots will be empty. The Placement property may jump from 4 to 6 where 5 was the one that was destroyed.
             // Same goes for addition
 
+            // This is just temp. It should probably go in the Player ctor.
+            // We should have a LoadInventory (Player ctor) and a LoadInventoryAsync (for landscape containers)
             var results = DatabaseManager.Shard.GetInventory(biota.Id, false);
 
             foreach (var result in results)
