@@ -61,7 +61,7 @@ namespace ACE.Server.WorldObjects
             var descriptionFlags = CalculatedDescriptionFlag();
 
             writer.Write((uint)weenieFlags);
-            writer.WriteString16L(Name);
+            writer.WriteString16L(Name ?? String.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
@@ -1047,75 +1047,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-
-
-        /// <summary>
-        /// Records where the client thinks we are, for use by physics engine later
-        /// </summary>
-        /// <param name="newPosition"></param>
-        protected void PrepUpdatePosition(Position newPosition)
-        {
-            RequestedLocation = newPosition;
-        }
-
-        public void ClearRequestedPositions()
-        {
-            ForcedLocation = null;
-            RequestedLocation = null;
-        }
-
-        /// <summary>
-        /// Used by physics engine to actually update the entities position
-        /// Automatically notifies clients of updated position
-        /// </summary>
-        /// <param name="newPosition"></param>
-        public void PhysicsUpdatePosition(Position newPosition)
-        {
-            Location = newPosition;
-            SendUpdatePosition();
-
-            ForcedLocation = null;
-            RequestedLocation = null;
-        }
-
-        /// <summary>
-        /// Manages action/broadcast infrastructure
-        /// </summary>
-        /// <param name="parent"></param>
-        public void SetParent(IActor parent)
-        {
-            CurrentParent = parent;
-            actionQueue.RemoveParent();
-            actionQueue.SetParent(parent);
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
-        {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        /// <param name="node"></param>
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-
-
         protected static void WriteIdentifyObjectHeader(BinaryWriter writer, IdentifyResponseFlags flags, bool success)
         {
             writer.Write((uint)flags); // Flags
@@ -1267,6 +1198,73 @@ namespace ACE.Server.WorldObjects
             writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponOffense)?.PropertyValue ?? 0.00);
             // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
             writer.Write(0u);
+        }
+
+
+        /// <summary>
+        /// Records where the client thinks we are, for use by physics engine later
+        /// </summary>
+        /// <param name="newPosition"></param>
+        protected void PrepUpdatePosition(Position newPosition)
+        {
+            RequestedLocation = newPosition;
+        }
+
+        public void ClearRequestedPositions()
+        {
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+        /// <summary>
+        /// Used by physics engine to actually update the entities position
+        /// Automatically notifies clients of updated position
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void PhysicsUpdatePosition(Position newPosition)
+        {
+            Location = newPosition;
+            SendUpdatePosition();
+
+            ForcedLocation = null;
+            RequestedLocation = null;
+        }
+
+
+        /// <summary>
+        /// Manages action/broadcast infrastructure
+        /// </summary>
+        /// <param name="parent"></param>
+        public void SetParent(IActor parent)
+        {
+            CurrentParent = parent;
+            actionQueue.RemoveParent();
+            actionQueue.SetParent(parent);
+        }
+
+        /// <summary>
+        /// Prepare new action to run on this object
+        /// </summary>
+        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        {
+            return actionQueue.EnqueueAction(action);
+        }
+
+        /// <summary>
+        /// Satisfies action interface
+        /// </summary>
+        /// <param name="node"></param>
+        public void DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
+        }
+
+        /// <summary>
+        /// Runs all actions pending on this WorldObject
+        /// </summary>
+        public void RunActions()
+        {
+            actionQueue.RunActions();
         }
     }
 }
