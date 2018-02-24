@@ -11,6 +11,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -34,13 +35,6 @@ namespace ACE.Server.WorldObjects
         public Container(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-        }
-
-        private void SetEphemeralValues()
-        {
-            SetProperty(PropertyInt.CoinValue, 0);
-            //SetProperty(PropertyInt.EncumbranceVal, 0);
-            //SetProperty(PropertyInt.Value, 0);
 
             // todo query the object for all biotas this container is the parent of.
             // If any of those biotas are also containers, their contents should also be returned.
@@ -54,6 +48,16 @@ namespace ACE.Server.WorldObjects
             // My thoughts with that are, what if an item is destroyed from the db. The player items are all shifted in the main pack, but the server crashes before the player (and the remaining items) are saved.
             // What we end up with is a missing item in the players inventory. One of the inventory slots will be empty. The Placement property may jump from 4 to 6 where 5 was the one that was destroyed.
             // Same goes for addition
+
+            var results = DatabaseManager.Shard.GetInventory(biota.Id, false);
+
+            foreach (var result in results)
+            {
+                var resultAsWorldObject = WorldObjectFactory.CreateWorldObject(result);
+                if (resultAsWorldObject.WeenieType == WeenieType.Container) // Todo currently loading containers crashes, need to fix that
+                    continue;
+                Inventory[resultAsWorldObject.Guid] = resultAsWorldObject;
+            }
 
             /*
             InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
@@ -71,21 +75,13 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"{aceObject.Name} is has {wo.Name} in inventory, adding {wo.Burden}, current Burden = {Burden}");
             }
             */
+        }
 
-            // todo
-            /*
-            WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
-            foreach (var wieldedItem in WieldedItems)
-            {
-                ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                throw new System.NotImplementedException();
-                //WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
-
-                Burden += wieldedItem.Value.EncumbranceVal;
-                log.Debug($"{weenie.GetProperty(PropertyString.Name)} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
-
-                Value += wieldedItem.Value.Value;
-            }*/
+        private void SetEphemeralValues()
+        {
+            SetProperty(PropertyInt.CoinValue, 0);
+            //SetProperty(PropertyInt.EncumbranceVal, 0);
+            //SetProperty(PropertyInt.Value, 0);
         }
 
 

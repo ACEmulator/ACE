@@ -37,6 +37,21 @@ namespace ACE.Server.WorldObjects
         public Creature(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+
+            // todo
+            /*
+            WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
+            foreach (var wieldedItem in WieldedItems)
+            {
+                ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
+                throw new System.NotImplementedException();
+                //WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
+
+                Burden += wieldedItem.Value.EncumbranceVal;
+                log.Debug($"{weenie.GetProperty(PropertyString.Name)} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
+
+                Value += wieldedItem.Value.Value;
+            }*/
         }
 
         private void SetEphemeralValues()
