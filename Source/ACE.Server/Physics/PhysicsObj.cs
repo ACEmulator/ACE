@@ -28,12 +28,12 @@ namespace ACE.Server.Physics
         public float DefaultScriptIntensity;
         public PhysicsObj Parent;
         public List<PhysicsObj> Children;
-        public Vector3 Position;
+        public Position Position;
         public ObjCell Cell;
         public int NumShadowObjects;
         public List<int> ShadowObjects;
         public PhysicsState State;
-        public int TransientState;
+        public TransientStateFlags TransientState;
         public float Elasticity;
         public float Translucency;
         public float TranslucencyOriginal;
@@ -264,34 +264,149 @@ namespace ACE.Server.Physics
 
         }
 
+        /// <summary>
+        /// Initializes the physics object from defaults in setup
+        /// </summary>
         public void InitDefaults(Setup setup)
         {
+            if (setup.DefaultScriptID != 0)
+                play_script_internal(setup.DefaultScriptID);
 
+            if (setup.DefaultMTableID != 0)
+                SetMotionTableID(setup.DefaultMTableID);
+
+            if (setup.DefaultSTableID != 0)
+            {
+                var qdid = new QualifiedDataID(setup.DefaultSTableID, 0x22);
+                SoundTable = (SoundTable)DBObj.Get(qdid);
+            }
+
+            if (setup.DefaultPhsTableID != 0)
+            {
+                var qdid = new QualifiedDataID(setup.DefaultPhsTableID, 0x2C);
+                PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
+            }
+
+            if (State.HasFlag(PhysicsState.Static))
+            {
+                if (setup.DefaultAnimID != 0)
+                    State |= PhysicsState.HasDefaultAnim;
+
+                if (setup.DefaultScriptID != 0)
+                    State |= PhysicsState.HasDefaultScript;
+
+                Physics.AddStaticAnimatingObject(this);
+            }
         }
 
+        /// <summary>
+        /// Initializes the PartArray from input dataDID
+        /// </summary>
         public bool InitNullObject(int dataDID)
         {
-            return false;
+            bool createdParts;
+            if (PartArray != null)
+                createdParts = PartArray.SetSetupID(dataDID, true);
+            else
+                createdParts = InitPartArrayObject(dataDID, true);
+
+            if (createdParts)
+            {
+                if (PartArray != null)
+                {
+                    PartArray.SetPlacementFrame(0x65);
+                    if (!State.HasFlag(PhysicsState.IgnoreCollisions))
+                        PartArray.SetFrame(Position.Frame);
+                }
+                return true;
+            }
+
+            return createdParts;
         }
 
-        public int InitObjectBegin(int objectIID, bool dynamic)
+        /// <summary>
+        /// Initializes a static or dynamic object from input ID
+        /// </summary>
+        public bool InitObjectBegin(int objectIID, bool dynamic)
         {
-            return -1;
+            ID = objectIID;
+
+            if (!dynamic)
+                State |= PhysicsState.Static;
+            else
+                State &= ~PhysicsState.Static;
+
+            TransientState &= ~TransientStateFlags.Active;
+            UpdateTime = Timer.CurrentTime;
+
+            return true;
         }
 
-        public int InitObjectEnd()
+        /// <summary>
+        /// Sets the placement frame for a part frame
+        /// </summary>
+        public bool InitObjectEnd()
         {
-            return -1;
+            if (PartArray != null)
+            {
+                PartArray.SetPlacementFrame(0x65);
+
+                if (!State.HasFlag(PhysicsState.IgnoreCollisions))
+                    PartArray.SetFrame(Position.Frame);
+            }
+            return true;
         }
 
-        public int InitPartArrayObject(int dataDID, bool createParts)
+        /// <summary>
+        /// Initializes a new PartArray from a dataDID
+        /// </summary>
+        public bool InitPartArrayObject(int dataDID, bool createParts)
         {
-            return -1;
+            if (dataDID == 0) return false;     // stru_843D84
+            var ethereal = false;
+
+            var divineType = MasterDBMap.DivineType(dataDID);
+            if (divineType == 6)
+            {
+                PartArray = PartArray.CreateMesh(dataDID);
+            }
+            else
+            {
+                if (divineType != 7)
+                {
+                    if ((dataDID & 0xFF000000) != 0)
+                        return false;
+
+                    ethereal = true;
+
+                    if (!makeAnimObject(dataDID | 0x2000000, createParts))
+                        return false;
+                }
+
+                if (!ethereal)
+                    PartArray.Setup = PartArray.CreateSetup(this, dataDID, createParts);
+            }
+
+            if (PartArray == null) return false;
+            CacheHasPhysicsBSP();
+            if (ethereal)
+            {
+                State |= PhysicsState.Ethereal;
+                TransientState &= ~TransientStateFlags.CheckEthereal;
+                SetTranslucencyInternal(0.25f);
+                State |= PhysicsState.IgnoreCollisions;
+            }
+
+            return true;
         }
 
+        /// <summary>
+        /// Initializes the motion tables for the physics parts
+        /// </summary>
         public void InitializeMotionTables()
         {
-
+            if (PartArray != null)
+                PartArray.InitializeMotionTables();
         }
 
         public InterpretedMotionState InqInterpretedMotionState()

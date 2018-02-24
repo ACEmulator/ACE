@@ -62,10 +62,10 @@ namespace ACE.Server.Physics
                 MotionTableManager.CheckForCompletedMotions();
         }
 
-        public void CreateMesh(int setupDID)
+        public static PartArray CreateMesh(int setupDID)
         {
-            // what object is this referencing?
-            // var mesh = new Mesh();
+            // TODO
+            return null;
         }
 
         public Particle CreateParticle(PhysicsObj owner, int numParts, Sphere sortingSphere)
