@@ -34,6 +34,20 @@ namespace ACE.Server.Physics
         Frozen = 0x1000000
     };
 
+    [Flags]
+    public enum TransientStateFlags
+    {
+        Contact = 0x1,
+        OnWalkable = 0x2,
+        Sliding = 0x4,
+        WaterContact = 0x8,
+        StationaryFall = 0x10,
+        StationaryStop = 0x20,
+        StationaryStuck = 0x40,
+        Active = 0x80,
+        CheckEthereal = 0x100
+    };
+
     public enum PhysicsTimeStamp
     {
         Position = 0x0,
@@ -54,5 +68,10 @@ namespace ACE.Server.Physics
         public SmartBox SmartBox;
         public PhysicsObj Player;
         public List<PhysicsObj> Iter;
+
+        public static void AddStaticAnimatingObject(PhysicsObj obj)
+        {
+
+        }
     }
 }
