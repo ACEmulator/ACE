@@ -95,16 +95,17 @@ namespace ACE.Server.WorldObjects
             foreach (WorldObject invItem in Inventory.Values)
             {
                 session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
-                // Was the item I just send a container?   If so, we need to send the items in the container as well. Og II
-                if (invItem.WeenieType != WeenieType.Container)
-                    continue;
 
-                Session.Network.EnqueueSend(new GameEventViewContents(Session, invItem.SnapShotOfAceObject()));
-                throw new System.NotImplementedException();/*
-                foreach (WorldObject itemsInContainer in invItem.InventoryObjects.Values)
+                // Was the item I just send a container? If so, we need to send the items in the container as well. Og II
+                if (invItem.WeenieType == WeenieType.Container)
                 {
-                    session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
-                }*/
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, invItem.SnapShotOfAceObject()));
+                    throw new System.NotImplementedException(); /*
+                    foreach (WorldObject itemsInContainer in invItem.InventoryObjects.Values)
+                    {
+                        session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
+                    }*/
+                }
             }
 
             foreach (WorldObject wieldedObject in WieldedObjects.Values)
