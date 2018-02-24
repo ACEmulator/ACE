@@ -285,7 +285,7 @@ namespace ACE.Server.Physics
             else
             {
                 path.SetCollide(collisionNormal);
-                path.WalkableAllowance = CollisionInfo.LandingZ;
+                path.WalkableAllowance = PhysicsGlobals.LandingZ;
                 return TransitionState.Adjusted;
             }
         }
