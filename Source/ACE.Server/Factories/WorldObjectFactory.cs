@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using ACE.Database;
@@ -7,11 +8,14 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using log4net;
 
 namespace ACE.Server.Factories
 {
     public static class WorldObjectFactory
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -116,29 +120,106 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
-        public static List<WorldObject> CreateWorldObjects(Dictionary<Weenie, List<LandblockInstances>> sourceObjects)
+        public static List<WorldObject> CreateWorldObjects(List<LandblockInstances> sourceObjects)
         {
             var results = new List<WorldObject>();
 
-            foreach (var kvp in sourceObjects)
+            var linkSourceResults = new List<LandblockInstances>();
+            var linkResults = new Dictionary<int, List<LandblockInstances>>();
+
+            foreach (var aceO in sourceObjects)
             {
-                foreach (var landblockInstance in kvp.Value)
+                if (aceO.LinkSlot > 0)
                 {
-                    ObjectGuid guid;
+                    if (aceO.LinkController ?? false)
+                    {
+                        linkSourceResults.Add(aceO);
+                        continue;
+                    }
 
-                    if (landblockInstance.Guid != 0)
-                        guid = new ObjectGuid(landblockInstance.Guid);
-                    else
-                        guid = GuidManager.NewDynamicGuid();
+                    if (!linkResults.ContainsKey((int)aceO.LinkSlot))
+                        linkResults.Add((int)aceO.LinkSlot, new List<LandblockInstances>());
+                    linkResults[(int)aceO.LinkSlot].Add(aceO);
+                    continue;
+                }
 
-                    var worldObject = CreateWorldObject(kvp.Key, guid);
+                var weenie = DatabaseManager.World.GetCachedWeenie(aceO.WeenieClassId);
 
-                    worldObject.SetPosition(PositionType.Location, new Position(landblockInstance.ObjCellId, landblockInstance.OriginX, landblockInstance.OriginY, landblockInstance.OriginZ, landblockInstance.AnglesX, landblockInstance.AnglesY, landblockInstance.AnglesZ, landblockInstance.AnglesW));
+                if (weenie == null)
+                    continue;
 
-                    // todo what about LinkSlot and LinkController? See below commented out code CreateWorldObjects
+                ObjectGuid guid;
+
+                if (aceO.Guid != 0)
+                    guid = new ObjectGuid(aceO.Guid);
+                else
+                    guid = GuidManager.NewDynamicGuid();
+
+                var worldObject = CreateWorldObject(weenie, guid);
+
+                if (worldObject != null)
+                {
+                    worldObject.SetPosition(PositionType.Location, new Position(aceO.ObjCellId, aceO.OriginX, aceO.OriginY, aceO.OriginZ, aceO.AnglesX, aceO.AnglesY, aceO.AnglesZ, aceO.AnglesW));
 
                     results.Add(worldObject);
                 }
+            }
+
+            foreach (var aceO in linkSourceResults)
+            {
+                int linkSlot = (int)aceO.LinkSlot;
+
+                var weenie = DatabaseManager.World.GetCachedWeenie(aceO.WeenieClassId);
+
+                if (weenie == null)
+                    continue;
+
+                ObjectGuid guid;
+
+                if (aceO.Guid != 0)
+                    guid = new ObjectGuid(aceO.Guid);
+                else
+                    guid = GuidManager.NewDynamicGuid();
+
+                var worldObject = CreateWorldObject(weenie, guid);
+
+                if (worldObject == null)
+                    continue;
+
+                worldObject.SetPosition(PositionType.Location, new Position(aceO.ObjCellId, aceO.OriginX, aceO.OriginY, aceO.OriginZ, aceO.AnglesX, aceO.AnglesY, aceO.AnglesZ, aceO.AnglesW));
+
+                if (linkResults.ContainsKey(linkSlot) && worldObject.GeneratorProfiles.Count > 0)
+                {
+                    var profileTemplate = worldObject.GeneratorProfiles[0];
+                    foreach (var link in linkResults[linkSlot])
+                    {
+                        var profile = new BiotaPropertiesGenerator();
+                        profile.WeenieClassId = link.WeenieClassId;
+                        profile.ObjCellId = link.ObjCellId;
+                        profile.OriginX = link.OriginX;
+                        profile.OriginY = link.OriginY;
+                        profile.OriginZ = link.OriginZ;
+                        profile.AnglesW = link.AnglesW;
+                        profile.AnglesX = link.AnglesX;
+                        profile.AnglesY = link.AnglesY;
+                        profile.AnglesZ = link.AnglesZ;
+                        profile.Probability = Math.Abs(profileTemplate.Probability);
+                        profile.InitCreate = profileTemplate.InitCreate;
+                        profile.MaxCreate = profileTemplate.MaxCreate;
+                        profile.WhenCreate = profileTemplate.WhenCreate;
+                        profile.WhereCreate = profileTemplate.WhereCreate;
+                        worldObject.GeneratorProfiles.Add(profile);
+                    }
+
+                    worldObject.SelectGeneratorProfiles();
+                    worldObject.UpdateGeneratorInts();
+                    worldObject.QueueGenerator();
+                }
+
+                if (linkResults.ContainsKey(linkSlot) && worldObject.GeneratorProfiles.Count == 0)
+                    log.Error($"Encountered an Instance ({aceO.Id}) Linked to a Weenie ({aceO.WeenieClassId}) with no GeneratorProfiles to template from.");
+
+                results.Add(worldObject);
             }
 
             return results;
@@ -181,99 +262,6 @@ namespace ACE.Server.Factories
                 return null;
 
             return CreateNewWorldObject(classId);
-        }
-
-
-
-
-
-        // todo DO WE NEED TO INCORP THIS CODE INTO THE NEW ENTITY FRAMEWORK MODEL?
-        // I'm not sure aobut the Link stuff
-        private static List<WorldObject> CreateWorldObjects(List<AceObject> sourceObjects)
-        {
-            throw new System.NotImplementedException();
-            /*var results = new List<WorldObject>();
-
-            var linkSourceResults = new List<AceObject>();
-            var linkResults = new Dictionary<int, List<AceObject>>();
-
-            foreach (var aceO in sourceObjects)
-            {
-                if (aceO.LinkSlot > 0)
-                {
-                    if (aceO.LinkSource ?? false)
-                    {
-                        linkSourceResults.Add(aceO);
-                        continue;
-                    }
-
-                    if (!linkResults.ContainsKey((int)aceO.LinkSlot))
-                        linkResults.Add((int)aceO.LinkSlot, new List<AceObject>());
-                    linkResults[(int)aceO.LinkSlot].Add(aceO);
-                    continue;
-                }
-
-                if (aceO.Location != null)
-                {
-                    WorldObject wo;
-
-                    if (aceO.AceObjectId > 0)
-                        wo = CreateWorldObject(aceO);
-                    else
-                    {
-                        // Here we're letting the server assign the guid (We're not doing a clone because the object will never be saved back to db)
-                        aceO.AceObjectId = GuidManager.NewGeneratorGuid().Full;
-                        wo = CreateWorldObject(aceO);
-                    }
-
-                    if (wo != null)
-                        results.Add(wo);                  
-                }
-            }
-
-            foreach (var aceO in linkSourceResults)
-            {
-                int linkSlot = (int)aceO.LinkSlot;
-
-                WorldObject wo;
-
-                if (aceO.AceObjectId > 0)
-                    wo = CreateWorldObject(aceO);
-                else
-                {
-                    // Here we're letting the server assign the guid (We're not doing a clone because the object will never be saved back to db)
-                    aceO.AceObjectId = GuidManager.NewGeneratorGuid().Full;
-                    wo = CreateWorldObject(aceO);
-                }
-
-                if (linkResults.ContainsKey(linkSlot) && wo.GeneratorProfiles.Count > 0)
-                {
-                    var profileTemplate = wo.GeneratorProfiles[0];
-                    foreach (var link in linkResults[linkSlot])
-                    {
-                        var profile = (AceObjectGeneratorProfile)profileTemplate.Clone();
-                        profile.WeenieClassId = link.WeenieClassId;
-                        profile.LandblockRaw = link.Location.Cell;
-                        profile.PositionX = link.Location.PositionX;
-                        profile.PositionY = link.Location.PositionY;
-                        profile.PositionZ = link.Location.PositionZ;
-                        profile.RotationW = link.Location.RotationW;
-                        profile.RotationX = link.Location.RotationX;
-                        profile.RotationY = link.Location.RotationY;
-                        profile.RotationZ = link.Location.RotationZ;
-                        profile.Probability = Math.Abs(profile.Probability);
-                        wo.GeneratorProfiles.Add(profile);
-                    }
-
-                    wo.SelectGeneratorProfiles();
-                    wo.UpdateGeneratorInts();
-                    wo.QueueGenerator();
-                }
-
-                if (wo != null)
-                    results.Add(wo);
-            }
-            return results;*/
         }
     }
 }

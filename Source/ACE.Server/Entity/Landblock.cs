@@ -737,7 +737,7 @@ namespace ACE.Server.Entity
                 List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
                 foreach (Player p in allPlayers)
                 {
-                    if (p.Location.DistanceTo(pos) < distance * distance)
+                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
                     {
                         p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
                     }
