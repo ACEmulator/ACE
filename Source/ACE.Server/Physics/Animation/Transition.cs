@@ -30,6 +30,16 @@ namespace ACE.Server.Physics.Animation
             NewCellPtr = new ObjCell();
         }
 
+        public static Transition MakeTransition()
+        {
+            return null;
+        }
+
+        public void InitObject(PhysicsObj obj, ObjectInfoState objectState)
+        {
+            ObjectInfo.Init(obj, objectState);
+        }
+
         public void CacheLocalSpaceSphere(Position pos, float scaleZ)
         {
 
@@ -38,6 +48,16 @@ namespace ACE.Server.Physics.Animation
         public bool StepUp(Vector3 collisionNormal)
         {
             return true;
+        }
+
+        public void InitSphere(int numSphere, Sphere sphere, float scale)
+        {
+            SpherePath.InitSphere(numSphere, new List<Sphere>() { sphere }, scale);
+        }
+
+        public void CleanupTransition()
+        {
+
         }
     }
 }

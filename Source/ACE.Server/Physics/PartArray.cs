@@ -156,6 +156,11 @@ namespace ACE.Server.Physics
             return Setup.NumCylsphere;
         }
 
+        public int GetNumSphere()
+        {
+            return Setup.NumSphere;
+        }
+
         public float GetRadius()
         {
             return Setup.Radius * Scale.Z;
@@ -474,6 +479,50 @@ namespace ACE.Server.Physics
         }
 
         public void DestroyLights()
+        {
+
+        }
+
+        public void SetDiffusionInternal(float diff)
+        {
+
+        }
+
+        public void SetPartDiffusionInternal(int partIdx, float diff)
+        {
+        }
+
+        public void SetLightingInternal(float luminosity, float diffuse)
+        {
+
+        }
+
+        public bool SetPartLightingInternal(int partIdx, float luminosity, float diffuse)
+        {
+            return false;
+        }
+
+        public void SetLuminosityInternal(float luminosity)
+        {
+
+        }
+
+        public void SetPartLuminosityInternal(int partIdx, float luminosity)
+        {
+
+        }
+
+        public void SetPartTextureVelocityInternal(int partIdx, float du, float dv)
+        {
+
+        }
+
+        public void SetPartTranslucencyInternal(int partIdx, float translucency)
+        {
+
+        }
+
+        public void SetTextureVelocityInternal(float du, float dv)
         {
 
         }

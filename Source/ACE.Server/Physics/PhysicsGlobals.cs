@@ -1,3 +1,6 @@
+using System;
+using System.Numerics;
+
 namespace ACE.Server.Physics
 {
     public class PhysicsGlobals
@@ -28,6 +31,10 @@ namespace ACE.Server.Physics
         /// </summary>
         public static readonly float LandingZ = 0.0871557f;
 
+        public static readonly float FloorZ = -0.95241298f;
+
         public static readonly float DummySphereRadius = 0.1f;
+
+        public static readonly Sphere DummySphere = new Sphere(Vector3.Zero, DummySphereRadius);
     }
 }
