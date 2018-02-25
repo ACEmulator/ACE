@@ -340,6 +340,12 @@ namespace ACE.Server.Network.Handlers
                         }
 
                         var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                        if (loot == null)
+                        {
+                            CreateIOU(player, item.WeenieId);
+                            continue;
+                        }
+
                         if (player.TryAddToInventory(loot))
                             grantedWeenies.Add(item.WeenieId);
                     }
@@ -360,6 +366,11 @@ namespace ACE.Server.Network.Handlers
                             }
 
                             var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                            if (loot == null)
+                            {
+                                CreateIOU(player, item.WeenieId);
+                                continue;
+                            }
                             if (player.TryAddToInventory(loot))
                                 grantedWeenies.Add(item.WeenieId);
                         }

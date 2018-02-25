@@ -25,6 +25,8 @@ namespace ACE.Server.Factories
 
             switch (objWeenieType)
             {
+                case WeenieType.Undef:
+                    return null;
                 case WeenieType.LifeStone:
                     return new Lifestone(weenie, guid);
                 case WeenieType.Door:
@@ -76,6 +78,8 @@ namespace ACE.Server.Factories
 
             switch (objWeenieType)
             {
+                case WeenieType.Undef:
+                    return null;
                 case WeenieType.LifeStone:
                     return new Lifestone(biota);
                 case WeenieType.Door:
