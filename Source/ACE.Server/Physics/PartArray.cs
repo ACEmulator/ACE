@@ -22,7 +22,7 @@ namespace ACE.Server.Physics
         public Vector3 Scale;
         public AnimFrame LastAnimFrame;
         
-        public int AllowsFreeHeading()
+        public bool AllowsFreeHeading()
         {
             return Setup.AllowFreeHeading;
         }

@@ -31,5 +31,10 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public double get_heading()
+        {
+            return -1;
+        }
     }
 }

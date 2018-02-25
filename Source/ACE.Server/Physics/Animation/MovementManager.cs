@@ -23,5 +23,20 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public MotionInterp get_minterp()
+        {
+            return null;
+        }
+
+        public static MovementManager Create(PhysicsObj obj, WeenieObject wobj)
+        {
+            return null;
+        }
+
+        public void EnterDefaultState()
+        {
+
+        }
     }
 }

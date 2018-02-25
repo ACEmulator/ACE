@@ -444,7 +444,7 @@ namespace ACE.Server.Physics
             return false;
         }
 
-        public void MakeMovementManager(int init_motion)
+        public void MakeMovementManager(bool init_motion)
         {
 
         }
@@ -541,7 +541,7 @@ namespace ACE.Server.Physics
             if (!PartArray.SetMotionTableID(mtableID)) return false;
 
             MovementManager = null;
-            if (mtableID != 0) MakeMovementManager(1);
+            if (mtableID != 0) MakeMovementManager(true);
 
             return true;
         }
@@ -1073,9 +1073,9 @@ namespace ACE.Server.Physics
             return -1;
         }
 
-        public int check_contact(int contact)
+        public bool check_contact(bool contact)
         {
-            return -1;
+            return false;
         }
 
         public void clear_sequence_anims()
@@ -1145,73 +1145,142 @@ namespace ACE.Server.Physics
 
         public int get_curr_frame_number()
         {
-            return -1;
+            if (PartArray != null)
+                return PartArray.Sequence.GetCurrFrameNumber();
+            else
+                return 0;
         }
 
-        public double get_distance_to_object(PhysicsObj obj, int use_cyls)
+        public double get_distance_to_object(PhysicsObj obj, bool use_cyls)
         {
-            return -1;
+            if (!use_cyls)
+                return Position.Distance(obj.Position);
+
+            var height = obj.PartArray != null ? obj.PartArray.GetHeight() : 0.0f;
+            var radius = obj.PartArray != null ? obj.PartArray.GetRadius() : 0.0f;
+
+            var curHeight = PartArray != null ? PartArray.GetHeight() : 0.0f;
+            var curRadius = PartArray != null ? PartArray.GetRadius() : 0.0f;
+
+            return Position.CylinderDistance(curRadius, curHeight, radius, height, obj.Position);
         }
 
         public AFrame get_frame()
         {
-            return null;
+            return Position.Frame;
         }
 
         public double get_heading()
         {
-            return -1;
+            return Position.Frame.get_heading();
         }
 
         public int get_landscape_coord(int x, int y)
         {
-            return -1;
+            return LandDefs.gid_to_lcoord(Position.ObjCellID, x, y);
         }
 
-        public void get_local_physics_velocity(ref Vector3 retval)
+        public Vector3 get_local_physics_velocity()
         {
-
+            return Position.GlobalToLocalVec(Velocity);
         }
 
         public MotionInterp get_minterp()
         {
-            return null;
+            if (MovementManager == null)
+            {
+                MovementManager = MovementManager.Create(this, WeenieObj);
+                MovementManager.EnterDefaultState();
+                if (State.HasFlag(PhysicsState.Static))
+                {
+                    if (TransientState.HasFlag(TransientStateFlags.Active))
+                    {
+                        // loword = cmd, hiword = param
+                        // refactor...
+                        UpdateTime = Timer.CurrentTime;
+                    }
+                    TransientState |= TransientStateFlags.Active;
+                }
+            }
+            return MovementManager.get_minterp();
         }
 
         public int get_num_emitters()
         {
-            return -1;
+            if (ParticleManager == null)
+                return 0;
+
+            return ParticleManager.GetNumEmitters();
         }
 
-        public int get_object_info(Transition transition, int adminMove)
+        public ObjectInfo get_object_info(Transition transition, bool adminMove)
         {
-            return -1;
+            var objInfo = new ObjectInfo();
+            if (State.HasFlag(PhysicsState.EdgeSlide))
+                objInfo.State |= ObjectInfoState.EdgeSlide;
+
+            if (!adminMove)
+            {
+                if (TransientState.HasFlag(TransientStateFlags.Contact))
+                {
+                    var isWater = TransientState.HasFlag(TransientStateFlags.WaterContact);
+
+                    if (check_contact(true))
+                    {
+                        transition.InitContactPlane(ContactPlaneCellID, ContactPlane, isWater);
+
+                        objInfo.State |= ObjectInfoState.Contact;
+                        if (TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                            objInfo.State |= ObjectInfoState.OnWalkable;
+                    }
+                    else
+                        transition.InitLastKnownContactPlane(ContactPlaneCellID, ContactPlane, isWater);
+                }
+
+                if (TransientState.HasFlag(TransientStateFlags.Sliding))
+                    transition.InitSlidingNormal(SlidingNormal);
+            }
+
+            if (PartArray != null && PartArray.AllowsFreeHeading())
+                objInfo.State |= ObjectInfoState.FreeRotate;
+
+            if (State.HasFlag(PhysicsState.Missile))
+                objInfo.State |= ObjectInfoState.PathClipped;
+
+            return objInfo;
+
         }
 
         public PositionManager get_position_manager()
         {
-            return null;
+            MakePositionManager();
+
+            return PositionManager;
         }
 
         public int get_sticky_object()
         {
-            return -1;
+            if (PositionManager == null) return 0;
+
+            return PositionManager.GetStickyObjectID();
         }
 
         public double get_target_quantum()
         {
-            return -1;
+            if (TargetManager == null || TargetManager.TargetInfo == null)
+                return 0.0f;
+
+            return TargetManager.TargetInfo.Quantum;
         }
 
         public Vector3 get_velocity()
         {
-            return Vector3.Zero;
+            return CachedVelocity;
         }
 
         public double get_walkable_z()
         {
-            //return PhysicsGlobals.FloorZ;
-            return -1;
+            return PhysicsGlobals.FloorZ;
         }
 
         public bool handle_all_collisions(CollisionInfo collisions, TransientStateFlags prev_has_contact, TransientStateFlags prev_on_walkable)

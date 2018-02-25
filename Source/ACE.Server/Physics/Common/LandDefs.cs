@@ -31,5 +31,10 @@ namespace ACE.Server.Physics.Common
 
             return new Vector3(shift21Diff * 24, shift16Diff * 24, 0);
         }
+
+        public static int gid_to_lcoord(int cellID, int x, int y)
+        {
+            return -1;
+        }
     }
 }

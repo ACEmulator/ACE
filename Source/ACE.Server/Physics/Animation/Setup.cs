@@ -16,7 +16,7 @@ namespace ACE.Server.Physics.Animation
         public int NumSphere;
         public Sphere Sphere;
         public int HasPhysicsBSP;
-        public int AllowFreeHeading;
+        public bool AllowFreeHeading;
         public float Height;
         public float Radius;
         public float StepDownHeight;

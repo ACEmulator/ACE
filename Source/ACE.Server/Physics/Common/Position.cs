@@ -22,5 +22,20 @@ namespace ACE.Server.Physics.Common
         {
             return v;
         }
+
+        public double Distance(Position pos)
+        {
+            return -1;
+        }
+
+        public double CylinderDistance(float curRadius, float curHeight, float radius, float height, Position pos)
+        {
+            return -1;
+        }
+
+        public Vector3 GlobalToLocalVec(Vector3 global)
+        {
+            return global;
+        }
     }
 }

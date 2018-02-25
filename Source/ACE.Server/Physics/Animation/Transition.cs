@@ -59,5 +59,20 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public void InitContactPlane(int cellID, Plane contactPlane, bool isWater)
+        {
+
+        }
+
+        public void InitLastKnownContactPlane(int cellID, Plane contactPlane, bool isWater)
+        {
+
+        }
+
+        public void InitSlidingNormal(Vector3 normal)
+        {
+
+        }
     }
 }
