@@ -56,8 +56,6 @@ namespace ACE.Server.WorldObjects
             foreach (var result in results)
             {
                 var resultAsWorldObject = WorldObjectFactory.CreateWorldObject(result);
-                if (resultAsWorldObject.WeenieType == WeenieType.Container) // Todo currently loading containers crashes, need to fix that
-                    continue;
                 Inventory[resultAsWorldObject.Guid] = resultAsWorldObject;
             }
 

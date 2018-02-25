@@ -539,8 +539,8 @@ namespace ACE.Server.WorldObjects
                 wo.ContainerId = (int)packid;
                 AddToInventory(wo);
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                if (wo.WeenieType == WeenieType.Container)
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, wo.SnapShotOfAceObject()));
+                if (wo is Container container)
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
             }
         }
 
@@ -1469,15 +1469,15 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                if (item.WeenieType == WeenieType.Container)
+                if (item is Container itemAsContainer)
                 {
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, item.SnapShotOfAceObject()));
-                    throw new System.NotImplementedException();/*
-                    foreach (var packItem in item.InventoryObjects)
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
+
+                    foreach (var packItem in itemAsContainer.Inventory)
                     {
                         Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
                         UpdateCurrencyClientCalculations(WeenieType.Coin);
-                    }*/
+                    }
                 }
 
                 // Update all our stuff if we succeeded
