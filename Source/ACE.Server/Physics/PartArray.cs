@@ -323,7 +323,7 @@ namespace ACE.Server.Physics
             }
         }
 
-        public void SetFrame(Frame frame)
+        public void SetFrame(AFrame frame)
         {
             UpdateParts(frame);
             // remove lights
@@ -413,6 +413,11 @@ namespace ACE.Server.Physics
             return true;
         }
 
+        public void SetTranslucencyInternal(float translucency)
+        {
+
+        }
+
         public int StopCompletelyInternal()
         {
             if (MotionTableManager == null) return 7;
@@ -435,12 +440,12 @@ namespace ACE.Server.Physics
             return MotionTableManager.PerformMovement(mvs, Sequence);   // how to add frame/input data?
         }
 
-        public void Update(float quantum, Frame offsetFrame)
+        public void Update(float quantum, AFrame offsetFrame)
         {
             Sequence.Update(quantum, offsetFrame);
         }
 
-        public void UpdateParts(Frame frame)
+        public void UpdateParts(AFrame frame)
         {
             var animFrame = Sequence.GetCurrAnimFrame();
             if (animFrame == null) return;
@@ -451,6 +456,26 @@ namespace ACE.Server.Physics
             {
                 Parts[i].Pos.Frame.Combine(frame, animFrame.Frame[i], Scale);
             }
+        }
+
+        public void SetNoDrawInternal(bool noDraw)
+        {
+
+        }
+
+        public void HandleEnterWorld()
+        {
+
+        }
+
+        public void InitLights()
+        {
+
+        }
+
+        public void DestroyLights()
+        {
+
         }
     }
 }

@@ -13,5 +13,18 @@ namespace ACE.Entity
         /// Negative framerates play animation in reverse
         /// </summary>
         public float Framerate { get; set; }
+
+        public AnimData()
+        {
+
+        }
+
+        public AnimData(int animationID, int lowFrame, int highFrame, float framerate)
+        {
+            AnimId = animationID;
+            LowFrame = lowFrame;
+            HighFrame = highFrame;
+            Framerate = framerate;
+        }
     }
 }

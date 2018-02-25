@@ -9,10 +9,10 @@ namespace ACE.Server.Physics
     {
         public int Bitfield;
         public object MovementBuffer;
-        public int AutonomousMovement;
+        public bool AutonomousMovement;
         public int AnimFrameID;
         public Position Pos;
-        public int State;
+        public PhysicsState State;
         public float ObjectScale;
         public float Friction;
         public float Elasticity;
@@ -27,10 +27,30 @@ namespace ACE.Server.Physics
         public int LocationID;
         public int MTableID;
         public int STableID;
-        public int PHSTableID;
+        public int PhsTableID;
         public PlayScript DefaultScript;
         public float DefaultScriptIntensity;
         public int SetupID;
         public int[] Timestamps;
+
+        public int GetMTableID()
+        {
+            return -1;
+        }
+
+        public bool get_autonomous_movement()
+        {
+            return AutonomousMovement;
+        }
+
+        public int get_animframe_id()
+        {
+            return AnimFrameID;
+        }
+
+        public int get_timestamp(int timeStampIdx)
+        {
+            return Timestamps[timeStampIdx];
+        }
     }
 }
