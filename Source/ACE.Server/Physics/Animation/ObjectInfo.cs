@@ -30,5 +30,10 @@ namespace ACE.Server.Physics.Animation
         public int Ethereal;
         public int StepDown;
         public int TargetID;
+
+        public void Init(PhysicsObj obj, ObjectInfoState state)
+        {
+
+        }
     }
 }

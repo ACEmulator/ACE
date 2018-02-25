@@ -61,5 +61,10 @@ namespace ACE.Server.Physics.Animation
         {
             return null;
         }
+
+        public int GetCurrFrameNumber()
+        {
+            return -1;
+        }
     }
 }

@@ -6,5 +6,10 @@ namespace ACE.Server.Physics.Animation
         public StickyManager StickyManager;
         public ConstraintManager ConstraintManager;
         public PhysicsObj PhysicsObj;
+
+        public int GetStickyObjectID()
+        {
+            return -1;
+        }
     }
 }

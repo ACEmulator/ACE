@@ -6,5 +6,10 @@ namespace ACE.Server.Physics
     {
         public int NextEmitterId;
         public HashSet<ParticleEmitterInfo> ParticleTable;
+
+        public int GetNumEmitters()
+        {
+            return ParticleTable.Count;
+        }
     }
 }
