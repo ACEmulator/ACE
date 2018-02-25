@@ -34,7 +34,7 @@ namespace ACE.Entity
             PhysicsState = 0;
 
             WeenieClassId = 1;
-            SetProperty(PropertyInt.WeenieType, (int)Enum.WeenieType.Creature); // This might need to change
+            //SetProperty(PropertyInt.WeenieType, (int)Enum.WeenieType.Creature); // This might need to change
             SetProperty(PropertyDataId.Icon, 100667446);
             SetProperty(PropertyInt.ItemType, (int)Enum.ItemType.Creature);
             // SetIntProperty(PropertyInt.RadarBlipColor, (byte)RadarColor.White);

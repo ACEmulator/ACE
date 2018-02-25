@@ -188,12 +188,6 @@ namespace ACE.Entity
             set { SetProperty(PropertyInt.PhysicsState, value); }
         }
 
-        [JsonIgnore]
-        public int? WeenieType
-        {
-            get { return GetProperty(PropertyInt.WeenieType); }
-            set { SetProperty(PropertyInt.WeenieType, value); }
-        }
 
         [JsonIgnore]
         public int? ItemType
@@ -1216,13 +1210,6 @@ namespace ACE.Entity
         {
             get { return GetProperty(PropertyBool.RequiresBackpackSlot); }
             set { SetProperty(PropertyBool.RequiresBackpackSlot, value); }
-        }
-
-        [JsonIgnore]
-        public bool UseBackpackSlot
-        {
-            get { return (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) ||
-                          GetProperty(PropertyInt.WeenieType) == (uint)Enum.WeenieType.Container; }
         }
 
         [JsonIgnore]

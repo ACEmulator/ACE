@@ -424,8 +424,8 @@ namespace ACE.Entity.Enum.Properties
         LootTier                                 = 9005,
         [ServerOnly]
         GeneratorProbability                     = 9006,
-        [ServerOnly]
-        WeenieType                               = 9007
+        //[ServerOnly]
+        //WeenieType                               = 9007 // I don't think this property type is needed anymore. We don't store the weenie type in the property bags, we store it as a separate field in the base objects.
     }
 
     public static class PropertyIntExtensions

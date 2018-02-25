@@ -1680,7 +1680,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public bool UseBackpackSlot => (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) || GetProperty(PropertyInt.WeenieType) == (uint)WeenieType.Container;
+        public bool UseBackpackSlot => (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) || WeenieType == WeenieType.Container;
 
 
         //public uint? AllowedActivator
