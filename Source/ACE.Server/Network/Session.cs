@@ -36,6 +36,8 @@ namespace ACE.Server.Network
 
         public Character CharacterRequested { get; set; }
 
+        public Character Character { get; set; }
+
         public Player Player { get; private set; }
 
         private DateTime logOffRequestTime;
@@ -288,7 +290,7 @@ namespace ACE.Server.Network
             DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
             {
                 UpdateCachedCharacters(result);
-                Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+                Network.EnqueueSend(new GameMessageCharacterList(result, this));
 
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
                 Network.EnqueueSend(serverNameMessage);

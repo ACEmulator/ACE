@@ -94,6 +94,11 @@ namespace ACE.Database
             }));
         }
 
+        public bool IsCharacterPlussed(uint biotaId)
+        {
+            return _wrappedDatabase.IsCharacterPlussed(biotaId);
+        }
+
         public void AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory, Action<bool> callback)
         {
             _queue.Add(new Task(() =>

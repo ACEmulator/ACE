@@ -95,6 +95,33 @@ namespace ACE.Database
             }
         }
 
+        public bool IsCharacterPlussed(uint biotaId)
+        {
+            var ret = false;
+
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Biota
+                    .AsNoTracking()
+                    .Include(r => r.BiotaPropertiesBool)
+                    .FirstOrDefault(r => r.Id == biotaId);
+
+                if (result.GetProperty(PropertyBool.IsAdmin) ?? false)
+                    ret = true;
+                if (result.GetProperty(PropertyBool.IsArch) ?? false)
+                    ret = true;
+                if (result.GetProperty(PropertyBool.IsPsr) ?? false)
+                    ret = true;
+                if (result.GetProperty(PropertyBool.IsSentinel) ?? false)
+                    ret = true;
+
+                if (result.WeenieType == (int)WeenieType.Admin || result.WeenieType == (int)WeenieType.Sentinel)
+                    ret = true;
+
+                return ret;
+            }
+        }
+
         public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory)
         {
             if (!AddBiota(biota))

@@ -38,7 +38,17 @@ namespace ACE.Server.Managers
         {
             DatabaseManager.Shard.GetBiota(guid.Full, biota =>
             {
-                var player = new Player(biota, session);
+                Player player;
+
+                if (biota.WeenieType == (int)WeenieType.Admin)
+                    player = new Admin(biota, session);
+                else if (biota.WeenieType == (int)WeenieType.Sentinel)
+                    player = new Sentinel(biota, session);
+                else
+                    player = new Player(biota, session);
+
+                player.Name = session.Character.Name;
+
                 session.SetPlayer(player);
                 session.Player.PlayerEnterWorld();
 

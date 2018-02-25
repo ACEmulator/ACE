@@ -18,6 +18,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Database.Models.World;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -52,6 +53,8 @@ namespace ACE.Server.Network.Handlers
             session.CharacterRequested = cachedCharacter;
 
             session.InitSessionForWorldLogin();
+
+            session.Character = cachedCharacter;
 
             session.State = SessionState.WorldConnected;
 
@@ -92,7 +95,7 @@ namespace ACE.Server.Network.Handlers
                     DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
                     {
                         session.UpdateCachedCharacters(result);
-                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session.Account));
+                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session));
                     }));
                 }
                 else
@@ -165,10 +168,55 @@ namespace ACE.Server.Network.Handlers
 
             var cg = DatManager.PortalDat.CharGen;
 
-            var weenie = DatabaseManager.World.GetCachedWeenie(1);
+            var isAdmin = characterCreateInfo.IsAdmin == (session.AccessLevel >= AccessLevel.Developer);
+            var isEnvoy = characterCreateInfo.IsEnvoy == (session.AccessLevel >= AccessLevel.Sentinel);
+
+            Weenie weenie;
+            if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (session.AccessLevel >= AccessLevel.Developer && session.AccessLevel <= AccessLevel.Admin)
+                    weenie = DatabaseManager.World.GetCachedWeenie("admin");
+                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy)
+                    weenie = DatabaseManager.World.GetCachedWeenie("sentinel");
+                else
+                    weenie = DatabaseManager.World.GetCachedWeenie("human");
+
+                if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.Type == (int)WeenieType.Admin)
+                    weenie = DatabaseManager.World.GetCachedWeenie("olthoiadmin");
+
+                if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.Type == (int)WeenieType.Admin)
+                    weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidadmin");
+            }
+            else
+                weenie = DatabaseManager.World.GetCachedWeenie("human");
+
+            if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.Type == (int)WeenieType.Creature)
+                weenie = DatabaseManager.World.GetCachedWeenie("olthoiplayer");
+
+            if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.Type == (int)WeenieType.Creature)
+                weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidplayer");
+
+            if (isEnvoy)
+                weenie = DatabaseManager.World.GetCachedWeenie("sentinel");
+
+            if (isAdmin)
+                weenie = DatabaseManager.World.GetCachedWeenie("admin");
+
+            if (weenie == null)
+                weenie = DatabaseManager.World.GetCachedWeenie("human"); // Default catch-all
+
             var guid = GuidManager.NewPlayerGuid();
 
-            var player = new Player(weenie, guid, session);            
+            // If Database didn't have Sentinel/Admin weenies, alter the weenietype coming in.
+            if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (session.AccessLevel >= AccessLevel.Developer && session.AccessLevel <= AccessLevel.Admin && weenie.Type != (int)WeenieType.Admin)
+                    weenie.Type = (int)WeenieType.Admin;
+                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy && weenie.Type != (int)WeenieType.Sentinel)
+                    weenie.Type = (int)WeenieType.Sentinel;
+            }
+
+            var player = new Player(weenie, guid, session);
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, cg.HeritageGroups[characterCreateInfo.Heritage].Name);
@@ -395,15 +443,12 @@ namespace ACE.Server.Network.Handlers
             }
 
             player.Name = characterCreateInfo.Name;
-            player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
+            //player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
 
             // Index used to determine the starting location
             uint startArea = characterCreateInfo.StartArea;
 
-            // todo: it's probably not a good idea to set a characters permissions level based on the create packet. Someone can set these to true in the packet without authorization.
-            // todo: what we might want to do is check the account permission level and pull these values from there
-            //player.IsAdmin = characterCreateInfo.IsAdmin;
-            //player.IsEnvoy = characterCreateInfo.IsEnvoy;
+            player.SetProperty(PropertyBool.Attackable, true);
 
             player.UpdateAppearance(player);
 
