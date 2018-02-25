@@ -139,6 +139,8 @@ namespace ACE.Server.WorldObjects
             foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
                 EphemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
 
+            GeneratorProfiles = Biota.BiotaPropertiesGenerator.ToList();
+
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck;
 
             UpdateBaseAppearance();
@@ -148,13 +150,15 @@ namespace ACE.Server.WorldObjects
 
             GetClothingBase();
 
-            return;
-
             SelectGeneratorProfiles();
             UpdateGeneratorInts();
             QueueGenerator();
 
             QueueNextHeartBeat();
+
+            return;
+
+            
 
             GenerateWieldList();
         }
@@ -915,8 +919,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
         }
 
-        //public List<AceObjectGeneratorProfile> GeneratorProfiles => AceObject.GeneratorProfiles;
-        public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
+        public List<BiotaPropertiesGenerator> GeneratorProfiles = new List<BiotaPropertiesGenerator>();
 
         public double? HeartbeatInterval
         {
@@ -1051,7 +1054,7 @@ namespace ACE.Server.WorldObjects
                 var queue = new GeneratorQueueNode();
 
                 queue.Slot = (uint)slot;
-                double when = Common.Time.GetFutureTimestamp((RegenerationInterval ?? 0) + GeneratorProfiles[slot].Delay);
+                double when = Common.Time.GetFutureTimestamp((RegenerationInterval ?? 0) + (GeneratorProfiles[slot].Delay ?? 0));
 
                 if (GeneratorRegistry.Count < InitGeneratedObjects && !(GeneratorEnteredWorld ?? false))
                     when = Common.Time.GetTimestamp();
@@ -1097,9 +1100,9 @@ namespace ACE.Server.WorldObjects
                         switch (profile.WhereCreate)
                         {
                             case 4:
-                                wo.Location = new Position(profile.LandblockRaw,
-                                    profile.PositionX, profile.PositionY, profile.PositionZ,
-                                    profile.RotationX, profile.RotationY, profile.RotationZ, profile.RotationW);
+                                wo.Location = new Position(profile.ObjCellId ?? 0,
+                                    profile.OriginX ?? 0, profile.OriginY ?? 0, profile.OriginZ ?? 0,
+                                    profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
                                 break;
                             default:
                                 wo.Location = Location;

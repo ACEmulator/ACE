@@ -177,6 +177,28 @@ namespace ACE.Database
             return ret;
         }
 
+        private readonly ConcurrentDictionary<ushort, List<LandblockInstances>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstances>>();
+
+        /// <summary>
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// </summary>
+        public List<LandblockInstances> GetCachedInstancesByLandblock(ushort landblock)
+        {
+            if (cachedLandblockInstances.TryGetValue(landblock, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var results = context.LandblockInstances
+                    .AsNoTracking()
+                    .Where(r => r.Landblock == landblock);
+
+                cachedLandblockInstances.TryAdd(landblock, results.OrderBy(x => x.LinkController).ThenBy(x => x.LinkSlot).ToList());
+            }
+
+            return cachedLandblockInstances[landblock];
+        }
+
 
         private readonly ConcurrentDictionary<string, PointsOfInterest> cachedAcePositions = new ConcurrentDictionary<string, PointsOfInterest>();
 
