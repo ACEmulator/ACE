@@ -1335,7 +1335,7 @@ namespace ACE.Server.WorldObjects
         private void AddBaseModelData()
         {
             if (WeenieType == WeenieType.Creature || WeenieType == WeenieType.Vendor)
-                if (CreatureType == global::ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
+                if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
                     RandomizeFace();
 
             if (PaletteBaseId == null)
