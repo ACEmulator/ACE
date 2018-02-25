@@ -31,7 +31,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public sealed partial class Player : Creature
+    public partial class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

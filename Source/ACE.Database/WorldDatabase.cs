@@ -147,6 +147,11 @@ namespace ACE.Database
             return result;
         }
 
+        public Weenie GetCachedWeenie(string weenieClassName)
+        {
+            return GetCachedWeenie(GetWeenieClassId(weenieClassName));
+        }
+
         /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>

@@ -145,7 +145,7 @@ namespace ACE.Server.Network.Handlers
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 session.UpdateCachedCharacters(result);
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
+                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session);
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
