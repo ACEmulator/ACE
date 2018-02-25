@@ -19,6 +19,10 @@ namespace ACE.Server.Physics
         public static readonly PhysicsState DefaultState =
             PhysicsState.EdgeSlide | PhysicsState.LightingOn | PhysicsState.Gravity | PhysicsState.ReportCollisions;
 
+        public static readonly float MaxElasticity = 0.1f;
+
+        public static readonly float MaxVelocity = 50.0f;
+
         /// <summary>
         /// The walkable allowance when landing on the ground
         /// </summary>

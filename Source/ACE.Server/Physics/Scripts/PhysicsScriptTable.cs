@@ -1,3 +1,4 @@
+using ACE.Entity.Enum;
 using System.Collections.Generic;
 
 namespace ACE.Server.Physics
@@ -9,6 +10,11 @@ namespace ACE.Server.Physics
         public void Release()
         {
 
+        }
+
+        public int GetScript(PlayScript type, float mod)
+        {
+            return -1;
         }
     }
 }

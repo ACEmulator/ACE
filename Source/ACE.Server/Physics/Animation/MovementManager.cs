@@ -8,5 +8,20 @@ namespace ACE.Server.Physics.Animation
         public MoveToManager MoveToManager;
         public PhysicsObj PhysicsObj;
         public WeenieObject WeenieObj;
+
+        public void LeaveGround()
+        {
+
+        }
+
+        public void HitGround()
+        {
+
+        }
+
+        public void SetWeenieObject(WeenieObject wobj)
+        {
+
+        }
     }
 }

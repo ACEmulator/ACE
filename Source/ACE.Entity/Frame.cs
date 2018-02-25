@@ -12,15 +12,5 @@ namespace ACE.Entity
             Origin = Vector3.Zero;
             Orientation = Quaternion.Identity;
         }
-
-        public void Combine(Frame a, Frame b, Vector3 scale)
-        {
-
-        }
-
-        public Vector3 LocalToGlobalVec(Vector3 v)
-        {
-            return v;
-        }
     }
 }

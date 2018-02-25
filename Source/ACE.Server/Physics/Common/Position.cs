@@ -1,16 +1,16 @@
-using ACE.Entity;
 using System.Numerics;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
     public class Position
     {
         public int ObjCellID;
-        public Frame Frame;
+        public AFrame Frame;
 
         public Position()
         {
-            Frame = new Frame();    // cache frames?
+            Frame = new AFrame();    // cache frames?
         }
 
         public Vector3 LocalToGlobal(Position p, Vector3 v)

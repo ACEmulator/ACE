@@ -24,5 +24,15 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public void hide_object(PhysicsObj obj)
+        {
+
+        }
+
+        public void unhide_object(PhysicsObj obj)
+        {
+
+        }
     }
 }

@@ -5,7 +5,7 @@ namespace ACE.Server.Physics.Animation
 {
     public class AnimFrame
     {
-        public List<Frame> Frame;
+        public List<AFrame> Frame;
         public int NumFrameHooks;
         public AnimHook Hooks;
         public int NumParts;
