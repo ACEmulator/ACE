@@ -6,16 +6,8 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePublicUpdatePropertyFloat : GameMessage
     {
-        public GameMessagePublicUpdatePropertyFloat(SequenceManager sequences, PropertyFloat property, uint value)
-            : base(GameMessageOpcode.PublicUpdatePropertyFloat, GameMessageGroup.UIQueue)
-        {
-            Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyDouble));
-            Writer.Write((uint)property);
-            Writer.Write(value);
-        }
-
         /// <summary>
-        /// This is used to
+        /// 
         /// </summary>
         /// <param name="sequences"></param>
         /// <param name="sender"></param>
