@@ -942,5 +942,19 @@ namespace ACE.Server.Command.Handlers
             session.Player.UpdateVital(session.Player.Stamina, 1);
             session.Player.UpdateVital(session.Player.Mana, 1);
         }
+
+        /// <summary>
+        /// Force PhysicsState change that occurs upon login complete.
+        /// </summary
+        [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Fake Login Complete response")]
+        public static void HandleFakeLogin(Session session, params string[] parameters)
+        {
+            session.Player.InWorld = true;
+            session.Player.ReportCollisions = true;
+            session.Player.IgnoreCollisions = false;
+            session.Player.Hidden = false;
+            session.Player.EnqueueBroadcastPhysicsState();
+        }
     }
 }
