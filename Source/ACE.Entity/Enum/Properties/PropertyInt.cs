@@ -185,7 +185,9 @@ namespace ACE.Entity.Enum.Properties
         NumTimesTinkered                         = 171,
         AppraisalLongDescDecoration              = 172,
         AppraisalLockpickSuccessPercent          = 173,
+        [Ephemeral]
         AppraisalPages                           = 174,
+        [Ephemeral]
         AppraisalMaxPages                        = 175,
         AppraisalItemSkill                       = 176,
         GemCount                                 = 177,

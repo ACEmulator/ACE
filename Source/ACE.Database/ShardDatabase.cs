@@ -283,6 +283,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesAttribute)
                 .Include(r => r.BiotaPropertiesAttribute2nd)
                 .Include(r => r.BiotaPropertiesBodyPart)
+                .Include(r => r.BiotaPropertiesBook)
                 .Include(r => r.BiotaPropertiesBookPageData)
                 .Include(r => r.BiotaPropertiesBool)
                 .Include(r => r.BiotaPropertiesContract)
