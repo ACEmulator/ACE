@@ -1928,8 +1928,8 @@ namespace ACE.Entity
         [JsonProperty("textures")]
         public List<TextureMapOverride> TextureOverrides { get; set; } = new List<TextureMapOverride>();
 
-        [JsonProperty("animations")]
-        public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
+        //[JsonProperty("animations")]
+        //public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
 
         [JsonProperty("uintProperties")]
         public List<AceObjectPropertiesInt> IntProperties { get; set; } = new List<AceObjectPropertiesInt>();
@@ -2030,7 +2030,7 @@ namespace ACE.Entity
                 HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase,
                 PaletteOverrides = CloneList(PaletteOverrides),
                 TextureOverrides = CloneList(TextureOverrides),
-                AnimationOverrides = CloneList(AnimationOverrides),
+                //AnimationOverrides = CloneList(AnimationOverrides),
                 IntProperties = CloneList(IntProperties),
                 Int64Properties = CloneList(Int64Properties),
                 DoubleProperties = CloneList(DoubleProperties),
@@ -2066,7 +2066,7 @@ namespace ACE.Entity
 
             ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
             ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
-            ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
+            //ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
             ret.IntProperties.ForEach(c => c.AceObjectId = guid);
             ret.Int64Properties.ForEach(c => c.AceObjectId = guid);
             ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
