@@ -168,8 +168,8 @@ namespace ACE.Server.Network.Handlers
 
             var cg = DatManager.PortalDat.CharGen;
 
-            var isAdmin = characterCreateInfo.IsAdmin == (session.AccessLevel >= AccessLevel.Developer);
-            var isEnvoy = characterCreateInfo.IsEnvoy == (session.AccessLevel >= AccessLevel.Sentinel);
+            var isAdmin = characterCreateInfo.IsAdmin && (session.AccessLevel >= AccessLevel.Developer);
+            var isEnvoy = characterCreateInfo.IsEnvoy && (session.AccessLevel >= AccessLevel.Sentinel);
 
             Weenie weenie;
             if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
