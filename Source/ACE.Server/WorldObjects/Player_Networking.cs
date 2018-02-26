@@ -20,6 +20,9 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
+            IsAlive = true; // seems like something that should be handled differently...
+            IsOnline = true;
+
             // Save the the LoginTimestamp
             SetProperty(PropertyFloat.LoginTimestamp, Time.GetTimestamp());
 
