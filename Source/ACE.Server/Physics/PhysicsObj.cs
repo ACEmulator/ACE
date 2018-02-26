@@ -193,32 +193,38 @@ namespace ACE.Server.Physics
 
         public double GetAutonomyBlipDistance()
         {
-            return -1;
+            if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
+
+            return PlayerObject.Equals(this) ? 25.0f : 20.0f;
         }
 
-        public BoundingBox GetBoundingBox(BoundingBox boundingBox)
+        public BoundingBox GetBoundingBox()
         {
-            return null;
+            if (PartArray == null) return null;
+            return PartArray.GetBoundingBox();
         }
 
         public int GetDataID()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetDataID();
         }
 
         public double GetHeight()
         {
-            return -1;
+            if (PartArray == null) return 0.0f;
+            return PartArray.GetHeight();
         }
 
         public double GetMaxConstraintDistance()
         {
-            return -1;
+            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 50.0f : 20.0f;
         }
 
-        public Object GetObjectA(int objectID)
+        public PhysicsObj GetObjectA(int objectID)
         {
-            return null;
+            if (ObjMaint == null) return null;
+            return ObjMaint.GetObjectA(objectID);
         }
 
         public double GetRadius()
@@ -231,27 +237,33 @@ namespace ACE.Server.Physics
 
         public Sphere GetSelectionSphere(Sphere selectionSphere)
         {
-            return null;
+            if (PartArray != null)
+                return PartArray.GetSelectionSphere(selectionSphere);
+            else
+                return null;
         }
 
         public int GetSetupID()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetSetupID();
         }
 
         public double GetStartConstraintDistance()
         {
-            return -1;
+            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 5.0f : 10.0f;
         }
 
         public double GetStepDownHeight()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetStepDownHeight();
         }
 
         public double GetStepUpHeight()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetStepUpHeight();
         }
 
         public void HandleUpdateTarget(TargetInfo targetInfo)

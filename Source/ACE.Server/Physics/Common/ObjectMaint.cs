@@ -6,5 +6,10 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public PhysicsObj GetObjectA(int objectID)
+        {
+            return null;
+        }
     }
 }
