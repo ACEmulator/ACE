@@ -1773,12 +1773,12 @@ namespace ACE.Entity
 
         public double? GetProperty(PropertyFloat property)
         {
-            return DoubleProperties.FirstOrDefault(x => x.PropertyId == (ushort)property)?.PropertyValue;
+            throw new NotSupportedException();
         }
 
         protected List<double> GetDoubleProperties(PropertyFloat property)
         {
-            return DoubleProperties.Where(x => x.PropertyId == (ushort)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
+            throw new NotSupportedException();
         }
 
         public void SetDoubleTimestamp(PropertyFloat propertyId)
@@ -1790,30 +1790,7 @@ namespace ACE.Entity
 
         protected void SetProperty(PropertyFloat propertyId, double? value)
         {
-            AceObjectPropertiesDouble listItem = DoubleProperties.Find(x => x.PropertyId == (short)propertyId);
-            if (value != null)
-            {
-                if (listItem == null)
-                {
-                    listItem = new AceObjectPropertiesDouble()
-                    {
-                        PropertyId = (ushort)propertyId,
-                        PropertyValue = (double)value,
-                        AceObjectId = AceObjectId
-                    };
-
-                    DoubleProperties.Add(listItem);
-                }
-                else
-                {
-                    listItem.PropertyValue = (double)value;
-                }
-            }
-            else
-            {
-                if (listItem != null)
-                    listItem.PropertyValue = null;
-            }
+            throw new NotSupportedException();
         }
 
         public string GetProperty(PropertyString property)
@@ -1869,8 +1846,8 @@ namespace ACE.Entity
         //[JsonProperty("uint64Properties")]
         //public List<AceObjectPropertiesInt64> Int64Properties { get; set; } = new List<AceObjectPropertiesInt64>();
 
-        [JsonProperty("doubleProperties")]
-        public List<AceObjectPropertiesDouble> DoubleProperties { get; set; } = new List<AceObjectPropertiesDouble>();
+        //[JsonProperty("doubleProperties")]
+        //public List<AceObjectPropertiesDouble> DoubleProperties { get; set; } = new List<AceObjectPropertiesDouble>();
 
         //[JsonProperty("boolProperties")]
         //public List<AceObjectPropertiesBool> BoolProperties { get; set; } = new List<AceObjectPropertiesBool>();
@@ -1965,7 +1942,7 @@ namespace ACE.Entity
                 //AnimationOverrides = CloneList(AnimationOverrides),
                 IntProperties = CloneList(IntProperties),
                 //Int64Properties = CloneList(Int64Properties),
-                DoubleProperties = CloneList(DoubleProperties),
+                //DoubleProperties = CloneList(DoubleProperties),
                 //BoolProperties = CloneList(BoolProperties),
                 //DataIdProperties = CloneList(DataIdProperties),
                 //InstanceIdProperties = CloneList(InstanceIdProperties),
@@ -2001,7 +1978,7 @@ namespace ACE.Entity
             //ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
             ret.IntProperties.ForEach(c => c.AceObjectId = guid);
             //ret.Int64Properties.ForEach(c => c.AceObjectId = guid);
-            ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
+            //ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
             //ret.BoolProperties.ForEach(c => c.AceObjectId = guid);
             //ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
             //ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
@@ -2028,7 +2005,7 @@ namespace ACE.Entity
             //this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.ClearDirtyFlags());
             this.IntProperties.ForEach(x => x.ClearDirtyFlags());
             //this.Int64Properties.ForEach(x => x.ClearDirtyFlags());
-            this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
+            //this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
             //this.BoolProperties.ForEach(x => x.ClearDirtyFlags());
             //this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
             //this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
@@ -2047,7 +2024,7 @@ namespace ACE.Entity
             //this.AceObjectPropertiesSkills.Values.ToList().ForEach(x => x.SetDirtyFlags());
             this.IntProperties.ForEach(x => x.SetDirtyFlags());
             //this.Int64Properties.ForEach(x => x.SetDirtyFlags());
-            this.DoubleProperties.ForEach(x => x.SetDirtyFlags());
+            //this.DoubleProperties.ForEach(x => x.SetDirtyFlags());
             //this.BoolProperties.ForEach(x => x.SetDirtyFlags());
             //this.DataIdProperties.ForEach(x => x.SetDirtyFlags());
             //this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
