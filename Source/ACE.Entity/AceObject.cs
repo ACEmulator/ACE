@@ -11,7 +11,7 @@ using ACE.Entity.Enum;
 namespace ACE.Entity
 {
     //[DbTable("ace_object")]
-    public class AceObject : ICloneable, IDirty
+    public class AceObject : ICloneable
     {
         public const uint WEENIE_MAX = 199999;
 
