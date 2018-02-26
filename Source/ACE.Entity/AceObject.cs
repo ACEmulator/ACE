@@ -1977,8 +1977,8 @@ namespace ACE.Entity
         [JsonProperty("bookProperties")]
         public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
 
-        [JsonProperty("generatorProfiles")]
-        public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
+        //[JsonProperty("generatorProfiles")]
+        //public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
 
 
@@ -2038,7 +2038,7 @@ namespace ACE.Entity
                 DataIdProperties = CloneList(DataIdProperties),
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
-                GeneratorProfiles = CloneList(GeneratorProfiles),
+                //GeneratorProfiles = CloneList(GeneratorProfiles),
                 CreateList = CloneList(CreateList),
                 //AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
                 //AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
@@ -2075,7 +2075,7 @@ namespace ACE.Entity
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
+            //ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
             ret.CreateList.ForEach(c => c.AceObjectId = guid);
             //ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
