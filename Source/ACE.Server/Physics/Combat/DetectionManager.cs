@@ -14,5 +14,10 @@ namespace ACE.Server.Physics.Combat
         public Vector3 LastGlobalUpdate;
         public HashSet<DetectionCylsphere> DetectionTable;
         public List<long> PendingDeletions;
+
+        public void CheckDetection()
+        {
+
+        }
     }
 }

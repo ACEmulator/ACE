@@ -26,6 +26,16 @@ namespace ACE.Server.Physics
 
         public static readonly float MaxVelocity = 50.0f;
 
+        public static readonly float MaxVelocitySquared = MaxVelocity * MaxVelocity;
+
+        public static readonly float SmallVelocity = 0.25f;
+
+        public static readonly float SmallVelocitySquared = SmallVelocity * SmallVelocity;
+
+        public static readonly float MinQuantum = 1.0f / 30.0f;
+
+        public static readonly float MaxQuantum = 0.2f;
+
         /// <summary>
         /// The walkable allowance when landing on the ground
         /// </summary>

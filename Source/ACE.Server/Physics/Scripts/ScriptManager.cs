@@ -7,5 +7,10 @@ namespace ACE.Server.Physics
         public ScriptData LastData;
         public int HookIndex;
         public double NextHookTime;
+
+        public void UpdateScripts()
+        {
+
+        }
     }
 }

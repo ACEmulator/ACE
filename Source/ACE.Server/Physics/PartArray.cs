@@ -445,7 +445,7 @@ namespace ACE.Server.Physics
             return MotionTableManager.PerformMovement(mvs, Sequence);   // how to add frame/input data?
         }
 
-        public void Update(float quantum, AFrame offsetFrame)
+        public void Update(double quantum, AFrame offsetFrame)
         {
             Sequence.Update(quantum, offsetFrame);
         }
@@ -538,6 +538,11 @@ namespace ACE.Server.Physics
         }
 
         public void AddPartsShadow(ShadowObj shadowObj)
+        {
+
+        }
+
+        public void UpdateViewerDistance(float cypt, Vector3 heading)
         {
 
         }

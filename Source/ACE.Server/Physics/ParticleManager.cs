@@ -11,5 +11,10 @@ namespace ACE.Server.Physics
         {
             return ParticleTable.Count;
         }
+
+        public void UpdateParticles()
+        {
+
+        }
     }
 }

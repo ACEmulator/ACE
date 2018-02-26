@@ -33,5 +33,10 @@ namespace ACE.Server.Physics.Combat
         {
 
         }
+
+        public void HandleTargetting()
+        {
+
+        }
     }
 }

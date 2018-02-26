@@ -52,7 +52,7 @@ namespace ACE.Server.Physics.Animation
 
         }
 
-        public void Update(float quantum, AFrame offsetFrame)
+        public void Update(double quantum, AFrame offsetFrame)
         {
 
         }
