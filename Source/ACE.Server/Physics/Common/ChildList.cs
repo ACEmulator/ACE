@@ -17,5 +17,10 @@ namespace ACE.Server.Physics.Common
         {
             return -1;
         }
+
+        public void AddChild(PhysicsObj obj, AFrame frame, int partIdx, int locationID)
+        {
+
+        }
     }
 }

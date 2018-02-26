@@ -35,7 +35,7 @@ namespace ACE.Server.Physics
         public Position Position;
         public ObjCell Cell;
         public int NumShadowObjects;
-        public List<int> ShadowObjects;
+        public Dictionary<int, ShadowObj> ShadowObjects;
         public PhysicsState State;
         public TransientStateFlags TransientState;
         public float Elasticity;
@@ -68,6 +68,7 @@ namespace ACE.Server.Physics
         public int CollidingWithEnvironment;
         public int[] UpdateTimes;
 
+        public static CellArray CellArray;
         public static ObjectMaint ObjMaint;
         public static PhysicsObj PlayerObject;
 
@@ -113,12 +114,36 @@ namespace ACE.Server.Physics
 
         public void AddObjectToSingleCell(ObjCell objCell)
         {
+            if (Cell != null)
+            {
+                if (Cell.Equals(objCell)) return;
+                RemoveObjectFromSingleCell(Cell);
+            }
 
+            change_cell(objCell);
+
+            if (objCell == null) return;
+
+            NumShadowObjects = 1;
+            var shadowObj = new ShadowObj(this, objCell);
+            objCell.AddShadowObject(shadowObj);
+
+            if (PartArray != null)
+                PartArray.AddPartsShadow(shadowObj);
         }
 
         public void AddPartToShadowCells(PhysicsPart part)
         {
-
+            if (Cell != null) part.Pos.ObjCellID = Cell.ID;
+            foreach (var shadowObj in ShadowObjects.Values)
+            {
+                var shadowCell = shadowObj.Cell;
+                if (shadowCell != null)
+                {
+                    shadowCell.AddPart(part, 0,
+                        shadowCell.Pos.Frame, ShadowObjects.Count);
+                }
+            }
         }
 
         public ObjCell AdjustPosition(Position pos, Vector3 low_pt, bool dontCreateCells, bool searchCells)
@@ -193,32 +218,38 @@ namespace ACE.Server.Physics
 
         public double GetAutonomyBlipDistance()
         {
-            return -1;
+            if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
+
+            return PlayerObject.Equals(this) ? 25.0f : 20.0f;
         }
 
-        public BoundingBox GetBoundingBox(BoundingBox boundingBox)
+        public BoundingBox GetBoundingBox()
         {
-            return null;
+            if (PartArray == null) return null;
+            return PartArray.GetBoundingBox();
         }
 
         public int GetDataID()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetDataID();
         }
 
         public double GetHeight()
         {
-            return -1;
+            if (PartArray == null) return 0.0f;
+            return PartArray.GetHeight();
         }
 
         public double GetMaxConstraintDistance()
         {
-            return -1;
+            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 50.0f : 20.0f;
         }
 
-        public Object GetObjectA(int objectID)
+        public PhysicsObj GetObjectA(int objectID)
         {
-            return null;
+            if (ObjMaint == null) return null;
+            return ObjMaint.GetObjectA(objectID);
         }
 
         public double GetRadius()
@@ -231,27 +262,33 @@ namespace ACE.Server.Physics
 
         public Sphere GetSelectionSphere(Sphere selectionSphere)
         {
-            return null;
+            if (PartArray != null)
+                return PartArray.GetSelectionSphere(selectionSphere);
+            else
+                return null;
         }
 
         public int GetSetupID()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetSetupID();
         }
 
         public double GetStartConstraintDistance()
         {
-            return -1;
+            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 5.0f : 10.0f;
         }
 
         public double GetStepDownHeight()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetStepDownHeight();
         }
 
         public double GetStepUpHeight()
         {
-            return -1;
+            if (PartArray == null) return 0;
+            return PartArray.GetStepUpHeight();
         }
 
         public void HandleUpdateTarget(TargetInfo targetInfo)
@@ -738,7 +775,7 @@ namespace ACE.Server.Physics
                     return SetPositionError.GeneralFailure;
                 }
 
-                if (transition.CellArray.Count > 0)
+                if (transition.CellArray.Cells.Count > 0)
                 {
                     remove_shadows_from_cells();
                     add_shadows_to_cell(transition.CellArray);
@@ -985,37 +1022,85 @@ namespace ACE.Server.Physics
 
         public void add_anim_hook(AnimHook hook)
         {
-
+            AnimHooks.Add(hook);
         }
 
         public bool add_child(PhysicsObj obj, int where)
         {
-            return false;
+            if (PartArray == null || obj.Equals(this)) return false;
+
+            var setup = Setup.GetHoldingLocation(where);
+            if (setup == null) return false;
+
+            if (Children == null) Children = new ChildList();
+            Children.AddChild(obj, setup.Frame, setup.PartID, where);
+            return true;
         }
 
         public bool add_child(PhysicsObj obj, int partIdx, AFrame frame)
         {
-            return false;
+            if (obj.Equals(this)) return false;
+
+            if (PartArray == null || partIdx != -1 && partIdx >= PartArray.NumParts)
+                return false;
+
+            if (Children == null) Children = new ChildList();
+            Children.AddChild(obj, frame, partIdx, 0);
+            return true;
         }
 
         public void add_obj_to_cell(ObjCell newCell, AFrame newFrame)
         {
+            enter_cell(newCell);
 
+            Position.Frame = newFrame;
+            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
+                PartArray.SetFrame(Position.Frame);
+
+            UpdateChildrenInternal();
+            calc_cross_cells_static();
         }
 
         public void add_particle_shadow_to_cell()
         {
+            NumShadowObjects = 1;
 
+            var shadowObj = new ShadowObj(this, Cell);
+            ShadowObjects.Add(1, shadowObj);
+
+            if (PartArray != null)
+                PartArray.AddPartsShadow(shadowObj);
         }
 
-        public void add_shadows_to_cell(List<ObjCell> cellArray)
+        public void add_shadows_to_cell(CellArray cellArray)
         {
+            if (State.HasFlag(PhysicsState.ParticleEmitter))
+                add_particle_shadow_to_cell();
+            else
+            {
+                foreach (var cell in cellArray.Cells)
+                {
+                    var shadowObj = new ShadowObj(this, cell);
+                    ShadowObjects.Add(cell.ID, shadowObj);
 
+                    if (cell != null) cell.AddShadowObject(shadowObj);
+
+                    if (PartArray != null)
+                        PartArray.AddPartsShadow(shadowObj);
+
+                }
+            }
+            if (Children != null)
+            {
+                foreach (var child in Children.Objects)
+                    child.add_shadows_to_cell(cellArray);
+            }
         }
 
         public void add_voyeur(int objectID, float radius, float quantum)
         {
-
+            if (TargetManager == null) TargetManager = new TargetManager(this);
+            TargetManager.AddVoyeur(objectID, radius, quantum);
         }
 
         public void animate_static_object()
@@ -1035,22 +1120,71 @@ namespace ACE.Server.Physics
 
         public void calc_acceleration()
         {
-
+            if (TransientState.HasFlag(TransientStateFlags.Contact) && TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                Omega = Acceleration = Vector3.Zero;
+            else
+            {
+                if (State.HasFlag(PhysicsState.Gravity))
+                    Acceleration = new Vector3(0, 0, PhysicsGlobals.Gravity);
+                else
+                    Acceleration = Vector3.Zero;
+            }
         }
 
         public void calc_cross_cells()
         {
+            CellArray.SetDynamic();
 
+            if (State.HasFlag(PhysicsState.HasPhysicsBSP))
+                find_bbox_cell_list(CellArray);
+            else
+            {
+                if (PartArray != null && PartArray.GetNumCylsphere() != 0)
+                    ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
+                else
+                {
+                    var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
+                    ObjCell.find_cell_list(Position, sphere, CellArray, null);
+                }
+            }
+            remove_shadows_from_cells();
+            add_shadows_to_cell(CellArray);
         }
 
         public void calc_cross_cells_static()
         {
+            CellArray.SetStatic();
 
+            if (PartArray != null && PartArray.GetNumCylsphere() != 0 && !State.HasFlag(PhysicsState.HasPhysicsBSP))
+                ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
+            else
+                find_bbox_cell_list(CellArray);
+
+            remove_shadows_from_cells();
+            add_shadows_to_cell(CellArray);
         }
 
         public void calc_friction(float quantum, float velocity_mag2)
         {
+            if (!TransientState.HasFlag(TransientStateFlags.OnWalkable)) return;
 
+            var angle = Vector3.Dot(Velocity, ContactPlane.Normal);
+            if (angle >= 0.25f) return;
+
+            Velocity -= ContactPlane.Normal * angle;
+
+            var friction = Friction;
+            if (State.HasFlag(PhysicsState.Sledding))
+            {
+                if (velocity_mag2 < 1.5625f)
+                    friction = 1.0f;
+
+                else if (velocity_mag2 >= 6.25f && ContactPlane.Normal.Z > 0.99999536f)
+                    friction = 0.2f;
+            }
+
+            var scalar = (float)Math.Pow(1.0f - friction, quantum);
+            Velocity *= scalar;
         }
 
         public void cancel_moveto()
@@ -1138,7 +1272,7 @@ namespace ACE.Server.Physics
 
         }
 
-        public void find_bbox_cell_list(List<ObjCell> cellArray)
+        public void find_bbox_cell_list(CellArray cellArray)
         {
 
         }

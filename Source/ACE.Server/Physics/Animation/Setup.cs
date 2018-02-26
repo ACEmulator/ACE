@@ -45,5 +45,10 @@ namespace ACE.Server.Physics.Animation
         {
             return null;
         }
+
+        public static LocationType GetHoldingLocation(int location_idx)
+        {
+            return null;
+        }
     }
 }

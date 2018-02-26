@@ -18,7 +18,7 @@ namespace ACE.Server.Physics.Animation
         public ObjectInfo ObjectInfo;
         public SpherePath SpherePath;
         public CollisionInfo CollisionInfo;
-        public List<ObjCell> CellArray;
+        public CellArray CellArray;
         public ObjCell NewCellPtr;
 
         public Transition()
@@ -26,7 +26,7 @@ namespace ACE.Server.Physics.Animation
             ObjectInfo = new ObjectInfo();
             SpherePath = new SpherePath();
             CollisionInfo = new CollisionInfo();
-            CellArray = new List<ObjCell>();
+            CellArray = new CellArray();
             NewCellPtr = new ObjCell();
         }
 

@@ -9,12 +9,27 @@ namespace ACE.Server.Physics.Combat
         public HashSet<TargettedVoyeurInfo> VoyeurTable;
         public double LastUpdateTime;
 
+        public TargetManager()
+        {
+
+        }
+
+        public TargetManager(PhysicsObj physObj)
+        {
+            PhysObj = physObj;
+        }
+
         public void SetTarget(int contextID, int objectID, float radius, double quantum)
         {
 
         }
 
         public void SetTargetQuantum(double quantum)
+        {
+
+        }
+
+        public void AddVoyeur(int objectID, float radius, double quantum)
         {
 
         }

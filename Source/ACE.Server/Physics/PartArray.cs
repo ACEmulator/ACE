@@ -125,20 +125,20 @@ namespace ACE.Server.Physics
             return TransitionState.OK;
         }
 
-        public void GetBoundingBox()
+        public BoundingBox GetBoundingBox()
         {
-            // should be building the bounding box for each part?
+            var bbox = new BoundingBox();
+
+            // accumulate from each part?
             foreach (var part in Parts)
             {
-                var bbox = new BoundingBox();
-                var pBox = part.GetBoundingBox();
-                bbox.Min = new Vector3(pBox.Min.X, pBox.Min.Y, pBox.Min.Z);
-                bbox.Max = new Vector3(pBox.Max.X, pBox.Max.Y, pBox.Max.Z);
-                var maxZ = pBox.Max.Z;
-                // get next box?
+                var partBox = part.GetBoundingBox();
+                bbox.Min = partBox.Min;
+                bbox.Max = partBox.Max;
                 bbox.ConvertToGlobal();
                 bbox.CalcSize();
             }
+            return bbox;
         }
 
         public CylSphere GetCylSphere()
@@ -523,6 +523,21 @@ namespace ACE.Server.Physics
         }
 
         public void SetTextureVelocityInternal(float du, float dv)
+        {
+
+        }
+
+        public int GetDataID()
+        {
+            return -1;
+        }
+
+        public int GetSetupID()
+        {
+            return -1;
+        }
+
+        public void AddPartsShadow(ShadowObj shadowObj)
         {
 
         }
