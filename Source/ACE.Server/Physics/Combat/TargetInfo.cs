@@ -5,13 +5,13 @@ namespace ACE.Server.Physics.Combat
 {
     public enum TargetStatus
     {
-        Undef_TargetStatus = 0x0,
-        Ok_TargetStatus = 0x1,
-        ExitWorld_TargetStatus = 0x2,
-        Teleported_TargetStatus = 0x3,
-        Contained_TargetStatus = 0x4,
-        Parented_TargetStatus = 0x5,
-        TimedOut_TargetStatus = 0x6,
+        Undefined = 0x0,
+        OK = 0x1,
+        ExitWorld = 0x2,
+        Teleported = 0x3,
+        Contained = 0x4,
+        Parented = 0x5,
+        TimedOut = 0x6,
     };
 
     public class TargetInfo

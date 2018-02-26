@@ -74,5 +74,15 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public void InitPath(ObjCell cell, Position oldPos, Position newPos)
+        {
+
+        }
+
+        public bool FindValidPosition()
+        {
+            return false;
+        }
     }
 }

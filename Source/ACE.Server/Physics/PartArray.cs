@@ -68,32 +68,29 @@ namespace ACE.Server.Physics
             return null;
         }
 
-        public Particle CreateParticle(PhysicsObj owner, int numParts, Sphere sortingSphere)
+        public static PartArray CreateParticle(PhysicsObj owner, int numParts, Sphere sortingSphere = null)
         {
-            var particle = new Particle();
-            var sequence = new Sequence(particle.StartFrame);
-            particle.Owner = owner;
-            sequence.SetObject(owner);
-            var setup = Setup.MakeParticleSetup(numParts);
-            // v4?
-            if (particle.InitParts())
-                return particle;
+            var parts = new PartArray();
+            parts.Owner = owner;
+            parts.Sequence.SetObject(owner);
 
-            return null;
+            parts.Setup = Setup.MakeParticleSetup(numParts);
+
+            if (parts.Setup == null || !parts.InitParts())
+                return null;
+
+            return parts;
         }
 
-        public Setup CreateSetup(PhysicsObj owner, int setupDID, bool createParts)
+        public static PartArray CreateSetup(PhysicsObj owner, int setupDID, bool createParts)
         {
-            var setup = new Setup();
-            var sequence = new Sequence(setup.Parts);
-            setup.Owner = owner;
-            sequence.SetObject(owner);
-            if (SetSetupID(setupDID, createParts))
-            {
-                //SetPlacementFrame(setup.PlacementFrames);
-                return setup;
-            }
-            return null;
+            var parts = new PartArray();
+            parts.Owner = owner;
+            parts.Sequence.SetObject(owner);
+            if (!parts.SetSetupID(setupDID, createParts))
+                return null;
+            parts.SetPlacementFrame(0x65);
+            return parts;
         }
 
         public void DestroyParts()
@@ -543,6 +540,11 @@ namespace ACE.Server.Physics
         }
 
         public void UpdateViewerDistance(float cypt, Vector3 heading)
+        {
+
+        }
+
+        public void RemoveLightsFromCell(ObjCell cell)
         {
 
         }

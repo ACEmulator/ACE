@@ -16,5 +16,10 @@ namespace ACE.Server.Physics
         {
 
         }
+
+        public bool StopParticleEmitter(int emitterID)
+        {
+            return false;
+        }
     }
 }

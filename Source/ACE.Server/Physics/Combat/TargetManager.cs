@@ -38,5 +38,15 @@ namespace ACE.Server.Physics.Combat
         {
 
         }
+
+        public void ClearTarget()
+        {
+
+        }
+
+        public void NotifyVoyeurOfEvent(TargetStatus status)
+        {
+
+        }
     }
 }

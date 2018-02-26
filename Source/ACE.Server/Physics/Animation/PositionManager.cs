@@ -21,5 +21,25 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public void Unstick()
+        {
+
+        }
+
+        public void StopInterpolating()
+        {
+
+        }
+
+        public void Unconstrain()
+        {
+
+        }
+
+        public void StickTo(int object_id, float radius, float height)
+        {
+
+        }
     }
 }
