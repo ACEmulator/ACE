@@ -14,7 +14,6 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 
-using AceObjectPropertiesInt = ACE.Entity.AceObjectPropertiesInt;
 using AceObjectPropertiesSpell = ACE.Entity.AceObjectPropertiesSpell;
 using AceObjectPropertiesString = ACE.Entity.AceObjectPropertiesString;
 
@@ -123,11 +122,11 @@ namespace ACE.Server.WorldObjects
             ScrollPropertiesSpellId.Add(propSpell);
         }
 
-        private List<AceObjectPropertiesInt> ScrollPropertiesInt
+        /*private List<AceObjectPropertiesInt> ScrollPropertiesInt
         {
             get;
             set;
-        }
+        }*/
 
         private List<AceObjectPropertiesString> ScrollPropertiesString
         {
