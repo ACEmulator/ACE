@@ -199,8 +199,8 @@ namespace ACE.Server.WorldObjects
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
 
-        [Obsolete]
-        protected AceObject AceObject { get; set; }
+        //[Obsolete]
+        //protected AceObject AceObject { get; set; }
         [Obsolete]
         protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; } = new Dictionary<ObjectGuid, WorldObject>();
 
@@ -745,15 +745,17 @@ namespace ACE.Server.WorldObjects
 
         public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
         {
-            AceObject snapshot = (AceObject)AceObject.Clone();
+            throw new NotSupportedException();
+            /*AceObject snapshot = (AceObject)AceObject.Clone();
             if (clearDirtyFlags)
                 AceObject.ClearDirtyFlags();
-            return snapshot;
+            return snapshot;*/
         }
 
         public void InitializeAceObjectForSave()
         {
-            AceObject.SetDirtyFlags();
+            throw new NotSupportedException();
+            //AceObject.SetDirtyFlags();
         }
 
 
