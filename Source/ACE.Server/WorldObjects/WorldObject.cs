@@ -689,17 +689,8 @@ namespace ACE.Server.WorldObjects
         {
             float healthPercentage = 1f;
 
-            if (Guid.IsPlayer())
-            {
-                Player tmpTarget = (Player)this;
-                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-            }
-            else// if (Guid.IsCreature())
-            {
-                throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
-                Creature tmpTarget = (Creature)this;
-                healthPercentage = (float)tmpTarget.Health.Current / (float)tmpTarget.Health.MaxValue;
-            }
+            if (this is Creature creature)
+                healthPercentage = (float)creature.Health.Current / (float)creature.Health.MaxValue;
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
             examiner.Network.EnqueueSend(updateHealth);
