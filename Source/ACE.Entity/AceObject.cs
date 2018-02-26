@@ -2015,8 +2015,8 @@ namespace ACE.Entity
             return !success ? null : ret;
         }
 
-        [JsonProperty("createlist")]
-        public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
+        //[JsonProperty("createlist")]
+        //public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
 
         public object Clone()
         {
@@ -2039,7 +2039,7 @@ namespace ACE.Entity
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
                 //GeneratorProfiles = CloneList(GeneratorProfiles),
-                CreateList = CloneList(CreateList),
+                //CreateList = CloneList(CreateList),
                 //AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
                 //AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
                 //AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
@@ -2076,7 +2076,7 @@ namespace ACE.Entity
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             //ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
-            ret.CreateList.ForEach(c => c.AceObjectId = guid);
+            //ret.CreateList.ForEach(c => c.AceObjectId = guid);
             //ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
 

@@ -23,7 +23,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
-using AceObjectInventory = ACE.Entity.AceObjectInventory;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -864,9 +863,9 @@ namespace ACE.Server.WorldObjects
         }
 
         //public List<AceObjectInventory> CreateList => AceObject.CreateList;
-        public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
+        //public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
 
-        public List<AceObjectInventory> WieldList
+        /*public List<AceObjectInventory> WieldList
         {
             get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Wield).ToList(); }
         }
@@ -874,7 +873,7 @@ namespace ACE.Server.WorldObjects
         public List<AceObjectInventory> ShopList
         {
             get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Shop).ToList(); }
-        }
+        }*/
 
         public int? MerchandiseItemTypes
         {
@@ -1225,6 +1224,7 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
+            /* todo fix this for new EF model
             foreach (var item in WieldList)
             {
                 if (WieldedObjects == null)
@@ -1235,11 +1235,11 @@ namespace ACE.Server.WorldObjects
                 wo.CurrentWieldedLocation = wo.ValidLocations;
                 wo.WielderId = Guid.Full;
 
-                WieldedObjects.Add(wo.Guid, wo);   */           
+                WieldedObjects.Add(wo.Guid, wo);   */       /*    
             }
 
             if (WieldedObjects != null)
-                UpdateBaseAppearance();
+                UpdateBaseAppearance();*/
         }
 
         public void UpdateBaseAppearance()
