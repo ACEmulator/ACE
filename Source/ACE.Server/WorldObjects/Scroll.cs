@@ -14,8 +14,6 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 
-using AceObjectPropertiesString = ACE.Entity.AceObjectPropertiesString;
-
 namespace ACE.Server.WorldObjects
 {
     public class Scroll : WorldObject
@@ -103,17 +101,17 @@ namespace ACE.Server.WorldObjects
             if (ScrollPropertiesSpellId == null)
                 ScrollPropertiesSpellId = new List<AceObjectPropertiesSpell>();*/
 
-            var useString = new AceObjectPropertiesString();
+            /*var useString = new AceObjectPropertiesString();
             useString.AceObjectId = Guid.Full;
             useString.PropertyId = (ushort)PropertyString.Use;
             useString.PropertyValue = Use;
-            ScrollPropertiesString.Add(useString);
+            ScrollPropertiesString.Add(useString);*/
 
-            var longDescString = new AceObjectPropertiesString();
+            /*var longDescString = new AceObjectPropertiesString();
             longDescString.AceObjectId = Guid.Full;
             longDescString.PropertyId = (ushort)PropertyString.LongDesc;
             longDescString.PropertyValue = LongDesc;
-            ScrollPropertiesString.Add(longDescString);
+            ScrollPropertiesString.Add(longDescString);*/
 
             /*var propSpell = new AceObjectPropertiesSpell();
             propSpell.AceObjectId = Guid.Full;
@@ -127,11 +125,11 @@ namespace ACE.Server.WorldObjects
             set;
         }*/
 
-        private List<AceObjectPropertiesString> ScrollPropertiesString
+        /*private List<AceObjectPropertiesString> ScrollPropertiesString
         {
             get;
             set;
-        }
+        }*/
 
         /*private List<AceObjectPropertiesSpell> ScrollPropertiesSpellId
         {
