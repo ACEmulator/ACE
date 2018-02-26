@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
             // =======================================
             // This code was taken from the old Load()
             // =======================================
-            AceCharacter character;
+            /*AceCharacter character;
 
             if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 //    character.IsSentinel = true;
                 // if (Session.AccessLevel == AccessLevel.Advocate)
                 //    character.IsAdvocate= true;
-            }
+            }*/
 
             FirstEnterWorldDone = false;
 
@@ -259,8 +259,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageConfirmationDone(this, confirmationType, contextId));
         }
 
-        [Obsolete]
-        private AceCharacter Character => AceObject as AceCharacter;
+        //[Obsolete]
+        //private AceCharacter Character => AceObject as AceCharacter;
 
 
         /// <summary>
@@ -290,10 +290,6 @@ namespace ACE.Server.WorldObjects
         public bool FirstEnterWorldDone;
 
 
-        public AceObject GetAceObject()
-        {
-            return Character;
-        }
 
         private MotionStance stance = MotionStance.Standing;
 

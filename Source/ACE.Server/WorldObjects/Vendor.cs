@@ -8,8 +8,6 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 
-using AceObjectInventory = ACE.Entity.AceObjectInventory;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -77,6 +75,7 @@ namespace ACE.Server.WorldObjects
             // Load Vendor Inventory from database.
             if (!inventoryloaded)
             {
+                /* todo fix this for new EF model
                 foreach (AceObjectInventory item in ShopList)
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -86,7 +85,7 @@ namespace ACE.Server.WorldObjects
                         wo.ContainerId = (int)Guid.Full;
                         defaultItemsForSale.Add(wo.Guid, wo);
                     }
-                }
+                }*/
 
                 inventoryloaded = true;
             }

@@ -1928,8 +1928,8 @@ namespace ACE.Entity
         [JsonProperty("textures")]
         public List<TextureMapOverride> TextureOverrides { get; set; } = new List<TextureMapOverride>();
 
-        [JsonProperty("animations")]
-        public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
+        //[JsonProperty("animations")]
+        //public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
 
         [JsonProperty("uintProperties")]
         public List<AceObjectPropertiesInt> IntProperties { get; set; } = new List<AceObjectPropertiesInt>();
@@ -1977,8 +1977,8 @@ namespace ACE.Entity
         [JsonProperty("bookProperties")]
         public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
 
-        [JsonProperty("generatorProfiles")]
-        public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
+        //[JsonProperty("generatorProfiles")]
+        //public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
 
 
 
@@ -2015,8 +2015,8 @@ namespace ACE.Entity
             return !success ? null : ret;
         }
 
-        [JsonProperty("createlist")]
-        public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
+        //[JsonProperty("createlist")]
+        //public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
 
         public object Clone()
         {
@@ -2030,7 +2030,7 @@ namespace ACE.Entity
                 HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase,
                 PaletteOverrides = CloneList(PaletteOverrides),
                 TextureOverrides = CloneList(TextureOverrides),
-                AnimationOverrides = CloneList(AnimationOverrides),
+                //AnimationOverrides = CloneList(AnimationOverrides),
                 IntProperties = CloneList(IntProperties),
                 Int64Properties = CloneList(Int64Properties),
                 DoubleProperties = CloneList(DoubleProperties),
@@ -2038,8 +2038,8 @@ namespace ACE.Entity
                 DataIdProperties = CloneList(DataIdProperties),
                 InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
-                GeneratorProfiles = CloneList(GeneratorProfiles),
-                CreateList = CloneList(CreateList),
+                //GeneratorProfiles = CloneList(GeneratorProfiles),
+                //CreateList = CloneList(CreateList),
                 //AceObjectPropertiesAttributes = CloneDict(AceObjectPropertiesAttributes),
                 //AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
                 //AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
@@ -2066,7 +2066,7 @@ namespace ACE.Entity
 
             ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
             ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
-            ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
+            //ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
             ret.IntProperties.ForEach(c => c.AceObjectId = guid);
             ret.Int64Properties.ForEach(c => c.AceObjectId = guid);
             ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
@@ -2075,8 +2075,8 @@ namespace ACE.Entity
             ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
-            ret.CreateList.ForEach(c => c.AceObjectId = guid);
+            //ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
+            //ret.CreateList.ForEach(c => c.AceObjectId = guid);
             //ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
             // Cloning an object as new should not clone inventory I don't think intentionally left out. Og II
 
