@@ -262,10 +262,5 @@ namespace ACE.Database
         {
             throw new NotImplementedException();
         }
-
-        public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
