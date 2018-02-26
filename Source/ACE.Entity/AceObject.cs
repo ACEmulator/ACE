@@ -1940,8 +1940,8 @@ namespace ACE.Entity
         public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
 
         // uint references the page
-        [JsonProperty("bookProperties")]
-        public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
+        //[JsonProperty("bookProperties")]
+        //public Dictionary<uint, AceObjectPropertiesBook> BookProperties { get; set; } = new Dictionary<uint, AceObjectPropertiesBook>();
 
         //[JsonProperty("generatorProfiles")]
         //public List<AceObjectGeneratorProfile> GeneratorProfiles { get; set; } = new List<AceObjectGeneratorProfile>();
@@ -2012,7 +2012,7 @@ namespace ACE.Entity
                 AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
                 SpellIdProperties = CloneList(SpellIdProperties),
                 //SpellsInSpellBars = CloneList(SpellsInSpellBars),
-                BookProperties = CloneDict(BookProperties),
+                //BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
                 WieldedItems = CloneDict(WieldedItems),
                 TrackedContracts = CloneDict(TrackedContracts)
@@ -2048,7 +2048,7 @@ namespace ACE.Entity
 
             // No need to change Dictionary guids per DDEVEC
             // AceObjectPropertiesAttributes AceObjectPropertiesAttributes2nd AceObjectPropertiesSkills AceObjectPropertiesPositions
-            ret.BookProperties = CloneDict(BookProperties);
+            //ret.BookProperties = CloneDict(BookProperties);
             return ret;
         }
 
