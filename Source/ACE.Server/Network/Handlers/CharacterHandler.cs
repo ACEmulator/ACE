@@ -388,6 +388,9 @@ namespace ACE.Server.Network.Handlers
                         }
 
                         var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                        if (loot != null)
+                            if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
+                                loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
                         if (loot == null)
                         {
                             CreateIOU(player, item.WeenieId);
@@ -414,6 +417,9 @@ namespace ACE.Server.Network.Handlers
                             }
 
                             var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                            if (loot != null)
+                                if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
+                                    loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
                             if (loot == null)
                             {
                                 CreateIOU(player, item.WeenieId);
