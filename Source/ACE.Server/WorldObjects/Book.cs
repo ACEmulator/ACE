@@ -1,11 +1,12 @@
 using System;
-
+using System.Collections.Generic;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
@@ -37,6 +38,9 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Book;
+
+            SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
+            SetProperty(PropertyInt.AppraisalMaxPages, Biota.BiotaPropertiesBook.MaxNumCharsPerPage);
         }
 
         public void SetProperties(string name, string shortDesc, string inscription, string scribeName, string scribeAccount)
@@ -90,11 +94,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="session"></param>
         private void BookUseHandler(Session session)
         {
-            // Fix this to not use AceObject
-            throw new NotImplementedException();
-            /*
-            int maxChars = MaxCharactersPerPage ?? 1000;
-            int maxPages = MaxPages ?? 1;
+            int maxChars = Biota.BiotaPropertiesBook.MaxNumCharsPerPage;
+            int maxPages = Biota.BiotaPropertiesBook.MaxNumPages;
 
             string authorName;
             if (ScribeName != null)
@@ -108,15 +109,18 @@ namespace ACE.Server.WorldObjects
             else
                 authorAccount = "";
 
-            uint authorID = Scribe ?? 0xFFFFFFFF;
+            //uint authorID = ScribeIID ?? 0xFFFFFFFF;
+            uint authorID = (ScribeIID.HasValue) ? (uint)ScribeIID : 0xFFFFFFFF;
 
             List<PageData> pageData = new List<PageData>();
-            foreach (KeyValuePair<uint, AceObjectPropertiesBook> p in PropertiesBook)
+            foreach (var p in Biota.BiotaPropertiesBookPageData)
             {
                 PageData newPage = new PageData();
-                newPage.AuthorID = p.Value.AuthorId;
-                newPage.AuthorName = p.Value.AuthorName;
-                newPage.AuthorAccount = p.Value.AuthorAccount;
+                newPage.AuthorID = p.AuthorId;
+                newPage.AuthorName = p.AuthorName;
+                newPage.AuthorAccount = p.AuthorAccount;
+                newPage.PageText = p.PageText;
+                newPage.IgnoreAuthor = p.IgnoreAuthor;
                 pageData.Add(newPage);
             }
 
@@ -133,7 +137,6 @@ namespace ACE.Server.WorldObjects
 
             var sendUseDoneEvent = new GameEventUseDone(session);
             session.Network.EnqueueSend(sendUseDoneEvent);
-            */
         }
     }
 }

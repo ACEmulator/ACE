@@ -448,7 +448,7 @@ namespace ACE.Server.WorldObjects
         public string NamePlural
         {
             get => GetProperty(PropertyString.PluralName);
-            set => SetProperty(PropertyString.PluralName, value);
+            set { if (value == null) RemoveProperty(PropertyString.PluralName); else SetProperty(PropertyString.PluralName, value); }
         }
 
         public byte? ItemCapacity
@@ -1660,11 +1660,11 @@ namespace ACE.Server.WorldObjects
         //}
 
 
-        //public bool? IgnoreAuthor
-        //{
-        //    get { return GetProperty(PropertyBool.IgnoreAuthor); }
-        //    set { SetProperty(PropertyBool.IgnoreAuthor, value); }
-        //}
+        public bool? IgnoreAuthor
+        {
+            get => GetProperty(PropertyBool.IgnoreAuthor);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreAuthor); else SetProperty(PropertyBool.IgnoreAuthor, value.Value); }
+        }
 
 
 
@@ -1693,49 +1693,49 @@ namespace ACE.Server.WorldObjects
 
 
 
-        //public string Inscription
-        //{
-        //    get { return GetProperty(PropertyString.Inscription); }
-        //    set { SetProperty(PropertyString.Inscription, value); }
-        //}
+        public string Inscription
+        {
+            get => GetProperty(PropertyString.Inscription);
+            set { if (value == null) RemoveProperty(PropertyString.Inscription); else SetProperty(PropertyString.Inscription, value); }
+        }
 
-        //#region Books
-
-
-        //public string ScribeName
-        //{
-        //    get { return GetProperty(PropertyString.ScribeName); }
-        //    set { SetProperty(PropertyString.ScribeName, value); }
-        //}
+        #region Books
 
 
-        //public string ScribeAccount
-        //{
-        //    get { return GetProperty(PropertyString.ScribeAccount); }
-        //    set { SetProperty(PropertyString.ScribeAccount, value); }
-        //}
+        public string ScribeName
+        {
+            get => GetProperty(PropertyString.ScribeName);
+            set { if (value == null) RemoveProperty(PropertyString.ScribeName); else SetProperty(PropertyString.ScribeName, value); }
+        }
 
 
-        //public uint? ScribeIID
-        //{
-        //    get { return GetProperty(PropertyInstanceId.Scribe); }
-        //    set { SetProperty(PropertyInstanceId.Scribe, value); }
-        //}
+        public string ScribeAccount
+        {
+            get => GetProperty(PropertyString.ScribeAccount);
+            set { if (value == null) RemoveProperty(PropertyString.ScribeAccount); else SetProperty(PropertyString.ScribeAccount, value); }
+        }
 
 
-        //public int? AppraisalPages
-        //{
-        //    get { return GetProperty(PropertyInt.AppraisalPages); }
-        //    set { SetProperty(PropertyInt.AppraisalPages, value); }
-        //}
+        public int? ScribeIID
+        {
+            get => GetProperty(PropertyInstanceId.Scribe);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Scribe); else SetProperty(PropertyInstanceId.Scribe, value.Value); }
+        }
 
 
-        //public int? AppraisalMaxPages
-        //{
-        //    get { return GetProperty(PropertyInt.AppraisalMaxPages); }
-        //    set { SetProperty(PropertyInt.AppraisalMaxPages, value); }
-        //}
-        //#endregion
+        public int? AppraisalPages
+        {
+            get => GetProperty(PropertyInt.AppraisalPages);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalPages); else SetProperty(PropertyInt.AppraisalPages, value.Value); }
+        }
+
+
+        public int? AppraisalMaxPages
+        {
+            get => GetProperty(PropertyInt.AppraisalMaxPages);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalMaxPages); else SetProperty(PropertyInt.AppraisalMaxPages, value.Value); }
+        }
+        #endregion
 
 
         //public int? AvailableCharacter
