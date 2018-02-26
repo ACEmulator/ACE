@@ -195,8 +195,6 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
 
-        // this is just temp so code compiles, remove it later
-        public Dictionary<PositionType, Position> Positions = new Dictionary<PositionType, Position>();
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 

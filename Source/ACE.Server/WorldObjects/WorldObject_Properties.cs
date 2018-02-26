@@ -153,6 +153,12 @@ namespace ACE.Server.WorldObjects
 
         //public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
 
+        // this is just temp so code compiles, remove it later
+        // maybe this is a temp.. I haven't reviewed all of our position code yet. I don't know if we create a wrapper around the biota position table, or cache into a dictionary here
+        // maybe we also need ephemeral positions..
+        // What i want to avoid is duplicating data. If the biota is the authority, we can create a rapper class like WorldObjectPosition that takes in the biota position record as a ctor (similar to CreatureAttribute, CreatureSkill, etc..)
+        public Dictionary<PositionType, Position> Positions = new Dictionary<PositionType, Position>();
+
         public Position GetPosition(PositionType positionType) // { return Biota.GetPosition(positionType); }
         {
             bool success = Positions.TryGetValue(positionType, out var ret);
