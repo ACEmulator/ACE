@@ -68,6 +68,7 @@ namespace ACE.Server.Physics
         public int CollidingWithEnvironment;
         public int[] UpdateTimes;
 
+        public static CellArray CellArray;
         public static ObjectMaint ObjMaint;
         public static PhysicsObj PlayerObject;
 
@@ -774,7 +775,7 @@ namespace ACE.Server.Physics
                     return SetPositionError.GeneralFailure;
                 }
 
-                if (transition.CellArray.Count > 0)
+                if (transition.CellArray.Cells.Count > 0)
                 {
                     remove_shadows_from_cells();
                     add_shadows_to_cell(transition.CellArray);
@@ -1071,13 +1072,13 @@ namespace ACE.Server.Physics
                 PartArray.AddPartsShadow(shadowObj);
         }
 
-        public void add_shadows_to_cell(List<ObjCell> cellArray)
+        public void add_shadows_to_cell(CellArray cellArray)
         {
             if (State.HasFlag(PhysicsState.ParticleEmitter))
                 add_particle_shadow_to_cell();
             else
             {
-                foreach (var cell in cellArray)
+                foreach (var cell in cellArray.Cells)
                 {
                     var shadowObj = new ShadowObj(this, cell);
                     ShadowObjects.Add(cell.ID, shadowObj);
@@ -1119,22 +1120,71 @@ namespace ACE.Server.Physics
 
         public void calc_acceleration()
         {
-
+            if (TransientState.HasFlag(TransientStateFlags.Contact) && TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                Omega = Acceleration = Vector3.Zero;
+            else
+            {
+                if (State.HasFlag(PhysicsState.Gravity))
+                    Acceleration = new Vector3(0, 0, PhysicsGlobals.Gravity);
+                else
+                    Acceleration = Vector3.Zero;
+            }
         }
 
         public void calc_cross_cells()
         {
+            CellArray.SetDynamic();
 
+            if (State.HasFlag(PhysicsState.HasPhysicsBSP))
+                find_bbox_cell_list(CellArray);
+            else
+            {
+                if (PartArray != null && PartArray.GetNumCylsphere() != 0)
+                    ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
+                else
+                {
+                    var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
+                    ObjCell.find_cell_list(Position, sphere, CellArray, null);
+                }
+            }
+            remove_shadows_from_cells();
+            add_shadows_to_cell(CellArray);
         }
 
         public void calc_cross_cells_static()
         {
+            CellArray.SetStatic();
 
+            if (PartArray != null && PartArray.GetNumCylsphere() != 0 && !State.HasFlag(PhysicsState.HasPhysicsBSP))
+                ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
+            else
+                find_bbox_cell_list(CellArray);
+
+            remove_shadows_from_cells();
+            add_shadows_to_cell(CellArray);
         }
 
         public void calc_friction(float quantum, float velocity_mag2)
         {
+            if (!TransientState.HasFlag(TransientStateFlags.OnWalkable)) return;
 
+            var angle = Vector3.Dot(Velocity, ContactPlane.Normal);
+            if (angle >= 0.25f) return;
+
+            Velocity -= ContactPlane.Normal * angle;
+
+            var friction = Friction;
+            if (State.HasFlag(PhysicsState.Sledding))
+            {
+                if (velocity_mag2 < 1.5625f)
+                    friction = 1.0f;
+
+                else if (velocity_mag2 >= 6.25f && ContactPlane.Normal.Z > 0.99999536f)
+                    friction = 0.2f;
+            }
+
+            var scalar = (float)Math.Pow(1.0f - friction, quantum);
+            Velocity *= scalar;
         }
 
         public void cancel_moveto()
@@ -1222,7 +1272,7 @@ namespace ACE.Server.Physics
 
         }
 
-        public void find_bbox_cell_list(List<ObjCell> cellArray)
+        public void find_bbox_cell_list(CellArray cellArray)
         {
 
         }

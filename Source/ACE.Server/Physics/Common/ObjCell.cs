@@ -47,5 +47,15 @@ namespace ACE.Server.Physics.Common
         {
             // could go in PartCell
         }
+
+        public static void find_cell_list(Position pos, Sphere cylSphere, CellArray cellArray, SpherePath path)
+        {
+
+        }
+
+        public static void find_cell_list(Position pos, int numCylSphere, CylSphere cylSphere, CellArray cellArray, SpherePath path)
+        {
+
+        }
     }
 }
