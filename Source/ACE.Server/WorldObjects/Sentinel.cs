@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags = ObjectDescriptionFlag.Admin;
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
         }
     }
 }
