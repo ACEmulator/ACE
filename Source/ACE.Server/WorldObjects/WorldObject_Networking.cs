@@ -831,7 +831,7 @@ namespace ACE.Server.WorldObjects
             if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
-            if (Burden != null)
+            if ((Burden != null) && (Burden != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
             if ((Spell != null) && (Spell != 0))
