@@ -57,5 +57,10 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public void RemoveObject(PhysicsObj obj)
+        {
+
+        }
     }
 }

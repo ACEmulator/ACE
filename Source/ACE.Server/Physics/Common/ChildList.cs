@@ -22,5 +22,10 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public void RemoveChild(PhysicsObj obj)
+        {
+
+        }
     }
 }

@@ -36,5 +36,10 @@ namespace ACE.Server.Physics.Common
         {
             return -1;
         }
+
+        public static void AdjustToOutside(Position pos)
+        {
+
+        }
     }
 }

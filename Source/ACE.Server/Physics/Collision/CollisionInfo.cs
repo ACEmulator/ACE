@@ -22,7 +22,7 @@ namespace ACE.Server.Physics.Collision
         public int NumCollideObject;
         public List<PhysicsObj> CollideObject;
         public PhysicsObj LastCollidedObject;
-        public int CollidedWithEnvironment;
+        public bool CollidedWithEnvironment;
         public int FramesStationaryFall;
 
         public void SetContactPlane(Plane plane, bool isWater)

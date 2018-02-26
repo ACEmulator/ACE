@@ -13,5 +13,15 @@ namespace ACE.Server.Physics.Common
         {
             return null;
         }
+
+        public void RemoveFromLostCell(PhysicsObj obj)
+        {
+
+        }
+
+        public void RemoveObjectToBeDestroyed(int id)
+        {
+
+        }
     }
 }

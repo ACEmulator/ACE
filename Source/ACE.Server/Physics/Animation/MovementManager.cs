@@ -43,5 +43,20 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public void unpack_movement(object addr, int size)
+        {
+
+        }
+
+        public void CancelMoveTo(int err)
+        {
+
+        }
+
+        public bool MotionsPending()
+        {
+            return false;
+        }
     }
 }
