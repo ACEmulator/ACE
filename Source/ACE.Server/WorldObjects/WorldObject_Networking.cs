@@ -1153,7 +1153,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        protected static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        /*protected static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
         {
             if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
             writer.Write((uint)propertiesSpellId.Count);
@@ -1161,8 +1161,8 @@ namespace ACE.Server.WorldObjects
             foreach (AceObjectPropertiesSpell x in propertiesSpellId)
             {
                 writer.Write(x.SpellId);
-            }*/
-        }
+            }*//*
+        }*/
 
         // TODO: Move to Armor class
         /*protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)

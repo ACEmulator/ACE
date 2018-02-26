@@ -1841,8 +1841,8 @@ namespace ACE.Entity
         //[JsonProperty("iidProperties")]
         //public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
 
-        [JsonProperty("spells")]
-        public List<AceObjectPropertiesSpell> SpellIdProperties { get; set; } = new List<AceObjectPropertiesSpell>();
+        //[JsonProperty("spells")]
+        //public List<AceObjectPropertiesSpell> SpellIdProperties { get; set; } = new List<AceObjectPropertiesSpell>();
 
         [JsonProperty("spellbars")]
         //public List<AceObjectPropertiesSpellBarPositions> SpellsInSpellBars { get; set; } = new List<AceObjectPropertiesSpellBarPositions>();
@@ -1936,7 +1936,7 @@ namespace ACE.Entity
                 //AceObjectPropertiesAttributes2nd = CloneDict(AceObjectPropertiesAttributes2nd),
                 //AceObjectPropertiesSkills = CloneDict(AceObjectPropertiesSkills),
                 AceObjectPropertiesPositions = CloneDict(AceObjectPropertiesPositions),
-                SpellIdProperties = CloneList(SpellIdProperties),
+                //SpellIdProperties = CloneList(SpellIdProperties),
                 //SpellsInSpellBars = CloneList(SpellsInSpellBars),
                 //BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
@@ -1966,7 +1966,7 @@ namespace ACE.Entity
             //ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
             //ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
-            ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
+            //ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             //ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
             //ret.CreateList.ForEach(c => c.AceObjectId = guid);
             //ret.SpellsInSpellBars.ForEach(c => c.AceObjectId = guid);
