@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
     public class ObjCell
     {
+        public int ID;
         public WaterType WaterType;
         public Position Pos;
         public int NumObjects;
@@ -11,7 +13,7 @@ namespace ACE.Server.Physics.Common
         public int NumLights;
         public List<int> LightList;
         public int NumShadowObjects;
-        public List<int> ShadowObjectList;
+        public List<ShadowObj> ShadowObjectList;
         public int RestrictionObj;
         public List<int> ClipePlanes;
         public int NumStabs;
@@ -33,6 +35,17 @@ namespace ACE.Server.Physics.Common
         public void unhide_object(PhysicsObj obj)
         {
 
+        }
+
+        public void AddShadowObject(ShadowObj shadowObj)
+        {
+            ShadowObjectList.Add(shadowObj);
+            NumShadowObjects++;     // can probably replace with .Count
+        }
+
+        public void AddPart(PhysicsPart part, int clipPlanes, AFrame frame, int numParts)
+        {
+            // could go in PartCell
         }
     }
 }

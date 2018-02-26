@@ -536,5 +536,10 @@ namespace ACE.Server.Physics
         {
             return -1;
         }
+
+        public void AddPartsShadow(ShadowObj shadowObj)
+        {
+
+        }
     }
 }

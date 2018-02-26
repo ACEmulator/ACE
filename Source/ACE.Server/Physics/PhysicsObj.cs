@@ -35,7 +35,7 @@ namespace ACE.Server.Physics
         public Position Position;
         public ObjCell Cell;
         public int NumShadowObjects;
-        public List<int> ShadowObjects;
+        public Dictionary<int, ShadowObj> ShadowObjects;
         public PhysicsState State;
         public TransientStateFlags TransientState;
         public float Elasticity;
@@ -113,12 +113,36 @@ namespace ACE.Server.Physics
 
         public void AddObjectToSingleCell(ObjCell objCell)
         {
+            if (Cell != null)
+            {
+                if (Cell.Equals(objCell)) return;
+                RemoveObjectFromSingleCell(Cell);
+            }
 
+            change_cell(objCell);
+
+            if (objCell == null) return;
+
+            NumShadowObjects = 1;
+            var shadowObj = new ShadowObj(this, objCell);
+            objCell.AddShadowObject(shadowObj);
+
+            if (PartArray != null)
+                PartArray.AddPartsShadow(shadowObj);
         }
 
         public void AddPartToShadowCells(PhysicsPart part)
         {
-
+            if (Cell != null) part.Pos.ObjCellID = Cell.ID;
+            foreach (var shadowObj in ShadowObjects.Values)
+            {
+                var shadowCell = shadowObj.Cell;
+                if (shadowCell != null)
+                {
+                    shadowCell.AddPart(part, 0,
+                        shadowCell.Pos.Frame, ShadowObjects.Count);
+                }
+            }
         }
 
         public ObjCell AdjustPosition(Position pos, Vector3 low_pt, bool dontCreateCells, bool searchCells)
@@ -997,37 +1021,85 @@ namespace ACE.Server.Physics
 
         public void add_anim_hook(AnimHook hook)
         {
-
+            AnimHooks.Add(hook);
         }
 
         public bool add_child(PhysicsObj obj, int where)
         {
-            return false;
+            if (PartArray == null || obj.Equals(this)) return false;
+
+            var setup = Setup.GetHoldingLocation(where);
+            if (setup == null) return false;
+
+            if (Children == null) Children = new ChildList();
+            Children.AddChild(obj, setup.Frame, setup.PartID, where);
+            return true;
         }
 
         public bool add_child(PhysicsObj obj, int partIdx, AFrame frame)
         {
-            return false;
+            if (obj.Equals(this)) return false;
+
+            if (PartArray == null || partIdx != -1 && partIdx >= PartArray.NumParts)
+                return false;
+
+            if (Children == null) Children = new ChildList();
+            Children.AddChild(obj, frame, partIdx, 0);
+            return true;
         }
 
         public void add_obj_to_cell(ObjCell newCell, AFrame newFrame)
         {
+            enter_cell(newCell);
 
+            Position.Frame = newFrame;
+            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
+                PartArray.SetFrame(Position.Frame);
+
+            UpdateChildrenInternal();
+            calc_cross_cells_static();
         }
 
         public void add_particle_shadow_to_cell()
         {
+            NumShadowObjects = 1;
 
+            var shadowObj = new ShadowObj(this, Cell);
+            ShadowObjects.Add(1, shadowObj);
+
+            if (PartArray != null)
+                PartArray.AddPartsShadow(shadowObj);
         }
 
         public void add_shadows_to_cell(List<ObjCell> cellArray)
         {
+            if (State.HasFlag(PhysicsState.ParticleEmitter))
+                add_particle_shadow_to_cell();
+            else
+            {
+                foreach (var cell in cellArray)
+                {
+                    var shadowObj = new ShadowObj(this, cell);
+                    ShadowObjects.Add(cell.ID, shadowObj);
 
+                    if (cell != null) cell.AddShadowObject(shadowObj);
+
+                    if (PartArray != null)
+                        PartArray.AddPartsShadow(shadowObj);
+
+                }
+            }
+            if (Children != null)
+            {
+                foreach (var child in Children.Objects)
+                    child.add_shadows_to_cell(cellArray);
+            }
         }
 
         public void add_voyeur(int objectID, float radius, float quantum)
         {
-
+            if (TargetManager == null) TargetManager = new TargetManager(this);
+            TargetManager.AddVoyeur(objectID, radius, quantum);
         }
 
         public void animate_static_object()
