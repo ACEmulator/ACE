@@ -10,25 +10,40 @@ namespace ACE.Entity.Enum.Properties
         // description attributes are used by the weenie editor for a cleaner display name
 
         Undef                                    = 0,
+        [ServerOnly]
         ItemType                                 = 1,
         CreatureType                             = 2,
+        [ServerOnly]
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
+        [LoginOnly]
         ItemsCapacity                            = 6,
+        [LoginOnly]
         ContainersCapacity                       = 7,
+        [ServerOnly]
         Mass                                     = 8,
+        [ServerOnly]
         ValidLocations                           = 9, // LOCATIONS_INT
+        [ServerOnly]
         CurrentWieldedLocation                   = 10,
+        [ServerOnly]
         MaxStackSize                             = 11,
+        [ServerOnly]
         StackSize                                = 12,
+        [ServerOnly]
         StackUnitEncumbrance                     = 13,
+        [ServerOnly]
         StackUnitMass                            = 14,
+        [ServerOnly]
         StackUnitValue                           = 15,
+        [ServerOnly]
         ItemUseable                              = 16,
         RareId                                   = 17,
+        [ServerOnly]
         UiEffects                                = 18,
         Value                                    = 19,
+        [ServerOnly][LoginOnly]
         CoinValue                                = 20,
         TotalExperience                          = 21,
         AvailableCharacter                       = 22,
@@ -55,13 +70,16 @@ namespace ACE.Entity.Enum.Properties
         NumDeaths                                = 43,
         Damage                                   = 44,
         DamageType                               = 45,
+        [ServerOnly]
         DefaultCombatStyle                       = 46,
         AttackType                               = 47,
         WeaponSkill                              = 48,
         WeaponTime                               = 49,
         AmmoType                                 = 50,
         CombatUse                                = 51,
+        [ServerOnly]
         ParentLocation                           = 52,
+        [ServerOnly]
         PlacementPosition                        = 53,
         WeaponEncumbrance                        = 54,
         WeaponMass                               = 55,
@@ -74,6 +92,7 @@ namespace ACE.Entity.Enum.Properties
         DefendersSkill                           = 62,
         AttackersSkillValue                      = 63,
         AttackersClass                           = 64,
+        [ServerOnly]
         Placement                                = 65,
         CheckpointStatus                         = 66,
         Tolerance                                = 67,
@@ -98,11 +117,14 @@ namespace ACE.Entity.Enum.Properties
         MinLevel                                 = 86,
         MaxLevel                                 = 87,
         LockpickMod                              = 88,
+        [ServerOnly]
         BoosterEnum                              = 89,
         BoostValue                               = 90,
         MaxStructure                             = 91,
         Structure                                = 92,
+        [ServerOnly]
         PhysicsState                             = 93,
+        [ServerOnly]
         TargetType                               = 94,
         [Ephemeral]
         RadarBlipColor                           = 95,
@@ -161,8 +183,11 @@ namespace ACE.Entity.Enum.Properties
         NumCrashAndTurns                         = 147,
         ComponentWarningThreshold                = 148,
         HouseStatus                              = 149,
+        [ServerOnly]
         HookPlacement                            = 150,
+        [ServerOnly]
         HookType                                 = 151,
+        [ServerOnly]
         HookItemType                             = 152,
         AiPpThreshold                            = 153,
         GeneratorVersion                         = 154,
@@ -416,16 +441,16 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         TotalLogins                              = 9001,
-        [ServerOnly]
-        DeletionTimestamp                        = 9002,
+        //[ServerOnly]
+        //DeletionTimestamp                        = 9002,
         [ServerOnly]
         CharacterOptions1                        = 9003,
         [ServerOnly]
         CharacterOptions2                        = 9004,
-        [ServerOnly]
-        LootTier                                 = 9005,
-        [ServerOnly]
-        GeneratorProbability                     = 9006,
+        //[ServerOnly]
+        //LootTier                                 = 9005,
+        //[ServerOnly]
+        //GeneratorProbability                     = 9006,
         //[ServerOnly]
         //WeenieType                               = 9007 // I don't think this property type is needed anymore. We don't store the weenie type in the property bags, we store it as a separate field in the base objects.
     }
