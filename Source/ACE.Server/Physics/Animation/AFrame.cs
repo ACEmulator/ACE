@@ -7,9 +7,14 @@ namespace ACE.Server.Physics.Animation
         public Vector3 Origin;
         public Quaternion Orientation;
 
-        public void Combine(AFrame a, AFrame b, Vector3 scale)
+        public static AFrame Combine(AFrame a, AFrame b)
         {
+            return null;
+        }
 
+        public AFrame Combine(AFrame a, AFrame b, Vector3 scale)
+        {
+            return null;
         }
 
         public bool IsValid()
@@ -32,9 +37,19 @@ namespace ACE.Server.Physics.Animation
 
         }
 
+        public void set_vector_heading(Vector3 heading)
+        {
+
+        }
+
         public double get_heading()
         {
             return -1;
+        }
+
+        public void Rotate(Vector3 w)
+        {
+
         }
     }
 }

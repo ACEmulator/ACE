@@ -11,5 +11,15 @@ namespace ACE.Server.Physics.Animation
         {
             return -1;
         }
+
+        public void UseTime()
+        {
+
+        }
+
+        public void AdjustOffset(AFrame frame, double quantum)
+        {
+
+        }
     }
 }

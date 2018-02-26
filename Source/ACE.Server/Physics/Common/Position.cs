@@ -13,6 +13,12 @@ namespace ACE.Server.Physics.Common
             Frame = new AFrame();    // cache frames?
         }
 
+        public Position(int objCellID)
+        {
+            ObjCellID = objCellID;
+            Frame = new AFrame();
+        }
+
         public Vector3 LocalToGlobal(Position p, Vector3 v)
         {
             return v;
@@ -36,6 +42,11 @@ namespace ACE.Server.Physics.Common
         public Vector3 GlobalToLocalVec(Vector3 global)
         {
             return global;
+        }
+
+        public Vector3 GetOffset(Position pos)
+        {
+            return Vector3.Zero;
         }
     }
 }

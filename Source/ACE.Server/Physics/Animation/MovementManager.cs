@@ -38,5 +38,10 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+
+        public void UseTime()
+        {
+
+        }
     }
 }
