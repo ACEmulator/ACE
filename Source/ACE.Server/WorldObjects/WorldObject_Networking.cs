@@ -1165,17 +1165,17 @@ namespace ACE.Server.WorldObjects
         }
 
         // TODO: Move to Armor class
-        protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        /*protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
         {
             var notNull = propertiesArmor.Where(p => p.PropertyValue != null).ToList();
             if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (notNull.Count == 0)) return;
 
             foreach (AceObjectPropertiesDouble x in notNull)
                 writer.Write((float)x.PropertyValue.Value);
-        }
+        }*/
 
         // TODO: Move to Weapon class
-        protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesWeaponsD, List<AceObjectPropertiesInt> propertiesWeaponsI)
+        /*protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesWeaponsD, List<AceObjectPropertiesInt> propertiesWeaponsI)
         {
             if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
             writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.DamageType)?.PropertyValue ?? 0);
@@ -1191,7 +1191,7 @@ namespace ACE.Server.WorldObjects
             writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponOffense)?.PropertyValue ?? 0.00);
             // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
             writer.Write(0u);
-        }
+        }*/
 
 
         /// <summary>
