@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
             UpdateAppearance(this);
 
             return; // todo
-
+            /* todo fix for new EF model
             TrackedContracts = new Dictionary<uint, ContractTracker>();
             // Load the persisted tracked contracts into the working dictionary on player object.
             foreach (var trackedContract in AceObject.TrackedContracts)
@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
                 };
 
                 TrackedContracts.Add(trackedContract.Key, loadContract);
-            }
+            }*/
 
             LastUseTracker = new Dictionary<int, DateTime>();
 
@@ -1317,7 +1317,7 @@ namespace ACE.Server.WorldObjects
             };
 
             GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
-
+            /* todo fix for new EF model
             AceContractTracker contract = new AceContractTracker();
             if (TrackedContracts.ContainsKey(contractId))
                 contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
@@ -1334,7 +1334,7 @@ namespace ACE.Server.WorldObjects
                     log.Error($"Unable to delete contractId {contractId:X} ");
             });
 
-            Session.Network.EnqueueSend(contractMsg);
+            Session.Network.EnqueueSend(contractMsg);*/
         }
 
         /// <summary>

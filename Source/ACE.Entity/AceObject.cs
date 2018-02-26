@@ -1791,11 +1791,11 @@ namespace ACE.Entity
             throw new NotSupportedException();
         }
 
-        [JsonProperty("palettes")]
-        public List<PaletteOverride> PaletteOverrides { get; set; } = new List<PaletteOverride>();
+        //[JsonProperty("palettes")]
+        //public List<PaletteOverride> PaletteOverrides { get; set; } = new List<PaletteOverride>();
 
-        [JsonProperty("textures")]
-        public List<TextureMapOverride> TextureOverrides { get; set; } = new List<TextureMapOverride>();
+        //[JsonProperty("textures")]
+        //public List<TextureMapOverride> TextureOverrides { get; set; } = new List<TextureMapOverride>();
 
         //[JsonProperty("animations")]
         //public List<AnimationOverride> AnimationOverrides { get; set; } = new List<AnimationOverride>();
@@ -1836,8 +1836,8 @@ namespace ACE.Entity
         [JsonProperty("wieldedWeenieIds")]
         public List<uint> WieldedWeenieIds { get { return WieldedItems.Values.Select(a => a.WeenieClassId).ToList(); } }
 
-        [JsonProperty("contracts")]
-        public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();
+        //[JsonProperty("contracts")]
+        //public Dictionary<uint, AceContractTracker> TrackedContracts = new Dictionary<uint, AceContractTracker>();
 
         //[JsonProperty("stringProperties")]
         //public List<AceObjectPropertiesString> StringProperties { get; set; } = new List<AceObjectPropertiesString>();
@@ -1873,16 +1873,16 @@ namespace ACE.Entity
             SetProperty(AceObjectPropertiesPositions, positionType, value);
         }
 
-        public void SetTrackedContract(uint contractId, AceContractTracker value)
+        /*public void SetTrackedContract(uint contractId, AceContractTracker value)
         {
             SetProperty(TrackedContracts, contractId, value);
-        }
+        }*/
 
-        public AceContractTracker GetTrackedContract(uint contractId)
+        /*public AceContractTracker GetTrackedContract(uint contractId)
         {
             bool success = TrackedContracts.TryGetValue(contractId, out var ret);
             return !success ? null : ret;
-        }
+        }*/
 
         //[JsonProperty("createlist")]
         //public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
@@ -1897,8 +1897,8 @@ namespace ACE.Entity
                 PhysicsDescriptionFlag = PhysicsDescriptionFlag,
                 WeenieHeaderFlags = WeenieHeaderFlags,
                 HasEverBeenSavedToDatabase = HasEverBeenSavedToDatabase,
-                PaletteOverrides = CloneList(PaletteOverrides),
-                TextureOverrides = CloneList(TextureOverrides),
+                //PaletteOverrides = CloneList(PaletteOverrides),
+                //TextureOverrides = CloneList(TextureOverrides),
                 //AnimationOverrides = CloneList(AnimationOverrides),
                 //IntProperties = CloneList(IntProperties),
                 //Int64Properties = CloneList(Int64Properties),
@@ -1918,7 +1918,7 @@ namespace ACE.Entity
                 //BookProperties = CloneDict(BookProperties),
                 Inventory = CloneDict(Inventory),
                 WieldedItems = CloneDict(WieldedItems),
-                TrackedContracts = CloneDict(TrackedContracts)
+                //TrackedContracts = CloneDict(TrackedContracts)
             };
             return ret;
         }
@@ -1933,8 +1933,8 @@ namespace ACE.Entity
             // We are cloning a new AceObject with a new AceObjectID - need to set this to false. Og II
             ret.SetDirtyFlags();
 
-            ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
-            ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
+            //ret.PaletteOverrides.ForEach(c => c.AceObjectId = guid);
+            //ret.TextureOverrides.ForEach(c => c.AceObjectId = guid);
             //ret.AnimationOverrides.ForEach(c => c.AceObjectId = guid);
             //ret.IntProperties.ForEach(c => c.AceObjectId = guid);
             //ret.Int64Properties.ForEach(c => c.AceObjectId = guid);
