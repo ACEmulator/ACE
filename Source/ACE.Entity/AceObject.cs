@@ -1700,34 +1700,17 @@ namespace ACE.Entity
 
         protected uint? GetProperty(PropertyInstanceId property)
         {
-            return InstanceIdProperties.FirstOrDefault(x => x.PropertyId == (uint)property)?.PropertyValue;
+            throw new NotSupportedException();
         }
 
         protected List<uint> GetInstanceIdProperties(PropertyInstanceId property)
         {
-            return InstanceIdProperties.Where(x => x.PropertyId == (uint)property).Where(x => x.PropertyValue != null).Select(x => x.PropertyValue.Value).ToList();
+            throw new NotSupportedException();
         }
 
         protected void SetProperty(PropertyInstanceId iidPropertyId, uint? value)
         {
-            AceObjectPropertiesInstanceId listItem = InstanceIdProperties.Find(x => x.PropertyId == (ushort)iidPropertyId);
-            if (value != null)
-            {
-                if (listItem == null)
-                {
-                    listItem = new AceObjectPropertiesInstanceId { PropertyId = (uint)iidPropertyId, PropertyValue = (uint)value, AceObjectId = AceObjectId };
-                    InstanceIdProperties.Add(listItem);
-                }
-                else
-                {
-                    listItem.PropertyValue = (uint)value;
-                }
-            }
-            else
-            {
-                if (listItem != null)
-                    listItem.PropertyValue = null;
-            }
+            throw new NotSupportedException();
         }
 
 
@@ -1946,8 +1929,8 @@ namespace ACE.Entity
         [JsonProperty("didProperties")]
         public List<AceObjectPropertiesDataId> DataIdProperties { get; set; } = new List<AceObjectPropertiesDataId>();
 
-        [JsonProperty("iidProperties")]
-        public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
+        //[JsonProperty("iidProperties")]
+        //public List<AceObjectPropertiesInstanceId> InstanceIdProperties { get; set; } = new List<AceObjectPropertiesInstanceId>();
 
         [JsonProperty("spells")]
         public List<AceObjectPropertiesSpell> SpellIdProperties { get; set; } = new List<AceObjectPropertiesSpell>();
@@ -2036,7 +2019,7 @@ namespace ACE.Entity
                 DoubleProperties = CloneList(DoubleProperties),
                 BoolProperties = CloneList(BoolProperties),
                 DataIdProperties = CloneList(DataIdProperties),
-                InstanceIdProperties = CloneList(InstanceIdProperties),
+                //InstanceIdProperties = CloneList(InstanceIdProperties),
                 StringProperties = CloneList(StringProperties),
                 //GeneratorProfiles = CloneList(GeneratorProfiles),
                 //CreateList = CloneList(CreateList),
@@ -2072,7 +2055,7 @@ namespace ACE.Entity
             ret.DoubleProperties.ForEach(c => c.AceObjectId = guid);
             ret.BoolProperties.ForEach(c => c.AceObjectId = guid);
             ret.DataIdProperties.ForEach(c => c.AceObjectId = guid);
-            ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
+            //ret.InstanceIdProperties.ForEach(c => c.AceObjectId = guid);
             ret.StringProperties.ForEach(c => c.AceObjectId = guid);
             ret.SpellIdProperties.ForEach(c => c.AceObjectId = guid);
             //ret.GeneratorProfiles.ForEach(c => c.AceObjectId = guid);
@@ -2099,7 +2082,7 @@ namespace ACE.Entity
             this.DoubleProperties.ForEach(x => x.ClearDirtyFlags());
             this.BoolProperties.ForEach(x => x.ClearDirtyFlags());
             this.DataIdProperties.ForEach(x => x.ClearDirtyFlags());
-            this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
+            //this.InstanceIdProperties.ForEach(x => x.ClearDirtyFlags());
             this.StringProperties.ForEach(x => x.ClearDirtyFlags());
             // this.Inventory.ToList().ForEach(x => x.Value.ClearDirtyFlags());
             // this.WieldedItems.ToList().ForEach(x => x.Value.ClearDirtyFlags());
@@ -2118,7 +2101,7 @@ namespace ACE.Entity
             this.DoubleProperties.ForEach(x => x.SetDirtyFlags());
             this.BoolProperties.ForEach(x => x.SetDirtyFlags());
             this.DataIdProperties.ForEach(x => x.SetDirtyFlags());
-            this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
+            //this.InstanceIdProperties.ForEach(x => x.SetDirtyFlags());
             this.StringProperties.ForEach(x => x.SetDirtyFlags());
             // this.Inventory.ToList().ForEach(x => x.Value.SetDirtyFlags());
             // this.WieldedItems.ToList().ForEach(x => x.Value.SetDirtyFlags());
