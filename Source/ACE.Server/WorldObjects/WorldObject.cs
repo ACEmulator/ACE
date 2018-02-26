@@ -23,7 +23,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
-using AceObjectGeneratorProfile = ACE.Entity.AceObjectGeneratorProfile;
 using AceObjectInventory = ACE.Entity.AceObjectInventory;
 using Position = ACE.Entity.Position;
 
