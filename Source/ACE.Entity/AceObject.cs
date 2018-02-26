@@ -722,12 +722,12 @@ namespace ACE.Entity
             set { SetProperty(PropertyInt.GeneratorTimeType, value); }
         }
 
-        [JsonIgnore]
-        public int? GeneratorProbability
-        {
-            get { return GetProperty(PropertyInt.GeneratorProbability); }
-            set { SetProperty(PropertyInt.GeneratorProbability, value); }
-        }
+        //[JsonIgnore]
+        //public int? GeneratorProbability
+        //{
+        //    get { return GetProperty(PropertyInt.GeneratorProbability); }
+        //    set { SetProperty(PropertyInt.GeneratorProbability, value); }
+        //}
 
         [JsonIgnore]
         public int? MaxGeneratedObjects

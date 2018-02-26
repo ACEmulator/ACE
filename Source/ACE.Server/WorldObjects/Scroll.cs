@@ -213,12 +213,12 @@ namespace ACE.Server.WorldObjects
             readScrollChain.EnqueueChain();
         }
 
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
-            WriteIdentifyObjectIntProperties(writer, idFlags, ScrollPropertiesInt);
-            WriteIdentifyObjectStringsProperties(writer, idFlags, ScrollPropertiesString);
-            WriteIdentifyObjectSpellIdProperties(writer, idFlags, ScrollPropertiesSpellId);
-        }
+        //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
+        //{
+        //    WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
+        //    //WriteIdentifyObjectIntProperties(writer, idFlags, ScrollPropertiesInt);
+        //    //WriteIdentifyObjectStringsProperties(writer, idFlags, ScrollPropertiesString);
+        //    WriteIdentifyObjectSpellIdProperties(writer, idFlags, ScrollPropertiesSpellId);
+        //}
     }
 }

@@ -37,14 +37,14 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            var properties = new Dictionary<PropertyInt, int>();
-            properties[PropertyInt.Value] = GetProperty(PropertyInt.Value) ?? 0;
-            properties[PropertyInt.EncumbranceVal] = GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+        //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
+        //{
+        //    var properties = new Dictionary<PropertyInt, int>();
+        //    properties[PropertyInt.Value] = GetProperty(PropertyInt.Value) ?? 0;
+        //    properties[PropertyInt.EncumbranceVal] = GetProperty(PropertyInt.EncumbranceVal) ?? 0;
 
-            WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a coin.
-            WriteIdentifyObjectProperties(writer, idFlags, properties);
-        }
+        //    WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a coin.
+        //    WriteIdentifyObjectProperties(writer, idFlags, properties);
+        //}
     }
 }

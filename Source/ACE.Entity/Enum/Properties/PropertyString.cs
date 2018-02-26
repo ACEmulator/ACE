@@ -8,6 +8,7 @@ namespace ACE.Entity.Enum.Properties
         // source: @OptimShi
         // description attributes are used by the weenie editor for a cleaner display name
         Undef                           = 0,
+        [ServerOnly]
         Name                            = 1,
         /// <summary>
         /// default "Adventurer"
@@ -23,12 +24,15 @@ namespace ACE.Entity.Enum.Properties
         VendorsName                     = 9,
         Fellowship                      = 10,
         MonarchsName                    = 11,
+        [ServerOnly]
         LockCode                        = 12,
+        [ServerOnly]
         KeyCode                         = 13,
         Use                             = 14,
         ShortDesc                       = 15,
         LongDesc                        = 16,
         ActivationTalk                  = 17,
+        [ServerOnly]
         UseMessage                      = 18,
         ItemHeritageGroupRestriction    = 19,
         PluralName                      = 20,
@@ -44,6 +48,7 @@ namespace ACE.Entity.Enum.Properties
         ScoreLastEntryFormat            = 30,
         ScoreOnlyEntryFormat            = 31,
         ScoreNoEntry                    = 32,
+        [ServerOnly]
         Quest                           = 33,
         GeneratorEvent                  = 34,
         PatronsTitle                    = 35,
