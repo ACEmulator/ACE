@@ -494,14 +494,11 @@ namespace ACE.Server.WorldObjects
             {
                 wo.QueryItemMana(Session);
             }
-
             else
             {
                 // We could be wielded - let's check that next.
-                if (WieldedObjects.TryGetValue(queryId, out wo))
-                {
+                if (EquippedObjects.TryGetValue(queryId, out wo))
                     wo.QueryItemMana(Session);
-                }
             }
         }
 
@@ -1127,11 +1124,14 @@ namespace ACE.Server.WorldObjects
             item.WielderId = (int)wielder.Guid.Full;
             item.CurrentWieldedLocation = currentWieldedLocation;
 
-            if (!wielder.WieldedObjects.ContainsKey(item.Guid))
+            if (wielder is Creature creature)
             {
-                wielder.WieldedObjects.Add(item.Guid, item);
+                if (!creature.EquippedObjects.ContainsKey(item.Guid))
+                {
+                    creature.EquippedObjects.Add(item.Guid, item);
 
-                Burden += item.Burden;
+                    Burden += item.Burden;
+                }
             }
         }
 
@@ -1142,10 +1142,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="itemGuid">Guid of the item to be unwielded.</param>
         public void RemoveFromWieldedObjects(ObjectGuid itemGuid)
         {
-            if (WieldedObjects.ContainsKey(itemGuid))
+            if (EquippedObjects.ContainsKey(itemGuid))
             {
-                Burden -= WieldedObjects[itemGuid].Burden;
-                WieldedObjects.Remove(itemGuid);
+                Burden -= EquippedObjects[itemGuid].Burden;
+                EquippedObjects.Remove(itemGuid);
             }
         }
 
@@ -1561,7 +1561,7 @@ namespace ACE.Server.WorldObjects
 
             var coverage = new List<uint>();
 
-            foreach (var w in WieldedObjects)
+            foreach (var w in EquippedObjects)
             {
                 // We can wield things that are not part of our model, only use those items that can cover our model.
                 if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)

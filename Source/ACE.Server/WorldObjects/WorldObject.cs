@@ -199,50 +199,6 @@ namespace ACE.Server.WorldObjects
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
 
-        //[Obsolete]
-        //protected AceObject AceObject { get; set; }
-        [Obsolete]
-        protected internal Dictionary<ObjectGuid, WorldObject> WieldedObjects { get; set; } = new Dictionary<ObjectGuid, WorldObject>();
-
-
-        //[Obsolete]
-        //protected internal Dictionary<ObjectGuid, AceObject> Inventory => AceObject.Inventory;
-        //public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
-
-        // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
-        //[Obsolete]
-        //protected internal Dictionary<ObjectGuid, AceObject> WieldedItems => AceObject.WieldedItems;
-        //public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
-
-        // we need to expose this read only for examine to work. Og II
-        //[Obsolete]
-        //public List<AceObjectPropertiesInt> PropertiesInt => AceObject.IntProperties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesInt64> PropertiesInt64 => AceObject.Int64Properties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesBool> PropertiesBool => AceObject.BoolProperties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesString> PropertiesString => AceObject.StringProperties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesDouble> PropertiesDouble => AceObject.DoubleProperties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesDataId> PropertiesDid => AceObject.DataIdProperties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesInstanceId> PropertiesIid => AceObject.InstanceIdProperties;
-        //[Obsolete]
-        //public List<AceObjectPropertiesSpell> PropertiesSpellId => AceObject.SpellIdProperties;
-        //[Obsolete]
-        //public Dictionary<uint, AceObjectPropertiesBook> PropertiesBook => AceObject.BookProperties;
-
-        public Dictionary<PropertyInt, int> PropertiesInt => GetAllPropertyInt();
-        public Dictionary<PropertyInt64, long> PropertiesInt64 => GetAllPropertyInt64();
-        public Dictionary<PropertyBool, bool> PropertiesBool => GetAllPropertyBools();
-        public Dictionary<PropertyString, string> PropertiesString => GetAllPropertyString();
-        public Dictionary<PropertyFloat, double> PropertiesDouble => GetAllPropertyFloat();
-        public Dictionary<PropertyDataId, uint> PropertiesDid => GetAllPropertyDataId();
-        public Dictionary<PropertyInstanceId, int> PropertiesIid => GetAllPropertyInstanceId();
-
-
         // subpalettes
         [Obsolete]
         public List<ModelPalette> GetPalettes => modelPalettes.ToList();
@@ -1239,76 +1195,75 @@ namespace ACE.Server.WorldObjects
 
             var coverage = new List<uint>();
 
-            var clothing = new Dictionary<int, WorldObject>();
-            foreach (var wo in WieldedObjects.Values)
+            if (this is Creature creature)
             {
-                if ((wo.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
-                    clothing.Add((int)wo.Priority, wo);
-            }
-            foreach (var w in clothing.OrderBy(i => i.Key))
-            {
-                // We can wield things that are not part of our model, only use those items that can cover our model.
-                if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                var clothing = new Dictionary<int, WorldObject>();
+                foreach (var wo in creature.EquippedObjects.Values)
                 {
-                    ClothingTable item;
-                    if (w.Value.ClothingBase != null)
-                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.Value.ClothingBase);
-                    else
+                    if ((wo.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                        clothing.Add((int)wo.Priority, wo);
+                }
+
+                foreach (var w in clothing.OrderBy(i => i.Key))
+                {
+                    // We can wield things that are not part of our model, only use those items that can cover our model.
+                    if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
                     {
-                        return;
-                    }
+                        ClothingTable item;
+                        if (w.Value.ClothingBase != null)
+                            item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint) w.Value.ClothingBase);
+                        else
+                            return;
 
-                    if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
-                    // Check if the player model has data. Gear Knights, this is usually you.
-                    {
-                        // Add the model and texture(s)
-                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
-                        foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                        if (item.ClothingBaseEffects.ContainsKey(SetupTableId)) // Check if the player model has data. Gear Knights, this is usually you.
                         {
-                            byte partNum = (byte)t.Index;
-                            AddModel((byte)t.Index, (ushort)t.ModelId);
-                            coverage.Add(partNum);
-                            foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                                AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
-                        }
-
-                        if (item.ClothingSubPalEffects.Count > 0)
-                        {
-                            int size = item.ClothingSubPalEffects.Count;
-                            int palCount = size;
-
-                            CloSubPalEffect itemSubPal;
-                            int palOption = 0;
-                            if (w.Value.PaletteTemplate.HasValue)
-                                palOption = (int)w.Value.PaletteTemplate;
-                            if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                            // Add the model and texture(s)
+                            ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
+                            foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                             {
-                                itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
-                            }
-                            else
-                            {
-                                itemSubPal = item.ClothingSubPalEffects[0];
+                                byte partNum = (byte)t.Index;
+                                AddModel((byte)t.Index, (ushort)t.ModelId);
+                                coverage.Add(partNum);
+                                foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                                    AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                             }
 
-                            float shade = 0;
-                            if (w.Value.Shade.HasValue)
-                                shade = (float)w.Value.Shade;
-                            for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                            if (item.ClothingSubPalEffects.Count > 0)
                             {
-                                var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
-                                ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+                                int size = item.ClothingSubPalEffects.Count;
+                                int palCount = size;
 
-                                for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                CloSubPalEffect itemSubPal;
+                                int palOption = 0;
+                                if (w.Value.PaletteTemplate.HasValue)
+                                    palOption = (int) w.Value.PaletteTemplate;
+
+                                if (item.ClothingSubPalEffects.ContainsKey((uint) palOption))
+                                    itemSubPal = item.ClothingSubPalEffects[(uint) palOption];
+                                else
+                                    itemSubPal = item.ClothingSubPalEffects[0];
+
+                                float shade = 0;
+                                if (w.Value.Shade.HasValue)
+                                    shade = (float) w.Value.Shade;
+                                for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                                 {
-                                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                    AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                                    var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
+                                    ushort itemPal = (ushort) itemPalSet.GetPaletteID(shade);
+
+                                    for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                    {
+                                        uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                        uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                        AddPalette(itemPal, (ushort) palOffset, (ushort) numColors);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+
             // Add the "naked" body parts. These are the ones not already covered.
             if (SetupTableId > 0)
             {

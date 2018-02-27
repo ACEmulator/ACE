@@ -95,12 +95,12 @@ namespace ACE.Server.WorldObjects
         /// <param name="session"></param>
         public void SendInventoryAndWieldedItems(Session session)
         {
-            foreach (WorldObject invItem in Inventory.Values)
+            foreach (var item in Inventory.Values)
             {
-                session.Network.EnqueueSend(new GameMessageCreateObject(invItem));
+                session.Network.EnqueueSend(new GameMessageCreateObject(item));
 
                 // Was the item I just send a container? If so, we need to send the items in the container as well. Og II
-                if (invItem is Container container)
+                if (item is Container container)
                 {
                     Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
 
@@ -109,9 +109,8 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            foreach (WorldObject wieldedObject in WieldedObjects.Values)
+            foreach (var item in EquippedObjects.Values)
             {
-                WorldObject item = wieldedObject;
                 if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
                 {
                     int placementId;

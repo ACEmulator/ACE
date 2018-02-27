@@ -289,17 +289,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// GetWilded Items
+        /// Get Wielded Item. Returns null if not found.
         /// </summary>
         public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
         {
-            // check wielded objects
-            if (WieldedObjects.ContainsKey(objectGuid))
-            {
-                if (WieldedObjects.TryGetValue(objectGuid, out var inventoryItem))
-                    return inventoryItem;
-            }
-            return null;
+            return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
         }
 
         /// <summary>
@@ -319,7 +313,7 @@ namespace ACE.Server.WorldObjects
             UniversalMotion mm = new UniversalMotion(MotionStance.Standing);
             mm.MovementData.CurrentStyle = (uint)MotionStance.Standing;
             SetMotionState(this, mm);
-            var mEquipedAmmo = WieldedObjects.FirstOrDefault(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
+            var mEquipedAmmo = EquippedObjects.FirstOrDefault(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
             if (mEquipedAmmo != null)
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
@@ -338,7 +332,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                var mEquipedAmmo = WieldedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
+                var mEquipedAmmo = EquippedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
 
                 MotionStance ms;
                 CombatStyle cs;
