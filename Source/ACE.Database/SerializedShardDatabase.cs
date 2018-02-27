@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
+using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 
@@ -154,7 +155,7 @@ namespace ACE.Database
 
         /// <summary>
         /// Will return a biota from the db with tracking enabled.
-        /// This will populate all sub collections except the followign: BiotaPropertiesEmoteAction
+        /// This will populate all sub collections.
         /// </summary>
         public void GetBiota(uint id, Action<Biota> callback)
         {
@@ -196,9 +197,45 @@ namespace ACE.Database
         }
 
 
-        public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
+        /// <summary>
+        /// Will return biotas from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetPlayerBiotas(uint id, Action<PlayerBiotas> callback)
         {
-            return _wrappedDatabase.GetInventory(parentId, includedNestedItems);
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetPlayerBiotas(id);
+                callback?.Invoke(c);
+            }));
+        }
+
+        /// <summary>
+        /// Will return biotas from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetInventory(uint parentId, bool includedNestedItems, Action<List<Biota>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetInventory(parentId, includedNestedItems);
+                callback?.Invoke(c);
+            }));
+
+        }
+
+        /// <summary>
+        /// Will return biotas from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetWieldedItems(uint parentId, Action<List<Biota>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetWieldedItems(parentId);
+                callback?.Invoke(c);
+            }));
+
         }
 
 

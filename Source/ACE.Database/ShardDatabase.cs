@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -267,7 +268,7 @@ namespace ACE.Database
 
         /// <summary>
         /// Will return a biota from the db with tracking enabled.
-        /// This will populate all sub collections except the followign: BiotaPropertiesEmoteAction
+        /// This will populate all sub collections.
         /// </summary>
         public Biota GetBiota(uint id)
         {
@@ -375,32 +376,31 @@ namespace ACE.Database
         }
 
 
+        public PlayerBiotas GetPlayerBiotas(uint id)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var biota = GetBiota(context, id);
+
+                var inventory = GetInventory(context, id, true);
+
+                var wieldedItems = GetWieldedItems(context, id);
+
+                return new PlayerBiotas(biota, inventory, wieldedItems);
+            }
+        }
+
         public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
         {
             List<Biota> inventory;
 
             using (var context = new ShardDbContext())
-            {
-                inventory = GetInventory(context, parentId);
-
-                if (includedNestedItems)
-                {
-                    for (int i = inventory.Count - 1 ; i >= 0 ; i--)
-                    {
-                        if (inventory[i].WeenieType == (int)WeenieType.Container)
-                        {
-                            var subItems = GetInventory(context, inventory[i].Id);
-
-                            inventory.AddRange(subItems);
-                        }
-                    }
-                }
-            }
+                inventory = GetInventory(context, parentId, includedNestedItems);
 
             return inventory;
         }
 
-        private static List<Biota> GetInventory(ShardDbContext context, uint parentId)
+        private static List<Biota> GetInventory(ShardDbContext context, uint parentId, bool includedNestedItems)
         {
             var inventory = new List<Biota>();
 
@@ -413,10 +413,48 @@ namespace ACE.Database
                 var biota = GetBiota(context, result.ObjectId);
 
                 if (biota != null)
+                {
                     inventory.Add(biota);
+
+                    if (includedNestedItems && biota.WeenieType == (int)WeenieType.Container)
+                    {
+                        var subItems = GetInventory(context, biota.Id, false);
+
+                        inventory.AddRange(subItems);
+                    }
+                }
             }
 
             return inventory;
+        }
+
+        public List<Biota> GetWieldedItems(uint parentId)
+        {
+            List<Biota> inventory;
+
+            using (var context = new ShardDbContext())
+                inventory = GetWieldedItems(context, parentId);
+
+            return inventory;
+        }
+
+        private static List<Biota> GetWieldedItems(ShardDbContext context, uint parentId)
+        {
+            var items = new List<Biota>();
+
+            var results = context.BiotaPropertiesIID
+                    .AsNoTracking()
+                    .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId);
+
+            foreach (var result in results)
+            {
+                var biota = GetBiota(context, result.ObjectId);
+
+                if (biota != null)
+                    items.Add(biota);
+            }
+
+            return items;
         }
     }
 }
