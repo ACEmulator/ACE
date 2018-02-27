@@ -385,11 +385,11 @@ namespace ACE.Database
 
                 if (includedNestedItems)
                 {
-                    foreach (var item in inventory)
+                    for (int i = inventory.Count - 1 ; i >= 0 ; i--)
                     {
-                        if (item.WeenieType == (int)WeenieType.Container)
+                        if (inventory[i].WeenieType == (int)WeenieType.Container)
                         {
-                            var subItems = GetInventory(context, item.Id);
+                            var subItems = GetInventory(context, inventory[i].Id);
 
                             inventory.AddRange(subItems);
                         }
