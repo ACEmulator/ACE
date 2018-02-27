@@ -1,3 +1,5 @@
+using ACE.Server.Physics.Combat;
+
 namespace ACE.Server.Physics.Common
 {
     public class WeenieObject
@@ -12,6 +14,16 @@ namespace ACE.Server.Physics.Common
         public bool IsStorage()
         {
             return false;
+        }
+
+        public void DoCollision(AtkCollisionProfile prof)
+        {
+
+        }
+
+        public void DoCollisionEnd(int objectID)
+        {
+
         }
     }
 }

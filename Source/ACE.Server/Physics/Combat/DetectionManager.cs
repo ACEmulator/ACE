@@ -19,5 +19,10 @@ namespace ACE.Server.Physics.Combat
         {
 
         }
+
+        public void ReceiveDetectionUpdate(DetectionInfo info)
+        {
+
+        }
     }
 }

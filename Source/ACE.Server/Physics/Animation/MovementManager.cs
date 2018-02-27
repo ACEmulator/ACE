@@ -58,5 +58,10 @@ namespace ACE.Server.Physics.Animation
         {
             return false;
         }
+
+        public void ReportExhaustion()
+        {
+
+        }
     }
 }

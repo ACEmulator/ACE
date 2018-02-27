@@ -35,5 +35,16 @@ namespace ACE.Server.Physics.Common
         public float RadX;
         public float RadY;
         public int NumTries;
+
+        public SetPosition()
+        {
+
+        }
+
+        public SetPosition(Position pos, SetPositionFlags flags)
+        {
+            Pos = pos;
+            Flags = flags;
+        }
     }
 }

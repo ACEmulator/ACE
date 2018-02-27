@@ -62,5 +62,10 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public void remove_shadow_object(PhysicsObj obj)
+        {
+
+        }
     }
 }

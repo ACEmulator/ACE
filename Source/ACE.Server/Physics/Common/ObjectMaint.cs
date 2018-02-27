@@ -23,5 +23,10 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public void AddObjectToBeDestroyed(int id)
+        {
+
+        }
     }
 }

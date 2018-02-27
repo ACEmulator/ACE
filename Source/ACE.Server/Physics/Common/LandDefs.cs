@@ -41,5 +41,10 @@ namespace ACE.Server.Physics.Common
         {
 
         }
+
+        public static bool InBlock(Vector3 pos, float radius)
+        {
+            return false;
+        }
     }
 }

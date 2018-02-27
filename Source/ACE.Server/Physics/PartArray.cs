@@ -138,7 +138,7 @@ namespace ACE.Server.Physics
             return bbox;
         }
 
-        public CylSphere GetCylSphere()
+        public List<CylSphere> GetCylSphere()
         {
             return Setup.CylSphere;
         }
@@ -178,7 +178,7 @@ namespace ACE.Server.Physics
                 return Setup.SortingSphere;
         }
 
-        public Sphere GetSphere()
+        public List<Sphere> GetSphere()
         {
             return Setup.Sphere;
         }

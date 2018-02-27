@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Combat
 {
@@ -10,6 +9,6 @@ namespace ACE.Server.Physics.Combat
         public float AttackRadius;
         public int WaitingForCells;
         public int NumObjects;
-        public List<ObjectInfo> ObjectList;
+        public List<AtkObjInfo> ObjectList;
     }
 }

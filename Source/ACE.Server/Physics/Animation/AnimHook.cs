@@ -4,5 +4,10 @@ namespace ACE.Server.Physics.Animation
     {
         public AnimHook NextHook;
         public int Direction;
+
+        public bool Execute(PhysicsObj obj)
+        {
+            return false;
+        }
     }
 }
