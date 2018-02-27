@@ -101,8 +101,14 @@ namespace ACE.Server.Physics
 
         public void Destroy()
         {
+            MovementManager = null;
+            PositionManager = null;
+            ParticleManager = null;
+            ScriptManager = null;
+            Hooks = null;
+
             if (State.HasFlag(PhysicsState.Static) && (State.HasFlag(PhysicsState.HasDefaultAnim) || State.HasFlag(PhysicsState.HasDefaultScript)))
-                RemoveStaticAnimatingObject();
+                Physics.RemoveStaticAnimatingObject(this);
 
             if (PhysicsScriptTable != null)
                 PhysicsScriptTable.Release();
@@ -293,17 +299,24 @@ namespace ACE.Server.Physics
 
         public void HandleUpdateTarget(TargetInfo targetInfo)
         {
+            if (targetInfo.ContextID == 0) return;
 
+            if (MovementManager != null)
+                MovementManager.HandleUpdateTarget(targetInfo);
+            if (PositionManager != null)
+                PositionManager.HandleUpdateTarget(targetInfo);
         }
 
         public bool HasAnims()
         {
-            return false;
+            if (PartArray == null) return false;
+            return PartArray.HasAnims();
         }
 
         public void Hook_AnimDone()
         {
-
+            if (PartArray != null)
+                PartArray.AnimationDone(true);
         }
 
         /// <summary>
@@ -453,92 +466,218 @@ namespace ACE.Server.Physics
 
         public InterpretedMotionState InqInterpretedMotionState()
         {
-            return null;
+            if (MovementManager == null)
+                return null;
+            else
+                return MovementManager.InqInterpretedMotionState();
         }
 
         public RawMotionState InqRawMotionState()
         {
-            return null;
+            if (MovementManager == null)
+                return null;
+            else
+                return MovementManager.InqRawMotionState();
         }
 
         public void InterpolateTo(Position p, bool keepHeading)
         {
-
+            MakePositionManager();
+            PositionManager.InterpolateTo(p, keepHeading);
         }
 
         public bool IsFullyConstrained()
         {
-            return false;
+            if (PositionManager == null)
+                return false;
+            else
+                return PositionManager.IsFullyConstrained();
         }
 
         public bool IsInterpolating()
         {
-            return false;
+            if (PositionManager == null)
+                return false;
+            else
+                return PositionManager.IsInterpolating();
         }
 
         public bool IsMovingTo()
         {
-            return false;
+            if (MovementManager == null)
+                return false;
+            else
+                return MovementManager.IsMovingTo();
         }
 
         public void MakeMovementManager(bool init_motion)
         {
+            if (MovementManager != null) return;
 
+            MovementManager = MovementManager.Create(this, WeenieObj);
+
+            if (init_motion)
+                MovementManager.EnterDefaultState();
+
+            if (!State.HasFlag(PhysicsState.Static))
+            {
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
+                    UpdateTime = Timer.CurrentTime;
+
+                TransientState |= TransientStateFlags.Active;
+            }
         }
 
         public void MakePositionManager()
         {
+            if (PositionManager != null) return;
 
+            PositionManager = PositionManager.Create(this);
+
+            if (!State.HasFlag(PhysicsState.Static))
+            {
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
+                    UpdateTime = Timer.CurrentTime;
+
+                TransientState |= TransientStateFlags.Active;
+            }
         }
 
-        public int MorphToExistingObject(PhysicsObj obj)
+        public bool MorphToExistingObject(PhysicsObj obj)
         {
-            return -1;
+            var result = PartArray != null && obj.PartArray != null ?
+                PartArray.MorphToExistingObject(obj.PartArray) : false;
+
+            TranslucencyOriginal = Translucency = obj.TranslucencyOriginal;
+            ExaminationObject = true;
+
+            if (PartArray != null && Translucency != 0.0f)
+                PartArray.SetTranslucencyInternal(Translucency);
+
+            return result;
         }
 
         public void MotionDone(int motion, bool success)
         {
-
+            if (MovementManager != null)
+                MovementManager.MotionDone(motion, success);
         }
 
-        public int MoveOrTeleport(Position pos, int timestamp, Vector3 velocity)
+        public bool MoveOrTeleport(Position pos, int timestamp, bool contact, Vector3 velocity)
         {
-            return -1;
+            var updateTime = UpdateTimes[4];
+            bool timeDiff;
+            if (Math.Abs(updateTime - timestamp) > Int16.MaxValue)
+                timeDiff = updateTime < timestamp;
+            else
+                timeDiff = timestamp < updateTime;
+            if (timeDiff)
+                return false;
+            if (Cell == null || newer_event((int)PhysicsTimeStamp.Teleport, timestamp))
+            {
+                teleport_hook(true);
+                var setPos = new SetPosition(pos, SetPositionFlags.Teleport | SetPositionFlags.DontCreateCells);
+                SetPosition(setPos);
+                return true;
+            }
+            else
+            {
+                if (!contact) return false;
+                if (PlayerDistance < 96.0f)
+                    InterpolateTo(pos, IsMovingTo());
+                else
+                {
+                    if (PositionManager != null) PositionManager.StopInterpolating();
+                    SetPositionSimple(pos, true);
+                }
+            }
+            return true;
         }
 
         public void MoveToObject(int objectID, MovementParameters movementParams)
         {
+            if (MovementManager == null)
+            {
+                MovementManager = MovementManager.Create(this, WeenieObj);
+                MovementManager.EnterDefaultState();
+                if (!State.HasFlag(PhysicsState.Static))
+                {
+                    if (!TransientState.HasFlag(TransientStateFlags.Active))
+                        UpdateTime = Timer.CurrentTime;
 
+                    TransientState &= ~TransientStateFlags.Active;
+                }
+            }
+
+            if (ObjMaint == null) return;
+            var obj = ObjMaint.GetObjectA(objectID);
+            if (obj == null)
+                return;
+            var height = PartArray != null ? PartArray.GetHeight() : 0;
+            var radius = PartArray != null ? PartArray.GetRadius() : 0;
+            var parent = obj.Parent != null ? obj.Parent : obj;
+
+            MoveToObject_Internal(objectID, parent.ID, radius, height, movementParams);
         }
 
         public void MoveToObject_Internal(int objectID, int topLevelID, float objRadius, float objHeight, MovementParameters movementParams)
         {
+            if (MovementManager == null)
+            {
+                MovementManager = MovementManager.Create(this, WeenieObj);
+                MovementManager.EnterDefaultState();
+                if (!State.HasFlag(PhysicsState.Static))
+                {
+                    if (!TransientState.HasFlag(TransientStateFlags.Active))
+                        UpdateTime = Timer.CurrentTime;
 
+                    TransientState &= ~TransientStateFlags.Active;
+                }
+            }
+            var mvs = new MovementStruct();
+            // packobj vtable
+            mvs.TopLevelId = topLevelID;
+            mvs.Radius = objRadius;
+            mvs.ObjectId = objectID;
+            mvs.Params = movementParams;
+            mvs.Type = MovementType.MoveToObject;
+            mvs.Height = objHeight;
+            MovementManager.PerformMovement(mvs);
         }
 
         public void RemoveLinkAnimations()
         {
-
+            if (PartArray != null)
+                PartArray.HandleEnterWorld();
         }
 
         public void RemoveObjectFromSingleCell(ObjCell objCell)
         {
-
+            if (Cell != null) leave_cell(true);
+            Position.ObjCellID = 0;
+            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
+                PartArray.SetCellID(0);
+            Cell = null;
+            if (objCell != null)
+            {
+                objCell.remove_shadow_object(ShadowObjects[0].PhysObj);
+                NumShadowObjects = 0;
+                if (PartArray != null)
+                    PartArray.RemoveParts(objCell);
+            }
         }
 
         public void RemovePartFromShadowCells(PhysicsPart part)
         {
-
-        }
-
-        public void RemoveStaticAnimatingObject()
-        {
-
+            if (Cell != null) part.Pos.ObjCellID = Cell.ID;
+            foreach (var shadowObj in ShadowObjects.Values)
+                shadowObj.Cell.RemovePart(part);
         }
 
         public void RestoreLighting()
         {
-
+            if (PartArray != null)
+                PartArray.RestoreLightingInternal();
         }
 
         public void SetDiffusion(float start, float end, double delta)
@@ -937,42 +1076,97 @@ namespace ACE.Server.Physics
 
         public bool ShouldDrawParticles(float degradeDistance)
         {
-            return false;
+            if (!ExaminationObject) return true;
+            return !(CYpt > degradeDistance || Cell == null /*|| vftable unknown release */);
         }
 
         public void StopCompletely(bool sendEvent)
         {
-
+            if (MovementManager == null) return;
+            var mvs = new MovementStruct(MovementType.StopCompletely);
+            MovementManager.PerformMovement(mvs);
         }
 
         public void StopCompletely_Internal()
         {
-
+            if (PartArray != null)
+                PartArray.StopCompletelyInternal();
         }
 
         public void StopInterpolating()
         {
-
+            if (PositionManager != null)
+                PositionManager.StopInterpolating();
         }
 
-        public int StopInterpretedMotion(int motion, MovementParameters movementParams)
+        public Sequence StopInterpretedMotion(int motion, MovementParameters movementParams)
         {
-            return -1;
+            var sequence = new Sequence();
+            if (PartArray != null)
+                sequence = PartArray.StopInterpretedMotion(motion, movementParams);
+            return sequence;
         }
 
         public int StopMotion(int motion, MovementParameters movementParams, bool sendEvent)
         {
-            return -1;
+            LastMoveWasAutonomous = true;
+            if (MovementManager == null) return 7;
+            var mvs = new MovementStruct(MovementType.StopRawCommand);
+            mvs.Motion = motion;
+            mvs.Params = movementParams;
+            return MovementManager.PerformMovement(mvs);
         }
 
         public void TurnToHeading(MovementParameters movementParams)
         {
+            if (MovementManager == null)
+            {
+                // refactor into common method
+                MovementManager = MovementManager.Create(this, WeenieObj);
+                MovementManager.EnterDefaultState();
+                if (!State.HasFlag(PhysicsState.Static))
+                {
+                    if (!TransientState.HasFlag(TransientStateFlags.Active))
+                        UpdateTime = Timer.CurrentTime;
 
+                    TransientState &= ~TransientStateFlags.Active;
+                }
+            }
+            var mvs = new MovementStruct(MovementType.TurnToHeading);
+            mvs.Params = movementParams;
+            MovementManager.PerformMovement(mvs);
         }
 
         public void TurnToObject(int objectID, MovementParameters movementParams)
         {
+            if (ObjMaint == null) return;
+            var obj = ObjMaint.GetObjectA(objectID);
+            if (obj != null) return;
+            var parent = obj.Parent != null ? obj.Parent : obj;
 
+            TurnToObject_Internal(objectID, parent.ID, movementParams);
+        }
+
+        public void TurnToObject_Internal(int objectID, int topLevelID, MovementParameters movementParams)
+        {
+            if (MovementManager == null)
+            {
+                // refactor into common method
+                MovementManager = MovementManager.Create(this, WeenieObj);
+                MovementManager.EnterDefaultState();
+                if (!State.HasFlag(PhysicsState.Static))
+                {
+                    if (!TransientState.HasFlag(TransientStateFlags.Active))
+                        UpdateTime = Timer.CurrentTime;
+
+                    TransientState &= ~TransientStateFlags.Active;
+                }
+            }
+            var mvs = new MovementStruct(MovementType.TurnToObject);
+            mvs.ObjectId = objectID;
+            mvs.TopLevelId = topLevelID;
+            mvs.Params = movementParams;
+            MovementManager.PerformMovement(mvs);
         }
 
         public void UpdateChild(PhysicsObj childObj, int partIdx, AFrame childFrame)
