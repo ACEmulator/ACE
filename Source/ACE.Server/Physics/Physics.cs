@@ -73,5 +73,10 @@ namespace ACE.Server.Physics
         {
 
         }
+
+        public static void RemoveStaticAnimatingObject(PhysicsObj obj)
+        {
+
+        }
     }
 }

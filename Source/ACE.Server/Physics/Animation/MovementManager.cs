@@ -1,4 +1,5 @@
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Combat;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -62,6 +63,36 @@ namespace ACE.Server.Physics.Animation
         public void ReportExhaustion()
         {
 
+        }
+
+        public void HandleUpdateTarget(TargetInfo targetInfo)
+        {
+
+        }
+
+        public InterpretedMotionState InqInterpretedMotionState()
+        {
+            return null;
+        }
+
+        public RawMotionState InqRawMotionState()
+        {
+            return null;
+        }
+
+        public bool IsMovingTo()
+        {
+            return false;
+        }
+
+        public void MotionDone(int motion, bool success)
+        {
+
+        }
+
+        public int PerformMovement(MovementStruct mvs)
+        {
+            return -1;
         }
     }
 }

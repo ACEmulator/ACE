@@ -1,3 +1,6 @@
+using ACE.Server.Physics.Combat;
+using ACE.Server.Physics.Common;
+
 namespace ACE.Server.Physics.Animation
 {
     public class PositionManager
@@ -6,6 +9,21 @@ namespace ACE.Server.Physics.Animation
         public StickyManager StickyManager;
         public ConstraintManager ConstraintManager;
         public PhysicsObj PhysicsObj;
+
+        public PositionManager()
+        {
+
+        }
+
+        public PositionManager(PhysicsObj physicsObj)
+        {
+            PhysicsObj = physicsObj;
+        }
+
+        public static PositionManager Create(PhysicsObj physicsObj)
+        {
+            return new PositionManager(physicsObj);
+        }
 
         public int GetStickyObjectID()
         {
@@ -40,6 +58,26 @@ namespace ACE.Server.Physics.Animation
         public void StickTo(int object_id, float radius, float height)
         {
 
+        }
+
+        public void HandleUpdateTarget(TargetInfo targetInfo)
+        {
+
+        }
+
+        public void InterpolateTo(Position p, bool keepHeading)
+        {
+
+        }
+
+        public bool IsFullyConstrained()
+        {
+            return false;
+        }
+
+        public bool IsInterpolating()
+        {
+            return false;
         }
     }
 }

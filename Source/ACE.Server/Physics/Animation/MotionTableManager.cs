@@ -25,14 +25,14 @@ namespace ACE.Server.Physics.Animation
             return -1;
         }
 
-        public int PerformMovement(MovementStruct mvs, Sequence sequence)
+        public Sequence PerformMovement(MovementStruct mvs, Sequence sequence)
         {
-            return -1;
+            return null;
         }
 
-        public int AnimationDone(int success)
+        public bool AnimationDone(bool success)
         {
-            return -1;
+            return false;
         }
 
         public void CheckForCompletedMotions()

@@ -27,7 +27,7 @@ namespace ACE.Server.Physics
             return Setup.AllowFreeHeading;
         }
 
-        public void AnimationDone(int success)
+        public void AnimationDone(bool success)
         {
             if (MotionTableManager != null)
                 MotionTableManager.AnimationDone(success);
@@ -99,9 +99,9 @@ namespace ACE.Server.Physics
             NumParts = 0;
         }
 
-        public int DoInterpretedMotion(int motion, MovementParameters movementParameters)
+        public Sequence DoInterpretedMotion(int motion, MovementParameters movementParameters)
         {
-            if (MotionTableManager == null) return 7;
+            if (MotionTableManager == null) return null;    // 7?
 
             var frame = new Frame();
             frame.Origin = Vector3.Zero;
@@ -420,23 +420,23 @@ namespace ACE.Server.Physics
 
         }
 
-        public int StopCompletelyInternal()
+        public Sequence StopCompletelyInternal()
         {
-            if (MotionTableManager == null) return 7;
+            if (MotionTableManager == null) return null;    // 7?
             var frame = new Frame();
             frame.Origin = Vector3.Zero;
-            frame.Orientation = new Quaternion(0, 0, 0, 1065353216);    // should this be 1/identity?
+            frame.Orientation = Quaternion.Identity;
             // add frame to cache
             var mvs = new MovementStruct();
             return MotionTableManager.PerformMovement(mvs, Sequence);   // how to add frame data?
         }
 
-        public int StopInterpretedMotion(int motion, MovementParameters movementParameters)
+        public Sequence StopInterpretedMotion(int motion, MovementParameters movementParameters)
         {
-            if (MotionTableManager == null) return 7;
+            if (MotionTableManager == null) return null;    // 7?
             var frame = new Frame();
             frame.Origin = Vector3.Zero;
-            frame.Orientation = new Quaternion(0, 0, 0, 1065353216);    // should this be 1/identity?
+            frame.Orientation = Quaternion.Identity;
             // add frame to cache
             var mvs = new MovementStruct();
             return MotionTableManager.PerformMovement(mvs, Sequence);   // how to add frame/input data?
@@ -545,6 +545,11 @@ namespace ACE.Server.Physics
         }
 
         public void RemoveLightsFromCell(ObjCell cell)
+        {
+
+        }
+
+        public void RestoreLightingInternal()
         {
 
         }
