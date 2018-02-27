@@ -123,6 +123,9 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// Inventory should include all wielded items as well
+        /// </summary>
         public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory)
         {
             if (!AddBiota(biota))
