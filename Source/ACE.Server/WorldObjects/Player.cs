@@ -1392,7 +1392,9 @@ namespace ACE.Server.WorldObjects
                     // Remove item from inventory
                     DestroyInventoryItem(item);
                     // Clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                    // todo fix for EF
+                    throw new NotImplementedException();
+                    //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
                 }
                 else
                     Burden = (ushort)(Burden - (item.StackUnitBurden * amount));
@@ -1872,7 +1874,9 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock.AddWorldObject(item);
 
                     // Ok we have handed off to the landblock, let's clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                    throw new NotImplementedException();
+                    // todo fix for EF
+                    //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
 
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
                 });

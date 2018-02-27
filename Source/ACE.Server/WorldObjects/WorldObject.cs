@@ -210,9 +210,9 @@ namespace ACE.Server.WorldObjects
         //public Dictionary<ObjectGuid, AceObject> Inventory = new Dictionary<ObjectGuid, AceObject>();
 
         // This dictionary is only used to load WieldedObjects and to save them.   Other than the load and save, it should never be added to or removed from.
-        [Obsolete]
+        //[Obsolete]
         //protected internal Dictionary<ObjectGuid, AceObject> WieldedItems => AceObject.WieldedItems;
-        public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
+        //public Dictionary<ObjectGuid, AceObject> WieldedItems = new Dictionary<ObjectGuid, AceObject>();
 
         // we need to expose this read only for examine to work. Og II
         //[Obsolete]
@@ -743,14 +743,13 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
+        /*public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
         {
-            throw new NotSupportedException();
-            /*AceObject snapshot = (AceObject)AceObject.Clone();
+            AceObject snapshot = (AceObject)AceObject.Clone();
             if (clearDirtyFlags)
                 AceObject.ClearDirtyFlags();
-            return snapshot;*/
-        }
+            return snapshot;
+        }*/
 
         public void InitializeAceObjectForSave()
         {
