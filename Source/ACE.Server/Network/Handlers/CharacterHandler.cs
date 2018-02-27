@@ -481,14 +481,14 @@ namespace ACE.Server.Network.Handlers
                 CharacterCreateSetDefaultCharacterOptions(player);
                 CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
-                var ownedBiotas = new Collection<Biota>();
+                var possessedBiotas = new Collection<Biota>();
                 foreach (var item in player.Inventory.Values)
-                    ownedBiotas.Add(item.Biota);
+                    possessedBiotas.Add(item.Biota);
                 foreach (var item in player.EquippedObjects.Values)
-                    ownedBiotas.Add(item.Biota);
+                    possessedBiotas.Add(item.Biota);
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddCharacter(character, player.Biota, ownedBiotas, saveSuccess =>
+                DatabaseManager.Shard.AddCharacter(character, player.Biota, possessedBiotas, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {
