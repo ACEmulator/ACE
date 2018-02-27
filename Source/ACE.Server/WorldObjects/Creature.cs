@@ -3,6 +3,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -15,6 +16,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -36,6 +38,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Biota biota) : base(biota)
         {
+            // A player has their equipped items passed via the ctor. All other world objects must load their own inventory
+            if (!(this is Player))
+            {
+                DatabaseManager.Shard.GetWieldedItems(biota.Id, items =>
+                {
+                    foreach (var item in items)
+                    {
+                        var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
+                        EquippedObjects[itemAsWorldObject.Guid] = itemAsWorldObject;
+                    }
+                    EquippedObjectsLoaded = true;
+                });
+            }
+
             SetEphemeralValues();
 
             // todo
@@ -75,6 +91,8 @@ namespace ACE.Server.WorldObjects
 
 
         // todo I want to rework the tracked equipment/wielded items
+
+        public bool EquippedObjectsLoaded { get; protected set; }
 
         /// <summary>
         /// Use EquipObject() and DequipObject() to manipulate this dictionary..

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -19,7 +21,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Sentinel(Biota biota, Session session) : base(biota, session)
+        public Sentinel(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Session session) : base(biota, inventory, wieldedItems, session)
         {
             SetEphemeralValues();
         }

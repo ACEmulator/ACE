@@ -35,30 +35,30 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Biota biota) : base(biota)
         {
+            // A player has their inventory passed via the ctor. All other world objects must load their own inventory
+            if (!(this is Player))
+            {
+                DatabaseManager.Shard.GetInventory(biota.Id, true, items =>
+                {
+                    foreach (var item in items)
+                    {
+                        var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
+                        Inventory[itemAsWorldObject.Guid] = itemAsWorldObject;
+                    }
+                    InventoryLoaded = true;
+                });
+            }
+
             SetEphemeralValues();
 
-            // todo query the object for all biotas this container is the parent of.
-            // If any of those biotas are also containers, their contents should also be returned.
-            // This will look something like var results = DatabaseManager.Shard.GetInventory(Guid.Full)
-            //
-            // We also need to save inventory to the db on creation
-            // We also need to delete inventory from the db on destroy
-            // What's the best way to do this?
-            // I think when a player is saved, all of hteir inventory should also be saved. This would handle inventory rearranging
-            // When an inventory item is destroyed, we SHOULD be able to unlik the item from the player and remove it from the db without having to save the player as well
-            // My thoughts with that are, what if an item is destroyed from the db. The player items are all shifted in the main pack, but the server crashes before the player (and the remaining items) are saved.
-            // What we end up with is a missing item in the players inventory. One of the inventory slots will be empty. The Placement property may jump from 4 to 6 where 5 was the one that was destroyed.
-            // Same goes for addition
-
-            // This is just temp. It should probably go in the Player ctor.
-            // We should have a LoadInventory (Player ctor) and a LoadInventoryAsync (for landscape containers)
-            var results = DatabaseManager.Shard.GetInventory(biota.Id, true);
-
-            foreach (var result in results)
-            {
-                var resultAsWorldObject = WorldObjectFactory.CreateWorldObject(result);
-                Inventory[resultAsWorldObject.Guid] = resultAsWorldObject;
-            }
+            // todo We also need to save inventory to the db on creation
+            // todo We also need to delete inventory from the db on destroy
+            // todo What's the best way to do this?
+            // todo I think when a player is saved, all of hteir inventory should also be saved. This would handle inventory rearranging
+            // todo When an inventory item is destroyed, we SHOULD be able to unlik the item from the player and remove it from the db without having to save the player as well
+            // todo My thoughts with that are, what if an item is destroyed from the db. The player items are all shifted in the main pack, but the server crashes before the player (and the remaining items) are saved.
+            // todo What we end up with is a missing item in the players inventory. One of the inventory slots will be empty. The Placement property may jump from 4 to 6 where 5 was the one that was destroyed.
+            // todo Same goes for addition
 
             /*
             InventoryObjects = new Dictionary<ObjectGuid, WorldObject>();
@@ -87,6 +87,7 @@ namespace ACE.Server.WorldObjects
 
 
         // todo I want to rework the tracked equipment/wielded items
+        public bool InventoryLoaded { get; protected set; }
 
         public Dictionary<ObjectGuid, WorldObject> Inventory { get; } = new Dictionary<ObjectGuid, WorldObject>();
 
