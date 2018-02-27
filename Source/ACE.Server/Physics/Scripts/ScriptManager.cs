@@ -8,6 +8,21 @@ namespace ACE.Server.Physics
         public int HookIndex;
         public double NextHookTime;
 
+        public ScriptManager()
+        {
+
+        }
+
+        public ScriptManager(PhysicsObj obj)
+        {
+            PhysObj = obj;
+        }
+
+        public bool AddScript(int scriptID)
+        {
+            return false;
+        }
+
         public void UpdateScripts()
         {
 

@@ -52,7 +52,7 @@ namespace ACE.Server.Physics
         public Vector3 Acceleration;
         public Vector3 Omega;
         public LinkedList<PhysicsObjHook> Hooks;
-        public List<AnimHook> AnimHooks;
+        public LinkedList<AnimHook> AnimHooks;
         public float Scale;
         public float AttackRadius;
         public DetectionManager DetectionManager;
@@ -64,7 +64,7 @@ namespace ACE.Server.Physics
         public int ContactPlaneCellID;
         public Vector3 SlidingNormal;
         public Vector3 CachedVelocity;
-        public Dictionary<long, CollisionRecord> CollisionTable;
+        public Dictionary<int, CollisionRecord> CollisionTable;
         public bool CollidingWithEnvironment;
         public int[] UpdateTimes;
 
@@ -235,7 +235,7 @@ namespace ACE.Server.Physics
             return PartArray.GetDataID();
         }
 
-        public double GetHeight()
+        public float GetHeight()
         {
             if (PartArray == null) return 0.0f;
             return PartArray.GetHeight();
@@ -675,7 +675,7 @@ namespace ACE.Server.Physics
             transition.InitObject(this, ObjectInfoState.Default);
 
             if (PartArray != null && PartArray.GetNumSphere() != 0)
-                transition.InitSphere(PartArray.GetNumSphere(), PartArray.GetSphere(), Scale);
+                transition.InitSphere(PartArray.GetNumSphere(), PartArray.GetSphere()[0], Scale);
             else
                 transition.InitSphere(1, PhysicsGlobals.DummySphere, 1.0f);
 
@@ -1149,7 +1149,7 @@ namespace ACE.Server.Physics
 
         public void add_anim_hook(AnimHook hook)
         {
-            AnimHooks.Add(hook);
+            AnimHooks.AddLast(hook);
         }
 
         public bool add_child(PhysicsObj obj, int where)
@@ -1240,9 +1240,26 @@ namespace ACE.Server.Physics
 
         }
 
-        public static int build_collision_profile(int prof, PhysicsObj obj, Vector3 velocity, int amIInContact, int objIsMissile, int objHasContact)
+        public AtkCollisionProfile build_collision_profile(PhysicsObj obj, bool prev_has_contact, Vector3 velocityCollide)
         {
-            return -1;
+            AtkCollisionProfile profile = null;
+
+            if (!State.HasFlag(PhysicsState.Missile))
+                profile = build_collision_profile(obj, velocityCollide, prev_has_contact,
+                    obj.State.HasFlag(PhysicsState.Missile), obj.TransientState.HasFlag(TransientStateFlags.Contact));
+            else
+            {
+                profile = new AtkCollisionProfile();
+                profile.ID = obj.ID;
+                profile.Part = -1;
+                profile.Location = obj.Position.DetermineQuadrant(obj.GetHeight(), Position);
+            }
+            return profile;
+        }
+
+        public static AtkCollisionProfile build_collision_profile(PhysicsObj obj, Vector3 velocity, bool amIInContact, bool objIsMissile, bool objHasContact)
+        {
+            return null;
         }
 
         public void calc_acceleration()
@@ -1267,7 +1284,7 @@ namespace ACE.Server.Physics
             else
             {
                 if (PartArray != null && PartArray.GetNumCylsphere() != 0)
-                    ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
+                    ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere()[0], CellArray, null);
                 else
                 {
                     var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
@@ -1283,7 +1300,7 @@ namespace ACE.Server.Physics
             CellArray.SetStatic();
 
             if (PartArray != null && PartArray.GetNumCylsphere() != 0 && !State.HasFlag(PhysicsState.HasPhysicsBSP))
-                ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
+                ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere()[0], CellArray, null);
             else
                 find_bbox_cell_list(CellArray);
 
@@ -1745,7 +1762,29 @@ namespace ACE.Server.Physics
 
         public bool obj_within_block()
         {
-            return true;
+            var sortingSphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
+            var globCenter = Position.Frame.LocalToGlobal(sortingSphere.Center);
+
+            if (State.HasFlag(PhysicsState.HasPhysicsBSP))
+            {
+                var radius = sortingSphere.Radius - PhysicsGlobals.EPSILON;
+                return globCenter.LengthSquared() >= radius * radius;  // verify
+            }
+            if (PartArray != null && PartArray.GetNumCylsphere() > 0)
+            {
+                for (var i = 0; i < PartArray.GetNumCylsphere(); i++)
+                {
+                    var cylSphere = PartArray.GetCylSphere()[i];
+                    var diff = Vector3.Dot(Position.Frame.Origin, cylSphere.LowPoint);
+                    if (diff < cylSphere.Radius) return false;
+                    if (globCenter.LengthSquared() >= cylSphere.Radius * cylSphere.Radius) return false;
+                }
+                return true;
+            }
+            if (PartArray != null && PartArray.GetNumSphere() > 0)
+                return LandDefs.InBlock(globCenter, sortingSphere.Radius);
+            else
+                return LandDefs.InBlock(Position.Frame.Origin, 0.0f);
         }
 
         public bool on_ground()
@@ -1753,128 +1792,350 @@ namespace ACE.Server.Physics
             return TransientState.HasFlag(TransientStateFlags.Contact) && TransientState.HasFlag(TransientStateFlags.OnWalkable);
         }
 
-        public int play_default_script(int partIdx)
+        public bool play_default_script(int partIdx)
         {
-            return -1;
+            if (Children == null) return false;
+            for (var i = 0; i < Children.NumObjects; i++)
+            {
+                if (Children.PartNumbers[i] == partIdx && Children.Objects[i] != null)
+                {
+                    var childObj = Children.Objects[i];
+                    if (childObj.Cell != null)
+                    {
+                        if (childObj.PhysicsScriptTable == null) return false;
+                        var script = childObj.PhysicsScriptTable.GetScript(childObj.DefaultScript, childObj.DefaultScriptIntensity);
+                        return childObj.play_script_internal(script);
+                    }
+                    return true;
+                }
+            }
+            return false;
         }
 
-        public int play_default_script()
+        public bool play_default_script()
         {
-            return -1;
+            if (Cell == null) return true;
+            if (PhysicsScriptTable == null) return false;
+
+            var script = PhysicsScriptTable.GetScript(DefaultScript, DefaultScriptIntensity);
+            play_script_internal(script);
+            return true;
         }
 
-        public int play_script(int scriptID)
+        public bool play_script(int scriptID)
         {
-            return -1;
+            if (Cell != null)
+                return play_script_internal(scriptID);
+            else
+                return false;
         }
 
-        public int play_script(PlayScript scriptType, float mod)
+        public bool play_script(PlayScript scriptType, float mod)
         {
-            return -1;
+            if (Cell == null) return true;
+            if (PhysicsScriptTable == null) return false;
+
+            var script = PhysicsScriptTable.GetScript(scriptType, mod);
+            return play_script_internal(script);
         }
 
-        public int play_script_internal(int scriptID)
+        public bool play_script_internal(int scriptID)
         {
-            return -1;
+            if (scriptID == 0) return false;
+            if (ScriptManager == null) ScriptManager = new ScriptManager(this);
+
+            return ScriptManager.AddScript(scriptID);
         }
 
-        public int play_sound(int soundType, float volume)
+        public bool play_sound(int soundType, float volume)
         {
-            return -1;
+            if (SoundTable == null) return false;
+            //SoundManager.PlaySoundA(soundType, volume);
+            return true;
         }
 
         public void prepare_to_enter_world()
         {
+            UpdateTime = Timer.CurrentTime;
 
+            ObjMaint.RemoveFromLostCell(this);
+            ObjMaint.RemoveObjectToBeDestroyed(ID);
+
+            foreach (var child in Children.Objects)
+                ObjMaint.RemoveObjectToBeDestroyed(child.ID);
+
+            if (!State.HasFlag(PhysicsState.Static))
+            {
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
+                    UpdateTime = Timer.CurrentTime;     // hiword?
+
+                TransientState |= TransientStateFlags.Active;
+            } 
         }
 
         public bool prepare_to_leave_visibility()
         {
+            remove_shadows_from_cells();
+            ObjMaint.RemoveFromLostCell(this);
+            leave_cell(false);
+
+            ObjMaint.AddObjectToBeDestroyed(ID);
+            foreach (var child in Children.Objects)
+            {
+                ObjMaint.AddObjectToBeDestroyed(child.ID);
+            }
             return true;
         }
 
-        public void process_fp_hook(int type, float currValue, Object userData)
+        public void process_fp_hook(int type, float curr_value, Object userData)
         {
-
+            switch (type)
+            {
+                case 0: SetScaleStatic(curr_value);
+                    break;
+                case 1:
+                    SetTranslucencyInternal(curr_value);
+                    break;
+                case 2:
+                    if (PartArray != null) PartArray.SetPartTranslucencyInternal((int)userData, curr_value);
+                    break;
+                case 3:
+                    if (PartArray != null) PartArray.SetLuminosityInternal(curr_value);
+                    break;
+                case 5:     // combined types?
+                    if (PartArray != null) PartArray.SetPartLuminosityInternal((int)userData, curr_value);
+                    break;
+                case 4:
+                    if (PartArray != null) PartArray.SetDiffusionInternal(curr_value);
+                    break;
+                case 6:
+                    if (PartArray != null) PartArray.SetPartDiffusionInternal((int)userData, curr_value);
+                    break;
+                case 7:
+                    CallPESInternal((int)userData, curr_value);
+                    break;
+            }
         }
 
         public void process_hooks()
         {
+            foreach (var hook in Hooks)
+                hook.Execute(this);
 
+            Hooks.Clear();
+
+            foreach (var animHook in AnimHooks)
+                animHook.Execute(this);
+
+            AnimHooks.Clear();
         }
 
         public void queue_netblob(int blob)
         {
-
+            // convert to ACE network protocol
         }
 
         public void recalc_cross_cells()
         {
-
+            if (PartArray == null) return;
+            if (Position.ObjCellID != 0)
+                calc_cross_cells();
+            else
+            {
+                if (!ExaminationObject || !State.HasFlag(PhysicsState.ParticleEmitter)) return;
+                add_particle_shadow_to_cell();
+            }
+            foreach (var child in Children.Objects)
+                child.recalc_cross_cells();
         }
 
         public void receive_detection_update(DetectionInfo info)
         {
+            if (DetectionManager == null) return;
+            DetectionManager.ReceiveDetectionUpdate(info);
 
+            if (State.HasFlag(PhysicsState.Static)) return;
+            if (!TransientState.HasFlag(TransientStateFlags.Active))
+                UpdateTime = Timer.CurrentTime;
+
+            TransientState |= TransientStateFlags.Active;
         }
 
         public void receive_target_update(TargetInfo info)
         {
-
+            if (TargetManager != null)
+                TargetManager.ReceiveUpdate(info);
         }
 
         public bool renter_visibility()
         {
-            return false;
+            prepare_to_enter_world();
+            var setPos = new SetPosition(Position, SetPositionFlags.Placement | SetPositionFlags.SendPositionEvent);
+            return SetPosition(setPos) == SetPositionError.OK;
         }
 
         public void remove_parts(ObjCell objCell)
         {
-
+            if (PartArray != null)
+                PartArray.RemoveParts(objCell);
         }
 
         public void remove_shadows_from_cells()
         {
-
+            foreach (var shadowObj in ShadowObjects.Values)
+            {
+                if (shadowObj.Cell == null) continue;
+                shadowObj.Cell.remove_shadow_object(shadowObj.PhysObj);
+                if (PartArray != null)
+                    PartArray.RemoveParts(shadowObj.Cell);
+            }
+            NumShadowObjects = 0;   // should be ShadowObjects.Count
+            var i = 0;
+            while (true)
+            {
+                var totalChilds = Children == null ? 0 : Children.NumObjects;
+                if (i >= totalChilds) break;
+                if (Children != null)
+                    Children.Objects[i++].remove_shadows_from_cells();
+                else
+                    remove_shadows_from_cells();
+            }
         }
 
-        public int remove_voyeur(int objectID)
+        public bool remove_voyeur(int objectID)
         {
-            return -1;
+            if (TargetManager == null) return false;
+            return TargetManager.RemoveVoyeur(objectID);
         }
 
-        public bool report_attacks(AttackInfo attackInfo)
+        public void report_attacks(AttackInfo attackInfo)
         {
-            return false;
+            // wobj virtual function call
+            for (var i = 0; i < attackInfo.NumObjects; i++)
+            {
+                var obj = attackInfo.ObjectList[i];
+
+                var prof = new AtkCollisionProfile();
+                prof.ID = obj.ObjectID;
+                prof.Location = obj.HitLocation;
+                prof.Part = attackInfo.PartIndex;
+
+                // atkcollisionprofile virtual function call
+            }
+            if (AttackManager != null)
+                AttackManager.AttackDone(attackInfo);
         }
 
         public void report_collision_end(bool forceEnd)
         {
+            if (CollisionTable == null) return;
 
+            var ends = new List<int>();
+
+            foreach (var kvp in CollisionTable)
+            {
+                var collision_id = kvp.Key;
+                var collision = kvp.Value;
+
+                var deltaTime = PhysicsTimer.CurrentTime - collision.TouchedTime;
+
+                if (deltaTime > 1.0f || collision.Ethereal && deltaTime > 0.0f || forceEnd)
+                    ends.Add(collision_id);
+            }
+
+            foreach (var end in ends)
+            {
+                CollisionTable.Remove(end);
+                report_object_collision_end(end);
+            }
         }
 
         public void report_collision_start()
         {
+            if (CollisionTable == null || ObjMaint == null) return;
 
+            foreach (var objectID in CollisionTable.Keys)
+            {
+                var obj = ObjMaint.GetObjectA(objectID);
+                if (obj != null)
+                    report_object_collision(obj, TransientState.HasFlag(TransientStateFlags.Contact));
+            }
         }
 
         public bool report_environment_collision(bool prev_has_contact)
         {
-            return false;
+            if (CollidingWithEnvironment) return false;
+
+            var result = false;
+            if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
+            {
+                var collision = new EnvCollisionProfile();
+                collision.Velocity = Velocity;
+                collision.SetMeInContact(prev_has_contact);
+                // WeenieObj virtual function call
+                result = true;
+            }
+            CollidingWithEnvironment = true;
+            if (State.HasFlag(PhysicsState.Missile)) State &= ~PhysicsState.Missile;
+            return result;
         }
 
         public void report_exhaustion()
         {
-
+            if (MovementManager != null) MovementManager.ReportExhaustion();
         }
 
         public bool report_object_collision(PhysicsObj obj, bool prev_has_contact)
         {
-            return false;
+            if (obj.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
+                return report_environment_collision(prev_has_contact);
+
+            var velocityCollide = Velocity - obj.Velocity;
+
+            bool collided = false;
+            if (!obj.State.HasFlag(PhysicsState.IgnoreCollisions))
+            {
+                if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
+                {
+                    var profile = build_collision_profile(obj, prev_has_contact, velocityCollide);
+                    WeenieObj.DoCollision(profile);
+                    collided = true;
+                }
+
+                if (State.HasFlag(PhysicsState.Missile))
+                    State &= ~(PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped);
+            }
+
+            if (obj.State.HasFlag(PhysicsState.ReportCollisions) &&!State.HasFlag(PhysicsState.IgnoreCollisions) && WeenieObj != null)
+            {
+                var profile = obj.build_collision_profile(this, prev_has_contact, velocityCollide);
+                obj.WeenieObj.DoCollision(profile);
+                collided = true;
+            }
+            return collided;
         }
 
         public bool report_object_collision_end(int objectID)
         {
+            if (ObjMaint != null)
+            {
+                var collision = ObjMaint.GetObjectA(objectID);
+                if (collision != null)
+                {
+                    if (!collision.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
+                    {
+                        if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
+                            WeenieObj.DoCollisionEnd(objectID);
+
+                        if (collision.State.HasFlag(PhysicsState.ReportCollisions) && collision.WeenieObj != null)
+                            collision.WeenieObj.DoCollisionEnd(objectID);
+                    }
+                }
+                return true;
+            }
+            if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
+                WeenieObj.DoCollisionEnd(objectID);
+
             return false;
         }
 
@@ -2408,7 +2669,7 @@ namespace ACE.Server.Physics
                 return report_environment_collision(prev_has_contact);
 
             if (CollisionTable == null)
-                CollisionTable = new Dictionary<long, CollisionRecord>();
+                CollisionTable = new Dictionary<int, CollisionRecord>();
 
             if (!CollisionTable.ContainsKey(obj.ID)) return false;
             CollisionTable.Remove(obj.ID);
@@ -2427,9 +2688,9 @@ namespace ACE.Server.Physics
             {
                 var sphere = PartArray == null ? PartArray.GetSphere() : null;
                 if (PartArray != null)
-                    trans.InitSphere(PartArray.GetNumSphere(), sphere, Scale);
+                    trans.InitSphere(PartArray.GetNumSphere(), sphere[0], Scale);
                 else
-                    trans.InitSphere(0, sphere, Scale);
+                    trans.InitSphere(0, sphere[0], Scale);
             }
             trans.InitPath(Cell, oldPos, newPos);
 

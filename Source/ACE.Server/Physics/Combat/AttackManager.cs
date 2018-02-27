@@ -7,5 +7,10 @@ namespace ACE.Server.Physics.Combat
         public float AttackRadius;
         public int CurrentAttack;
         public HashSet<AttackInfo> PendingAttacks;
+
+        public void AttackDone(AttackInfo attackInfo)
+        {
+
+        }
     }
 }

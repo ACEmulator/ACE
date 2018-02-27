@@ -48,5 +48,15 @@ namespace ACE.Server.Physics.Combat
         {
 
         }
+
+        public void ReceiveUpdate(TargetInfo info)
+        {
+
+        }
+
+        public bool RemoveVoyeur(int objectID)
+        {
+            return false;
+        }
     }
 }

@@ -48,5 +48,10 @@ namespace ACE.Server.Physics.Common
         {
             return Vector3.Zero;
         }
+
+        public int DetermineQuadrant(float height, Position pos)
+        {
+            return -1;
+        }
     }
 }

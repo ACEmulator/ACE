@@ -12,9 +12,9 @@ namespace ACE.Server.Physics.Animation
         public int ParentIndex;
         public List<Vector3> DefaultScale;
         public int NumCylsphere;
-        public CylSphere CylSphere;
+        public List<CylSphere> CylSphere;
         public int NumSphere;
-        public Sphere Sphere;
+        public List<Sphere> Sphere;
         public int HasPhysicsBSP;
         public bool AllowFreeHeading;
         public float Height;

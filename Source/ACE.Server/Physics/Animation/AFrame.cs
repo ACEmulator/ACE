@@ -27,6 +27,11 @@ namespace ACE.Server.Physics.Animation
             return true;
         }
 
+        public Vector3 LocalToGlobal(Vector3 v)
+        {
+            return v;
+        }
+
         public Vector3 LocalToGlobalVec(Vector3 v)
         {
             return v;

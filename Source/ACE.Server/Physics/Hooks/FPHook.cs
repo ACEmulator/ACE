@@ -14,5 +14,21 @@ namespace ACE.Server.Physics.Hooks
             StartValue = startValue;
             EndValue = endValue;
         }
+
+        public override bool Execute(PhysicsObj obj)
+        {
+            var deltaTime = PhysicsTimer.CurrentTime - TimeCreated;
+            var scale = 0.0;
+            if (deltaTime > 0.0)
+            {
+                if (deltaTime < InterpolationTime)
+                    scale = deltaTime / InterpolationTime;
+                else
+                    scale = 1.0;
+            }
+            var current = (EndValue - StartValue) * scale + StartValue;
+            obj.process_fp_hook((int)HookType, (float)current, UserData);
+            return scale == 1.0;
+        }
     }
 }
