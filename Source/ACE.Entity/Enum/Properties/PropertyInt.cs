@@ -42,8 +42,9 @@ namespace ACE.Entity.Enum.Properties
         RareId                                   = 17,
         [ServerOnly]
         UiEffects                                = 18,
+        [Ephemeral]
         Value                                    = 19,
-        [ServerOnly][LoginOnly]
+        [Ephemeral][ServerOnly][LoginOnly]
         CoinValue                                = 20,
         TotalExperience                          = 21,
         AvailableCharacter                       = 22,

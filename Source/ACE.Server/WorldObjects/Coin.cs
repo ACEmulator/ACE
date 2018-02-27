@@ -11,17 +11,11 @@ namespace ACE.Server.WorldObjects
 {
     public class Coin : WorldObject
     {
-        private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.IntStatsTable;
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Coin(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            //SetProperty(PropertyInt.EncumbranceVal, 0);
-            //SetProperty(PropertyInt.Value, 1);
-            //SetProperty(PropertyInt.StackSize, 1);
-
             SetEphemeralValues();
         }
 
@@ -37,14 +31,28 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        //{
-        //    var properties = new Dictionary<PropertyInt, int>();
-        //    properties[PropertyInt.Value] = GetProperty(PropertyInt.Value) ?? 0;
-        //    properties[PropertyInt.EncumbranceVal] = GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+        public override int? Value
+        {
+            get
+            {
+                var value = ((StackUnitValue ?? 0) * (StackSize ?? 1));
 
-        //    WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a coin.
-        //    WriteIdentifyObjectProperties(writer, idFlags, properties);
-        //}
+                SetProperty(PropertyInt.Value, value);
+
+                return value;
+            }
+        }
+
+        public override int? CoinValue
+        {
+            get
+            {
+                var value = Value ?? 0;
+
+                SetProperty(PropertyInt.CoinValue, value);
+
+                return value;
+            }
+        }
     }
 }

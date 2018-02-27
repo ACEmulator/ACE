@@ -32,12 +32,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This will also set the icon based on the palette
         /// </summary>
-        public void SetProperties(uint palette, double shade)
+        public void SetProperties(int palette, double shade)
         {
-            var icon = DatManager.PortalDat.ReadFromDat<ClothingTable>(GetProperty(PropertyDataId.ClothingBase) ?? 0).GetIcon(palette);
+            var icon = DatManager.PortalDat.ReadFromDat<ClothingTable>(GetProperty(PropertyDataId.ClothingBase) ?? 0).GetIcon((uint)palette);
 
             SetProperty(PropertyDataId.Icon, icon);
-            SetProperty(PropertyDataId.PaletteBase, palette);
+            SetProperty(PropertyInt.PaletteTemplate, palette);
             SetProperty(PropertyFloat.Shade, shade);
         }
     }

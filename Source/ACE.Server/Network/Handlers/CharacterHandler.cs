@@ -560,7 +560,7 @@ namespace ACE.Server.Network.Handlers
 
             var worldObject = (Clothing)WorldObjectFactory.CreateNewWorldObject(weenie);
 
-            worldObject.SetProperties(palette, shade);
+            worldObject.SetProperties((int)palette, shade);
 
             //if (shirtCT.ClothingBaseEffects.ContainsKey(sex.SetupID))
             //{

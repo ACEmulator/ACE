@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
 
             GeneratorProfiles = Biota.BiotaPropertiesGenerator.ToList();
 
-            BaseDescriptionFlags = ObjectDescriptionFlag.Attackable | ObjectDescriptionFlag.Stuck;
+            BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
             UpdateBaseAppearance();
 
