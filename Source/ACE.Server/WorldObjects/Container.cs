@@ -197,7 +197,11 @@ namespace ACE.Server.WorldObjects
 
         public bool HasItem(ObjectGuid itemGuid)
         {
-            bool foundItem = Inventory.ContainsKey(itemGuid) || WieldedObjects.ContainsKey(itemGuid);
+            bool foundItem = Inventory.ContainsKey(itemGuid);
+
+            if (!foundItem && (this is Creature creature) && creature.EquippedObjects.ContainsKey(itemGuid))
+                foundItem = true;
+
             if (foundItem)
                 return true;
 
