@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
 
             // This is just temp. It should probably go in the Player ctor.
             // We should have a LoadInventory (Player ctor) and a LoadInventoryAsync (for landscape containers)
-            var results = DatabaseManager.Shard.GetInventory(biota.Id, false);
+            var results = DatabaseManager.Shard.GetInventory(biota.Id, true);
 
             foreach (var result in results)
             {
