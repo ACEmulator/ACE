@@ -998,6 +998,8 @@ namespace ACE.Server.Command.Handlers
             "Creates an object in the world.", "wclassid (string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
+            throw new NotImplementedException();
+            /* todo fix for EF
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
@@ -1046,7 +1048,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));*/
         }
 
         // ci wclassid (number)
@@ -1054,6 +1056,8 @@ namespace ACE.Server.Command.Handlers
             "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
+            throw new NotImplementedException();
+            /* todo fix for EF
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
@@ -1107,7 +1111,7 @@ namespace ACE.Server.Command.Handlers
             session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
             session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));*/
         }
 
         // cm <material type> <quantity> <ave. workmanship>

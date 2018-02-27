@@ -103,7 +103,9 @@ namespace ACE.Server.WorldObjects
                 SetInventoryForVendor(item);
 
                 // clean up the shard database.
-                DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+                throw new NotImplementedException();
+                // todo fix for EF
+                //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
 
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
                 purchaselist.Add(item);
@@ -224,7 +226,9 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
 
                     // clean up the shard database.
-                    DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
+                    throw new NotImplementedException();
+                    // todo fix for EF
+                    //DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
                     Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
                 }
 

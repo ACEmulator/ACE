@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -398,8 +399,10 @@ namespace ACE.Server.WorldObjects
             GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);
 
-            if (fromWo.SnapShotOfAceObject().HasEverBeenSavedToDatabase)
-                DatabaseManager.Shard.DeleteObject(fromWo.SnapShotOfAceObject(), null);
+            // todo fix for EF
+            throw new NotImplementedException();
+            //if (fromWo.SnapShotOfAceObject().HasEverBeenSavedToDatabase)
+            //   DatabaseManager.Shard.DeleteObject(fromWo.SnapShotOfAceObject(), null);
         }
 
         /// <summary>

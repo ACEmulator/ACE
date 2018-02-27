@@ -232,11 +232,6 @@ namespace ACE.Database
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
 
-        public void AddFriend(uint characterId, uint friendCharacterId, Action callback)
-        {
-            throw new NotImplementedException();
-        }
-
         public void DeleteFriend(uint characterId, uint friendCharacterId, Action callback)
         {
             throw new NotImplementedException();
@@ -252,13 +247,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
-        public void DeleteObject(AceObject aceObject, Action<bool> callback)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
+ public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
             throw new NotImplementedException();
         }
