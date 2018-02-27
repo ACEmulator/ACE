@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using log4net;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -8,7 +10,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-using log4net;
 
 namespace ACE.Server.Factories
 {
@@ -121,10 +122,11 @@ namespace ACE.Server.Factories
             }
         }
 
+
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
-        public static List<WorldObject> CreateWorldObjects(List<LandblockInstances> sourceObjects)
+        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstances> sourceObjects)
         {
             var results = new List<WorldObject>();
 
@@ -143,7 +145,9 @@ namespace ACE.Server.Factories
 
                     if (!linkResults.ContainsKey((int)aceO.LinkSlot))
                         linkResults.Add((int)aceO.LinkSlot, new List<LandblockInstances>());
+
                     linkResults[(int)aceO.LinkSlot].Add(aceO);
+
                     continue;
                 }
 
@@ -195,6 +199,7 @@ namespace ACE.Server.Factories
                 if (linkResults.ContainsKey(linkSlot) && worldObject.GeneratorProfiles.Count > 0)
                 {
                     var profileTemplate = worldObject.GeneratorProfiles[0];
+
                     foreach (var link in linkResults[linkSlot])
                     {
                         var profile = new BiotaPropertiesGenerator();

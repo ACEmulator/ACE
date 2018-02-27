@@ -132,7 +132,7 @@ namespace ACE.Server.Entity
 
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock); // Instances
 
-            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))
