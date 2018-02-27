@@ -272,10 +272,10 @@ namespace ACE.Database
         public Biota GetBiota(uint id)
         {
             using (var context = new ShardDbContext())
-                return GetBiota(id, context);
+                return GetBiota(context, id);
         }
 
-        private Biota GetBiota(uint id, ShardDbContext context)
+        private static Biota GetBiota(ShardDbContext context, uint id)
         {
             return context.Biota
                 // Should we add .AsNoTracking() here since we're disposing of the context anyway?
@@ -377,28 +377,43 @@ namespace ACE.Database
 
         public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
         {
-            var inventory = new List<Biota>();
+            List<Biota> inventory;
 
             using (var context = new ShardDbContext())
             {
-                var results = context.BiotaPropertiesIID
-                    .AsNoTracking()
-                    .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
+                inventory = GetInventory(context, parentId);
 
-                foreach (var result in results)
+                if (includedNestedItems)
                 {
-                    var biota = GetBiota(result.ObjectId);
-
-                    if (biota != null)
+                    foreach (var item in inventory)
                     {
-                        inventory.Add(biota);
-
-                        if (includedNestedItems && biota.WeenieType == (int) WeenieType.Container)
+                        if (item.WeenieType == (int)WeenieType.Container)
                         {
-                            // todo
+                            var subItems = GetInventory(context, item.Id);
+
+                            inventory.AddRange(subItems);
                         }
                     }
                 }
+            }
+
+            return inventory;
+        }
+
+        private static List<Biota> GetInventory(ShardDbContext context, uint parentId)
+        {
+            var inventory = new List<Biota>();
+
+            var results = context.BiotaPropertiesIID
+                .AsNoTracking()
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
+
+            foreach (var result in results)
+            {
+                var biota = GetBiota(context, result.ObjectId);
+
+                if (biota != null)
+                    inventory.Add(biota);
             }
 
             return inventory;

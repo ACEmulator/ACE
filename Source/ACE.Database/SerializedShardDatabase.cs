@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ACE.Database.Models.Shard;
-using ACE.Entity;
 using ACE.Entity.Enum;
 
 namespace ACE.Database
@@ -247,7 +246,7 @@ namespace ACE.Database
             throw new NotImplementedException();
         }
 
- public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
+        public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
             throw new NotImplementedException();
         }
