@@ -24,7 +24,7 @@ namespace ACE.Server.Managers
 
         private static readonly Random _random = new Random();
 
-        private static readonly List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
+        private static readonly List<GenericPropertyId> _updateStructure = new List<GenericPropertyId>() { new GenericPropertyId((uint)PropertyInt.Structure, PropertyType.PropertyInt) };
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {

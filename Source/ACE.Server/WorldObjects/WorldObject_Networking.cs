@@ -361,13 +361,13 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public virtual void SendPartialUpdates(Session targetSession, List<AceObjectPropertyId> properties)
+        public virtual void SendPartialUpdates(Session targetSession, List<GenericPropertyId> properties)
         {
             foreach (var property in properties)
             {
                 switch (property.PropertyType)
                 {
-                    case AceObjectPropertyType.PropertyInt:
+                    case PropertyType.PropertyInt:
                         int? value = GetProperty((PropertyInt)property.PropertyId);
                         if (value != null)
                             targetSession.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(targetSession.Player.Sequences, (PropertyInt)property.PropertyId, value.Value));
