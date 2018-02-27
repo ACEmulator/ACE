@@ -103,7 +103,7 @@ namespace ACE.Server.Entity
 
             var objects = DatabaseManager.World.GetCachedWeenieInstancesByLandblock(Id.Landblock); // Instances
 
-            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))

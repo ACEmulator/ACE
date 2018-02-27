@@ -1738,6 +1738,7 @@ namespace ACE.Server.WorldObjects
 
                             if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                                 return;
+
                             switch ((EquipMask)placement)
                             {
                                 case EquipMask.MissileWeapon:
