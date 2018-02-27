@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
 {
     public class Door : WorldObject
     {
-        private static List<AceObjectPropertyId> _updateLocked = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyBool.Locked, AceObjectPropertyType.PropertyBool) };
+        private static List<GenericPropertyId> _updateLocked = new List<GenericPropertyId>() { new GenericPropertyId((uint)PropertyBool.Locked, PropertyType.PropertyBool) };
 
         public enum UnlockDoorResults : ushort
         {

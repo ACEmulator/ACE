@@ -1,10 +1,12 @@
-namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum.Properties
 {
-    public enum AceObjectPropertyType
+    public enum PropertyType
     {
         PropertyAttribute,
         PropertyAttribute2nd,
+
         PropertyBook,
+
         PropertyBool,
         PropertyDataId,
         PropertyDouble,
@@ -12,6 +14,7 @@ namespace ACE.Entity.Enum
         PropertyInt,
         PropertyInt64,
         PropertyString,
+
         PropertyPosition
     }
 }
