@@ -478,7 +478,8 @@ namespace ACE.Server.WorldObjects
         public virtual int? Value
         {
             // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
-            get => (StackUnitValue * (StackSize ?? 1));
+            //get => (StackUnitValue * (StackSize ?? 1));
+            get => GetProperty(PropertyInt.Value);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Value); else SetProperty(PropertyInt.Value, value.Value); }
         }
 
