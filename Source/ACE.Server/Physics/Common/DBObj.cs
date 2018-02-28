@@ -6,7 +6,8 @@ namespace ACE.Server.Physics.Common
     {
         public static Object Get(QualifiedDataID id)
         {
-            return null;
+            // TODO: map to ACE data format
+            return -1;
         }
     }
 }

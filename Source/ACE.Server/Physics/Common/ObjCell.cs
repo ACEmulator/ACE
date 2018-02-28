@@ -44,6 +44,11 @@ namespace ACE.Server.Physics.Common
 
         }
 
+        public TransitionState FindCollisions(Transition transition)
+        {
+            return TransitionState.OK;
+        }
+
         public static ObjCell GetVisible(int cellID)
         {
             return null;
@@ -72,6 +77,11 @@ namespace ACE.Server.Physics.Common
         public static void find_cell_list(Position pos, int numCylSphere, CylSphere cylSphere, CellArray cellArray, SpherePath path)
         {
 
+        }
+
+        public static List<ObjCell> find_cell_list(Position pos, int numSphere, Sphere sphere, CellArray cellArray, SpherePath path)
+        {
+            return null;
         }
 
         public void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)

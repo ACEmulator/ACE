@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
@@ -26,6 +27,11 @@ namespace ACE.Server.Physics.Common
         public void add_cell(int cellID, ObjCell cell)
         {
 
+        }
+
+        public List<ObjCell> find_cell_list(SpherePath path)
+        {
+            return ObjCell.find_cell_list(path.CheckPos, path.NumSphere, path.GlobalSphere[0], this, path);
         }
     }
 }

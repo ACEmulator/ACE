@@ -8,5 +8,10 @@ namespace ACE.Server.Physics.Common
         {
             return v / v.Length();
         }
+
+        public static Vector3 SnapToPlane(this Plane p, Vector3 v)
+        {
+            return v;
+        }
     }
 }

@@ -1517,7 +1517,7 @@ namespace ACE.Server.Physics
         {
             if (PartArray == null || obj.Equals(this)) return false;
 
-            var setup = Setup.GetHoldingLocation(where);
+            var setup = PartArray.Setup.GetHoldingLocation(where);
             if (setup == null) return false;
 
             if (Children == null) Children = new ChildList();

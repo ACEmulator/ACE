@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using ACE.Entity;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -7,7 +6,13 @@ namespace ACE.Server.Physics.Animation
     {
         public List<AFrame> Frame;
         public int NumFrameHooks;
-        public AnimHook Hooks;
+        public List<AnimHook> Hooks;
         public int NumParts;
+
+        public AnimFrame()
+        {
+            Frame = new List<AFrame>();
+            Hooks = new List<AnimHook>();
+        }
     }
 }
