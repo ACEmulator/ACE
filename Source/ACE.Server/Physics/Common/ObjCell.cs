@@ -16,26 +16,21 @@ namespace ACE.Server.Physics.Common
         public int NumShadowObjects;
         public List<ShadowObj> ShadowObjectList;
         public int RestrictionObj;
-        public List<int> ClipePlanes;
+        public List<int> ClipPlanes;
         public int NumStabs;
         public List<int> StabList;
         public bool SeenOutside;
         public HashSet<int> VoyeurTable;
         public int MyLandBlock;
 
-        public void RemovePart(PhysicsPart part)
+        public void AddObject(PhysicsObj obj)
         {
 
         }
 
-        public void hide_object(PhysicsObj obj)
+        public void AddPart(PhysicsPart part, List<int> clipPlanes, AFrame frame, int numParts)
         {
-
-        }
-
-        public void unhide_object(PhysicsObj obj)
-        {
-
+            // could go in PartCell
         }
 
         public void AddShadowObject(ShadowObj shadowObj)
@@ -44,9 +39,29 @@ namespace ACE.Server.Physics.Common
             NumShadowObjects++;     // can probably replace with .Count
         }
 
-        public void AddPart(PhysicsPart part, int clipPlanes, AFrame frame, int numParts)
+        public void CheckAttack(int attacker_id, Position attackerPos, float attacker_scale, AttackCone attackCone, AttackInfo attackInfo)
         {
-            // could go in PartCell
+
+        }
+
+        public static ObjCell GetVisible(int cellID)
+        {
+            return null;
+        }
+
+        public void RemoveObject(PhysicsObj obj)
+        {
+
+        }
+
+        public void RemovePart(PhysicsPart part)
+        {
+
+        }
+
+        public bool check_collisions()
+        {
+            return false;
         }
 
         public static void find_cell_list(Position pos, Sphere cylSphere, CellArray cellArray, SpherePath path)
@@ -59,7 +74,12 @@ namespace ACE.Server.Physics.Common
 
         }
 
-        public void RemoveObject(PhysicsObj obj)
+        public void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
+        {
+
+        }
+
+        public void hide_object(PhysicsObj obj)
         {
 
         }
@@ -69,24 +89,9 @@ namespace ACE.Server.Physics.Common
 
         }
 
-        public void CheckAttack(int attacker_id, Position attackerPos, float attacker_scale, AttackCone attackCone, AttackInfo attackInfo)
+        public void unhide_object(PhysicsObj obj)
         {
 
-        }
-
-        public bool check_collisions()
-        {
-            return false;
-        }
-
-        public void AddObject(PhysicsObj obj)
-        {
-
-        }
-
-        public static ObjCell GetVisible(int cellID)
-        {
-            return null;
         }
     }
 }

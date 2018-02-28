@@ -134,7 +134,7 @@ namespace ACE.Server.Physics
             objCell.AddShadowObject(shadowObj);
 
             if (PartArray != null)
-                PartArray.AddPartsShadow(shadowObj);
+                PartArray.AddPartsShadow(objCell, 1);
         }
 
         public void AddPartToShadowCells(PhysicsPart part)
@@ -145,7 +145,7 @@ namespace ACE.Server.Physics
                 var shadowCell = shadowObj.Cell;
                 if (shadowCell != null)
                 {
-                    shadowCell.AddPart(part, 0,
+                    shadowCell.AddPart(part, null,
                         shadowCell.Pos.Frame, ShadowObjects.Count);
                 }
             }
@@ -396,7 +396,7 @@ namespace ACE.Server.Physics
             return PlayerObject.Equals(this) ? 25.0f : 20.0f;
         }
 
-        public BoundingBox GetBoundingBox()
+        public BBox GetBoundingBox()
         {
             if (PartArray == null) return null;
             return PartArray.GetBoundingBox();
@@ -590,7 +590,7 @@ namespace ACE.Server.Physics
             var divineType = MasterDBMap.DivineType(dataDID);
             if (divineType == 6)
             {
-                PartArray = PartArray.CreateMesh(dataDID);
+                PartArray = PartArray.CreateMesh(this, dataDID);
             }
             else
             {
@@ -843,20 +843,20 @@ namespace ACE.Server.Physics
 
         public void RestoreLighting()
         {
-            if (PartArray != null)
-                PartArray.RestoreLightingInternal();
+            /*if (PartArray != null)
+                PartArray.RestoreLightingInternal();*/
         }
 
         public void SetDiffusion(float start, float end, double delta)
         {
-            if (delta < PhysicsGlobals.EPSILON)
+            /*if (delta < PhysicsGlobals.EPSILON)
             {
                 if (PartArray != null)
                     PartArray.SetDiffusionInternal(end);
                 return;
             }
             var hook = new FPHook(HookType.Velocity, PhysicsTimer.CurrentTime, delta, start, end, 0);
-            Hooks.AddLast(hook);
+            Hooks.AddLast(hook);*/
         }
         
 
@@ -1557,7 +1557,7 @@ namespace ACE.Server.Physics
             ShadowObjects.Add(1, shadowObj);
 
             if (PartArray != null)
-                PartArray.AddPartsShadow(shadowObj);
+                PartArray.AddPartsShadow(Cell, 1);
         }
 
         public void add_shadows_to_cell(CellArray cellArray)
@@ -1574,7 +1574,7 @@ namespace ACE.Server.Physics
                     if (cell != null) cell.AddShadowObject(shadowObj);
 
                     if (PartArray != null)
-                        PartArray.AddPartsShadow(shadowObj);
+                        PartArray.AddPartsShadow(cell, NumShadowObjects);
 
                 }
             }
@@ -2144,9 +2144,7 @@ namespace ACE.Server.Physics
             Cell.RemoveObject(this);
             foreach (var child in Children.Objects)
                 child.leave_cell(is_changing_cell);
-
-            if (PartArray != null)
-                PartArray.RemoveLightsFromCell(Cell);
+            // removed lighting
             Cell = null;
         }
 

@@ -1,18 +1,19 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics
 {
+    /// <summary>
+    /// A list of physics parts
+    /// </summary>
     public class PartArray
     {
-        public static readonly Sphere DefaultSortingSphere;
-
-        public static readonly float DefaultStepHeight = 0.0099999998f;
-
-        public uint PAState;
+        public uint State;
         public PhysicsObj Owner;
         public Sequence Sequence;
         public MotionTableManager MotionTableManager;
@@ -21,7 +22,21 @@ namespace ACE.Server.Physics
         public List<PhysicsPart> Parts;
         public Vector3 Scale;
         public AnimFrame LastAnimFrame;
-        
+
+        public void AddPartsShadow(ObjCell objCell, int numShadowParts)
+        {
+            List<int> clipPlaneList = null;
+
+            if (numShadowParts > 1)
+                clipPlaneList = objCell.ClipPlanes;
+
+            for (var i = 0; i < NumParts; i++)
+            {
+                if (Parts[i] != null)
+                    objCell.AddPart(Parts[i], clipPlaneList, objCell.Pos.Frame, numShadowParts);
+            }
+        }
+
         public bool AllowsFreeHeading()
         {
             return Setup.AllowFreeHeading;
@@ -35,25 +50,16 @@ namespace ACE.Server.Physics
 
         public bool CacheHasPhysicsBSP()
         {
-            if (Parts == null)
-            {
-                PAState &= 0xFFFEFFFF;
-                return false;
-            }
-
             foreach (var part in Parts)
             {
-                //foreach (var gfxObj in part.GfxObj)
-                //{
-                    if (part.GfxObj.PhysicsBSP == null)
-                    {
-                        PAState &= 0xFFFEFFFF;
-                        return false;
-                    }
-                //}
+                if (part.GfxObj.PhysicsBSP != null)
+                {
+                    State |= 0x10000;
+                    return true;
+                }
             }
-            PAState |= 0x10000;
-            return true;
+            State &= 0xFFFEFFFF;
+            return false;
         }
 
         public void CheckForCompletedMotions()
@@ -62,53 +68,75 @@ namespace ACE.Server.Physics
                 MotionTableManager.CheckForCompletedMotions();
         }
 
-        public static PartArray CreateMesh(int setupDID)
+        public static PartArray CreateMesh(PhysicsObj owner, int setupDID)
         {
-            // TODO
-            return null;
+            var mesh = new PartArray();
+            mesh.Owner = owner;
+            mesh.Sequence.SetObject(owner);
+            if (!mesh.SetMeshID(setupDID))
+                return null;
+            mesh.SetPlacementFrame(0x65);
+            return mesh;
         }
 
         public static PartArray CreateParticle(PhysicsObj owner, int numParts, Sphere sortingSphere = null)
         {
-            var parts = new PartArray();
-            parts.Owner = owner;
-            parts.Sequence.SetObject(owner);
+            var particle = new PartArray();
+            particle.Owner = owner;
+            particle.Sequence.SetObject(owner);
 
-            parts.Setup = Setup.MakeParticleSetup(numParts);
+            particle.Setup = Setup.MakeParticleSetup(numParts);
 
-            if (parts.Setup == null || !parts.InitParts())
+            if (particle.Setup == null || !particle.InitParts())
                 return null;
 
-            return parts;
+            return particle;
         }
 
         public static PartArray CreateSetup(PhysicsObj owner, int setupDID, bool createParts)
         {
-            var parts = new PartArray();
-            parts.Owner = owner;
-            parts.Sequence.SetObject(owner);
-            if (!parts.SetSetupID(setupDID, createParts))
+            var setup = new PartArray();
+            setup.Owner = owner;
+            setup.Sequence.SetObject(owner);
+            if (!setup.SetSetupID(setupDID, createParts))
                 return null;
-            parts.SetPlacementFrame(0x65);
-            return parts;
+            setup.SetPlacementFrame(0x65);
+            return setup;
+        }
+
+        public void DestroyLights()
+        {
+            // gfx omitted from server
         }
 
         public void DestroyParts()
         {
-            Parts.Clear();
+            Parts = null;
             NumParts = 0;
+        }
+
+        public void DestroySetup()
+        {
+            Setup = null;
         }
 
         public Sequence DoInterpretedMotion(int motion, MovementParameters movementParameters)
         {
-            if (MotionTableManager == null) return null;    // 7?
+            if (MotionTableManager == null)
+                return null;    // 7?
 
-            var frame = new Frame();
-            frame.Origin = Vector3.Zero;
-            frame.Orientation = Quaternion.Identity;    // correct?
-            // cache frame
-            var mvs = new MovementStruct();
-            return MotionTableManager.PerformMovement(mvs, Sequence);   // mvs.Motion?
+            var mvs = new MovementStruct(MovementType.InterpretedCommand, motion, movementParameters);
+            return MotionTableManager.PerformMovement(mvs, Sequence);
+        }
+
+        public int DoObjDescChanges(int objDesc)
+        {
+            return -1;
+        }
+
+        public int DoObjDescChangesFromDefault(int objDesc)
+        {
+            return -1;
         }
 
         public TransitionState FindObjCollisions(Transition transition)
@@ -122,18 +150,16 @@ namespace ACE.Server.Physics
             return TransitionState.OK;
         }
 
-        public BoundingBox GetBoundingBox()
+        public BBox GetBoundingBox()
         {
-            var bbox = new BoundingBox();
+            var bbox = new BBox();
 
-            // accumulate from each part?
+            // accumulate from each part
             foreach (var part in Parts)
             {
                 var partBox = part.GetBoundingBox();
-                bbox.Min = partBox.Min;
-                bbox.Max = partBox.Max;
-                bbox.ConvertToGlobal();
-                bbox.CalcSize();
+                partBox.ConvertToGlobal(part.Pos);
+                partBox.BuildBoundingBox(bbox);
             }
             return bbox;
         }
@@ -141,6 +167,17 @@ namespace ACE.Server.Physics
         public List<CylSphere> GetCylSphere()
         {
             return Setup.CylSphere;
+        }
+
+        public int GetDataID()
+        {
+            if (Setup.m_DID != 0)
+                return Setup.m_DID;
+
+            if (NumParts == 1)
+                return Parts[0].GfxObj.ID;
+
+            return 0;
         }
 
         public float GetHeight()
@@ -166,14 +203,21 @@ namespace ACE.Server.Physics
         public Sphere GetSelectionSphere(Sphere selectionSphere)
         {
             if (Setup == null) return null;
+            return new Sphere(selectionSphere.Center * Scale, selectionSphere.Radius * Scale.Z);
+        }
 
-            return new Sphere(new Vector3(selectionSphere.Center.X * Scale.X, selectionSphere.Center.Y * Scale.Y, selectionSphere.Center.Z * Scale.Z), selectionSphere.Radius * Scale.Z);
+        public int GetSetupID()
+        {
+            if (Setup != null)
+                return Setup.m_DID;
+
+            return 0;
         }
 
         public Sphere GetSortingSphere()
         {
             if (Setup == null)
-                return DefaultSortingSphere;
+                return PhysicsGlobals.DefaultSortingSphere;
             else
                 return Setup.SortingSphere;
         }
@@ -185,21 +229,34 @@ namespace ACE.Server.Physics
 
         public float GetStepDownHeight()
         {
-            if (Setup == null) return DefaultStepHeight;
+            if (Setup == null) return PhysicsGlobals.DefaultStepHeight;
 
             return Setup.StepDownHeight * Scale.Z;
         }
 
         public float GetStepUpHeight()
         {
-            if (Setup == null) return DefaultStepHeight;
+            if (Setup == null) return PhysicsGlobals.DefaultStepHeight;
 
             return Setup.StepUpHeight * Scale.Z;
         }
 
+        public void HandleEnterWorld()
+        {
+            if (MotionTableManager != null)
+                MotionTableManager.HandleEnterWorld();
+        }
+
+        public void HandleExitWorld()
+        {
+            if (MotionTableManager != null)
+                MotionTableManager.HandleExitWorld();
+        }
+
         public void HandleMovement()
         {
-            MotionTableManager.UseTime();
+            if (MotionTableManager != null)
+                MotionTableManager.UseTime();
         }
 
         public bool HasAnims()
@@ -213,10 +270,9 @@ namespace ACE.Server.Physics
             {
                 Sequence.ClearAnimations();
                 var animData = new AnimData();
-                var defaultAnimId = Setup.DefaultAnimID;
-                animData.AnimId = 0;
-                animData.LowFrame = -1;
-                animData.HighFrame = 1106247680;
+                animData.AnimId = Setup.DefaultAnimID;
+                animData.LowFrame = 0;
+                animData.HighFrame = Int32.MaxValue;
                 Sequence.AppendAnimation(animData);
                 WeenieDesc.Destroy(animData);
             }
@@ -231,28 +287,33 @@ namespace ACE.Server.Physics
                 MotionTableManager.InitializeState(Sequence);
         }
 
+        public void InitLights()
+        {
+            // lighting omitted for server
+        }
+
         public bool InitObjDescChanges()
         {
             var result = false;
-
             if (Setup == null) return false;
-
             foreach (var part in Parts)
             {
                 if (part != null && part.InitObjDescChanges())
                     result = true;
             }
-
             return result;
         }
 
         public void InitPals()
         {
+            // palettes omitted for server
         }
 
         public bool InitParts()
         {
             NumParts = Setup.NumParts;
+            if (NumParts == 0) return false;
+
             Parts = new List<PhysicsPart>(NumParts);
 
             for (var i = 0; i < NumParts; i++)
@@ -331,12 +392,23 @@ namespace ACE.Server.Physics
             // remove lights
         }
 
+        public void SetLuminosityInternal(float luminosity)
+        {
+            // gfx omitted from server
+        }
+
+        public void SetLightingInternal(float luminosity, float diffuse)
+        {
+            // gfx omitted from server
+        }
+
         public bool SetMeshID(int meshDID)
         {
             if (meshDID == 0) return false;
             var setup = Setup.MakeSimpleSetup(meshDID);
             if (setup == null) return false;
             DestroyParts();
+            DestroySetup();
             Setup = setup;
             return InitParts();
         }
@@ -352,8 +424,23 @@ namespace ACE.Server.Physics
             }
             if (mtableID == 0) return true;
 
+            MotionTableManager = MotionTableManager.Create(mtableID);
+            if (MotionTableManager == null) return false;
+
+            MotionTableManager.SetPhysicsObject(Owner);
+
             // chat blob?
-            return false;
+            return true;
+        }
+
+        public void SetNoDrawInternal(bool noDraw)
+        {
+            if (Setup == null) return;
+            foreach (var part in Parts)
+            {
+                if (part != null)
+                    part.SetNoDraw(noDraw);
+            }
         }
 
         public bool SetPart(List<DatLoader.Entity.AnimationPartChange> changes)
@@ -378,68 +465,118 @@ namespace ACE.Server.Physics
             return success;
         }
 
+        public void SetDiffusionInternal(float diff)
+        {
+            // gfx omitted from server
+        }
+
+        public void SetPartDiffusionInternal(int partIdx, float diff)
+        {
+            // gfx omitted from server
+        }
+
+        public bool SetPartLightingInternal(int partIdx, float luminosity, float diffuse)
+        {
+            return false;
+        }
+
+
+        public void SetPartLuminosityInternal(int partIdx, float luminosity)
+        {
+            // gfx omitted from server
+        }
+
+        public void SetPartTextureVelocityInternal(int partIdx, float du, float dv)
+        {
+            // gfx omitted from server
+        }
+
+        public void SetPartTranslucencyInternal(int partIdx, float translucency)
+        {
+            // gfx omitted from server
+        }
+
         public bool SetPlacementFrame(int placementID)
         {
             PlacementType placementFrame = null;
+
+            // try to get placementID
             Setup.PlacementFrames.TryGetValue(placementID, out placementFrame);
             if (placementFrame != null)
             {
-                //while (placementID != placementFrame.AnimFrame)
-                // figure out dictionary key iteration
+                Sequence.SetPlacementFrame(placementFrame.AnimFrame, placementID);
+                return true;
             }
+
+            // if failed, try to get index 0
+            Setup.PlacementFrames.TryGetValue(0, out placementFrame);
+            if (placementFrame != null)
+            {
+                Sequence.SetPlacementFrame(placementFrame.AnimFrame, 0);
+                return true;
+            }
+
+            // error out
+            Sequence.SetPlacementFrame(null, 0);
             return false;
         }
 
         public bool SetScaleInternal(Vector3 newScale)
         {
-            // is needed?
-            return false;
-        }
-
-        public bool SetSetupID(int setupID, bool createParts)
-        {
-            if (Setup == null || Setup.m_DID != setupID)
+            for (var i = 0; i < NumParts; i++)
             {
-                // get new qualified DID?
-                DestroyParts();
-                if (Setup != null)
-                    Setup = null;
-                // get Setup from DBObj
-                if (createParts)
+                var part = Parts[i];
+                if (part != null)
                 {
-                    if (!InitParts())
-                        return false;
+                    if (Setup.DefaultScale != null)
+                        part.GfxObjScale = Setup.DefaultScale[i] * newScale;
+                    else
+                        part.GfxObjScale = Scale;
                 }
-                InitDefaults();
             }
             return true;
         }
 
+        public bool SetSetupID(int setupID, bool createParts)
+        {
+            if (Setup != null || Setup.m_DID == setupID)
+                return true;
+
+            Setup = Setup.Get(setupID);
+            if (Setup == null) return false;
+
+            DestroyParts();
+
+            if (createParts && !InitParts()) return false;
+
+            InitDefaults();
+            return true;
+        }
+
+        public void SetTextureVelocityInternal(float du, float dv)
+        {
+            // gfx omitted from server
+        }
+
         public void SetTranslucencyInternal(float translucency)
         {
-
+            // gfx omitted from server
         }
 
         public Sequence StopCompletelyInternal()
         {
             if (MotionTableManager == null) return null;    // 7?
-            var frame = new Frame();
-            frame.Origin = Vector3.Zero;
-            frame.Orientation = Quaternion.Identity;
-            // add frame to cache
-            var mvs = new MovementStruct();
-            return MotionTableManager.PerformMovement(mvs, Sequence);   // how to add frame data?
+            var mvs = new MovementStruct(MovementType.StopCompletely);
+            return MotionTableManager.PerformMovement(mvs, Sequence);
         }
 
         public Sequence StopInterpretedMotion(int motion, MovementParameters movementParameters)
         {
             if (MotionTableManager == null) return null;    // 7?
-            var frame = new Frame();
-            frame.Origin = Vector3.Zero;
-            frame.Orientation = Quaternion.Identity;
-            // add frame to cache
-            var mvs = new MovementStruct();
-            return MotionTableManager.PerformMovement(mvs, Sequence);   // how to add frame/input data?
+            var mvs = new MovementStruct(MovementType.StopInterpretedCommand);
+            mvs.Motion = motion;
+            mvs.Params = movementParameters;
+            return MotionTableManager.PerformMovement(mvs, Sequence);
         }
 
         public void Update(double quantum, AFrame offsetFrame)
@@ -449,129 +586,22 @@ namespace ACE.Server.Physics
 
         public void UpdateParts(AFrame frame)
         {
-            var animFrame = Sequence.GetCurrAnimFrame();
-            if (animFrame == null) return;
-            var numParts = NumParts;
-            if (numParts > animFrame.NumParts)
-                numParts = animFrame.NumParts;
+            var curFrame = Sequence.GetCurrAnimFrame();
+            if (curFrame == null) return;
+            var numParts = Math.Min(curFrame.NumParts, NumParts);
             for (var i = 0; i < numParts; i++)
-            {
-                Parts[i].Pos.Frame.Combine(frame, animFrame.Frame[i], Scale);
-            }
+                Parts[i].Pos.Frame.Combine(frame, curFrame.Frame[i], Scale);
         }
 
-        public void SetNoDrawInternal(bool noDraw)
-        {
-
-        }
-
-        public void HandleEnterWorld()
-        {
-
-        }
-
-        public void InitLights()
-        {
-
-        }
-
-        public void DestroyLights()
-        {
-
-        }
-
-        public void SetDiffusionInternal(float diff)
-        {
-
-        }
-
-        public void SetPartDiffusionInternal(int partIdx, float diff)
-        {
-        }
-
-        public void SetLightingInternal(float luminosity, float diffuse)
-        {
-
-        }
-
-        public bool SetPartLightingInternal(int partIdx, float luminosity, float diffuse)
-        {
-            return false;
-        }
-
-        public void SetLuminosityInternal(float luminosity)
-        {
-
-        }
-
-        public void SetPartLuminosityInternal(int partIdx, float luminosity)
-        {
-
-        }
-
-        public void SetPartTextureVelocityInternal(int partIdx, float du, float dv)
-        {
-
-        }
-
-        public void SetPartTranslucencyInternal(int partIdx, float translucency)
-        {
-
-        }
-
-        public void SetTextureVelocityInternal(float du, float dv)
-        {
-
-        }
-
-        public int GetDataID()
-        {
-            return -1;
-        }
-
-        public int GetSetupID()
-        {
-            return -1;
-        }
-
-        public void AddPartsShadow(ShadowObj shadowObj)
-        {
-
-        }
-
+ 
         public void UpdateViewerDistance(float cypt, Vector3 heading)
         {
-
-        }
-
-        public void RemoveLightsFromCell(ObjCell cell)
-        {
-
-        }
-
-        public void RestoreLightingInternal()
-        {
-
-        }
-
-        public void HandleExitWorld()
-        {
-
+            foreach (var part in Parts) part.UpdateViewerDistance();
         }
 
         public void calc_cross_cells_static(ObjCell cell, CellArray cellArray)
         {
-
-        }
-
-        public int DoObjDescChanges(int objDesc)
-        {
-            return -1;
-        }
-
-        public int DoObjDescChangesFromDefault(int objDesc)
-        {
-            return -1;
+            cell.find_transit_cells(NumParts, Parts, cellArray);
         }
     }
 }
