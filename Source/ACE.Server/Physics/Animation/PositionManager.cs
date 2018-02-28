@@ -79,5 +79,10 @@ namespace ACE.Server.Physics.Animation
         {
             return false;
         }
+
+        public void ConstrainTo(Position position, float startDistance, float maxDistance)
+        {
+
+        }
     }
 }

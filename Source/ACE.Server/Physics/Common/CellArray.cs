@@ -22,5 +22,10 @@ namespace ACE.Server.Physics.Common
             LoadCells = true;
             NumCells = 0;
         }
+
+        public void add_cell(int cellID, ObjCell cell)
+        {
+
+        }
     }
 }

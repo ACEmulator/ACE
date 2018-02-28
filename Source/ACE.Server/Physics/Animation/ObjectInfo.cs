@@ -15,7 +15,7 @@ namespace ACE.Server.Physics.Animation
         IsImpenetrable = 0x80,
         IsPlayer = 0x100,
         EdgeSlide = 0x200,
-        IgnoreCreates = 0x400,
+        IgnoreCreatures = 0x400,
         IsPK = 0x800,
         IsPKLite = 0x1000
     };
@@ -27,13 +27,18 @@ namespace ACE.Server.Physics.Animation
         public float Scale;
         public float StepUpHeight;
         public float StepDownHeight;
-        public int Ethereal;
+        public bool Ethereal;
         public int StepDown;
         public int TargetID;
 
         public void Init(PhysicsObj obj, ObjectInfoState state)
         {
 
+        }
+
+        public bool MissileIgnore(PhysicsObj obj)
+        {
+            return false;
         }
     }
 }

@@ -22,5 +22,12 @@ namespace ACE.Server.Physics.Animation
         {
             Type = type;
         }
+
+        public MovementStruct(MovementType type, int motion, MovementParameters movementParams)
+        {
+            Type = type;
+            Motion = motion;
+            Params = movementParams;
+        }
     }
 }

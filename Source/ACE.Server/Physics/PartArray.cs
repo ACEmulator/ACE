@@ -553,5 +553,25 @@ namespace ACE.Server.Physics
         {
 
         }
+
+        public void HandleExitWorld()
+        {
+
+        }
+
+        public void calc_cross_cells_static(ObjCell cell, CellArray cellArray)
+        {
+
+        }
+
+        public int DoObjDescChanges(int objDesc)
+        {
+            return -1;
+        }
+
+        public int DoObjDescChangesFromDefault(int objDesc)
+        {
+            return -1;
+        }
     }
 }

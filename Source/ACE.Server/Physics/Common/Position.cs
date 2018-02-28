@@ -53,5 +53,10 @@ namespace ACE.Server.Physics.Common
         {
             return -1;
         }
+
+        public void adjust_to_outside()
+        {
+
+        }
     }
 }

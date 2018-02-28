@@ -11,6 +11,31 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
+        public bool IsImpenetable()
+        {
+            return false;
+        }
+
+        public bool IsPK()
+        {
+            return false;
+        }
+
+        public bool IsPKLite()
+        {
+            return false;
+        }
+
+        public bool IsPlayer()
+        {
+            return false;
+        }
+
+        public bool IsCreature()
+        {
+            return false;
+        }
+
         public bool IsStorage()
         {
             return false;

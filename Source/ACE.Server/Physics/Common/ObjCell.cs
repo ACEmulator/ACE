@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Combat;
 
 namespace ACE.Server.Physics.Common
 {
@@ -18,7 +19,7 @@ namespace ACE.Server.Physics.Common
         public List<int> ClipePlanes;
         public int NumStabs;
         public List<int> StabList;
-        public int SeenOutside;
+        public bool SeenOutside;
         public HashSet<int> VoyeurTable;
         public int MyLandBlock;
 
@@ -66,6 +67,26 @@ namespace ACE.Server.Physics.Common
         public void remove_shadow_object(PhysicsObj obj)
         {
 
+        }
+
+        public void CheckAttack(int attacker_id, Position attackerPos, float attacker_scale, AttackCone attackCone, AttackInfo attackInfo)
+        {
+
+        }
+
+        public bool check_collisions()
+        {
+            return false;
+        }
+
+        public void AddObject(PhysicsObj obj)
+        {
+
+        }
+
+        public static ObjCell GetVisible(int cellID)
+        {
+            return null;
         }
     }
 }

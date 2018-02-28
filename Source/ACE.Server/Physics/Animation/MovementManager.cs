@@ -94,5 +94,15 @@ namespace ACE.Server.Physics.Animation
         {
             return -1;
         }
+
+        public void HandleEnterWorld()
+        {
+
+        }
+
+        public void HandleExitWorld()
+        {
+
+        }
     }
 }

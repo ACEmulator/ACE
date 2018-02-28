@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Collision
 {
@@ -49,6 +49,11 @@ namespace ACE.Server.Physics.Collision
                 return true;
             }
             return false;
+        }
+
+        public void AddObject(PhysicsObj obj, TransitionState state)
+        {
+
         }
     }
 }
