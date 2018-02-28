@@ -32,27 +32,12 @@ namespace ACE.Server.Physics.Animation
 
         }
 
-        public void SetObject(PhysicsObj physObj)
-        {
-
-        }
-
-        public bool HasAnims()
-        {
-            return false;
-        }
-
-        public void ClearAnimations()
-        {
-
-        }
-
         public void AppendAnimation(AnimData animData)
         {
 
         }
 
-        public void Update(double quantum, AFrame offsetFrame)
+        public void ClearAnimations()
         {
 
         }
@@ -65,6 +50,26 @@ namespace ACE.Server.Physics.Animation
         public int GetCurrFrameNumber()
         {
             return -1;
+        }
+
+        public bool HasAnims()
+        {
+            return false;
+        }
+
+        public void SetObject(PhysicsObj physObj)
+        {
+
+        }
+
+        public void SetPlacementFrame(AnimFrame frame, int id)
+        {
+
+        }
+
+        public void Update(double quantum, AFrame offsetFrame)
+        {
+
         }
     }
 }

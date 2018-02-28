@@ -46,5 +46,9 @@ namespace ACE.Server.Physics
         public static readonly float DummySphereRadius = 0.1f;
 
         public static readonly Sphere DummySphere = new Sphere(Vector3.Zero, DummySphereRadius);
+
+        public static readonly Sphere DefaultSortingSphere;
+
+        public static readonly float DefaultStepHeight = 0.0099999998f;
     }
 }

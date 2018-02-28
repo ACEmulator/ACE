@@ -36,7 +36,12 @@ namespace ACE.Server.Physics.Animation
         public int DefaultPhsTableID;
         public PhysicsObj Owner;
 
-        public static Setup MakeSimpleSetup(int meshDID)
+        public static Setup Get(int setupID)
+        {
+            return null;
+        }
+
+        public static LocationType GetHoldingLocation(int location_idx)
         {
             return null;
         }
@@ -46,7 +51,7 @@ namespace ACE.Server.Physics.Animation
             return null;
         }
 
-        public static LocationType GetHoldingLocation(int location_idx)
+        public static Setup MakeSimpleSetup(int meshDID)
         {
             return null;
         }

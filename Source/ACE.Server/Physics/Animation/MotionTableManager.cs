@@ -10,7 +10,32 @@ namespace ACE.Server.Physics.Animation
         public int AnimationCounter;
         public List<AnimSequenceNode> PendingAnimations;
 
-        public void UseTime()
+        public bool AnimationDone(bool success)
+        {
+            return false;
+        }
+
+        public void CheckForCompletedMotions()
+        {
+
+        }
+
+        public static MotionTableManager Create(int mtableID)
+        {
+            return null;
+        }
+
+        public int GetMotionTableID(int mtableID)
+        {
+            return -1;
+        }
+
+        public void HandleEnterWorld()
+        {
+
+        }
+
+        public void HandleExitWorld()
         {
 
         }
@@ -20,22 +45,17 @@ namespace ACE.Server.Physics.Animation
 
         }
 
-        public int GetMotionTableID(int mtableID)
-        {
-            return -1;
-        }
-
         public Sequence PerformMovement(MovementStruct mvs, Sequence sequence)
         {
             return null;
         }
 
-        public bool AnimationDone(bool success)
+        public void SetPhysicsObject(PhysicsObj obj)
         {
-            return false;
+
         }
 
-        public void CheckForCompletedMotions()
+        public void UseTime()
         {
 
         }

@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
-using ACE.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Collision;
@@ -9,9 +9,6 @@ namespace ACE.Server.Physics
 {
     public class PhysicsPart
     {
-        // This mostly seems to be used for rendering,
-        // and probably doesn't need to be part of the server physics.
-
         public float CYpt;
         public Vector3 ViewerHeading;
         public DatLoader.FileTypes.GfxObjDegradeInfo Degrades;
@@ -19,8 +16,8 @@ namespace ACE.Server.Physics
         public int DegMode;
         public GfxObj GfxObj;
         public Vector3 GfxObjScale;
-        public Common.Position Pos;
-        public Common.Position DrawPos;
+        public Position Pos;
+        public Position DrawPos;
         //public Material Material;
         public List<uint> Surfaces;
         public int OriginalPaletteID;
@@ -37,23 +34,66 @@ namespace ACE.Server.Physics
 
         public PhysicsPart()
         {
-            GfxObjScale = new Vector3(1.0f, 1.0f, 1.0f); // 0?
-            Pos = new Common.Position();
-            DrawPos = new Common.Position();
+            GfxObjScale = new Vector3(1.0f, 1.0f, 1.0f);
+            Pos = new Position();
+            DrawPos = new Position();
             ViewerHeading = new Vector3(0.0f, 0.0f, 1.0f);
             PhysObjIndex = -1;
             DegMode = 1;
-            CYpt = 65535;   // 2139095039
+            CYpt = Int16.MaxValue;
         }
 
-        public BoundingBox GetBoundingBox()
+        public TransitionState FindObjCollisions(Transition transition)
         {
-            return BoundingBox;
+            if (GfxObj != null && GfxObj.PhysicsBSP != null)
+            {
+                transition.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
+                return GfxObj.FindObjCollisions(GfxObj, transition, GfxObjScale.Z);
+            }
+            return TransitionState.Invalid;
+        }
+
+        public BBox GetBoundingBox()
+        {
+            return GfxObj.GfxBoundBox;
+        }
+
+        public int GetPhysObjID()
+        {
+            if (PhysObj == null)
+                return 0;
+
+            return PhysObj.ID;
+        }
+
+        public bool InitObjDescChanges()
+        {
+            return false;
         }
 
         public bool IsPartOfPlayerObj()
         {
             return PhysObj.Equals(PlayerObject);
+        }
+
+        public PhysicsPart MakePhysicsPart()
+        {
+            return null;
+        }
+
+        public static PhysicsPart MakePhysicsPart(int gfxObjID)
+        {
+            var part = new PhysicsPart();
+            if (!part.SetPart(gfxObjID))
+                return null;
+            return part;
+        }
+
+        public static PhysicsPart MakePhysicsPart(PhysicsPart template)
+        {
+            var part = new PhysicsPart();
+            part.MorphToExistingObject(template);
+            return part;
         }
 
         public bool MorphToExistingObject(PhysicsPart template)
@@ -70,43 +110,7 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public TransitionState FindObjCollisions(Transition transition)
-        {
-            if (GfxObj != null && GfxObj.PhysicsBSP != null)
-            {
-                transition.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
-                return CGfxObj.FindObjCollisions(GfxObj, transition, GfxObjScale.Z);
-            }
-            return TransitionState.Invalid;
-        }
-
-        public int GetPhysObjID()
-        {
-            if (PhysObj == null) return 0;
-            return PhysObj.ID;
-        }
-
-        public static PhysicsPart MakePhysicsPart(PhysicsPart template)
-        {
-            var part = new PhysicsPart();
-            part.MorphToExistingObject(template);
-            return part;
-        }
-
-        public static PhysicsPart MakePhysicsPart(int gfxObjID)
-        {
-            var part = new PhysicsPart();
-            if (!part.SetPart(gfxObjID))
-                return null;
-            return part;
-        }
-
-        public PhysicsPart MakePhysicsPart()
-        {
-            return null;
-        }
-
-        public bool InitObjDescChanges()
+        public bool SetNoDraw(bool noDraw)
         {
             return false;
         }
@@ -114,6 +118,11 @@ namespace ACE.Server.Physics
         public bool SetPart(int partID)
         {
             return false;
+        }
+
+        public void UpdateViewerDistance()
+        {
+
         }
     }
 }
