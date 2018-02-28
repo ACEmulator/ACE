@@ -39,6 +39,11 @@ namespace ACE.Server.Physics
             Radius = radius;
         }
 
+        public static bool Attack(Position targetPos, float targetRadius, float targetHeight, Position attackPos, Vector2 left, Vector2 right, float attackRadius, float attackHeight)
+        {
+            return false;
+        }
+
         /// <summary>
         /// Redirects a sphere to be on collision course towards a point
         /// </summary>

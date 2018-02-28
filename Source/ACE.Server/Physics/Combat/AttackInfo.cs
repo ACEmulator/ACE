@@ -7,7 +7,7 @@ namespace ACE.Server.Physics.Combat
         public int AttackID;
         public int PartIndex;
         public float AttackRadius;
-        public int WaitingForCells;
+        public bool WaitingForCells;
         public int NumObjects;
         public List<AtkObjInfo> ObjectList;
     }
