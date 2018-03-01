@@ -13,5 +13,10 @@ namespace ACE.Server.Physics.Common
         {
             return v;
         }
+
+        public static bool compute_time_of_intersection(this Plane p, Ray ray, ref float time)
+        {
+            return false;
+        }
     }
 }
