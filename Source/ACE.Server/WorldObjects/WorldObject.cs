@@ -153,12 +153,6 @@ namespace ACE.Server.WorldObjects
             QueueGenerator();
 
             QueueNextHeartBeat();
-
-            return;
-
-            
-
-            GenerateWieldList();
         }
 
 
@@ -1168,25 +1162,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void GenerateWieldList()
-        {
-            /* todo fix this for new EF model
-            foreach (var item in WieldList)
-            {
-                if (WieldedObjects == null)
-                    WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
-                throw new System.NotImplementedException();/* Create the object, THEN set the palette/shade on the new object, not via this ctor
-                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId, item.Palette, item.Shade);
-
-                wo.CurrentWieldedLocation = wo.ValidLocations;
-                wo.WielderId = Guid.Full;
-
-                WieldedObjects.Add(wo.Guid, wo);   */       /*    
-            }
-
-            if (WieldedObjects != null)
-                UpdateBaseAppearance();*/
-        }
+        
 
         public void UpdateBaseAppearance()
         {
