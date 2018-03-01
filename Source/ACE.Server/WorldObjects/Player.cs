@@ -1694,12 +1694,11 @@ namespace ACE.Server.WorldObjects
                     var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
                     foreach (var subpack in containers)
                     {
-                        throw new System.NotImplementedException();/*
-                        if (subpack.Value.InventoryObjects.TryGetValue(itemGuid, out packItem))
+                        if (((Container)subpack.Value).Inventory.TryGetValue(itemGuid, out packItem))
                         {
                             containerGuid = subpack.Value.Guid;
                             break;
-                        }*/
+                        }
                     }
 
                     Container pack;
@@ -1718,8 +1717,10 @@ namespace ACE.Server.WorldObjects
                     AddToWieldedObjects(ref item, container, (EquipMask)placement);
 
                     if ((EquipMask)placement == EquipMask.MissileAmmo)
+                    {
                         Session.Network.EnqueueSend(new GameEventWieldItem(Session, itemGuid.Full, placement),
-                                                    new GameMessageSound(Guid, Sound.WieldObject, (float)1.0));
+                            new GameMessageSound(Guid, Sound.WieldObject, (float) 1.0));
+                    }
                     else
                     {
                         if (((EquipMask)placement & EquipMask.Selectable) != 0)
