@@ -90,7 +90,7 @@ namespace ACE.Server.WorldObjects
 
             //if (WeenieClassId != 1 && WeenieClassId != 4)
             if (!Guid.IsPlayer())
-            GenerateWieldList();
+                GenerateWieldList();
         }
 
 
@@ -152,13 +152,16 @@ namespace ACE.Server.WorldObjects
             {                
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
-                if (item.Palette > 0)
-                    wo.PaletteTemplate = item.Palette;
-                if (item.Shade > 0)
-                    wo.Shade = item.Shade;
-                wo.GetClothingBase();
+                if (wo != null)
+                {
+                    if (item.Palette > 0)
+                        wo.PaletteTemplate = item.Palette;
+                    if (item.Shade > 0)
+                        wo.Shade = item.Shade;
+                    wo.GetClothingBase();
 
-                TryEquipObject(wo, (int)wo.ValidLocations);
+                    TryEquipObject(wo, (int)wo.ValidLocations);
+                }
             }
 
             if (EquippedObjects != null)
