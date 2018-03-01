@@ -7,6 +7,7 @@ namespace ACE.Server.Physics.Common
 
         public QualifiedDataID(int type, int id)
         {
+            // todo: use ACE data structures
             Type = type;
             ID = id;
         }

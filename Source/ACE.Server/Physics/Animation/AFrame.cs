@@ -17,6 +17,11 @@ namespace ACE.Server.Physics.Animation
             return null;
         }
 
+        public void InterpolateRotation(AFrame from, AFrame to, float t)
+        {
+
+        }
+
         public bool IsValid()
         {
             return true;
@@ -37,6 +42,21 @@ namespace ACE.Server.Physics.Animation
             return v;
         }
 
+        public void Rotate(Vector3 rotation)
+        {
+
+        }
+
+        public void Rotate(Quaternion rotation)
+        {
+
+        }
+
+        public Vector3 get_vector_heading()
+        {
+            return Vector3.Zero;
+        }
+
         public void set_heading(float degrees)
         {
 
@@ -50,11 +70,6 @@ namespace ACE.Server.Physics.Animation
         public double get_heading()
         {
             return -1;
-        }
-
-        public void Rotate(Vector3 w)
-        {
-
         }
     }
 }
