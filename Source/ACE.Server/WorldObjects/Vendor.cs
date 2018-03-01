@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -75,8 +75,7 @@ namespace ACE.Server.WorldObjects
             // Load Vendor Inventory from database.
             if (!inventoryloaded)
             {
-                /* todo fix this for new EF model
-                foreach (AceObjectInventory item in ShopList)
+                foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
                 {
                     WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -85,7 +84,7 @@ namespace ACE.Server.WorldObjects
                         wo.ContainerId = (int)Guid.Full;
                         defaultItemsForSale.Add(wo.Guid, wo);
                     }
-                }*/
+                }
 
                 inventoryloaded = true;
             }

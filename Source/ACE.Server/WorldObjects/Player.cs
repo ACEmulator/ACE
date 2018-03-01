@@ -1561,7 +1561,7 @@ namespace ACE.Server.WorldObjects
 
             var coverage = new List<uint>();
 
-            foreach (var w in EquippedObjects)
+            foreach (var w in EquippedObjects.OrderBy(x => x.Value.Priority))
             {
                 // We can wield things that are not part of our model, only use those items that can cover our model.
                 if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
