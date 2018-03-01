@@ -159,7 +159,7 @@ namespace ACE.Server.Physics.Animation
             if (Walkable == null) return true;
 
             var walkCheckPos = new Sphere(WalkableCheckPos.Center, WalkableCheckPos.Radius * 0.5f);
-            return Walkable.CheckWalkable(walkCheckPos, WalkableUp);
+            return Walkable.check_walkable(walkCheckPos, WalkableUp);
         }
 
         public Vector3 GetCurPosCheckPosBlockOffset()
@@ -180,9 +180,10 @@ namespace ACE.Server.Physics.Animation
         public TransitionState PrecipiceSlide(Transition transition)
         {
             var collisions = transition.CollisionInfo;
-            var collisionNormal = Walkable.FindCrossedEdge(WalkableCheckPos, WalkableUp);
+            Vector3 collisionNormal = Vector3.Zero;
+            var found = Walkable.find_crossed_edge(WalkableCheckPos, WalkableUp, ref collisionNormal);
 
-            if (collisionNormal == Vector3.Zero)
+            if (!found)
             {
                 Walkable = null;
                 return TransitionState.Collided;

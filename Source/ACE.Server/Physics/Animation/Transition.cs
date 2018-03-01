@@ -14,6 +14,7 @@ namespace ACE.Server.Physics.Animation
         Adjusted  = 0x3,
         Slid      = 0x4
     };
+
     public class Transition
     {
         public ObjectInfo ObjectInfo;
