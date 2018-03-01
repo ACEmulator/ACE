@@ -87,6 +87,10 @@ namespace ACE.Server.WorldObjects
 
             foreach (var skillProperty in Biota.BiotaPropertiesSkill)
                 Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, (Skill)skillProperty.Type);
+
+            //if (WeenieClassId != 1 && WeenieClassId != 4)
+            if (!Guid.IsPlayer())
+            GenerateWieldList();
         }
 
 
@@ -142,7 +146,24 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        public void GenerateWieldList()
+        {
+            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield))
+            {                
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
+                if (item.Palette > 0)
+                    wo.PaletteTemplate = item.Palette;
+                if (item.Shade > 0)
+                    wo.Shade = item.Shade;
+                wo.GetClothingBase();
+
+                TryEquipObject(wo, (int)wo.ValidLocations);
+            }
+
+            if (EquippedObjects != null)
+                UpdateBaseAppearance();
+        }
 
 
 
