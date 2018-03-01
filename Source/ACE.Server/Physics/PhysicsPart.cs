@@ -47,7 +47,7 @@ namespace ACE.Server.Physics
         {
             if (GfxObj != null && GfxObj.PhysicsBSP != null)
             {
-                transition.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
+                transition.SpherePath.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
                 return GfxObj.FindObjCollisions(GfxObj, transition, GfxObjScale.Z);
             }
             return TransitionState.Invalid;

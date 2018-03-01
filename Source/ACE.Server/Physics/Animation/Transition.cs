@@ -23,6 +23,14 @@ namespace ACE.Server.Physics.Animation
         public ObjCell NewCellPtr;
 
         public static int TransitionLevel;
+        public static List<Transition> Transitions;
+
+        public static readonly int MaxTransitionLevel = 10;
+
+        static Transition()
+        {
+            Transitions = new List<Transition>();
+        }
 
         public Transition()
         {
@@ -77,11 +85,6 @@ namespace ACE.Server.Physics.Animation
             SpherePath.HitsInteriorCell = false;
 
             return CellArray.find_cell_list(SpherePath);
-        }
-
-        public void CacheLocalSpaceSphere(Position pos, float scaleZ)
-        {
-
         }
 
         public void CalcNumSteps(ref Vector3 offset, ref Vector3 offsetPerStep, ref int numSteps)
@@ -454,7 +457,7 @@ namespace ACE.Server.Physics.Animation
             else
             {
                 stepDownHeight *= 0.5f;
-                if (!StepDown(stepDownHeight, PhysicsGlobals.LandingZ))
+                if (!StepDown(stepDownHeight, PhysicsGlobals.LandingZ) && !StepDown(stepDownHeight, PhysicsGlobals.LandingZ))
                 {
                     SpherePath.RestoreCheckPos();
                     CollisionInfo.ContactPlaneValid = false;
@@ -612,6 +615,7 @@ namespace ACE.Server.Physics.Animation
         {
             CollisionInfo.SlidingNormalValid = true;
             CollisionInfo.SlidingNormal = new Vector3(normal.X, normal.Y, 0);
+
             if (CollisionInfo.NormalizeCheckSmall(ref CollisionInfo.SlidingNormal))
                 CollisionInfo.SlidingNormal = Vector3.Zero;
         }
@@ -621,49 +625,437 @@ namespace ACE.Server.Physics.Animation
             SpherePath.InitSphere(numSphere, new List<Sphere>() { sphere }, scale);
         }
 
-        public TransitionState InsertIntoCell(ObjCell cell, int attempts)
+        public TransitionState InsertIntoCell(ObjCell cell, int num_insertion_attempts)
         {
+            if (cell == null)
+                return TransitionState.Collided;
+
+            var transitionState = TransitionState.OK;
+
+            for (var i = 0; i < num_insertion_attempts; i++)
+            {
+                transitionState = cell.FindCollisions(this);
+
+                switch (transitionState)
+                {
+                    case TransitionState.OK:
+                    case TransitionState.Collided:
+                        return transitionState;
+
+                    case TransitionState.Slid:
+                        CollisionInfo.ContactPlaneValid = false;
+                        CollisionInfo.ContactPlaneIsWater = false;
+                        break;
+                }
+            }
             return TransitionState.OK;
         }
 
         public static Transition MakeTransition()
         {
-            return null;
+            if (TransitionLevel >= MaxTransitionLevel) return null;
+
+            var transition = new Transition();
+            transition.Init();
+
+            if (Transitions.Count < TransitionLevel)
+                Transitions.Add(transition);
+            else
+                Transitions[TransitionLevel] = transition;
+
+            TransitionLevel++;
+
+            return transition;
         }
 
-        public int PlacementInsert()
+        public TransitionState PlacementInsert()
         {
-            return -1;
+            if (SpherePath.CheckCell == null) return TransitionState.Collided;
+
+            var checkCell = SpherePath.CheckCell;
+            var transitState = InsertIntoCell(checkCell, 3);
+
+            if (transitState == TransitionState.OK)
+                transitState = CheckOtherCells(checkCell);
+
+            return transitState;
         }
 
-        public bool StepDown(float stepDownHeight, float zValue)
+        public bool StepDown(float stepDownHeight, float zVal)
         {
+            SpherePath.NegPolyHit = false;
+            SpherePath.StepDown = true;
+
+            SpherePath.StepDownAmt = stepDownHeight;
+            SpherePath.WalkInterp = 1.0f;
+
+            if (!SpherePath.StepUp)
+            {
+                SpherePath.CellArrayValid = false;
+
+                var offset = new Vector3(0, 0, -stepDownHeight);
+
+                SpherePath.CheckPos.Frame.Origin.Z -= stepDownHeight;
+                SpherePath.CacheGlobalSphere(offset);
+            }
+
+            var transitionState = TransitionalInsert(5);
+            SpherePath.StepDown = false;
+
+            if (transitionState == TransitionState.OK && CollisionInfo.ContactPlaneValid && CollisionInfo.ContactPlane.Normal.Z >= zVal &&
+                (!ObjectInfo.State.HasFlag(ObjectInfoState.EdgeSlide) || SpherePath.StepUp || CheckWalkable(zVal)))
+            {
+                SpherePath.Backup = SpherePath.InsertType;
+                SpherePath.InsertType = InsertType.Placement;
+
+                transitionState = TransitionalInsert(1);
+
+                SpherePath.InsertType = SpherePath.Backup;
+                return (transitionState == TransitionState.OK);
+            }
+
             return false;
         }
 
         public bool StepUp(Vector3 collisionNormal)
         {
-            return true;
+            CollisionInfo.ContactPlaneValid = false;
+            CollisionInfo.ContactPlaneIsWater = false;
+
+            SpherePath.StepUp = true;
+            SpherePath.StepUpNormal = collisionNormal;
+
+            var stepDownHeight = 0.039999999f;  // set global
+
+            var zLandingValue = PhysicsGlobals.LandingZ;
+
+            if (ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
+            {
+                zLandingValue = ObjectInfo.GetWalkableZ();
+                stepDownHeight = ObjectInfo.StepUpHeight;
+            }
+
+            SpherePath.WalkableAllowance = zLandingValue;
+            SpherePath.BackupCell = SpherePath.CheckCell;
+            SpherePath.BackupCheckPos = SpherePath.CheckPos;
+
+            var stepDown = StepDown(stepDownHeight, zLandingValue);
+
+            SpherePath.StepUp = false;
+            SpherePath.Walkable = null;
+
+            if (!stepDown)
+            {
+                SpherePath.RestoreCheckPos();
+                return false;
+            }
+            else
+                return true;
         }
 
-        public TransitionState TransitionalInsert(int attempts)
+        public TransitionState TransitionalInsert(int num_insertion_attempts)
         {
-            return TransitionState.OK;
+            if (SpherePath.CheckCell == null)
+                return TransitionState.OK;
+
+            if (num_insertion_attempts <= 0)
+                return TransitionState.Invalid;
+
+            var transitState = TransitionState.Invalid;
+
+            for (var i = 0; i < num_insertion_attempts; i++)
+            {
+                transitState = InsertIntoCell(SpherePath.CheckCell, num_insertion_attempts);
+
+                switch (transitState)
+                {
+                    case TransitionState.OK:
+
+                        transitState = CheckOtherCells(SpherePath.CheckCell);
+
+                        if (transitState != TransitionState.OK)
+                            SpherePath.NegPolyHit = false;
+
+                        if (transitState == TransitionState.Collided)
+                            return transitState;
+
+                        break;
+
+                    case TransitionState.Collided:
+
+                        return transitState;
+
+                    case TransitionState.Adjusted:
+
+                        SpherePath.NegPolyHit = false;
+                        break;
+
+                    case TransitionState.Slid:
+
+                        CollisionInfo.ContactPlaneValid = false;
+                        CollisionInfo.ContactPlaneIsWater = false;
+                        SpherePath.NegPolyHit = false;
+                        break;
+                }
+
+                if (transitState == TransitionState.OK)
+                {
+                    if (!SpherePath.Collide)
+                    {
+                        if (SpherePath.NegPolyHit && !SpherePath.StepDown && !SpherePath.StepUp)
+                        {
+                            SpherePath.NegPolyHit = false;
+
+                            if (SpherePath.NegStepUp)
+                            {
+                                if (!StepUp(SpherePath.NegCollisionNormal))
+                                    transitState = SpherePath.StepUpSlide(this);
+                            }
+                            else
+                                transitState = SpherePath.GlobalSphere[0].SlideSphere(this,
+                                    SpherePath.NegCollisionNormal, SpherePath.GlobalCurrCenter[0].Center);
+                        }
+                        else
+                        {
+                            if (CollisionInfo.ContactPlaneValid || !ObjectInfo.State.HasFlag(ObjectInfoState.Contact) ||
+                                SpherePath.StepDown || SpherePath.CheckCell == null || ObjectInfo.StepDown)
+                            {
+                                return TransitionState.OK;
+                            }
+
+                            var zVal = PhysicsGlobals.LandingZ;
+                            var stepDownHeight = 0.039999999f;  // set global
+
+                            if (ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
+                            {
+                                zVal = ObjectInfo.GetWalkableZ();
+                                stepDownHeight = ObjectInfo.StepDownHeight;
+                            }
+                            SpherePath.WalkableAllowance = zVal;
+                            SpherePath.SaveCheckPos();
+
+                            var radsum = SpherePath.GlobalSphere[0].Radius * 2;
+                            if (SpherePath.NumSphere < 2)
+                            {
+                                if (radsum < stepDownHeight)
+                                    stepDownHeight = SpherePath.GlobalSphere[0].Radius * 0.5f;
+                            }
+
+                            if (radsum < stepDownHeight)
+                            {
+                                stepDownHeight *= 0.5f;
+                                if (StepDown(stepDownHeight, zVal) || StepDown(stepDownHeight, zVal))   // double step?
+                                {
+                                    SpherePath.Walkable = null;
+                                    return TransitionState.OK;
+                                }
+                            }
+
+                            if (StepDown(stepDownHeight, zVal))
+                            {
+                                SpherePath.Walkable = null;
+                                return TransitionState.OK;
+                            }
+
+                            if (EdgeSlide(ref transitState, stepDownHeight, zVal))
+                                return transitState;
+                        }
+                    }
+                }
+                else
+                {
+                    var reset = false;
+                    SpherePath.Collide = false;
+                    if (CollisionInfo.ContactPlaneValid && CheckWalkable(PhysicsGlobals.LandingZ))
+                    {
+                        SpherePath.Backup = SpherePath.InsertType;
+                        SpherePath.InsertType = InsertType.Placement;
+
+                        transitState = TransitionalInsert(num_insertion_attempts);
+
+                        SpherePath.InsertType = SpherePath.Backup;
+
+                        if (transitState != TransitionState.OK)
+                        {
+                            transitState = TransitionState.OK;
+                            reset = true;
+                        }
+                    }
+                    else
+                        reset = true;
+
+                    SpherePath.Walkable = null;
+
+                    if (!reset) return transitState;
+
+                    SpherePath.RestoreCheckPos();
+
+                    CollisionInfo.ContactPlaneValid = false;
+                    CollisionInfo.ContactPlaneIsWater = false;
+
+                    if (CollisionInfo.LastKnownContactPlaneValid)
+                    {
+                        CollisionInfo.LastKnownContactPlaneValid = false;
+                        ObjectInfo.StopVelocity();
+                    }
+                    else
+                        CollisionInfo.SetCollisionNormal(SpherePath.StepUpNormal);
+
+                    return TransitionState.Collided;
+                }
+            }
+            return transitState;
         }
 
         public TransitionState ValidatePlacement(TransitionState transitionState, bool adjust)
         {
-            return TransitionState.OK;
+            if (SpherePath.CheckCell == null) return TransitionState.Collided;
+
+            switch (transitionState)
+            {
+                case TransitionState.OK:
+                    SpherePath.CurPos = SpherePath.CheckPos;
+                    SpherePath.CurCell = SpherePath.CheckCell;
+                    SpherePath.CacheGlobalCurrCenter();
+                    break;
+
+                case TransitionState.Adjusted:
+                case TransitionState.Slid:
+                    if (adjust)
+                        return ValidatePlacement(PlacementInsert(), false);
+                    break;
+            }
+            return transitionState;
         }
 
         public TransitionState ValidatePlacementTransition(TransitionState transitionState, ref int redo)
         {
-            return TransitionState.OK;
+            redo = 0;
+
+            if (SpherePath.CheckCell == null) return TransitionState.Collided;
+
+            switch (transitionState)
+            {
+                case TransitionState.OK:
+                    SpherePath.CurPos = SpherePath.CheckPos;
+                    SpherePath.CurCell = SpherePath.CheckCell;
+                    SpherePath.CacheGlobalCurrCenter();
+                    break;
+
+                case TransitionState.Collided:
+                case TransitionState.Adjusted:
+                case TransitionState.Slid:
+                    if (SpherePath.PlacementAllowsSliding) CollisionInfo.Init();
+                    break;
+            }
+            return transitionState;
         }
 
         public TransitionState ValidateTransition(TransitionState transitionState, ref int redo)
         {
-            return TransitionState.OK;
+            int _redo = 1;
+            Plane contactPlane = new Plane();
+
+            if (transitionState != TransitionState.OK || SpherePath.CheckPos.Equals(SpherePath.CurPos))
+            {
+                _redo = 0;
+                if (transitionState != TransitionState.OK)
+                {
+                    if (transitionState != TransitionState.Invalid)
+                    {
+                        if (CollisionInfo.LastKnownContactPlaneValid)
+                        {
+                            ObjectInfo.StopVelocity();
+                            var angle = Vector3.Dot(CollisionInfo.LastKnownContactPlane.Normal, SpherePath.GlobalCurrCenter[0].Center);
+                            if (SpherePath.GlobalSphere[0].Radius + PhysicsGlobals.EPSILON > Math.Abs(angle))
+                            {
+                                CollisionInfo.SetContactPlane(CollisionInfo.LastKnownContactPlane, CollisionInfo.LastKnownContactPlaneIsWater);
+                                CollisionInfo.ContactPlaneCellID = CollisionInfo.LastKnownContactPlaneCellID;
+
+                                if (ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable)) _redo = 1;
+                            }
+                        }
+                        if (!CollisionInfo.CollisionNormalValid)
+                        {
+                            contactPlane.Normal = Vector3.UnitZ;
+                            CollisionInfo.SetCollisionNormal(contactPlane.Normal);
+                        }
+                        SpherePath.SetCheckPos(SpherePath.CurPos, SpherePath.CurCell);
+                        BuildCellArray();
+                        transitionState = TransitionState.OK;
+                    }
+                }
+                else
+                    SetCurrentCheckPos();
+            }
+            else
+                SetCurrentCheckPos();
+
+            if (CollisionInfo.CollisionNormalValid)
+                CollisionInfo.SetSlidingNormal(CollisionInfo.CollisionNormal);
+
+            if (!ObjectInfo.State.HasFlag(ObjectInfoState.IsViewer))
+            {
+                if (ObjectInfo.Object.State.HasFlag(PhysicsState.Gravity))
+                {
+                    if (_redo > 0)
+                    {
+                        if (CollisionInfo.FramesStationaryFall > 0)
+                        {
+                            if (CollisionInfo.FramesStationaryFall > 1)
+                            {
+                                CollisionInfo.FramesStationaryFall = 3;
+                                contactPlane.Normal = Vector3.UnitZ;
+                                contactPlane.D = SpherePath.GlobalSphere[0].Radius - SpherePath.GlobalSphere[0].Center.Z;
+
+                                CollisionInfo.SetContactPlane(contactPlane, false);
+                                CollisionInfo.ContactPlaneCellID = SpherePath.CheckPos.ObjCellID;
+
+                                if (!ObjectInfo.State.HasFlag(ObjectInfoState.Contact))
+                                {
+                                    CollisionInfo.SetCollisionNormal(contactPlane.Normal);
+                                    CollisionInfo.CollidedWithEnvironment = true;
+                                }
+                            }
+                            else
+                                CollisionInfo.FramesStationaryFall = 2;
+                        }
+                        else
+                            CollisionInfo.FramesStationaryFall = 1;
+                    }
+                    else
+                        CollisionInfo.FramesStationaryFall = 0;
+                }
+            }
+
+            CollisionInfo.LastKnownContactPlaneValid = CollisionInfo.ContactPlaneValid;
+
+            if (CollisionInfo.ContactPlaneValid)
+            {
+                CollisionInfo.LastKnownContactPlane = CollisionInfo.ContactPlane;
+                CollisionInfo.LastKnownContactPlaneCellID = CollisionInfo.ContactPlaneCellID;
+                CollisionInfo.LastKnownContactPlaneIsWater = CollisionInfo.ContactPlaneIsWater;
+
+                ObjectInfo.State |= ObjectInfoState.Contact;
+
+                if (ObjectInfo.IsValidWalkable(CollisionInfo.ContactPlane.Normal))
+                    ObjectInfo.State |= ObjectInfoState.OnWalkable;
+                else
+                    ObjectInfo.State &= ~ObjectInfoState.OnWalkable;
+            }
+            else
+                ObjectInfo.State &= ~(ObjectInfoState.Contact | ObjectInfoState.OnWalkable);
+
+            return transitionState;
+        }
+
+        public void SetCurrentCheckPos()
+        {
+            SpherePath.CurPos = SpherePath.CheckPos;
+            SpherePath.CurCell = SpherePath.CheckCell;
+            SpherePath.CacheGlobalCurrCenter();
+
+            SpherePath.SetCheckPos(SpherePath.CurPos, SpherePath.CurCell);
         }
     }
 }

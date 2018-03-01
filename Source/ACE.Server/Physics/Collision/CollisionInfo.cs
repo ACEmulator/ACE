@@ -25,6 +25,11 @@ namespace ACE.Server.Physics.Collision
         public bool CollidedWithEnvironment;
         public int FramesStationaryFall;
 
+        public void Init()
+        {
+
+        }
+
         public void SetContactPlane(Plane plane, bool isWater)
         {
             ContactPlaneValid = true;
@@ -36,8 +41,16 @@ namespace ACE.Server.Physics.Collision
         {
             CollisionNormalValid = true;
             CollisionNormal = normal;
-            if (!NormalizeCheckSmall(ref normal))
+            if (NormalizeCheckSmall(ref normal))
                 CollisionNormal = Vector3.Zero;
+        }
+
+        public void SetSlidingNormal(Vector3 normal)
+        {
+            SlidingNormalValid = true;
+            SlidingNormal = normal;
+            if (NormalizeCheckSmall(ref normal))
+                SlidingNormal = Vector3.Zero;
         }
 
         public static bool NormalizeCheckSmall(ref Vector3 v)
