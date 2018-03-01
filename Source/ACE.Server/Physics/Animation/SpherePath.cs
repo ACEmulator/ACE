@@ -140,6 +140,20 @@ namespace ACE.Server.Physics.Animation
             CheckPos.ObjCellID = cellID;
         }
 
+        public void CacheGlobalCurrCenter()
+        {
+        }
+
+        public void CacheGlobalSphere(Vector3 offset)
+        {
+
+        }
+
+        public void CacheLocalSpaceSphere(Position pos, float scaleZ)
+        {
+
+        }
+
         public bool CheckWalkables()
         {
             if (Walkable == null) return true;
@@ -252,20 +266,6 @@ namespace ACE.Server.Physics.Animation
             collisions.ContactPlaneIsWater = false;
 
             return GlobalCurrCenter[0].SlideSphere(transition, StepUpNormal, GlobalCurrCenter[0].Center);
-        }
-
-        public void CacheGlobalCurrCenter()
-        {
-        }
-
-        public void CacheGlobalSphere(Vector3 offset)
-        {
-
-        }
-
-        public void CacheLocalSpaceSphere(Position p, float scale)
-        {
-
         }
     }
 }

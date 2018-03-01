@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -31,14 +32,29 @@ namespace ACE.Server.Physics.Animation
         public bool StepDown;
         public int TargetID;
 
+        public float GetWalkableZ()
+        {
+            return -1;
+        }
+
         public void Init(PhysicsObj obj, ObjectInfoState state)
         {
 
         }
 
+        public bool IsValidWalkable(Vector3 normal)
+        {
+            return false;
+        }
+
         public bool MissileIgnore(PhysicsObj obj)
         {
             return false;
+        }
+
+        public void StopVelocity()
+        {
+
         }
     }
 }
