@@ -28,7 +28,7 @@ namespace ACE.Server.Physics.Animation
         public float StepUpHeight;
         public float StepDownHeight;
         public bool Ethereal;
-        public int StepDown;
+        public bool StepDown;
         public int TargetID;
 
         public void Init(PhysicsObj obj, ObjectInfoState state)
