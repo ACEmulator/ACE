@@ -27,7 +27,7 @@ namespace ACE.Server.Physics.BSP
         public BSPTreeType Type;
         public string Typename;
         public int NumPolys;
-        public List<Polygon> Polys;
+        public List<Polygon> Polygons;
         public BSPNode PosNode;
         public BSPNode NegNode;
 
@@ -82,10 +82,8 @@ namespace ACE.Server.Physics.BSP
         public bool box_intersects_cell_bsp(BBox box)
         {
             var corners = box.GetCorners();
-            for (var node = this; ; node = node.PosNode)
+            for (var node = this; node != null; node = node.PosNode)
             {
-                if (node == null) break;
-
                 var dist = Vector3.Dot(box.Min, node.SplittingPlane.Normal) + node.SplittingPlane.D;
                 if (dist >= -PhysicsGlobals.EPSILON) continue;
 
