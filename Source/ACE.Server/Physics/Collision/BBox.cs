@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Common;
 
@@ -41,6 +42,22 @@ namespace ACE.Server.Physics.Collision
         public Vector3 GetCenter()
         {
             return new Vector3((Max.X - Min.X) * 0.5f, (Max.Y - Min.Y) * 0.5f, (Max.Z - Min.Z) * 0.5f);
+        }
+
+        public List<Vector3> GetCorners()
+        {
+            // cache?
+            return new List<Vector3>()
+            {
+                new Vector3(Min.X, Min.Y, Min.Z),
+                new Vector3(Min.X, Min.Y, Max.Z),
+                new Vector3(Min.X, Max.Y, Min.Z),
+                new Vector3(Min.X, Max.Y, Max.Z),
+                new Vector3(Max.X, Min.Y, Min.Z),
+                new Vector3(Max.X, Min.Y, Max.Z),
+                new Vector3(Max.X, Max.Y, Min.Z),
+                new Vector3(Max.X, Max.Y, Max.Z),
+            };
         }
 
         public void InitForAdjustment()

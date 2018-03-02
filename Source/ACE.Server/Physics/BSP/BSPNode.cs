@@ -81,24 +81,25 @@ namespace ACE.Server.Physics.BSP
 
         public bool box_intersects_cell_bsp(BBox box)
         {
-            var node = this;
-            var lead = true;
-            do
+            var corners = box.GetCorners();
+            for (var node = this; ; node = node.PosNode)
             {
-                if (lead) lead = false;
-                else node = node.PosNode;
                 if (node == null) break;
-                // ...
-                if (node.SplittingPlane.GetSide(box.Min) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(box.Max) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(new Vector3(box.Min.X, box.Min.Y, box.Max.Z)) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(new Vector3(box.Min.X, box.Max.Y, box.Min.Z)) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(new Vector3(box.Max.X, box.Min.Y, box.Min.Z)) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(new Vector3(box.Max.X, box.Min.Y, box.Max.Z)) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(new Vector3(box.Min.X, box.Max.Y, box.Max.Z)) == Side.Behind) continue;
-                if (node.SplittingPlane.GetSide(new Vector3(box.Max.X, box.Max.Y, box.Min.Z)) == Side.Behind) return false;
+
+                var dist = Vector3.Dot(box.Min, node.SplittingPlane.Normal) + node.SplittingPlane.D;
+                if (dist >= -PhysicsGlobals.EPSILON) continue;
+
+                if (box_intersects_cell_bsp_inner(node, corners))
+                    return false;
             }
-            while (true);
+            return true;
+        }
+
+        public bool box_intersects_cell_bsp_inner(BSPNode node, List<Vector3> corners)
+        {
+            foreach (var corner in corners)
+                if (node.SplittingPlane.GetSide(corner) != Side.Behind)
+                    return false;
 
             return true;
         }
