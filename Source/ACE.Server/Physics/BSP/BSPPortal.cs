@@ -7,14 +7,11 @@ namespace ACE.Server.Physics.BSP
         public int NumPortals;
         public List<PortalPoly> Portals;
 
-        public BSPPortal(): base()
-        {
-
-        }
+        public BSPPortal() : base() { }
 
         public void portal_draw_portals_only(int portalPolyOrPortalContents)
         {
-
+            // rendering stuff
         }
     }
 }
