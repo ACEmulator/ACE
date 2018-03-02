@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
 {

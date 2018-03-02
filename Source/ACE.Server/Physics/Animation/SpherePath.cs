@@ -41,7 +41,7 @@ namespace ACE.Server.Physics.Animation
         public Position BackupCheckPos;             // 98
         public bool ObstructionEthereal;            // 102
         public bool HitsInteriorCell;               // 103
-        public bool BldgCheck;                      // 104
+        public bool BuildingCheck;                  // 104
         public float WalkableAllowance;             // 105
         public float WalkInterp;                    // 111 *
         public float StepDownAmt;                   // 107

@@ -18,7 +18,7 @@ namespace ACE.Server.Physics.BSP
         {
         }
 
-        public override void find_walkable(SpherePath path, Sphere validPos, List<Polygon> polys, Vector3 movement, Vector3 up, bool changed)
+        public override void find_walkable(SpherePath path, Sphere validPos, ref Polygon polygon, Vector3 movement, Vector3 up, ref bool changed)
         {
 
         }
@@ -33,7 +33,7 @@ namespace ACE.Server.Physics.BSP
             return NumPolys != 0;
         }
 
-        public override bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, List<Polygon> polys, Vector3 contactPoint)
+        public override bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, ref Polygon polygon, Vector3 contactPoint)
         {
             return false;
         }
@@ -43,7 +43,7 @@ namespace ACE.Server.Physics.BSP
             return false;
         }
 
-        public override bool sphere_intersects_solid_poly(Sphere checkPos, float radius, bool centerSolid, List<Polygon> hitPolys, bool centerCheck)
+        public override bool sphere_intersects_solid_poly(Sphere checkPos, float radius, ref bool centerSolid, ref Polygon hitPoly, bool centerCheck)
         {
             return false;
         }
