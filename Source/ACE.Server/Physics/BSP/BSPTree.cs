@@ -214,7 +214,7 @@ namespace ACE.Server.Physics.BSP
             else if (path.NumSphere > 1)
             {
                 var localSphere_ = path.LocalSpaceSphere[1];
-                if (RootNode.sphere_intersects_poly(localSphere, movement, ref hitPoly, contactPoint) || hitPoly != null)
+                if (RootNode.sphere_intersects_poly(localSphere_, movement, ref hitPoly, contactPoint) || hitPoly != null)
                 {
                     var collisionNormal = path.LocalSpacePos.LocalToGlobalVec(hitPoly.Plane.Normal);
                     collisions.SetCollisionNormal(collisionNormal);
@@ -309,7 +309,7 @@ namespace ACE.Server.Physics.BSP
             return path.GlobalSphere[0].SlideSphere(transition, globNormal, path.GlobalCurrCenter[0].Center);
         }
 
-        public bool sphere_intersects_cell_bsp(Sphere sphere)
+        public BoundingType sphere_intersects_cell_bsp(Sphere sphere)
         {
             return RootNode.sphere_intersects_cell_bsp(sphere);
         }

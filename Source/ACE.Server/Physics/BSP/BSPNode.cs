@@ -6,6 +6,13 @@ using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.BSP
 {
+    public enum BoundingType
+    {
+        Outside = 0x0,
+        PartiallyInside = 0x1,
+        EntirelyInside = 0x2
+    };
+
     public enum Side
     {
         Front = 0x0,
@@ -36,36 +43,113 @@ namespace ACE.Server.Physics.BSP
 
         public void LinkPortals(List<BSPPortal> portals)
         {
+            var current = this;
 
+            for (var i = portals.Count - 1; i >= 0; --i)
+            {
+                var nextPortal = portals[i];
+                current.PosNode = nextPortal;
+                if (i > 0)
+                    nextPortal.PosNode = portals[i - 1];
+
+                current = nextPortal;
+            }
         }
 
         public List<BSPPortal> PurgePortals()
         {
-            return null;
+            var portals = new List<BSPPortal>();
+
+            if (PosNode != null)
+            {
+                portals.AddRange(PosNode.PurgePortals());
+                PosNode = null;
+            }
+
+            if (NegNode != null)
+            {
+                portals.AddRange(NegNode.PurgePortals());
+                NegNode = null;
+            }
+            return portals;
         }
 
         public int TraceRay(Ray ray, float delta, Vector3 collisionNormal)
         {
-            return -1;
+            return -1;  // unused?
         }
 
         public bool box_intersects_cell_bsp(BBox box)
         {
-            return false;
+            var node = this;
+            var lead = true;
+            do
+            {
+                if (lead) lead = false;
+                else node = node.PosNode;
+                if (node == null) break;
+                // ...
+                if (node.SplittingPlane.GetSide(box.Min) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(box.Max) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(new Vector3(box.Min.X, box.Min.Y, box.Max.Z)) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(new Vector3(box.Min.X, box.Max.Y, box.Min.Z)) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(new Vector3(box.Max.X, box.Min.Y, box.Min.Z)) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(new Vector3(box.Max.X, box.Min.Y, box.Max.Z)) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(new Vector3(box.Min.X, box.Max.Y, box.Max.Z)) == Side.Behind) continue;
+                if (node.SplittingPlane.GetSide(new Vector3(box.Max.X, box.Max.Y, box.Min.Z)) == Side.Behind) return false;
+            }
+            while (true);
+
+            return true;
         }
 
         public void build_draw_portals_only(int portalPolyOrPortalContents)
         {
-
+            // for rendering
         }
 
         public virtual void find_walkable(SpherePath path, Sphere validPos, ref Polygon polygon, Vector3 movement, Vector3 up, ref bool changed)
         {
+            if (!Sphere.Intersects(validPos)) return;
 
+            var dist = Vector3.Dot(SplittingPlane.Normal, validPos.Center);
+            var reach = validPos.Radius - PhysicsGlobals.EPSILON;
+
+            if (dist >= reach)
+            {
+                PosNode.find_walkable(path, validPos, ref polygon, movement, up, ref changed);
+                return;
+            }
+            if (dist <= -reach)
+            {
+                NegNode.find_walkable(path, validPos, ref polygon, movement, up, ref changed);
+                return;
+            }
+            PosNode.find_walkable(path, validPos, ref polygon, movement, up, ref changed);
+
+            NegNode.find_walkable(path, validPos, ref polygon, movement, up, ref changed);
         }
 
         public virtual bool hits_walkable(SpherePath path, Sphere validPos, Vector3 up)
         {
+            if (!Sphere.Intersects(validPos))
+                return false;
+
+            var dist = Vector3.Dot(SplittingPlane.Normal, validPos.Center);
+            var reach = validPos.Radius - PhysicsGlobals.EPSILON;
+
+            if (dist >= reach)
+                return PosNode.hits_walkable(path, validPos, up);
+
+            if (dist <= -reach)
+                return NegNode.hits_walkable(path, validPos, up);
+
+            if (PosNode.hits_walkable(path, validPos, up))
+                return true;
+
+            if (NegNode.hits_walkable(path, validPos, up))
+                return true;
+
             return false;
         }
 
@@ -91,27 +175,118 @@ namespace ACE.Server.Physics.BSP
 
         public virtual bool point_intersects_solid(Vector3 point)
         {
-            return false;
+            if (Vector3.Dot(point, SplittingPlane.Normal) > 0.0f)
+                return PosNode.point_intersects_solid(point);
+            else
+                return NegNode.point_intersects_solid(point);
         }
 
-        public bool sphere_intersects_cell_bsp(Sphere sphere)
+        public BoundingType sphere_intersects_cell_bsp(Sphere curSphere)
         {
-            return false;
+            var dist = Vector3.Dot(SplittingPlane.Normal, curSphere.Center);
+            var checkRad = curSphere.Radius + 0.01f;   // 0.0099999998;
+
+            if (dist <= -checkRad)
+                return BoundingType.Outside;
+
+            if (dist >= checkRad)
+            {
+                if (PosNode != null)
+                    return PosNode.sphere_intersects_cell_bsp(curSphere);
+                else
+                    return BoundingType.EntirelyInside;
+            }
+
+            if (PosNode != null)
+                return PosNode.sphere_intersects_cell_bsp(curSphere) != BoundingType.Outside ?
+                    BoundingType.PartiallyInside : BoundingType.Outside;
+
+            return BoundingType.PartiallyInside;
         }
 
         public virtual bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, ref Polygon polygon, Vector3 contactPoint)
         {
+            if (!Sphere.Intersects(checkPos))
+                return false;
+
+            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center);
+            var reach = checkPos.Radius - PhysicsGlobals.EPSILON;
+
+            if (dist >= reach)
+                return PosNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint);
+
+            if (dist <= -reach)
+                return NegNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint);
+
+            if (PosNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint))
+                return true;
+
+            if (NegNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint))
+                return true;
+
             return false;
         }
 
         public virtual bool sphere_intersects_solid(Sphere checkPos, bool centerCheck)
         {
-            return false;
+            if (!Sphere.Intersects(checkPos))
+                return false;
+
+            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center);
+            var reach = checkPos.Radius - PhysicsGlobals.EPSILON;
+
+            if (dist >= reach)
+                return PosNode.sphere_intersects_solid(checkPos, centerCheck);
+
+            if (dist <= -reach)
+                return NegNode.sphere_intersects_solid(checkPos, centerCheck);
+
+            if (dist < 0.0f)
+            {
+                if (PosNode.sphere_intersects_solid(checkPos, false))
+                    return true;
+
+                return NegNode.sphere_intersects_solid(checkPos, centerCheck);
+            }
+            else
+            {
+                if (PosNode.sphere_intersects_solid(checkPos, centerCheck))
+                    return true;
+
+                return NegNode.sphere_intersects_solid(checkPos, false);
+            }
         }
 
         public virtual bool sphere_intersects_solid_poly(Sphere checkPos, float radius, ref bool centerSolid, ref Polygon hitPoly, bool centerCheck)
         {
-            return false;
+            if (!Sphere.Intersects(checkPos))
+                return false;
+
+            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center);
+            var reach = radius - PhysicsGlobals.EPSILON;
+
+            if (dist >= reach)
+                return PosNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, centerCheck);
+
+            if (dist <= -reach)
+                return NegNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, centerCheck);
+
+            if (dist <= 0.0f)
+            {
+                NegNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, centerCheck);
+
+                if (hitPoly != null) return centerSolid;
+
+                return PosNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, false);
+            }
+            else
+            {
+                PosNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, centerCheck);
+
+                if (hitPoly != null) return centerSolid;
+
+                return NegNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, false);
+            }
         }
     }
 }
