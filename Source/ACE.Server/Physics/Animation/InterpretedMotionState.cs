@@ -12,5 +12,25 @@ namespace ACE.Server.Physics.Animation
         public int TurnCommand;
         public float TurnSpeed;
         public List<ActionNode> Actions;
+
+        public void ApplyMotion(int motion, MovementParameters movementParams)
+        {
+
+        }
+
+        public int GetNumActions()
+        {
+            return Actions.Count;
+        }
+
+        public void RemoveAction()
+        {
+
+        }
+
+        public void RemoveMotion(int motion)
+        {
+
+        }
     }
 }

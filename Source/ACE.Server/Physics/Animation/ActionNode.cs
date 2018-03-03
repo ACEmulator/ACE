@@ -5,6 +5,6 @@ namespace ACE.Server.Physics.Animation
         public int Action;
         public float Speed;
         public int Stamp;
-        public int Autonomous;
+        public bool Autonomous;
     }
 }

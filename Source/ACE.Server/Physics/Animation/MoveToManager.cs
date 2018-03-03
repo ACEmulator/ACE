@@ -57,9 +57,9 @@ namespace ACE.Server.Physics.Animation
 
         }
 
-        public int PerformMovement(MovementStruct mvs)
+        public Sequence PerformMovement(MovementStruct mvs)
         {
-            return -1;
+            return null;
         }
 
         public void SetWeenieObject(WeenieObject wobj)

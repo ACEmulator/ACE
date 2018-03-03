@@ -246,10 +246,10 @@ namespace ACE.Server.Physics
             return PartArray.DoInterpretedMotion(motion, movementParams);
         }
 
-        public int DoMotion(int motion, MovementParameters movementParams)
+        public Sequence DoMotion(int motion, MovementParameters movementParams)
         {
             LastMoveWasAutonomous = true;
-            if (MovementManager == null) return 7;
+            if (MovementManager == null) return new Sequence(7);
             var mvs = new MovementStruct(MovementType.RawCommand, motion, movementParams);
             return MovementManager.PerformMovement(mvs);
         }
@@ -1275,10 +1275,10 @@ namespace ACE.Server.Physics
             return sequence;
         }
 
-        public int StopMotion(int motion, MovementParameters movementParams, bool sendEvent)
+        public Sequence StopMotion(int motion, MovementParameters movementParams, bool sendEvent)
         {
             LastMoveWasAutonomous = true;
-            if (MovementManager == null) return 7;
+            if (MovementManager == null) return new Sequence(7);
             var mvs = new MovementStruct(MovementType.StopRawCommand);
             mvs.Motion = motion;
             mvs.Params = movementParams;

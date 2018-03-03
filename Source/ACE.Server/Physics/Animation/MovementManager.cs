@@ -118,7 +118,7 @@ namespace ACE.Server.Physics.Animation
                 MotionInterpreter.MotionDone(success);
         }
 
-        public int PerformMovement(MovementStruct mvs)
+        public Sequence PerformMovement(MovementStruct mvs)
         {
             PhysicsObj.set_active(true);
             switch (mvs.Type)
@@ -148,7 +148,7 @@ namespace ACE.Server.Physics.Animation
                     return MoveToManager.PerformMovement(mvs);
 
                 default:
-                    return 71;
+                    return new Sequence(71);
             }
         }
 

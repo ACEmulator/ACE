@@ -6,6 +6,21 @@ namespace ACE.Server.Physics.Common
     {
         public double UpdateTime;
 
+        public bool CanJump(float extent)
+        {
+            return false;
+        }
+
+        public bool InqJumpVelocity(float extent, ref float velocityZ)
+        {
+            return false;
+        }
+
+        public bool InqRunRate(ref float rate)
+        {
+            return false;
+        }
+
         public bool IsCorpse()
         {
             return false;
@@ -39,6 +54,11 @@ namespace ACE.Server.Physics.Common
         public bool IsStorage()
         {
             return false;
+        }
+
+        public int JumpStaminaCost(float extent, float staminaCost)
+        {
+            return -1;
         }
 
         public void DoCollision(AtkCollisionProfile prof)

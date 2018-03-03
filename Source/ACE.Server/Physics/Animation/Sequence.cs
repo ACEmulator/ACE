@@ -6,6 +6,7 @@ namespace ACE.Server.Physics.Animation
 {
     public class Sequence
     {
+        public int ID;
         public List<AnimSequenceNode> AnimList;
         public AnimSequenceNode FirstCyclic;
         public Vector3 Velocity;
@@ -20,6 +21,16 @@ namespace ACE.Server.Physics.Animation
         public Sequence()
         {
 
+        }
+
+        public Sequence(bool id)
+        {
+            ID = id ? 1 : 0;
+        }
+
+        public Sequence(int id)
+        {
+            ID = id;
         }
 
         public Sequence(Frame frame)
