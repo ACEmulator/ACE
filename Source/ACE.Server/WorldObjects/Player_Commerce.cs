@@ -84,7 +84,6 @@ namespace ACE.Server.WorldObjects
                     if (item != null)
                     {
                         RemoveFromWieldedObjects(item.Guid);
-                        UpdateAppearance(this);
                         Session.Network.EnqueueSend(
                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                            new GameMessageObjDescEvent(this),

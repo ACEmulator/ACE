@@ -18,6 +18,10 @@ using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.WorldObjects.Entity;
+using System;
+using ACE.DatLoader.FileTypes;
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -72,6 +76,9 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
+                GenerateNewFace();
+
             // If any of the vitals don't exist for this biota, one will be created automatically in the CreatureVital ctor
             Vitals[Ability.Health] = new CreatureVital(this, Ability.Health);
             Vitals[Ability.Stamina] = new CreatureVital(this, Ability.Stamina);
@@ -158,14 +165,121 @@ namespace ACE.Server.WorldObjects
                         wo.PaletteTemplate = item.Palette;
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
-                    wo.GetClothingBase();
 
                     TryEquipObject(wo, (int)wo.ValidLocations);
                 }
             }
 
-            if (EquippedObjects != null)
-                UpdateBaseAppearance();
+            //if (EquippedObjects != null)
+            //    UpdateBaseAppearance();
+        }
+
+        public void GenerateNewFace()
+        {
+            var cg = DatManager.PortalDat.CharGen;
+
+            if (!Heritage.HasValue)
+            {
+                if (!String.IsNullOrEmpty(HeritageGroup))
+                {
+                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
+                    if (parsed != 0)
+                        Heritage = (int)parsed;
+                }
+            }
+
+            if (!Gender.HasValue)
+            {
+                if (!String.IsNullOrEmpty(Sex))
+                {
+                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex);
+                    if (parsed != 0)
+                        Gender = (int)parsed;
+                }
+            }
+
+            if (!Heritage.HasValue || !Gender.HasValue)
+                return;
+
+            SexCG sex = cg.HeritageGroups[(uint)Heritage].Genders[(int)Gender];
+
+            PaletteBaseId = sex.BasePalette;
+
+            Appearance appearance = new Appearance();
+
+            appearance.HairStyle = 1;
+            appearance.HairColor = 1;
+            appearance.HairHue = 1;
+
+            appearance.EyeColor = 1;
+            appearance.Eyes = 1;
+
+            appearance.Mouth = 1;
+            appearance.Nose = 1;
+
+            appearance.SkinHue = 1;
+
+            // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
+            int size = sex.HairStyleList.Count / 3; // Why divide by 3 you ask? Because AC runtime generated characters didn't have much range in hairstyles.
+            Random rand = new Random();
+            appearance.HairStyle = (uint)rand.Next(size);
+
+            HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
+            bool isBald = hairstyle.Bald;
+
+            size = sex.HairColorList.Count;
+            appearance.HairColor = (uint)rand.Next(size);
+            appearance.HairHue = rand.NextDouble();
+
+            size = sex.EyeColorList.Count;
+            appearance.EyeColor = (uint)rand.Next(size);
+            size = sex.EyeStripList.Count;
+            appearance.Eyes = (uint)rand.Next(size);
+
+            size = sex.MouthStripList.Count;
+            appearance.Mouth = (uint)rand.Next(size);
+
+            size = sex.NoseStripList.Count;
+            appearance.Nose = (uint)rand.Next(size);
+
+            appearance.SkinHue = rand.NextDouble();
+
+            //// Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
+            ////if (hairstyle.AlternateSetup > 0)
+            ////    character.SetupTableId = hairstyle.AlternateSetup;
+
+            if (!EyesTextureDID.HasValue)
+                EyesTextureDID = sex.GetEyeTexture(appearance.Eyes, isBald);
+            if (!DefaultEyesTextureDID.HasValue)
+                DefaultEyesTextureDID = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
+            if (!NoseTextureDID.HasValue)
+                NoseTextureDID = sex.GetNoseTexture(appearance.Nose);
+            if (!DefaultNoseTextureDID.HasValue)
+                DefaultNoseTextureDID = sex.GetDefaultNoseTexture(appearance.Nose);
+            if (!MouthTextureDID.HasValue)
+                MouthTextureDID = sex.GetMouthTexture(appearance.Mouth);
+            if (!DefaultMouthTextureDID.HasValue)
+                DefaultMouthTextureDID = sex.GetDefaultMouthTexture(appearance.Mouth);
+            if (!HairTextureDID.HasValue)
+                HairTextureDID = sex.GetHairTexture(appearance.HairStyle);
+            if (!DefaultHairTextureDID.HasValue)
+                DefaultHairTextureDID = sex.GetDefaultHairTexture(appearance.HairStyle);
+            if (!HeadObjectDID.HasValue)
+                HeadObjectDID = sex.GetHeadObject(appearance.HairStyle);
+
+            // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
+            if (!SkinPaletteDID.HasValue)
+                SkinPaletteDID = skinPalSet.GetPaletteID(appearance.SkinHue);
+
+            // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
+            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(appearance.HairColor)]);
+            if (!HairPaletteDID.HasValue)
+                HairPaletteDID = hairPalSet.GetPaletteID(appearance.HairHue);
+
+            // Eye Color
+            if (!EyesPaletteDID.HasValue)
+                EyesPaletteDID = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
         }
 
 
@@ -586,7 +700,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="movementType">What type of movement are we about to execute</param>
         /// <param name="targetGuid">Who are we moving or turning toward</param>
         /// <returns>MovementStates</returns>
-        public void OnAutonomousMove(Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
+        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
         {
             UniversalMotion newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
             newMotion.DistanceFrom = 0.60f;
