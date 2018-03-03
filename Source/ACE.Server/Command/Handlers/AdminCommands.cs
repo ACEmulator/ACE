@@ -993,20 +993,19 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        public const uint WEENIE_MAX = 199999;
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an object in the world.", "wclassid (string or number)")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
-            throw new NotImplementedException();
-            /* todo fix for EF
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
             {
-                if (weenieClassId < 1 && weenieClassId > AceObject.WEENIE_MAX)
+                if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {AceObject.WEENIE_MAX}", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1039,8 +1038,7 @@ namespace ACE.Server.Command.Handlers
                 loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
 
 
-            throw new NotImplementedException();
-                // set the palette, shade, stackSize here
+            // todo: set the palette, shade, stackSize here
 
             if (loot == null)
             {
@@ -1048,7 +1046,13 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));*/
+            //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
+            loot.Location = session.Player.Location.InFrontOf(1.00f);
+            //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+            //LandblockManager.AddObject(loot);
+            loot.EnterWorld();
         }
 
         // ci wclassid (number)

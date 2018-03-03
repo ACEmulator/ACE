@@ -105,8 +105,6 @@ namespace ACE.Server.WorldObjects
 
             //AddCharacterBaseModelData();
 
-            UpdateAppearance(this);
-
             return; // todo
             /* todo fix for new EF model
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -310,33 +308,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        private void AddCharacterBaseModelData()
-        {
-            // Hair/head
-            if (HeadObjectDID.HasValue)
-                AddModel(0x10, HeadObjectDID.Value);
-            if (DefaultHairTextureDID.HasValue && HairTextureDID.HasValue)
-                AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
-            if (HairPaletteDID.HasValue)
-                AddPalette(HairPaletteDID.Value, 0x18, 0x8);
 
-            // Skin
-            // PaletteBaseId = PaletteBaseDID;
-            if (SkinPalette.HasValue)
-                AddPalette(SkinPalette.Value, 0x0, 0x18);
-
-            // Eyes
-            if (DefaultEyesTextureDID.HasValue && EyesTextureDID.HasValue)
-                AddTexture(0x10, DefaultEyesTextureDID.Value, EyesTextureDID.Value);
-            if (EyesPaletteDID.HasValue)
-                AddPalette(EyesPaletteDID.Value, 0x20, 0x8);
-
-            // Nose & Mouth
-            if (NoseTextureDID.HasValue && NoseTextureDID.HasValue)
-                AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
-            if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
-                AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
-        }
 
         
 
@@ -1073,7 +1045,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            UpdateAppearance(this);
 
             // Broadcast updated character appearance
             CurrentLandblock.EnqueueBroadcast(
@@ -1167,8 +1138,6 @@ namespace ACE.Server.WorldObjects
             SetInventoryForContainer(item, placement);
 
             RemoveFromWieldedObjects(item.Guid);
-            // We will always be updating the player appearance
-            UpdateAppearance(this);
 
             if ((oldLocation & EquipMask.Selectable) != 0)
             {
@@ -1510,7 +1479,6 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         AddToWieldedObjects(ref item, container, (EquipMask)placement);
-                        UpdateAppearance(container);
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                                                     new GameMessageObjDescEvent(this),
                                                     new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
@@ -1549,65 +1517,7 @@ namespace ACE.Server.WorldObjects
             pickUpItemChain.EnqueueChain();
         }
 
-        /// <summary>
-        /// This method was developed by OptimShi.   It looks at currently wielded items and does the appropriate
-        /// model replacements.   It then sends all uncovered  body parts. Og II
-        /// </summary>
-        /// <param name="container"></param>
-        public void UpdateAppearance(Container container)
-        {
-            ClearObjDesc();
-            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
-
-            var coverage = new List<uint>();
-
-            foreach (var w in EquippedObjects.OrderBy(x => x.Value.Priority))
-            {
-                // We can wield things that are not part of our model, only use those items that can cover our model.
-                if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
-                {
-                    ClothingTable item;
-                    if (w.Value.ClothingBase != null)
-                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.Value.ClothingBase);
-                    else
-                    {
-                        ChatPacket.SendServerMessage(
-                            Session,
-                            "We have not implemented the visual appearance for that item yet. ",
-                            ChatMessageType.AdminTell);
-                        return;
-                    }
-
-                    if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
-                    // Check if the player model has data. Gear Knights, this is usually you.
-                    {
-                        // Add the model and texture(s)
-                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
-                        foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
-                        {
-                            byte partNum = (byte)t.Index;
-                            AddModel((byte)t.Index, (ushort)t.ModelId);
-                            coverage.Add(partNum);
-                            foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                                AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
-                        }
-
-                        foreach (ModelPalette p in w.Value.GetPalettes)
-                            AddPalette(p.PaletteId, p.Offset, p.Length);
-                    }
-                }
-            }
-            // Add the "naked" body parts. These are the ones not already covered.
-            if (SetupTableId > 0)
-            {
-                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
-                for (byte i = 0; i < baseSetup.Parts.Count; i++)
-                {
-                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                        AddModel(i, baseSetup.Parts[i]);
-                }
-            }
-        }
+        
 
         /// <summary>
         /// This method sets properties needed for items that will be child items.
@@ -1727,7 +1637,6 @@ namespace ACE.Server.WorldObjects
                         {
                             SetChild(container, item, placement, out var placementId, out var childLocation);
 
-                            UpdateAppearance(container);
 
                             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                                             new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
@@ -1755,7 +1664,6 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
-                            UpdateAppearance(container);
 
                             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                                         new GameEventWieldItem(Session, itemGuid.Full, placement),
@@ -1842,7 +1750,6 @@ namespace ACE.Server.WorldObjects
                     if (item != null)
                     {
                         RemoveFromWieldedObjects(itemGuid);
-                        UpdateAppearance(this);
                         Session.Network.EnqueueSend(
                             new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                             new GameMessageObjDescEvent(this),
@@ -2109,88 +2016,88 @@ namespace ACE.Server.WorldObjects
             }).EnqueueChain();
         }
 
-        public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
-        {
-            // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
-            // ClothingTable item = ClothingTable.ReadFromDat(0x10000867); // Cloak
-            // ClothingTable item = ClothingTable.ReadFromDat(0x10000008); // Gloves
-            // ClothingTable item = ClothingTable.ReadFromDat(0x100000AD); // Heaume
-            var item = DatManager.PortalDat.ReadFromDat<ClothingTable>(modelId);
+        //public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
+        //{
+        //    // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
+        //    // ClothingTable item = ClothingTable.ReadFromDat(0x10000867); // Cloak
+        //    // ClothingTable item = ClothingTable.ReadFromDat(0x10000008); // Gloves
+        //    // ClothingTable item = ClothingTable.ReadFromDat(0x100000AD); // Heaume
+        //    var item = DatManager.PortalDat.ReadFromDat<ClothingTable>(modelId);
 
-            int palCount = 0;
+        //    int palCount = 0;
 
-            List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
-            ClearObjDesc();
-            AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
+        //    List<uint> coverage = new List<uint>(); // we'll store our fake coverage items here
+        //    ClearObjDesc();
+        //    AddCharacterBaseModelData(); // Add back in the facial features, hair and skin palette
 
-            if (item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
-            {
-                // Add the model and texture(s)
-                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
-                for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
-                {
-                    byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
-                    AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
-                    coverage.Add(partNum);
-                    for (int j = 0; j < clothingBaseEffec.CloObjectEffects[i].CloTextureEffects.Count; j++)
-                        AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
-                }
+        //    if (item.ClothingBaseEffects.ContainsKey((uint)SetupTableId))
+        //    {
+        //        // Add the model and texture(s)
+        //        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[(uint)SetupTableId];
+        //        for (int i = 0; i < clothingBaseEffec.CloObjectEffects.Count; i++)
+        //        {
+        //            byte partNum = (byte)clothingBaseEffec.CloObjectEffects[i].Index;
+        //            AddModel((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].ModelId);
+        //            coverage.Add(partNum);
+        //            for (int j = 0; j < clothingBaseEffec.CloObjectEffects[i].CloTextureEffects.Count; j++)
+        //                AddTexture((byte)clothingBaseEffec.CloObjectEffects[i].Index, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].OldTexture, (ushort)clothingBaseEffec.CloObjectEffects[i].CloTextureEffects[j].NewTexture);
+        //        }
 
-                // Apply an appropriate palette. We'll just pick a random one if not specificed--it's a surprise every time!
-                // For actual equipment, these should just be stored in the ace_object palette_change table and loaded from there
-                if (item.ClothingSubPalEffects.Count > 0)
-                {
-                    int size = item.ClothingSubPalEffects.Count;
-                    palCount = size;
+        //        // Apply an appropriate palette. We'll just pick a random one if not specificed--it's a surprise every time!
+        //        // For actual equipment, these should just be stored in the ace_object palette_change table and loaded from there
+        //        if (item.ClothingSubPalEffects.Count > 0)
+        //        {
+        //            int size = item.ClothingSubPalEffects.Count;
+        //            palCount = size;
 
-                    CloSubPalEffect itemSubPal;
-                    // Generate a random index if one isn't provided
-                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
-                    {
-                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
-                    }
-                    else
-                    {
-                        List<CloSubPalEffect> values = item.ClothingSubPalEffects.Values.ToList();
-                        Random rand = new Random();
-                        palOption = rand.Next(size);
-                        itemSubPal = values[palOption];
-                    }
+        //            CloSubPalEffect itemSubPal;
+        //            // Generate a random index if one isn't provided
+        //            if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+        //            {
+        //                itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+        //            }
+        //            else
+        //            {
+        //                List<CloSubPalEffect> values = item.ClothingSubPalEffects.Values.ToList();
+        //                Random rand = new Random();
+        //                palOption = rand.Next(size);
+        //                itemSubPal = values[palOption];
+        //            }
 
-                    for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
-                    {
-                        var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+        //            for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+        //            {
+        //                var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
+        //                ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
 
-                        for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
-                        {
-                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                            AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
-                        }
-                    }
-                }
+        //                for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+        //                {
+        //                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+        //                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+        //                    AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+        //                }
+        //            }
+        //        }
 
-                // Add the "naked" body parts. These are the ones not already covered.
-                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
-                for (byte i = 0; i < baseSetup.Parts.Count; i++)
-                {
-                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
-                        AddModel(i, baseSetup.Parts[i]);
-                }
+        //        // Add the "naked" body parts. These are the ones not already covered.
+        //        var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>((uint)SetupTableId);
+        //        for (byte i = 0; i < baseSetup.Parts.Count; i++)
+        //        {
+        //            if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head.
+        //                AddModel(i, baseSetup.Parts[i]);
+        //        }
 
-                var objDescEvent = new GameMessageObjDescEvent(this);
-                session.Network.EnqueueSend(objDescEvent);
-                ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") +
-                                                      ", Applying palette index " + palOption + " of " + palCount +
-                                                      " with a shade value of " + shade + ".", ChatMessageType.Broadcast);
-            }
-            else
-            {
-                // Alert about the failure
-                ChatPacket.SendServerMessage(session, "Could not match that item to your character model.", ChatMessageType.Broadcast);
-            }
-        }
+        //        var objDescEvent = new GameMessageObjDescEvent(this);
+        //        session.Network.EnqueueSend(objDescEvent);
+        //        ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") +
+        //                                              ", Applying palette index " + palOption + " of " + palCount +
+        //                                              " with a shade value of " + shade + ".", ChatMessageType.Broadcast);
+        //    }
+        //    else
+        //    {
+        //        // Alert about the failure
+        //        ChatPacket.SendServerMessage(session, "Could not match that item to your character model.", ChatMessageType.Broadcast);
+        //    }
+        //}
 
         public void HandleActionTestCorpseDrop()
         {

@@ -876,6 +876,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultMouthTexture); else SetProperty(PropertyDataId.DefaultMouthTexture, value.Value); }
         }
 
+        public uint? PaletteBaseDID
+        {
+            get => GetProperty(PropertyDataId.PaletteBase);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
+        }
+
 
         // ========================================
         // =========== Other Properties ===========
@@ -1069,8 +1075,8 @@ namespace ACE.Server.WorldObjects
 
         public uint? PaletteId
         {
-            get => GetProperty(PropertyDataId.EyesPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesPalette); else SetProperty(PropertyDataId.EyesPalette, value.Value); }
+            get => GetProperty(PropertyDataId.PaletteBase);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
         }
 
 

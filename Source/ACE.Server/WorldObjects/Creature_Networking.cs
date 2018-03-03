@@ -1,5 +1,9 @@
+using System.Collections.Generic;
 using System.IO;
-
+using System.Linq;
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -68,6 +72,102 @@ namespace ACE.Server.WorldObjects
             GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
 
             WorldManager.BroadcastToAll(sysMessage);
+        }
+
+        public override ACE.Entity.ObjDesc CalculateObjDesc()
+        {
+            ACE.Entity.ObjDesc objDesc = new ACE.Entity.ObjDesc();
+            ClothingTable item;
+
+            AddBaseModelData(objDesc);
+
+            var coverage = new List<uint>();
+
+            foreach (var w in EquippedObjects.OrderBy(x => x.Value.Priority))
+            {
+                // We can wield things that are not part of our model, only use those items that can cover our model.
+                if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                {
+                    if (w.Value.ClothingBase.HasValue)
+                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.Value.ClothingBase);
+                    else
+                        continue;
+
+                    if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
+                    // Check if the player model has data. Gear Knights, this is usually you.
+                    {
+                        // Add the model and texture(s)
+                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
+                        foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                        {
+                            byte partNum = (byte)t.Index;
+                            objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+                            //AddModel((byte)t.Index, (ushort)t.ModelId);
+                            coverage.Add(partNum);
+                            foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                            //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                        }
+
+                        if (item.ClothingSubPalEffects.Count > 0)
+                        {
+                            int size = item.ClothingSubPalEffects.Count;
+                            int palCount = size;
+
+                            CloSubPalEffect itemSubPal;
+                            int palOption = 0;
+                            if (w.Value.PaletteTemplate.HasValue)
+                                palOption = (int)w.Value.PaletteTemplate;
+                            if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                            {
+                                itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                            }
+                            else
+                            {
+                                itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
+                            }
+
+                            //if (itemSubPal.Icon > 0)
+                            //    IconId = itemSubPal.Icon;
+
+                            float shade = 0;
+                            if (w.Value.Shade.HasValue)
+                                shade = (float)w.Value.Shade;
+                            for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                            {
+                                var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
+                                ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+
+                                for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                                {
+                                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                                    if (PaletteTemplate.HasValue || Shade.HasValue)
+                                        objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                                    //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Add the "naked" body parts. These are the ones not already covered.
+            if (SetupTableId > 0)
+            {
+                var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
+                for (byte i = 0; i < baseSetup.Parts.Count; i++)
+                {
+                    if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
+                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = i, PartID = baseSetup.Parts[i] });
+                    //AddModel(i, baseSetup.Parts[i]);
+                }
+            }
+
+            if (coverage.Count == 0 && ClothingBase.HasValue)
+                return base.CalculateObjDesc();
+
+            return objDesc;
         }
     }
 }

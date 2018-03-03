@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -184,31 +187,34 @@ namespace ACE.Server.WorldObjects
 
         private void SerializeModelData(BinaryWriter writer)
         {
-            writer.Write((byte)0x11);
-            writer.Write((byte)modelPalettes.Count);
-            writer.Write((byte)modelTextures.Count);
-            writer.Write((byte)models.Count);
+            var objDesc = CalculateObjDesc();
 
-            if ((modelPalettes.Count > 0) && (PaletteBaseId != null))
-                writer.WritePackedDwordOfKnownType((uint)PaletteBaseId, 0x4000000);
-            foreach (var palette in modelPalettes)
+            writer.Write((byte)0x11);
+            writer.Write((byte)objDesc.SubPalettes.Count);
+            writer.Write((byte)objDesc.TextureChanges.Count);
+            writer.Write((byte)objDesc.AnimPartChanges.Count);
+
+            if (objDesc.SubPalettes.Count > 0)
+                writer.WritePackedDwordOfKnownType(objDesc.PaletteID, 0x4000000);
+
+            foreach (var palette in objDesc.SubPalettes)
             {
-                writer.WritePackedDwordOfKnownType(palette.PaletteId, 0x4000000);
+                writer.WritePackedDwordOfKnownType(palette.SubID, 0x4000000);
                 writer.Write((byte)palette.Offset);
-                writer.Write((byte)palette.Length);
+                writer.Write((byte)palette.NumColors);
             }
 
-            foreach (var texture in modelTextures)
+            foreach (var texture in objDesc.TextureChanges)
             {
-                writer.Write((byte)texture.Index);
+                writer.Write(texture.PartIndex);
                 writer.WritePackedDwordOfKnownType(texture.OldTexture, 0x5000000);
                 writer.WritePackedDwordOfKnownType(texture.NewTexture, 0x5000000);
             }
 
-            foreach (var model in models)
+            foreach (var model in objDesc.AnimPartChanges)
             {
-                writer.Write((byte)model.Index);
-                writer.WritePackedDwordOfKnownType(model.ModelID, 0x1000000);
+                writer.Write(model.PartIndex);
+                writer.WritePackedDwordOfKnownType(model.PartID, 0x1000000);
             }
 
             writer.Align();
@@ -1198,7 +1204,7 @@ namespace ACE.Server.WorldObjects
         /// Records where the client thinks we are, for use by physics engine later
         /// </summary>
         /// <param name="newPosition"></param>
-        protected void PrepUpdatePosition(Position newPosition)
+        protected void PrepUpdatePosition(ACE.Entity.Position newPosition)
         {
             RequestedLocation = newPosition;
         }
@@ -1214,7 +1220,7 @@ namespace ACE.Server.WorldObjects
         /// Automatically notifies clients of updated position
         /// </summary>
         /// <param name="newPosition"></param>
-        public void PhysicsUpdatePosition(Position newPosition)
+        public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
         {
             Location = newPosition;
             SendUpdatePosition();
@@ -1258,6 +1264,120 @@ namespace ACE.Server.WorldObjects
         public void RunActions()
         {
             actionQueue.RunActions();
+        }
+
+        public virtual ACE.Entity.ObjDesc CalculateObjDesc()
+        {
+            ACE.Entity.ObjDesc objDesc = new ACE.Entity.ObjDesc();
+            ClothingTable item;
+
+            AddBaseModelData(objDesc);
+
+            if (ClothingBase.HasValue)
+                item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
+            else
+            {
+                return objDesc;
+            }
+
+            if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
+            // Check if the player model has data. Gear Knights, this is usually you.
+            {
+                // Add the model and texture(s)
+                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
+                foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                {
+                    byte partNum = (byte)t.Index;
+                    objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+                    //AddModel((byte)t.Index, (ushort)t.ModelId);
+                    foreach (CloTextureEffect t1 in t.CloTextureEffects)
+                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                    //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
+                }
+
+                //if (item.ClothingSubPalEffects.Count == 1 && (PaletteTemplate.HasValue | Shade.HasValue))
+                //    Console.WriteLine($"Found an item with 1 ClothingSubPalEffects and a PaletteTemplate = {PaletteTemplate} and/or Shade = {Shade} ");
+
+                if (item.ClothingSubPalEffects.Count > 0)
+                {
+                    //int size = item.ClothingSubPalEffects.Count;
+                    //int palCount = size;
+
+                    CloSubPalEffect itemSubPal;
+                    int palOption = 0;
+                    if (PaletteTemplate.HasValue)
+                        palOption = (int)PaletteTemplate;
+                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                    {
+                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                    }
+                    else
+                    {
+                        itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
+                    }
+
+                    if (itemSubPal.Icon > 0)
+                        IconId = itemSubPal.Icon;
+
+                    float shade = 0;
+                    if (Shade.HasValue)
+                        shade = (float)Shade;
+                    for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
+                    {
+                        var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
+                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+
+                        for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
+                        {
+                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
+                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            if (PaletteTemplate.HasValue || Shade.HasValue)
+                                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                            //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                        }
+                    }
+                }
+            }
+
+            return objDesc;
+        }
+
+        protected void AddBaseModelData(ACE.Entity.ObjDesc objDesc)
+        {
+            // Hair/head
+            if (HeadObjectDID.HasValue)
+                objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
+            //AddModel(0x10, HeadObjectDID.Value);
+            if (DefaultHairTextureDID.HasValue && HairTextureDID.HasValue)
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultHairTextureDID.Value, NewTexture = HairTextureDID.Value });
+            //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
+            if (HairPaletteDID.HasValue)
+                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = HairPaletteDID.Value, Offset = 0x18, NumColors = 0x8 });
+            //AddPalette(HairPaletteDID.Value, 0x18, 0x8);
+
+            // Skin
+            // PaletteBaseId = PaletteBaseDID;
+            if (PaletteBaseDID.HasValue)
+                objDesc.PaletteID = PaletteBaseDID.Value;
+            if (SkinPalette.HasValue)
+                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = SkinPaletteDID.Value, Offset = 0x0, NumColors = 0x18 });
+            //AddPalette(SkinPalette.Value, 0x0, 0x18);
+
+            // Eyes
+            if (DefaultEyesTextureDID.HasValue && EyesTextureDID.HasValue)
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultEyesTextureDID.Value, NewTexture = EyesTextureDID.Value });
+            //AddTexture(0x10, DefaultEyesTextureDID.Value, EyesTextureDID.Value);
+            if (EyesPaletteDID.HasValue)
+                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = EyesPaletteDID.Value, Offset = 0x20, NumColors = 0x8 });
+            //AddPalette(EyesPaletteDID.Value, 0x20, 0x8);
+
+            // Nose & Mouth
+            if (DefaultNoseTextureDID.HasValue && NoseTextureDID.HasValue)
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTexture.Value, NewTexture = NoseTextureDID.Value });
+            //AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
+            if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
+            //AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
         }
     }
 }

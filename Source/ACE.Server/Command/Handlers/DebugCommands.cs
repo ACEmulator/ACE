@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -717,11 +718,11 @@ namespace ACE.Server.Command.Handlers
                 if (shade > 1)
                     shade = 1;
 
-                if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
-                    session.Player.TestWieldItem(session, modelId, palOption, shade);
-                else
-                    ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
-                        ChatMessageType.Broadcast);
+                //if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
+                //    session.Player.TestWieldItem(session, modelId, palOption, shade);
+                //else
+                //    ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
+                //        ChatMessageType.Broadcast);
             }
             catch (Exception)
             {
@@ -955,6 +956,33 @@ namespace ACE.Server.Command.Handlers
             session.Player.IgnoreCollisions = false;
             session.Player.Hidden = false;
             session.Player.EnqueueBroadcastPhysicsState();
+        }
+
+        /// <summary>
+        /// List all clothing bases which are compatible with setup
+        /// </summary
+        [CommandHandler("listcb", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
+            "List Clothing Tables available")]
+        public static void HandleShowCompatibleClothingBases(Session session, params string[] parameters)
+        {
+            uint.TryParse(parameters[0], out var setupId);
+
+            uint cbStart = 0x10000001;
+            uint cbEnd = 0x1000086c;
+
+            List<uint> compatibleCBs = new List<uint>();
+
+            for (uint i = cbStart; i < cbEnd; i++)
+            {
+                var cbToTest = DatManager.PortalDat.ReadFromDat<ClothingTable>(i);
+
+                if (cbToTest.ClothingBaseEffects.ContainsKey(setupId))
+                    compatibleCBs.Add(i);
+            }
+
+            Console.WriteLine($"There are {compatibleCBs.Count} compatible clothingbase tables for setup {setupId}");
+            Console.WriteLine("");
+            Console.WriteLine($"{string.Join("\n", compatibleCBs.ToArray())}");
         }
     }
 }
