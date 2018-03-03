@@ -2233,7 +2233,7 @@ namespace ACE.Server.Physics
 
         public bool motions_pending()
         {
-            return MovementManager != null && MovementManager.MotionsPending();
+            return MovementManager != null && MovementManager.motions_pending();
         }
 
         public bool movement_is_autonomous()
