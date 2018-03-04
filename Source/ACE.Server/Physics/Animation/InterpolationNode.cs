@@ -13,9 +13,17 @@ namespace ACE.Server.Physics.Animation
 
     public class InterpolationNode
     {
-        public int Type;
-        public Position P;
-        public Vector3 V;
+        public InterpolationNodeType Type;
+        public Position Position;
+        public Vector3 Velocity;
         public float Extent;
+
+        public InterpolationNode() { }
+
+        public InterpolationNode(InterpolationNodeType type, Position position)
+        {
+            Type = type;
+            Position = position;
+        }
     }
 }
