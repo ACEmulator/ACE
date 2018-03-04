@@ -407,6 +407,8 @@ namespace ACE.Server.WorldObjects
             {
                 // Deselect the formerly selected Target
                 // selectedTarget = ObjectGuid.Invalid;
+                RequestedAppraisalTarget = null;
+                CurrentAppraisalTarget = null;
                 return;
             }
 
@@ -436,6 +438,9 @@ namespace ACE.Server.WorldObjects
                 // examine item on land block
                 CurrentLandblock.GetObject(examinationId).Examine(Session);
             }
+
+            RequestedAppraisalTarget = (int)examinationId.Full;
+            CurrentAppraisalTarget = (int)examinationId.Full;
         }
 
         public void QueryHealth(ObjectGuid queryId)
@@ -444,11 +449,13 @@ namespace ACE.Server.WorldObjects
             {
                 // Deselect the formerly selected Target
                 selectedTarget = ObjectGuid.Invalid;
+                HealthQueryTarget = null;
                 return;
             }
 
             // Remember the selected Target
             selectedTarget = queryId;
+            HealthQueryTarget = (int)queryId.Full;
             CurrentLandblock.GetObject(queryId).QueryHealth(Session);
         }
 
@@ -456,7 +463,7 @@ namespace ACE.Server.WorldObjects
         {
             if (queryId.Full == 0)
             {
-                // Do nothing if the queryID is 0
+                ManaQueryTarget = null;
                 return;
             }
 
@@ -472,6 +479,8 @@ namespace ACE.Server.WorldObjects
                 if (EquippedObjects.TryGetValue(queryId, out wo))
                     wo.QueryItemMana(Session);
             }
+
+            ManaQueryTarget = (int)queryId.Full;
         }
 
         public void ReadBookPage(ObjectGuid bookId, uint pageNum)

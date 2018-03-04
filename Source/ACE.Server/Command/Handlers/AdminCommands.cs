@@ -292,12 +292,29 @@ namespace ACE.Server.Command.Handlers
         }
 
         // delete
-        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+             "Deletes the selected object.",
+            "Players may not be deleted this way.")]
         public static void HandleDeleteSelected(Session session, params string[] parameters)
         {
             // @delete - Deletes the selected object. Players may not be deleted this way.
 
-            // TODO: output
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+
+                if (wo != null)
+                    LandblockManager.RemoveObject(wo);
+            }
         }
 
         // draw
