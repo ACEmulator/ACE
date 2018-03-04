@@ -41,6 +41,7 @@ namespace ACE.Server.Network.GameEvent
         UpdateHealth                           = 0x01C0,
         QueryAgeResponse                       = 0x01C3,
         UseDone                                = 0x01C7,
+        AllegianceAllegianceUpdateDone         = 0x01C8,
         FellowshipFellowUpdateDone             = 0x01C9,
         FellowshipFellowStatsDone              = 0x01CA,
         ItemAppraiseDone                       = 0x01CB,
