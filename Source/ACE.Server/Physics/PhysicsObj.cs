@@ -1933,7 +1933,7 @@ namespace ACE.Server.Physics
             var curHeight = PartArray != null ? PartArray.GetHeight() : 0.0f;
             var curRadius = PartArray != null ? PartArray.GetRadius() : 0.0f;
 
-            return Position.CylinderDistance(curRadius, curHeight, radius, height, obj.Position);
+            return Position.CylinderDistance(curRadius, curHeight, Position, radius, height, obj.Position);
         }
 
         public AFrame get_frame()
@@ -1941,7 +1941,7 @@ namespace ACE.Server.Physics
             return Position.Frame;
         }
 
-        public double get_heading()
+        public float get_heading()
         {
             return Position.Frame.get_heading();
         }

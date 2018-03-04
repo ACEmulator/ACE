@@ -2,7 +2,7 @@ namespace ACE.Server.Physics.Animation
 {
     public class MovementParameters
     {
-        public int Bitfield;
+        public uint Bitfield;
 
         // default true?
         public bool CanWalk;    
@@ -32,5 +32,15 @@ namespace ACE.Server.Physics.Animation
         public int ContextID;
         public HoldKey HoldKeyToApply;
         public int ActionStamp;
+
+        public void get_command(double distance, double headingDiff, ref int command, ref HoldKey holdKey, ref bool moveAway)
+        {
+
+        }
+
+        public float get_desired_heading(int motionID, bool movingAway)
+        {
+            return -1;
+        }
     }
 }
