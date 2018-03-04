@@ -602,7 +602,7 @@ namespace ACE.Server.Physics.Animation
             LeaveGround();
         }
 
-        public double get_adjusted_max_speed()
+        public float get_adjusted_max_speed()
         {
             var rate = 1.0f;
 
@@ -649,7 +649,7 @@ namespace ACE.Server.Physics.Animation
             return velocity;
         }
 
-        public double get_max_speed()
+        public float get_max_speed()
         {
             var rate = 1.0f;
 

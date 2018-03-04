@@ -10,14 +10,29 @@ namespace ACE.Server.Physics.Animation
         public ConstraintManager ConstraintManager;
         public PhysicsObj PhysicsObj;
 
-        public PositionManager()
-        {
+        public PositionManager() { }
 
+        public PositionManager(PhysicsObj obj)
+        {
+            SetPhysicsObject(obj);
         }
 
-        public PositionManager(PhysicsObj physicsObj)
+        public void AdjustOffset(AFrame frame, double quantum)
         {
-            PhysicsObj = physicsObj;
+            if (InterpolationManager != null)
+                InterpolationManager.adjust_offset(frame, quantum);
+            if (StickyManager != null)
+                StickyManager.adjust_offset(frame, quantum);
+            if (ConstraintManager != null)
+                ConstraintManager.adjust_offset(frame, quantum);
+        }
+
+        public void ConstrainTo(Position position, float startDistance, float maxDistance)
+        {
+            if (ConstraintManager == null)
+                ConstraintManager = ConstraintManager.Create(PhysicsObj);
+
+            ConstraintManager.ConstrainTo(position, startDistance, maxDistance);
         }
 
         public static PositionManager Create(PhysicsObj physicsObj)
@@ -27,62 +42,84 @@ namespace ACE.Server.Physics.Animation
 
         public int GetStickyObjectID()
         {
-            return -1;
-        }
-
-        public void UseTime()
-        {
-
-        }
-
-        public void AdjustOffset(AFrame frame, double quantum)
-        {
-
-        }
-
-        public void Unstick()
-        {
-
-        }
-
-        public void StopInterpolating()
-        {
-
-        }
-
-        public void Unconstrain()
-        {
-
-        }
-
-        public void StickTo(int object_id, float radius, float height)
-        {
-
+            if (StickyManager == null) return 0;
+            return StickyManager.TargetID;
         }
 
         public void HandleUpdateTarget(TargetInfo targetInfo)
         {
-
+            if (StickyManager != null)
+                StickyManager.HandleUpdateTarget(targetInfo);
         }
 
-        public void InterpolateTo(Position p, bool keepHeading)
+        public void InterpolateTo(Position position, bool keepHeading)
         {
+            if (InterpolationManager == null)
+                InterpolationManager = InterpolationManager.Create(PhysicsObj);
 
+            InterpolationManager.InterpolateTo(position, keepHeading);
         }
 
         public bool IsFullyConstrained()
         {
-            return false;
+            if (ConstraintManager == null)
+                return false;
+            else
+                return ConstraintManager.IsFullyConstrained();
         }
 
         public bool IsInterpolating()
         {
-            return false;
+            return InterpolationManager != null && InterpolationManager.IsInterpolating();
         }
 
-        public void ConstrainTo(Position position, float startDistance, float maxDistance)
+        public void SetPhysicsObject(PhysicsObj obj)
         {
+            PhysicsObj = obj;
+            if (InterpolationManager != null)
+                InterpolationManager.SetPhysicsObject(obj);
+            if (StickyManager != null)
+                StickyManager.SetPhysicsObject(obj);
+            if (ConstraintManager != null)
+                ConstraintManager.SetPhysicsObject(obj);
+        }
 
+        public void StickTo(int objectID, float radius, float height)
+        {
+            if (StickyManager == null)
+                StickyManager = StickyManager.Create(PhysicsObj);
+
+            StickyManager.StickTo(objectID, radius, height);
+        }
+
+        public void StopInterpolating()
+        {
+            if (InterpolationManager != null)
+                InterpolationManager.StopInterpolating();
+        }
+
+        public void Unconstrain()
+        {
+            if (ConstraintManager != null)
+                ConstraintManager.Unconstrain();
+        }
+
+        public void Unstick()
+        {
+            if (StickyManager != null)
+                StickyManager.HandleExitWorld();
+        }
+
+        public void UseTime()
+        {
+            if (InterpolationManager != null)
+                InterpolationManager.UseTime();
+
+            if (StickyManager != null)
+                StickyManager.UseTime();
+
+            if (ConstraintManager != null)
+                ConstraintManager.UseTime();
         }
     }
 }

@@ -39,6 +39,11 @@ namespace ACE.Server.Physics.Common
             return -1;
         }
 
+        public static float CylinderDistanceNoZ(double curRadius, Position curPos, float radius, Position pos)
+        {
+            return -1;
+        }
+
         public Vector3 GlobalToLocalVec(Vector3 global)
         {
             return global;
@@ -52,6 +57,11 @@ namespace ACE.Server.Physics.Common
         public int DetermineQuadrant(float height, Position pos)
         {
             return -1;
+        }
+
+        public AFrame Subtract(Position pos)
+        {
+            return null;
         }
 
         public void adjust_to_outside()
