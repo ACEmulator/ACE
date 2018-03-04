@@ -64,6 +64,14 @@ namespace ACE.Server.Factories
                     return new Bindstone(weenie, guid);
                 case WeenieType.Clothing:
                     return new Clothing(weenie, guid);
+                case WeenieType.MeleeWeapon:
+                    return new MeleeWeapon(weenie, guid);
+                case WeenieType.MissileLauncher:
+                    return new MissileLauncher(weenie, guid);
+                case WeenieType.Ammunition:
+                    return new Ammunition(weenie, guid);
+                case WeenieType.Missile:
+                    return new Missile(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -117,6 +125,14 @@ namespace ACE.Server.Factories
                     return new Bindstone(biota);
                 case WeenieType.Clothing:
                     return new Clothing(biota);
+                case WeenieType.MeleeWeapon:
+                    return new MeleeWeapon(biota);
+                case WeenieType.MissileLauncher:
+                    return new MissileLauncher(biota);
+                case WeenieType.Ammunition:
+                    return new Ammunition(biota);
+                case WeenieType.Missile:
+                    return new Missile(biota);
                 default:
                     return new GenericObject(biota);
             }
