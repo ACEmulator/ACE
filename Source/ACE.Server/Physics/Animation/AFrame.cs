@@ -67,7 +67,7 @@ namespace ACE.Server.Physics.Animation
 
         }
 
-        public double get_heading()
+        public float get_heading()
         {
             return -1;
         }

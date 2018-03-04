@@ -29,12 +29,12 @@ namespace ACE.Server.Physics.Common
             return v;
         }
 
-        public double Distance(Position pos)
+        public float Distance(Position pos)
         {
             return -1;
         }
 
-        public double CylinderDistance(float curRadius, float curHeight, float radius, float height, Position pos)
+        public static float CylinderDistance(double curRadius, float curHeight, Position curPos, float radius, float height, Position pos)
         {
             return -1;
         }
@@ -57,6 +57,11 @@ namespace ACE.Server.Physics.Common
         public void adjust_to_outside()
         {
 
+        }
+
+        public float heading(Position p)
+        {
+            return -1;
         }
     }
 }
