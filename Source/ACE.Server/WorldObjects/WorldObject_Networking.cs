@@ -452,12 +452,15 @@ namespace ACE.Server.WorldObjects
                 flags |= IdentifyResponseFlags.StringStatsTable;
             }
 
-            //var propertiesSpellId = PropertiesSpellId.ToList();
+            var propertiesSpellId = Biota.BiotaPropertiesSpellBook.ToList();
 
-            //if (propertiesSpellId.Count > 0)
-            //{
-            //    flags |= IdentifyResponseFlags.SpellBook;
-            //}
+            if (SpellDID.HasValue)
+                propertiesSpellId.Insert(0, new Database.Models.Shard.BiotaPropertiesSpellBook { Spell = (int)SpellDID.Value });
+
+            if (propertiesSpellId.Count > 0)
+            {
+                flags |= IdentifyResponseFlags.SpellBook;
+            }
 
             // TODO: Move to Armor class
             //var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
@@ -498,10 +501,7 @@ namespace ACE.Server.WorldObjects
             WriteIdentifyObjectDoubleProperties(writer, flags, propertiesDouble);
             WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
             WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
-            //WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
-
-            // TODO: Move to Armor class
-            //WriteIdentifyObjectArmorProfile(writer, flags, propertiesArmor);
+            WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
 
             // TODO: Move to Weapon class
             //WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
@@ -1159,45 +1159,43 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /*protected static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesSpell> propertiesSpellId)
+        protected static void WriteIdentifyObjectSpellIdProperties(BinaryWriter writer, IdentifyResponseFlags flags, List<Database.Models.Shard.BiotaPropertiesSpellBook> propertiesSpellId)
         {
             if ((flags & IdentifyResponseFlags.SpellBook) == 0 || (propertiesSpellId.Count == 0)) return;
             writer.Write((uint)propertiesSpellId.Count);
-            /* todo fix for new EF model
-            foreach (AceObjectPropertiesSpell x in propertiesSpellId)
+            foreach (var x in propertiesSpellId)
             {
-                writer.Write(x.SpellId);
-            }*//*
-        }*/
+                writer.Write(x.Spell);
+            }
+        }
 
-        // TODO: Move to Armor class
-        /*protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesArmor)
+        protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, WorldObject wo, bool success)
         {
-            var notNull = propertiesArmor.Where(p => p.PropertyValue != null).ToList();
-            if ((flags & IdentifyResponseFlags.ArmorProfile) == 0 || (notNull.Count == 0)) return;
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsSlash) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsPierce) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsBludgeon) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsCold) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsFire) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsAcid) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsNether) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsElectric) ?? 0));
+        }
 
-            foreach (AceObjectPropertiesDouble x in notNull)
-                writer.Write((float)x.PropertyValue.Value);
-        }*/
-
-        // TODO: Move to Weapon class
-        /*protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, IdentifyResponseFlags flags, List<AceObjectPropertiesDouble> propertiesWeaponsD, List<AceObjectPropertiesInt> propertiesWeaponsI)
+        protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, WorldObject wo, bool success)
         {
-            if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
-            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.DamageType)?.PropertyValue ?? 0);
-            // Signed
-            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.WeaponTime)?.PropertyValue ?? 0);
-            writer.Write(propertiesWeaponsI.Find(x => x.PropertyId == (uint)PropertyInt.WeaponSkill)?.PropertyValue ?? 0);
-            // Signed
-            writer.Write((int?)propertiesWeaponsI.Find(x => x.PropertyId == (int)PropertyInt.Damage)?.PropertyValue ?? 0);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.DamageVariance)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.DamageMod)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponLength)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.MaximumVelocity)?.PropertyValue ?? 0.00);
-            writer.Write(propertiesWeaponsD.Find(x => x.PropertyId == (uint)PropertyFloat.WeaponOffense)?.PropertyValue ?? 0.00);
+            // if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
+            writer.Write(wo.GetProperty(PropertyInt.DamageType) ?? 0);
+            writer.Write(wo.GetProperty(PropertyInt.WeaponTime) ?? 0);
+            writer.Write(wo.GetProperty(PropertyInt.WeaponSkill) ?? -1);
+            writer.Write(wo.GetProperty(PropertyInt.Damage) ?? 0);
+            writer.Write(wo.GetProperty(PropertyFloat.DamageVariance) ?? 0);
+            writer.Write(wo.GetProperty(PropertyFloat.DamageMod) ?? 0);
+            writer.Write(wo.GetProperty(PropertyFloat.WeaponLength) ?? 0);
+            writer.Write(wo.GetProperty(PropertyFloat.MaximumVelocity) ?? 0);
+            writer.Write(wo.GetProperty(PropertyFloat.WeaponOffense) ?? 0);
             // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
             writer.Write(0u);
-        }*/
+        }
 
 
         /// <summary>
