@@ -312,6 +312,9 @@ namespace ACE.Server.Command.Handlers
 
                 var wo = session.Player.CurrentLandblock.GetObject(objectId);
 
+                if (objectId.IsPlayer())
+                    return;
+
                 if (wo != null)
                     LandblockManager.RemoveObject(wo);
             }
