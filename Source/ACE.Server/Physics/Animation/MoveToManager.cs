@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Animation
@@ -27,5 +28,53 @@ namespace ACE.Server.Physics.Animation
         public List<MovementNode> PendingActions;
         public PhysicsObj PhysicsObj;
         public WeenieObject WeenieObj;
+
+        public MoveToManager() { }
+
+        public MoveToManager(PhysicsObj obj, WeenieObject wobj)
+        {
+            PhysicsObj = obj;
+            WeenieObj = wobj;
+        }
+
+        public void CancelMoveTo(int retval)
+        {
+
+        }
+
+        public static MoveToManager Create(PhysicsObj obj, WeenieObject wobj)
+        {
+            return null;
+        }
+
+        public void HandleUpdateTarget(TargetInfo targetInfo)
+        {
+
+        }
+
+        public void HitGround()
+        {
+
+        }
+
+        public Sequence PerformMovement(MovementStruct mvs)
+        {
+            return null;
+        }
+
+        public void SetWeenieObject(WeenieObject wobj)
+        {
+
+        }
+
+        public void UseTime()
+        {
+
+        }
+
+        public bool is_moving_to()
+        {
+            return false;
+        }
     }
 }
