@@ -79,21 +79,31 @@ namespace ACE.Server.WorldObjects
             if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
                 GenerateNewFace();
 
+            if (CreatureType == ACE.Entity.Enum.CreatureType.Shadow)
+                GenerateNewFace();
+
             // If any of the vitals don't exist for this biota, one will be created automatically in the CreatureVital ctor
-            Vitals[Ability.Health] = new CreatureVital(this, Ability.Health);
-            Vitals[Ability.Stamina] = new CreatureVital(this, Ability.Stamina);
-            Vitals[Ability.Mana] = new CreatureVital(this, Ability.Mana);
+            Vitals[PropertyAttribute2nd.MaxHealth] = new CreatureVital(this, PropertyAttribute2nd.MaxHealth);
+            Vitals[PropertyAttribute2nd.MaxStamina] = new CreatureVital(this, PropertyAttribute2nd.MaxStamina);
+            Vitals[PropertyAttribute2nd.MaxMana] = new CreatureVital(this, PropertyAttribute2nd.MaxMana);
 
             // If any of the attributes don't exist for this biota, one will be created automatically in the CreatureAttribute ctor
-            Attributes[Ability.Strength] = new CreatureAttribute(this, Ability.Strength);
-            Attributes[Ability.Endurance] = new CreatureAttribute(this, Ability.Endurance);
-            Attributes[Ability.Coordination] = new CreatureAttribute(this, Ability.Coordination);
-            Attributes[Ability.Quickness] = new CreatureAttribute(this, Ability.Quickness);
-            Attributes[Ability.Focus] = new CreatureAttribute(this, Ability.Focus);
-            Attributes[Ability.Self] = new CreatureAttribute(this, Ability.Self);
+            Attributes[PropertyAttribute.Strength] = new CreatureAttribute(this, PropertyAttribute.Strength);
+            Attributes[PropertyAttribute.Endurance] = new CreatureAttribute(this, PropertyAttribute.Endurance);
+            Attributes[PropertyAttribute.Coordination] = new CreatureAttribute(this, PropertyAttribute.Coordination);
+            Attributes[PropertyAttribute.Quickness] = new CreatureAttribute(this, PropertyAttribute.Quickness);
+            Attributes[PropertyAttribute.Focus] = new CreatureAttribute(this, PropertyAttribute.Focus);
+            Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
             foreach (var skillProperty in Biota.BiotaPropertiesSkill)
                 Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, (Skill)skillProperty.Type);
+
+            if (Health.Current == 0)
+                Health.Current = Health.MaxValue;
+            if (Stamina.Current == 0)
+                Stamina.Current = Stamina.MaxValue;
+            if (Mana.Current == 0)
+                Mana.Current = Mana.MaxValue;
 
             //if (WeenieClassId != 1 && WeenieClassId != 4)
             if (!Guid.IsPlayer())

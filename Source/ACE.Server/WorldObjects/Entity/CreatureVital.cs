@@ -2,13 +2,16 @@ using System;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects.Entity
 {
     public class CreatureVital
     {
         private readonly Creature creature;
-        public readonly Ability Ability;
+        //public readonly Ability Ability;
+        //public readonly PropertyAttribute Attribute;
+        public readonly PropertyAttribute2nd Vital;
 
         // This is the underlying database record
         private readonly BiotaPropertiesAttribute2nd biotaPropertiesAttribute2nd;
@@ -16,17 +19,17 @@ namespace ACE.Server.WorldObjects.Entity
         /// <summary>
         /// If the creatures biota does not contain this vital, a new record will be created.
         /// </summary>
-        public CreatureVital(Creature creature, Ability ability)
+        public CreatureVital(Creature creature, PropertyAttribute2nd vital)
         {
             this.creature = creature;
-            Ability = ability;
+            Vital = vital;
 
-            biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(ability);
+            biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(Vital);
 
             if (biotaPropertiesAttribute2nd == null)
             {
-                creature.Biota.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd { ObjectId = creature.Biota.Id, Type = (ushort)ability });
-                biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(ability);
+                creature.Biota.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd { ObjectId = creature.Biota.Id, Type = (ushort)Vital });
+                biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(Vital);
             }
         }
 
@@ -58,24 +61,39 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Ability.GetFormula();
+                //var formula = Vital.GetFormula();
 
-                uint derivationTotal = 0;
+                //uint derivationTotal = 0;
+                //uint total = 0;
+
+                //if (formula != null)
+                //{
+                //    // restricted to endurance and self because those are the only 2 used by vitals
+
+                //    var abilities = formula.Attribute;
+                //    uint end = (uint)((abilities & PropertyAttribute.Endurance) > 0 ? 1 : 0);
+                //    uint wil = (uint)((abilities & PropertyAttribute.Self) > 0 ? 1 : 0);
+
+                //    derivationTotal += end * creature.Endurance.Base;
+                //    derivationTotal += wil * creature.Self.Base;
+
+                //    derivationTotal *= formula.AbilityMultiplier;
+                //    total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
+                //}
+
                 uint total = 0;
 
-                if (formula != null)
+                switch (Vital)
                 {
-                    // restricted to endurance and self because those are the only 2 used by vitals
-
-                    Ability abilities = formula.Abilities;
-                    uint end = (uint) ((abilities & Ability.Endurance) > 0 ? 1 : 0);
-                    uint wil = (uint) ((abilities & Ability.Self) > 0 ? 1 : 0);
-
-                    derivationTotal += end * creature.Endurance.Base;
-                    derivationTotal += wil * creature.Self.Base;
-
-                    derivationTotal *= formula.AbilityMultiplier;
-                    total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
+                    case PropertyAttribute2nd.MaxHealth:
+                        total = (uint)Math.Ceiling((double)creature.Endurance.Base / 2);
+                        break;
+                    case PropertyAttribute2nd.MaxStamina:
+                        total = creature.Endurance.Base;
+                        break;
+                    case PropertyAttribute2nd.MaxMana:
+                        total = creature.Self.Base;
+                        break;
                 }
 
                 total += StartingValue + Ranks;

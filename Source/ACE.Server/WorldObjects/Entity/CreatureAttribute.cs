@@ -1,13 +1,15 @@
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects.Entity
 {
     public class CreatureAttribute
     {
         private readonly Creature creature;
-        public readonly Ability Ability;
+        //public readonly Ability Ability;
+        public readonly PropertyAttribute Attribute;
 
         // This is the underlying database record
         private readonly BiotaPropertiesAttribute biotaPropertiesAttribute;
@@ -15,17 +17,17 @@ namespace ACE.Server.WorldObjects.Entity
         /// <summary>
         /// If the creatures biota does not contain this attribute, a new record will be created.
         /// </summary>
-        public CreatureAttribute(Creature creature, Ability ability)
+        public CreatureAttribute(Creature creature, PropertyAttribute attribute)
         {
             this.creature = creature;
-            Ability = ability;
+            Attribute = attribute;
 
-            biotaPropertiesAttribute = creature.Biota.GetAttribute(ability);
+            biotaPropertiesAttribute = creature.Biota.GetAttribute(Attribute);
 
             if (biotaPropertiesAttribute == null)
             {
-                creature.Biota.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute {ObjectId = creature.Biota.Id, Type = (ushort) ability});
-                biotaPropertiesAttribute = creature.Biota.GetAttribute(ability);
+                creature.Biota.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute {ObjectId = creature.Biota.Id, Type = (ushort)Attribute });
+                biotaPropertiesAttribute = creature.Biota.GetAttribute(Attribute);
             }
         }
 

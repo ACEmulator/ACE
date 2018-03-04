@@ -2,6 +2,7 @@ using System;
 
 using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
@@ -11,15 +12,15 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void RaiseAttributeGameAction(Ability ability, uint amount)
+        public void RaiseAttributeGameAction(PropertyAttribute attribute, uint amount)
         {
-            var creatureAttribute = new CreatureAttribute(this, ability);
+            var creatureAttribute = new CreatureAttribute(this, attribute);
 
             uint result = SpendAttributeXp(creatureAttribute, amount);
 
             if (result > 0u)
             {
-                GameMessage abilityUpdate = new GameMessagePrivateUpdateAbility(Session, ability, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
+                GameMessage abilityUpdate = new GameMessagePrivateUpdateAbility(Session, attribute, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
 
                 // checks if max rank is achieved and plays fireworks w/ special text
                 string messageText;
@@ -28,11 +29,11 @@ namespace ACE.Server.WorldObjects
                 {
                     // fireworks
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {ability} is now {creatureAttribute.Base} and has reached its upper limit!";
+                    messageText = $"Your base {attribute} is now {creatureAttribute.Base} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {ability} is now {creatureAttribute.Base}!";
+                    messageText = $"Your base {attribute} is now {creatureAttribute.Base}!";
                 }
 
                 var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
@@ -40,14 +41,14 @@ namespace ACE.Server.WorldObjects
 
                 // This seems to be needed to keep health up to date properly.
                 // Needed when increasing health and endurance.
-                if (ability == Ability.Endurance)
+                if (attribute == PropertyAttribute.Endurance)
                 {
-                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
+                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, PropertyAttribute2nd.MaxHealth, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
                 }
-                else if (ability == Ability.Self)
+                else if (attribute == PropertyAttribute.Self)
                 {
-                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
+                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, PropertyAttribute2nd.MaxMana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
                 }
                 else
@@ -57,7 +58,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {attribute} has failed.", ChatMessageType.Broadcast);
             }
         }
 

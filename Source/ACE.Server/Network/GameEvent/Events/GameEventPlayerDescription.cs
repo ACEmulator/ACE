@@ -181,71 +181,71 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
-                var attributeFlags = Ability.Full;
+                var attributeFlags = AttributeCache.Full;
                 Writer.Write((uint)attributeFlags);
 
-                if ((attributeFlags & Ability.Strength) != 0)
+                if ((attributeFlags & AttributeCache.Strength) != 0)
                 {
                     Writer.Write(Session.Player.Strength.Ranks); // ranks
                     Writer.Write(Session.Player.Strength.StartingValue);
                     Writer.Write(Session.Player.Strength.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & Ability.Endurance) != 0)
+                if ((attributeFlags & AttributeCache.Endurance) != 0)
                 {
                     Writer.Write(Session.Player.Endurance.Ranks); // ranks
                     Writer.Write(Session.Player.Endurance.StartingValue);
                     Writer.Write(Session.Player.Endurance.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & Ability.Quickness) != 0)
+                if ((attributeFlags & AttributeCache.Quickness) != 0)
                 {
                     Writer.Write(Session.Player.Quickness.Ranks); // ranks
                     Writer.Write(Session.Player.Quickness.StartingValue);
                     Writer.Write(Session.Player.Quickness.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & Ability.Coordination) != 0)
+                if ((attributeFlags & AttributeCache.Coordination) != 0)
                 {
                     Writer.Write(Session.Player.Coordination.Ranks); // ranks
                     Writer.Write(Session.Player.Coordination.StartingValue);
                     Writer.Write(Session.Player.Coordination.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & Ability.Focus) != 0)
+                if ((attributeFlags & AttributeCache.Focus) != 0)
                 {
                     Writer.Write(Session.Player.Focus.Ranks); // ranks
                     Writer.Write(Session.Player.Focus.StartingValue);
                     Writer.Write(Session.Player.Focus.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & Ability.Self) != 0)
+                if ((attributeFlags & AttributeCache.Self) != 0)
                 {
                     Writer.Write(Session.Player.Self.Ranks); // ranks
                     Writer.Write(Session.Player.Self.StartingValue);
                     Writer.Write(Session.Player.Self.ExperienceSpent); // xp spent
                 }
 
-                if ((attributeFlags & Ability.Health) != 0)
+                if ((attributeFlags & AttributeCache.Health) != 0)
                 {
                     Writer.Write(Session.Player.Health.Ranks); // ranks
-                    Writer.Write(0u); // init_level - always appears to be 0
+                    Writer.Write(Session.Player.Health.StartingValue); // init_level - always appears to be 0
                     Writer.Write(Session.Player.Health.ExperienceSpent); // xp spent
                     Writer.Write(Session.Player.Health.Current); // current value
                 }
 
-                if ((attributeFlags & Ability.Stamina) != 0)
+                if ((attributeFlags & AttributeCache.Stamina) != 0)
                 {
                     Writer.Write(Session.Player.Stamina.Ranks); // ranks
-                    Writer.Write(0u); // init_level - always appears to be 0
+                    Writer.Write(Session.Player.Stamina.StartingValue); // init_level - always appears to be 0
                     Writer.Write(Session.Player.Stamina.ExperienceSpent); // xp spent
                     Writer.Write(Session.Player.Stamina.Current); // current value
                 }
 
-                if ((attributeFlags & Ability.Mana) != 0)
+                if ((attributeFlags & AttributeCache.Mana) != 0)
                 {
                     Writer.Write(Session.Player.Mana.Ranks); // ranks
-                    Writer.Write(0u); // init_level - always appears to be 0
+                    Writer.Write(Session.Player.Mana.StartingValue); // init_level - always appears to be 0
                     Writer.Write(Session.Player.Mana.ExperienceSpent); // xp spent
                     Writer.Write(Session.Player.Mana.Current); // current value
                 }

@@ -51,8 +51,8 @@ namespace ACE.Server.WorldObjects
                 writer.Write(creature.Coordination.Base);
                 writer.Write(creature.Focus.Base);
                 writer.Write(creature.Self.Base);
-                writer.Write(creature.Stamina.Base);
-                writer.Write(creature.Mana.Base);
+                writer.Write(creature.Stamina.Current);
+                writer.Write(creature.Mana.Current);
                 writer.Write(creature.Stamina.MaxValue);
                 writer.Write(creature.Mana.MaxValue);
                 // this only gets sent if the header can be masked with 1
