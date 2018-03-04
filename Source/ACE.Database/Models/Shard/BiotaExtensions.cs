@@ -13,14 +13,14 @@ namespace ACE.Database.Models.Shard
             return biota.BiotaPropertiesAnimPart.FirstOrDefault(x => x.Index == index)?.AnimationId;
         }
 
-        public static BiotaPropertiesAttribute GetAttribute(this Biota biota, Ability ability)
+        public static BiotaPropertiesAttribute GetAttribute(this Biota biota, PropertyAttribute attribute)
         {
-            return biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)ability);
+            return biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)attribute);
         }
 
-        public static BiotaPropertiesAttribute2nd GetAttribute2nd(this Biota biota, Ability ability)
+        public static BiotaPropertiesAttribute2nd GetAttribute2nd(this Biota biota, PropertyAttribute2nd attribute)
         {
-            return biota.BiotaPropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)ability);
+            return biota.BiotaPropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)attribute);
         }
 
         public static BiotaPropertiesBodyPart GetBodyPart(this Biota biota, ushort key)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
@@ -10,11 +11,11 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public readonly Dictionary<Ability, CreatureVital> Vitals = new Dictionary<Ability, CreatureVital>();
+        public readonly Dictionary<PropertyAttribute2nd, CreatureVital> Vitals = new Dictionary<PropertyAttribute2nd, CreatureVital>();
 
-        public CreatureVital Health => Vitals[Ability.Health];
-        public CreatureVital Stamina => Vitals[Ability.Stamina];
-        public CreatureVital Mana => Vitals[Ability.Mana];
+        public CreatureVital Health => Vitals[PropertyAttribute2nd.MaxHealth];
+        public CreatureVital Stamina => Vitals[PropertyAttribute2nd.MaxStamina];
+        public CreatureVital Mana => Vitals[PropertyAttribute2nd.MaxMana];
 
 
         public void DeltaVital(CreatureVital vital, long delta)

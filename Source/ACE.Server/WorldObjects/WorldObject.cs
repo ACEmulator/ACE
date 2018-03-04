@@ -85,6 +85,12 @@ namespace ACE.Server.WorldObjects
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
 
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeStrength, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeEndurance, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeQuickness, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeCoordination, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeFocus, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeSelf, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));

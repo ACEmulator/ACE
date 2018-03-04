@@ -216,111 +216,111 @@ namespace ACE.Server.Managers
             chain.AddAction(player, () => player.HandleActionMotion(motion));
             chain.AddDelaySeconds(0.5);
 
-            chain.AddAction(player, () =>
-            {
-                // TODO: revalidate range if other player (they could have moved)
+            //chain.AddAction(player, () =>
+            //{
+            //    // TODO: revalidate range if other player (they could have moved)
 
-                double difficulty = 2 * (targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current);
+            //    double difficulty = 2 * (targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current);
 
-                if (difficulty <= 0)
-                {
-                    // target is at max (or higher?) health, do nothing
-                    var text = "You are already at full health.";
+            //    if (difficulty <= 0)
+            //    {
+            //        // target is at max (or higher?) health, do nothing
+            //        var text = "You are already at full health.";
 
-                    if (target.Guid != player.Guid)
-                        text = $"{target.Name} is already at full health";
+            //        if (target.Guid != player.Guid)
+            //            text = $"{target.Name} is already at full health";
                     
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Craft));
-                    player.SendUseDoneEvent();
-                    return;
-                }
+            //        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Craft));
+            //        player.SendUseDoneEvent();
+            //        return;
+            //    }
 
-                if (player.CombatMode != CombatMode.NonCombat && player.CombatMode != CombatMode.Undef)
-                    difficulty *= 1.1;
+            //    if (player.CombatMode != CombatMode.NonCombat && player.CombatMode != CombatMode.Undef)
+            //        difficulty *= 1.1;
                 
-                int boost = source.Boost ?? 0;
-                double multiplier = source.HealkitMod ?? 1;
+            //    int boost = source.Boost ?? 0;
+            //    double multiplier = source.HealkitMod ?? 1;
 
-                double playerSkill = skill.Current + boost;
-                if (skill.Status == SkillStatus.Trained)
-                    playerSkill *= 1.1;
-                else if (skill.Status == SkillStatus.Specialized)
-                    playerSkill *= 1.5;
+            //    double playerSkill = skill.Current + boost;
+            //    if (skill.Status == SkillStatus.Trained)
+            //        playerSkill *= 1.1;
+            //    else if (skill.Status == SkillStatus.Specialized)
+            //        playerSkill *= 1.5;
 
-                // usage is inevitable at this point, consume the use
-                if ((recipe.ResultFlags & (uint)RecipeResult.SourceItemUsesDecrement) > 0)
-                {
-                    if (source.Structure <= 1)
-                        player.DestroyInventoryItem(source);
-                    else
-                    {
-                        source.Structure--;
-                        source.SendPartialUpdates(player.Session, _updateStructure);
-                    }
-                }
+            //    // usage is inevitable at this point, consume the use
+            //    if ((recipe.ResultFlags & (uint)RecipeResult.SourceItemUsesDecrement) > 0)
+            //    {
+            //        if (source.Structure <= 1)
+            //            player.DestroyInventoryItem(source);
+            //        else
+            //        {
+            //            source.Structure--;
+            //            source.SendPartialUpdates(player.Session, _updateStructure);
+            //        }
+            //    }
 
-                double percentSuccess = CreatureSkill.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
+            //    double percentSuccess = CreatureSkill.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
 
-                if (_random.NextDouble() <= percentSuccess)
-                {
-                    string expertly = "";
+            //    if (_random.NextDouble() <= percentSuccess)
+            //    {
+            //        string expertly = "";
 
-                    if (_random.NextDouble() < 0.1d)
-                    {
-                        expertly = "expertly ";
-                        multiplier *= 1.2;
-                    }
+            //        if (_random.NextDouble() < 0.1d)
+            //        {
+            //            expertly = "expertly ";
+            //            multiplier *= 1.2;
+            //        }
 
-                    // calculate amount restored
-                    uint maxRestore = targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current;
+            //        // calculate amount restored
+            //        uint maxRestore = targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current;
 
-                    // TODO: get actual forumula for healing.  this is COMPLETELY wrong.  this is 60 + random(1-60).
-                    double amountRestored = 60d + _random.Next(1, 61);
-                    amountRestored *= multiplier;
+            //        // TODO: get actual forumula for healing.  this is COMPLETELY wrong.  this is 60 + random(1-60).
+            //        double amountRestored = 60d + _random.Next(1, 61);
+            //        amountRestored *= multiplier;
 
-                    uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
-                    targetPlayer.Vitals[vital].Current += actualRestored;
+            //        uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
+            //        targetPlayer.Vitals[vital].Current += actualRestored;
                     
-                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
-                    player.Session.Network.EnqueueSend(updateVital);
+            //        var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+            //        player.Session.Network.EnqueueSend(updateVital);
 
-                    if (targetPlayer.Guid != player.Guid)
-                    {
-                        // tell the other player they got healed
-                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
-                        targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
-                    }
+            //        if (targetPlayer.Guid != player.Guid)
+            //        {
+            //            // tell the other player they got healed
+            //            var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+            //            targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
+            //        }
 
-                    string name = "yourself";
-                    if (targetPlayer.Guid != player.Guid)
-                        name = targetPlayer.Name;
+            //        string name = "yourself";
+            //        if (targetPlayer.Guid != player.Guid)
+            //            name = targetPlayer.Name;
 
-                    string vitalName = "Health";
+            //        string vitalName = "Health";
 
-                    if (vital == Ability.Stamina)
-                        vitalName = "Stamina";
-                    else if (vital == Ability.Mana)
-                        vitalName = "Mana";
+            //        if (vital == Ability.Stamina)
+            //            vitalName = "Stamina";
+            //        else if (vital == Ability.Mana)
+            //            vitalName = "Mana";
 
-                    string uses = source.Structure == 1 ? "use" : "uses";
+            //        string uses = source.Structure == 1 ? "use" : "uses";
 
-                    var text = string.Format(recipe.SuccessMessage, expertly, name, actualRestored, vitalName, source.Name, source.Structure, uses);
-                    var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
-                    player.Session.Network.EnqueueSend(message);
+            //        var text = string.Format(recipe.SuccessMessage, expertly, name, actualRestored, vitalName, source.Name, source.Structure, uses);
+            //        var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
+            //        player.Session.Network.EnqueueSend(message);
                     
-                    if (targetPlayer.Guid != player.Guid)
-                    {
-                        // send text to the other player too
-                        text = string.Format(recipe.AlternateMessage, player.Name, expertly, actualRestored, vitalName);
-                        message = new GameMessageSystemChat(text, ChatMessageType.Craft);
-                        targetPlayer.Session.Network.EnqueueSend(message);
-                    }
-                }
+            //        if (targetPlayer.Guid != player.Guid)
+            //        {
+            //            // send text to the other player too
+            //            text = string.Format(recipe.AlternateMessage, player.Name, expertly, actualRestored, vitalName);
+            //            message = new GameMessageSystemChat(text, ChatMessageType.Craft);
+            //            targetPlayer.Session.Network.EnqueueSend(message);
+            //        }
+            //    }
 
-                player.SendUseDoneEvent();
-            });
+            //    player.SendUseDoneEvent();
+            //});
 
-            chain.EnqueueChain();
+            //chain.EnqueueChain();
         }
     }
 }

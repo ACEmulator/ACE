@@ -2,6 +2,7 @@ using System;
 
 using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
@@ -11,15 +12,15 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void RaiseVitalGameAction(Ability ability, uint amount)
+        public void RaiseVitalGameAction(PropertyAttribute2nd attribute, uint amount)
         {
-            var creatureVital = new CreatureVital(this, ability);
+            var creatureVital = new CreatureVital(this, attribute);
 
             uint result = SpendVitalXp(creatureVital, amount);
 
             if (result > 0u)
             {
-                GameMessage abilityUpdate = new GameMessagePrivateUpdateVital(Session, ability, creatureVital.Ranks, creatureVital.StartingValue, result, creatureVital.Current);
+                GameMessage abilityUpdate = new GameMessagePrivateUpdateVital(Session, attribute, creatureVital.Ranks, creatureVital.StartingValue, result, creatureVital.Current);
 
                 // checks if max rank is achieved and plays fireworks w/ special text
                 string messageText;
@@ -28,11 +29,11 @@ namespace ACE.Server.WorldObjects
                 {
                     // fireworks
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {ability} is now {creatureVital.Base} and has reached its upper limit!";
+                    messageText = $"Your base {attribute} is now {creatureVital.Base} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {ability} is now {creatureVital.Base}!";
+                    messageText = $"Your base {attribute} is now {creatureVital.Base}!";
                 }
 
                 var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
@@ -40,24 +41,24 @@ namespace ACE.Server.WorldObjects
 
                 // This seems to be needed to keep health up to date properly.
                 // Needed when increasing health and endurance.
-                if (ability == Ability.Endurance)
-                {
-                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
-                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
-                }
-                else if (ability == Ability.Self)
-                {
-                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
-                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
-                }
-                else
-                {
+                //if (attribute == PropertyAttribute2nd.Endurance)
+                //{
+                //    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
+                //    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
+                //}
+                //else if (attribute == PropertyAttribute2nd.Self)
+                //{
+                //    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
+                //    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
+                //}
+                //else
+                //{
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
-                }
+                //}
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {ability} has failed.", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {attribute} has failed.", ChatMessageType.Broadcast);
             }
         }
 
