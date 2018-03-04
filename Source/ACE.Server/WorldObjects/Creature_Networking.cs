@@ -142,8 +142,7 @@ namespace ACE.Server.WorldObjects
                                 {
                                     uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                                     uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                    if (PaletteTemplate.HasValue || Shade.HasValue)
-                                        objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                                    objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
                                     //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
                                 }
                             }
