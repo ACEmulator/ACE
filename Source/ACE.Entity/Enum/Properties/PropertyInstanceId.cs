@@ -18,13 +18,20 @@ namespace ACE.Entity.Enum.Properties
         Viewer                           = 5,
         Generator                        = 6,
         Scribe                           = 7,
+        [Ephemeral]
         CurrentCombatTarget              = 8,
+        [Ephemeral]
         CurrentEnemy                     = 9,
         ProjectileLauncher               = 10,
+        [Ephemeral]
         CurrentAttacker                  = 11,
+        [Ephemeral]
         CurrentDamager                   = 12,
+        [Ephemeral]
         CurrentFollowTarget              = 13,
+        [Ephemeral]
         CurrentAppraisalTarget           = 14,
+        [Ephemeral]
         CurrentFellowshipAppraisalTarget = 15,
         ActivationTarget                 = 16,
         Creator                          = 17,
@@ -39,7 +46,9 @@ namespace ACE.Entity.Enum.Properties
         [LoginOnly]
         Patron                           = 25,
         Monarch                          = 26,
+        [Ephemeral]
         CombatTarget                     = 27,
+        [Ephemeral]
         HealthQueryTarget                = 28,
         LastUnlocker                     = 29,
         CrashAndTurnTarget               = 30,
@@ -47,8 +56,10 @@ namespace ACE.Entity.Enum.Properties
         HouseOwner                       = 32,
         House                            = 33,
         Slumlord                         = 34,
+        [Ephemeral]
         ManaQueryTarget                  = 35,
         CurrentGame                      = 36,
+        [Ephemeral]
         RequestedAppraisalTarget         = 37,
         AllowedWielder                   = 38,
         AssignedTarget                   = 39,

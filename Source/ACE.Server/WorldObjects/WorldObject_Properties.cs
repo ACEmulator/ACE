@@ -1948,5 +1948,72 @@ namespace ACE.Server.WorldObjects
             get { return GetPosition(PositionType.TeleportedCharacter); }
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
+
+
+        public int? CurrentCombatTarget
+        {
+            get => GetProperty(PropertyInstanceId.CurrentCombatTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentCombatTarget); else SetProperty(PropertyInstanceId.CurrentCombatTarget, value.Value); }
+        }
+
+        public int? CurrentEnemy
+        {
+            get => GetProperty(PropertyInstanceId.CurrentEnemy);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentEnemy); else SetProperty(PropertyInstanceId.CurrentEnemy, value.Value); }
+        }
+
+        public int? CurrentAttacker
+        {
+            get => GetProperty(PropertyInstanceId.CurrentAttacker);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAttacker); else SetProperty(PropertyInstanceId.CurrentAttacker, value.Value); }
+        }
+
+        public int? CurrentDamager
+        {
+            get => GetProperty(PropertyInstanceId.CurrentDamager);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentDamager); else SetProperty(PropertyInstanceId.CurrentDamager, value.Value); }
+        }
+
+        public int? CurrentFollowTarget
+        {
+            get => GetProperty(PropertyInstanceId.CurrentFollowTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentFollowTarget); else SetProperty(PropertyInstanceId.CurrentFollowTarget, value.Value); }
+        }
+
+        public int? CurrentAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
+        }
+
+        public int? CurrentFellowshipAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.CurrentFellowshipAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentFellowshipAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentFellowshipAppraisalTarget, value.Value); }
+        }
+
+        public int? CombatTarget
+        {
+            get => GetProperty(PropertyInstanceId.CombatTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CombatTarget); else SetProperty(PropertyInstanceId.CombatTarget, value.Value); }
+        }
+
+        public int? HealthQueryTarget
+        {
+            get => GetProperty(PropertyInstanceId.HealthQueryTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HealthQueryTarget); else SetProperty(PropertyInstanceId.HealthQueryTarget, value.Value); }
+        }
+
+        public int? ManaQueryTarget
+        {
+            get => GetProperty(PropertyInstanceId.ManaQueryTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.ManaQueryTarget); else SetProperty(PropertyInstanceId.ManaQueryTarget, value.Value); }
+        }
+
+        public int? RequestedAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
+        }
     }
 }
