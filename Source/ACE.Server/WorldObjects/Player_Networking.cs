@@ -183,7 +183,7 @@ namespace ACE.Server.WorldObjects
 
         private void ExternalUpdatePosition(Position newPosition)
         {
-            if (InWorld)
+            //if (InWorld)
                 PrepUpdatePosition(newPosition);
         }
     }
