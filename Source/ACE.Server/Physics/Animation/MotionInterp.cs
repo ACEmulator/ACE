@@ -16,11 +16,11 @@ namespace ACE.Server.Physics.Animation
 
     public class MotionInterp
     {
-        public bool Initted;                // 0
-        public WeenieObject WeenieObj;      // 4
-        public PhysicsObj PhysicsObj;       // 8
-        public RawMotionState RawState;     // 12
-        public InterpretedMotionState InterpretedState;     // 68
+        public bool Initted;
+        public WeenieObject WeenieObj;
+        public PhysicsObj PhysicsObj;
+        public RawMotionState RawState;
+        public InterpretedMotionState InterpretedState;
         public float CurrentSpeedFactor;
         public bool StandingLongJump;
         public float JumpExtent;

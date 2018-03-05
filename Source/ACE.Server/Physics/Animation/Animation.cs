@@ -1,10 +1,12 @@
+using System.Collections.Generic;
+
 namespace ACE.Server.Physics.Animation
 {
     public class Animation
     {
-        public AFrame PosFrames;
-        public AnimFrame PartFrames;
-        public int HasHooks;
+        public List<AFrame> PosFrames;
+        public List<AnimFrame> PartFrames;
+        public bool HasHooks;
         public int NumParts;
         public int NumFrames;
     }

@@ -590,7 +590,7 @@ namespace ACE.Server.Physics
             if (curFrame == null) return;
             var numParts = Math.Min(curFrame.NumParts, NumParts);
             for (var i = 0; i < numParts; i++)
-                Parts[i].Pos.Frame.Combine(frame, curFrame.Frame[i], Scale);
+                Parts[i].Pos.Frame = AFrame.Combine(frame, curFrame.Frame[i], Scale);
         }
 
  

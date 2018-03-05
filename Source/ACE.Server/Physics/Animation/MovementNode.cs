@@ -7,12 +7,7 @@ namespace ACE.Server.Physics.Animation
 
         public MovementNode() { }
 
-        public MovementNode(MovementType type)
-        {
-            Type = type;
-        }
-
-        public MovementNode(MovementType type, float heading)
+        public MovementNode(MovementType type, float heading = 0.0f)
         {
             Type = type;
             Heading = heading;

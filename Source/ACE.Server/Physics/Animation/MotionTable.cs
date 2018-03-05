@@ -1,7 +1,7 @@
-using ACE.Server.Physics.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -184,22 +184,19 @@ namespace ACE.Server.Physics.Animation
                         if (motionData != null)
                         {
                             link = get_link(currState.Style, substate, 1.0f, motion, speedMod);
-                            if (link != null)
+                            if (link != null && Cycles.TryGetValue(cycleKey, out cycles))
                             {
-                                if (Cycles.TryGetValue(cycleKey, out cycles))
-                                {
-                                    motionData_ = get_link(currState.Style, substate, 1.0f, currState.Substate, currState.SubstateMod);
-                                    currState.add_action(motion, speedMod);
-                                    sequence.clear_physics();
-                                    sequence.remove_cyclic_anims();
-                                    add_motion(sequence, motionData, 1.0f);
-                                    add_motion(sequence, link, speedMod);
-                                    add_motion(sequence, motionData_, 1.0f);
-                                    add_motion(sequence, cycles, currState.SubstateMod);
-                                    re_modify(sequence, currState);
-                                    numAnims = motionData.NumAnims + link.NumAnims + (motionData_ == null ? 0 : motionData.NumAnims);
-                                    return true;
-                                }
+                                motionData_ = get_link(currState.Style, substate, 1.0f, currState.Substate, currState.SubstateMod);
+                                currState.add_action(motion, speedMod);
+                                sequence.clear_physics();
+                                sequence.remove_cyclic_anims();
+                                add_motion(sequence, motionData, 1.0f);
+                                add_motion(sequence, link, speedMod);
+                                add_motion(sequence, motionData_, 1.0f);
+                                add_motion(sequence, cycles, currState.SubstateMod);
+                                re_modify(sequence, currState);
+                                numAnims = motionData.NumAnims + link.NumAnims + (motionData_ == null ? 0 : motionData.NumAnims);
+                                return true;
                             }
                         }
                     }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ACE.Server.Physics.Animation
 {
     public class AnimHook
@@ -10,9 +12,9 @@ namespace ACE.Server.Physics.Animation
             return false;
         }
 
-        public void add_to_list(AnimHook start)
+        public void add_to_list(List<AnimHook> animList)
         {
-
+            animList.Add(NextHook);
         }
     }
 }

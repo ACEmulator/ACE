@@ -13,10 +13,7 @@ namespace ACE.Server.Physics.Animation
         public float Height;
         public MovementParameters Params;
 
-        public MovementStruct()
-        {
-
-        }
+        public MovementStruct() { }
 
         public MovementStruct(MovementType type)
         {
