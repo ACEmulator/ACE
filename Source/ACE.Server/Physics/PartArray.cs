@@ -123,7 +123,7 @@ namespace ACE.Server.Physics
         public Sequence DoInterpretedMotion(int motion, MovementParameters movementParameters)
         {
             if (MotionTableManager == null)
-                return null;    // 7?
+                return new Sequence(7);
 
             var mvs = new MovementStruct(MovementType.InterpretedCommand, motion, movementParameters);
             return MotionTableManager.PerformMovement(mvs, Sequence);
@@ -565,14 +565,14 @@ namespace ACE.Server.Physics
 
         public Sequence StopCompletelyInternal()
         {
-            if (MotionTableManager == null) return null;    // 7?
+            if (MotionTableManager == null) return new Sequence(7);
             var mvs = new MovementStruct(MovementType.StopCompletely);
             return MotionTableManager.PerformMovement(mvs, Sequence);
         }
 
         public Sequence StopInterpretedMotion(int motion, MovementParameters movementParameters)
         {
-            if (MotionTableManager == null) return null;    // 7?
+            if (MotionTableManager == null) return new Sequence(7);
             var mvs = new MovementStruct(MovementType.StopInterpretedCommand);
             mvs.Motion = motion;
             mvs.Params = movementParameters;
@@ -581,7 +581,7 @@ namespace ACE.Server.Physics
 
         public void Update(double quantum, AFrame offsetFrame)
         {
-            Sequence.Update(quantum, offsetFrame);
+            Sequence.Update((float)quantum, offsetFrame);
         }
 
         public void UpdateParts(AFrame frame)

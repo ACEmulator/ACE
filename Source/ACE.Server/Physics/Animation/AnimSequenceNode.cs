@@ -27,12 +27,12 @@ namespace ACE.Server.Physics.Animation
             set_animation_id(animData.AnimId);
         }
 
-        public Animation GetNext()
+        public AnimSequenceNode GetNext()
         {
             return null;
         }
 
-        public Animation GetPev()
+        public AnimSequenceNode GetPev()
         {
             return null;
         }
@@ -86,7 +86,7 @@ namespace ACE.Server.Physics.Animation
                 return HighFrame + 1 - PhysicsGlobals.EPSILON;
         }
 
-        public bool has_anim(int appraisalProfile)
+        public bool has_anim(int appraisalProfile = 0)
         {
             return Anim != null;
         }

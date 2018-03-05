@@ -148,10 +148,8 @@ namespace ACE.Server.Physics.Animation
                     {
                         collision.SetCollisionNormal(contactPlane.Normal);
                         collision.CollidedWithEnvironment = true;
-                        return TransitionState.Adjusted;
                     }
-                    else
-                        return TransitionState.Adjusted;
+                    return TransitionState.Adjusted;
                 }
             }
         }

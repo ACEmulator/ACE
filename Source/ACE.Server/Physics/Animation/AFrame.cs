@@ -3,7 +3,7 @@ using System.Numerics;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
-{ 
+{
     public class AFrame
     {
         public Vector3 Origin;
@@ -101,12 +101,10 @@ namespace ACE.Server.Physics.Animation
             Orientation = Quaternion.Multiply(rotation, Orientation);
         }
 
-        public static AFrame Subtract(AFrame a, AFrame b)
+        public void Subtract(AFrame frame)
         {
-            var frame = new AFrame();
-            frame.Origin = a.Origin - Vector3.Transform(b.Origin, a.Orientation);
-            frame.Orientation = Quaternion.Multiply(a.Orientation, b.Orientation);
-            return frame;
+            Origin -= Vector3.Transform(frame.Origin, frame.Orientation);
+            Orientation = Quaternion.Multiply(Orientation, frame.Orientation);
         }
 
         public bool close_rotation(AFrame a, AFrame b)

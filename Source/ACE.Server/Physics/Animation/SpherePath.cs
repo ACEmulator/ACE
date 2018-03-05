@@ -142,16 +142,41 @@ namespace ACE.Server.Physics.Animation
 
         public void CacheGlobalCurrCenter()
         {
+            for (var i = 0; i < NumSphere; i++)
+                GlobalCurrCenter[i].Center = CurPos.LocalToGlobal(LocalSphere[i].Center);
         }
 
         public void CacheGlobalSphere(Vector3 offset)
         {
+            if (offset != Vector3.Zero)
+            {
+                foreach (var globSphere in GlobalSphere)
+                    globSphere.Center += offset;
 
+                GlobalLowPoint += offset;
+            }
+            else
+            {
+                for (var i = 0; i < NumSphere; i++)
+                {
+                    GlobalSphere[i].Radius = LocalSphere[i].Radius;
+                    GlobalSphere[i].Center = CheckPos.LocalToGlobal(LocalSphere[i].Center);
+                }
+                GlobalLowPoint = CheckPos.LocalToGlobal(LocalLowPoint);
+            }
         }
 
         public void CacheLocalSpaceSphere(Position pos, float scaleZ)
         {
+            var invScale = 1.0f / scaleZ;
 
+            for (var i = 0; i < NumSphere; i++)
+            {
+                LocalSpaceCurrCenter[i].Center = pos.LocalToLocal(CurPos, LocalSphere[i].Center) * invScale;
+
+                LocalSpaceSphere[i].Radius = LocalSphere[i].Radius * invScale;
+                LocalSpaceSphere[i].Center = pos.LocalToLocal(CheckPos, LocalSphere[i].Center) * invScale;
+            }
         }
 
         public bool CheckWalkables()
