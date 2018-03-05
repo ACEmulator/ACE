@@ -453,13 +453,13 @@ namespace ACE.Server.Physics
             return (Position.ObjCellID & 0xFFFF) < 0x100 ? 5.0f : 10.0f;
         }
 
-        public double GetStepDownHeight()
+        public float GetStepDownHeight()
         {
             if (PartArray == null) return 0;
             return PartArray.GetStepDownHeight();
         }
 
-        public double GetStepUpHeight()
+        public float GetStepUpHeight()
         {
             if (PartArray == null) return 0;
             return PartArray.GetStepUpHeight();
@@ -2049,7 +2049,7 @@ namespace ACE.Server.Physics
             return CachedVelocity;
         }
 
-        public double get_walkable_z()
+        public float get_walkable_z()
         {
             return PhysicsGlobals.FloorZ;
         }
