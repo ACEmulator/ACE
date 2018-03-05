@@ -42,5 +42,10 @@ namespace ACE.Server.Physics.Animation
         {
             return -1;
         }
+
+        public void towards_and_away(float currDistance, float currHeading, int command, bool movingAway)
+        {
+
+        }
     }
 }

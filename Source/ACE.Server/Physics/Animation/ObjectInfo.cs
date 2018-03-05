@@ -56,5 +56,9 @@ namespace ACE.Server.Physics.Animation
         {
 
         }
+        public TransitionState ValidateWalkable(Sphere checkPos, Plane contactPlane, bool isWater, float waterDepth, Transition transition, int landCellID)
+        {
+            return TransitionState.OK;
+        }
     }
 }

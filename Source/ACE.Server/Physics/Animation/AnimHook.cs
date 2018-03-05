@@ -9,5 +9,10 @@ namespace ACE.Server.Physics.Animation
         {
             return false;
         }
+
+        public void add_to_list(AnimHook start)
+        {
+
+        }
     }
 }
