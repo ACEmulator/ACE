@@ -329,7 +329,7 @@ namespace ACE.Server.Entity
             {
                 wo = worldObjects[objectId];
 
-                if (!(wo is Creature))
+                //if (!(wo is Creature))
                     worldObjects.Remove(objectId);
             }
 
