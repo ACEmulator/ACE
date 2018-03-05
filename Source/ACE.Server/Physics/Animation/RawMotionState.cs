@@ -23,6 +23,11 @@ namespace ACE.Server.Physics.Animation
             SideStepSpeed = 1.0f;
         }
 
+        public void AddAction(int action, float speed, int stamp, bool autonomous)
+        {
+
+        }
+
         public void ApplyMotion(int motion, MovementParameters movementParams)
         {
 

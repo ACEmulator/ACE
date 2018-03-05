@@ -1790,7 +1790,7 @@ namespace ACE.Server.Physics
         public void clear_sequence_anims()
         {
             if (PartArray != null)
-                PartArray.Sequence.ClearAnimations();
+                PartArray.Sequence.clear_animations();
         }
 
         public void clear_target()
@@ -3017,9 +3017,9 @@ namespace ACE.Server.Physics
             if (PartArray == null) return;
 
             if (interrupt)
-                PartArray.Sequence.ClearAnimations();
+                PartArray.Sequence.clear_animations();
 
-            PartArray.Sequence.AppendAnimation(new AnimData(animID, startFrame, 0, framerate));
+            PartArray.Sequence.append_animation(new AnimData(animID, startFrame, 0, framerate));
         }
 
         public bool set_state(PhysicsState newState, bool sendEvent)

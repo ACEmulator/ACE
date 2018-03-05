@@ -18,10 +18,7 @@ namespace ACE.Server.Physics.Animation
         public int PlacementFrameId;
         public int IsTrivial;
 
-        public Sequence()
-        {
-
-        }
+        public Sequence() { }
 
         public Sequence(bool id)
         {
@@ -43,12 +40,12 @@ namespace ACE.Server.Physics.Animation
 
         }
 
-        public void AppendAnimation(AnimData animData)
+        public void Clear()
         {
 
         }
 
-        public void ClearAnimations()
+        public void CombinePhysics(Vector3 v, Vector3 o)
         {
 
         }
@@ -73,12 +70,86 @@ namespace ACE.Server.Physics.Animation
 
         }
 
+        public void SetOmega(Vector3 o)
+        {
+
+        }
+
         public void SetPlacementFrame(AnimFrame frame, int id)
         {
 
         }
 
+        public void SetVelocity(Vector3 v)
+        {
+
+        }
+
         public void Update(double quantum, AFrame offsetFrame)
+        {
+
+        }
+
+        public void advance_to_next_animation(double quantum, AnimSequenceNode currAnim, double frameNum, Frame retval)
+        {
+
+        }
+
+        public void append_animation(AnimData animData)
+        {
+
+        }
+
+        public void apply_physics(Frame frame, double quantum, double sign)
+        {
+
+        }
+
+        public void apricot()
+        {
+
+        }
+
+        public void clear_animations()
+        {
+
+        }
+
+        public void clear_physics()
+        {
+
+        }
+
+        public void execute_hooks(AnimFrame animFrame, int dir)
+        {
+
+        }
+
+        public void multiply_cyclic_animation_framerate(float multipler)
+        {
+
+        }
+
+        public void remove_all_link_animations()
+        {
+
+        }
+
+        public void remove_cyclic_anims()
+        {
+
+        }
+
+        public void remove_link_animations(int n)
+        {
+
+        }
+
+        public void subtract_physics(Vector3 velocity, Vector3 omega)
+        {
+        }
+
+        public void update_internal(double quantum, AnimSequenceNode currAnim, double frameNum, Frame retVal)
         {
 
         }

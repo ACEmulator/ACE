@@ -244,7 +244,7 @@ namespace ACE.Server.Physics
         public void HandleEnterWorld()
         {
             if (MotionTableManager != null)
-                MotionTableManager.HandleEnterWorld();
+                MotionTableManager.HandleEnterWorld(Sequence);
         }
 
         public void HandleExitWorld()
@@ -268,12 +268,12 @@ namespace ACE.Server.Physics
         {
             if (Setup.DefaultAnimID != 0)
             {
-                Sequence.ClearAnimations();
+                Sequence.clear_animations();
                 var animData = new AnimData();
                 animData.AnimId = Setup.DefaultAnimID;
                 animData.LowFrame = 0;
                 animData.HighFrame = Int32.MaxValue;
-                Sequence.AppendAnimation(animData);
+                Sequence.append_animation(animData);
                 WeenieDesc.Destroy(animData);
             }
 
@@ -284,7 +284,7 @@ namespace ACE.Server.Physics
         public void InitializeMotionTables()
         {
             if (MotionTableManager != null)
-                MotionTableManager.InitializeState(Sequence);
+                MotionTableManager.initialize_state(Sequence);
         }
 
         public void InitLights()
