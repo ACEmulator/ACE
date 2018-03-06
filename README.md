@@ -22,6 +22,8 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 ## Getting Started
 
 **For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
+* Install Visual Studio 2017
+  - [Visual Studio minimum required version - VS Community 2017 15.6.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
 * Install MySQL
   - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
   - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
@@ -50,12 +52,11 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 ## Bug Reports
 
 * Please use the [issue tracker](https://github.com/ACEmulator/ACE/issues) provided by GitHub to send us bug reports.
-* You may also submit bug reports to the [ACEmu Forums](http://acemulator.org/forums).
+* You may also discuss issues and bug reports on our discord listed below.
 
 ## Contact
 
-- [Discord Channel](https://discord.gg/mVtGhSv) (best option)
-- [ACEmulator Forums](http://acemulator.org/forums)
+- [Discord Channel](https://discord.gg/mVtGhSv)
 
 ## FAQ
 
