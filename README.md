@@ -10,7 +10,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 ***
 ## Disclaimer
 **This project is for educational and non-commerical purposes only, use of the game client is for interoperability with the emulated server.**
-- Asheron's Call is a registered trademark of Turbine, Inc. and WB Games Inc.
+- Asheron's Call was a registered trademark of Turbine, Inc. and WB Games Inc which has since expired.
 - ACEmulator is not associated or affiliated in any way with Turbine, Inc. or WB Games Inc.
 ***
 ## Recommended Tools
@@ -22,6 +22,8 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 ## Getting Started
 
 **For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
+* Install Visual Studio 2017
+  - [Visual Studio minimum required version - VS Community 2017 15.6.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
 * Install MySQL
   - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
   - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
@@ -32,7 +34,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
 * Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release](https://github.com/ACEmulator/ACE-World-16PY/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE-World-16PY minimum required version - 0.0.3+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
+  - [ACE-World-16PY minimum required version - 0.0.5+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Build and run ACE.
@@ -50,12 +52,11 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 ## Bug Reports
 
 * Please use the [issue tracker](https://github.com/ACEmulator/ACE/issues) provided by GitHub to send us bug reports.
-* You may also submit bug reports to the [ACEmu Forums](http://acemulator.org/forums).
+* You may also discuss issues and bug reports on our discord listed below.
 
 ## Contact
 
-- [Discord Channel](https://discord.gg/mVtGhSv) (best option)
-- [ACEmulator Forums](http://acemulator.org/forums)
+- [Discord Channel](https://discord.gg/mVtGhSv)
 
 ## FAQ
 
@@ -78,11 +79,10 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 * _Problem_
 > When you first load the solution and try to "run" the server, you may get a popup that says "A project with Output Type of Class Library cannot be started directly."
 * _Solution_
-> 1) Right click the Solution in Visual Studio ("Solution 'ACE' (9 projects)"), and select "Set StartUp Projects".
-> 2) The following projects should have "Start" in the "Action" column: ACE.
+> 1) Right click the Solution in Visual Studio ("Solution 'ACE' (8 projects)"), and select "Set StartUp Projects".
+> 2) Click on the circle next to Single startup project and in the dropdown select: ACE.Server.
 
 ## Other Resources
-* [ACEmulator Protocol documentation](http://acemulator.org/ProtocolViewer/Protocol.php) (Out of date currently)
-* [Zegeger Protocol documentation](http://ac.zegeger.net/protocol/) (Recommended)
+* [ACEmulator Protocol documentation](https://acemulator.github.io/protocol/) (Recommended)
 * [Skunkworks Protocol documentation](http://skunkworks.sourceforge.net/protocol/Protocol.php) (outdated)
 * [Virindi Protocol XML documentation](http://www.virindi.net/junk/messages_annotated_final.xml)

@@ -4,7 +4,8 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ACE.Entity;
+using ACE.Database.Entity;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 
 namespace ACE.Database
@@ -64,93 +65,23 @@ namespace ACE.Database
             }
         }
 
-        public void AddFriend(uint characterId, uint friendCharacterId, Action callback)
+
+        public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>
             {
-                _wrappedDatabase.AddFriend(characterId, friendCharacterId);
-                if (callback != null)
-                    callback.Invoke();
+                var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
+                callback?.Invoke(result);
             }));
         }
 
-        public void DeleteFriend(uint characterId, uint friendCharacterId, Action callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.DeleteFriend(characterId, friendCharacterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
-        }
 
-        public void DeleteOrRestore(ulong unixTime, uint id, Action<bool> callback)
+        public void GetCharacters(uint accountId, Action<List<Character>> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.DeleteOrRestore(unixTime, id);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void DeleteCharacter(uint id, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.DeleteCharacter(id);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetCharacter(uint id, Action<AceCharacter> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetCharacter(id);
-                if (callback != null)
-                    callback.Invoke(c);
-            }));
-        }
-
-        public void GetCharacters(uint subscriptionId, Action<List<CachedCharacter>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetCharacters(subscriptionId);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetObject(uint aceObjectId, Action<AceObject> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetObject(aceObjectId);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetObjectInfoByName(string name, Action<ObjectInfo> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetObjectInfoByName(name);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetObjectsByLandblock(ushort landblock, Action<List<AceObject>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetObjectsByLandblock(landblock);
-                if (callback != null)
-                    callback.Invoke(result);
+                var result = _wrappedDatabase.GetCharacters(accountId);
+                callback?.Invoke(result);
             }));
         }
 
@@ -159,79 +90,205 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.IsCharacterNameAvailable(name);
-                if (callback != null)
-                    callback.Invoke(result);
+                callback?.Invoke(result);
             }));
+        }
+
+        public bool IsCharacterPlussed(uint biotaId)
+        {
+            return _wrappedDatabase.IsCharacterPlussed(biotaId);
+        }
+
+        /// <summary>
+        /// Inventory should include all wielded items as well
+        /// </summary>
+        public void AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddCharacter(character, biota, inventory);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void DeleteOrRestoreCharacter(ulong unixTime, uint guid, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.DeleteOrRestoreCharacter(unixTime, guid);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void MarkCharacterDeleted(uint guid, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.MarkCharacterDeleted(guid);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveCharacter(Character character, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveCharacter(character);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void AddBiota(Biota biota, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddBiota(biota);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void AddBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddBiotas(biotas);
+                callback?.Invoke(result);
+            }));
+        }
+
+        /// <summary>
+        /// Will return a biota from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetBiota(uint id, Action<Biota> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetBiota(id);
+                callback?.Invoke(c);
+            }));
+        }
+
+        public void SaveBiota(Biota biota, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveBiota(biota);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveBiotas(biotas);
+                callback?.Invoke(result);
+            }));
+        }
+
+        /// <summary>
+        /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
+        /// </summary>
+        public void RemoveEntity(object entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+
+        /// <summary>
+        /// Will return biotas from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetPlayerBiotas(uint id, Action<PlayerBiotas> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetPlayerBiotas(id);
+                callback?.Invoke(c);
+            }));
+        }
+
+        /// <summary>
+        /// Will return biotas from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetInventory(uint parentId, bool includedNestedItems, Action<List<Biota>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetInventory(parentId, includedNestedItems);
+                callback?.Invoke(c);
+            }));
+
+        }
+
+        /// <summary>
+        /// Will return biotas from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public void GetWieldedItems(uint parentId, Action<List<Biota>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetWieldedItems(parentId);
+                callback?.Invoke(c);
+            }));
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+
+        public void DeleteFriend(uint characterId, uint friendCharacterId, Action callback)
+        {
+            throw new NotImplementedException();
         }
 
         public void RemoveAllFriends(uint characterId, Action callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.RemoveAllFriends(characterId);
-                if (callback != null)
-                    callback.Invoke();
-            }));
+            throw new NotImplementedException();
         }
 
         public void RenameCharacter(string currentName, string newName, Action<uint> callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RenameCharacter(currentName, newName);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void SaveObject(AceObject aceObject, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveObject(aceObject);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void DeleteObject(AceObject aceObject, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.DeleteObject(aceObject);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public void GetCurrentId(uint min, uint max, Action<uint> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetCurrentId(min, max);
-                callback.Invoke(result);
-            }));
+            throw new NotImplementedException();
         }
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SetCharacterAccessLevelByName(name, accessLevel);
-                if (callback != null)
-                    callback.Invoke(result);
-            }));
-        }
-
-        public bool DeleteContract(AceContractTracker contract, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-                {
-                    bool result = _wrappedDatabase.DeleteContract(contract);
-                    if (callback != null)
-                        callback.Invoke(result);
-            }));
-            return true;
+            throw new NotImplementedException();
         }
     }
 }

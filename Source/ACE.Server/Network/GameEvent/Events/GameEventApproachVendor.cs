@@ -1,6 +1,9 @@
 using System.Collections.Generic;
-using ACE.Server.Entity;
-using ACE.Server.Factories;
+
+using ACE.Database;
+using ACE.Database.Models.World;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
@@ -21,19 +24,15 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(vendor.AlternateCurrencyDID ?? 0u); // trade id .. wcid of currency vendor uses
             if (vendor.AlternateCurrencyDID > 0)
             {
-                var currency = WorldObjectFactory.CreateWorldObject(Database.DatabaseManager.World.GetAceObjectByWeenie((uint)vendor.AlternateCurrencyDID));
-                string fixedPlural = currency.NamePlural;
+                var weenie = DatabaseManager.World.GetCachedWeenie((uint)vendor.AlternateCurrencyDID);
+                string fixedPlural = weenie.GetProperty(PropertyString.PluralName);
                 if (fixedPlural == null)
                 {
-                    fixedPlural = currency.Name;
+                    fixedPlural = weenie.GetProperty(PropertyString.Name);
                     if (fixedPlural.EndsWith("ch") || fixedPlural.EndsWith("s") || fixedPlural.EndsWith("sh") || fixedPlural.EndsWith("x") || fixedPlural.EndsWith("z"))
-                    {
                         fixedPlural += "es";
-                    }
                     else
-                    {
                         fixedPlural += "s";
-                    }
                 }
                 Writer.Write((uint)0); // trade number .. current amount of that currency player has on hand, need a function to return # of items of specific wcid found in inventory
                 Writer.WriteString16L(fixedPlural); // the name of that currency

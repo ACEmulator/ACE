@@ -1,4 +1,4 @@
-using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameAction.Actions
 {

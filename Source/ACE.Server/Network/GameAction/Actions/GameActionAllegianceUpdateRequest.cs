@@ -1,4 +1,4 @@
-﻿using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -12,7 +12,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             var allegianceUpdate = new GameEventAllegianceUpdate(session);
 
-            session.Network.EnqueueSend(allegianceUpdate);
+            session.Network.EnqueueSend(allegianceUpdate, new GameEventAllegianceAllegianceUpdateDone(session));
         }
     }
 }

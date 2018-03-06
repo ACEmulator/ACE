@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -12,6 +14,8 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -220,7 +224,7 @@ namespace ACE.Server.Command.Handlers
             {
                 string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
                 // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
-                if (ulong.TryParse(xpAmountToParse, out var xp))
+                if (long.TryParse(xpAmountToParse, out var xp))
                 {
                     session.Player.GrantXp(xp);
                     return;
@@ -442,19 +446,13 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Parse args...
-            CreatureVital vital = null;
+            CreatureVital vital;
             if (paramVital == "health" || paramVital == "hp")
-            {
                 vital = session.Player.Health;
-            }
             else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
-            {
                 vital = session.Player.Stamina;
-            }
             else if (paramVital == "mana" || paramVital == "mp")
-            {
                 vital = session.Player.Mana;
-            }
             else
             {
                 ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
@@ -462,13 +460,9 @@ namespace ACE.Server.Command.Handlers
             }
 
             if (!relValue)
-            {
                 session.Player.UpdateVital(vital, (uint)value);
-            }
             else
-            {
                 session.Player.DeltaVital(vital, value);
-            }
         }
 
         [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
@@ -724,11 +718,11 @@ namespace ACE.Server.Command.Handlers
                 if (shade > 1)
                     shade = 1;
 
-                if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
-                    session.Player.TestWieldItem(session, modelId, palOption, shade);
-                else
-                    ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
-                        ChatMessageType.Broadcast);
+                //if ((modelId >= 0x10000001) && (modelId <= 0x1000086B))
+                //    session.Player.TestWieldItem(session, modelId, palOption, shade);
+                //else
+                //    ChatPacket.SendServerMessage(session, "Please enter a value greater than 0x10000000 and less than 0x1000086C",
+                //        ChatMessageType.Broadcast);
             }
             catch (Exception)
             {
@@ -776,7 +770,7 @@ namespace ACE.Server.Command.Handlers
             foreach (uint weenieId in weaponsTest)
             {
                 WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
+                loot.ContainerId = (int)session.Player.Guid.Full;
                 loot.PlacementPosition = 0;
                 // TODO: Og II
                 // Need this hack because weenies are not cleaned up.   Can be removed once weenies are fixed.
@@ -804,7 +798,7 @@ namespace ACE.Server.Command.Handlers
             foreach (uint weenieId in weaponsTest)
             {
                 WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = session.Player.Guid.Full;
+                loot.ContainerId = (int)session.Player.Guid.Full;
                 loot.PlacementPosition = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
@@ -833,7 +827,7 @@ namespace ACE.Server.Command.Handlers
                 var valueEach = loot.Value / loot.StackSize;
                 loot.StackSize = loot.MaxStackSize;
                 loot.Value = loot.StackSize * valueEach;
-                loot.ContainerId = session.Player.Guid.Full;
+                loot.ContainerId = (int)session.Player.Guid.Full;
                 loot.PlacementPosition = 0;
                 session.Player.AddToInventory(loot);
                 session.Player.TrackObject(loot);
@@ -948,6 +942,47 @@ namespace ACE.Server.Command.Handlers
             session.Player.UpdateVital(session.Player.Health, 1);
             session.Player.UpdateVital(session.Player.Stamina, 1);
             session.Player.UpdateVital(session.Player.Mana, 1);
+        }
+
+        /// <summary>
+        /// Force PhysicsState change that occurs upon login complete.
+        /// </summary
+        [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+            "Fake Login Complete response")]
+        public static void HandleFakeLogin(Session session, params string[] parameters)
+        {
+            session.Player.InWorld = true;
+            session.Player.ReportCollisions = true;
+            session.Player.IgnoreCollisions = false;
+            session.Player.Hidden = false;
+            session.Player.EnqueueBroadcastPhysicsState();
+        }
+
+        /// <summary>
+        /// List all clothing bases which are compatible with setup
+        /// </summary
+        [CommandHandler("listcb", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
+            "List Clothing Tables available")]
+        public static void HandleShowCompatibleClothingBases(Session session, params string[] parameters)
+        {
+            uint.TryParse(parameters[0], out var setupId);
+
+            uint cbStart = 0x10000001;
+            uint cbEnd = 0x1000086c;
+
+            List<uint> compatibleCBs = new List<uint>();
+
+            for (uint i = cbStart; i < cbEnd; i++)
+            {
+                var cbToTest = DatManager.PortalDat.ReadFromDat<ClothingTable>(i);
+
+                if (cbToTest.ClothingBaseEffects.ContainsKey(setupId))
+                    compatibleCBs.Add(i);
+            }
+
+            Console.WriteLine($"There are {compatibleCBs.Count} compatible clothingbase tables for setup {setupId}");
+            Console.WriteLine("");
+            Console.WriteLine($"{string.Join("\n", compatibleCBs.ToArray())}");
         }
     }
 }

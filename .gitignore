@@ -293,3 +293,4 @@ __pycache__/
 /Source/ACE/hmac_key.txt
 /Source/ACE.ACClientLauncher/launcher_config.json
 /Source
+Database/tools/password.txt

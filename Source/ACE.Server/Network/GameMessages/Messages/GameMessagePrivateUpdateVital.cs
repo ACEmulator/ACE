@@ -1,38 +1,40 @@
-﻿using System;
-using ACE.Entity;
+using System;
+
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateVital : GameMessage
     {
-        public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, CreatureVital cv) :
-            this(session, ability, cv.Ranks, cv.Base, cv.ExperienceSpent, cv.Current) { }
+        public GameMessagePrivateUpdateVital(Session session, PropertyAttribute2nd attribute, CreatureVital cv) :
+            this(session, attribute, cv.Ranks, cv.StartingValue, cv.ExperienceSpent, cv.Current) { }
 
-        public GameMessagePrivateUpdateVital(Session session, global::ACE.Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
+        public GameMessagePrivateUpdateVital(Session session, PropertyAttribute2nd attribute, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
             : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.UIQueue)
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
 
-            Vital vital;
+            //Vital vital;
 
-            switch (ability)
+            switch (attribute)
             {
-                case global::ACE.Entity.Enum.Ability.Health:
-                    vital = Vital.Health;
+                case PropertyAttribute2nd.MaxHealth:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevelHealth));
                     break;
-                case global::ACE.Entity.Enum.Ability.Stamina:
-                    vital = Vital.Stamina;
+                case PropertyAttribute2nd.MaxStamina:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevelStamina));
                     break;
-                case global::ACE.Entity.Enum.Ability.Mana:
-                    vital = Vital.Mana;
+                case PropertyAttribute2nd.MaxMana:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevelMana));
                     break;
                 default:
                     throw new ArgumentException("invalid ability specified");
             }
 
-            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute));
-            Writer.Write((uint)vital);
+            //Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute));
+            Writer.Write((uint)attribute);
             Writer.Write(ranks);
             Writer.Write(baseValue);
             Writer.Write(totalInvestment);

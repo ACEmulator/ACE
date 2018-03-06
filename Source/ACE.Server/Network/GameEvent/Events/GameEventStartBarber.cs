@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameEvent.Events
             // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
             const uint EmpyreanMaleMotionDID = 0x0900020Eu;
             const uint EmpyreanFemaleMotionDID = 0x0900020Du;
-
+            /* todo redo this for the new EF model
             // We will use this function to get the current player's appearance values.
             AceCharacter characterClone = (AceCharacter)Session.Player.GetAceObject();
 
@@ -41,6 +41,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.Write(0x0000000); // Current "default" animation (normal running for most, float for Empyrean)
             
             Writer.Write(0x0u); // Unknown - Client seems to have this hard-coded as 0, so likely was just a TBD for potential future use
+            */
         }
     }
 }

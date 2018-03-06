@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity.Events
 {

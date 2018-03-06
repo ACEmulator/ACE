@@ -249,12 +249,4 @@ namespace ACE.Entity.Enum
             return new string(skill.ToString().ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
         }
     }
-
-    public enum SkillStatus : uint
-    {
-        Inactive,
-        Untrained,
-        Trained,
-        Specialized
-    }
 }

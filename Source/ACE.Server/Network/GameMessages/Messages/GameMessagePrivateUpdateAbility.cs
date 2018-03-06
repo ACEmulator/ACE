@@ -1,43 +1,43 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateAbility : GameMessage
     {
-        public GameMessagePrivateUpdateAbility(Session session, global::ACE.Entity.Enum.Ability ability, uint ranks, uint baseValue, uint totalInvestment)
+        public GameMessagePrivateUpdateAbility(Session session, PropertyAttribute attribute, uint ranks, uint baseValue, uint totalInvestment)
             : base(GameMessageOpcode.PrivateUpdateAttribute, GameMessageGroup.UIQueue)
         {
             // TODO We shouldn't be passing session. Insetad, we should pass the value after session.UpdateSkillSequence++.
 
-            PropertyAttribute networkAbility;
+            //PropertyAttribute networkAbility;
 
-            switch (ability)
+            switch (attribute)
             {
-                case global::ACE.Entity.Enum.Ability.Strength:
-                    networkAbility = PropertyAttribute.Strength;
+                case PropertyAttribute.Strength:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttributeStrength));
                     break;
-                case global::ACE.Entity.Enum.Ability.Endurance:
-                    networkAbility = PropertyAttribute.Endurance;
+                case PropertyAttribute.Endurance:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttributeEndurance));
                     break;
-                case global::ACE.Entity.Enum.Ability.Coordination:
-                    networkAbility = PropertyAttribute.Coordination;
+                case PropertyAttribute.Coordination:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttributeCoordination));
                     break;
-                case global::ACE.Entity.Enum.Ability.Quickness:
-                    networkAbility = PropertyAttribute.Quickness;
+                case PropertyAttribute.Quickness:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttributeQuickness));
                     break;
-                case global::ACE.Entity.Enum.Ability.Focus:
-                    networkAbility = PropertyAttribute.Focus;
+                case PropertyAttribute.Focus:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttributeFocus));
                     break;
-                case global::ACE.Entity.Enum.Ability.Self:
-                    networkAbility = PropertyAttribute.Self;
+                case PropertyAttribute.Self:
+                    Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttributeSelf));
                     break;
                 default:
                     throw new ArgumentException("invalid ability specified");
             }
 
-            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute));
-            Writer.Write((uint)networkAbility);
+            //Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute));
+            Writer.Write((uint)attribute);
             Writer.Write(ranks);
             Writer.Write(baseValue);
             Writer.Write(totalInvestment);

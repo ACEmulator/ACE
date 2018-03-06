@@ -10,6 +10,7 @@ namespace ACE.Entity.Enum.Properties
         // description attributes are used by the weenie editor for a cleaner display name
 
         Undef                            = 0,
+        [Ephemeral][ServerOnly]
         Stuck                            = 1,
         Open                             = 2,
         Locked                           = 3,
@@ -20,14 +21,23 @@ namespace ACE.Entity.Enum.Properties
         AllowGive                        = 8,
         CurrentlyAttacking               = 9,
         AttackerAi                       = 10,
+        [ServerOnly]
         IgnoreCollisions                 = 11,
+        [ServerOnly]
         ReportCollisions                 = 12,
+        [ServerOnly]
         Ethereal                         = 13,
+        [ServerOnly]
         GravityStatus                    = 14,
+        [ServerOnly]
         LightsStatus                     = 15,
+        [ServerOnly]
         ScriptedCollision                = 16,
+        [ServerOnly]
         Inelastic                        = 17,
+        [ServerOnly]
         Visibility                       = 18,
+        [ServerOnly]
         Attackable                       = 19,
         SafeSpellComponents              = 20,
         AdvocateState                    = 21,
@@ -53,8 +63,11 @@ namespace ACE.Entity.Enum.Properties
         ReportCollisionsAsEnvironment    = 41,
         AllowEdgeSlide                   = 42,
         AdvocateQuest                    = 43,
+        [Ephemeral]
         IsAdmin                          = 44,
+        [Ephemeral]
         IsArch                           = 45,
+        [Ephemeral]
         IsSentinel                       = 46,
         IsAdvocate                       = 47,
         CurrentlyPoweringUp              = 48,

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using ACE.Entity;
 using ACE.Server.Managers;
 
@@ -11,9 +11,9 @@ namespace ACE.Server.Network.GameEvent.Events
         [Flags]
         public enum FriendsUpdateTypeFlag
         {
-            FullList = 0x0000,
-            FriendAdded = 0x0001,
-            FriendRemoved = 0x0002,
+            FullList            = 0x0000,
+            FriendAdded         = 0x0001,
+            FriendRemoved       = 0x0002,
             FriendStatusChanged = 0x0004
         }
 
@@ -53,12 +53,12 @@ namespace ACE.Server.Network.GameEvent.Events
 
         private void WriteEventBody()
         {
-            List<Friend> friendList = null;
+            List<Friend> friendList;
 
-            if (updateType == FriendsUpdateTypeFlag.FullList)
+            /* todo fix for not use aceobj if (updateType == FriendsUpdateTypeFlag.FullList)
                 friendList = Session.Player.Friends.ToList();
-            else
-                friendList = new List<Friend>() { friend };
+            else*/
+                friendList = new List<Friend>();
 
             Writer.Write((uint)friendList.Count);
 

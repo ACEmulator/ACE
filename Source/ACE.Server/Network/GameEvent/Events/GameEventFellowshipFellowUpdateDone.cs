@@ -9,7 +9,8 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             Writer.Write(session.Player.Guid.Full);
             Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.FellowshipFellowUpdateDone);
+            Writer.Write((uint)GameEventType.FellowshipFellowUpdateDone);
+            Writer.Write(0x00);
         }
     }
 }

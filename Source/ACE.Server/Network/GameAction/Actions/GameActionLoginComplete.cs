@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionLoginComplete
     {
@@ -6,10 +6,11 @@
         public static void Handle(ClientMessage message, Session session)
         {
             session.Player.InWorld = true;
-            session.Player.ReportCollision = true;
-            session.Player.IgnoreCollision = false;
+            session.Player.ReportCollisions = true;
+            session.Player.IgnoreCollisions = false;
             session.Player.Hidden = false;
             session.Player.EnqueueBroadcastPhysicsState();
+            session.Player.Teleporting = false;
         }
     }
 }

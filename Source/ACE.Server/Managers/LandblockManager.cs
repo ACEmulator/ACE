@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
 
 namespace ACE.Server.Managers
 {
@@ -32,18 +36,28 @@ namespace ACE.Server.Managers
 
         public static void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
-            DatabaseManager.Shard.GetCharacter(guid.Full, ((AceCharacter c) =>
+            DatabaseManager.Shard.GetPlayerBiotas(guid.Full, biotas =>
             {
-                session.SetPlayer(new Player(session, c));
-                session.Player.Load(c);
+                Player player;
+
+                if (biotas.Player.WeenieType == (int)WeenieType.Admin)
+                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
+                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                else
+                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+
+                player.Name = session.Character.Name;
+
+                session.SetPlayer(player);
+                session.Player.PlayerEnterWorld();
 
                 // check the value of the welcome message. Only display it if it is not empty
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-                {
                     session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
-                }
 
-                Landblock block = GetLandblock(c.Location.LandblockId, true);
+                var location = biotas.Player.GetPosition(PositionType.Location);
+                Landblock block = GetLandblock(location.LandblockId, true);
                 // Must enqueue add world object -- this is called from a message handler context
                 block.AddWorldObject(session.Player);
 
@@ -53,7 +67,7 @@ namespace ACE.Server.Managers
                 welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(welcomeMsg, ChatMessageType.Broadcast));
-            }));
+            });
         }
 
         public static void AddObject(WorldObject worldObject)

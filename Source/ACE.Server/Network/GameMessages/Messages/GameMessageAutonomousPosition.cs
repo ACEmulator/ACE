@@ -1,4 +1,5 @@
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.Network.GameMessages.Messages

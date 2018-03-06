@@ -1,268 +1,463 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
-using MySql.Data.MySqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
-using ACE.Entity;
+using ACE.Database.Entity;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
-    public class ShardDatabase : CommonDatabase
+    public class ShardDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private enum ShardPreparedStatement
+        public bool Exists(bool retryUntilFound)
         {
-            // these are for the world database, but there's a lot of overlap
-            GetObjectsByLandblock,
+            var config = Common.ConfigManager.Config.MySql.World;
 
-            GetContractTracker,
-            GetSpellBarPositions,
-
-            GetCharacters,
-            IsCharacterNameAvailable,
-            
-            DeleteContractTrackers,
-            DeleteSpellBarPositions,
-
-            InsertContractTracker,
-            InsertSpellBarPositions,
-
-            UpdateContractTracker,
-            
-            DeleteContractTracker,
-
-            GetCurrentId,
-        }
-        
-        private void ConstructMaxQueryStatement(ShardPreparedStatement id, string tableName, string columnName)
-        {
-            // NOTE: when moved to WordDatabase, ace_shard needs to be changed to ace_world
-            AddPreparedStatement<ShardPreparedStatement>(id, $"SELECT MAX(`{columnName}`) FROM `{tableName}` WHERE `{columnName}` >= ? && `{columnName}` < ?",
-                MySqlDbType.UInt32, MySqlDbType.UInt32);
-        }
-
-        protected override void InitializePreparedStatements()
-        {
-            base.InitializePreparedStatements();
-
-            ConstructStatement(ShardPreparedStatement.IsCharacterNameAvailable, typeof(CachedCharacter), ConstructedStatementType.Get);
-            
-            ConstructStatement(ShardPreparedStatement.GetCharacters, typeof(CachedCharacter), ConstructedStatementType.GetList);
-            
-            ConstructStatement(ShardPreparedStatement.GetContractTracker, typeof(AceContractTracker), ConstructedStatementType.GetList);
-            ConstructStatement(ShardPreparedStatement.GetSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.GetList);
-
-            // Delete statements
-            ConstructStatement(ShardPreparedStatement.DeleteContractTrackers, typeof(AceContractTracker), ConstructedStatementType.DeleteList);
-            ConstructStatement(ShardPreparedStatement.DeleteSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.DeleteList);
-
-            // Insert statements
-            ConstructStatement(ShardPreparedStatement.InsertContractTracker, typeof(AceContractTracker), ConstructedStatementType.InsertList);
-            ConstructStatement(ShardPreparedStatement.InsertSpellBarPositions, typeof(AceObjectPropertiesSpellBarPositions), ConstructedStatementType.InsertList);
-
-            // Updates
-            ConstructStatement(ShardPreparedStatement.UpdateContractTracker, typeof(AceContractTracker), ConstructedStatementType.Update);
-
-            // deletes for properties
-            ConstructStatement(ShardPreparedStatement.DeleteContractTracker, typeof(AceContractTracker), ConstructedStatementType.Delete);
-
-            // FIXME(ddevec): Use max/min values defined in factory -- this is just for demonstration purposes
-            ConstructMaxQueryStatement(ShardPreparedStatement.GetCurrentId, "ace_object", "aceObjectId");
-        }
-
-        private uint GetMaxGuid(ShardPreparedStatement id, uint min, uint max)
-        {
-            object[] critera = new object[] { min, max };
-            var res = SelectPreparedStatement<ShardPreparedStatement>(id, critera);
-            var ret = res.Rows[0][0];
-            if (ret is DBNull)
+            for (; ; )
             {
-                return uint.MaxValue;
+                using (var context = new ShardDbContext())
+                {
+                    if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
+                    {
+                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        return true;
+                    }
+                }
+
+                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+
+                if (retryUntilFound)
+                    Thread.Sleep(5000);
+                else
+                    return false;
             }
-
-            return (uint)res.Rows[0][0];
         }
 
-        public uint GetCurrentId(uint min, uint max)
+
+        /// <summary>
+        /// Will return uint.MaxValue if no records were found within the range provided.
+        /// </summary>
+        public uint GetMaxGuidFoundInRange(uint min, uint max)
         {
-            return GetMaxGuid(ShardPreparedStatement.GetCurrentId, min, max);
-        }
-
-        public void AddFriend(uint characterId, uint friendCharacterId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DeleteFriend(uint characterId, uint friendCharacterId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DeleteContract(AceContractTracker contract)
-        {
-            DatabaseTransaction transaction = BeginTransaction();
-            DeleteAceContractTracker(transaction, contract);
-            return transaction.Commit().Result;
-        }
-
-        public void RemoveAllFriends(uint characterId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DeleteOrRestore(ulong unixTime, uint aceObjectId)
-        {
-            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
-            LoadIntoObject(aceCharacter);
-            aceCharacter.DeleteTime = unixTime;
-
-            aceCharacter.Deleted = false;  // This is a reminder - the DB will set this 1 hour after deletion.
-
-            base.SaveObject(aceCharacter);
-
-            return true;
-        }
-
-        public bool DeleteCharacter(uint aceObjectId)
-        {
-            AceCharacter aceCharacter = new AceCharacter(aceObjectId);
-            LoadIntoObject(aceCharacter);
-            aceCharacter.Deleted = true;
-
-            base.SaveObject(aceCharacter);
-
-            return true;
-        }
-
-        public List<CachedCharacter> GetCharacters(uint accountId)
-        {
-            var criteria = new Dictionary<string, object> { { "accountId", accountId }, { "deleted", 0 } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedCharacter>(ShardPreparedStatement.GetCharacters, criteria);
-
-            return objects;
-        }
-        
-        public AceCharacter GetCharacter(uint id)
-        {
-            AceCharacter character = new AceCharacter(id);
-
-            // load common stuff here
-            LoadIntoObject(character);
-
-            // fetch common stuff here (is there any?)
-
-            return character;
-        }
-        
-        protected override void LoadIntoObject(AceObject aceObject)
-        {
-            base.LoadIntoObject(aceObject);
-            aceObject.TrackedContracts = GetAceContractList(aceObject.AceObjectId).ToDictionary(x => x.ContractId, x => x);
-            aceObject.SpellsInSpellBars = GetAceObjectPropertiesSpellBarPositions(aceObject.AceObjectId);
-        }
-        
-        private List<AceContractTracker> GetAceContractList(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.GetContractTracker, criteria);
-            return objects;
-        }
-
-        private List<AceObjectPropertiesSpellBarPositions> GetAceObjectPropertiesSpellBarPositions(uint aceObjectId)
-        {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.GetSpellBarPositions, criteria);
-            return objects;
-        }
-
-        public ObjectInfo GetObjectInfoByName(string name)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public override List<AceObject> GetObjectsByLandblock(ushort landblock)
-        {
-            var criteria = new Dictionary<string, object> { { "landblock", landblock } };
-            var objects = ExecuteConstructedGetListStatement<ShardPreparedStatement, CachedWorldObject>(ShardPreparedStatement.GetObjectsByLandblock, criteria);
-            List<AceObject> ret = new List<AceObject>();
-            objects.ForEach(cwo =>
+            using (var context = new ShardDbContext())
             {
-                var o = base.GetObject(cwo.AceObjectId);
-                ret.Add(o);
-            });
-            return ret;
+                var results = context.Biota.AsNoTracking().Where(r => r.Id >= min && r.Id <= max);
+
+                if (!results.Any())
+                    return uint.MaxValue;
+
+                var maxId = min;
+
+                foreach (var result in results)
+                {
+                    if (result.Id > maxId)
+                        maxId = result.Id;
+                }
+
+                return maxId;
+            }
+        }
+
+
+        public List<Character> GetCharacters(uint accountId)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var results = context.Character
+                    .AsNoTracking()
+                    .Where(r => r.AccountId == accountId && !r.IsDeleted).ToList();
+
+                return results;
+            }
         }
 
         public bool IsCharacterNameAvailable(string name)
         {
-            var cc = new CachedCharacter();
-            var criteria = new Dictionary<string, object> { { "name", name } };
-            return !(ExecuteConstructedGetStatement<CachedCharacter, ShardPreparedStatement>(ShardPreparedStatement.IsCharacterNameAvailable, criteria, cc));
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Character
+                    .AsNoTracking()
+                    .Where(r => !r.IsDeleted)
+                    .Where(r => !(r.DeleteTime > 0))
+                    .FirstOrDefault(r => r.Name == name);
+
+                return result == null;
+            }
         }
 
-        public uint RenameCharacter(string currentName, string newName)
+        public bool IsCharacterPlussed(uint biotaId)
         {
-            throw new NotImplementedException();
-        }
-        
-        public uint SetCharacterAccessLevelByName(string name, AccessLevel accessLevel)
-        {
-            throw new NotImplementedException();
+            var ret = false;
+
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Biota
+                    .AsNoTracking()
+                    .Include(r => r.BiotaPropertiesBool)
+                    .FirstOrDefault(r => r.Id == biotaId);
+
+                if (result.GetProperty(PropertyBool.IsAdmin) ?? false)
+                    ret = true;
+                if (result.GetProperty(PropertyBool.IsArch) ?? false)
+                    ret = true;
+                if (result.GetProperty(PropertyBool.IsPsr) ?? false)
+                    ret = true;
+                if (result.GetProperty(PropertyBool.IsSentinel) ?? false)
+                    ret = true;
+
+                if (result.WeenieType == (int)WeenieType.Admin || result.WeenieType == (int)WeenieType.Sentinel)
+                    ret = true;
+
+                return ret;
+            }
         }
 
-        protected override bool DeleteObjectDependencies(DatabaseTransaction transaction, AceObject aceObject)
+        /// <summary>
+        /// Inventory should include all wielded items as well
+        /// </summary>
+        public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory)
         {
-            DeleteAceContractTrackers(transaction, aceObject.AceObjectId);
-            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
-            return true;
-        }
-        
-        protected override bool SaveObjectDependencies(DatabaseTransaction transaction, AceObject aceObject)
-        {
-            DeleteAceContractTrackers(transaction, aceObject.AceObjectId);
-            SaveAceContractTracker(transaction, aceObject.AceObjectId, aceObject.TrackedContracts.Select(x => x.Value).ToList());
+            if (!AddBiota(biota))
+                return false; // Biota save failed which mean Character fails.
 
-            DeleteAceObjectPropertiesSpellBarPositions(transaction, aceObject.AceObjectId);
-            SaveAceObjectPropertiesSpellBarPositions(transaction, aceObject.SpellsInSpellBars);
+            if (!AddBiotas(inventory))
+                return false;
 
-            return true;
-        }
-        
-        private bool SaveAceContractTracker(DatabaseTransaction transaction, uint aceObjectId, List<AceContractTracker> properties)
-        {
-            properties.ForEach(a => a.AceObjectId = aceObjectId);
-            transaction.AddPreparedInsertListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.InsertContractTracker, properties);
-            return true;
-        }
+            using (var context = new ShardDbContext())
+            {
+                context.Character.Add(character);
 
-        private bool SaveAceObjectPropertiesSpellBarPositions(DatabaseTransaction transaction, List<AceObjectPropertiesSpellBarPositions> properties)
-        {
-            transaction.AddPreparedInsertListStatement(ShardPreparedStatement.InsertSpellBarPositions, properties);
-            return true;
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"AddCharacter failed with exception: {ex}");
+                    return false;
+                }
+            }
         }
 
-        private bool DeleteAceContractTrackers(DatabaseTransaction transaction, uint aceObjectId)
+        public bool DeleteOrRestoreCharacter(ulong unixTime, uint guid)
         {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteContractTrackers, criteria);
-            return true;
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Character
+                    .FirstOrDefault(r => r.BiotaId == guid);
+
+                if (result != null)
+                {
+                    result.DeleteTime = unixTime;
+                    result.IsDeleted = false;
+                }
+                else
+                    return false;
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"DeleteOrRestoreCharacter failed with exception: {ex}");
+                    return false;
+                }
+            }
         }
 
-        private bool DeleteAceObjectPropertiesSpellBarPositions(DatabaseTransaction transaction, uint aceObjectId)
+        public bool MarkCharacterDeleted(uint guid)
         {
-            var criteria = new Dictionary<string, object> { { "aceObjectId", aceObjectId } };
-            transaction.AddPreparedDeleteListStatement<ShardPreparedStatement, AceObjectPropertiesSpellBarPositions>(ShardPreparedStatement.DeleteSpellBarPositions, criteria);
-            return true;
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Character
+                    .FirstOrDefault(r => r.BiotaId == guid);
+
+                if (result != null)
+                {
+                    result.IsDeleted = true;
+                }
+                else
+                    return false;
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"MarkCharacterDeleted failed with exception: {ex}");
+                    return false;
+                }
+            }
         }
 
-        private void DeleteAceContractTracker(DatabaseTransaction transaction, AceContractTracker contract)
+        public bool SaveCharacter(Character character)
         {
-            transaction.AddPreparedDeleteStatement<ShardPreparedStatement, AceContractTracker>(ShardPreparedStatement.DeleteContractTracker, contract);
+            using (var context = new ShardDbContext())
+            {
+                context.Character.Update(character);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveCharacter failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool AddBiota(Biota biota)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Biota.Add(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"AddBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool AddBiotas(IEnumerable<Biota> biotas)
+        {
+            using (var context = new ShardDbContext())
+            {
+                foreach (var biota in biotas)
+                    context.Biota.Add(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"AddBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Will return a biota from the db with tracking enabled.
+        /// This will populate all sub collections.
+        /// </summary>
+        public Biota GetBiota(uint id)
+        {
+            using (var context = new ShardDbContext())
+                return GetBiota(context, id);
+        }
+
+        private static Biota GetBiota(ShardDbContext context, uint id)
+        {
+            return context.Biota
+                // Should we add .AsNoTracking() here since we're disposing of the context anyway?
+                .Include(r => r.BiotaPropertiesAnimPart)
+                .Include(r => r.BiotaPropertiesAttribute)
+                .Include(r => r.BiotaPropertiesAttribute2nd)
+                .Include(r => r.BiotaPropertiesBodyPart)
+                .Include(r => r.BiotaPropertiesBook)
+                .Include(r => r.BiotaPropertiesBookPageData)
+                .Include(r => r.BiotaPropertiesBool)
+                .Include(r => r.BiotaPropertiesContract)
+                .Include(r => r.BiotaPropertiesCreateList)
+                .Include(r => r.BiotaPropertiesDID)
+                .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
+                .Include(r => r.BiotaPropertiesEmoteAction)
+                .Include(r => r.BiotaPropertiesEventFilter)
+                .Include(r => r.BiotaPropertiesFloat)
+                .Include(r => r.BiotaPropertiesFriendListFriend)
+                .Include(r => r.BiotaPropertiesFriendListObject)
+                .Include(r => r.BiotaPropertiesGenerator)
+                .Include(r => r.BiotaPropertiesIID)
+                .Include(r => r.BiotaPropertiesInt)
+                .Include(r => r.BiotaPropertiesInt64)
+                .Include(r => r.BiotaPropertiesPalette)
+                .Include(r => r.BiotaPropertiesPosition)
+                .Include(r => r.BiotaPropertiesShortcutBarObject)
+                .Include(r => r.BiotaPropertiesSkill)
+                .Include(r => r.BiotaPropertiesSpellBar)
+                .Include(r => r.BiotaPropertiesSpellBook)
+                .Include(r => r.BiotaPropertiesString)
+                .Include(r => r.BiotaPropertiesTextureMap)
+                .FirstOrDefault(r => r.Id == id);
+        }
+
+        public bool SaveBiota(Biota biota)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Biota.Update(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool SaveBiotas(IEnumerable<Biota> biotas)
+        {
+            using (var context = new ShardDbContext())
+            {
+                foreach (var biota in biotas)
+                    context.Biota.Update(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveBiota failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
+        /// </summary>
+        public bool RemoveEntity(object entity)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Remove(entity);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"RemoveEntity failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+
+        public PlayerBiotas GetPlayerBiotas(uint id)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var biota = GetBiota(context, id);
+
+                var inventory = GetInventory(context, id, true);
+
+                var wieldedItems = GetWieldedItems(context, id);
+
+                return new PlayerBiotas(biota, inventory, wieldedItems);
+            }
+        }
+
+        public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
+        {
+            List<Biota> inventory;
+
+            using (var context = new ShardDbContext())
+                inventory = GetInventory(context, parentId, includedNestedItems);
+
+            return inventory;
+        }
+
+        private static List<Biota> GetInventory(ShardDbContext context, uint parentId, bool includedNestedItems)
+        {
+            var inventory = new List<Biota>();
+
+            var results = context.BiotaPropertiesIID
+                .AsNoTracking()
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
+
+            foreach (var result in results)
+            {
+                var biota = GetBiota(context, result.ObjectId);
+
+                if (biota != null)
+                {
+                    inventory.Add(biota);
+
+                    if (includedNestedItems && biota.WeenieType == (int)WeenieType.Container)
+                    {
+                        var subItems = GetInventory(context, biota.Id, false);
+
+                        inventory.AddRange(subItems);
+                    }
+                }
+            }
+
+            return inventory;
+        }
+
+        public List<Biota> GetWieldedItems(uint parentId)
+        {
+            List<Biota> inventory;
+
+            using (var context = new ShardDbContext())
+                inventory = GetWieldedItems(context, parentId);
+
+            return inventory;
+        }
+
+        private static List<Biota> GetWieldedItems(ShardDbContext context, uint parentId)
+        {
+            var items = new List<Biota>();
+
+            var results = context.BiotaPropertiesIID
+                    .AsNoTracking()
+                    .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId);
+
+            foreach (var result in results)
+            {
+                var biota = GetBiota(context, result.ObjectId);
+
+                if (biota != null)
+                    items.Add(biota);
+            }
+
+            return items;
         }
     }
 }

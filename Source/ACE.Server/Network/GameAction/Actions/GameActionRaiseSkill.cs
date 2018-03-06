@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var skill = (Skill)message.Payload.ReadUInt32();
             var xpSpent = message.Payload.ReadUInt32();
-            session.Player.SpendXp(skill, xpSpent);
+            session.Player.RaiseSkillGameAction(skill, xpSpent);
         }
     }
 }

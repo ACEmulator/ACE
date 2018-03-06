@@ -1,4 +1,7 @@
 using System;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.DatLoader;
@@ -6,13 +9,13 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
+using ACE.Server.WorldObjects;
+using ACE.Database.Models.World;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -240,9 +243,9 @@ namespace ACE.Server.Command.Handlers
                 case "on":
                     session.Player.Cloaked = true;
                     session.Player.Ethereal = true;
-                    session.Player.IgnoreCollision = true;
+                    session.Player.IgnoreCollisions = true;
                     session.Player.NoDraw = true;
-                    session.Player.ReportCollision = false;
+                    session.Player.ReportCollisions = false;
                     session.Player.EnqueueBroadcastPhysicsState();
                     // var test = session.Player.PhysicsDescriptionFlag;
                     // test |= PhysicsDescriptionFlag.Translucency;
@@ -252,9 +255,9 @@ namespace ACE.Server.Command.Handlers
                 case "off":
                     session.Player.Cloaked = false;
                     session.Player.Ethereal = false;
-                    session.Player.IgnoreCollision = false;
+                    session.Player.IgnoreCollisions = false;
                     session.Player.NoDraw = false;
-                    session.Player.ReportCollision = true;
+                    session.Player.ReportCollisions = true;
                     session.Player.EnqueueBroadcastPhysicsState();
                     break;
                 case "player":
@@ -289,12 +292,32 @@ namespace ACE.Server.Command.Handlers
         }
 
         // delete
-        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+             "Deletes the selected object.",
+            "Players may not be deleted this way.")]
         public static void HandleDeleteSelected(Session session, params string[] parameters)
         {
             // @delete - Deletes the selected object. Players may not be deleted this way.
 
-            // TODO: output
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                if (wo != null)
+                    LandblockManager.RemoveObject(wo);
+            }
         }
 
         // draw
@@ -776,7 +799,7 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 position = new Position(coordNS, coordEW);
-                var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(position.Cell);
+                var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(position.Cell >> 16 | 0xFFFF);
                 position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
             }
             catch (System.Exception)
@@ -817,11 +840,11 @@ namespace ACE.Server.Command.Handlers
         public static void HandleTeleportPoi(Session session, params string[] parameters)
         {
             var poi = String.Join(" ", parameters);
-            var teleportPOI = AssetManager.GetTeleport(poi);
+            var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
             if (teleportPOI == null)
                 return;
-
-            session.Player.Teleport(teleportPOI);
+            var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
+            session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
         }
 
         // teleloc cell x y z [qx qy qz qw]
@@ -990,6 +1013,7 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        public const uint WEENIE_MAX = 199999;
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an object in the world.", "wclassid (string or number)")]
@@ -999,9 +1023,9 @@ namespace ACE.Server.Command.Handlers
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
             {
-                if (weenieClassId < 1 && weenieClassId > AceObject.WEENIE_MAX)
+                if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {AceObject.WEENIE_MAX}", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1029,9 +1053,12 @@ namespace ACE.Server.Command.Handlers
 
             WorldObject loot;
             if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+
+
+            // todo: set the palette, shade, stackSize here
 
             if (loot == null)
             {
@@ -1039,7 +1066,13 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
+            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
+            loot.Location = session.Player.Location.InFrontOf(1.00f);
+            //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
+            //LandblockManager.AddObject(loot);
+            loot.EnterWorld();
         }
 
         // ci wclassid (number)
@@ -1047,6 +1080,8 @@ namespace ACE.Server.Command.Handlers
             "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
+            throw new NotImplementedException();
+            /* todo fix for EF
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
@@ -1082,9 +1117,12 @@ namespace ACE.Server.Command.Handlers
 
             WorldObject loot;
             if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription, palette, shade, stackSize);
+                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+
+            throw new NotImplementedException();
+            // set the palette, shade, stackSize here
 
             if (loot == null)
             {
@@ -1092,12 +1130,12 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            loot.ContainerId = session.Player.Guid.Full;
+            loot.ContainerId = (int)session.Player.Guid.Full;
             loot.PlacementPosition = 0;
             session.Player.AddToInventory(loot);
             session.Player.TrackObject(loot);
             session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));*/
         }
 
         // cm <material type> <quantity> <ave. workmanship>
@@ -1253,9 +1291,9 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
 
-            session.Player.Health.Current = session.Player.Health.UnbuffedValue;
-            session.Player.Stamina.Current = session.Player.Stamina.UnbuffedValue;
-            session.Player.Mana.Current = session.Player.Mana.UnbuffedValue;
+            session.Player.Health.Current = session.Player.Health.Base;
+            session.Player.Stamina.Current = session.Player.Stamina.Base;
+            session.Player.Mana.Current = session.Player.Mana.Base;
 
             var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
             var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Stamina, session.Player.Stamina.Current);
@@ -1281,7 +1319,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            ObjectGuid nextItemGuid = GuidManager.NextItemGuid();
+            ObjectGuid nextItemGuid = GuidManager.NewDynamicGuid();
             ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
 
             string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";

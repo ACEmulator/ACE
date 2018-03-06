@@ -12,9 +12,6 @@ namespace ACE.Entity.Enum.Properties
         Coordination = 4,
         Focus        = 5,
         Self         = 6,
-        Health       = 7,
-        Stamina      = 8,
-        Mana         = 9
     }
 
     public static class PropertyAttributeExtensions

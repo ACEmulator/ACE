@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 
@@ -16,7 +17,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.SetCharacterOptions)]
         public static void Handle(ClientMessage message, Session session)
         {
-            int characterOptions1Flag = 0;
+            int characterOptions1Flag;
             int characterOptions2Flag = 0;
             uint spellbookFilters = 0;
             Dictionary<uint, int> desiredComponents = new Dictionary<uint, int>();
@@ -124,29 +125,6 @@ namespace ACE.Server.Network.GameAction.Actions
             // if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0) { }
 
             // if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0) { }
-
-            // Set the options on the player object
-            Dictionary<CharacterOption, bool> optionValues = new Dictionary<CharacterOption, bool>(); // Have to use a list since I can't change the values of the actual list while enumerating over it.
-            foreach (var option in session.Player.CharacterOptions)
-            {
-                if (option.Key.GetCharacterOptions1Attribute() != null)
-                {
-                    if (((uint)option.Key.GetCharacterOptions1Attribute().Option & characterOptions1Flag) != 0)
-                        optionValues.Add(option.Key, true);
-                    else
-                        optionValues.Add(option.Key, false);
-                }
-                else if (option.Key.GetCharacterOptions2Attribute() != null)
-                {
-                    if (((uint)option.Key.GetCharacterOptions2Attribute().Option & characterOptions2Flag) != 0)
-                        optionValues.Add(option.Key, true);
-                    else
-                        optionValues.Add(option.Key, false);
-                }
-            }
-
-            foreach (var option in optionValues)
-                session.Player.SetCharacterOption(option.Key, option.Value);
 
             // TODO: Set other options from the packet
 

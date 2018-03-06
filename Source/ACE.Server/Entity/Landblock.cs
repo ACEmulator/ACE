@@ -4,19 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using log4net;
+
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
+using ACE.Server.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
-using log4net;
+using ACE.Database.Models.World;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Entity
 {
@@ -98,9 +103,9 @@ namespace ACE.Server.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
-            var objects = DatabaseManager.World.GetWeenieInstancesByLandblock(this.Id.Landblock); // Instances
+            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock); // Instances
 
-            var factoryObjects = WorldObjectFactory.CreateWorldObjects(objects);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
                 if (!worldObjects.ContainsKey(fo.Guid))
@@ -123,9 +128,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the landblock
         /// </summary>
-        public void LoadMeshes(List<AceObject> objects)
+        public void LoadMeshes(List<LandblockInstances> objects)
         {
-            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw | 0xFFFF);
+            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
             LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
 
             LandblockMesh = new LandblockMesh(Id);
@@ -161,13 +166,16 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the weenies on the landblock
         /// </summary>
-        public void LoadWeenies(List<AceObject> objects)
+        public void LoadWeenies(List<LandblockInstances> objects)
         {
             WeenieMeshes = new List<ModelMesh>();
 
             foreach (var obj in objects)
-                WeenieMeshes.Add(new ModelMesh(obj.SetupDID.Value,
-                    new DatLoader.Entity.Frame(obj.AceObjectPropertiesPositions.Values.LastOrDefault())));
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(obj.WeenieClassId);
+                WeenieMeshes.Add(new ModelMesh(weenie.GetProperty(PropertyDataId.Setup) ?? 0,
+                    new DatLoader.Entity.Frame(new Position(obj.ObjCellId, obj.OriginX, obj.OriginY, obj.OriginZ, obj.AnglesX, obj.AnglesY, obj.AnglesZ, obj.AnglesW))));
+            }
         }
 
         /// <summary>
@@ -235,15 +243,15 @@ namespace ACE.Server.Entity
         {
             Parallel.ForEach(wolist, (o) =>
             {
-                if (o.Guid.IsCreature())
-                {
-                    if ((o as Creature).IsAlive)
-                        player.TrackObject(o);
-                }
-                else
-                {
+                //if (o is Creature)
+                //{
+                //    if (((Creature)o).IsAlive)
+                //        player.TrackObject(o);
+                //}
+                //else
+                //{
                     player.TrackObject(o);
-                }
+                //}
             });
         }
 
@@ -325,7 +333,8 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(objectId))
             {
                 wo = worldObjects[objectId];
-                if (!objectId.IsCreature())
+
+                //if (!(wo is Creature))
                     worldObjects.Remove(objectId);
             }
 
@@ -367,7 +376,7 @@ namespace ACE.Server.Entity
 
             WorldObject wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
             if (wo?.SetupTableId == null) return 0.00f;
-            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(wo.SetupTableId.Value);
+            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(wo.SetupTableId);
             if (wo.UseRadius != null)
                 return (float)Math.Pow(wo.UseRadius.Value + csetup.Radius + 1.5, 2);
             return (float)Math.Pow(0.25 + csetup.Radius + 1.5, 2);
@@ -733,7 +742,7 @@ namespace ACE.Server.Entity
                 List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
                 foreach (Player p in allPlayers)
                 {
-                    if (p.Location.DistanceTo(pos) < distance * distance)
+                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
                     {
                         p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
                     }
@@ -882,7 +891,7 @@ namespace ACE.Server.Entity
             }
 
             RemoveWorldObjectInternal(woGuid, false);
-            wo.ContainerId = container.Guid.Full;
+            wo.ContainerId = (int)container.Guid.Full;
 
             // We are coming off the world we need to be ready to save.
             wo.Location = null;

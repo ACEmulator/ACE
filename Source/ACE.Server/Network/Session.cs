@@ -2,16 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
+using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Network
 {
@@ -29,9 +32,11 @@ namespace ACE.Server.Network
 
         public SessionState State { get; set; }
 
-        public List<CachedCharacter> AccountCharacters { get; } = new List<CachedCharacter>();
+        public List<Character> AccountCharacters { get; } = new List<Character>();
 
-        public CachedCharacter CharacterRequested { get; set; }
+        public Character CharacterRequested { get; set; }
+
+        public Character Character { get; set; }
 
         public Player Player { get; private set; }
 
@@ -121,34 +126,31 @@ namespace ACE.Server.Network
             AccessLevel = accountAccesslevel;
         }
 
-        public void UpdateCachedCharacters(IEnumerable<CachedCharacter> characters)
+        public void UpdateCachedCharacters(IEnumerable<Character> characters)
         {
             AccountCharacters.Clear();
-            byte slot = 0;
             foreach (var character in characters)
             {
                 if (character.DeleteTime > 0)
                 {
                     if (Time.GetUnixTime() > character.DeleteTime)
                     {
-                        character.Deleted = true;
-                        DatabaseManager.Shard.DeleteCharacter(character.Guid.Full, deleteSuccess =>
+                        character.IsDeleted = true;
+                        DatabaseManager.Shard.MarkCharacterDeleted(character.BiotaId, deleteSuccess =>
                         {
                             if (deleteSuccess)
                             {
-                                log.Info($"Character {character.Guid.Full:X} successfully marked as deleted");
+                                log.Info($"Character {character.BiotaId:X} successfully marked as deleted");
                             }
                             else
                             {
-                                log.Error($"Unable to mark character {character.Guid.Full:X} as deleted");
+                                log.Error($"Unable to mark character {character.BiotaId:X} as deleted");
                             }
                         });
                         continue;
                     }
                 }
-                character.SlotId = slot;
                 AccountCharacters.Add(character);
-                slot++;
             }
         }
 
@@ -180,31 +182,31 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
-            if (Player != null)
-            {
-                if (lastSaveTime == DateTime.MinValue)
-                    lastSaveTime = DateTime.UtcNow;
-                if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
-                {
-                    SaveSession();
-                    lastSaveTime = DateTime.UtcNow;
-                }
+            //if (Player != null)
+            //{
+            //    if (lastSaveTime == DateTime.MinValue)
+            //        lastSaveTime = DateTime.UtcNow;
+            //    if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
+            //    {
+            //        SaveSession();
+            //        lastSaveTime = DateTime.UtcNow;
+            //    }
 
-                if (lastAgeIntUpdateTime == DateTime.MinValue)
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-                {
-                    Player.UpdateAge();
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                }
-                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-                {
-                    Player.SendAgeInt();
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }
-            }
+            //    if (lastAgeIntUpdateTime == DateTime.MinValue)
+            //        lastAgeIntUpdateTime = DateTime.UtcNow;
+            //    if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
+            //    {
+            //        Player.UpdateAge();
+            //        lastAgeIntUpdateTime = DateTime.UtcNow;
+            //    }
+            //    if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+            //        lastSendAgeIntUpdateTime = DateTime.UtcNow;
+            //    if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
+            //    {
+            //        Player.SendAgeInt();
+            //        lastSendAgeIntUpdateTime = DateTime.UtcNow;
+            //    }
+            //}
         }
 
         public void SaveSession()
@@ -285,10 +287,10 @@ namespace ACE.Server.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(Id, ((List<CachedCharacter> result) =>
+            DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
             {
                 UpdateCachedCharacters(result);
-                Network.EnqueueSend(new GameMessageCharacterList(result, Account));
+                Network.EnqueueSend(new GameMessageCharacterList(result, this));
 
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
                 Network.EnqueueSend(serverNameMessage);

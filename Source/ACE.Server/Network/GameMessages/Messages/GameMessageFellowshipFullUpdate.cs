@@ -1,6 +1,8 @@
 using System;
+
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {

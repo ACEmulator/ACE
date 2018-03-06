@@ -17,6 +17,7 @@ namespace ACE.Entity.Enum.Properties
         AvailableLuminance  = 6,
         MaximumLuminance    = 7,
         InteractionReqs     = 8,
+
         [ServerOnly]
         DeleteTime          = 9001
     }

@@ -2,16 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Common.Cryptography;
 using ACE.Database;
+using ACE.Database.Models.Auth;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Packets;
-using log4net;
+
+using Account = ACE.Database.Models.Auth.Account;
+using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -87,9 +94,9 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (WorldManager.Find(account.Name) != null)
+            if (WorldManager.Find(account.AccountName) != null)
             {
-                var foundSession = WorldManager.Find(account.Name);
+                var foundSession = WorldManager.Find(account.AccountName);
 
                 if (foundSession.State == SessionState.AuthConnected)
                 {
@@ -125,7 +132,7 @@ namespace ACE.Server.Network.Handlers
 
             // TODO: check for account bans
 
-            session.SetAccount(account.AccountId, account.Name, account.AccessLevel);
+            session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
         }
 
@@ -133,12 +140,12 @@ namespace ACE.Server.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, ((List<CachedCharacter> result) =>
+            DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
             {
-                result = result.OrderByDescending(o => o.LoginTimestamp).ToList();
+                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 session.UpdateCachedCharacters(result);
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session.Account);
+                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session);
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 

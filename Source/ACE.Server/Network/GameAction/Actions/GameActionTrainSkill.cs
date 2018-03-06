@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var skill = (Skill)message.Payload.ReadUInt32();
             var creditsSpent = message.Payload.ReadInt32();
             // train skills
-            session.Player.TrainSkill(skill, creditsSpent);
+            session.Player.TrainSkillGameAction(skill, creditsSpent);
         }
     }
 }

@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using ACE.Entity;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Tests
 {

@@ -1,3 +1,5 @@
+using System;
+
 using ACE.DatLoader;
 using ACE.Entity;
 
@@ -8,22 +10,22 @@ namespace ACE.Server.Entity
     /// </summary>
     public class ContractTracker
     {
-        protected AceContractTracker AceContractTracker { get; set; }
+        //protected AceContractTracker AceContractTracker { get; set; }
 
         public DatLoader.Entity.Contract ContractDetails { get; }
 
         public uint AceObjectId
         {
-            get { return AceContractTracker.AceObjectId; }
-            set { AceContractTracker.AceObjectId = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.AceObjectId;*/ }
+            set { throw new NotSupportedException();  /*AceContractTracker.AceObjectId = value;*/ }
         }
         /// <summary>
         /// Version of the contract.   So far I have only seen 0, but I have not done an exhaustive search.
         /// </summary>
         public uint Version
         {
-            get { return AceContractTracker.Version; }
-            set { AceContractTracker.Version = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.Version;*/ }
+            set { throw new NotSupportedException();  /*AceContractTracker.Version = value;*/ }
         }
 
         /// <summary>
@@ -31,8 +33,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint ContractId
         {
-            get { return AceContractTracker.ContractId; }
-            set { AceContractTracker.ContractId = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.ContractId;*/ }
+            set { throw new NotSupportedException();  /*AceContractTracker.ContractId = value;*/ }
         }
 
         /// <summary>
@@ -40,8 +42,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint Stage
         {
-            get { return AceContractTracker.Stage; }
-            set { AceContractTracker.Stage = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.Stage;*/ }
+            set { throw new NotSupportedException();  /*AceContractTracker.Stage = value;*/ }
         }
 
         /// <summary>
@@ -50,8 +52,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public ulong TimeWhenDone
         {
-            get { return AceContractTracker.TimeWhenDone; }
-            set { AceContractTracker.TimeWhenDone = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.TimeWhenDone;*/ }
+            set { throw new NotSupportedException();  /*AceContractTracker.TimeWhenDone = value;*/ }
         }
 
         /// <summary>
@@ -60,8 +62,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public ulong TimeWhenRepeats
         {
-            get { return AceContractTracker.TimeWhenRepeats; }
-            set { AceContractTracker.TimeWhenRepeats = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.TimeWhenRepeats; */}
+            set { throw new NotSupportedException();  /*AceContractTracker.TimeWhenRepeats = value;*/ }
         }
 
         /// <summary>
@@ -69,8 +71,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint DeleteContract
         {
-            get { return AceContractTracker.DeleteContract; }
-            set { AceContractTracker.DeleteContract = value; }
+            get {throw new NotSupportedException();  /* return AceContractTracker.DeleteContract;*/ }
+            set {throw new NotSupportedException();  /* AceContractTracker.DeleteContract = value;*/ }
         }
 
         /// <summary>
@@ -78,8 +80,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public uint SetAsDisplayContract
         {
-            get { return AceContractTracker.SetAsDisplayContract; }
-            set { AceContractTracker.SetAsDisplayContract = value; }
+            get { throw new NotSupportedException();  /*return AceContractTracker.SetAsDisplayContract;*/}
+            set { throw new NotSupportedException();  /*AceContractTracker.SetAsDisplayContract = value;*/ }
         }
 
         /// <summary>
@@ -89,11 +91,11 @@ namespace ACE.Server.Entity
         /// <param name="aceObjectId">This is the guid of the player to which we are adding this contract tracker</param>
         public ContractTracker(uint contractId, uint aceObjectId)
         {
-            AceContractTracker = new AceContractTracker();
+            /*AceContractTracker = new AceContractTracker();
             ContractId = contractId;
             AceObjectId = aceObjectId;
             ContractDetails = GetContractDetails();
-            Version = ContractDetails.Version;
+            Version = ContractDetails.Version;*/
         }
 
         /// <summary>
@@ -106,10 +108,10 @@ namespace ACE.Server.Entity
             return contractTable.Contracts.TryGetValue(ContractId, out var contractData) ? contractData : null;
         }
 
-        public AceContractTracker SnapShotOfAceContractTracker()
+        /*public AceContractTracker SnapShotOfAceContractTracker()
         {
             AceContractTracker snapshot = (AceContractTracker)AceContractTracker.Clone();
             return snapshot;
-        }
+        }*/
     }
 }

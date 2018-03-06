@@ -1,8 +1,9 @@
 using System;
 using System.IO;
-using ACE.Entity;
-using ACE.Entity.Enum;
 using log4net;
+
+using ACE.Entity.Enum;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Entity
 {
@@ -44,40 +45,33 @@ namespace ACE.Server.Entity
         public MovementData ConvertToClientAccepted(uint holdKey, CreatureSkill run)
         {
             MovementData md = new MovementData();
+
             // FIXME(ddevec): -- This is hacky!  I mostly reverse engineered it from old network logs
             //   WARNING: this is ugly stuffs --
             //      I'm basically just converting based on analyzing packet stuffs, no idea where the magic #'s come from
             if (holdKey != ((uint)MotionCommand.Invalid & 0xFFFF) && holdKey != ((uint)MotionCommand.HoldSidestep & 0xFFFF))
-            {
                 log.WarnFormat("Unexpected hold key: {0:X}", holdKey);
-            }
 
             if ((movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-            {
                 md.CurrentStyle = CurrentStyle;
-            }
 
             float baseTurnSpeed = 1;
             float baseSpeed = 1;
 
             if (holdKey == 2)
             {
-                if (run.ActiveValue >= 800)
-                {
+                if (run.Current >= 800)
                     baseSpeed = 18f / 4f;
-                }
                 else
                 {
                     // TODO(ddevec): Is burden accounted for externally, or as part of the skill?
-                    baseSpeed = (((float)run.ActiveValue / (run.ActiveValue + 200f) * 11f) + 4.0f) / 4.0f;
+                    baseSpeed = (((float)run.Current / (run.Current + 200f) * 11f) + 4.0f) / 4.0f;
                 }
             }
             else
             {
                 if (baseSpeed > 3.11999f)
-                {
                     baseSpeed = 3.12f;
-                }
             }
 
             float baseSidestepSpeed = baseSpeed;
@@ -89,28 +83,26 @@ namespace ACE.Server.Entity
                     if (holdKey == 2)
                     {
                         md.ForwardCommand = (uint)MotionCommand.RunForward;
+
                         if (baseSpeed > 4f)
-                        {
                             baseSpeed = 4f;
-                        }
                     }
                     else
                     {
                         md.ForwardCommand = (uint)MotionCommand.WalkForward;
                     }
+
                     md.ForwardSpeed = baseSpeed;
                 }
                 else if (ForwardCommand == ((uint)MotionCommand.WalkBackwards & 0xFFFF))
                 {
                     md.ForwardCommand = (uint)MotionCommand.WalkForward;
+
                     if (holdKey != 2)
-                    {
                         baseSpeed = .65f;
-                    }
                     else
-                    {
                         baseSpeed = .65f * baseSpeed;
-                    }
+
                     md.ForwardSpeed = -1 * baseSpeed;
                 }
                 // Emote -- some are put here, others are sent externally -- ugh
@@ -127,19 +119,17 @@ namespace ACE.Server.Entity
                 {
                     md.SideStepCommand = (uint)MotionCommand.SideStepRight;
                     md.SideStepSpeed = baseSidestepSpeed * 3.12f / 1.25f * .5f;
+
                     if (md.SideStepSpeed > 3)
-                    {
                         md.SideStepSpeed = 3;
-                    }
                 }
                 else if (SideStepCommand == ((uint)MotionCommand.SideStepLeft & 0xFFFF))
                 {
                     md.SideStepCommand = (uint)MotionCommand.SideStepRight;
                     md.SideStepSpeed = -1 * baseSidestepSpeed * 3.12f / 1.25f * .5f;
+
                     if (md.SideStepSpeed < -3)
-                    {
                         md.SideStepSpeed = -3;
-                    }
                 }
                 // Unknown turn command?
                 else
@@ -151,9 +141,8 @@ namespace ACE.Server.Entity
             if (TurnCommand != 0)
             {
                 if (holdKey == 2)
-                {
                     baseTurnSpeed = 1.5f;
-                }
+
                 if (TurnCommand == ((uint)MotionCommand.TurnRight & 0xFFFF))
                 {
                     md.TurnCommand = (uint)MotionCommand.TurnRight;
@@ -199,29 +188,29 @@ namespace ACE.Server.Entity
 
         public void Serialize(BinaryWriter writer)
         {
-            if ((this.movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-                writer.Write((ushort)this.CurrentStyle);
+            if ((movementStateFlag & MovementStateFlag.CurrentStyle) != 0)
+                writer.Write((ushort)CurrentStyle);
 
-            if ((this.movementStateFlag & MovementStateFlag.ForwardCommand) != 0)
+            if ((movementStateFlag & MovementStateFlag.ForwardCommand) != 0)
                 // writer.Write((uint)this.ForwardCommand);
-                writer.Write((ushort)this.ForwardCommand);
+                writer.Write((ushort)ForwardCommand);
 
-            if ((this.movementStateFlag & MovementStateFlag.SideStepCommand) != 0)
+            if ((movementStateFlag & MovementStateFlag.SideStepCommand) != 0)
                 // writer.Write((uint)this.SideStepCommand);
-                writer.Write((ushort)this.SideStepCommand);
+                writer.Write((ushort)SideStepCommand);
 
-            if ((this.movementStateFlag & MovementStateFlag.TurnCommand) != 0)
+            if ((movementStateFlag & MovementStateFlag.TurnCommand) != 0)
                 // writer.Write((uint)this.TurnCommand);
-                writer.Write((ushort)this.TurnCommand);
+                writer.Write((ushort)TurnCommand);
 
-            if ((this.movementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
-                writer.Write((float)this.ForwardSpeed);
+            if ((movementStateFlag & MovementStateFlag.ForwardSpeed) != 0)
+                writer.Write((float)ForwardSpeed);
 
-            if ((this.movementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
-                writer.Write((float)this.SideStepSpeed);
+            if ((movementStateFlag & MovementStateFlag.SideStepSpeed) != 0)
+                writer.Write((float)SideStepSpeed);
 
-            if ((this.movementStateFlag & MovementStateFlag.TurnSpeed) != 0)
-                writer.Write((float)this.TurnSpeed);
+            if ((movementStateFlag & MovementStateFlag.TurnSpeed) != 0)
+                writer.Write((float)TurnSpeed);
         }
     }
 }

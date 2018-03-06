@@ -6,13 +6,16 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
-using log4net;
 
 namespace ACE.Server.Managers
 {
@@ -393,11 +396,13 @@ namespace ACE.Server.Managers
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
             // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
+            // This crashes sometimes with the following exception: System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
             Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
             {
                 foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                 {
                     Position newPosition = wo.Location;
+
                     if (wo.ForcedLocation != null)
                     {
                         newPosition = wo.ForcedLocation;

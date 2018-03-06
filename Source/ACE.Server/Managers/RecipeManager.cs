@@ -1,15 +1,20 @@
 using System;
 using System.Collections.Generic;
+
+using log4net;
+
+using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
-using log4net;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Managers
 {
@@ -17,21 +22,13 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Random _random = new Random();
-        private static RecipeCache _recipeCache;
+        private static readonly Random _random = new Random();
 
-        private static List<AceObjectPropertyId> _updateStructure = new List<AceObjectPropertyId>() { new AceObjectPropertyId((uint)PropertyInt.Structure, AceObjectPropertyType.PropertyInt) };
-
-        public static void Initialize()
-        {
-            // build the cache
-            var recipes = Database.DatabaseManager.World.GetAllRecipes();
-            _recipeCache = new RecipeCache(recipes);
-        }
+        private static readonly List<GenericPropertyId> _updateStructure = new List<GenericPropertyId>() { new GenericPropertyId((uint)PropertyInt.Structure, PropertyType.PropertyInt) };
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
-            Recipe recipe = _recipeCache.GetRecipe(source.WeenieClassId, target.WeenieClassId);
+            var recipe = DatabaseManager.World.GetCachedRecipe(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
             {
@@ -62,7 +59,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        private static void HandleCreateItemRecipe(Player player, WorldObject source, WorldObject target, Recipe recipe)
+        private static void HandleCreateItemRecipe(Player player, WorldObject source, WorldObject target, AceRecipe recipe)
         {
             ActionChain craftChain = new ActionChain();
             CreatureSkill skill = null;
@@ -84,14 +81,15 @@ namespace ACE.Server.Managers
                     Skill skillId = (Skill)recipe.SkillId.Value;
 
                     // this shouldn't happen, but sanity check for unexpected nulls
-                    if (!player.Skills.ContainsKey(skillId))
+                    skill = player.GetCreatureSkill(skillId);
+
+                    if (skill == null)
                     {
                         log.Warn("Unexpectedly missing skill in Recipe usage");
                         player.SendUseDoneEvent();
                         return;
                     }
 
-                    skill = player.Skills[skillId];
                     percentSuccess = skill.GetPercentSuccess(recipe.SkillDifficulty.Value);
                 }
 
@@ -164,7 +162,7 @@ namespace ACE.Server.Managers
             craftChain.EnqueueChain();
         }
 
-        private static void HandleHealingRecipe(Player player, WorldObject source, WorldObject target, Recipe recipe)
+        private static void HandleHealingRecipe(Player player, WorldObject source, WorldObject target, AceRecipe recipe)
         {
             ActionChain chain = new ActionChain();
 
@@ -190,15 +188,15 @@ namespace ACE.Server.Managers
             // there's a skill associated with this
             Skill skillId = (Skill)recipe.SkillId.Value;
 
+            var skill = player.GetCreatureSkill(skillId);
+
             // this shouldn't happen, but sanity check for unexpected nulls
-            if (!player.Skills.ContainsKey(skillId))
+            if (skill == null)
             {
                 log.Warn("Unexpectedly missing skill in Recipe usage");
                 player.SendUseDoneEvent();
                 return;
             }
-
-            CreatureSkill skill = player.Skills[skillId];
 
             // at this point, we've validated that the target is a player, and the target is below max health
 
@@ -218,110 +216,111 @@ namespace ACE.Server.Managers
             chain.AddAction(player, () => player.HandleActionMotion(motion));
             chain.AddDelaySeconds(0.5);
 
-            chain.AddAction(player, () =>
-            {
-                // TODO: revalidate range if other player (they could have moved)
+            //chain.AddAction(player, () =>
+            //{
+            //    // TODO: revalidate range if other player (they could have moved)
 
-                double difficulty = 2 * (targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current);
-                if (difficulty <= 0)
-                {
-                    // target is at max (or higher?) health, do nothing
-                    var text = "You are already at full health.";
+            //    double difficulty = 2 * (targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current);
 
-                    if (target.Guid != player.Guid)
-                        text = $"{target.Name} is already at full health";
+            //    if (difficulty <= 0)
+            //    {
+            //        // target is at max (or higher?) health, do nothing
+            //        var text = "You are already at full health.";
+
+            //        if (target.Guid != player.Guid)
+            //            text = $"{target.Name} is already at full health";
                     
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Craft));
-                    player.SendUseDoneEvent();
-                    return;
-                }
+            //        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Craft));
+            //        player.SendUseDoneEvent();
+            //        return;
+            //    }
 
-                if (player.CombatMode != CombatMode.NonCombat && player.CombatMode != CombatMode.Undef)
-                    difficulty *= 1.1;
+            //    if (player.CombatMode != CombatMode.NonCombat && player.CombatMode != CombatMode.Undef)
+            //        difficulty *= 1.1;
                 
-                int boost = source.Boost ?? 0;
-                double multiplier = source.HealkitMod ?? 1;
+            //    int boost = source.Boost ?? 0;
+            //    double multiplier = source.HealkitMod ?? 1;
 
-                double playerSkill = skill.ActiveValue + boost;
-                if (skill.Status == SkillStatus.Trained)
-                    playerSkill *= 1.1;
-                else if (skill.Status == SkillStatus.Specialized)
-                    playerSkill *= 1.5;
+            //    double playerSkill = skill.Current + boost;
+            //    if (skill.Status == SkillStatus.Trained)
+            //        playerSkill *= 1.1;
+            //    else if (skill.Status == SkillStatus.Specialized)
+            //        playerSkill *= 1.5;
 
-                // usage is inevitable at this point, consume the use
-                if ((recipe.ResultFlags & (uint)RecipeResult.SourceItemUsesDecrement) > 0)
-                {
-                    if (source.Structure <= 1)
-                        player.DestroyInventoryItem(source);
-                    else
-                    {
-                        source.Structure--;
-                        source.SendPartialUpdates(player.Session, _updateStructure);
-                    }
-                }
+            //    // usage is inevitable at this point, consume the use
+            //    if ((recipe.ResultFlags & (uint)RecipeResult.SourceItemUsesDecrement) > 0)
+            //    {
+            //        if (source.Structure <= 1)
+            //            player.DestroyInventoryItem(source);
+            //        else
+            //        {
+            //            source.Structure--;
+            //            source.SendPartialUpdates(player.Session, _updateStructure);
+            //        }
+            //    }
 
-                double percentSuccess = CreatureSkill.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
+            //    double percentSuccess = CreatureSkill.GetPercentSuccess((uint)playerSkill, (uint)difficulty);
 
-                if (_random.NextDouble() <= percentSuccess)
-                {
-                    string expertly = "";
+            //    if (_random.NextDouble() <= percentSuccess)
+            //    {
+            //        string expertly = "";
 
-                    if (_random.NextDouble() < 0.1d)
-                    {
-                        expertly = "expertly ";
-                        multiplier *= 1.2;
-                    }
+            //        if (_random.NextDouble() < 0.1d)
+            //        {
+            //            expertly = "expertly ";
+            //            multiplier *= 1.2;
+            //        }
 
-                    // calculate amount restored
-                    uint maxRestore = targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current;
+            //        // calculate amount restored
+            //        uint maxRestore = targetPlayer.Vitals[vital].MaxValue - targetPlayer.Vitals[vital].Current;
 
-                    // TODO: get actual forumula for healing.  this is COMPLETELY wrong.  this is 60 + random(1-60).
-                    double amountRestored = 60d + _random.Next(1, 61);
-                    amountRestored *= multiplier;
+            //        // TODO: get actual forumula for healing.  this is COMPLETELY wrong.  this is 60 + random(1-60).
+            //        double amountRestored = 60d + _random.Next(1, 61);
+            //        amountRestored *= multiplier;
 
-                    uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
-                    targetPlayer.Vitals[vital].Current += actualRestored;
+            //        uint actualRestored = (uint)Math.Min(maxRestore, amountRestored);
+            //        targetPlayer.Vitals[vital].Current += actualRestored;
                     
-                    var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
-                    player.Session.Network.EnqueueSend(updateVital);
+            //        var updateVital = new GameMessagePrivateUpdateAttribute2ndLevel(player.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+            //        player.Session.Network.EnqueueSend(updateVital);
 
-                    if (targetPlayer.Guid != player.Guid)
-                    {
-                        // tell the other player they got healed
-                        var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
-                        targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
-                    }
+            //        if (targetPlayer.Guid != player.Guid)
+            //        {
+            //            // tell the other player they got healed
+            //            var updateVitalToTarget = new GameMessagePrivateUpdateAttribute2ndLevel(targetPlayer.Session, vital.GetVital(), targetPlayer.Vitals[vital].Current);
+            //            targetPlayer.Session.Network.EnqueueSend(updateVitalToTarget);
+            //        }
 
-                    string name = "yourself";
-                    if (targetPlayer.Guid != player.Guid)
-                        name = targetPlayer.Name;
+            //        string name = "yourself";
+            //        if (targetPlayer.Guid != player.Guid)
+            //            name = targetPlayer.Name;
 
-                    string vitalName = "Health";
+            //        string vitalName = "Health";
 
-                    if (vital == Ability.Stamina)
-                        vitalName = "Stamina";
-                    else if (vital == Ability.Mana)
-                        vitalName = "Mana";
+            //        if (vital == Ability.Stamina)
+            //            vitalName = "Stamina";
+            //        else if (vital == Ability.Mana)
+            //            vitalName = "Mana";
 
-                    string uses = source.Structure == 1 ? "use" : "uses";
+            //        string uses = source.Structure == 1 ? "use" : "uses";
 
-                    var text = string.Format(recipe.SuccessMessage, expertly, name, actualRestored, vitalName, source.Name, source.Structure, uses);
-                    var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
-                    player.Session.Network.EnqueueSend(message);
+            //        var text = string.Format(recipe.SuccessMessage, expertly, name, actualRestored, vitalName, source.Name, source.Structure, uses);
+            //        var message = new GameMessageSystemChat(text, ChatMessageType.Craft);
+            //        player.Session.Network.EnqueueSend(message);
                     
-                    if (targetPlayer.Guid != player.Guid)
-                    {
-                        // send text to the other player too
-                        text = string.Format(recipe.AlternateMessage, player.Name, expertly, actualRestored, vitalName);
-                        message = new GameMessageSystemChat(text, ChatMessageType.Craft);
-                        targetPlayer.Session.Network.EnqueueSend(message);
-                    }
-                }
+            //        if (targetPlayer.Guid != player.Guid)
+            //        {
+            //            // send text to the other player too
+            //            text = string.Format(recipe.AlternateMessage, player.Name, expertly, actualRestored, vitalName);
+            //            message = new GameMessageSystemChat(text, ChatMessageType.Craft);
+            //            targetPlayer.Session.Network.EnqueueSend(message);
+            //        }
+            //    }
 
-                player.SendUseDoneEvent();
-            });
+            //    player.SendUseDoneEvent();
+            //});
 
-            chain.EnqueueChain();
+            //chain.EnqueueChain();
         }
     }
 }
