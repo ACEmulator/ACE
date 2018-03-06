@@ -78,8 +78,8 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 * _Problem_
 > When you first load the solution and try to "run" the server, you may get a popup that says "A project with Output Type of Class Library cannot be started directly."
 * _Solution_
-> 1) Right click the Solution in Visual Studio ("Solution 'ACE' (9 projects)"), and select "Set StartUp Projects".
-> 2) The following projects should have "Start" in the "Action" column: ACE.
+> 1) Right click the Solution in Visual Studio ("Solution 'ACE' (8 projects)"), and select "Set StartUp Projects".
+> 2) Click on the circle next to Single startup project and in the dropdown select: ACE.Server.
 
 ## Other Resources
 * [ACEmulator Protocol documentation](https://acemulator.github.io/protocol/) (Recommended)
