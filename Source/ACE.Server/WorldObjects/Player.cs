@@ -1081,12 +1081,13 @@ namespace ACE.Server.WorldObjects
             objDescChain.EnqueueChain();
         }
 
-        //protected override void SendUpdatePosition()
-        //{
-        //    base.SendUpdatePosition();
-        //    GameMessage msg = new GameMessageUpdatePosition(this);
-        //    Session.Network.EnqueueSend(msg);
-        //}
+        protected override void SendUpdatePosition()
+        {
+            
+            GameMessage msg = new GameMessageUpdatePosition(this);
+            Session.Network.EnqueueSend(msg);
+            base.SendUpdatePosition();
+        }
 
         /// <summary>
         /// This method removes an item from Inventory and adds it to wielded items.

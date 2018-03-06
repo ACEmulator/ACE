@@ -1220,8 +1220,15 @@ namespace ACE.Server.WorldObjects
         /// <param name="newPosition"></param>
         public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
         {
+            var previousLocation = Location;
+
             Location = newPosition;
             SendUpdatePosition();
+
+            if (Teleporting)
+            {
+                CurrentLandblock.EnqueueBroadcast(previousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+            }
 
             ForcedLocation = null;
             RequestedLocation = null;

@@ -10,6 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
             session.Player.IgnoreCollisions = false;
             session.Player.Hidden = false;
             session.Player.EnqueueBroadcastPhysicsState();
+            session.Player.Teleporting = false;
         }
     }
 }
