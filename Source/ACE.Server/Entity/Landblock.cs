@@ -20,6 +20,8 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
+using ACE.Database.Models.World;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Entity
 {
@@ -101,7 +103,7 @@ namespace ACE.Server.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
-            var objects = DatabaseManager.World.GetCachedWeenieInstancesByLandblock(Id.Landblock); // Instances
+            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock); // Instances
 
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
             factoryObjects.ForEach(fo =>
@@ -126,9 +128,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the landblock
         /// </summary>
-        public void LoadMeshes(List<AceObject> objects)
+        public void LoadMeshes(List<LandblockInstances> objects)
         {
-            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw | 0xFFFF);
+            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
             LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
 
             LandblockMesh = new LandblockMesh(Id);
@@ -164,13 +166,16 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the weenies on the landblock
         /// </summary>
-        public void LoadWeenies(List<AceObject> objects)
+        public void LoadWeenies(List<LandblockInstances> objects)
         {
             WeenieMeshes = new List<ModelMesh>();
 
             foreach (var obj in objects)
-                WeenieMeshes.Add(new ModelMesh(obj.SetupDID.Value,
-                    new DatLoader.Entity.Frame(obj.AceObjectPropertiesPositions.Values.LastOrDefault())));
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(obj.WeenieClassId);
+                WeenieMeshes.Add(new ModelMesh(weenie.GetProperty(PropertyDataId.Setup) ?? 0,
+                    new DatLoader.Entity.Frame(new Position(obj.ObjCellId, obj.OriginX, obj.OriginY, obj.OriginZ, obj.AnglesX, obj.AnglesY, obj.AnglesZ, obj.AnglesW))));
+            }
         }
 
         /// <summary>
