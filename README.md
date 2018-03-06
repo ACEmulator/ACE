@@ -10,7 +10,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 ***
 ## Disclaimer
 **This project is for educational and non-commerical purposes only, use of the game client is for interoperability with the emulated server.**
-- Asheron's Call is a registered trademark of Turbine, Inc. and WB Games Inc.
+- Asheron's Call was a registered trademark of Turbine, Inc. and WB Games Inc which has since expired.
 - ACEmulator is not associated or affiliated in any way with Turbine, Inc. or WB Games Inc.
 ***
 ## Recommended Tools
