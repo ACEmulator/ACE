@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2018-03-06
+[Mag-nus + Ripley]
+* Entity Framework Core migration to master.
+* This is a complete backend change.
+* Data is now stored in the database in a new and improved format.
+* There may be some things broken that we haven't migrated from the previous AceObject references to the new EF references
+
 ### 2018-02-10
 [Ripley]
 * Renamed a couple of messages queues to match protocol documentation.
