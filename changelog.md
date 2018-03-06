@@ -1,11 +1,17 @@
 # ACEmulator Change Log
 
 ### 2018-03-06
+**You will need to delete and recreate all three databases with this update**
+
+**ACE-World-16PY world db release v0.0.5+ required with this update**
+
+**ACE-World world db releases are currently incompatible with this update**
+
 [Mag-nus + Ripley]
 * Entity Framework Core migration to master.
 * This is a complete backend change.
 * Data is now stored in the database in a new and improved format.
-* There may be some things broken that we haven't migrated from the previous AceObject references to the new EF references
+* There will be some things broken that still been haven't migrated from the previous ORM or AceObject references to the new EF references which require further work but overall we're just about back to where we were previously.
 
 ### 2018-02-10
 [Ripley]
