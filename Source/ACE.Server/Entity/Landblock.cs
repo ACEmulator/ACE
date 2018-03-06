@@ -270,15 +270,15 @@ namespace ACE.Server.Entity
         {
             Parallel.ForEach(wolist, (o) =>
             {
-                if (o is Creature)
-                {
-                    if (((Creature)o).IsAlive)
-                        player.TrackObject(o);
-                }
-                else
-                {
+                //if (o is Creature)
+                //{
+                //    if (((Creature)o).IsAlive)
+                //        player.TrackObject(o);
+                //}
+                //else
+                //{
                     player.TrackObject(o);
-                }
+                //}
             });
         }
 

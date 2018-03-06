@@ -159,7 +159,10 @@ namespace ACE.Server.WorldObjects
             QueueNextHeartBeat();
         }
 
-
+        /// <summary>
+        /// This will be true when teleporting
+        /// </summary>
+        public bool Teleporting { get; set; } = false;
 
 
 
