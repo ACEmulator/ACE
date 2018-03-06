@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
@@ -15,17 +13,33 @@ namespace ACE.Server.Physics.Common
 
         public int FindChildIndex(PhysicsObj obj)
         {
+            for (var i = 0; i < NumObjects; i++)
+            {
+                var child = Objects[i];
+                if (child.Equals(obj))
+                    return i;
+            }
             return -1;
         }
 
         public void AddChild(PhysicsObj obj, AFrame frame, int partIdx, int locationID)
         {
-
+            Objects.Add(obj);
+            Frames.Add(frame);
+            PartNumbers.Add(partIdx);
+            LocationIDs.Add(locationID);
+            NumObjects++;
         }
 
-        public void RemoveChild(PhysicsObj obj)
+        public bool RemoveChild(PhysicsObj obj)
         {
-
+            var idx = FindChildIndex(obj);
+            if (idx == -1) return false;
+            Objects.RemoveAt(idx);
+            Frames.RemoveAt(idx);
+            PartNumbers.RemoveAt(idx);
+            LocationIDs.RemoveAt(idx);
+            return true;
         }
     }
 }

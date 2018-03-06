@@ -163,10 +163,10 @@ namespace ACE.Server.Physics
                 LandDefs.AdjustToOutside(position);
                 return ObjCell.GetVisible(cellID);
             }
-            var visibleCell = ObjCell.GetVisible(cellID);
+            var visibleCell = (EnvCell)ObjCell.GetVisible(cellID);
             if (visibleCell == null) return null;
             var point = position.LocalToGlobal(low_pt);
-            var child = EnvCell.find_visible_child_cell(visibleCell.Pos.Frame.Origin, searchCells);
+            var child = visibleCell.find_visible_child_cell(point, searchCells);
             if (child != null)
             {
                 position.ObjCellID = child.ID;
@@ -828,7 +828,7 @@ namespace ACE.Server.Physics
             Cell = null;
             if (objCell != null)
             {
-                objCell.remove_shadow_object(ShadowObjects[0].PhysObj);
+                objCell.remove_shadow_object(ShadowObjects[0]);
                 NumShadowObjects = 0;
                 if (PartArray != null)
                     PartArray.RemoveParts(objCell);
@@ -1695,7 +1695,7 @@ namespace ACE.Server.Physics
             else
             {
                 if (PartArray != null && PartArray.GetNumCylsphere() != 0)
-                    ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere()[0], CellArray, null);
+                    ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
                 else
                 {
                     var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
@@ -1711,7 +1711,7 @@ namespace ACE.Server.Physics
             CellArray.SetStatic();
 
             if (PartArray != null && PartArray.GetNumCylsphere() != 0 && !State.HasFlag(PhysicsState.HasPhysicsBSP))
-                ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere()[0], CellArray, null);
+                ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
             else
                 find_bbox_cell_list(CellArray);
 
@@ -1763,10 +1763,10 @@ namespace ACE.Server.Physics
                 enter_cell(newCell);
         }
 
-        public bool check_attack(Position attackerPos, float attackerScale, AttackCone attackCone, float attackerAttackRadius)
+        public int check_attack(Position attackerPos, float attackerScale, AttackCone attackCone, float attackerAttackRadius)
         {
             if (Parent != null || State.HasFlag(PhysicsState.IgnoreCollisions) || State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
-                return false;
+                return 0;
 
             var targetHeight = PartArray != null ? PartArray.GetHeight() : 0;
             var targetRadius = PartArray != null ? PartArray.GetRadius() : 0;
@@ -1777,9 +1777,9 @@ namespace ACE.Server.Physics
             return Sphere.Attack(Position, targetRadius, targetHeight, attackerPos, attackCone.Left, attackCone.Right, attackRad, attackHeight);
         }
 
-        public int check_collision(PhysicsObj obj)
+        public bool check_collision(PhysicsObj obj)
         {
-            return -1;
+            return false;
         }
 
         public bool check_contact(bool contact)
@@ -1878,7 +1878,7 @@ namespace ACE.Server.Physics
         {
             foreach (var shadowObj in ShadowObjects.Values)
             {
-                if (shadowObj.Cell.check_collisions())
+                if (shadowObj.Cell.check_collisions(this))
                     return true;
             }
             return false;
@@ -1946,9 +1946,14 @@ namespace ACE.Server.Physics
             return Position.Frame.get_heading();
         }
 
-        public int get_landscape_coord(int x, int y)
+        public Vector2 get_landscape_coord()
         {
-            return LandDefs.gid_to_lcoord(Position.ObjCellID, x, y);
+            var lcoord = LandDefs.gid_to_lcoord(Position.ObjCellID);
+
+            if (lcoord != null)
+                return lcoord.Value;
+            else
+                return Vector2.Zero;
         }
 
         public Vector3 get_local_physics_velocity()
@@ -2476,7 +2481,7 @@ namespace ACE.Server.Physics
             foreach (var shadowObj in ShadowObjects.Values)
             {
                 if (shadowObj.Cell == null) continue;
-                shadowObj.Cell.remove_shadow_object(shadowObj.PhysObj);
+                shadowObj.Cell.remove_shadow_object(shadowObj);
                 if (PartArray != null)
                     PartArray.RemoveParts(shadowObj.Cell);
             }

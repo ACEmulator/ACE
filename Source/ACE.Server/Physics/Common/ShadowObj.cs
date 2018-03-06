@@ -2,12 +2,12 @@ namespace ACE.Server.Physics.Common
 {
     public class ShadowObj
     {
-        public PhysicsObj PhysObj;
+        public PhysicsObj PhysicsObj;
         public ObjCell Cell;
 
-        public ShadowObj(PhysicsObj physObj, ObjCell cell)
+        public ShadowObj(PhysicsObj physicsObj, ObjCell cell)
         {
-            PhysObj = physObj;
+            PhysicsObj = physicsObj;
             Cell = cell;
         }
     }

@@ -14,6 +14,11 @@ namespace ACE.Server.Physics.Common
             return null;
         }
 
+        public void ReleaseObjCell(ObjCell objCell)
+        {
+
+        }
+
         public void RemoveFromLostCell(PhysicsObj obj)
         {
 

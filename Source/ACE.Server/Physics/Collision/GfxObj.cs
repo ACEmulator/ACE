@@ -18,7 +18,7 @@ namespace ACE.Server.Physics.Collision
         //public MeshBuffer ConstructedMesh;
         public bool UseBuiltMesh;
         public Sphere PhysicsSphere;
-        public BSPTree PhysicsBSP;
+        public BSP.BSPTree PhysicsBSP;
         public Vector3 SortCenter;
         public int NumPolygons;
         public List<Polygon> Polygons;
@@ -29,8 +29,23 @@ namespace ACE.Server.Physics.Collision
         // or only for drawing?
         public BBox GfxBoundBox;
 
-        public static TransitionState FindObjCollisions(GfxObj gfxObj, Transition transition, float scaleZ)
+        public TransitionState FindObjCollisions(GfxObj gfxObj, Transition transition, float scaleZ)
         {
+            var path = transition.SpherePath;
+
+            foreach (var localSpaceSphere in path.LocalSpaceSphere)
+            {
+                var offset = PhysicsSphere.Center - localSpaceSphere.Center;
+                var radsum = PhysicsSphere.Radius + localSpaceSphere.Radius;
+
+                if (offset.LengthSquared() - radsum * radsum < PhysicsGlobals.EPSILON)
+                {
+                    if (path.InsertType == InsertType.InitialPlacement)
+                        return PhysicsBSP.placement_insert(transition);
+                    else
+                        return PhysicsBSP.find_collisions(transition, scaleZ);
+                }
+            }
             return TransitionState.OK;
         }
 

@@ -10,6 +10,14 @@ namespace ACE.Server.Physics.Combat
     public class DetectionInfo
     {
         public int ObjectID;
-        public DetectionType ObjectStatus;
+        public DetectionType Status;
+
+        public DetectionInfo() { }
+
+        public DetectionInfo(int objectID, DetectionType status)
+        {
+            ObjectID = objectID;
+            Status = status;
+        }
     }
 }

@@ -81,12 +81,12 @@ namespace ACE.Server.Physics.Animation
             return offset;
         }
 
-        public List<ObjCell> BuildCellArray()
+        public ObjCell BuildCellArray(ObjCell newCell = null)
         {
             SpherePath.CellArrayValid = true;
             SpherePath.HitsInteriorCell = false;
 
-            return CellArray.find_cell_list(SpherePath);
+            return ObjCell.find_cell_list(CellArray, newCell, SpherePath);
         }
 
         public void CalcNumSteps(ref Vector3 offset, ref Vector3 offsetPerStep, ref int numSteps)
@@ -152,7 +152,7 @@ namespace ACE.Server.Physics.Animation
 
             SpherePath.CellArrayValid = true;
             SpherePath.HitsInteriorCell = false;
-            var newCell = CellArray.find_cell_list(SpherePath)[0];
+            var newCell = ObjCell.find_cell_list(CellArray, null, SpherePath);
 
             foreach (var cell in CellArray.Cells)
             {
@@ -498,7 +498,7 @@ namespace ACE.Server.Physics.Animation
                 SpherePath.CellArrayValid = true;
                 SpherePath.HitsInteriorCell = false;
 
-                CellArray.find_cell_list(SpherePath);
+                ObjCell.find_cell_list(CellArray, null, SpherePath);
                 return true;
             }
 

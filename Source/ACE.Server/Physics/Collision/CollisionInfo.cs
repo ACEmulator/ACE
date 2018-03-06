@@ -27,7 +27,7 @@ namespace ACE.Server.Physics.Collision
 
         public void Init()
         {
-
+            // values already set to 0
         }
 
         public void SetContactPlane(Plane plane, bool isWater)
@@ -66,7 +66,14 @@ namespace ACE.Server.Physics.Collision
 
         public void AddObject(PhysicsObj obj, TransitionState state)
         {
+            if (CollideObject.Contains(obj))
+                return;
 
+            CollideObject.Add(obj);
+            NumCollideObject++;
+
+            if (state != TransitionState.OK)
+                LastCollidedObject = obj;
         }
     }
 }
