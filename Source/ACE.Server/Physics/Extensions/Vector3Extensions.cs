@@ -9,6 +9,11 @@ namespace ACE.Server.Physics.Extensions
             return v.X != float.NaN && v.Y != float.NaN && v.Z != float.NaN;
         }
 
+        public static double Length2D(this Vector3 v)
+        {
+            return new Vector2(v.X, v.Y).Length();
+        }
+
         public static Vector3 Normalize(this Vector3 v)
         {
             return v / v.Length();

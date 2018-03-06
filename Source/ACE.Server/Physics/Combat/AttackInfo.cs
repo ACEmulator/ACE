@@ -10,5 +10,10 @@ namespace ACE.Server.Physics.Combat
         public bool WaitingForCells;
         public int NumObjects;
         public List<AtkObjInfo> ObjectList;
+
+        public void AddObject(int objectID, int hitLocation)
+        {
+
+        }
     }
 }

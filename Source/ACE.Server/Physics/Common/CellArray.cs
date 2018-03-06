@@ -26,12 +26,13 @@ namespace ACE.Server.Physics.Common
 
         public void add_cell(int cellID, ObjCell cell)
         {
-
+            Cells.Add(cell);
+            NumCells++;
         }
 
-        public List<ObjCell> find_cell_list(SpherePath path)
+        public void remove_cell(ObjCell cell)
         {
-            return ObjCell.find_cell_list(path.CheckPos, path.NumSphere, path.GlobalSphere[0], this, path);
+
         }
     }
 }
