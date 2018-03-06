@@ -19,6 +19,16 @@ namespace ACE.Server.Physics.Common
             Frame = new AFrame();
         }
 
+        public Vector3 LocalToLocal(Position p, Vector3 v)
+        {
+            return v;
+        }
+
+        public Vector3 LocalToGlobal(Vector3 v)
+        {
+            return v;
+        }
+
         public Vector3 LocalToGlobal(Position p, Vector3 v)
         {
             return v;

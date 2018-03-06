@@ -165,7 +165,7 @@ namespace ACE.Server.Physics
             }
             var visibleCell = ObjCell.GetVisible(cellID);
             if (visibleCell == null) return null;
-            var point = position.LocalToGlobal(position, low_pt);
+            var point = position.LocalToGlobal(low_pt);
             var child = EnvCell.find_visible_child_cell(visibleCell.Pos.Frame.Origin, searchCells);
             if (child != null)
             {
@@ -1917,7 +1917,7 @@ namespace ACE.Server.Physics
         public int get_curr_frame_number()
         {
             if (PartArray != null)
-                return PartArray.Sequence.GetCurrFrameNumber();
+                return PartArray.Sequence.get_curr_frame_number();
             else
                 return 0;
         }

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ACE.Entity;
 
@@ -7,151 +9,374 @@ namespace ACE.Server.Physics.Animation
     public class Sequence
     {
         public int ID;
-        public List<AnimSequenceNode> AnimList;
-        public AnimSequenceNode FirstCyclic;
+        public LinkedList<AnimSequenceNode> AnimList;
+        public LinkedListNode<AnimSequenceNode> FirstCyclic;
         public Vector3 Velocity;
         public Vector3 Omega;
         public PhysicsObj HookObj;
-        public double FrameNumber;
-        public AnimSequenceNode CurrAnim;
+        public float FrameNumber;
+        public LinkedListNode<AnimSequenceNode> CurrAnim;
         public AnimFrame PlacementFrame;
-        public int PlacementFrameId;
-        public int IsTrivial;
+        public int PlacementFrameID;
+        public bool IsTrivial;
 
-        public Sequence() { }
-
-        public Sequence(bool id)
+        public Sequence()
         {
-            ID = id ? 1 : 0;
+            Init();
         }
 
         public Sequence(int id)
         {
             ID = id;
+            Init();
         }
 
-        public Sequence(Frame frame)
+        public Sequence(bool id)
         {
-
-        }
-
-        public Sequence(List<PhysicsPart> parts)
-        {
-
+            ID = id ? 1 : 0;
+            Init();
         }
 
         public void Clear()
         {
+            clear_animations();
+            clear_physics();
 
+            PlacementFrame = null;
+            PlacementFrameID = 0;
         }
 
-        public void CombinePhysics(Vector3 v, Vector3 o)
+        public void CombinePhysics(Vector3 velocity, Vector3 omega)
         {
-
+            Velocity += velocity;
+            Omega += omega;
         }
 
         public AnimFrame GetCurrAnimFrame()
         {
-            return null;
-        }
+            if (CurrAnim == null)
+                return PlacementFrame;
 
-        public int GetCurrFrameNumber()
-        {
-            return -1;
+            return CurrAnim.Value.get_part_frame(get_curr_frame_number());
         }
 
         public bool HasAnims()
         {
-            return false;
+            return AnimList != null && AnimList.Count != 0;
         }
 
-        public void SetObject(PhysicsObj physObj)
+        public void Init()
         {
-
+            Velocity = Vector3.Zero;
+            Omega = Vector3.Zero;
+            FrameNumber = 0.0f;
         }
 
-        public void SetOmega(Vector3 o)
+        public void SetObject(PhysicsObj obj)
         {
+            HookObj = obj;
+        }
 
+        public void SetOmega(Vector3 omega)
+        {
+            Omega = omega;
         }
 
         public void SetPlacementFrame(AnimFrame frame, int id)
         {
-
+            PlacementFrame = frame;
+            PlacementFrameID = id;
         }
 
-        public void SetVelocity(Vector3 v)
+        public void SetVelocity(Vector3 velocity)
         {
-
+            Velocity = velocity;
         }
 
-        public void Update(double quantum, AFrame offsetFrame)
+        public void Update(float quantum, AFrame frame)
         {
-
+            if (AnimList != null && AnimList.Count != 0)
+            {
+                update_internal(quantum, CurrAnim.Value, FrameNumber, frame);
+                apricot();
+            }
+            else
+            {
+                if (frame != null)
+                    apply_physics(frame, quantum, quantum);
+            }
         }
 
-        public void advance_to_next_animation(double quantum, AnimSequenceNode currAnim, double frameNum, Frame retval)
+        public void advance_to_next_animation(float timeElapsed, AnimSequenceNode currAnim, double frameNum, AFrame frame)
         {
+            var firstFrame = currAnim.Framerate >= 0.0f;
+            var secondFrame = currAnim.Framerate < 0.0f;
 
+            if (timeElapsed >= 0.0)
+            {
+                firstFrame = currAnim.Framerate < 0.0f;
+                secondFrame = currAnim.Framerate > 0.0f;
+            }
+            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, firstFrame);
+
+            if (currAnim.GetNext() != null)
+                currAnim = currAnim.GetNext();
+            else
+                currAnim = FirstCyclic.Value;
+
+            // ref?
+            frameNum = currAnim.get_starting_frame();
+
+            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, secondFrame);
+        }
+
+        public void advance_to_next_animation_inner(float timeElapsed, AnimSequenceNode currAnim, double frameNum, AFrame frame, bool checkFrame)
+        {
+            if (frame != null && checkFrame)
+            {
+                if (currAnim.Anim.PosFrames.Count > 0)
+                    frame.Subtract(currAnim.get_pos_frame((int)Math.Floor(frameNum)));
+
+                if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
+                    apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
+            }
         }
 
         public void append_animation(AnimData animData)
         {
+            var node = new AnimSequenceNode(animData);
+            if (!node.has_anim()) return;
 
+            AnimList.AddLast(node);
+            FirstCyclic = new LinkedListNode<AnimSequenceNode>(node);
+
+            if (CurrAnim != null)
+            {
+                CurrAnim = new LinkedListNode<AnimSequenceNode>(AnimList.First());
+                FrameNumber = CurrAnim.Value.get_starting_frame();
+            }
         }
 
-        public void apply_physics(Frame frame, double quantum, double sign)
+        public void apply_physics(AFrame frame, float quantum, float sign)
         {
+            if (sign >= 0.0)
+                quantum = Math.Abs(quantum);
+            else
+                quantum = -Math.Abs(quantum);
 
+            frame.Origin += Velocity * quantum;
+            frame.Rotate(Omega * quantum);
         }
 
         public void apricot()
         {
+            var node = new LinkedListNode<AnimSequenceNode>(AnimList.First());
+            while (!node.Equals(CurrAnim))
+            {
+                if (node.Equals(FirstCyclic))
+                    break;
 
+                AnimList.Remove(node);
+                node = new LinkedListNode<AnimSequenceNode>(AnimList.First());
+            }
         }
 
         public void clear_animations()
         {
-
+            AnimList.Clear();
+            FirstCyclic = null;
+            FrameNumber = 0;
+            CurrAnim = null;
         }
 
         public void clear_physics()
         {
-
+            Velocity = Vector3.Zero;
+            Omega = Vector3.Zero;
         }
 
-        public void execute_hooks(AnimFrame animFrame, int dir)
+        public void execute_hooks(AnimFrame animFrame, AnimHookDir dir)
         {
+            if (HookObj == null) return;
+            var hook = animFrame.Hooks.First();
+            while (hook != null)
+            {
+                if (hook.Direction == AnimHookDir.Both || hook.Direction == dir)
+                    HookObj.add_anim_hook(hook);
 
+                hook = hook.NextHook;
+            }
         }
 
-        public void multiply_cyclic_animation_framerate(float multipler)
+        public int get_curr_frame_number()
         {
+            return (int)Math.Floor(FrameNumber);
+        }
 
+        public void multiply_cyclic_animation_framerate(float rate)
+        {
+            if (FirstCyclic == null) return;
+            var cyclic = false;
+            foreach (var animFrame in AnimList)
+            {
+                if (animFrame.Equals(FirstCyclic))
+                    cyclic = true;
+
+                if (cyclic)
+                    animFrame.multiply_framerate(rate);
+            }
         }
 
         public void remove_all_link_animations()
         {
-
+            while (FirstCyclic != null && FirstCyclic.Previous != null)
+            {
+                if (CurrAnim.Equals(FirstCyclic.Previous))
+                {
+                    CurrAnim = FirstCyclic;
+                    if (CurrAnim != null)
+                        FrameNumber = CurrAnim.Value.get_starting_frame();
+                }
+                AnimList.Remove(FirstCyclic.Previous);
+            }
         }
 
         public void remove_cyclic_anims()
         {
-
+            var node = FirstCyclic;
+            while (node != null)
+            {
+                if (CurrAnim.Equals(node))
+                {
+                    CurrAnim = node.Previous;
+                    if (CurrAnim != null)
+                        FrameNumber = CurrAnim.Value.get_ending_frame();
+                    else
+                        FrameNumber = 0.0f;
+                }
+                var next = node.Next;
+                AnimList.Remove(node);
+                node = next;
+            }
         }
 
-        public void remove_link_animations(int n)
+        public void remove_link_animations(int amount)
         {
+            for (var i = 0; i < amount; i++)
+            {
+                if (FirstCyclic.Previous == null)
+                    return;
 
+                if (CurrAnim.Equals(FirstCyclic.Previous))
+                {
+                    CurrAnim = FirstCyclic;
+
+                    if (CurrAnim != null)
+                        FrameNumber = CurrAnim.Value.get_starting_frame();
+                }
+                AnimList.Remove(FirstCyclic.Previous);
+            }
         }
 
         public void subtract_physics(Vector3 velocity, Vector3 omega)
         {
+            Velocity -= velocity;
+            Omega -= omega;
         }
 
-        public void update_internal(double quantum, AnimSequenceNode currAnim, double frameNum, Frame retVal)
+        public void update_internal(float timeElapsed, AnimSequenceNode currAnim, float frameNum, AFrame frame)
         {
+            var framerate = currAnim.Framerate;
+            var frametime = framerate * timeElapsed;
 
+            var lastFrame = (int)Math.Floor(frameNum);
+
+            // ref?
+            frameNum += frametime;
+            var frameTimeElapsed = 0.0f;
+            var animDone = false;
+
+            if (frametime > 0.0f)
+            {
+                if (currAnim.get_high_frame() < Math.Floor(frameNum))
+                {
+                    var frameOffset = frameNum - currAnim.get_high_frame() - 1.0f;
+                    if (frameOffset < 0.0f)
+                        frameOffset = 0.0f;
+
+                    if (Math.Abs(framerate) > PhysicsGlobals.EPSILON)
+                        frameTimeElapsed = frameOffset / framerate;
+
+                    frameNum = currAnim.get_high_frame();
+                    animDone = true;
+                }
+                while (Math.Floor(frameNum) > lastFrame)
+                {
+                    if (frame != null)
+                    {
+                        if (currAnim.Anim.PosFrames != null)
+                            frame = AFrame.Combine(frame, currAnim.get_pos_frame(lastFrame));
+
+                        if (Math.Abs(framerate) > PhysicsGlobals.EPSILON)
+                            apply_physics(frame, 1.0f / framerate, timeElapsed);
+                    }
+
+                    execute_hooks(currAnim.get_part_frame(lastFrame), AnimHookDir.Forward);
+                    lastFrame++;
+                }
+            }
+            else if (frametime < 0.0f)
+            {
+                if (currAnim.get_low_frame() > Math.Floor(frameNum))
+                {
+                    var frameOffset = frameNum - currAnim.get_low_frame();
+                    if (frameOffset > 0.0f)
+                        frameOffset = 0.0f;
+
+                    if (Math.Abs(framerate) > PhysicsGlobals.EPSILON)
+                        frameTimeElapsed = frameOffset / framerate;
+
+                    frameNum = currAnim.get_low_frame();
+                    animDone = true;
+                }
+                while (Math.Floor(frameNum) < lastFrame)
+                {
+                    if (frame != null)
+                    {
+                        if (currAnim.Anim.PosFrames != null)
+                            frame = AFrame.Combine(frame, currAnim.get_pos_frame(lastFrame));
+
+                        if (Math.Abs(framerate) > PhysicsGlobals.EPSILON)
+                            apply_physics(frame, 1.0f / framerate, timeElapsed);
+                    }
+
+                    execute_hooks(currAnim.get_part_frame(lastFrame), AnimHookDir.Backward);
+                    lastFrame--;
+                }
+            }
+            else
+            {
+                if (frame != null && Math.Abs(timeElapsed) > PhysicsGlobals.EPSILON)
+                    apply_physics(frame, timeElapsed, timeElapsed);
+            }
+
+            if (!animDone)
+                return;
+
+            if (HookObj != null)
+            {
+                var node = AnimList.First();
+                if (!node.Equals(FirstCyclic))
+                {
+                    var animHook = new AnimHook();
+                    HookObj.add_anim_hook(animHook);
+                }
+            }
+            advance_to_next_animation(timeElapsed, currAnim, frameNum, frame);
+            timeElapsed = frameTimeElapsed;
+
+            // loop to next anim
+            update_internal(timeElapsed, currAnim, frameNum, frame);    
         }
     }
 }
