@@ -18,14 +18,14 @@ namespace ACE.Database.Models.World
             return weenie.WeeniePropertiesAnimPart.FirstOrDefault(x => x.Index == index)?.AnimationId;
         }
 
-        public static WeeniePropertiesAttribute GetAttribute(this Weenie weenie, Ability ability)
+        public static WeeniePropertiesAttribute GetAttribute(this Weenie weenie, PropertyAttribute attribute)
         {
-            return weenie.WeeniePropertiesAttribute.FirstOrDefault(x => x.Type == (uint)ability);
+            return weenie.WeeniePropertiesAttribute.FirstOrDefault(x => x.Type == (uint)attribute);
         }
 
-        public static WeeniePropertiesAttribute2nd GetAttribute2nd(this Weenie weenie, Ability ability)
+        public static WeeniePropertiesAttribute2nd GetAttribute2nd(this Weenie weenie, PropertyAttribute2nd attribute)
         {
-            return weenie.WeeniePropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)ability);
+            return weenie.WeeniePropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)attribute);
         }
 
         public static WeeniePropertiesBodyPart GetBodyPart(this Weenie weenie, ushort key)

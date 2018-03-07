@@ -61,39 +61,24 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                //var formula = Vital.GetFormula();
+                var formula = Vital.GetFormula();
 
-                //uint derivationTotal = 0;
-                //uint total = 0;
-
-                //if (formula != null)
-                //{
-                //    // restricted to endurance and self because those are the only 2 used by vitals
-
-                //    var abilities = formula.Attribute;
-                //    uint end = (uint)((abilities & PropertyAttribute.Endurance) > 0 ? 1 : 0);
-                //    uint wil = (uint)((abilities & PropertyAttribute.Self) > 0 ? 1 : 0);
-
-                //    derivationTotal += end * creature.Endurance.Base;
-                //    derivationTotal += wil * creature.Self.Base;
-
-                //    derivationTotal *= formula.AbilityMultiplier;
-                //    total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
-                //}
-
+                uint derivationTotal = 0;
                 uint total = 0;
 
-                switch (Vital)
+                if (formula != null)
                 {
-                    case PropertyAttribute2nd.MaxHealth:
-                        total = (uint)Math.Ceiling((double)creature.Endurance.Base / 2);
-                        break;
-                    case PropertyAttribute2nd.MaxStamina:
-                        total = creature.Endurance.Base;
-                        break;
-                    case PropertyAttribute2nd.MaxMana:
-                        total = creature.Self.Base;
-                        break;
+                    // restricted to endurance and self because those are the only 2 used by vitals
+
+                    var attributeCache = formula.AttributeCache;
+                    uint end = (uint)((attributeCache & AttributeCache.Endurance) > 0 ? 1 : 0);
+                    uint wil = (uint)((attributeCache & AttributeCache.Self) > 0 ? 1 : 0);
+
+                    derivationTotal += end * creature.Endurance.Base;
+                    derivationTotal += wil * creature.Self.Base;
+
+                    derivationTotal *= formula.AbilityMultiplier;
+                    total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
                 }
 
                 total += StartingValue + Ranks;
