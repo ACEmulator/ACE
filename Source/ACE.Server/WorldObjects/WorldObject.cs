@@ -5,9 +5,6 @@ using System.Linq;
 using log4net;
 
 using ACE.Database.Models.Shard;
-using ACE.DatLoader;
-using ACE.DatLoader.Entity;
-using ACE.DatLoader.FileTypes;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;

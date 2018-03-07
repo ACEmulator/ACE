@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,6 +6,9 @@ using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.World;
+using ACE.DatLoader.FileTypes;
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -18,10 +22,6 @@ using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.WorldObjects.Entity;
-using System;
-using ACE.DatLoader.FileTypes;
-using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 
 namespace ACE.Server.WorldObjects
 {

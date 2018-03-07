@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -21,7 +21,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject 
     {
-         public virtual void SerializeUpdateObject(BinaryWriter writer)
+        public virtual void SerializeUpdateObject(BinaryWriter writer)
         {
             // content of these 2 is the same? TODO: Validate that?
             SerializeCreateObject(writer);

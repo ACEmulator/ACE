@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
