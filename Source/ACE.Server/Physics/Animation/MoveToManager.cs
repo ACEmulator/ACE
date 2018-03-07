@@ -243,7 +243,7 @@ namespace ACE.Server.Physics.Animation
             if ((MovementParams.Bitfield & 0x400) == 0)
                 return PhysicsObj.Position.Distance(CurrentTargetPosition);
 
-            return Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+            return (float)Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 SoughtObjectRadius, SoughtObjectHeight, CurrentTargetPosition);
         }
 

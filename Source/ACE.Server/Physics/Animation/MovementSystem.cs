@@ -5,7 +5,7 @@ namespace ACE.Server.Physics.Animation
 {
     public class MovementSystem
     {
-        public static double GetJumpHeight(float load, int jumpSkill, float power, float scaling)
+        public static float GetJumpHeight(float load, int jumpSkill, float power, float scaling)
         {
             if (power < 0.0f) power = 0.0f;
             if (power > 1.0f) power = 1.0f;

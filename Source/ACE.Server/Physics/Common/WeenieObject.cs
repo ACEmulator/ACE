@@ -1,19 +1,24 @@
+using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 
 namespace ACE.Server.Physics.Common
 {
     public class WeenieObject
     {
+        public int ID;
         public double UpdateTime;
+
+        // connect to ACE wobj
 
         public bool CanJump(float extent)
         {
-            return false;
+            return true;
         }
 
         public bool InqJumpVelocity(float extent, ref float velocityZ)
         {
-            return false;
+            velocityZ = MovementSystem.GetJumpHeight(1.0f, 100, 1.0f, 1.0f) * 19.6f;
+            return true;
         }
 
         public bool InqRunRate(ref float rate)
@@ -48,7 +53,7 @@ namespace ACE.Server.Physics.Common
 
         public bool IsCreature()
         {
-            return false;
+            return true;
         }
 
         public bool IsStorage()
@@ -56,14 +61,14 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
-        public int JumpStaminaCost(float extent, float staminaCost)
+        public float JumpStaminaCost(float extent, int staminaCost)
         {
-            return -1;
+            return 0;
         }
 
-        public void DoCollision(AtkCollisionProfile prof)
+        public int DoCollision(AtkCollisionProfile prof)
         {
-
+            return 0;
         }
 
         public void DoCollisionEnd(int objectID)
