@@ -149,7 +149,7 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
-        public static ObjCell find_cell_list(Position position, int numSphere, Sphere sphere, CellArray cellArray, ObjCell currCell, SpherePath path)
+        public static ObjCell find_cell_list(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, ObjCell currCell, SpherePath path)
         {
             cellArray.NumCells = 0;
             cellArray.AddedOutside = false;
@@ -178,7 +178,7 @@ namespace ACE.Server.Physics.Common
                     foreach (var otherCell in cellArray.Cells)
                     {
                         var blockOffset = LandDefs.GetBlockOffset(position.ObjCellID, otherCell.ID);
-                        var localPoint = sphere.Center - blockOffset;
+                        var localPoint = sphere[0].Center - blockOffset;
 
                         if (otherCell.point_in_cell(localPoint) && (otherCell.ID & 0xFFFF) >= 0x100)
                         {
@@ -226,7 +226,7 @@ namespace ACE.Server.Physics.Common
                 spheres.Add(sphere);
             }
 
-            find_cell_list(position, numCylSphere, spheres[0], cellArray, null, path);
+            find_cell_list(position, numCylSphere, spheres, cellArray, null, path);
         }
 
         public static void find_cell_list(Position position, Sphere sphere, CellArray cellArray, SpherePath path)
@@ -240,7 +240,12 @@ namespace ACE.Server.Physics.Common
 
         public static ObjCell find_cell_list(CellArray cellArray, ObjCell checkCell, SpherePath path)
         {
-            return find_cell_list(path.CheckPos, path.NumSphere, path.GlobalSphere[0], cellArray, checkCell, path);
+            return find_cell_list(path.CheckPos, path.NumSphere, path.GlobalSphere, cellArray, checkCell, path);
+        }
+
+        public static ObjCell find_cell_list(Position position, int numSphere, Sphere sphere, CellArray cellArray, ObjCell currCell, SpherePath path)
+        {
+            return find_cell_list(position, numSphere, new List<Sphere>() { sphere }, cellArray, currCell, path);
         }
 
         public virtual void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
@@ -248,7 +253,7 @@ namespace ACE.Server.Physics.Common
             // override?
         }
 
-        public virtual void find_transit_cells(Position position, int numSphere, Sphere sphere, CellArray cellArray, SpherePath path)
+        public virtual void find_transit_cells(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, SpherePath path)
         {
             // override?
         }

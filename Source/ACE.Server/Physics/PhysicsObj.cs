@@ -426,7 +426,7 @@ namespace ACE.Server.Physics
             return ObjMaint.GetObjectA(objectID);
         }
 
-        public double GetRadius()
+        public float GetRadius()
         {
             if (PartArray != null)
                 return PartArray.GetRadius();
@@ -1004,7 +1004,7 @@ namespace ACE.Server.Physics
                 prepare_to_leave_visibility();
                 store_position(curPos);
 
-                ObjMaint.GotoLostCell(Position.ObjCellID);
+                ObjMaint.GotoLostCell(this, Position.ObjCellID);
 
                 TransientState &= ~TransientStateFlags.Active;
                 return SetPositionError.GeneralFailure;
@@ -1104,7 +1104,7 @@ namespace ACE.Server.Physics
             {
                 prepare_to_leave_visibility();
                 store_position(pos);
-                ObjMaint.GotoLostCell(Position.ObjCellID);
+                ObjMaint.GotoLostCell(this, Position.ObjCellID);
                 set_active(false);
                 return SetPositionError.OK;
             }
@@ -2158,7 +2158,7 @@ namespace ACE.Server.Physics
         {
             prepare_to_leave_visibility();
             store_position(Position);
-            ObjMaint.GotoLostCell(Position.ObjCellID);
+            ObjMaint.GotoLostCell(this, Position.ObjCellID);
             TransientState &= ~TransientStateFlags.Active;
         }
 
@@ -2463,7 +2463,7 @@ namespace ACE.Server.Physics
                 TargetManager.ReceiveUpdate(info);
         }
 
-        public bool renter_visibility()
+        public bool reenter_visibility()
         {
             prepare_to_enter_world();
             var setPos = new SetPosition(Position, SetPositionFlags.Placement | SetPositionFlags.SendPositionEvent);
