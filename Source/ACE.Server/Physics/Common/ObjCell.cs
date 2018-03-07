@@ -307,7 +307,7 @@ namespace ACE.Server.Physics.Common
             if (obj.ID == 0 || obj.Parent != null || VoyeurTable == null)
                 return;
 
-            if (obj.State.HasFlag(PhysicsState.Hidden) && (checkDetection ? type == DetectionType.EnteredDetection : false))
+            if (obj.State.HasFlag(PhysicsState.Hidden) && (checkDetection ? type == DetectionType.EnteredDetection : true))
                 return;
 
             foreach (var voyeur_id in VoyeurTable)

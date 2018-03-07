@@ -76,11 +76,6 @@ namespace ACE.Server.Physics
             return PhysObj.Equals(PlayerObject);
         }
 
-        public PhysicsPart MakePhysicsPart()
-        {
-            return null;
-        }
-
         public static PhysicsPart MakePhysicsPart(int gfxObjID)
         {
             var part = new PhysicsPart();
@@ -110,19 +105,20 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public bool SetNoDraw(bool noDraw)
+        public void SetNoDraw(bool noDraw)
         {
-            return false;
+            // graphics omitted from server
         }
 
-        public bool SetPart(int partID)
+        public bool SetPart(int gfxObjID)
         {
-            return false;
+            // graphics omitted from server
+            return true;
         }
 
         public void UpdateViewerDistance()
         {
-
+            // client rendering?
         }
     }
 }

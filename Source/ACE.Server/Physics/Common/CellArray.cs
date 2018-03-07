@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
@@ -32,7 +31,8 @@ namespace ACE.Server.Physics.Common
 
         public void remove_cell(ObjCell cell)
         {
-
+            Cells.Remove(cell);
+            NumCells = Cells.Count;
         }
     }
 }

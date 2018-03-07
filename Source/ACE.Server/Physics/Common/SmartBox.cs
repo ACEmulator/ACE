@@ -40,5 +40,10 @@ namespace ACE.Server.Physics.Common
         public int NumObjects;
         public List<PhysicsObj> Objects;
         //public Delegate RenderingCallback;
+
+        public void PlayerPhysicsUpdatedCallback()
+        {
+
+        }
     }
 }

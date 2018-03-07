@@ -18,6 +18,12 @@ namespace ACE.Server.Physics.Common
         public List<PhysicsObj> StaticObjects;
         public List<int> LightArray;
         public int InCellTimestamp;
+        public static Dictionary<int, EnvCell> VisibleCellTable;
+
+        static EnvCell()
+        {
+            VisibleCellTable = new Dictionary<int, EnvCell>();
+        }
 
         public ObjCell find_visible_child_cell(Vector3 origin, bool searchCells)
         {
@@ -36,9 +42,11 @@ namespace ACE.Server.Physics.Common
             return null;
         }
 
-        public static new ObjCell GetVisible(int cellID)
+        public static new EnvCell GetVisible(int cellID)
         {
-            return null;
+            EnvCell envCell = null;
+            VisibleCellTable.TryGetValue(cellID, out envCell);
+            return envCell;
         }
 
         public override bool point_in_cell(Vector3 point)

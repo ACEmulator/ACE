@@ -68,12 +68,14 @@ namespace ACE.Server.Physics.Collision
 
         public void LocalToGlobal(BBox fromBox, Position fromPos, Position toPos)
         {
-            // todo: uses position localtoglobal
+            Min = toPos.LocalToGlobal(fromPos, fromBox.Min);
+            Max = toPos.LocalToGlobal(fromPos, fromBox.Max);
         }
 
         public void LocalToLocal(BBox fromBox, Position fromPos, Position toPos)
         {
-            // todo: uses position localtolocal
+            Min = toPos.LocalToLocal(fromPos, fromBox.Min);
+            Max = toPos.LocalToLocal(fromPos, fromBox.Max);
         }
     }
 }
