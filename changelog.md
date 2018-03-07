@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-03-07
+[Ripley]
+* Fixed Skills and Vital calculations when spending xp and potential sequence errors.
+* Fixed issue with gitignore file. New files automatically are added to the project once again, YAY!
+
 ### 2018-03-06
 **You will need to delete and recreate all three databases with this update**
 

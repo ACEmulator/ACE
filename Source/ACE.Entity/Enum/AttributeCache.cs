@@ -5,6 +5,7 @@ namespace ACE.Entity.Enum
     [Flags]
     public enum AttributeCache : uint
     {
+        Undef           = 0x00000000,
         Strength        = 0x00000001,
         Endurance       = 0x00000002,
         Quickness       = 0x00000004,

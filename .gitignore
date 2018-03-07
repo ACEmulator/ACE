@@ -289,8 +289,5 @@ __pycache__/
 *.xsd.cs
 
 # ACEmulator specific files
-/Source/ACE/config.json
-/Source/ACE/hmac_key.txt
-/Source/ACE.ACClientLauncher/launcher_config.json
-/Source
+/Source/ACE.Server/config.json
 Database/tools/password.txt

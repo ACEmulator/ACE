@@ -15,12 +15,12 @@ namespace ACE.Entity.Enum
         Dagger,              /* Retired */
         Mace,                /* Retired */
 
-        [AbilityFormula(Ability.Quickness | Ability.Coordination, 3)]
+        [AttributeFormula(AttributeCache.Quickness | AttributeCache.Coordination, 3)]
         [SkillCost(10, 10)]
         [SkillUsableUntrained(true)]
         MeleeDefense,
 
-        [AbilityFormula(Ability.Quickness | Ability.Coordination, 5)]
+        [AttributeFormula(AttributeCache.Quickness | AttributeCache.Coordination, 5)]
         [SkillCost(6, 4)]
         [SkillUsableUntrained(true)]
         MissileDefense,
@@ -32,54 +32,54 @@ namespace ACE.Entity.Enum
         ThrownWeapon,        /* Retired */
         UnarmedCombat,       /* Retired */
 
-        [AbilityFormula(Ability.Focus, 3)]
+        [AttributeFormula(AttributeCache.Focus, 3)]
         [SkillCost(0, 2, TrainsFree = true)]
         [SkillUsableUntrained(true)]
         ArcaneLore,
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 7)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 7)]
         [SkillCost(0, 12, TrainsFree = true)]
         [SkillUsableUntrained(true)]
         MagicDefense,
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 6)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 6)]
         [SkillCost(6, 6)]
         [SkillUsableUntrained(false)]
         ManaConversion,
 
         Spellcraft,          /* Unimplemented */
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 6)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 6)]
         [SkillCost(2, CanSpecialize = false)]
         [SkillUsableUntrained(false)]
         ItemTinkering,
 
-        [AbilityFormula(Ability.None)]
+        [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(2, 2)]
         [SkillUsableUntrained(false)]
         AssessPerson,
 
-        [AbilityFormula(Ability.None)]
+        [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
         [SkillUsableUntrained(false)]
         Deception,
 
-        [AbilityFormula(Ability.Focus | Ability.Coordination, 3)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Coordination, 3)]
         [SkillCost(6, 4)]
         [SkillUsableUntrained(false)]
         Healing,
 
-        [AbilityFormula(Ability.Strength | Ability.Coordination, 2)]
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 2)]
         [SkillCost(0, 4, TrainsFree = true)]
         [SkillUsableUntrained(true)]
         Jump,
 
-        [AbilityFormula(Ability.Focus | Ability.Coordination, 3)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Coordination, 3)]
         [SkillCost(6, 4)]
         [SkillUsableUntrained(false)]
         Lockpick,
 
-        [AbilityFormula(Ability.Quickness)]
+        [AttributeFormula(AttributeCache.Quickness)]
         [SkillCost(0, 4, TrainsFree = true)]
         [SkillUsableUntrained(true)]
         Run,
@@ -87,136 +87,136 @@ namespace ACE.Entity.Enum
         Awareness,           /* Unimplemented */
         ArmsAndArmorRepair,  /* Unimplemented */
 
-        [AbilityFormula(Ability.None)]
+        [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
         [SkillUsableUntrained(false)]
         AssessCreature,
 
-        [AbilityFormula(Ability.Focus | Ability.Strength, 2)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Strength, 2)]
         [SkillCost(4, CanSpecialize = false)]
         [SkillUsableUntrained(false)]
         WeaponTinkering,
 
-        [AbilityFormula(Ability.Focus | Ability.Endurance, 2)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Endurance, 2)]
         [SkillCost(4, CanSpecialize = false)]
         [SkillUsableUntrained(false)]
         ArmorTinkering,
 
-        [AbilityFormula(Ability.Focus)]
+        [AttributeFormula(AttributeCache.Focus)]
         [SkillCost(4, CanSpecialize = false)]
         [SkillUsableUntrained(false)]
         MagicItemTinkering,
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 4)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
         [SkillCost(8, 8)]
         [SkillUsableUntrained(false)]
         CreatureEnchantment,
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 4)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
         [SkillCost(8, 8)]
         [SkillUsableUntrained(false)]
         ItemEnchantment,
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 4)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
         [SkillCost(12, 8)]
         [SkillUsableUntrained(false)]
         LifeMagic,
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 4)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
         [SkillCost(16, 12)]
         [SkillUsableUntrained(false)]
         WarMagic,
 
-        [AbilityFormula(Ability.None)]
+        [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
         [SkillUsableUntrained(true)]
         Leadership,
 
-        [AbilityFormula(Ability.None)]
+        [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(0, 2, TrainsFree = true)]
         [SkillUsableUntrained(true)]
         Loyalty,
 
-        [AbilityFormula(Ability.Coordination | Ability.Focus, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Focus, 3)]
         [SkillCost(4, 4)]
         [SkillUsableUntrained(false)]
         Fletching,
 
-        [AbilityFormula(Ability.Coordination | Ability.Focus, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Focus, 3)]
         [SkillCost(6, 6)]
         [SkillUsableUntrained(false)]
         Alchemy,
 
-        [AbilityFormula(Ability.Coordination | Ability.Focus, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Focus, 3)]
         [SkillCost(4, 4)]
         [SkillUsableUntrained(false)]
         Cooking,
 
-        [AbilityFormula(Ability.None)]
+        [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(0, CanSpecialize = false, TrainsFree = true)]
         [SkillUsableUntrained(true)]
         Salvaging,
 
-        [AbilityFormula(Ability.Strength | Ability.Coordination, 3)]
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         [SkillCost(8, 8)]
         [SkillUsableUntrained(true)]
         TwoHandedCombat,
 
         Gearcraft,           /* Retired */
 
-        [AbilityFormula(Ability.Focus | Ability.Self, 4)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
         [SkillCost(16, 12)]
         [SkillUsableUntrained(false)]
         VoidMagic,
 
-        [AbilityFormula(Ability.Coordination | Ability.Strength, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Strength, 3)]
         [SkillCost(6, 6)]
         [SkillUsableUntrained(true)]
         HeavyWeapons,
 
-        [AbilityFormula(Ability.Coordination | Ability.Strength, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Strength, 3)]
         [SkillCost(4, 4)]
         [SkillUsableUntrained(true)]
         LightWeapons,
 
-        [AbilityFormula(Ability.Coordination | Ability.Quickness, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Quickness, 3)]
         [SkillCost(4, 4)]
         [SkillUsableUntrained(true)]
         FinesseWeapons,
 
-        [AbilityFormula(Ability.Coordination, 2)]
+        [AttributeFormula(AttributeCache.Coordination, 2)]
         [SkillCost(6, 6)]
         [SkillUsableUntrained(true)]
         MissileWeapons,
 
-        [AbilityFormula(Ability.Coordination | Ability.Strength, 2)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Strength, 2)]
         [SkillCost(2, 2)]
         [SkillUsableUntrained(true)]
         Shield,
 
-        [AbilityFormula(Ability.Coordination, 3, AbilityMultiplier = 2)]
+        [AttributeFormula(AttributeCache.Coordination, 3, AbilityMultiplier = 2)]
         [SkillCost(2, 2)]
         [SkillUsableUntrained(false)]
         DualWield,
 
-        [AbilityFormula(Ability.Strength | Ability.Quickness, 3)]
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Quickness, 3)]
         [SkillCost(4, 2)]
         [SkillUsableUntrained(false)]
         Recklessness,
 
-        [AbilityFormula(Ability.Coordination | Ability.Quickness, 3)]
+        [AttributeFormula(AttributeCache.Coordination | AttributeCache.Quickness, 3)]
         [SkillCost(4, 2)]
         [SkillUsableUntrained(false)]
         SneakAttack,
 
-        [AbilityFormula(Ability.Strength | Ability.Coordination, 3)]
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         [SkillCost(2, 2)]
         [SkillUsableUntrained(false)]
         DirtyFighting,
 
         Challenge,          /* Unimplemented */
 
-        [AbilityFormula(Ability.Endurance | Ability.Self, 3)]
+        [AttributeFormula(AttributeCache.Endurance | AttributeCache.Self, 3)]
         [SkillCost(8, 4)]
         [SkillUsableUntrained(false)]
         Summoning
@@ -224,9 +224,9 @@ namespace ACE.Entity.Enum
 
     public static class SkillExtensions
     {
-        public static AbilityFormulaAttribute GetFormula(this Skill skill)
+        public static AttributeFormulaAttribute GetFormula(this Skill skill)
         {
-            return skill.GetAttributeOfType<AbilityFormulaAttribute>();
+            return skill.GetAttributeOfType<AttributeFormulaAttribute>();
         }
 
         public static SkillCostAttribute GetCost(this Skill skill)

@@ -29,11 +29,11 @@ namespace ACE.Server.WorldObjects
                 {
                     // fireworks
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {attribute} is now {creatureVital.Base} and has reached its upper limit!";
+                    messageText = $"Your base {attribute.ToSentence()} is now {creatureVital.Base} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {attribute} is now {creatureVital.Base}!";
+                    messageText = $"Your base {attribute.ToSentence()} is now {creatureVital.Base}!";
                 }
 
                 var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {attribute} has failed.", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {attribute.ToSentence()} has failed.", ChatMessageType.Broadcast);
             }
         }
 
