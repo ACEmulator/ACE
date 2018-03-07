@@ -324,7 +324,7 @@ namespace ACE.Server.Physics
             var created = 0;
             for (var i = 0; i < NumParts; i++)
             {
-                Parts[i] = Setup.Parts[i].MakePhysicsPart();
+                Parts[i] = PhysicsPart.MakePhysicsPart(Setup.Parts[i]);
                 if (Parts[i] == null)
                     break;
 
@@ -360,7 +360,7 @@ namespace ACE.Server.Physics
             InitPals();
             for (var i = 0; i < NumParts; i++)
             {
-                Parts[i] = obj.Parts[i].MakePhysicsPart();
+                Parts[i] = PhysicsPart.MakePhysicsPart(obj.Parts[i]);
                 Parts[i].PhysObj = Owner;
                 Parts[i].PhysObjIndex = i;
                 // removed palette references
