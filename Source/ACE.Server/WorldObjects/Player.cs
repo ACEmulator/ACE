@@ -52,6 +52,8 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var item in inventory)
             {
+                // Todo, here we need to load items that belong in side packs into those Inventory dictionaries, not this one
+                // Todo, set the inventory loaded flag for each container as well
                 var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
                 Inventory[itemAsWorldObject.Guid] = itemAsWorldObject;
             }

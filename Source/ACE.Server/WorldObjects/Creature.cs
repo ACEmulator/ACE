@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Biota biota) : base(biota)
         {
-            // A player has their equipped items passed via the ctor. All other world objects must load their own inventory
+            // A player has their possessions items passed via the ctor. All other world objects must load their own equipped items
             if (!(this is Player))
             {
                 DatabaseManager.Shard.GetWieldedItems(biota.Id, items =>
@@ -111,35 +111,19 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // todo I want to rework the tracked equipment/wielded items
-
         public bool EquippedObjectsLoaded { get; protected set; }
 
         /// <summary>
-        /// Use EquipObject() and DequipObject() to manipulate this dictionary..
+        /// Use EquipObject() and DequipObject() to manipulate this dictionary..<para />
+        /// Do not manipulate this dictionary directly.
         /// </summary>
         public Dictionary<ObjectGuid, WorldObject> EquippedObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
 
         /// <summary>
-        /// This will set the wielder property on worldObject to this guid, and will add it to the EquippedObjects dictionary.
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public bool TryEquipObject(WorldObject worldObject)
-        {
-            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
-            EquippedObjects[worldObject.Guid] = worldObject;
-
-            return true;
-        }
-
-        /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.
         /// </summary>
-        /// <param name="worldObject"></param>
         public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
         {
-            // todo MOVE THIS TO CREATURE
-
             // todo see if the wielded location is in use, if so, return false
 
             worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
@@ -153,7 +137,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
         /// </summary>
-        /// <param name="worldObject"></param>
         public bool TryDequipObject(WorldObject worldObject)
         {
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);

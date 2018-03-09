@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -756,86 +757,57 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(message);
         }
 
-        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
-        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates testing items in your inventory.")]
+
+        private static void AddWeeniesToInventory(Session session, HashSet<uint> weenieIds)
+        {
+            var biotasToSave = new List<Biota>();
+
+            foreach (uint weenieId in weenieIds)
+            {
+                var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+
+                if (loot == null) // weenie doesn't exist
+                    continue;
+
+                if (!session.Player.TryAddToInventory(loot, out var container)) // We don't have enough burden available or no empty pack slot.
+                    continue;
+
+                biotasToSave.Add(loot.Biota);
+
+                session.Player.TrackObject(loot);
+
+                session.Network.EnqueueSend(
+                    new GameMessagePutObjectInContainer(session, container.Guid, loot, loot.PlacementPosition ?? 0),
+                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+            }
+
+            DatabaseManager.Shard.AddBiotas(biotasToSave, null);
+        }
+
+        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates testing items in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 93, 127, 130, 136, 136, 136, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 93, 127, 130, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
 
-            ////HashSet<uint> weaponsTest = new HashSet<uint>() { (uint)TestWeenieClassIds.Pants,
-            ////                                                  (uint)TestWeenieClassIds.Tunic,
-            ////                                                  (uint)TestWeenieClassIds.TrainingWand,
-            ////                                                  (uint)TestWeenieClassIds.ColoBackpack };
-            foreach (uint weenieId in weaponsTest)
-            {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = (int)session.Player.Guid.Full;
-                loot.PlacementPosition = 0;
-                // TODO: Og II
-                // Need this hack because weenies are not cleaned up.   Can be removed once weenies are fixed.
-                loot.WielderId = null;
-                loot.CurrentWieldedLocation = null;
-
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                ////session.Player.UpdatePlayerBurden();
-                session.Network.EnqueueSend(
-                    new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
-            // Force a save for our test items.   Og II
-            // DatabaseManager.Shard.SaveObject(session.Player.GetSavableCharacter(), null);
+            AddWeeniesToInventory(session, weenieIds);
         }
 
-        // This debug command was added to test combat stance - we need one of each type weapon and a shield Og II
-        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-        "Creates sample items, foci and containers in your inventory.")]
+        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates sample items, foci and containers in your inventory.")]
         public static void HandleInv(Session session, params string[] parameters)
         {
-            HashSet<uint> weaponsTest = new HashSet<uint>() { 44, 45, 46, 15268, 15269, 15270, 15271, 12748, 5893, 136 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 44, 45, 46, 136, 5893, 15268, 15269, 15270, 15271, 12748 };
 
-            foreach (uint weenieId in weaponsTest)
-            {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                loot.ContainerId = (int)session.Player.Guid.Full;
-                loot.PlacementPosition = 0;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                ActionChain chain = new ActionChain();
-                chain.AddDelaySeconds(0.25);
-                ////session.Player.UpdatePlayerBurden();
-                chain.AddAction(session.Player, () =>
-                {
-                    session.Network.EnqueueSend(
-                        new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                        new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-                });
-                chain.EnqueueChain();
-            }
+            AddWeeniesToInventory(session, weenieIds);
         }
 
-        [CommandHandler("splits", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Creates some stackable items in your inventory for testing.")]
+        [CommandHandler("splits", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some stackable items in your inventory for testing.")]
         public static void HandleSplits(Session session, params string[] parameters)
         {
-            HashSet<uint> splitsTest = new HashSet<uint>() { 237, 300, 690, 20630, 20631, 37155, 31198 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 300, 690, 20630, 20631, 31198, 37155 };
 
-            foreach (uint weenieId in splitsTest)
-            {
-                WorldObject loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-                var valueEach = loot.Value / loot.StackSize;
-                loot.StackSize = loot.MaxStackSize;
-                loot.Value = loot.StackSize * valueEach;
-                loot.ContainerId = (int)session.Player.Guid.Full;
-                loot.PlacementPosition = 0;
-                session.Player.AddToInventory(loot);
-                session.Player.TrackObject(loot);
-                session.Network.EnqueueSend(
-                    new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
-            }
+            AddWeeniesToInventory(session, weenieIds);
         }
+
 
         [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
         "Set Coin display debug only usage")]

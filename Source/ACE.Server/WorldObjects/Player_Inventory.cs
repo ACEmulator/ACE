@@ -21,11 +21,35 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
+        /// Returns all inventory, side slot items, items in side containers, and all wielded items.
+        /// </summary>
+        public List<WorldObject> GetAllPossessions()
+        {
+            var results = new List<WorldObject>();
+
+            results.AddRange(Inventory.Values);
+
+            foreach (var item in Inventory.Values)
+            {
+                if (item is Container container)
+                    results.AddRange(container.Inventory.Values);
+            }
+
+            results.AddRange(EquippedObjects.Values);
+
+            return results;
+        }
+
+
+
+
+
+
+
+
+        /// <summary>
         /// This code handle objects between players and other world objects
         /// </summary>
-        /// <param name="targetID"></param>
-        /// <param name="objectID"></param>
-        /// <param name="amount"></param>
         public void HandleGiveObjectRequest(uint targetID, uint objectID, uint amount)
         {
             ////ObjectGuid target = new ObjectGuid(targetID);
@@ -51,7 +75,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Add New WorldObject to Inventory
         /// </summary>
-        /// <param name="wo"></param>
         public void HandleAddNewWorldObjectToInventory(WorldObject wo)
         {
             // Get Next Avalibale Pack Location.

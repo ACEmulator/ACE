@@ -123,15 +123,12 @@ namespace ACE.Database
             }
         }
 
-        /// <summary>
-        /// Inventory should include all wielded items as well
-        /// </summary>
-        public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory)
+        public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> possessions)
         {
             if (!AddBiota(biota))
                 return false; // Biota save failed which mean Character fails.
 
-            if (!AddBiotas(inventory))
+            if (!AddBiotas(possessions))
                 return false;
 
             using (var context = new ShardDbContext())

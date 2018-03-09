@@ -1695,6 +1695,11 @@ namespace ACE.Server.WorldObjects
 
         public bool UseBackpackSlot => (GetProperty(PropertyBool.RequiresBackpackSlot) ?? false) || WeenieType == WeenieType.Container;
 
+        public int? PlacementPosition
+        {
+            get => GetProperty(PropertyInt.PlacementPosition);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlacementPosition); else SetProperty(PropertyInt.PlacementPosition, value.Value); }
+        }
 
         //public uint? AllowedActivator
         //{

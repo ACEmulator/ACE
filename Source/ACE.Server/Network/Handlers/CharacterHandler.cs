@@ -397,7 +397,7 @@ namespace ACE.Server.Network.Handlers
                             continue;
                         }
 
-                        if (player.TryAddToInventory(loot))
+                        if (player.TryAddToInventory(loot, out Container _))
                             grantedWeenies.Add(item.WeenieId);
                     }
 
@@ -425,7 +425,7 @@ namespace ACE.Server.Network.Handlers
                                 CreateIOU(player, item.WeenieId);
                                 continue;
                             }
-                            if (player.TryAddToInventory(loot))
+                            if (player.TryAddToInventory(loot, out Container _))
                                 grantedWeenies.Add(item.WeenieId);
                         }
                     }
@@ -479,11 +479,10 @@ namespace ACE.Server.Network.Handlers
                 CharacterCreateSetDefaultCharacterOptions(player);
                 CharacterCreateSetDefaultCharacterPositions(player, startArea);
 
+                var possessions = player.GetAllPossessions();
                 var possessedBiotas = new Collection<Biota>();
-                foreach (var item in player.Inventory.Values)
-                    possessedBiotas.Add(item.Biota);
-                foreach (var item in player.EquippedObjects.Values)
-                    possessedBiotas.Add(item.Biota);
+                foreach (var possession in possessions)
+                    possessedBiotas.Add(possession.Biota);
 
                 // We must await here -- 
                 DatabaseManager.Shard.AddCharacter(character, player.Biota, possessedBiotas, saveSuccess =>
@@ -623,7 +622,7 @@ namespace ACE.Server.Network.Handlers
             book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "Ripley", "prewritten");
             book.AddPage(player.Guid.Full, "Ripley", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
-            player.TryAddToInventory(book);
+            player.TryAddToInventory(book, out Container _);
         }
     }
 }

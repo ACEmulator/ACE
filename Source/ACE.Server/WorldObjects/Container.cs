@@ -35,13 +35,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Biota biota) : base(biota)
         {
-            // A player has their inventory passed via the ctor. All other world objects must load their own inventory
+            // A player has their possessions passed via the ctor. All other world objects must load their own inventory
             if (!(this is Player))
             {
                 DatabaseManager.Shard.GetInventory(biota.Id, true, items =>
                 {
                     foreach (var item in items)
                     {
+                        // Todo, here we need to load items that belong in side packs into those Inventory dictionaries, not this one
+                        // Todo, set the inventory loaded flag for each container as well
                         var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
                         Inventory[itemAsWorldObject.Guid] = itemAsWorldObject;
                     }
@@ -86,23 +88,72 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // todo I want to rework the tracked equipment/wielded items
         public bool InventoryLoaded { get; protected set; }
 
+        /// <summary>
+        /// This will contain all main pack items, and all side slot items.<para />
+        /// To access items inside of the side slot items, you'll need to access that items.Inventory dictionary.<para />
+        /// Do not manipulate this dictionary directly.
+        /// </summary>
         public Dictionary<ObjectGuid, WorldObject> Inventory { get; } = new Dictionary<ObjectGuid, WorldObject>();
 
-        public bool TryAddToInventory(WorldObject worldObject)
+        /// <summary>
+        /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.
+        /// </summary>
+        public bool TryAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false)
         {
-            // For now, we don't do any checking
-            // todo check stuff and what not
+            if (this is Creature creature)
+            {
+                // TODO: check if we have enough burden available to add this inventory item
+            }
 
-            worldObject.SetProperty(PropertyInstanceId.Container, (int)Guid.Full);
-            // FIXME: This is wrong and should also be unnecessary but we're not handling storing and reading back object placement within a container correctly so this is here to make it work.
-            // TODO: fix placement (order or slot) issues within containers.
-            worldObject.SetProperty(PropertyInt.Placement, 0);
+            IList<WorldObject> containerItems;
+
+            if (worldObject.UseBackpackSlot)
+            {
+                containerItems = Inventory.Values.Where(i => i.UseBackpackSlot).ToList();
+
+                if ((ContainerCapacity ?? 0) <= containerItems.Count())
+                {
+                    container = null;
+                    return false;
+                }
+            }
+            else
+            {
+                containerItems = Inventory.Values.Where(i => !i.UseBackpackSlot).ToList();
+
+                if ((ItemCapacity ?? 0) <= containerItems.Count())
+                {
+                    // Can we add this to any side pack?
+                    if (!limitToMainPackOnly)
+                    {
+                        var containers = Inventory.Values.OfType<Container>().ToList();
+                        containers.Sort((a, b) => (a.Placement ?? 0).CompareTo(b.Placement ?? 0));
+
+                        foreach (var sidePack in containers)
+                        {
+                            if (sidePack.TryAddToInventory(worldObject, out container, placementPosition, true))
+                                return true;
+                        }
+                    }
+
+                    container = null;
+                    return false;
+                }
+            }
+
+            worldObject.ContainerId = (int)Guid.Full;
+            worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
+
+            // Move all the existing items PlacementPosition over.
+            containerItems.Where(i => i.PlacementPosition >= worldObject.PlacementPosition).ToList().ForEach(i => i.PlacementPosition++);
 
             Inventory.Add(worldObject.Guid, worldObject);
 
+            // todo update our burden value
+
+            container = this;
             return true;
         }
 

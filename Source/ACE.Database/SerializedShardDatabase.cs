@@ -99,14 +99,11 @@ namespace ACE.Database
             return _wrappedDatabase.IsCharacterPlussed(biotaId);
         }
 
-        /// <summary>
-        /// Inventory should include all wielded items as well
-        /// </summary>
-        public void AddCharacter(Character character, Biota biota, IEnumerable<Biota> inventory, Action<bool> callback)
+        public void AddCharacter(Character character, Biota biota, IEnumerable<Biota> possessions, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.AddCharacter(character, biota, inventory);
+                var result = _wrappedDatabase.AddCharacter(character, biota, possessions);
                 callback?.Invoke(result);
             }));
         }

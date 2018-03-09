@@ -886,16 +886,13 @@ namespace ACE.Server.Entity
             WorldObject wo = GetObject(woGuid);
 
             if (container == null || wo == null)
-            {
                 return;
-            }
-
+            throw new NotImplementedException();
             RemoveWorldObjectInternal(woGuid, false);
             wo.ContainerId = (int)container.Guid.Full;
 
             // We are coming off the world we need to be ready to save.
             wo.Location = null;
-            wo.InitializeAceObjectForSave();
             container.AddToInventory(wo, placement);
 
             // Was Item controlled by a generator?

@@ -291,13 +291,6 @@ namespace ACE.Server.WorldObjects
 
         public virtual int? StackUnitValue => Biota.GetProperty(PropertyInt.StackUnitValue) ?? 0;
 
-        public int? PlacementPosition
-        {
-            get => GetProperty(PropertyInt.PlacementPosition);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlacementPosition); else SetProperty(PropertyInt.PlacementPosition, value.Value); }
-        }
-
-
 
 
         public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0);
@@ -731,12 +724,6 @@ namespace ACE.Server.WorldObjects
                 AceObject.ClearDirtyFlags();
             return snapshot;
         }*/
-
-        public void InitializeAceObjectForSave()
-        {
-            throw new NotSupportedException();
-            //AceObject.SetDirtyFlags();
-        }
 
 
         public virtual void ActOnUse(ObjectGuid playerId)
