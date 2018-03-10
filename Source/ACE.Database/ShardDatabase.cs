@@ -525,8 +525,10 @@ namespace ACE.Database
         {
             var inventory = new List<Biota>();
 
+            var parentIdAsInt = unchecked((int)parentId);
+
             var results = context.BiotaPropertiesIID
-                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentIdAsInt);
 
             foreach (var result in results)
             {

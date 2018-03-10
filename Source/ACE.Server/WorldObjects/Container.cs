@@ -37,19 +37,7 @@ namespace ACE.Server.WorldObjects
         {
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
             if (!(this is Player))
-            {
-                DatabaseManager.Shard.GetInventory(biota.Id, true, items =>
-                {
-                    foreach (var item in items)
-                    {
-                        // Todo, here we need to load items that belong in side packs into those Inventory dictionaries, not this one
-                        // Todo, set the inventory loaded flag for each container as well
-                        var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
-                        Inventory[itemAsWorldObject.Guid] = itemAsWorldObject;
-                    }
-                    InventoryLoaded = true;
-                });
-            }
+                DatabaseManager.Shard.GetInventory(biota.Id, true, SortBiotasIntoInventory);
 
             SetEphemeralValues();
 
@@ -88,7 +76,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public bool InventoryLoaded { get; protected set; }
+        public bool InventoryLoaded { get; private set; }
 
         /// <summary>
         /// This will contain all main pack items, and all side slot items.<para />
@@ -96,6 +84,47 @@ namespace ACE.Server.WorldObjects
         /// Do not manipulate this dictionary directly.
         /// </summary>
         public Dictionary<ObjectGuid, WorldObject> Inventory { get; } = new Dictionary<ObjectGuid, WorldObject>();
+
+        /// <summary>
+        /// The only time this should be used is to populate Inventory from the ctor.
+        /// </summary>
+        protected void SortBiotasIntoInventory(IEnumerable<Biota> biotas)
+        {
+            var worldObjects = new List<WorldObject>();
+
+            foreach (var biota in biotas)
+                worldObjects.Add(WorldObjectFactory.CreateWorldObject(biota));
+
+            SortWorldObjectsIntoInventory(worldObjects);
+
+            if (worldObjects.Count > 0)
+                log.Error("Inventory detected without a container to put it in to.");
+        }
+
+        /// <summary>
+        /// The only time this should be used is to populate Inventory from the ctor.
+        /// This will remove from worldObjects as they're sorted.
+        /// </summary>
+        private void SortWorldObjectsIntoInventory(IList<WorldObject> worldObjects)
+        {
+            // This will pull out all of our main pack items and side slot items (foci & containers)
+            for (int i = worldObjects.Count - 1; i >= 0; i--)
+            {
+                if (unchecked((uint)(worldObjects[i].ContainerId ?? 0) == Biota.Id))
+                {
+                    Inventory[worldObjects[i].Guid] = worldObjects[i];
+                    worldObjects.RemoveAt(i);
+                }
+            }
+
+            InventoryLoaded = true;
+
+            // All that should be left are side pack sub contents.
+
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
+            foreach (var sideContainer in sideContainers)
+                ((Container)sideContainer).SortWorldObjectsIntoInventory(worldObjects); // This will set the InventoryLoaded flag for this sideContainer
+        }
 
         /// <summary>
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.

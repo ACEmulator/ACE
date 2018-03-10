@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using log4net;
@@ -20,7 +19,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
-using ACE.Server.Factories;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -44,17 +42,7 @@ namespace ACE.Server.WorldObjects
         {
             // A player has their possessions items passed via the ctor. All other world objects must load their own equipped items
             if (!(this is Player))
-            {
-                DatabaseManager.Shard.GetWieldedItems(biota.Id, items =>
-                {
-                    foreach (var item in items)
-                    {
-                        var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
-                        EquippedObjects[itemAsWorldObject.Guid] = itemAsWorldObject;
-                    }
-                    EquippedObjectsLoaded = true;
-                });
-            }
+                DatabaseManager.Shard.GetWieldedItems(biota.Id, AddBiotasToEquippedObjects);
 
             SetEphemeralValues();
 
@@ -110,62 +98,6 @@ namespace ACE.Server.WorldObjects
                 GenerateWieldList();
         }
 
-
-        public bool EquippedObjectsLoaded { get; protected set; }
-
-        /// <summary>
-        /// Use EquipObject() and DequipObject() to manipulate this dictionary..<para />
-        /// Do not manipulate this dictionary directly.
-        /// </summary>
-        public Dictionary<ObjectGuid, WorldObject> EquippedObjects { get; } = new Dictionary<ObjectGuid, WorldObject>();
-
-        /// <summary>
-        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.
-        /// </summary>
-        public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
-        {
-            // todo see if the wielded location is in use, if so, return false
-
-            worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
-
-            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
-            EquippedObjects[worldObject.Guid] = worldObject;
-
-            return true;
-        }
-
-        /// <summary>
-        /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
-        /// </summary>
-        public bool TryDequipObject(WorldObject worldObject)
-        {
-            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
-            EquippedObjects.Remove(worldObject.Guid);
-
-            return true;
-        }
-
-
-        public void GenerateWieldList()
-        {
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield))
-            {                
-                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
-
-                if (wo != null)
-                {
-                    if (item.Palette > 0)
-                        wo.PaletteTemplate = item.Palette;
-                    if (item.Shade > 0)
-                        wo.Shade = item.Shade;
-
-                    TryEquipObject(wo, (int)wo.ValidLocations);
-                }
-            }
-
-            //if (EquippedObjects != null)
-            //    UpdateBaseAppearance();
-        }
 
         public void GenerateNewFace()
         {
@@ -417,14 +349,6 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(ammo));
                 }
             }
-        }
-
-        /// <summary>
-        /// Get Wielded Item. Returns null if not found.
-        /// </summary>
-        public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
-        {
-            return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
         }
 
         /// <summary>

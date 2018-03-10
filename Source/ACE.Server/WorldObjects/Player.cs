@@ -50,21 +50,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Session session) : base(biota)
         {
-            foreach (var item in inventory)
-            {
-                // Todo, here we need to load items that belong in side packs into those Inventory dictionaries, not this one
-                // Todo, set the inventory loaded flag for each container as well
-                var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
-                Inventory[itemAsWorldObject.Guid] = itemAsWorldObject;
-            }
-            InventoryLoaded = true;
-
-            foreach (var item in wieldedItems)
-            {
-                var itemAsWorldObject = WorldObjectFactory.CreateWorldObject(item);
-                EquippedObjects[itemAsWorldObject.Guid] = itemAsWorldObject;
-            }
-            EquippedObjectsLoaded = true;
+            SortBiotasIntoInventory(inventory);
+            AddBiotasToEquippedObjects(wieldedItems);
 
             Session = session;
 
