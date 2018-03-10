@@ -266,20 +266,23 @@ namespace ACE.Database
         }
 
 
-        /// <summary>
-        /// Will return a biota from the db with tracking enabled.
-        /// This will populate all sub collections.
-        /// </summary>
         public Biota GetBiota(uint id)
         {
             using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 return GetBiota(context, id);
+            }
         }
 
+        /// <summary>
+        /// This method will populate all sub collections of the biota.
+        /// It is slower, but should be used if you are not sure if the biota is a player or not.
+        /// </summary>
         private static Biota GetBiota(ShardDbContext context, uint id)
         {
             return context.Biota
-                // Should we add .AsNoTracking() here since we're disposing of the context anyway?
                 .Include(r => r.BiotaPropertiesAnimPart)
                 .Include(r => r.BiotaPropertiesAttribute)
                 .Include(r => r.BiotaPropertiesAttribute2nd)
@@ -309,6 +312,120 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesString)
                 .Include(r => r.BiotaPropertiesTextureMap)
                 .FirstOrDefault(r => r.Id == id);
+        }
+
+        /// <summary>
+        /// Use this method when you know if the biota is a player or not.
+        /// Player biotas reference additional tables. Knowing if the biota is a player can significantly improve the query perofrmance.
+        /// </summary>
+        private static Biota GetBiota(ShardDbContext context, uint id, bool isPlayer)
+        {
+            if (isPlayer)
+            {
+                return context.Biota
+                    //.Include(r => r.BiotaPropertiesAnimPart)
+                    .Include(r => r.BiotaPropertiesAttribute)
+                    .Include(r => r.BiotaPropertiesAttribute2nd)
+                    .Include(r => r.BiotaPropertiesBodyPart)
+                    //.Include(r => r.BiotaPropertiesBook)
+                    //.Include(r => r.BiotaPropertiesBookPageData)
+                    .Include(r => r.BiotaPropertiesBool)
+                    .Include(r => r.BiotaPropertiesContract)
+                    //.Include(r => r.BiotaPropertiesCreateList)
+                    .Include(r => r.BiotaPropertiesDID)
+                    //.Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
+                    //.Include(r => r.BiotaPropertiesEmoteAction)
+                    //.Include(r => r.BiotaPropertiesEventFilter)
+                    .Include(r => r.BiotaPropertiesFloat)
+                    //.Include(r => r.BiotaPropertiesFriendListFriend)
+                    .Include(r => r.BiotaPropertiesFriendListObject)
+                    //.Include(r => r.BiotaPropertiesGenerator)
+                    .Include(r => r.BiotaPropertiesIID)
+                    .Include(r => r.BiotaPropertiesInt)
+                    .Include(r => r.BiotaPropertiesInt64)
+                    //.Include(r => r.BiotaPropertiesPalette)
+                    .Include(r => r.BiotaPropertiesPosition)
+                    .Include(r => r.BiotaPropertiesShortcutBarObject)
+                    .Include(r => r.BiotaPropertiesSkill)
+                    .Include(r => r.BiotaPropertiesSpellBar)
+                    .Include(r => r.BiotaPropertiesSpellBook)
+                    .Include(r => r.BiotaPropertiesString)
+                    //.Include(r => r.BiotaPropertiesTextureMap)
+                    .FirstOrDefault(r => r.Id == id);
+            }
+
+            // Base properties for every biota
+            var biota = context.Biota
+                .Include(r => r.BiotaPropertiesBool)
+                .Include(r => r.BiotaPropertiesDID)
+                .Include(r => r.BiotaPropertiesFloat)
+                .Include(r => r.BiotaPropertiesIID)
+                .Include(r => r.BiotaPropertiesInt)
+                .Include(r => r.BiotaPropertiesInt64)
+                .Include(r => r.BiotaPropertiesString)
+                .FirstOrDefault(r => r.Id == id);
+
+            if (biota == null)
+                return null;
+
+            var weenieType = (WeenieType)biota.WeenieType;
+
+            bool isCreature = weenieType == WeenieType.Creature || weenieType == WeenieType.Cow ||
+                              weenieType == WeenieType.Sentinel || weenieType == WeenieType.Admin ||
+                              weenieType == WeenieType.Vendor;
+
+            biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
+
+            if (isCreature)
+            {
+                biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
+                biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
+
+                biota.BiotaPropertiesBodyPart = context.BiotaPropertiesBodyPart.Where(r => r.ObjectId == biota.Id).ToList();
+            }
+
+            if (weenieType == WeenieType.Book)
+            {
+                biota.BiotaPropertiesBook = context.BiotaPropertiesBook.FirstOrDefault(r => r.ObjectId == biota.Id);
+                biota.BiotaPropertiesBookPageData = context.BiotaPropertiesBookPageData.Where(r => r.ObjectId == biota.Id).ToList();
+            }
+
+            // Player only
+            //biota.BiotaPropertiesContract = context.BiotaPropertiesContract.Where(r => r.ObjectId == biota.Id).ToList();
+
+            biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesEmoteAction = context.BiotaPropertiesEmoteAction.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
+
+            // Player only
+            //biota.BiotaPropertiesFriendListFriend = context.BiotaPropertiesFriendList.Where(r => r.FriendId == biota.Id).ToList();
+            //biota.BiotaPropertiesFriendListObject = context.BiotaPropertiesFriendList.Where(r => r.ObjectId == biota.Id).ToList();
+
+            biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
+
+            // Player only
+            //biota.BiotaPropertiesShortcutBarObject = context.BiotaPropertiesShortcutBar.Where(r => r.ObjectId == biota.Id).ToList();
+
+            if (isCreature)
+            {
+                biota.BiotaPropertiesSkill = context.BiotaPropertiesSkill.Where(r => r.ObjectId == biota.Id).ToList();
+            }
+
+            // Player only
+            //biota.BiotaPropertiesSpellBar = context.BiotaPropertiesSpellBar.Where(r => r.ObjectId == biota.Id).ToList();
+
+            if (isCreature)
+            {
+                biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
+            }
+
+
+            biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
+
+            return biota;
         }
 
         public bool SaveBiota(Biota biota)
@@ -352,9 +469,6 @@ namespace ACE.Database
             }
         }
 
-        /// <summary>
-        /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
-        /// </summary>
         public bool RemoveEntity(object entity)
         {
             using (var context = new ShardDbContext())
@@ -380,7 +494,9 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var biota = GetBiota(context, id);
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var biota = GetBiota(context, id, true);
 
                 var inventory = GetInventory(context, id, true);
 
@@ -395,7 +511,11 @@ namespace ACE.Database
             List<Biota> inventory;
 
             using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 inventory = GetInventory(context, parentId, includedNestedItems);
+            }
 
             return inventory;
         }
@@ -410,7 +530,7 @@ namespace ACE.Database
 
             foreach (var result in results)
             {
-                var biota = GetBiota(context, result.ObjectId);
+                var biota = GetBiota(context, result.ObjectId, false);
 
                 if (biota != null)
                 {
@@ -433,7 +553,11 @@ namespace ACE.Database
             List<Biota> inventory;
 
             using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 inventory = GetWieldedItems(context, parentId);
+            }
 
             return inventory;
         }
@@ -448,7 +572,7 @@ namespace ACE.Database
 
             foreach (var result in results)
             {
-                var biota = GetBiota(context, result.ObjectId);
+                var biota = GetBiota(context, result.ObjectId, false);
 
                 if (biota != null)
                     items.Add(biota);

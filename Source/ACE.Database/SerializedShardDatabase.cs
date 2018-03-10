@@ -153,10 +153,6 @@ namespace ACE.Database
             }));
         }
 
-        /// <summary>
-        /// Will return a biota from the db with tracking enabled.
-        /// This will populate all sub collections.
-        /// </summary>
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
@@ -184,9 +180,6 @@ namespace ACE.Database
             }));
         }
 
-        /// <summary>
-        /// Until we can automatically detected removed rows from a biota in SaveBiota, we must manually request their removal.
-        /// </summary>
         public void RemoveEntity(object entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -197,10 +190,6 @@ namespace ACE.Database
         }
 
 
-        /// <summary>
-        /// Will return biotas from the db with tracking enabled.
-        /// This will populate all sub collections.
-        /// </summary>
         public void GetPlayerBiotas(uint id, Action<PlayerBiotas> callback)
         {
             _queue.Add(new Task(() =>
@@ -210,10 +199,6 @@ namespace ACE.Database
             }));
         }
 
-        /// <summary>
-        /// Will return biotas from the db with tracking enabled.
-        /// This will populate all sub collections.
-        /// </summary>
         public void GetInventory(uint parentId, bool includedNestedItems, Action<List<Biota>> callback)
         {
             _queue.Add(new Task(() =>
@@ -224,10 +209,6 @@ namespace ACE.Database
 
         }
 
-        /// <summary>
-        /// Will return biotas from the db with tracking enabled.
-        /// This will populate all sub collections.
-        /// </summary>
         public void GetWieldedItems(uint parentId, Action<List<Biota>> callback)
         {
             _queue.Add(new Task(() =>
