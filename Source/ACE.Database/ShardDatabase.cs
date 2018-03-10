@@ -52,7 +52,9 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.Biota.AsNoTracking().Where(r => r.Id >= min && r.Id <= max);
+                var results = context.Biota
+                    .AsNoTracking()
+                    .Where(r => r.Id >= min && r.Id <= max);
 
                 if (!results.Any())
                     return uint.MaxValue;
@@ -524,7 +526,6 @@ namespace ACE.Database
             var inventory = new List<Biota>();
 
             var results = context.BiotaPropertiesIID
-                .AsNoTracking()
                 .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
 
             foreach (var result in results)
@@ -566,7 +567,6 @@ namespace ACE.Database
             var items = new List<Biota>();
 
             var results = context.BiotaPropertiesIID
-                    .AsNoTracking()
                     .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId);
 
             foreach (var result in results)

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,7 +76,8 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var result = context.Weenie.AsNoTracking()
+                var result = context.Weenie
+                    .AsNoTracking()
                     .Include(r => r.WeeniePropertiesBook)
                     //.Include(r => r.LandblockInstances)   / When we grab a weenie, we don't need to also know everywhere it exists in the world
                     //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
@@ -115,7 +115,8 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var result = context.Weenie.AsNoTracking()
+                var result = context.Weenie
+                    .AsNoTracking()
                     .FirstOrDefault(r => r.ClassName == weenieClassName);
 
                 if (result != null)
