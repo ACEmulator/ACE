@@ -1,1 +1,0 @@
-https://ci.appveyor.com/api/buildjobs/ie1wu0mqo38l86hk/artifacts/ACE-World-16PY-db-v0.0.6-celqohiv.sql.zip
