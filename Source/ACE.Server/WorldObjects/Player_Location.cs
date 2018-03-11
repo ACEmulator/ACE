@@ -56,8 +56,8 @@ namespace ACE.Server.WorldObjects
 
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
-                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-                float lifestoneAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.LifestoneRecall);
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                float lifestoneAnimationLength = motionTable.GetAnimationLength(MotionCommand.LifestoneRecall);
 
                 // Then do teleport
                 lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);

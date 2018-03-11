@@ -199,14 +199,14 @@ namespace ACE.Server.WorldObjects
             {
                 goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
                 wo.Value = wo.Value;        // Also set the stack's value for unique items, using the builtin WO calculations
-                wo.Burden = wo.Burden;      // Also set the stack's encumbrance for unique items, using the builtin WO calculations
+                //wo.Burden = wo.Burden;      // Also set the stack's encumbrance for unique items, using the builtin WO calculations
             }
 
             foreach (WorldObject wo in genlist)
             {
                 goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
                 wo.Value = wo.Value;        // Also set the stack's value for stock items, using the builtin WO calculations
-                wo.Burden = wo.Burden;      // Also set the stack's encumbrance for stock items, using the builtin WO calculations
+                //wo.Burden = wo.Burden;      // Also set the stack's encumbrance for stock items, using the builtin WO calculations
             }
 
             // send transaction to player for further processing and.
