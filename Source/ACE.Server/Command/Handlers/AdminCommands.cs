@@ -1409,7 +1409,7 @@ namespace ACE.Server.Command.Handlers
             player.CharacterOptions2Mapping = session.Player.CharacterOptions2Mapping;
 
             //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-            var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield).ToList();
+            var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
             foreach(var wearable in wearables)
             {
                 var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
