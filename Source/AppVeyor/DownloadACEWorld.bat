@@ -1,7 +1,7 @@
 IF EXIST Source\AppVeyor\db-pr-override.txt (
 set /p dbversion=<Source\AppVeyor\db-pr-override.txt
-FOR /f "delims=" %%i in (%dbversion%) do ( 
-set "dbfullfilename=%%~nxi"
+FOR /f "delims=" %%i in ("%dbversion%") do ( 
+set dbfullfilename=%%~nxi
 )
 REM Download latest ACE-World database, extract and import it 
 appveyor DownloadFile %dbversion%
