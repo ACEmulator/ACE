@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
 
             if (packid != 0)
             {
-                wo.ContainerId = (int)packid;
+                wo.ContainerId = packid;
                 AddToInventory(wo);
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                 if (wo is Container container)
@@ -789,7 +789,7 @@ namespace ACE.Server.WorldObjects
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
-            item.ContainerId = (int)container.Guid.Full;
+            item.ContainerId = container.Guid.Full;
             item.SetPropertiesForContainer(placement);
 
             TryDequipObject(item.Guid, out WorldObject _);
@@ -801,7 +801,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Set the container stuff
-            item.ContainerId = (int)container.Guid.Full;
+            item.ContainerId = container.Guid.Full;
             item.PlacementPosition = placement;
 
             ActionChain inContainerChain = new ActionChain();
