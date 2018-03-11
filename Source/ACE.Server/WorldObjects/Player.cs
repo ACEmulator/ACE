@@ -758,7 +758,7 @@ namespace ACE.Server.WorldObjects
             ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
 
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-            float logoutAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.LogOut);
+            float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
             logoutChain.AddDelaySeconds(logoutAnimationLength);
 
             if (CurrentLandblock != null)
@@ -1296,22 +1296,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private ushort burden;
-        public override ushort? Burden
-        {
-            get => burden;
-            set
-            {
-                if (value != burden)
-                {
-                    base.Burden = value;
-                    burden = (ushort)value;
-                    if (FirstEnterWorldDone)
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, burden));
-                }
-            }
-        }
-
         private int value = 0;
         public override int? Value
         {
@@ -1393,7 +1377,7 @@ namespace ACE.Server.WorldObjects
             // Wait for animation
             var motionChain = new ActionChain();
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-            var motionAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.Eat);
+            var motionAnimationLength = motionTable.GetAnimationLength(MotionCommand.Eat);
             motionChain.AddDelaySeconds(motionAnimationLength);
 
             // Return to standing position after the animation delay

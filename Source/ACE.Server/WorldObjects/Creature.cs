@@ -33,6 +33,8 @@ namespace ACE.Server.WorldObjects
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            EquippedObjectsLoaded = true;
         }
 
         /// <summary>
@@ -40,26 +42,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Biota biota) : base(biota)
         {
+            SetEphemeralValues();
+
             // A player has their possessions items passed via the ctor. All other world objects must load their own equipped items
             if (!(this is Player))
                 DatabaseManager.Shard.GetWieldedItems(biota.Id, AddBiotasToEquippedObjects);
-
-            SetEphemeralValues();
-
-            // todo
-            /*
-            WieldedObjects = new Dictionary<ObjectGuid, WorldObject>();
-            foreach (var wieldedItem in WieldedItems)
-            {
-                ObjectGuid woGuid = new ObjectGuid(wieldedItem.Value.AceObjectId);
-                throw new System.NotImplementedException();
-                //WieldedObjects.Add(woGuid, WorldObjectFactory.CreateWorldObject(wieldedItem.Value));
-
-                Burden += wieldedItem.Value.EncumbranceVal;
-                log.Debug($"{weenie.GetProperty(PropertyString.Name)} is wielding {wieldedItem.Value.Name}, adding {wieldedItem.Value.EncumbranceVal}, current Burden = {Burden}");
-
-                Value += wieldedItem.Value.Value;
-            }*/
         }
 
         private void SetEphemeralValues()

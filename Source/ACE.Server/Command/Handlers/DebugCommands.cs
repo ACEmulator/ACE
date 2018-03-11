@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
-using ACE.Database;
-using ACE.Database.Models.Shard;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -760,8 +758,6 @@ namespace ACE.Server.Command.Handlers
 
         private static void AddWeeniesToInventory(Session session, HashSet<uint> weenieIds)
         {
-            var biotasToSave = new List<Biota>();
-
             foreach (uint weenieId in weenieIds)
             {
                 var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
@@ -769,19 +765,8 @@ namespace ACE.Server.Command.Handlers
                 if (loot == null) // weenie doesn't exist
                     continue;
 
-                if (!session.Player.TryAddToInventory(loot, out var container)) // We don't have enough burden available or no empty pack slot.
-                    continue;
-
-                biotasToSave.Add(loot.Biota);
-
-                session.Player.TrackObject(loot);
-
-                session.Network.EnqueueSend(
-                    new GameMessagePutObjectInContainer(session, container.Guid, loot, loot.PlacementPosition ?? 0),
-                    new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));
+                session.Player.TryCreateInInventoryWithNetworking(loot, out Container _);
             }
-
-            DatabaseManager.Shard.AddBiotas(biotasToSave, null);
         }
 
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates testing items in your inventory.")]

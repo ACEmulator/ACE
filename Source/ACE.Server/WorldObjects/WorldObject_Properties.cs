@@ -615,12 +615,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public virtual ushort? Burden
-        {
-            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
-            get => (ushort)(StackUnitBurden * (StackSize ?? 1));
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, (int)value.Value); }
-        }
+        public virtual ushort Burden => (ushort)(EncumbranceVal ?? ((StackUnitEncumbrance ?? 0) * (StackSize ?? 1)));
 
         public Spell? Spell
         {
@@ -1208,13 +1203,6 @@ namespace ACE.Server.WorldObjects
         //}
 
 
-        //public ushort? EncumbranceVal
-        //{
-        //    get { return (ushort?)GetProperty(PropertyInt.EncumbranceVal); }
-        //    set { SetProperty(PropertyInt.EncumbranceVal, value); }
-        //}
-
-
         //public uint? IconOverlayDID
         //{
         //    get { return GetProperty(PropertyDataId.IconOverlay); }
@@ -1761,6 +1749,25 @@ namespace ACE.Server.WorldObjects
         //    get { return GetProperty(PropertyInt.AvailableCharacter); }
         //    set { SetProperty(PropertyInt.AvailableCharacter, value); }
         //}
+
+        public virtual int? StackUnitValue
+        {
+            get => Biota.GetProperty(PropertyInt.StackUnitValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitValue); else SetProperty(PropertyInt.StackUnitValue, value.Value); }
+        }
+
+        public virtual int? StackUnitEncumbrance
+        {
+            get => Biota.GetProperty(PropertyInt.StackUnitEncumbrance);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
+        }
+
+        public int? EncumbranceVal
+        {
+            get => Biota.GetProperty(PropertyInt.EncumbranceVal);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
+        }
+
 
 
         // ========================================

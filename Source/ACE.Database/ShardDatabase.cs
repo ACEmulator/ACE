@@ -127,14 +127,14 @@ namespace ACE.Database
 
         public bool AddCharacter(Character character, Biota biota, IEnumerable<Biota> possessions)
         {
-            if (!AddBiota(biota))
-                return false; // Biota save failed which mean Character fails.
-
-            if (!AddBiotas(possessions))
-                return false;
-
             using (var context = new ShardDbContext())
             {
+                if (!AddBiota(context, biota))
+                    return false; // Biota save failed which mean Character fails.
+
+                if (!AddBiotas(context, possessions))
+                    return false;
+
                 context.Character.Add(character);
 
                 try
@@ -226,47 +226,51 @@ namespace ACE.Database
             }
         }
 
+
         public bool AddBiota(Biota biota)
         {
             using (var context = new ShardDbContext())
-            {
-                context.Biota.Add(biota);
+                return AddBiota(context, biota);
+        }
 
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"AddBiota failed with exception: {ex}");
-                    return false;
-                }
+        private static bool AddBiota(ShardDbContext context, Biota biota)
+        {
+            context.Biota.Add(biota);
+
+            try
+            {
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.Error($"AddBiota failed with exception: {ex}");
+                return false;
             }
         }
 
         public bool AddBiotas(IEnumerable<Biota> biotas)
         {
             using (var context = new ShardDbContext())
-            {
-                foreach (var biota in biotas)
-                    context.Biota.Add(biota);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"AddBiota failed with exception: {ex}");
-                    return false;
-                }
-            }
+                return AddBiotas(context, biotas);
         }
 
+        private static bool AddBiotas(ShardDbContext context, IEnumerable<Biota> biotas)
+        {
+            foreach (var biota in biotas)
+                context.Biota.Add(biota);
+
+            try
+            {
+                context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.Error($"AddBiota failed with exception: {ex}");
+                return false;
+            }
+        }
 
         public Biota GetBiota(uint id)
         {
@@ -420,11 +424,8 @@ namespace ACE.Database
             // Player only
             //biota.BiotaPropertiesSpellBar = context.BiotaPropertiesSpellBar.Where(r => r.ObjectId == biota.Id).ToList();
 
-            //if (isCreature)
-            //{
             biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
-            //}
-
+          
             biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
 
             return biota;
