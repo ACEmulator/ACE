@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
                 {
                     foreach (WorldObject wo in uqlist)
                     {
-                        wo.ContainerId = (int)Guid.Full;
+                        wo.ContainerId = Guid.Full;
                         wo.PlacementPosition = 0;
                         AddToInventory(wo);
                         Session.Network.EnqueueSend(new GameMessageCreateObject(wo));

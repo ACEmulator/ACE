@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject AddNewItemToInventory(uint weenieClassId)
         {
             var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-            wo.ContainerId = (int)Guid.Full;
+            wo.ContainerId = Guid.Full;
             wo.PlacementPosition = 0;
             AddToInventory(wo);
             TrackObject(wo);
@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             item.PlacementPosition = null;
             item.ContainerId = null;
             // Set fields needed to be wielded.
-            item.WielderId = (int)wielder.Guid.Full;
+            item.WielderId = wielder.Guid.Full;
             item.CurrentWieldedLocation = currentWieldedLocation;
 
             if (wielder is Creature creature)
@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
 
             if (packid != 0)
             {
-                wo.ContainerId = (int)packid;
+                wo.ContainerId = packid;
                 AddToInventory(wo);
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                 if (wo is Container container)
@@ -456,7 +456,7 @@ namespace ACE.Server.WorldObjects
         {
             TryRemoveFromInventory(item.Guid, out WorldObject _);
 
-            item.ContainerId = (int)container.Guid.Full;
+            item.ContainerId = container.Guid.Full;
             item.PlacementPosition = placement;
 
             container.AddToInventory(item, placement);
@@ -789,7 +789,7 @@ namespace ACE.Server.WorldObjects
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
-            item.ContainerId = (int)container.Guid.Full;
+            item.ContainerId = container.Guid.Full;
             item.SetPropertiesForContainer(placement);
 
             TryDequipObject(item.Guid, out WorldObject _);
@@ -801,7 +801,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Set the container stuff
-            item.ContainerId = (int)container.Guid.Full;
+            item.ContainerId = container.Guid.Full;
             item.PlacementPosition = placement;
 
             ActionChain inContainerChain = new ActionChain();

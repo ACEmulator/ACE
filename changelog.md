@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2018-03-11
+
+**ACE-World-16PY world db release v0.0.6+ required with this update**
+
+**You will need to delete and recreate both shard and world databases with this update**
+
+[Ripley]
+* Changed IID storage in database from INT to UINT.
+
 ### 2018-03-10
 [Ripley]
 * Adding /morph command for admins.

@@ -889,7 +889,7 @@ namespace ACE.Server.Entity
                 return;
             throw new NotImplementedException();
             RemoveWorldObjectInternal(woGuid, false);
-            wo.ContainerId = (int)container.Guid.Full;
+            wo.ContainerId = container.Guid.Full;
 
             // We are coming off the world we need to be ready to save.
             wo.Location = null;

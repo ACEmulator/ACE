@@ -1,5 +1,30 @@
-set /p dbversion=<Source\AppVeyor\dbversion.txt
+@echo off
 REM Download latest ACE-World database, extract and import it 
-appveyor DownloadFile https://github.com/ACEmulator/ACE-World-16PY/releases/download/v%dbversion%/ACE-World-16PY-db-v%dbversion%.sql.zip
-7z x ACE-World-16PY-db-v%dbversion%.sql.zip
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-16PY-db-v%dbversion%.sql
+
+REM echo %downloadfile%
+REM echo %zipfile%
+REM echo %sqlfile%
+
+set /p dbversion=<Source\AppVeyor\dbversion.txt
+
+IF EXIST Source\AppVeyor\db-pr-override.txt (
+    set /p downloadfile=<Source\AppVeyor\db-pr-override.txt
+) ELSE (
+    set /p downloadfile=https://github.com/ACEmulator/ACE-World-16PY/releases/download/v%dbversion%/ACE-World-16PY-db-v%dbversion%.sql.zip
+)
+
+FOR /f "delims=" %%i in ("%downloadfile%") DO ( 
+    set zipfile=%%~nxi
+)
+
+set sqlfile=%zipfile:~0,-4%
+
+REM echo %downloadfile%
+REM echo %zipfile%
+REM echo %sqlfile%
+
+appveyor DownloadFile %downloadfile%
+7z x %zipfile%
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < %sqlfile%
+
+@echo on

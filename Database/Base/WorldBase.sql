@@ -489,7 +489,7 @@ CREATE TABLE `weenie_properties_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyInstanceId.????)',
-  `value` int(10) NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
+  `value` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
   KEY `wcid_iid_idx` (`object_Id`),
@@ -673,4 +673,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-19  0:00:15
+-- Dump completed on 2018-03-11 13:51:38

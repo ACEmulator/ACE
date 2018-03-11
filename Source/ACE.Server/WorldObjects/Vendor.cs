@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
 
                     if (wo != null)
                     {
-                        wo.ContainerId = (int)Guid.Full;
+                        wo.ContainerId = Guid.Full;
                         defaultItemsForSale.Add(wo.Guid, wo);
                     }
                 }
@@ -247,7 +247,7 @@ namespace ACE.Server.WorldObjects
                 if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
                 {
                     wo.Location = null;
-                    wo.ContainerId = (int)Guid.Full;
+                    wo.ContainerId = Guid.Full;
                     wo.PlacementPosition = null;
                     wo.WielderId = null;
                     wo.CurrentWieldedLocation = null;

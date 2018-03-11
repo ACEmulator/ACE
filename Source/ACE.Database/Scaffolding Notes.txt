@@ -19,3 +19,25 @@ Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;dat
 
 If any changes were detected, C# classes will have been added or modified. Leave the auto generated classes alone. Do not try to optimize them, or clean them up cosmetically.
 They are partial classes, so you can create a partial class if you want to add methods, or, you can create extension methods as well in a separate file.
+
+When the scaffold process completes, you will need to change one section in the xxxxDbContext.cs file that it generates for you:
+
+Before:
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=localhost;port=3306;user=root;password=myPassword;database=ace_shard");
+            }
+        }
+
+After:
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            var config = Common.ConfigManager.Config.MySql.Shard;
+
+            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+        }
+
+Remember that the "var config" line should reflect whichever database you're connecting to... Auth, Shard, or World.

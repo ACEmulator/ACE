@@ -342,7 +342,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.DefaultCombatStyle); else SetProperty(PropertyInt.DefaultCombatStyle, (int)value.Value); }
         }
 
-        public int? GeneratorId
+        public uint? GeneratorId
         {
             get => GetProperty(PropertyInstanceId.Generator);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Generator); else SetProperty(PropertyInstanceId.Generator, value.Value); }
@@ -1016,7 +1016,7 @@ namespace ACE.Server.WorldObjects
                                 break;
                         }
 
-                        wo.GeneratorId = (int)Guid.Full;
+                        wo.GeneratorId = Guid.Full;
 
                         // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
                         GeneratorRegistry.Add(wo.Guid.Full, rNode);
