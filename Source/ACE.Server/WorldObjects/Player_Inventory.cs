@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -41,57 +42,58 @@ namespace ACE.Server.WorldObjects
         }
 
 
-
-
-
-
-
-
-        /// <summary>
-        /// This code handle objects between players and other world objects
-        /// </summary>
-        public void HandleGiveObjectRequest(uint targetID, uint objectID, uint amount)
+        public int GetEncumbranceCapacity()
         {
-            ////ObjectGuid target = new ObjectGuid(targetID);
-            ////ObjectGuid item = new ObjectGuid(objectID);
-            ////WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
-            ////WorldObject itemObject = GetInventoryItem(item);
-            ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
-            ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
-            ////SendUseDoneEvent();
+            var encumbranceAgumentations = 0;
+
+            var strength = Attributes[PropertyAttribute.Strength].Current;
+
+            return (int)((150 * strength) + (encumbranceAgumentations * 30 * strength));
+        }
+
+        public bool HasEnoughBurdenToAddToInventory(WorldObject worldObject)
+        {
+            return (Burden + worldObject.Burden <= GetEncumbranceCapacity());
         }
 
         /// <summary>
-        /// Call this to add any new World Objects to inventory
+        /// If enough burden is available, this will try to add (via create) an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.
         /// </summary>
-        public void HandleAddNewWorldObjectsToInventory(List<WorldObject> wolist)
+        public bool TryCreateInInventoryWithNetworking(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false)
         {
-            foreach (WorldObject wo in wolist)
-            {
-                HandleAddNewWorldObjectToInventory(wo);
-            }
+            if (!TryAddToInventory(worldObject, out container, placementPosition, limitToMainPackOnly)) // We don't have enough burden available or no empty pack slot.
+                return false;
+
+            TrackObject(worldObject);
+
+            if (worldObject is Container lootAsContainer)
+                Session.Network.EnqueueSend(new GameEventViewContents(Session, lootAsContainer));
+
+            Session.Network.EnqueueSend(
+                new GameMessagePutObjectInContainer(Session, container.Guid, worldObject, worldObject.PlacementPosition ?? 0),
+                new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, Burden));
+
+            DatabaseManager.Shard.AddBiota(worldObject.Biota, null);
+
+            return true;
         }
 
-        /// <summary>
-        /// Add New WorldObject to Inventory
-        /// </summary>
-        public void HandleAddNewWorldObjectToInventory(WorldObject wo)
-        {
-            // Get Next Avalibale Pack Location.
-            // uint packid = GetCreatureInventoryFreePack();
 
-            // default player until I get above code to work!
-            uint packid = Guid.Full;
 
-            if (packid != 0)
-            {
-                wo.ContainerId = (int)packid;
-                AddToInventory(wo);
-                Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                if (wo is Container container)
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
-            }
-        }
+
+
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
 
         /// <summary>
         /// Adds a new object to the 's inventory of the specified weenie class.  intended use case: giving items to players
@@ -107,6 +109,57 @@ namespace ACE.Server.WorldObjects
             TrackObject(wo);
             return wo;
         }
+
+        public void PutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
+        {
+            Container container;
+
+            if (containerGuid.IsPlayer())
+                container = this;
+            else
+            {
+                // Ok I am going into player pack - not the main pack.
+
+                // TODO pick up here - I have a generic object for a container, need to find out why.
+                container = (Container)GetInventoryItem(containerGuid);
+            }
+
+            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+            if (!HasInventoryItem(itemGuid) && !HasWieldedItem(itemGuid))
+            {
+                // This is a pickup into our main pack.
+                HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
+                return;
+            }
+
+            // Ok, I know my container and I know I must have the item so let's get it.
+            WorldObject item = GetInventoryItem(itemGuid);
+
+            // check wilded.
+            if (item == null)
+                item = GetWieldedItem(itemGuid);
+
+            // Was I equiped?   If so, lets take care of that and unequip
+            if (item.WielderId != null)
+            {
+                HandleUnwieldItem(container, item, placement);
+                return;
+            }
+
+            // if were are still here, this needs to do a pack pack or main pack move.
+            HandleMove(ref item, container, placement);
+        }
+
+        /// <summary>
+        /// Context: only call when in the player action loop
+        /// </summary>
+        public void DestroyInventoryItem(WorldObject wo)
+        {
+            RemoveWorldObjectFromInventory(wo.Guid);
+            Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
+            ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+        }
+
 
         /// <summary>
         /// This method removes an item from Inventory and adds it to wielded items.
@@ -130,7 +183,7 @@ namespace ACE.Server.WorldObjects
                 {
                     creature.EquippedObjects.Add(item.Guid, item);
 
-                    Burden += item.Burden;
+                    //Burden += item.Burden;
                 }
             }
         }
@@ -144,66 +197,264 @@ namespace ACE.Server.WorldObjects
         {
             if (EquippedObjects.ContainsKey(itemGuid))
             {
-                Burden -= EquippedObjects[itemGuid].Burden;
+                //Burden -= EquippedObjects[itemGuid].Burden;
                 EquippedObjects.Remove(itemGuid);
             }
+        }
+
+
+        /// <summary>
+        /// This method sets properties needed for items that will be child items.
+        /// Items here are only items equipped in the hands.  This deals with the orientation
+        /// and positioning for visual appearance of the child items held by the parent. Og II
+        /// </summary>
+        /// <param name="container">Who is the parent of this child item</param>
+        /// <param name="item">The child item - we link them together</param>
+        /// <param name="placement">Where is this on the parent - where is it equipped</param>
+        /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
+        /// <param name="childLocation">out parameter - this is another part of the orientation data for correct visual display</param>
+        public void SetChild(Container container, WorldObject item, int placement, out int placementId, out int childLocation)
+        {
+            placementId = 0;
+            childLocation = 0;
+            // TODO:   I think there is a state missing - it is one of the edge cases.   I need to revist this.   Og II
+            switch ((EquipMask)placement)
+            {
+                case EquipMask.MissileWeapon:
+                    {
+                        ////if (item.DefaultCombatStyle == MotionStance.BowAttack ||
+                        ////    item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
+                        ////    item.DefaultCombatStyle == MotionStance.AtlatlCombat)
+                        if (item.DefaultCombatStyle == CombatStyle.Atlatl ||
+                            item.DefaultCombatStyle == CombatStyle.Bow ||
+                            item.DefaultCombatStyle == CombatStyle.Crossbow)
+                        {
+                            childLocation = 2;
+                            placementId = 3;
+                        }
+                        else
+                        {
+                            childLocation = 1;
+                            placementId = 1;
+                        }
+                        break;
+                    }
+                case EquipMask.Shield:
+                    {
+                        if (item.ItemType == ItemType.Armor)
+                        {
+                            childLocation = 3;
+                            placementId = 6;
+                        }
+                        else
+                        {
+                            childLocation = 8;
+                            placementId = 1;
+                        }
+                        break;
+                    }
+                case EquipMask.Held:
+                    {
+                        childLocation = 1;
+                        placementId = 1;
+                        break;
+                    }
+                default:
+                    {
+                        childLocation = 1;
+                        placementId = 1;
+                        break;
+                    }
+            }
+            if (item.CurrentWieldedLocation != null)
+                container.Children.Add(new HeldItem(item.Guid.Full, childLocation, (EquipMask)item.CurrentWieldedLocation));
+            item.ParentLocation = (ParentLocation)childLocation;
+            item.Location = Location;
+            item.Placement = (Placement)placementId;
         }
 
 
 
 
 
+
+
+
         /// <summary>
-        /// This method is called in response to a put item in container message.  It is used when the item going
-        /// into a container was wielded.   It sets the appropriate properties, sends out response messages
-        /// and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
-        /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
+        /// Add New WorldObject to Inventory
         /// </summary>
-        private void HandleUnwieldItem(Container container, WorldObject item, int placement)
+        public void HandleAddNewWorldObjectToInventory(WorldObject wo)
         {
-            EquipMask? oldLocation = item.CurrentWieldedLocation;
+            // Get Next Avalibale Pack Location.
+            // uint packid = GetCreatureInventoryFreePack();
 
-            item.ContainerId = (int)container.Guid.Full;
-            SetInventoryForContainer(item, placement);
+            // default player until I get above code to work!
+            uint packid = Guid.Full;
 
-            RemoveFromWieldedObjects(item.Guid);
-
-            if ((oldLocation & EquipMask.Selectable) != 0)
+            if (packid != 0)
             {
-                // We are coming from a hand shield slot.
-                Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+                wo.ContainerId = (int)packid;
+                AddToInventory(wo);
+                Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                if (wo is Container container)
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
             }
+        }
 
-            // Set the container stuff
-            item.ContainerId = (int)container.Guid.Full;
-            item.PlacementPosition = placement;
-
-            ActionChain inContainerChain = new ActionChain();
-            inContainerChain.AddAction(this, () =>
+        /// <summary>
+        /// Call this to add any new World Objects to inventory
+        /// </summary>
+        public void HandleAddNewWorldObjectsToInventory(List<WorldObject> wolist)
+        {
+            foreach (WorldObject wo in wolist)
             {
-                if (container.Guid != Guid)
-                {
-                    container.AddToInventory(item, placement);
-                    Burden += item.Burden;
-                }
-                else
-                    AddToInventory(item, placement);
+                HandleAddNewWorldObjectToInventory(wo);
+            }
+        }
+
+        /// <summary>
+        /// This method is used to pick items off the world - out of 3D space and into our inventory or to a wielded slot.
+        /// It checks the use case needed, sends the appropriate response messages.   In addition, it will move to objects
+        /// that are out of range in the attemp to pick them up.   It will call update apperiance if needed and you have
+        /// wielded an item from the ground. Og II
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="itemGuid"></param>
+        /// <param name="placement"></param>
+        /// <param name="iidPropertyId"></param>
+        private void HandlePickupItem(Container container, ObjectGuid itemGuid, int placement, PropertyInstanceId iidPropertyId)
+        {
+            // Logical operations:
+            // !! FIXME: How to handle repeat on condition?
+            // while (!objectInRange)
+            //   try Move to object
+            // !! FIXME: How to handle conditional
+            // Try acquire from landblock
+            // if acquire successful:
+            //   add to container
+            ActionChain pickUpItemChain = new ActionChain();
+
+            // Move to the object
+            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
+
+            // Pick up the object
+            // Start pickup animation
+            pickUpItemChain.AddAction(this, () =>
+            {
+                var motion = new UniversalMotion(MotionStance.Standing);
+                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                    new GameMessageUpdatePosition(this),
+                    new GameMessageUpdateMotion(Guid,
+                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                        Sequences, motion));
             });
-            inContainerChain.EnqueueChain();
+            // Wait for animation to progress
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, new ObjectGuid(0)),
-                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0),
-                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid),
-                                            new GameMessagePickupEvent(item),
-                                            new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
-                                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
-                                            new GameMessageObjDescEvent(this));
+            // Ask landblock to transfer item
+            // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
+            if (container.Guid.IsPlayer())
+                CurrentLandblock.QueueItemTransfer(pickUpItemChain, itemGuid, container.Guid);
+            else
+                CurrentLandblock.ScheduleItemTransferInContainer(pickUpItemChain, itemGuid, (Container)GetInventoryItem(container.Guid));
 
-            if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
-                return;
-            HandleSwitchToPeaceMode(CombatMode);
-            HandleSwitchToMeleeCombatMode(CombatMode);
+            // Finish pickup animation
+            pickUpItemChain.AddAction(this, () =>
+            {
+                // If success, the item is in our inventory:
+                WorldObject item = GetInventoryItem(itemGuid);
+
+                if (item.ContainerId != Guid.Full)
+                {
+                    //Burden += item.Burden ?? 0;
+
+                    if (item.WeenieType == WeenieType.Coin)
+                    {
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
+                    }
+                }
+
+                if (item is Container itemAsContainer)
+                {
+                    Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
+
+                    foreach (var packItem in itemAsContainer.Inventory)
+                    {
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
+                    }
+                }
+
+                // Update all our stuff if we succeeded
+                if (item != null)
+                {
+                    SetInventoryForContainer(item, placement);
+                    // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
+                    var motion = new UniversalMotion(MotionStance.Standing);
+                    if (iidPropertyId == PropertyInstanceId.Container)
+                    {
+                        Session.Network.EnqueueSend(
+                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
+                            new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                            new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
+                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
+                    }
+                    else
+                    {
+                        AddToWieldedObjects(ref item, container, (EquipMask)placement);
+                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                                                    new GameMessageObjDescEvent(this),
+                                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                                                    new GameEventWieldItem(Session, itemGuid.Full, placement));
+                    }
+
+                    CurrentLandblock.EnqueueBroadcast(
+                        Location,
+                        Landblock.MaxObjectRange,
+                        new GameMessageUpdateMotion(
+                            Guid,
+                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                            Sequences,
+                            motion),
+                        new GameMessagePickupEvent(item));
+
+                    if (iidPropertyId == PropertyInstanceId.Wielder)
+                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+
+                    // TODO: Og II - check this later to see if it is still required.
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                }
+                // If we didn't succeed, just stand up and be ashamed of ourself
+                else
+                {
+                    var motion = new UniversalMotion(MotionStance.Standing);
+
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                        new GameMessageUpdateMotion(Guid,
+                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
+                            Sequences, motion));
+                    // CurrentLandblock.EnqueueBroadcast(self shame);
+                }
+            });
+            // Set chain to run
+            pickUpItemChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This code handle objects between players and other world objects
+        /// </summary>
+        public void HandleGiveObjectRequest(uint targetID, uint objectID, uint amount)
+        {
+            ////ObjectGuid target = new ObjectGuid(targetID);
+            ////ObjectGuid item = new ObjectGuid(objectID);
+            ////WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
+            ////WorldObject itemObject = GetInventoryItem(item);
+            ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
+            ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
+            ////SendUseDoneEvent();
         }
 
         /// <summary>
@@ -225,7 +476,7 @@ namespace ACE.Server.WorldObjects
 
             if (item.ContainerId != Guid.Full)
             {
-                Burden += item.Burden ?? 0;
+                //Burden += item.Burden ?? 0;
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCurrencyClientCalculations(WeenieType.Coin);
             }
@@ -371,214 +622,92 @@ namespace ACE.Server.WorldObjects
                     throw new NotImplementedException();
                     //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
                 }
-                else
-                    Burden = (ushort)(Burden - (item.StackUnitBurden * amount));
+                //else
+                    //Burden = (ushort)(Burden - (item.StackUnitEncumbrance * amount));
             });
             removeItemsChain.EnqueueChain();
         }
 
-        /// <summary>
-        /// This method is used to pick items off the world - out of 3D space and into our inventory or to a wielded slot.
-        /// It checks the use case needed, sends the appropriate response messages.   In addition, it will move to objects
-        /// that are out of range in the attemp to pick them up.   It will call update apperiance if needed and you have
-        /// wielded an item from the ground. Og II
-        /// </summary>
-        /// <param name="container"></param>
-        /// <param name="itemGuid"></param>
-        /// <param name="placement"></param>
-        /// <param name="iidPropertyId"></param>
-        private void HandlePickupItem(Container container, ObjectGuid itemGuid, int placement, PropertyInstanceId iidPropertyId)
+        public void HandleActionDropItem(ObjectGuid itemGuid)
         {
-            // Logical operations:
-            // !! FIXME: How to handle repeat on condition?
-            // while (!objectInRange)
-            //   try Move to object
-            // !! FIXME: How to handle conditional
-            // Try acquire from landblock
-            // if acquire successful:
-            //   add to container
-            ActionChain pickUpItemChain = new ActionChain();
+            ActionChain dropChain = new ActionChain();
 
-            // Move to the object
-            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
-
-            // Pick up the object
-            // Start pickup animation
-            pickUpItemChain.AddAction(this, () =>
+            // Goody Goody -- lets build  drop chain
+            // First start drop animation
+            dropChain.AddAction(this, () =>
             {
-                var motion = new UniversalMotion(MotionStance.Standing);
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                    new GameMessageUpdatePosition(this),
-                    new GameMessageUpdateMotion(Guid,
-                        Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                        Sequences, motion));
-            });
-            // Wait for animation to progress
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-            var pickupAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.Pickup);
-            pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
-
-            // Ask landblock to transfer item
-            // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
-            if (container.Guid.IsPlayer())
-                CurrentLandblock.QueueItemTransfer(pickUpItemChain, itemGuid, container.Guid);
-            else
-                CurrentLandblock.ScheduleItemTransferInContainer(pickUpItemChain, itemGuid, (Container)GetInventoryItem(container.Guid));
-
-            // Finish pickup animation
-            pickUpItemChain.AddAction(this, () =>
-            {
-                // If success, the item is in our inventory:
-                WorldObject item = GetInventoryItem(itemGuid);
-
-                if (item.ContainerId != Guid.Full)
-                {
-                    Burden += item.Burden ?? 0;
-
-                    if (item.WeenieType == WeenieType.Coin)
-                    {
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                    }
-                }
-
-                if (item is Container itemAsContainer)
-                {
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
-
-                    foreach (var packItem in itemAsContainer.Inventory)
-                    {
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                    }
-                }
-
-                // Update all our stuff if we succeeded
+                // check packs of item.
+                var item = GetInventoryItem(itemGuid);
                 if (item != null)
                 {
-                    SetInventoryForContainer(item, placement);
-                    // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
-                    var motion = new UniversalMotion(MotionStance.Standing);
-                    if (iidPropertyId == PropertyInstanceId.Container)
-                    {
-                        Session.Network.EnqueueSend(
-                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
-                            new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
-                            new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
-                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
-                    }
-                    else
-                    {
-                        AddToWieldedObjects(ref item, container, (EquipMask)placement);
-                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                                                    new GameMessageObjDescEvent(this),
-                                                    new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                                                    new GameEventWieldItem(Session, itemGuid.Full, placement));
-                    }
-
-                    CurrentLandblock.EnqueueBroadcast(
-                        Location,
-                        Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(
-                            Guid,
-                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                            Sequences,
-                            motion),
-                        new GameMessagePickupEvent(item));
-
-                    if (iidPropertyId == PropertyInstanceId.Wielder)
-                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
-
-                    // TODO: Og II - check this later to see if it is still required.
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                    RemoveWorldObjectFromInventory(itemGuid);
+                    if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
+                        UpdateCurrencyClientCalculations(WeenieType.Coin);
                 }
-                // If we didn't succeed, just stand up and be ashamed of ourself
                 else
                 {
-                    var motion = new UniversalMotion(MotionStance.Standing);
-
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(Guid,
-                            Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                            Sequences, motion));
-                    // CurrentLandblock.EnqueueBroadcast(self shame);
+                    // check to see if this item is wielded
+                    item = GetWieldedItem(itemGuid);
+                    if (item != null)
+                    {
+                        RemoveFromWieldedObjects(itemGuid);
+                        Session.Network.EnqueueSend(
+                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageObjDescEvent(this),
+                            new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
+                    }
                 }
+
+                SetInventoryForWorld(item);
+
+                UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
+                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+
+                // Set drop motion
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+
+                // Now wait for Drop Motion to finish -- use ActionChain
+                ActionChain chain = new ActionChain();
+
+                // Wait for drop animation
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+                chain.AddDelaySeconds(pickupAnimationLength);
+
+                // Play drop sound
+                // Put item on landblock
+                chain.AddAction(this, () =>
+                {
+                    motion = new UniversalMotion(MotionStance.Standing);
+                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
+                    new GameMessagePutObjectIn3d(Session, this, itemGuid),
+                    new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+
+                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                    Debug.Assert(item != null, "item != null");
+                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                    item.Sequences.GetNextSequence(SequenceType.ObjectVector);
+
+                    CurrentLandblock.AddWorldObject(item);
+
+                    // Ok we have handed off to the landblock, let's clean up the shard database.
+                    //throw new NotImplementedException();
+                    // todo fix for EF
+                    //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                });
+
+                chain.EnqueueChain();
+                // Removed SaveSession - this was causing items that were dropped to not be removed
+                // from inventory.   If this causes a problem with vendor, we need to fix vendor.  Og II
             });
-            // Set chain to run
-            pickUpItemChain.EnqueueChain();
+
+            dropChain.EnqueueChain();
         }
 
-
-
-        /// <summary>
-        /// This method sets properties needed for items that will be child items.
-        /// Items here are only items equipped in the hands.  This deals with the orientation
-        /// and positioning for visual appearance of the child items held by the parent. Og II
-        /// </summary>
-        /// <param name="container">Who is the parent of this child item</param>
-        /// <param name="item">The child item - we link them together</param>
-        /// <param name="placement">Where is this on the parent - where is it equipped</param>
-        /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
-        /// <param name="childLocation">out parameter - this is another part of the orientation data for correct visual display</param>
-        public void SetChild(Container container, WorldObject item, int placement, out int placementId, out int childLocation)
-        {
-            placementId = 0;
-            childLocation = 0;
-            // TODO:   I think there is a state missing - it is one of the edge cases.   I need to revist this.   Og II
-            switch ((EquipMask)placement)
-            {
-                case EquipMask.MissileWeapon:
-                    {
-                        ////if (item.DefaultCombatStyle == MotionStance.BowAttack ||
-                        ////    item.DefaultCombatStyle == MotionStance.CrossBowAttack ||
-                        ////    item.DefaultCombatStyle == MotionStance.AtlatlCombat)
-                        if (item.DefaultCombatStyle == CombatStyle.Atlatl ||
-                            item.DefaultCombatStyle == CombatStyle.Bow ||
-                            item.DefaultCombatStyle == CombatStyle.Crossbow)
-                        {
-                            childLocation = 2;
-                            placementId = 3;
-                        }
-                        else
-                        {
-                            childLocation = 1;
-                            placementId = 1;
-                        }
-                        break;
-                    }
-                case EquipMask.Shield:
-                    {
-                        if (item.ItemType == ItemType.Armor)
-                        {
-                            childLocation = 3;
-                            placementId = 6;
-                        }
-                        else
-                        {
-                            childLocation = 8;
-                            placementId = 1;
-                        }
-                        break;
-                    }
-                case EquipMask.Held:
-                    {
-                        childLocation = 1;
-                        placementId = 1;
-                        break;
-                    }
-                default:
-                    {
-                        childLocation = 1;
-                        placementId = 1;
-                        break;
-                    }
-            }
-            if (item.CurrentWieldedLocation != null)
-                container.Children.Add(new HeldItem(item.Guid.Full, childLocation, (EquipMask)item.CurrentWieldedLocation));
-            item.ParentLocation = (ParentLocation)childLocation;
-            item.Location = Location;
-            item.Placement = (Placement)placementId;
-        }
 
         public void HandleActionWieldItem(Container container, uint itemId, int placement)
         {
@@ -674,134 +803,82 @@ namespace ACE.Server.WorldObjects
             wieldChain.EnqueueChain();
         }
 
-        public void PutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
-        {
-            Container container;
-
-            if (containerGuid.IsPlayer())
-                container = this;
-            else
-            {
-                // Ok I am going into player pack - not the main pack.
-
-                // TODO pick up here - I have a generic object for a container, need to find out why.
-                container = (Container)GetInventoryItem(containerGuid);
-            }
-
-            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-            if (!HasItem(itemGuid))
-            {
-                // This is a pickup into our main pack.
-                HandlePickupItem(container, itemGuid, placement, PropertyInstanceId.Container);
-                return;
-            }
-
-            // Ok, I know my container and I know I must have the item so let's get it.
-            WorldObject item = GetInventoryItem(itemGuid);
-
-            // check wilded.
-            if (item == null)
-                item = GetWieldedItem(itemGuid);
-
-            // Was I equiped?   If so, lets take care of that and unequip
-            if (item.WielderId != null)
-            {
-                HandleUnwieldItem(container, item, placement);
-                return;
-            }
-
-            // if were are still here, this needs to do a pack pack or main pack move.
-            HandleMove(ref item, container, placement);
-        }
-
         /// <summary>
-        /// Context: only call when in the player action loop
+        /// This method is called in response to a put item in container message.  It is used when the item going
+        /// into a container was wielded.   It sets the appropriate properties, sends out response messages
+        /// and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
+        /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
         /// </summary>
-        public void DestroyInventoryItem(WorldObject wo)
+        private void HandleUnwieldItem(Container container, WorldObject item, int placement)
         {
-            RemoveWorldObjectFromInventory(wo.Guid);
-            Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
-            ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
+            EquipMask? oldLocation = item.CurrentWieldedLocation;
+
+            item.ContainerId = (int)container.Guid.Full;
+            SetInventoryForContainer(item, placement);
+
+            RemoveFromWieldedObjects(item.Guid);
+
+            if ((oldLocation & EquipMask.Selectable) != 0)
+            {
+                // We are coming from a hand shield slot.
+                Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+            }
+
+            // Set the container stuff
+            item.ContainerId = (int)container.Guid.Full;
+            item.PlacementPosition = placement;
+
+            ActionChain inContainerChain = new ActionChain();
+            inContainerChain.AddAction(this, () =>
+            {
+                if (container.Guid != Guid)
+                {
+                    container.AddToInventory(item, placement);
+                    //Burden += item.Burden;
+                }
+                else
+                    AddToInventory(item, placement);
+            });
+            inContainerChain.EnqueueChain();
+
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, new ObjectGuid(0)),
+                                            new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0),
+                                            new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid),
+                                            new GameMessagePickupEvent(item),
+                                            new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
+                                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
+                                            new GameMessageObjDescEvent(this));
+
+            if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
+                return;
+            HandleSwitchToPeaceMode(CombatMode);
+            HandleSwitchToMeleeCombatMode(CombatMode);
         }
 
-        public void HandleActionDropItem(ObjectGuid itemGuid)
-        {
-            ActionChain dropChain = new ActionChain();
 
-            // Goody Goody -- lets build  drop chain
-            // First start drop animation
-            dropChain.AddAction(this, () =>
+        public void HandleActionUse(ObjectGuid usedItemId)
+        {
+            new ActionChain(this, () =>
             {
-                // check packs of item.
-                WorldObject item = GetInventoryItem(itemGuid);
-                if (item == null)
+                WorldObject iwo = GetInventoryItem(usedItemId);
+                if (iwo != null)
                 {
-                    // check to see if this item is wielded
-                    item = GetWieldedItem(itemGuid);
-                    if (item != null)
-                    {
-                        RemoveFromWieldedObjects(itemGuid);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
-                    }
+                    iwo.OnUse(Session);
                 }
                 else
                 {
-                    RemoveWorldObjectFromInventory(itemGuid);
-                    if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
+                    if (CurrentLandblock != null)
+                    {
+                        // Just forward our action to the appropriate user...
+                        WorldObject wo = CurrentLandblock.GetObject(usedItemId);
+                        if (wo != null)
+                        {
+                            wo.ActOnUse(Guid);
+                        }
+                    }
                 }
-
-                SetInventoryForWorld(item);
-
-                UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
-
-                // Set drop motion
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-
-                // Now wait for Drop Motion to finish -- use ActionChain
-                ActionChain chain = new ActionChain();
-
-                // Wait for drop animation
-                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-                var pickupAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.Pickup);
-                chain.AddDelaySeconds(pickupAnimationLength);
-
-                // Play drop sound
-                // Put item on landblock
-                chain.AddAction(this, () =>
-                {
-                    motion = new UniversalMotion(MotionStance.Standing);
-                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
-                    new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                    new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
-
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    Debug.Assert(item != null, "item != null");
-                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                    item.Sequences.GetNextSequence(SequenceType.ObjectVector);
-
-                    CurrentLandblock.AddWorldObject(item);
-
-                    // Ok we have handed off to the landblock, let's clean up the shard database.
-                    throw new NotImplementedException();
-                    // todo fix for EF
-                    //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                });
-
-                chain.EnqueueChain();
-                // Removed SaveSession - this was causing items that were dropped to not be removed
-                // from inventory.   If this causes a problem with vendor, we need to fix vendor.  Og II
-            });
-
-            dropChain.EnqueueChain();
+            }).EnqueueChain();
         }
 
         public void HandleActionUseOnTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
@@ -836,29 +913,6 @@ namespace ACE.Server.WorldObjects
             chain.EnqueueChain();
         }
 
-        public void HandleActionUse(ObjectGuid usedItemId)
-        {
-            new ActionChain(this, () =>
-            {
-                WorldObject iwo = GetInventoryItem(usedItemId);
-                if (iwo != null)
-                {
-                    iwo.OnUse(Session);
-                }
-                else
-                {
-                    if (CurrentLandblock != null)
-                    {
-                        // Just forward our action to the appropriate user...
-                        WorldObject wo = CurrentLandblock.GetObject(usedItemId);
-                        if (wo != null)
-                        {
-                            wo.ActOnUse(Guid);
-                        }
-                    }
-                }
-            }).EnqueueChain();
-        }
 
         /// <summary>
         /// This method handles inscription.   If you remove the inscription, it will remove the data from the object and

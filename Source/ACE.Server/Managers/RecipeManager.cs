@@ -69,7 +69,7 @@ namespace ACE.Server.Managers
             UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.ClapHands));
             craftChain.AddAction(player, () => player.HandleActionMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)player.MotionTableId);
-            var craftAnimationLength = MotionTable.GetAnimationLength(motionTable, MotionCommand.ClapHands);
+            var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);
             craftChain.AddDelaySeconds(craftAnimationLength);
             // craftChain.AddDelaySeconds(0.5);
 

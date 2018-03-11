@@ -289,11 +289,6 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public virtual int? StackUnitValue => Biota.GetProperty(PropertyInt.StackUnitValue) ?? 0;
-
-
-
-        public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0);
 
 
 

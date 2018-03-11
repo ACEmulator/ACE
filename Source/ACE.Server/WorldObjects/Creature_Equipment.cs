@@ -28,9 +28,24 @@ namespace ACE.Server.WorldObjects
             {
                 var worldObject = WorldObjectFactory.CreateWorldObject(biota);
                 EquippedObjects[worldObject.Guid] = worldObject;
+
+                EncumbranceVal += worldObject.Burden;
             }
 
             EquippedObjectsLoaded = true;
+        }
+
+        public bool HasWieldedItem(ObjectGuid objectGuid)
+        {
+            return EquippedObjects.ContainsKey(objectGuid);
+        }
+
+        /// <summary>
+        /// Get Wielded Item. Returns null if not found.
+        /// </summary>
+        public WorldObject GetWieldedItem(ObjectGuid objectGuid)
+        {
+            return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
         }
 
         /// <summary>
@@ -59,6 +74,19 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+
+
+
+
+
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+        // ******************************************************************* OLD CODE BELOW ********************************
+
         public void GenerateWieldList()
         {
             foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield))
@@ -78,14 +106,6 @@ namespace ACE.Server.WorldObjects
 
             //if (EquippedObjects != null)
             //    UpdateBaseAppearance();
-        }
-
-        /// <summary>
-        /// Get Wielded Item. Returns null if not found.
-        /// </summary>
-        public virtual WorldObject GetWieldedItem(ObjectGuid objectGuid)
-        {
-            return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
         }
     }
 }

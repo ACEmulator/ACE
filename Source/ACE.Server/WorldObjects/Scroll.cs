@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             Power = table.Spells[SpellId].Power;
             School = table.Spells[SpellId].School;
 
-            Burden = 30;
+            //Burden = 30;
 
             switch (Power)
             {
