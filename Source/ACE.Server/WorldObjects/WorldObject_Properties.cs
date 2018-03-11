@@ -2042,40 +2042,40 @@ namespace ACE.Server.WorldObjects
                                          | UpdatePositionFlag.ZeroQy
                                          | UpdatePositionFlag.ZeroQx;
 
-            ContainerId = null;
+            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
             PlacementPosition = null;
+
+            ContainerId = null;
             WielderId = null;
             CurrentWieldedLocation = null;
-            // TODO: create enum for this once we understand this better.
-            // This is needed to make items lay flat on the ground.
-            Placement = ACE.Entity.Enum.Placement.Resting;
         }
 
         internal void SetPropertiesForContainer(int placement)
         {
             if (Location != null)
                 LandblockManager.RemoveObject(this);
+            Location = null;
             PositionFlag = UpdatePositionFlag.None;
-            // TODO: Create enums for this.
+
             Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
             PlacementPosition = placement;
-            Location = null;
+
             ParentLocation = null;
-            CurrentWieldedLocation = null;
             WielderId = null;
+            CurrentWieldedLocation = null;
         }
 
         internal void SetPropertiesForVendor()
         {
             Location = null;
             PositionFlag = UpdatePositionFlag.None;
-            ContainerId = null;
+
+            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
             PlacementPosition = null;
+
+            ContainerId = null;
             WielderId = null;
             CurrentWieldedLocation = null;
-            // TODO: create enum for this once we understand this better.
-            // This is needed to make items lay flat on the ground.
-            Placement = ACE.Entity.Enum.Placement.Resting;
         }
     }
 }

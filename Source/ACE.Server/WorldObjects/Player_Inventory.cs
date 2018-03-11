@@ -677,8 +677,8 @@ namespace ACE.Server.WorldObjects
                 });
 
                 chain.EnqueueChain();
-                // Removed SaveSession - this was causing items that were dropped to not be removed
-                // from inventory.   If this causes a problem with vendor, we need to fix vendor.  Og II
+                // Removed SaveSession - this was causing items that were dropped to not be removed from inventory.
+                // If this causes a problem with vendor, we need to fix vendor.  Og II
             });
 
             dropChain.EnqueueChain();
