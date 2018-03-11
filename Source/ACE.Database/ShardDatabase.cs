@@ -356,7 +356,7 @@ namespace ACE.Database
                     .FirstOrDefault(r => r.Id == id);
             }
 
-            // Base properties for every biota
+            // Base properties for every biota (ACBaseQualities)
             var biota = context.Biota
                 .Include(r => r.BiotaPropertiesBool)
                 .Include(r => r.BiotaPropertiesDID)
@@ -365,7 +365,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesInt)
                 .Include(r => r.BiotaPropertiesInt64)
                 .Include(r => r.BiotaPropertiesString)
-                .Include(r => r.BiotaPropertiesSpellBook)
+                .Include(r => r.BiotaPropertiesPosition)
                 .FirstOrDefault(r => r.Id == id);
 
             if (biota == null)
@@ -407,7 +407,7 @@ namespace ACE.Database
 
             biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
+            //biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
 
             // Player only
             //biota.BiotaPropertiesShortcutBarObject = context.BiotaPropertiesShortcutBar.Where(r => r.ObjectId == biota.Id).ToList();
@@ -422,7 +422,7 @@ namespace ACE.Database
 
             //if (isCreature)
             //{
-            //    biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
             //}
 
             biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();

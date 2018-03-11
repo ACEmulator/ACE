@@ -72,7 +72,7 @@ namespace ACE.Database.Models.World
 
         // WeeniePropertiesGenerator
 
-        public static int? GetProperty(this Weenie weenie, PropertyInstanceId property)
+        public static uint? GetProperty(this Weenie weenie, PropertyInstanceId property)
         {
             return weenie.WeeniePropertiesIID.FirstOrDefault(x => x.Type == (uint)property)?.Value;
         }

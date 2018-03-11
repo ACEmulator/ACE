@@ -23,7 +23,7 @@ namespace ACE.Server.WorldObjects
         public Dictionary<PropertyBool, bool?> EphemeralPropertyBools = new Dictionary<PropertyBool, bool?>();
         public Dictionary<PropertyDataId, uint?> EphemeralPropertyDataIds = new Dictionary<PropertyDataId, uint?>();
         public Dictionary<PropertyFloat, double?> EphemeralPropertyFloats = new Dictionary<PropertyFloat, double?>();
-        public Dictionary<PropertyInstanceId, int?> EphemeralPropertyInstanceIds = new Dictionary<PropertyInstanceId, int?>();
+        public Dictionary<PropertyInstanceId, uint?> EphemeralPropertyInstanceIds = new Dictionary<PropertyInstanceId, uint?>();
         public Dictionary<PropertyInt, int?> EphemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         public Dictionary<PropertyInt64, long?> EphemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
         public Dictionary<PropertyString, string> EphemeralPropertyStrings = new Dictionary<PropertyString, string>();
@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         public bool? GetProperty(PropertyBool property) { if (EphemeralPropertyBools.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public uint? GetProperty(PropertyDataId property) { if (EphemeralPropertyDataIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public double? GetProperty(PropertyFloat property) { if (EphemeralPropertyFloats.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
-        public int? GetProperty(PropertyInstanceId property) { if (EphemeralPropertyInstanceIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
+        public uint? GetProperty(PropertyInstanceId property) { if (EphemeralPropertyInstanceIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public int? GetProperty(PropertyInt property) { if (EphemeralPropertyInts.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public long? GetProperty(PropertyInt64 property) { if (EphemeralPropertyInt64s.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public string GetProperty(PropertyString property) { if (EphemeralPropertyStrings.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
         public void SetProperty(PropertyBool property, bool value) { if (EphemeralPropertyBools.ContainsKey(property)) EphemeralPropertyBools[property] = value; else Biota.SetProperty(property, value); }
         public void SetProperty(PropertyDataId property, uint value) { if (EphemeralPropertyDataIds.ContainsKey(property)) EphemeralPropertyDataIds[property] = value; else Biota.SetProperty(property, value); }
         public void SetProperty(PropertyFloat property, double value) { if (EphemeralPropertyFloats.ContainsKey(property)) EphemeralPropertyFloats[property] = value; else Biota.SetProperty(property, value); }
-        public void SetProperty(PropertyInstanceId property, int value) { if (EphemeralPropertyInstanceIds.ContainsKey(property)) EphemeralPropertyInstanceIds[property] = value; else Biota.SetProperty(property, value); }
+        public void SetProperty(PropertyInstanceId property, uint value) { if (EphemeralPropertyInstanceIds.ContainsKey(property)) EphemeralPropertyInstanceIds[property] = value; else Biota.SetProperty(property, value); }
         public void SetProperty(PropertyInt property, int value) { if (EphemeralPropertyInts.ContainsKey(property)) EphemeralPropertyInts[property] = value; else Biota.SetProperty(property, value); }
         public void SetProperty(PropertyInt64 property, long value) { if (EphemeralPropertyInt64s.ContainsKey(property)) EphemeralPropertyInt64s[property] = value; else Biota.SetProperty(property, value); }
         public void SetProperty(PropertyString property, string value) { if (EphemeralPropertyStrings.ContainsKey(property)) EphemeralPropertyStrings[property] = value; else Biota.SetProperty(property, value); }
@@ -94,16 +94,16 @@ namespace ACE.Server.WorldObjects
             return results;
         }
 
-        public Dictionary<PropertyInstanceId, int> GetAllPropertyInstanceId()
+        public Dictionary<PropertyInstanceId, uint> GetAllPropertyInstanceId()
         {
-            var results = new Dictionary<PropertyInstanceId, int>();
+            var results = new Dictionary<PropertyInstanceId, uint>();
 
             foreach (var property in Biota.BiotaPropertiesIID)
                 results[(PropertyInstanceId)property.Type] = property.Value;
 
             foreach (var property in EphemeralPropertyInstanceIds)
                 if (property.Value.HasValue)
-                    results[property.Key] = (int)property.Value;
+                    results[property.Key] = (uint)property.Value;
 
             return results;
         }
@@ -543,13 +543,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStackSize); else SetProperty(PropertyInt.MaxStackSize, value.Value); }
         }
 
-        public int? ContainerId
+        public uint? ContainerId
         {
             get => GetProperty(PropertyInstanceId.Container);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Container); else SetProperty(PropertyInstanceId.Container, value.Value); }
         }
 
-        public int? WielderId
+        public uint? WielderId
         {
             get => GetProperty(PropertyInstanceId.Wielder);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Wielder); else SetProperty(PropertyInstanceId.Wielder, value.Value); }
@@ -631,7 +631,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
         /// </summary>
-        public int? HouseOwner
+        public uint? HouseOwner
         {
             get => GetProperty(PropertyInstanceId.HouseOwner);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
@@ -645,7 +645,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookItemType); else SetProperty(PropertyInt.HookItemType, value.Value); }
         }
 
-        public int? Monarch
+        public uint? Monarch
         {
             get => GetProperty(PropertyInstanceId.Monarch);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
@@ -692,7 +692,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.CooldownDuration); else SetProperty(PropertyFloat.CooldownDuration, value.Value); }
         }
 
-        public int? PetOwner
+        public uint? PetOwner
         {
             get => GetProperty(PropertyInstanceId.PetOwner);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.PetOwner); else SetProperty(PropertyInstanceId.PetOwner, value.Value); }
@@ -1734,7 +1734,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public int? ScribeIID
+        public uint? ScribeIID
         {
             get => GetProperty(PropertyInstanceId.Scribe);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Scribe); else SetProperty(PropertyInstanceId.Scribe, value.Value); }
@@ -1955,67 +1955,67 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public int? CurrentCombatTarget
+        public uint? CurrentCombatTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentCombatTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentCombatTarget); else SetProperty(PropertyInstanceId.CurrentCombatTarget, value.Value); }
         }
 
-        public int? CurrentEnemy
+        public uint? CurrentEnemy
         {
             get => GetProperty(PropertyInstanceId.CurrentEnemy);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentEnemy); else SetProperty(PropertyInstanceId.CurrentEnemy, value.Value); }
         }
 
-        public int? CurrentAttacker
+        public uint? CurrentAttacker
         {
             get => GetProperty(PropertyInstanceId.CurrentAttacker);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAttacker); else SetProperty(PropertyInstanceId.CurrentAttacker, value.Value); }
         }
 
-        public int? CurrentDamager
+        public uint? CurrentDamager
         {
             get => GetProperty(PropertyInstanceId.CurrentDamager);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentDamager); else SetProperty(PropertyInstanceId.CurrentDamager, value.Value); }
         }
 
-        public int? CurrentFollowTarget
+        public uint? CurrentFollowTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentFollowTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentFollowTarget); else SetProperty(PropertyInstanceId.CurrentFollowTarget, value.Value); }
         }
 
-        public int? CurrentAppraisalTarget
+        public uint? CurrentAppraisalTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
         }
 
-        public int? CurrentFellowshipAppraisalTarget
+        public uint? CurrentFellowshipAppraisalTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentFellowshipAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentFellowshipAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentFellowshipAppraisalTarget, value.Value); }
         }
 
-        public int? CombatTarget
+        public uint? CombatTarget
         {
             get => GetProperty(PropertyInstanceId.CombatTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CombatTarget); else SetProperty(PropertyInstanceId.CombatTarget, value.Value); }
         }
 
-        public int? HealthQueryTarget
+        public uint? HealthQueryTarget
         {
             get => GetProperty(PropertyInstanceId.HealthQueryTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HealthQueryTarget); else SetProperty(PropertyInstanceId.HealthQueryTarget, value.Value); }
         }
 
-        public int? ManaQueryTarget
+        public uint? ManaQueryTarget
         {
             get => GetProperty(PropertyInstanceId.ManaQueryTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.ManaQueryTarget); else SetProperty(PropertyInstanceId.ManaQueryTarget, value.Value); }
         }
 
-        public int? RequestedAppraisalTarget
+        public uint? RequestedAppraisalTarget
         {
             get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }

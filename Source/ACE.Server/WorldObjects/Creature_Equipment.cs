@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
 
-            worldObject.SetProperty(PropertyInstanceId.Wielder, (int)Biota.Id);
+            worldObject.SetProperty(PropertyInstanceId.Wielder, Biota.Id);
             EquippedObjects[worldObject.Guid] = worldObject;
 
             return true;

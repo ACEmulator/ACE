@@ -409,8 +409,8 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock.GetObject(examinationId).Examine(Session);
             }
 
-            RequestedAppraisalTarget = (int)examinationId.Full;
-            CurrentAppraisalTarget = (int)examinationId.Full;
+            RequestedAppraisalTarget = examinationId.Full;
+            CurrentAppraisalTarget = examinationId.Full;
         }
 
         public void QueryHealth(ObjectGuid queryId)
@@ -425,7 +425,7 @@ namespace ACE.Server.WorldObjects
 
             // Remember the selected Target
             selectedTarget = queryId;
-            HealthQueryTarget = (int)queryId.Full;
+            HealthQueryTarget = queryId.Full;
             CurrentLandblock.GetObject(queryId).QueryHealth(Session);
         }
 
@@ -450,7 +450,7 @@ namespace ACE.Server.WorldObjects
                     wo.QueryItemMana(Session);
             }
 
-            ManaQueryTarget = (int)queryId.Full;
+            ManaQueryTarget = queryId.Full;
         }
 
         public void ReadBookPage(ObjectGuid bookId, uint pageNum)

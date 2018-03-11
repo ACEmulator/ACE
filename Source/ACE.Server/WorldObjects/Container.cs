@@ -172,7 +172,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            worldObject.ContainerId = (int)Guid.Full;
+            worldObject.ContainerId = Guid.Full;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
             // Move all the existing items PlacementPosition over.
