@@ -106,7 +106,7 @@ namespace ACE.DatLoader.FileTypes
                             numFrames = animation.NumFrames;
                         }
                         else
-                            numFrames = (anim.HighFrame - anim.LowFrame);
+                            numFrames = (uint)(anim.HighFrame - anim.LowFrame);
 
                         length += numFrames / Math.Abs(anim.Framerate); // Framerates can be negative, which tells the client to play in reverse
                     }

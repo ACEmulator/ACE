@@ -10,7 +10,7 @@ namespace ACE.Server.Physics
         public int Bitfield;
         public object MovementBuffer;
         public bool AutonomousMovement;
-        public int AnimFrameID;
+        public uint AnimFrameID;
         public Position Pos;
         public PhysicsState State;
         public float ObjectScale;
@@ -20,22 +20,22 @@ namespace ACE.Server.Physics
         public Vector3 Velocity;
         public Vector3 Acceleration;
         public Vector3 Omega;
-        public int NumChildren;
+        public uint NumChildren;
         public List<int> ChildIDs;
         public List<int> ChildLocationIDs;
-        public int ParentID;
-        public int LocationID;
-        public int MTableID;
-        public int STableID;
-        public int PhsTableID;
+        public uint ParentID;
+        public uint LocationID;
+        public uint MTableID;
+        public uint STableID;
+        public uint PhsTableID;
         public PlayScript DefaultScript;
         public float DefaultScriptIntensity;
-        public int SetupID;
+        public uint SetupID;
         public int[] Timestamps;
 
-        public int GetMTableID()
+        public uint GetMTableID()
         {
-            return -1;
+            return 0;
         }
 
         public bool get_autonomous_movement()
@@ -43,7 +43,7 @@ namespace ACE.Server.Physics
             return AutonomousMovement;
         }
 
-        public int get_animframe_id()
+        public uint get_animframe_id()
         {
             return AnimFrameID;
         }

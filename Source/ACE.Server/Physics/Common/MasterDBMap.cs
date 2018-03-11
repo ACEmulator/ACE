@@ -2,9 +2,9 @@ namespace ACE.Server.Physics.Common
 {
     public class MasterDBMap
     {
-        public static int DivineType(int dataDID)
+        public static uint DivineType(uint dataDID)
         {
-            return -1;
+            return 0;
         }
     }
 }

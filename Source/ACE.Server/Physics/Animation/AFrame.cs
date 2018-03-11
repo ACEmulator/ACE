@@ -15,6 +15,12 @@ namespace ACE.Server.Physics.Animation
             Orientation = Quaternion.Identity;
         }
 
+        public AFrame(DatLoader.Entity.Frame frame)
+        {
+            Origin = new Vector3(frame.Origin.X, frame.Origin.Y, frame.Origin.Z);
+            Orientation = new Quaternion(frame.Orientation.X, frame.Orientation.Y, frame.Orientation.Z, frame.Orientation.W);
+        }
+
         public static AFrame Combine(AFrame a, AFrame b)
         {
             var frame = new AFrame();

@@ -2,12 +2,12 @@ namespace ACE.Server.Physics.Animation
 {
     public class AnimNode
     {
-        public int Motion;
-        public int NumAnims;
+        public uint Motion;
+        public uint NumAnims;
 
         public AnimNode() { }
 
-        public AnimNode(int motion, int numAnims)
+        public AnimNode(uint motion, uint numAnims)
         {
             Motion = motion;
             NumAnims = numAnims;

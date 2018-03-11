@@ -28,19 +28,19 @@ namespace ACE.Server.Physics
         public int CurrentRenderFrameNum;
         public PhysicsObj PhysObj;
         public int PhysObjIndex;
-        public BoundingBox BoundingBox;
+        public BBox BoundingBox;
 
         public static PhysicsObj PlayerObject;
 
         public PhysicsPart()
         {
-            GfxObjScale = new Vector3(1.0f, 1.0f, 1.0f);
-            Pos = new Position();
-            DrawPos = new Position();
-            ViewerHeading = new Vector3(0.0f, 0.0f, 1.0f);
-            PhysObjIndex = -1;
-            DegMode = 1;
-            CYpt = Int16.MaxValue;
+            InitEmpty();
+        }
+
+        public PhysicsPart(uint partID)
+        {
+            InitEmpty();
+            SetPart(partID);
         }
 
         public TransitionState FindObjCollisions(Transition transition)
@@ -66,6 +66,17 @@ namespace ACE.Server.Physics
             return PhysObj.ID;
         }
 
+        public void InitEmpty()
+        {
+            GfxObjScale = new Vector3(1.0f, 1.0f, 1.0f);
+            Pos = new Position();
+            DrawPos = new Position();
+            ViewerHeading = new Vector3(0.0f, 0.0f, 1.0f);
+            PhysObjIndex = -1;
+            DegMode = 1;
+            CYpt = Int16.MaxValue;
+        }
+
         public bool InitObjDescChanges()
         {
             return false;
@@ -76,12 +87,17 @@ namespace ACE.Server.Physics
             return PhysObj.Equals(PlayerObject);
         }
 
-        public static PhysicsPart MakePhysicsPart(int gfxObjID)
+        public bool LoadGfxObjArray(uint rootObjectID/*, GfxObjDegradeInfo newDegrades*/)
         {
-            var part = new PhysicsPart();
-            if (!part.SetPart(gfxObjID))
-                return null;
-            return part;
+            var gfxObj = (DatLoader.FileTypes.GfxObj)DBObj.Get(new QualifiedDataID(6, rootObjectID));
+            GfxObj = new GfxObj(gfxObj);
+            // degrades omitted
+            return GfxObj != null;
+        }
+
+        public static PhysicsPart MakePhysicsPart(uint gfxObjID)
+        {
+            return new PhysicsPart(gfxObjID);
         }
 
         public static PhysicsPart MakePhysicsPart(PhysicsPart template)
@@ -93,13 +109,11 @@ namespace ACE.Server.Physics
 
         public bool MorphToExistingObject(PhysicsPart template)
         {
-            GfxObj = template.GfxObj;   // TODO: deep copy
-            var scale = new Vector3(template.GfxObjScale.X, template.GfxObjScale.Y, template.GfxObjScale.Z);
-            Pos.ObjCellID = template.Pos.ObjCellID;
-            // frame copy constructor?
-            Pos.Frame = template.Pos.Frame;
-            DrawPos.ObjCellID = template.DrawPos.ObjCellID;
-            DrawPos.Frame = template.DrawPos.Frame;
+            // copy constructor?
+            GfxObj = template.GfxObj;   
+            GfxObjScale = template.GfxObjScale;
+            Pos = template.Pos;
+            DrawPos = template.DrawPos;
             OriginalPaletteID = template.OriginalPaletteID;
             // removed surfaces
             return true;
@@ -110,10 +124,9 @@ namespace ACE.Server.Physics
             // graphics omitted from server
         }
 
-        public bool SetPart(int gfxObjID)
+        public bool SetPart(uint gfxObjID)
         {
-            // graphics omitted from server
-            return true;
+            return LoadGfxObjArray(gfxObjID);
         }
 
         public void UpdateViewerDistance()

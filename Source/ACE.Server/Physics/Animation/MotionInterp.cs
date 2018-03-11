@@ -14,6 +14,9 @@ namespace ACE.Server.Physics.Animation
         NumHoldKeys = 0x3
     };
 
+    /// <summary>
+    /// Motion network command interpretor
+    /// </summary>
     public class MotionInterp
     {
         public bool Initted;
@@ -44,6 +47,7 @@ namespace ACE.Server.Physics.Animation
             InterpretedState = new InterpretedMotionState();
             SetPhysicsObject(obj);
             SetWeenieObject(wobj);
+            PendingMotions = new List<MotionNode>();
         }
 
         public static MotionInterp Create(PhysicsObj obj, WeenieObject wobj)
@@ -195,7 +199,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return;
 
-            if (PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
+            if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
 
             if (WeenieObj != null && !WeenieObj.IsCreature()) return;
 
@@ -596,7 +600,7 @@ namespace ACE.Server.Physics.Animation
 
             PhysicsObj.InitializeMotionTables();
 
-            add_to_queue(0, 0x41000003, 0);
+            add_to_queue(0, 0x41000003, 0);     // hardcoded default state?
 
             Initted = true;
             LeaveGround();

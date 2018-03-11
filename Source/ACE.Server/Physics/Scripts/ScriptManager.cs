@@ -18,7 +18,7 @@ namespace ACE.Server.Physics
             PhysObj = obj;
         }
 
-        public bool AddScript(int scriptID)
+        public bool AddScript(uint scriptID)
         {
             return false;
         }
