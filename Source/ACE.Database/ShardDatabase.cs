@@ -365,6 +365,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesInt)
                 .Include(r => r.BiotaPropertiesInt64)
                 .Include(r => r.BiotaPropertiesString)
+                .Include(r => r.BiotaPropertiesSpellBook)
                 .FirstOrDefault(r => r.Id == id);
 
             if (biota == null)
@@ -419,10 +420,10 @@ namespace ACE.Database
             // Player only
             //biota.BiotaPropertiesSpellBar = context.BiotaPropertiesSpellBar.Where(r => r.ObjectId == biota.Id).ToList();
 
-            if (isCreature)
-            {
-                biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
-            }
+            //if (isCreature)
+            //{
+            //    biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
+            //}
 
             biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
 
