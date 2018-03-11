@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                     item = GetWieldedItem(profile.Guid);
                     if (item != null)
                     {
-                        RemoveFromWieldedObjects(item.Guid);
+                        TryDequipObject(item.Guid, out WorldObject _);
                         Session.Network.EnqueueSend(
                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                            new GameMessageObjDescEvent(this),
@@ -92,12 +92,12 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // remove item from inventory.
-                    RemoveWorldObjectFromInventory(profile.Guid);
+                    TryRemoveFromInventory(profile.Guid, out WorldObject _);
                 }
 
                 Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, new ObjectGuid(0), PropertyInstanceId.Container));
 
-                SetInventoryForVendor(item);
+                item.SetPropertiesForVendor();
 
                 // clean up the shard database.
                 throw new NotImplementedException();
@@ -218,7 +218,7 @@ namespace ACE.Server.WorldObjects
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    RemoveWorldObjectFromInventory(wo.Guid);
+                    TryRemoveFromInventory(wo.Guid, out WorldObject _);
                     ObjectGuid clearContainer = new ObjectGuid(0);
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
 

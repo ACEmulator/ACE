@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
 
         public int GetEncumbranceCapacity()
         {
-            var encumbranceAgumentations = 0;
+            var encumbranceAgumentations = 0; // todo
 
             var strength = Attributes[PropertyAttribute.Strength].Current;
 
@@ -77,6 +77,7 @@ namespace ACE.Server.WorldObjects
 
             return true;
         }
+
 
 
 
@@ -155,7 +156,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void DestroyInventoryItem(WorldObject wo)
         {
-            RemoveWorldObjectFromInventory(wo.Guid);
+            TryRemoveFromInventory(wo.Guid, out WorldObject _);
             Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
             ////Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, (uint)Burden));
         }
@@ -185,20 +186,6 @@ namespace ACE.Server.WorldObjects
 
                     //Burden += item.Burden;
                 }
-            }
-        }
-
-        /// <summary>
-        /// This method is used to remove an item from the Wielded Objects dictionary.
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II
-        /// </summary>
-        /// <param name="itemGuid">Guid of the item to be unwielded.</param>
-        public void RemoveFromWieldedObjects(ObjectGuid itemGuid)
-        {
-            if (EquippedObjects.ContainsKey(itemGuid))
-            {
-                //Burden -= EquippedObjects[itemGuid].Burden;
-                EquippedObjects.Remove(itemGuid);
             }
         }
 
@@ -391,7 +378,7 @@ namespace ACE.Server.WorldObjects
                 // Update all our stuff if we succeeded
                 if (item != null)
                 {
-                    SetInventoryForContainer(item, placement);
+                    item.SetPropertiesForContainer(placement);
                     // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
                     var motion = new UniversalMotion(MotionStance.Standing);
                     if (iidPropertyId == PropertyInstanceId.Container)
@@ -467,7 +454,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="placement">what is my slot position within that container</param>
         private void HandleMove(ref WorldObject item, Container container, int placement)
         {
-            RemoveWorldObjectFromInventory(item.Guid);
+            TryRemoveFromInventory(item.Guid, out WorldObject _);
 
             item.ContainerId = (int)container.Guid.Full;
             item.PlacementPosition = placement;
@@ -630,35 +617,28 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
-            ActionChain dropChain = new ActionChain();
+            var dropChain = new ActionChain();
 
             // Goody Goody -- lets build  drop chain
             // First start drop animation
             dropChain.AddAction(this, () =>
             {
                 // check packs of item.
-                var item = GetInventoryItem(itemGuid);
-                if (item != null)
-                {
-                    RemoveWorldObjectFromInventory(itemGuid);
-                    if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                }
-                else
+                WorldObject item;
+
+                if (!TryRemoveFromInventory(itemGuid, out item))
                 {
                     // check to see if this item is wielded
-                    item = GetWieldedItem(itemGuid);
-                    if (item != null)
+                    if (TryDequipObject(itemGuid, out item))
                     {
-                        RemoveFromWieldedObjects(itemGuid);
                         Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                            new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
                             new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
                     }
                 }
 
-                SetInventoryForWorld(item);
+                item.SetPropertiesForWorld(this);
 
                 UniversalMotion motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
@@ -681,9 +661,10 @@ namespace ACE.Server.WorldObjects
                 {
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
-                    new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                    new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+                    Session.Network.EnqueueSend(
+                        new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
+                        new GameMessagePutObjectIn3d(Session, this, itemGuid),
+                        new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
 
                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                     Debug.Assert(item != null, "item != null");
@@ -691,11 +672,6 @@ namespace ACE.Server.WorldObjects
                     item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                     CurrentLandblock.AddWorldObject(item);
-
-                    // Ok we have handed off to the landblock, let's clean up the shard database.
-                    //throw new NotImplementedException();
-                    // todo fix for EF
-                    //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
 
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
                 });
@@ -736,12 +712,12 @@ namespace ACE.Server.WorldObjects
                     {
                         pack = (Container)GetInventoryItem(containerGuid);
 
-                        RemoveWorldObjectFromInventory(itemGuid);
+                        TryRemoveFromInventory(itemGuid, out WorldObject _);
                     }
                     else
                     {
                         if (item != null)
-                            RemoveWorldObjectFromInventory(itemGuid);
+                            TryRemoveFromInventory(itemGuid, out WorldObject _);
                     }
 
                     AddToWieldedObjects(ref item, container, (EquipMask)placement);
@@ -814,9 +790,9 @@ namespace ACE.Server.WorldObjects
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
             item.ContainerId = (int)container.Guid.Full;
-            SetInventoryForContainer(item, placement);
+            item.SetPropertiesForContainer(placement);
 
-            RemoveFromWieldedObjects(item.Guid);
+            TryDequipObject(item.Guid, out WorldObject _);
 
             if ((oldLocation & EquipMask.Selectable) != 0)
             {

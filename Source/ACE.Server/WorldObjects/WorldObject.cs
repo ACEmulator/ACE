@@ -441,50 +441,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        internal void SetInventoryForVendor(WorldObject inventoryItem)
-        {
-            inventoryItem.Location = null;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.ContainerId = null;
-            inventoryItem.PlacementPosition = null;
-            inventoryItem.WielderId = null;
-            inventoryItem.CurrentWieldedLocation = null;
-            // TODO: create enum for this once we understand this better.
-            // This is needed to make items lay flat on the ground.
-            inventoryItem.Placement = global::ACE.Entity.Enum.Placement.Resting;
-        }
-
-        internal void SetInventoryForWorld(WorldObject inventoryItem)
-        {
-            inventoryItem.Location = Location.InFrontOf(1.1f);
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                         | UpdatePositionFlag.Placement
-                                         | UpdatePositionFlag.ZeroQy
-                                         | UpdatePositionFlag.ZeroQx;
-
-            inventoryItem.ContainerId = null;
-            inventoryItem.PlacementPosition = null;
-            inventoryItem.WielderId = null;
-            inventoryItem.CurrentWieldedLocation = null;
-            // TODO: create enum for this once we understand this better.
-            // This is needed to make items lay flat on the ground.
-            inventoryItem.Placement = global::ACE.Entity.Enum.Placement.Resting;
-        }
-
-        internal void SetInventoryForContainer(WorldObject inventoryItem, int placement)
-        {
-            if (inventoryItem.Location != null)
-                LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            // TODO: Create enums for this.
-            inventoryItem.Placement = global::ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
-            inventoryItem.PlacementPosition = placement;
-            inventoryItem.Location = null;
-            inventoryItem.ParentLocation = null;
-            inventoryItem.CurrentWieldedLocation = null;
-            inventoryItem.WielderId = null;
-        }
-
         public void Examine(Session examiner)
         {
             // TODO : calculate if we were successful
