@@ -105,10 +105,10 @@ namespace ACE.Server.WorldObjects
             // All that should be left are side pack sub contents.
 
             var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
-            foreach (var sideContainer in sideContainers)
+            foreach (var container in sideContainers)
             { 
-                ((Container)sideContainer).SortWorldObjectsIntoInventory(worldObjects); // This will set the InventoryLoaded flag for this sideContainer
-                EncumbranceVal += sideContainer.Burden;
+                ((Container)container).SortWorldObjectsIntoInventory(worldObjects); // This will set the InventoryLoaded flag for this sideContainer
+                EncumbranceVal += container.Burden;
             }
         }
 
@@ -126,8 +126,8 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             // First search me for this item..
-            if (Inventory.TryGetValue(objectGuid, out var item))
-                return item;
+            if (Inventory.TryGetValue(objectGuid, out var value))
+                return value;
 
             // Next search all containers for item.. run function again for each container.
             var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
@@ -229,6 +229,46 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item)
+        {
+            // first search me / add all items of type.
+            if (Inventory.Remove(objectGuid, out item))
+            {
+                item.ContainerId = null;
+                item.PlacementPosition = null;
+
+                // Move all the existing items PlacementPosition over.
+                int placement = item.PlacementPosition ?? 0;
+                Inventory.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
+
+                // todo calculate burdon / value / container properly
+
+                EncumbranceVal -= item.Burden;
+
+                //if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
+                //    UpdateCurrencyClientCalculations(WeenieType.Coin);
+
+                // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
+                Value -= item.Value;
+
+                return true;
+            }
+
+            // next search all containers for item.. run function again for each container.
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in sideContainers)
+            {
+                if (((Container)container).TryRemoveFromInventory(objectGuid, out item))
+                {
+                    // todo update our burden/CoinValue/Value
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
 
 
 
@@ -259,7 +299,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private ushort usedPackSlots;
         private ushort maxPackSlots = 15;
 
         // Inventory Management Functions
@@ -304,64 +343,9 @@ namespace ACE.Server.WorldObjects
             Inventory.Add(inventoryItem.Guid, inventoryItem);
         }
 
-        public void RemoveWorldObjectFromInventory(ObjectGuid objectguid)
-        {
-            // first search me / add all items of type.
-            if (Inventory.ContainsKey(objectguid))
-            {
-                // defrag the pack
-                int placement = Inventory[objectguid].PlacementPosition ?? 0;
-                Inventory.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
 
-                // todo calculate burdon / value / container properly
 
-                // clear objects out maybe for db ?
-                Inventory[objectguid].ContainerId = null;
-                Inventory[objectguid].PlacementPosition = null;
 
-                //Burden -= Inventory[objectguid].Burden;
-
-                log.Debug($"Remove {Inventory[objectguid].Name} in inventory, removing {Inventory[objectguid].Burden}, current Burden = {Burden}");
-
-                // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
-                Value -= Inventory[objectguid].Value;
-
-                // decrease pack counter if item is not a container!
-                if (Inventory[objectguid].WeenieType != WeenieType.Container)
-                    usedPackSlots -= 1;
-
-                Inventory.Remove(objectguid);
-                return;
-            }
-
-            // next search all containers for item.. run function again for each container.
-            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-            foreach (var container in containers)
-            {
-                ((Container)container.Value).RemoveWorldObjectFromInventory(objectguid);
-            }
-        }
-
-        /// <summary>
-        /// Gets Free Pack
-        /// </summary>
-        public uint GetFreePackLocation()
-        {
-            // do I have enough space ?
-            if (usedPackSlots <= maxPackSlots)
-                return Guid.Full;
-
-            // do any of my other containers have enough space ?
-            var containers = Inventory.Where(wo => wo.Value.WeenieType == WeenieType.Container).ToList();
-
-            foreach (var container in containers)
-            {
-                if ((container.Value as Container).GetFreePackLocation() != 0)
-                    return (container.Value as Container).GetFreePackLocation();
-            }
-
-            return 0;
-        }
 
 
         /// <summary>
@@ -443,9 +427,7 @@ namespace ACE.Server.WorldObjects
         public void RemoveWorldObject(Session session, WorldObject fromWo)
         {
             if (HasInventoryItem(fromWo.Guid))
-                session.Player.RemoveWorldObjectFromInventory(fromWo.Guid);
-            else
-               session.Player.RemoveFromWieldedObjects(fromWo.Guid);
+                session.Player.TryRemoveFromInventory(fromWo.Guid, out WorldObject _);
 
             GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);

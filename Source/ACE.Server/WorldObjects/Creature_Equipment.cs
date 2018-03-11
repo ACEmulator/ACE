@@ -56,7 +56,6 @@ namespace ACE.Server.WorldObjects
             // todo see if the wielded location is in use, if so, return false
 
             worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
-
             worldObject.SetProperty(PropertyInstanceId.Wielder, Biota.Id);
             EquippedObjects[worldObject.Guid] = worldObject;
 
@@ -64,15 +63,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This will remove the wielder property on worldObject and will remove it from the EquippedObjects dictionary.
+        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II
         /// </summary>
-        public bool TryDequipObject(WorldObject worldObject)
+        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject item)
         {
-            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
-            EquippedObjects.Remove(worldObject.Guid);
+            if (EquippedObjects.Remove(objectGuid, out item))
+            {
+                item.RemoveProperty(PropertyInt.CurrentWieldedLocation);
+                item.RemoveProperty(PropertyInstanceId.Wielder);
 
-            return true;
+                return true;
+            }
+
+            return false;
         }
+
+
 
 
 
