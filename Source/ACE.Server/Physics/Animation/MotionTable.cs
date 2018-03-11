@@ -1,23 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ACE.Server.Physics.Common;
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Animation
 {
     public class MotionTable
     {
-        public int ID;
-        public Dictionary<int, int> StyleDefaults;
-        public Dictionary<int, MotionData> Cycles;
-        public Dictionary<int, MotionData> Modifiers;
-        public Dictionary<int, Dictionary<int, MotionData>> Links;
-        public int DefaultStyle;
+        public uint ID;
+        public Dictionary<uint, uint> StyleDefaults;
+        public Dictionary<uint, MotionData> Cycles;
+        public Dictionary<uint, MotionData> Modifiers;
+        public Dictionary<uint, Dictionary<uint, MotionData>> Links;
+        public uint DefaultStyle;
 
         public MotionTable()
         {
-            Cycles = new Dictionary<int, MotionData>();
-            Modifiers = new Dictionary<int, MotionData>();
+            Cycles = new Dictionary<uint, MotionData>();
+            Modifiers = new Dictionary<uint, MotionData>();
+        }
+
+        public MotionTable(DatLoader.FileTypes.MotionTable mtable)
+        {
+            ID = mtable.Id;
+            StyleDefaults = mtable.StyleDefaults;
+            Cycles = mtable.Cycles;
+            Modifiers = mtable.Modifiers;
+            Links = mtable.Links;
+            DefaultStyle = mtable.DefaultStyle;
         }
 
         public MotionTable Allocator()
@@ -25,12 +36,12 @@ namespace ACE.Server.Physics.Animation
             return new MotionTable();
         }
 
-        public bool DoObjectMotion(int motion, MotionState currState, Sequence sequence, float speedMod, ref int numAnims)
+        public bool DoObjectMotion(uint motion, MotionState currState, Sequence sequence, float speedMod, ref uint numAnims)
         {
             return GetObjectSequence(motion, currState, sequence, speedMod, ref numAnims, false);
         }
 
-        public bool GetObjectSequence(int motion, MotionState currState, Sequence sequence, float speedMod, ref int numAnims, bool stopModifiers)
+        public bool GetObjectSequence(uint motion, MotionState currState, Sequence sequence, float speedMod, ref uint numAnims, bool stopModifiers)
         {
             numAnims = 0;
             if (currState.Style == 0 || currState.Substate == 0)
@@ -39,7 +50,7 @@ namespace ACE.Server.Physics.Animation
             MotionData motionData = null;
             MotionData motionData_ = null;
             MotionData cycles = null;
-            var substate = 0;
+            uint substate = 0;
 
             StyleDefaults.TryGetValue(currState.Style, out substate);
 
@@ -64,7 +75,7 @@ namespace ACE.Server.Physics.Animation
                         var link = get_link(currState.Style, substate, 1.0f, DefaultStyle, 1.0f);
                         if (link != null && currState.Style != motion)
                         {
-                            var defaultStyle = 0;
+                            uint defaultStyle = 0;
                             StyleDefaults.TryGetValue(DefaultStyle, out defaultStyle);
                             motionData_ = get_link(DefaultStyle, defaultStyle, 1.0f, motion, 1.0f);
                         }
@@ -82,8 +93,8 @@ namespace ACE.Server.Physics.Animation
 
                         re_modify(sequence, currState);
 
-                        numAnims = (motionData != null ? motionData.NumAnims : 0) + (link != null ? link.NumAnims : 0) +
-                            (motionData_ != null ? motionData_.NumAnims : 0) + (cycles != null ? cycles.NumAnims : 0);
+                        numAnims = (uint)((motionData != null ? motionData.Anims.Count : 0) + (link != null ? link.Anims.Count : 0) +
+                            (motionData_ != null ? motionData_.Anims.Count : 0) + (cycles != null ? cycles.Anims.Count : 0));
 
                         return true;
                     }
@@ -115,7 +126,7 @@ namespace ACE.Server.Physics.Animation
                         var link = get_link(currState.Style, currState.Substate, currState.SubstateMod, motion, speedMod);
                         if (link == null || Math.Sign(speedMod) != Math.Sign(currState.SubstateMod))
                         {
-                            var defaultMotion = 0;
+                            uint defaultMotion = 0;
                             StyleDefaults.TryGetValue(currState.Style, out defaultMotion);
                             link = get_link(currState.Style, currState.Substate, currState.SubstateMod, defaultMotion, 1.0f);
                             motionData_ = get_link(currState.Style, defaultMotion, 1.0f, motion, speedMod);
@@ -140,7 +151,7 @@ namespace ACE.Server.Physics.Animation
 
                         if (currState.Substate != motion && (currState.Substate & 0x20000000) != 0)
                         {
-                            var defaultMotion = 0;
+                            uint defaultMotion = 0;
                             StyleDefaults.TryGetValue(currState.Style, out defaultMotion);
                             if (defaultMotion != motion)
                                 currState.add_modifier_no_check(currState.Substate, currState.SubstateMod);
@@ -150,8 +161,8 @@ namespace ACE.Server.Physics.Animation
                         currState.Substate = motion;
                         re_modify(sequence, currState);
 
-                        numAnims = (motionData == null ? 0 : motionData.NumAnims) + (link == null ? 0 : link.NumAnims) +
-                            (motionData_ == null ? 0 : motionData_.NumAnims);
+                        numAnims = (uint)((motionData == null ? 0 : motionData.Anims.Count) + (link == null ? 0 : link.Anims.Count) +
+                            (motionData_ == null ? 0 : motionData_.Anims.Count));
 
                         return true;
                     }
@@ -174,7 +185,7 @@ namespace ACE.Server.Physics.Animation
                         add_motion(sequence, motionData, currState.SubstateMod);
                         re_modify(sequence, currState);
 
-                        numAnims = link.NumAnims;
+                        numAnims = (uint)link.Anims.Count;
                         return true;
                     }
                     else
@@ -195,7 +206,7 @@ namespace ACE.Server.Physics.Animation
                                 add_motion(sequence, motionData_, 1.0f);
                                 add_motion(sequence, cycles, currState.SubstateMod);
                                 re_modify(sequence, currState);
-                                numAnims = motionData.NumAnims + link.NumAnims + (motionData_ == null ? 0 : motionData.NumAnims);
+                                numAnims = (uint)(motionData.Anims.Count + link.Anims.Count + (motionData_ == null ? 0 : motionData.Anims.Count));
                                 return true;
                             }
                         }
@@ -223,14 +234,16 @@ namespace ACE.Server.Physics.Animation
             return false;
         }
 
-        public static MotionTable Get(int mtableID)
+        public static MotionTable Get(uint motionTableID)
         {
-            return ObjCache.GetMotionTable(mtableID);
+            //return ObjCache.GetMotionTable(mtableID);
+            var motionTable = new MotionTable(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID));
+            return motionTable;
         }
 
-        public bool SetDefaultState(MotionState state, Sequence sequence, ref int numAnims)
+        public bool SetDefaultState(MotionState state, Sequence sequence, ref uint numAnims)
         {
-            var defaultSubstate = 0;
+            uint defaultSubstate = 0;
             if (!StyleDefaults.TryGetValue(DefaultStyle, out defaultSubstate))
                 return false;
 
@@ -243,7 +256,7 @@ namespace ACE.Server.Physics.Animation
             if (!Cycles.TryGetValue(cycle, out motionData))
                 return false;
 
-            numAnims = motionData.NumAnims - 1;
+            numAnims = (uint)motionData.Anims.Count;    // - 1?
             state.Style = DefaultStyle;
             state.Substate = defaultSubstate;
             state.SubstateMod = 1.0f;
@@ -255,18 +268,19 @@ namespace ACE.Server.Physics.Animation
             return true;
         }
 
-        public bool StopObjectCompletely(MotionState currState, Sequence sequence, ref int numAnims)
+        public bool StopObjectCompletely(MotionState currState, Sequence sequence, ref uint numAnims)
         {
-            var node = currState.Modifiers.First();
+            var node = currState.Modifiers.First;
             var speed = 1.0f;
             var success = false;
             while (node != null)
             {
-                speed = node.SpeedMod;
-                if (StopSequenceMotion(node.ID, node.SpeedMod, currState, sequence, ref numAnims))
+                var motion = node.Value;
+                speed = motion.SpeedMod;
+                if (StopSequenceMotion(motion.ID, motion.SpeedMod, currState, sequence, ref numAnims))
                     success = true;
 
-                node = currState.Modifiers.First();
+                node = currState.Modifiers.First;
             }
             if (!StopSequenceMotion(currState.Substate, speed, currState, sequence, ref numAnims))
                 return success;
@@ -274,17 +288,17 @@ namespace ACE.Server.Physics.Animation
                 return true;
         }
 
-        public bool StopObjectMotion(int motion, float speed, MotionState currState, Sequence sequence, ref int numAnims)
+        public bool StopObjectMotion(uint motion, float speed, MotionState currState, Sequence sequence, ref uint numAnims)
         {
             return StopSequenceMotion(motion, speed, currState, sequence, ref numAnims);
         }
 
-        public bool StopSequenceMotion(int motion, float speed, MotionState currState, Sequence sequence, ref int numAnims)
+        public bool StopSequenceMotion(uint motion, float speed, MotionState currState, Sequence sequence, ref uint numAnims)
         {
             numAnims = 0;
             if ((motion & 0x40000000) != 0 && currState.Substate == motion)
             {
-                var style = 0;
+                uint style = 0;
                 StyleDefaults.TryGetValue(currState.Style, out style);
                 GetObjectSequence(style, currState, sequence, 1.0f, ref numAnims, true);
                 return true;
@@ -318,7 +332,7 @@ namespace ACE.Server.Physics.Animation
             sequence.SetVelocity(motionData.Velocity * speed);
             sequence.SetOmega(motionData.Omega * speed);
 
-            for (var i = 0; i < motionData.NumAnims; i++)
+            for (var i = 0; i < motionData.Anims.Count; i++)
                 sequence.append_animation(motionData.Anims[i]); // speed
         }
 
@@ -347,9 +361,9 @@ namespace ACE.Server.Physics.Animation
                 motionData.Omega * speed);
         }
 
-        public MotionData get_link(int style, int substate, float substateSpeed, int motion, float speed)
+        public MotionData get_link(uint style, uint substate, float substateSpeed, uint motion, float speed)
         {
-            int first = motion, second = substate;
+            uint first = motion, second = substate;
             if (substateSpeed >= 0.0f && speed >= 0.0f)
             {
                 first = substate;
@@ -362,9 +376,9 @@ namespace ACE.Server.Physics.Animation
             return get_link_inner(style, first, second, false);
         }
 
-        public MotionData get_link_inner(int style, int first, int second, bool checkFirst = true)
+        public MotionData get_link_inner(uint style, uint first, uint second, bool checkFirst = true)
         {
-            Dictionary<int, MotionData> link = null;
+            Dictionary<uint, MotionData> link = null;
             MotionData motionData = null;
 
             Links.TryGetValue(style << 16, out link);
@@ -375,21 +389,21 @@ namespace ACE.Server.Physics.Animation
             return motionData;
         }
 
-        public bool is_allowed(int motion, MotionData motionData, MotionState state)
+        public bool is_allowed(uint motion, MotionData motionData, MotionState state)
         {
             if (motionData == null) return false;
 
             if ((motionData.Bitfield & 2) == 0 || motion == state.Substate)
                 return true;
 
-            var style = 0;
+            uint style = 0;
             StyleDefaults.TryGetValue(state.Style, out style);
             return style == state.Substate;
         }
 
         public void re_modify(Sequence sequence, MotionState state)
         {
-            var numAnims = 0;
+            uint numAnims = 0;
             while (state.Modifiers.Count > 0)
             {
                 var modifier = state.Modifiers.First();

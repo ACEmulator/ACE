@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using ACE.Entity;
+using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
@@ -21,7 +21,13 @@ namespace ACE.Server.Physics
         public int NumParts;
         public List<PhysicsPart> Parts;
         public Vector3 Scale;
-        public AnimFrame LastAnimFrame;
+        public AnimationFrame LastAnimFrame;
+
+        public PartArray()
+        {
+            Sequence = new Sequence();
+            Scale = Vector3.One;
+        }
 
         public void AddPartsShadow(ObjCell objCell, int numShadowParts)
         {
@@ -68,7 +74,7 @@ namespace ACE.Server.Physics
                 MotionTableManager.CheckForCompletedMotions();
         }
 
-        public static PartArray CreateMesh(PhysicsObj owner, int setupDID)
+        public static PartArray CreateMesh(PhysicsObj owner, uint setupDID)
         {
             var mesh = new PartArray();
             mesh.Owner = owner;
@@ -93,7 +99,7 @@ namespace ACE.Server.Physics
             return particle;
         }
 
-        public static PartArray CreateSetup(PhysicsObj owner, int setupDID, bool createParts)
+        public static PartArray CreateSetup(PhysicsObj owner, uint setupDID, bool createParts)
         {
             var setup = new PartArray();
             setup.Owner = owner;
@@ -169,10 +175,10 @@ namespace ACE.Server.Physics
             return Setup.CylSphere;
         }
 
-        public int GetDataID()
+        public uint GetDataID()
         {
-            if (Setup.m_DID != 0)
-                return Setup.m_DID;
+            if (Setup.ID != 0)
+                return Setup.ID;
 
             if (NumParts == 1)
                 return Parts[0].GfxObj.ID;
@@ -206,10 +212,10 @@ namespace ACE.Server.Physics
             return new Sphere(selectionSphere.Center * Scale, selectionSphere.Radius * Scale.Z);
         }
 
-        public int GetSetupID()
+        public uint GetSetupID()
         {
             if (Setup != null)
-                return Setup.m_DID;
+                return Setup.ID;
 
             return 0;
         }
@@ -270,9 +276,9 @@ namespace ACE.Server.Physics
             {
                 Sequence.clear_animations();
                 var animData = new AnimData();
-                animData.AnimId = Setup.DefaultAnimID;
+                /*animData.AnimId = Setup.DefaultAnimID;
                 animData.LowFrame = 0;
-                animData.HighFrame = Int32.MaxValue;
+                animData.HighFrame = Int32.MaxValue;*/
                 Sequence.append_animation(animData);
                 WeenieDesc.Destroy(animData);
             }
@@ -315,12 +321,13 @@ namespace ACE.Server.Physics
             if (NumParts == 0) return false;
 
             Parts = new List<PhysicsPart>(NumParts);
-
             for (var i = 0; i < NumParts; i++)
                 Parts.Add(null);
 
             if (Setup.Parts == null) return true;
 
+            // does this need to be pre-initialized /
+            // can this part fail?
             var created = 0;
             for (var i = 0; i < NumParts; i++)
             {
@@ -338,7 +345,9 @@ namespace ACE.Server.Physics
                     Parts[i].PhysObj = Owner;
                     Parts[i].PhysObjIndex = i;
                 }
-                if (Setup.DefaultScale != null)
+                
+                // can defaultscale count be less than numparts?
+                if (Setup.DefaultScale != null && Setup.DefaultScale.Count == NumParts)
                 {
                     for (var i = 0; i < NumParts; i++)
                         Parts[i].GfxObjScale = Setup.DefaultScale[i];
@@ -356,7 +365,7 @@ namespace ACE.Server.Physics
             // add reference?
             Scale = new Vector3(obj.Scale.X, obj.Scale.Y, obj.Scale.Z);
             NumParts = obj.NumParts;
-            Parts = new List<PhysicsPart>(obj.NumParts);
+            Parts = new List<PhysicsPart>((int)obj.NumParts);
             InitPals();
             for (var i = 0; i < NumParts; i++)
             {
@@ -402,7 +411,7 @@ namespace ACE.Server.Physics
             // gfx omitted from server
         }
 
-        public bool SetMeshID(int meshDID)
+        public bool SetMeshID(uint meshDID)
         {
             if (meshDID == 0) return false;
             var setup = Setup.MakeSimpleSetup(meshDID);
@@ -413,7 +422,7 @@ namespace ACE.Server.Physics
             return InitParts();
         }
 
-        public bool SetMotionTableID(int mtableID)
+        public bool SetMotionTableID(uint mtableID)
         {
             if (MotionTableManager != null)
             {
@@ -456,7 +465,7 @@ namespace ACE.Server.Physics
                 {
                     if (Parts[partIdx] != null)
                     {
-                        if (Parts[partIdx].SetPart((int)change.PartID))
+                        if (Parts[partIdx].SetPart(change.PartID))
                             continue;
                     }
                 }
@@ -537,9 +546,9 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public bool SetSetupID(int setupID, bool createParts)
+        public bool SetSetupID(uint setupID, bool createParts)
         {
-            if (Setup != null || Setup.m_DID == setupID)
+            if (Setup != null && Setup.ID == setupID)
                 return true;
 
             Setup = Setup.Get(setupID);
@@ -588,9 +597,9 @@ namespace ACE.Server.Physics
         {
             var curFrame = Sequence.GetCurrAnimFrame();
             if (curFrame == null) return;
-            var numParts = Math.Min(curFrame.NumParts, NumParts);
+            var numParts = Math.Min(curFrame.Frames.Count, NumParts);   // first numparts?
             for (var i = 0; i < numParts; i++)
-                Parts[i].Pos.Frame = AFrame.Combine(frame, curFrame.Frame[i], Scale);
+                Parts[i].Pos.Frame = AFrame.Combine(frame, new AFrame(curFrame.Frames[i]), Scale);
         }
 
  

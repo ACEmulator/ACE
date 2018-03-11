@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
@@ -9,9 +10,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Hooks;
 using ACE.Server.Physics.Sound;
-
-using AnimData = ACE.Entity.AnimData;
-using Random = ACE.Server.Physics.Common.Random;
 
 namespace ACE.Server.Physics
 {
@@ -53,7 +51,7 @@ namespace ACE.Server.Physics
         public Vector3 Acceleration;
         public Vector3 Omega;
         public LinkedList<PhysicsObjHook> Hooks;
-        public LinkedList<AnimHook> AnimHooks;
+        public LinkedList<DatLoader.Entity.AnimationHook> AnimHooks;
         public float Scale;
         public float AttackRadius;
         public DetectionManager DetectionManager;
@@ -80,6 +78,7 @@ namespace ACE.Server.Physics
             PlayerVector = new Vector3(0, 0, 1);
             PlayerDistance = float.MaxValue;
             CYpt = float.MaxValue;
+            Position = new Position();
             Elasticity = PhysicsGlobals.DefaultElasticity;
             Translucency = PhysicsGlobals.DefaultTranslucency;
             Friction = PhysicsGlobals.DefaultFriction;
@@ -92,6 +91,8 @@ namespace ACE.Server.Physics
             Scale = PhysicsGlobals.DefaultScale;
             SlidingNormal = Vector3.Zero;
             CachedVelocity = Vector3.Zero;
+            Hooks = new LinkedList<PhysicsObjHook>();
+            AnimHooks = new LinkedList<DatLoader.Entity.AnimationHook>();
             UpdateTimes = new int[UpdateTimeLength];
         }
 
@@ -163,7 +164,7 @@ namespace ACE.Server.Physics
                 LandDefs.AdjustToOutside(position);
                 return ObjCell.GetVisible(cellID);
             }
-            var visibleCell = (EnvCell)ObjCell.GetVisible(cellID);
+            var visibleCell = (Common.EnvCell)ObjCell.GetVisible(cellID);
             if (visibleCell == null) return null;
             var point = position.LocalToGlobal(low_pt);
             var child = visibleCell.find_visible_child_cell(point, searchCells);
@@ -191,7 +192,7 @@ namespace ACE.Server.Physics
             }
         }
 
-        public void CallPES(int pes, double delta)    // long double?
+        public void CallPES(uint pes, double delta)    // long double?
         {
             if (delta < PhysicsGlobals.EPSILON)
             {
@@ -199,12 +200,12 @@ namespace ACE.Server.Physics
                 return;
             }
             var upperBound = (float)delta;
-            var randp = Random.RollDice(0.0f, upperBound);
+            var randp = Common.Random.RollDice(0.0f, upperBound);
             var hook = new FPHook(HookType.Velocity | HookType.MotionTable | HookType.Setup, PhysicsTimer.CurrentTime, randp, 0.0f, 1.0f, pes);
             Hooks.AddLast(hook);
         }
 
-        public void CallPESInternal(int pes, float curValue)
+        public void CallPESInternal(uint pes, float curValue)
         {
             if (Cell != null && curValue >= 1.0f)
                 play_script_internal(pes);
@@ -403,7 +404,7 @@ namespace ACE.Server.Physics
             return PartArray.GetBoundingBox();
         }
 
-        public int GetDataID()
+        public uint GetDataID()
         {
             if (PartArray == null) return 0;
             return PartArray.GetDataID();
@@ -442,7 +443,7 @@ namespace ACE.Server.Physics
                 return null;
         }
 
-        public int GetSetupID()
+        public uint GetSetupID()
         {
             if (PartArray == null) return 0;
             return PartArray.GetSetupID();
@@ -525,7 +526,7 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Initializes the PartArray from input dataDID
         /// </summary>
-        public bool InitNullObject(int dataDID)
+        public bool InitNullObject(uint dataDID)
         {
             bool createdParts;
             if (PartArray != null)
@@ -583,7 +584,7 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Initializes a new PartArray from a dataDID
         /// </summary>
-        public bool InitPartArrayObject(int dataDID, bool createParts)
+        public bool InitPartArrayObject(uint dataDID, bool createParts)
         {
             if (dataDID == 0) return false;     // stru_843D84
             var ethereal = false;
@@ -725,7 +726,7 @@ namespace ACE.Server.Physics
             return result;
         }
 
-        public void MotionDone(int motion, bool success)
+        public void MotionDone(uint motion, bool success)
         {
             if (MovementManager != null)
                 MovementManager.MotionDone(motion, success);
@@ -879,7 +880,7 @@ namespace ACE.Server.Physics
             Hooks.AddLast(hook);
         }
 
-        public bool SetMotionTableID(int mtableID)
+        public bool SetMotionTableID(uint mtableID)
         {
             if (PartArray == null) return false;
             if (!PartArray.SetMotionTableID(mtableID)) return false;
@@ -1179,8 +1180,8 @@ namespace ACE.Server.Physics
                 var origin = newPos.Frame.Origin;
                 newPos = setPos.Pos;    // ??
 
-                newPos.Frame.Origin.X += Random.RollDice(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += Random.RollDice(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += Common.Random.RollDice(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += Common.Random.RollDice(-1.0f, 1.0f) * setPos.RadY;
 
                 result = SetPositionInternal(newPos, setPos, transition);
                 if (result == SetPositionError.OK) break;
@@ -1366,7 +1367,7 @@ namespace ACE.Server.Physics
 
             JumpedThisFrame = false;
             var newPos = new Position(Position.ObjCellID);
-            UpdatePositionInternal(quantum, newPos.Frame);
+            UpdatePositionInternal(quantum, ref newPos.Frame);
 
             if (PartArray != null && PartArray.GetNumSphere() != 0)
             {
@@ -1461,21 +1462,28 @@ namespace ACE.Server.Physics
             frameOffset.Rotate(Omega * quantum);
         }
 
-        public void UpdatePositionInternal(double quantum, AFrame newFrame)
+        public void UpdatePositionInternal(double quantum, ref AFrame newFrame)
         {
-            if (State.HasFlag(PhysicsState.Hidden))
-            {
-                if (PartArray != null) PartArray.Update(quantum, newFrame);
-
-                if (TransientState.HasFlag(TransientStateFlags.OnWalkable))
-                    newFrame.Origin *= Scale;
-                else
-                    newFrame.Origin *= 0.0f;
-            }
-            if (PositionManager != null) PositionManager.AdjustOffset(newFrame, quantum);
+            var offsetFrame = new AFrame();
 
             if (!State.HasFlag(PhysicsState.Hidden))
-                UpdatePhysicsInternal((float)quantum, AFrame.Combine(newFrame, Position.Frame));
+            {
+                if (PartArray != null) PartArray.Update(quantum, offsetFrame);
+
+                if (TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                    offsetFrame.Origin *= Scale;
+                else
+                    offsetFrame.Origin *= 0.0f;
+            }
+            if (PositionManager != null)
+                PositionManager.AdjustOffset(offsetFrame, quantum);
+
+            if (!State.HasFlag(PhysicsState.Hidden))
+            {
+                newFrame = AFrame.Combine(Position.Frame, offsetFrame);
+                UpdatePhysicsInternal((float)quantum, newFrame);
+            }
+            process_hooks();
         }
 
         public void UpdateViewerDistance(float cypt, Vector3 heading)
@@ -1509,7 +1517,7 @@ namespace ACE.Server.Physics
                 child.UpdateViewerDistanceRecursive();
         }
 
-        public void add_anim_hook(AnimHook hook)
+        public void add_anim_hook(DatLoader.Entity.AnimationHook hook)
         {
             AnimHooks.AddLast(hook);
         }
@@ -1522,7 +1530,7 @@ namespace ACE.Server.Physics
             if (setup == null) return false;
 
             if (Children == null) Children = new ChildList();
-            Children.AddChild(obj, setup.Frame, setup.PartID, where);
+            Children.AddChild(obj, new AFrame(setup.Frame), setup.PartId, where);
             return true;
         }
 
@@ -1597,7 +1605,7 @@ namespace ACE.Server.Physics
             if (Cell == null) return;
 
             PhysicsTimer.CurrentTime = Timer.CurrentTime;
-            var deltaTime = Timer.CurrentTime = UpdateTime;
+            var deltaTime = Timer.CurrentTime - UpdateTime;
             if (deltaTime < PhysicsGlobals.MinQuantum) return;
             if (PartArray == null || deltaTime < PhysicsGlobals.EPSILON || deltaTime > PhysicsGlobals.MaxQuantum)
             {
@@ -2187,7 +2195,7 @@ namespace ACE.Server.Physics
             TransientState = 0;
         }
 
-        public bool makeAnimObject(int setupID, bool createParts)
+        public bool makeAnimObject(uint setupID, bool createParts)
         {
             PartArray = PartArray.CreateSetup(this, setupID, createParts);
             return PartArray != null;
@@ -2202,7 +2210,7 @@ namespace ACE.Server.Physics
 
         public static PhysicsObj makeObject(PhysicsObj template)
         {
-            var dataID = 0;
+            uint dataID = 0;
             if (template.PartArray != null)
                 dataID = template.PartArray.GetDataID();
             else
@@ -2219,7 +2227,7 @@ namespace ACE.Server.Physics
             return obj;
         }
 
-        public static PhysicsObj makeObject(int dataDID, int objectIID, bool dynamic)
+        public static PhysicsObj makeObject(uint dataDID, int objectIID, bool dynamic)
         {
             var obj = new PhysicsObj();
             obj.InitObjectBegin(objectIID, dynamic);
@@ -2318,7 +2326,7 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public bool play_script(int scriptID)
+        public bool play_script(uint scriptID)
         {
             if (Cell != null)
                 return play_script_internal(scriptID);
@@ -2335,7 +2343,7 @@ namespace ACE.Server.Physics
             return play_script_internal(script);
         }
 
-        public bool play_script_internal(int scriptID)
+        public bool play_script_internal(uint scriptID)
         {
             if (scriptID == 0) return false;
             if (ScriptManager == null) ScriptManager = new ScriptManager(this);
@@ -2408,7 +2416,7 @@ namespace ACE.Server.Physics
                     if (PartArray != null) PartArray.SetPartDiffusionInternal((int)userData, curr_value);
                     break;
                 case 7:
-                    CallPESInternal((int)userData, curr_value);
+                    CallPESInternal((uint)userData, curr_value);
                     break;
             }
         }
@@ -2420,8 +2428,8 @@ namespace ACE.Server.Physics
 
             Hooks.Clear();
 
-            foreach (var animHook in AnimHooks)
-                animHook.Execute(this);
+            /*foreach (var animHook in AnimHooks)
+                animHook.Execute(this);*/
 
             AnimHooks.Clear();
         }
@@ -2916,7 +2924,8 @@ namespace ACE.Server.Physics
         /// </summary>
         public void set_local_velocity(Vector3 newVel, bool sendEvent)
         {
-            set_velocity(Position.LocalToGlobalVec(newVel), sendEvent);
+            var globalVec = Position.LocalToGlobalVec(newVel);
+            set_velocity(globalVec, sendEvent);
         }
 
         public bool set_nodraw(bool nodraw, bool sendEvent)
@@ -3024,7 +3033,7 @@ namespace ACE.Server.Physics
             if (interrupt)
                 PartArray.Sequence.clear_animations();
 
-            PartArray.Sequence.append_animation(new AnimData(animID, startFrame, 0, framerate));
+            //PartArray.Sequence.append_animation(new AnimData(animID, startFrame, 0, framerate));
         }
 
         public bool set_state(PhysicsState newState, bool sendEvent)
@@ -3101,7 +3110,7 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Sets the weenie for this physics object
         /// </summary>
-        public void set_weenie_obj_ptr(WeenieObject wobj)
+        public void set_weenie_obj(WeenieObject wobj)
         {
             WeenieObj = wobj;
             if (MovementManager != null)
@@ -3203,7 +3212,7 @@ namespace ACE.Server.Physics
             return trans;
         }
 
-        public void unpack_movement(Object addr, int size)
+        public void unpack_movement(Object addr, uint size)
         {
             if (MovementManager == null)
             {
@@ -3289,10 +3298,10 @@ namespace ACE.Server.Physics
             if (Parent != null) return;
             PhysicsTimer.CurrentTime = Timer.CurrentTime;
             var deltaTime = Timer.CurrentTime - UpdateTime;
-            if (deltaTime >= PhysicsGlobals.MinQuantum && deltaTime <= 2.0f)
+            if (deltaTime >= PhysicsGlobals.MinQuantum/* && deltaTime <= 2.0f*/)    // commented out for debugging
             {
                 var frame = new AFrame();
-                UpdatePositionInternal(deltaTime, frame);
+                UpdatePositionInternal(deltaTime, ref frame);
                 set_frame(frame);
                 if (ParticleManager != null)
                     ParticleManager.UpdateParticles();

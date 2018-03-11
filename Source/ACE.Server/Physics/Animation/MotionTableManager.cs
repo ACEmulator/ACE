@@ -8,20 +8,25 @@ namespace ACE.Server.Physics.Animation
         public PhysicsObj PhysicsObj;
         public MotionTable Table;
         public MotionState State;
-        public int AnimationCounter;
+        public uint AnimationCounter;
         public List<AnimNode> PendingAnimations;    // AnimSequenceNode?
 
-        public MotionTableManager() { }
-
-        public MotionTableManager(int mtableID)
+        public MotionTableManager()
         {
+            Init();
+        }
+
+        public MotionTableManager(uint mtableID)
+        {
+            Init();
+
             if (mtableID != 0)
                 SetMotionTableID(mtableID);
         }
 
         public void AnimationDone(bool success)
         {
-            var node = PendingAnimations.First();
+            var node = PendingAnimations.FirstOrDefault();
             while (node != null)
             {
                 AnimationCounter++;
@@ -43,7 +48,7 @@ namespace ACE.Server.Physics.Animation
                     if (PhysicsObj.WeenieObj != null)
                         PhysicsObj.WeenieObj.OnMotionDone(motionID, success);
 
-                    node = PendingAnimations.First();
+                    node = PendingAnimations.FirstOrDefault();
                 }
                 while (node != null);
 
@@ -76,14 +81,19 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public static MotionTableManager Create(int mtableID)
+        public static MotionTableManager Create(uint mtableID)
         {
             return new MotionTableManager(mtableID);
         }
 
-        public int GetMotionTableID(int mtableID)
+        public uint GetMotionTableID(uint mtableID)
         {
-            return Table == null ? 0 : Table.ID;
+            return Table == null ? 0u : Table.ID;
+        }
+
+        public void Init()
+        {
+            PendingAnimations = new List<AnimNode>();
         }
 
         public void HandleEnterWorld(Sequence sequence)
@@ -103,18 +113,18 @@ namespace ACE.Server.Physics.Animation
         {
             if (Table == null) return new Sequence(0x7);
 
-            var counter = 0;
+            uint counter = 0;
             switch (mvs.Type)
             {
                 case MovementType.InterpretedCommand:
-                    if (!Table.DoObjectMotion(mvs.Motion, State, seq, mvs.Params.Speed, ref counter))
+                    if (!Table.DoObjectMotion((uint)mvs.Motion, State, seq, mvs.Params.Speed, ref counter))
                         return new Sequence(0x43);
 
-                    add_to_queue(mvs.Motion, counter, seq);
+                    add_to_queue((uint)mvs.Motion, counter, seq);
                     return null;
 
                 case MovementType.StopInterpretedCommand:
-                    if (!Table.StopObjectMotion(mvs.Motion, mvs.Params.Speed, State, seq, ref counter))
+                    if (!Table.StopObjectMotion((uint)mvs.Motion, mvs.Params.Speed, State, seq, ref counter))
                         return new Sequence(0x43);
 
                     add_to_queue(0x41000003, counter, seq);
@@ -130,7 +140,7 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public bool SetMotionTableID(int mtableID)
+        public bool SetMotionTableID(uint mtableID)
         {
             Table = MotionTable.Get(mtableID);
             return Table != null;
@@ -146,7 +156,7 @@ namespace ACE.Server.Physics.Animation
             CheckForCompletedMotions();
         }
 
-        public void add_to_queue(int motion, int num_anims, Sequence sequence)
+        public void add_to_queue(uint motion, uint num_anims, Sequence sequence)
         {
             PendingAnimations.Add(new AnimNode(motion, num_anims));
             remove_redundant_links(sequence);
@@ -154,12 +164,13 @@ namespace ACE.Server.Physics.Animation
 
         public void initialize_state(Sequence sequence)
         {
-            var numAnims = 0;
+            uint numAnims = 0;
 
+            State = new MotionState();
             if (Table != null)
                 Table.SetDefaultState(State, sequence, ref numAnims);
 
-            add_to_queue(0x41000003, numAnims, sequence);
+            add_to_queue(0x41000003, numAnims, sequence);   // hardcoded motion?
         }
 
         public void remove_redundant_links(Sequence sequence)
@@ -210,7 +221,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (node == null) return;
 
-            var totalAnims = 0;
+            uint totalAnims = 0;
             for (var i = PendingAnimations.Count - 1; i >= 0; --i)
             {
                 var entry = PendingAnimations.ElementAt(i);

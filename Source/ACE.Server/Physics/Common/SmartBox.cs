@@ -10,6 +10,8 @@ namespace ACE.Server.Physics.Common
         public ObjCell ViewerCell;
         public int HeadIndex;
         public Position ViewerSoughtPosition;
+        public float ViewerLightIntensity;
+        public float ViewerLightFalloff;
         //public CameraManager CameraManager;
         //public CellManager CellManager;
         public Physics Physics;
@@ -43,7 +45,10 @@ namespace ACE.Server.Physics.Common
 
         public void PlayerPhysicsUpdatedCallback()
         {
-
+            Viewer = new Position();
+            ViewerCell = new ObjCell();
+            ViewerSoughtPosition = new Position();
+            GameFOV = 1.5707963705062866f;
         }
     }
 }
