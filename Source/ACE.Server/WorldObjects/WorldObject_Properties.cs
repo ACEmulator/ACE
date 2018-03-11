@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.Motion;
 
@@ -2026,6 +2027,55 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
+        }
+
+
+
+        // ========================================
+        // ========== Utility Functions ===========
+        // ========================================
+        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)
+        {
+            Location = objectToPlaceInRelationTo.Location.InFrontOf(1.1f);
+            PositionFlag = UpdatePositionFlag.Contact
+                                         | UpdatePositionFlag.Placement
+                                         | UpdatePositionFlag.ZeroQy
+                                         | UpdatePositionFlag.ZeroQx;
+
+            ContainerId = null;
+            PlacementPosition = null;
+            WielderId = null;
+            CurrentWieldedLocation = null;
+            // TODO: create enum for this once we understand this better.
+            // This is needed to make items lay flat on the ground.
+            Placement = ACE.Entity.Enum.Placement.Resting;
+        }
+
+        internal void SetPropertiesForContainer(int placement)
+        {
+            if (Location != null)
+                LandblockManager.RemoveObject(this);
+            PositionFlag = UpdatePositionFlag.None;
+            // TODO: Create enums for this.
+            Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
+            PlacementPosition = placement;
+            Location = null;
+            ParentLocation = null;
+            CurrentWieldedLocation = null;
+            WielderId = null;
+        }
+
+        internal void SetPropertiesForVendor()
+        {
+            Location = null;
+            PositionFlag = UpdatePositionFlag.None;
+            ContainerId = null;
+            PlacementPosition = null;
+            WielderId = null;
+            CurrentWieldedLocation = null;
+            // TODO: create enum for this once we understand this better.
+            // This is needed to make items lay flat on the ground.
+            Placement = ACE.Entity.Enum.Placement.Resting;
         }
     }
 }
