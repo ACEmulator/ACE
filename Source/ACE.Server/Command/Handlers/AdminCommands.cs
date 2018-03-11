@@ -1388,9 +1388,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (weenie.Type != (int)WeenieType.Creature || weenie.Type != (int)WeenieType.Cow
-                || weenie.Type != (int)WeenieType.Admin || weenie.Type != (int)WeenieType.Sentinel || weenie.Type != (int)WeenieType.Vendor
-                || weenie.Type != (int)WeenieType.Pet || weenie.Type != (int)WeenieType.CombatPet)
+            if (weenie.Type != (int)WeenieType.Creature && weenie.Type != (int)WeenieType.Cow
+                && weenie.Type != (int)WeenieType.Admin && weenie.Type != (int)WeenieType.Sentinel && weenie.Type != (int)WeenieType.Vendor
+                && weenie.Type != (int)WeenieType.Pet && weenie.Type != (int)WeenieType.CombatPet)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.Type)} ({weenie.Type}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
                 return;
