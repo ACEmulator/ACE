@@ -419,7 +419,7 @@ namespace ACE.Server.Command.Handlers
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
 
-            session.Player.PutItemInContainer(loot.Guid, session.Player.Guid);
+            session.Player.HandleActionPutItemInContainer(loot.Guid, session.Player.Guid);
         }
 
         // This function
@@ -765,7 +765,7 @@ namespace ACE.Server.Command.Handlers
                 if (loot == null) // weenie doesn't exist
                     continue;
 
-                session.Player.TryCreateInInventoryWithNetworking(loot, out Container _);
+                session.Player.TryCreateInInventoryWithNetworking(loot);
             }
         }
 

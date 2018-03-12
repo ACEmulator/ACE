@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
                         Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                     }
-                    HandleAddNewWorldObjectsToInventory(genlist);
+                    AddNewWorldObjectsToInventory(genlist);
                 }
                 else // not enough cash.
                 {
@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                     item = GetWieldedItem(profile.Guid);
                     if (item != null)
                     {
-                        TryDequipObject(item.Guid, out WorldObject _);
+                        TryDequipObject(item.Guid);
                         Session.Network.EnqueueSend(
                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                            new GameMessageObjDescEvent(this),
@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // remove item from inventory.
-                    TryRemoveFromInventory(profile.Guid, out WorldObject _);
+                    TryRemoveFromInventory(profile.Guid);
                 }
 
                 Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(profile.Guid, new ObjectGuid(0), PropertyInstanceId.Container));
@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects
             // add money to player inventory.
             foreach (WorldObject wo in payout)
             {
-                HandleAddNewWorldObjectToInventory(wo);
+                AddNewWorldObjectToInventory(wo);
             }
             UpdateCurrencyClientCalculations(WeenieType.Coin);
             return true;
@@ -218,7 +218,7 @@ namespace ACE.Server.WorldObjects
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    TryRemoveFromInventory(wo.Guid, out WorldObject _);
+                    TryRemoveFromInventory(wo.Guid);
                     ObjectGuid clearContainer = new ObjectGuid(0);
                     Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Guid, clearContainer, PropertyInstanceId.Container));
 
@@ -232,7 +232,7 @@ namespace ACE.Server.WorldObjects
                 // if there is change - readd - do this at the end to try to prevent exploiting
                 if (change > 0)
                 {
-                    HandleAddNewWorldObjectToInventory(changeobj);
+                    AddNewWorldObjectToInventory(changeobj);
                 }
 
                 UpdateCurrencyClientCalculations(WeenieType.Coin);

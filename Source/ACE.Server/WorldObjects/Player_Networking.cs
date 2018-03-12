@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
                 {
                     int placementId;
                     int childLocation;
-                    session.Player.SetChild(this, item, (int)item.CurrentWieldedLocation, out placementId, out childLocation);
+                    session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out childLocation);
                 }
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }

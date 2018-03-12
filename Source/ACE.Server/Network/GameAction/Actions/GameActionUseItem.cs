@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint fullId = message.Payload.ReadUInt32();
-            session.Player.HandleActionUse(new ObjectGuid(fullId));
+            session.Player.HandleActionUseItem(new ObjectGuid(fullId));
         }
     }
 }

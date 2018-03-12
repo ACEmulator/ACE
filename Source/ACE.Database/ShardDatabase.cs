@@ -368,8 +368,8 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesIID)
                 .Include(r => r.BiotaPropertiesInt)
                 .Include(r => r.BiotaPropertiesInt64)
-                .Include(r => r.BiotaPropertiesString)
                 .Include(r => r.BiotaPropertiesPosition)
+                .Include(r => r.BiotaPropertiesString)
                 .FirstOrDefault(r => r.Id == id);
 
             if (biota == null)
@@ -411,7 +411,6 @@ namespace ACE.Database
 
             biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
-            //biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
 
             // Player only
             //biota.BiotaPropertiesShortcutBarObject = context.BiotaPropertiesShortcutBar.Where(r => r.ObjectId == biota.Id).ToList();
@@ -527,10 +526,8 @@ namespace ACE.Database
         {
             var inventory = new List<Biota>();
 
-            var parentIdAsInt = unchecked((int)parentId);
-
             var results = context.BiotaPropertiesIID
-                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentIdAsInt);
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
 
             foreach (var result in results)
             {

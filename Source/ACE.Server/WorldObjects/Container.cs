@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
             // This will pull out all of our main pack items and side slot items (foci & containers)
             for (int i = worldObjects.Count - 1; i >= 0; i--)
             {
-                if (unchecked((uint)(worldObjects[i].ContainerId ?? 0) == Biota.Id))
+                if ((worldObjects[i].ContainerId ?? 0) == Biota.Id)
                 {
                     Inventory[worldObjects[i].Guid] = worldObjects[i];
                     EncumbranceVal += worldObjects[i].Burden;
@@ -125,20 +125,35 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
+            return GetInventoryItem(objectGuid, out _);
+        }
+
+        /// <summary>
+        /// This method is used to get anything in our posession. Inventory in main or any packs,
+        /// </summary>
+        public WorldObject GetInventoryItem(ObjectGuid objectGuid, out Container container)
+        {
             // First search me for this item..
             if (Inventory.TryGetValue(objectGuid, out var value))
+            {
+                container = this;
                 return value;
+            }
 
             // Next search all containers for item.. run function again for each container.
             var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
-            foreach (var container in sideContainers)
+            foreach (var sideContainer in sideContainers)
             {
-                var containerItem = ((Container)container).GetInventoryItem(objectGuid);
+                var containerItem = ((Container)sideContainer).GetInventoryItem(objectGuid);
 
                 if (containerItem != null)
+                {
+                    container = (Container)sideContainer;
                     return containerItem;
+                }
             }
 
+            container = null;
             return null;
         }
 
@@ -160,6 +175,14 @@ namespace ACE.Server.WorldObjects
                 items.AddRange(((Container)container).GetInventoryItemsOfTypeWeenieType(type));
 
             return items;
+        }
+
+        /// <summary>
+        /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.
+        /// </summary>
+        public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false)
+        {
+            return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly);
         }
 
         /// <summary>
@@ -227,6 +250,11 @@ namespace ACE.Server.WorldObjects
 
             container = this;
             return true;
+        }
+
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid)
+        {
+            return TryRemoveFromInventory(objectGuid, out _);
         }
 
         public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item)
@@ -298,8 +326,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
         }
-
-        private ushort maxPackSlots = 15;
 
         // Inventory Management Functions
         public void AddToInventory(WorldObject inventoryItem, int placement = 0)
@@ -420,14 +446,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This method will remove a worldobject if we have consumed all of the amount in the merge.
         /// This checks inventory or wielded items (you could be pulling stackable ammo out of a wielded slot and into a stack in your pack
-        /// It then creates and sends the remove object message.   Lastly, if the wo has ever been saved to the db, we clean up after ourselves.
+        /// It then creates and sends the remove object message. Lastly, if the wo has ever been saved to the db, we clean up after ourselves.
         /// </summary>
         /// <param name="session">Session is used for sequence and target</param>
         /// <param name="fromWo">World object of the item are we merging from that needs to be destroyed.</param>
         public void RemoveWorldObject(Session session, WorldObject fromWo)
         {
             if (HasInventoryItem(fromWo.Guid))
-                session.Player.TryRemoveFromInventory(fromWo.Guid, out WorldObject _);
+                session.Player.TryRemoveFromInventory(fromWo.Guid);
 
             GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);
@@ -453,7 +479,7 @@ namespace ACE.Server.WorldObjects
                 if (!HasInventoryItem(mergeFromGuid))
                 {
                     // This is a pickup into our main pack.
-                    session.Player.PutItemInContainer(mergeFromGuid, session.Player.Guid);
+                    session.Player.HandleActionPutItemInContainer(mergeFromGuid, session.Player.Guid);
                 }
 
                 WorldObject fromWo = GetInventoryItem(mergeFromGuid);

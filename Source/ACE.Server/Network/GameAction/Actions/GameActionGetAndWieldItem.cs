@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionGetAndWieldItem
     {
@@ -7,7 +7,7 @@
         {
             uint itemGuid = message.Payload.ReadUInt32();
             int location = message.Payload.ReadInt32();
-            session.Player.HandleActionWieldItem(session.Player, itemGuid, location);
+            session.Player.HandleActionGetAndWieldItem(itemGuid, location);
         }
     }
 }

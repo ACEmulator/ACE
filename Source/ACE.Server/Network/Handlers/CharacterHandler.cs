@@ -397,7 +397,7 @@ namespace ACE.Server.Network.Handlers
                             continue;
                         }
 
-                        if (player.TryAddToInventory(loot, out Container _))
+                        if (player.TryAddToInventory(loot))
                             grantedWeenies.Add(item.WeenieId);
                     }
 
@@ -425,7 +425,7 @@ namespace ACE.Server.Network.Handlers
                                 CreateIOU(player, item.WeenieId);
                                 continue;
                             }
-                            if (player.TryAddToInventory(loot, out Container _))
+                            if (player.TryAddToInventory(loot))
                                 grantedWeenies.Add(item.WeenieId);
                         }
                     }
@@ -622,7 +622,7 @@ namespace ACE.Server.Network.Handlers
             book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "Ripley", "prewritten");
             book.AddPage(player.Guid.Full, "Ripley", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
-            player.TryAddToInventory(book, out Container _);
+            player.TryAddToInventory(book);
         }
     }
 }

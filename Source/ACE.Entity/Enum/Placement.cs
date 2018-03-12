@@ -17,6 +17,7 @@ namespace ACE.Entity.Enum
         Resting              = 101,
         Other                = 102,
         Hook                 = 103,
+
         Random1              = 121,
         Random2              = 122,
         Random3              = 123,

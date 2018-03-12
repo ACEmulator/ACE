@@ -80,8 +80,7 @@ namespace ACE.Server.WorldObjects
             if (Mana.Current == 0)
                 Mana.Current = Mana.MaxValue;
 
-            //if (WeenieClassId != 1 && WeenieClassId != 4)
-            if (!Guid.IsPlayer())
+            if (!(this is Player))
                 GenerateWieldList();
         }
 

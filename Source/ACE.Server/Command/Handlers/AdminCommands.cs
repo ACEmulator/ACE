@@ -1447,7 +1447,7 @@ namespace ACE.Server.Command.Handlers
                     worldObject.PaletteTemplate = containable.Palette;
                 if (containable.Shade > 0)
                     worldObject.Shade = containable.Shade;
-                player.TryAddToInventory(worldObject, out Container _);
+                player.TryAddToInventory(worldObject);
             }
 
             var possessions = player.GetAllPossessions();
