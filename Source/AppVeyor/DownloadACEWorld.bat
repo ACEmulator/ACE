@@ -10,7 +10,7 @@ set /p dbversion=<Source\AppVeyor\dbversion.txt
 IF EXIST Source\AppVeyor\db-pr-override.txt (
     set /p downloadfile=<Source\AppVeyor\db-pr-override.txt
 ) ELSE (
-    set /p downloadfile=https://github.com/ACEmulator/ACE-World-16PY/releases/download/v%dbversion%/ACE-World-16PY-db-v%dbversion%.sql.zip
+    set downloadfile=https://github.com/ACEmulator/ACE-World-16PY/releases/download/v%dbversion%/ACE-World-16PY-db-v%dbversion%.sql.zip
 )
 
 FOR /f "delims=" %%i in ("%downloadfile%") DO ( 
