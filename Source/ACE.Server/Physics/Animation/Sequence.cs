@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -16,7 +17,7 @@ namespace ACE.Server.Physics.Animation
         public PhysicsObj HookObj;
         public float FrameNumber;
         public LinkedListNode<AnimSequenceNode> CurrAnim;
-        public AnimFrame PlacementFrame;
+        public AnimationFrame PlacementFrame;
         public int PlacementFrameID;
         public bool IsTrivial;
 
@@ -46,13 +47,16 @@ namespace ACE.Server.Physics.Animation
             PlacementFrameID = 0;
         }
 
+        /// <summary>
+        /// Adds to the sequence velocity / omega
+        /// </summary>
         public void CombinePhysics(Vector3 velocity, Vector3 omega)
         {
             Velocity += velocity;
             Omega += omega;
         }
 
-        public AnimFrame GetCurrAnimFrame()
+        public AnimationFrame GetCurrAnimFrame()
         {
             if (CurrAnim == null)
                 return PlacementFrame;
@@ -70,6 +74,8 @@ namespace ACE.Server.Physics.Animation
             Velocity = Vector3.Zero;
             Omega = Vector3.Zero;
             FrameNumber = 0.0f;
+
+            AnimList = new LinkedList<AnimSequenceNode>();
         }
 
         public void SetObject(PhysicsObj obj)
@@ -82,7 +88,7 @@ namespace ACE.Server.Physics.Animation
             Omega = omega;
         }
 
-        public void SetPlacementFrame(AnimFrame frame, int id)
+        public void SetPlacementFrame(AnimationFrame frame, int id)
         {
             PlacementFrame = frame;
             PlacementFrameID = id;
@@ -95,15 +101,14 @@ namespace ACE.Server.Physics.Animation
 
         public void Update(float quantum, AFrame frame)
         {
-            if (AnimList != null && AnimList.Count != 0)
+            if (AnimList == null && AnimList.Count != 0)
             {
                 update_internal(quantum, CurrAnim.Value, FrameNumber, frame);
                 apricot();
             }
-            else
+            else if (frame != null)
             {
-                if (frame != null)
-                    apply_physics(frame, quantum, quantum);
+                apply_physics(frame, quantum, quantum);
             }
         }
 
@@ -148,15 +153,18 @@ namespace ACE.Server.Physics.Animation
             if (!node.has_anim()) return;
 
             AnimList.AddLast(node);
-            FirstCyclic = new LinkedListNode<AnimSequenceNode>(node);
+            FirstCyclic = AnimList.Last;
 
-            if (CurrAnim != null)
+            if (CurrAnim == null)
             {
-                CurrAnim = new LinkedListNode<AnimSequenceNode>(AnimList.First());
+                CurrAnim = AnimList.First;
                 FrameNumber = CurrAnim.Value.get_starting_frame();
             }
         }
 
+        /// <summary>
+        /// Performs the translation and rotation on the frame
+        /// </summary>
         public void apply_physics(AFrame frame, float quantum, float sign)
         {
             if (sign >= 0.0)
@@ -170,14 +178,14 @@ namespace ACE.Server.Physics.Animation
 
         public void apricot()
         {
-            var node = new LinkedListNode<AnimSequenceNode>(AnimList.First());
+            var node = AnimList.First;
             while (!node.Equals(CurrAnim))
             {
                 if (node.Equals(FirstCyclic))
                     break;
 
                 AnimList.Remove(node);
-                node = new LinkedListNode<AnimSequenceNode>(AnimList.First());
+                node = AnimList.First;
             }
         }
 
@@ -189,22 +197,22 @@ namespace ACE.Server.Physics.Animation
             CurrAnim = null;
         }
 
+        /// <summary>
+        /// Sets the sequence velocity/omega to zero
+        /// </summary>
         public void clear_physics()
         {
             Velocity = Vector3.Zero;
             Omega = Vector3.Zero;
         }
 
-        public void execute_hooks(AnimFrame animFrame, AnimHookDir dir)
+        public void execute_hooks(AnimationFrame animFrame, AnimationHookDir dir)
         {
-            if (HookObj == null) return;
-            var hook = animFrame.Hooks.First();
-            while (hook != null)
+            if (animFrame == null || HookObj == null) return;
+            foreach (var hook in animFrame.Hooks)
             {
-                if (hook.Direction == AnimHookDir.Both || hook.Direction == dir)
+                if (hook.Direction == AnimationHookDir.Both || hook.Direction == dir)
                     HookObj.add_anim_hook(hook);
-
-                hook = hook.NextHook;
             }
         }
 
@@ -254,13 +262,13 @@ namespace ACE.Server.Physics.Animation
                     else
                         FrameNumber = 0.0f;
                 }
-                var next = node.Next;
-                AnimList.Remove(node);
+                var next = node.Next;   // handle linked list properly
+                AnimList.Remove(node.Value);
                 node = next;
             }
         }
 
-        public void remove_link_animations(int amount)
+        public void remove_link_animations(uint amount)
         {
             for (var i = 0; i < amount; i++)
             {
@@ -278,6 +286,9 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
+        /// <summary>
+        /// Subtracts from the sequence velocity / omega
+        /// </summary>
         public void subtract_physics(Vector3 velocity, Vector3 omega)
         {
             Velocity -= velocity;
@@ -321,7 +332,7 @@ namespace ACE.Server.Physics.Animation
                             apply_physics(frame, 1.0f / framerate, timeElapsed);
                     }
 
-                    execute_hooks(currAnim.get_part_frame(lastFrame), AnimHookDir.Forward);
+                    execute_hooks(currAnim.get_part_frame(lastFrame), AnimationHookDir.Forward);
                     lastFrame++;
                 }
             }
@@ -350,7 +361,7 @@ namespace ACE.Server.Physics.Animation
                             apply_physics(frame, 1.0f / framerate, timeElapsed);
                     }
 
-                    execute_hooks(currAnim.get_part_frame(lastFrame), AnimHookDir.Backward);
+                    execute_hooks(currAnim.get_part_frame(lastFrame), AnimationHookDir.Backward);
                     lastFrame--;
                 }
             }
@@ -365,10 +376,10 @@ namespace ACE.Server.Physics.Animation
 
             if (HookObj != null)
             {
-                var node = AnimList.First();
+                var node = AnimList.First;
                 if (!node.Equals(FirstCyclic))
                 {
-                    var animHook = new AnimHook();
+                    var animHook = new AnimationHook();
                     HookObj.add_anim_hook(animHook);
                 }
             }

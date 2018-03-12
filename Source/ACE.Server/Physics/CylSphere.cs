@@ -48,6 +48,16 @@ namespace ACE.Server.Physics
         }
 
         /// <summary>
+        /// Constructs a cylsphere loaded from portal.dat
+        /// </summary>
+        public CylSphere(DatLoader.Entity.CylSphere cylSphere)
+        {
+            LowPoint = cylSphere.Origin;
+            Height = cylSphere.Height;
+            Radius = cylSphere.Radius;
+        }
+
+        /// <summary>
         /// Constructs a cylinder sphere from components and scale
         /// </summary>
         /// <param name="lowPoint">The base of the cylinder sphere</param>

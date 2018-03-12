@@ -83,6 +83,8 @@ namespace ACE.Server.Physics
             SmartBox = smartBox;
 
             PhysicsTimer.CurrentTime = Timer.CurrentTime;
+
+            SmartBox.Physics = this;
         }
 
         public static void AddStaticAnimatingObject(PhysicsObj obj)

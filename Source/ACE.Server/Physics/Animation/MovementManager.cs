@@ -112,7 +112,7 @@ namespace ACE.Server.Physics.Animation
                 MoveToManager = MoveToManager.Create(PhysicsObj, WeenieObj);
         }
 
-        public void MotionDone(int motion, bool success)
+        public void MotionDone(uint motion, bool success)
         {
             if (MotionInterpreter != null)
                 MotionInterpreter.MotionDone(success);
@@ -202,6 +202,6 @@ namespace ACE.Server.Physics.Animation
             MotionInterpreter.move_to_interpreted_state(state);
         }
 
-        public void unpack_movement(object addr, int size) { }
+        public void unpack_movement(object addr, uint size) { }
     }
 }

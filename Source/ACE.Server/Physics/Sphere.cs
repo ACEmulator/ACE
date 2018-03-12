@@ -39,6 +39,15 @@ namespace ACE.Server.Physics
             Radius = radius;
         }
 
+        /// <summary>
+        /// Constructs a sphere loaded from portal.dat
+        /// </summary>
+        public Sphere(DatLoader.Entity.Sphere sphere)
+        {
+            Center = sphere.Origin;
+            Radius = sphere.Radius;
+        }
+
         public static int Attack(Position targetPos, float targetRadius, float targetHeight, Position attackPos, Vector2 left, Vector2 right, float attackRadius, float attackHeight)
         {
             return -1;

@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint sourceObjectId = message.Payload.ReadUInt32();
             uint targetObjectId = message.Payload.ReadUInt32();
-            session.Player.HandleActionUseOnTarget(new ObjectGuid(sourceObjectId), new ObjectGuid(targetObjectId));
+            session.Player.HandleActionUseWithTarget(new ObjectGuid(sourceObjectId), new ObjectGuid(targetObjectId));
         }
     }
 }

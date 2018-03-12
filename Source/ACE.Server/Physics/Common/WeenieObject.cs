@@ -76,7 +76,7 @@ namespace ACE.Server.Physics.Common
 
         }
 
-        public void OnMotionDone(int motionID, bool success)
+        public void OnMotionDone(uint motionID, bool success)
         {
 
         }

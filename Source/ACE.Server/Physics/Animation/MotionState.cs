@@ -5,8 +5,8 @@ namespace ACE.Server.Physics.Animation
 {
     public class MotionState
     {
-        public int Style;
-        public int Substate;
+        public uint Style;
+        public uint Substate;
         public float SubstateMod;
         public LinkedList<Motion> Modifiers;
         public LinkedList<Motion> Actions;
@@ -14,14 +14,16 @@ namespace ACE.Server.Physics.Animation
         public MotionState()
         {
             SubstateMod = 1.0f;
+            Modifiers = new LinkedList<Motion>();
+            Actions = new LinkedList<Motion>();
         }
 
-        public void add_action(int action, float speedMod)
+        public void add_action(uint action, float speedMod)
         {
             Actions.AddLast(new Motion(action, speedMod));
         }
 
-        public bool add_modifier(int _modifier, float speedMod)
+        public bool add_modifier(uint _modifier, float speedMod)
         {
             if (Substate == _modifier)
                 return false;
@@ -35,7 +37,7 @@ namespace ACE.Server.Physics.Animation
             return true;
         }
 
-        public void add_modifier_no_check(int modifier, float speedMod)
+        public void add_modifier_no_check(uint modifier, float speedMod)
         {
             Modifiers.AddFirst(new Motion(modifier, speedMod));
         }

@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
-                session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);
+                session.Player.RemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);
             }
             else
                 ChatPacket.SendServerMessage(session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);

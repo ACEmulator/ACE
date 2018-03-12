@@ -5,14 +5,14 @@ namespace ACE.Server.Physics.Common
 {
     public static class ObjCache
     {
-        public static Dictionary<int, MotionTable> MotionTables;
+        public static Dictionary<uint, MotionTable> MotionTables;
 
         static ObjCache()
         {
-            MotionTables = new Dictionary<int, MotionTable>();
+            MotionTables = new Dictionary<uint, MotionTable>();
         }
 
-        public static MotionTable GetMotionTable(int id)
+        public static MotionTable GetMotionTable(uint id)
         {
             MotionTable mtable = null;
             MotionTables.TryGetValue(id, out mtable);

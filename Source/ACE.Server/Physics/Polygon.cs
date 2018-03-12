@@ -35,7 +35,7 @@ namespace ACE.Server.Physics
     public class Polygon
     {
         public List<Vector3> Vertices;
-        public List<int> VertexIDs;
+        public List<short> VertexIDs;
         public List<Vector2> Screen;
         public short PolyID;
         public byte NumPoints;

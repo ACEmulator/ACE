@@ -2,10 +2,10 @@ namespace ACE.Server.Physics.Common
 {
     public class QualifiedDataID
     {
-        public int Type;
-        public int ID;
+        public uint Type;
+        public uint ID;
 
-        public QualifiedDataID(int type, int id)
+        public QualifiedDataID(uint type, uint id)
         {
             // todo: use ACE data structures
             Type = type;

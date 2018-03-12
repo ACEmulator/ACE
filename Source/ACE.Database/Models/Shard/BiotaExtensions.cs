@@ -74,7 +74,7 @@ namespace ACE.Database.Models.Shard
 
         // BiotaPropertiesGenerator
 
-        public static int? GetProperty(this Biota biota, PropertyInstanceId property)
+        public static uint? GetProperty(this Biota biota, PropertyInstanceId property)
         {
             return biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property)?.Value;
         }
@@ -154,7 +154,7 @@ namespace ACE.Database.Models.Shard
                 biota.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat { Type = (ushort)property, Value = value });
         }
 
-        public static void SetProperty(this Biota biota, PropertyInstanceId property, int value)
+        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value)
         {
             var result = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
             if (result != null)

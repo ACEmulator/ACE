@@ -1,5 +1,21 @@
 # ACEmulator Change Log
 
+### 2018-03-11
+
+**ACE-World-16PY world db release v0.0.6+ required with this update**
+
+**You will need to delete and recreate both shard and world databases with this update**
+
+[Ripley]
+* Changed IID storage in database from INT to UINT.
+
+### 2018-03-10
+[Ripley]
+* Adding /morph command for admins.
+  - The command was used to facilitate live ops by developers to play out story elements such as Martine wreaking havoc upon the lands.
+  - For some samples, you can try `martinelo`, `baelzharon`, `asheronlo`, `ayanbaqurdrunkenscholar`, `rabbitwhite`, `monoguapaul`, or even `golemmegamagma`.
+  - Protip: If you do morph into a golem, press the b key ;)
+
 ### 2018-03-07
 [Ripley]
 * Fixed Skills and Vital calculations when spending xp and potential sequence errors.

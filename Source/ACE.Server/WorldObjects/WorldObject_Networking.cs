@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(Workmanship ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Burden) != 0)
-                writer.Write(Burden ?? 0);
+                writer.Write(Burden);
 
             if ((weenieFlags & WeenieHeaderFlag.Spell) != 0)
                 writer.Write((ushort?)Spell ?? 0);
@@ -837,7 +837,7 @@ namespace ACE.Server.WorldObjects
             if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
-            if ((Burden != null) && (Burden != 0))
+            if (Burden != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
             if ((Spell != null) && (Spell != 0))

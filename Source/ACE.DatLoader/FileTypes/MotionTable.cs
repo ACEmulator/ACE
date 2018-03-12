@@ -34,25 +34,6 @@ namespace ACE.DatLoader.FileTypes
         }
 
         /// <summary>
-        /// This is the simplest of uses to get the length of an animation.
-        /// Usage: MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand)
-        /// </summary>
-        public static float GetAnimationLength(MotionTable motionTable, MotionCommand motion)
-        {
-            return motionTable.GetAnimationLength(motion);
-        }
-
-        public static float GetAnimationLength(MotionTable motionTable, MotionStance style, MotionCommand motion)
-        {
-            return motionTable.GetAnimationLength(style, motion);
-        }
-
-        public static float GetAnimationLength(MotionTable motionTable, MotionCommand currentMotionState, MotionStance style, MotionCommand motion)
-        {
-            return motionTable.GetAnimationLength(currentMotionState, style, motion);
-        }
-
-        /// <summary>
         /// Gets the default style for the requested MotionStance
         /// </summary>
         /// <returns>The default style or MotionCommand.Invalid if not found</returns>
@@ -100,13 +81,13 @@ namespace ACE.DatLoader.FileTypes
                         uint numFrames;
 
                         // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
-                        if ((anim.LowFrame == 0) && (anim.HighFrame == 0xFFFFFFFF))
+                        if ((anim.LowFrame == -1) && (anim.HighFrame == 0))
                         {
                             var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
                             numFrames = animation.NumFrames;
                         }
                         else
-                            numFrames = (anim.HighFrame - anim.LowFrame);
+                            numFrames = (uint)(anim.HighFrame - anim.LowFrame);
 
                         length += numFrames / Math.Abs(anim.Framerate); // Framerates can be negative, which tells the client to play in reverse
                     }

@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             Power = table.Spells[SpellId].Power;
             School = table.Spells[SpellId].School;
 
-            Burden = 30;
+            //Burden = 30;
 
             switch (Power)
             {
@@ -195,7 +195,7 @@ namespace ACE.Server.WorldObjects
                 var removeObjMessage = new GameMessageRemoveObject(this);
                 var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);
                 readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(destroyMessage, removeObjMessage));
-                readScrollChain.AddAction(session.Player, () => session.Player.RemoveWorldObjectFromInventory(Guid));
+                readScrollChain.AddAction(session.Player, () => session.Player.TryRemoveFromInventory(Guid, out WorldObject _));
             }
             else
             {

@@ -1,5 +1,5 @@
 using System;
-using ACE.Entity;
+using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Animation
@@ -55,7 +55,7 @@ namespace ACE.Server.Physics.Animation
             return LowFrame;
         }
 
-        public AnimFrame get_part_frame(int frameIdx)
+        public AnimationFrame get_part_frame(int frameIdx)
         {
             if (Anim == null) return null;
             if (frameIdx < 0 || frameIdx >= Anim.NumFrames)
@@ -66,9 +66,9 @@ namespace ACE.Server.Physics.Animation
 
         public AFrame get_pos_frame(int frameIdx)
         {
-            if (Anim == null) return null;
+            if (Anim == null) return new AFrame();
             if (frameIdx < 0 || frameIdx >= Anim.NumFrames)
-                return null;
+                return new AFrame();
 
             return Anim.PosFrames[frameIdx];
         }
@@ -102,19 +102,20 @@ namespace ACE.Server.Physics.Animation
             Framerate *= multiplier;
         }
 
-        public void set_animation_id(int animID)
+        public void set_animation_id(uint animID)
         {
-            Anim = (Animation)DBObj.Get(new QualifiedDataID(8, animID));
+            var anim = (DatLoader.FileTypes.Animation)DBObj.Get(new QualifiedDataID(8, animID));
+            Anim = new Animation(anim);
             if (Anim == null) return;
 
             if (HighFrame < 0)
-                HighFrame = Anim.NumFrames - 1;
+                HighFrame = (int)Anim.NumFrames - 1;
 
             if (LowFrame >= Anim.NumFrames)
-                LowFrame = Anim.NumFrames - 1;
+                LowFrame = (int)Anim.NumFrames - 1;
 
             if (HighFrame >= Anim.NumFrames)
-                HighFrame = Anim.NumFrames - 1;
+                HighFrame = (int)Anim.NumFrames - 1;
 
             if (LowFrame > HighFrame)
                 HighFrame = LowFrame;

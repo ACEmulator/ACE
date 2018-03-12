@@ -15,6 +15,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Database.Models.Shard;
+using System.Linq;
 
 namespace ACE.Server.Network
 {
@@ -289,6 +290,8 @@ namespace ACE.Server.Network
 
             DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
             {
+                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
+
                 UpdateCachedCharacters(result);
                 Network.EnqueueSend(new GameMessageCharacterList(result, this));
 

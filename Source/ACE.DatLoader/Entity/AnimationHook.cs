@@ -9,7 +9,7 @@ namespace ACE.DatLoader.Entity
     public class AnimationHook : IUnpackable
     {
         public AnimationHookType HookType { get; private set; }
-        public uint Direction { get; private set; }
+        public AnimationHookDir Direction { get; private set; }
 
         /// <summary>
         /// WARNING: If you're reading a hook from the dat, you should use AnimationHook.ReadHook(reader).
@@ -19,7 +19,7 @@ namespace ACE.DatLoader.Entity
         public virtual void Unpack(BinaryReader reader)
         {
             HookType    = (AnimationHookType)reader.ReadUInt32();
-            Direction   = reader.ReadUInt32();
+            Direction   = (AnimationHookDir) reader.ReadInt32();
         }
 
         public static AnimationHook ReadHook(BinaryReader reader)

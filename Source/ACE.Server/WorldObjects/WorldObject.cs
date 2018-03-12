@@ -289,11 +289,6 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public virtual int? StackUnitValue => Biota.GetProperty(PropertyInt.StackUnitValue) ?? 0;
-
-
-
-        public virtual ushort? StackUnitBurden => (ushort?)(Biota.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0);
 
 
 
@@ -347,7 +342,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.DefaultCombatStyle); else SetProperty(PropertyInt.DefaultCombatStyle, (int)value.Value); }
         }
 
-        public int? GeneratorId
+        public uint? GeneratorId
         {
             get => GetProperty(PropertyInstanceId.Generator);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Generator); else SetProperty(PropertyInstanceId.Generator, value.Value); }
@@ -445,50 +440,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }
         }
 
-
-        internal void SetInventoryForVendor(WorldObject inventoryItem)
-        {
-            inventoryItem.Location = null;
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            inventoryItem.ContainerId = null;
-            inventoryItem.PlacementPosition = null;
-            inventoryItem.WielderId = null;
-            inventoryItem.CurrentWieldedLocation = null;
-            // TODO: create enum for this once we understand this better.
-            // This is needed to make items lay flat on the ground.
-            inventoryItem.Placement = global::ACE.Entity.Enum.Placement.Resting;
-        }
-
-        internal void SetInventoryForWorld(WorldObject inventoryItem)
-        {
-            inventoryItem.Location = Location.InFrontOf(1.1f);
-            inventoryItem.PositionFlag = UpdatePositionFlag.Contact
-                                         | UpdatePositionFlag.Placement
-                                         | UpdatePositionFlag.ZeroQy
-                                         | UpdatePositionFlag.ZeroQx;
-
-            inventoryItem.ContainerId = null;
-            inventoryItem.PlacementPosition = null;
-            inventoryItem.WielderId = null;
-            inventoryItem.CurrentWieldedLocation = null;
-            // TODO: create enum for this once we understand this better.
-            // This is needed to make items lay flat on the ground.
-            inventoryItem.Placement = global::ACE.Entity.Enum.Placement.Resting;
-        }
-
-        internal void SetInventoryForContainer(WorldObject inventoryItem, int placement)
-        {
-            if (inventoryItem.Location != null)
-                LandblockManager.RemoveObject(inventoryItem);
-            inventoryItem.PositionFlag = UpdatePositionFlag.None;
-            // TODO: Create enums for this.
-            inventoryItem.Placement = global::ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
-            inventoryItem.PlacementPosition = placement;
-            inventoryItem.Location = null;
-            inventoryItem.ParentLocation = null;
-            inventoryItem.CurrentWieldedLocation = null;
-            inventoryItem.WielderId = null;
-        }
 
         public void Examine(Session examiner)
         {
@@ -1065,7 +1016,7 @@ namespace ACE.Server.WorldObjects
                                 break;
                         }
 
-                        wo.GeneratorId = (int)Guid.Full;
+                        wo.GeneratorId = Guid.Full;
 
                         // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
                         GeneratorRegistry.Add(wo.Guid.Full, rNode);

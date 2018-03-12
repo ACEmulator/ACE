@@ -182,7 +182,7 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            var first = PositionQueue.First();
+            var first = PositionQueue.FirstOrDefault();
             switch (first.Type)
             {
                 case InterpolationNodeType.JumpType:

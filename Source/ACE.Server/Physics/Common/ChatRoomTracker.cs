@@ -6,9 +6,9 @@ namespace ACE.Server.Physics.Common
 {
     public class ChatRoomTracker
     {
-        public static int GetGlobalTradeRoomID(PhysicsDesc desc)
+        public static uint GetGlobalTradeRoomID(PhysicsDesc desc)
         {
-            return -1;
+            return 0;
         }
     }
 }

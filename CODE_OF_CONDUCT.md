@@ -55,7 +55,7 @@ further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team by visiting our discord and direct messaging one of our Administrators found on our [Discord server](https://discord.gg/mVtGhSv). All
+reported by contacting the project team by visiting our discord and direct messaging one of our Administrators found on our [Discord server](https://discord.gg/C2WzhP9). All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
