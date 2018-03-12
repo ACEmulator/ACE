@@ -37,7 +37,9 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
   - [ACE-World-16PY minimum required version - 0.0.5+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
-* Build and run ACE.
+* Open ACE.sln with Visual Studio and build the solution.
+* Download and install [Microsoft .NET Core Runtime - 2.0.5](https://www.microsoft.com/net/download/thank-you/dotnet-runtime-2.0.5-windows-x64-installer) if you don't already have it.
+* Start the server by running the batch file located in the netcoreapp2.0 output directory: `start_server.bat`
 * Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
 * Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
 
