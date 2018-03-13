@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-03-13
+[Ripley]
+* Add three new tables to Shard Database.
+
 ### 2018-03-11
 
 **ACE-World-16PY world db release v0.0.6+ required with this update**
