@@ -1444,7 +1444,6 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.TitleId)
                     .HasColumnName("title_Id")
-                    .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.Object)
