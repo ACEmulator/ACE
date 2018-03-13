@@ -7,7 +7,8 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             Writer.Write(1u);
             Writer.Write(session.Player.CharacterTitleId ?? 0);
-            Writer.Write(session.Player.Biota.BiotaPropertiesTitleBook.Count);
+            session.Player.NumCharacterTitles = session.Player.Biota.BiotaPropertiesTitleBook.Count;
+            Writer.Write(session.Player.NumCharacterTitles ?? 0);
             foreach (var title in session.Player.Biota.BiotaPropertiesTitleBook)
                 Writer.Write(title.TitleId);
         }
