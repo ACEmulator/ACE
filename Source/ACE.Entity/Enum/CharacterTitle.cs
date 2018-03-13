@@ -1,6 +1,7 @@
 namespace ACE.Entity.Enum
 {
-    public enum CharacterTitle {
+    public enum CharacterTitle : uint
+    {
         Invalid,
         Adventurer,
         Archer,
