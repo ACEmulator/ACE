@@ -8,7 +8,10 @@ REM execute Base Scripts
 
 REM execute Update Scripts for Authentication Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < database\updates\authentication\changeme.sql
-REM FOR /D /r %%G in ("*.sql") DO "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < %%~nxG
+For /R "database\updates\authentication\" %%G IN (*.sql) do (
+REM echo Found file: %%G
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < %%G
+)
 
 REM execute Update Scripts for Shard Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\changeme.sql
@@ -25,3 +28,7 @@ Source\AppVeyor\DownloadACEWorld.bat
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
+For /R "database\updates\world\" %%G IN (*.sql) do (
+REM echo Found file: %%G
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < %%G
+)

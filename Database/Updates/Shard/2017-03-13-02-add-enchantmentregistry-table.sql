@@ -8,7 +8,7 @@ CREATE TABLE `biota_properties_enchantment_registry` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `spell_Id` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell',
   `layer_Id` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Layer',
-  `has_Spell_Set_Id` bit(1) NOT NULL DEFAULT '0' COMMENT 'Has Spell Set Id?',
+  `has_Spell_Set_Id` bit(1) NOT NULL COMMENT 'Has Spell Set Id?',
   `spell_Category` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Category of Spell',
   `power_Level` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Power Level of Spell',
   `start_Time` double NOT NULL DEFAULT '0' COMMENT 'the amount of time this enchantment has been active',
