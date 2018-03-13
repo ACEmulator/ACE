@@ -12,7 +12,10 @@ REM FOR /D /r %%G in ("*.sql") DO "C:\Program Files\MySql\MySQL Server 5.7\bin\m
 
 REM execute Update Scripts for Shard Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\changeme.sql
-FOR /D /r %%G in ("database\updates\shard\*.sql") DO "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < %%~nxG
+For /R "database\updates\shard\" %%G IN (*.sql) do (
+echo Found file: %%G
+"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < %%G
+)
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
