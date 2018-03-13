@@ -1,11 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -51,6 +50,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="setAsDisplayTitle">If this is true, make this the player's current title</param>
         public void AddTitle(uint titleId, bool setAsDisplayTitle = false)
         {
+            if (Enum.IsDefined(typeof(CharacterTitle), titleId))
+                return;
+
             var titlebook = new List<uint>();
 
             foreach (var title in Biota.BiotaPropertiesTitleBook)

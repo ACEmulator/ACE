@@ -945,7 +945,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Add a specific title to yourself
         /// </summary
-        [CommandHandler("addtitle", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
+        [CommandHandler("addtitle", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Add title to yourself")]
         public static void HandleAddTitle(Session session, params string[] parameters)
         {

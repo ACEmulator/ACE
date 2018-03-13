@@ -4,6 +4,7 @@
 [Ripley]
 * Add three new tables to Shard Database.
 * Add CharacterTitle enum.
+* Add proper title support and storage for players. Debug command of `addtitle` and `addalltitles` for testing.
 
 ### 2018-03-11
 
