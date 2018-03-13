@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="setAsDisplayTitle">If this is true, make this the player's current title</param>
         public void AddTitle(uint titleId, bool setAsDisplayTitle = false)
         {
-            if (Enum.IsDefined(typeof(CharacterTitle), titleId))
+            if (!Enum.IsDefined(typeof(CharacterTitle), titleId))
                 return;
 
             var titlebook = new List<uint>();
