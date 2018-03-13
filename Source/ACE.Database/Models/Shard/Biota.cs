@@ -18,7 +18,9 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesDID = new HashSet<BiotaPropertiesDID>();
             BiotaPropertiesEmote = new HashSet<BiotaPropertiesEmote>();
             BiotaPropertiesEmoteAction = new HashSet<BiotaPropertiesEmoteAction>();
+            BiotaPropertiesEnchantmentRegistry = new HashSet<BiotaPropertiesEnchantmentRegistry>();
             BiotaPropertiesEventFilter = new HashSet<BiotaPropertiesEventFilter>();
+            BiotaPropertiesFillCompBook = new HashSet<BiotaPropertiesFillCompBook>();
             BiotaPropertiesFloat = new HashSet<BiotaPropertiesFloat>();
             BiotaPropertiesFriendListFriend = new HashSet<BiotaPropertiesFriendList>();
             BiotaPropertiesFriendListObject = new HashSet<BiotaPropertiesFriendList>();
@@ -35,6 +37,7 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesSpellBook = new HashSet<BiotaPropertiesSpellBook>();
             BiotaPropertiesString = new HashSet<BiotaPropertiesString>();
             BiotaPropertiesTextureMap = new HashSet<BiotaPropertiesTextureMap>();
+            BiotaPropertiesTitleBook = new HashSet<BiotaPropertiesTitleBook>();
         }
 
         public uint Id { get; set; }
@@ -54,7 +57,9 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesDID> BiotaPropertiesDID { get; set; }
         public ICollection<BiotaPropertiesEmote> BiotaPropertiesEmote { get; set; }
         public ICollection<BiotaPropertiesEmoteAction> BiotaPropertiesEmoteAction { get; set; }
+        public ICollection<BiotaPropertiesEnchantmentRegistry> BiotaPropertiesEnchantmentRegistry { get; set; }
         public ICollection<BiotaPropertiesEventFilter> BiotaPropertiesEventFilter { get; set; }
+        public ICollection<BiotaPropertiesFillCompBook> BiotaPropertiesFillCompBook { get; set; }
         public ICollection<BiotaPropertiesFloat> BiotaPropertiesFloat { get; set; }
         public ICollection<BiotaPropertiesFriendList> BiotaPropertiesFriendListFriend { get; set; }
         public ICollection<BiotaPropertiesFriendList> BiotaPropertiesFriendListObject { get; set; }
@@ -71,5 +76,6 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }
         public ICollection<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public ICollection<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
+        public ICollection<BiotaPropertiesTitleBook> BiotaPropertiesTitleBook { get; set; }
     }
 }
