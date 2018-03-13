@@ -946,7 +946,7 @@ namespace ACE.Server.Command.Handlers
         /// Add a specific title to yourself
         /// </summary
         [CommandHandler("addtitle", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Add title to yourself")]
+            "Add title to yourself", "[titleid]")]
         public static void HandleAddTitle(Session session, params string[] parameters)
         {
             if (uint.TryParse(parameters[0], out var titleId))
@@ -954,10 +954,10 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Add a all titles to yourself
+        /// Add all titles to yourself
         /// </summary
         [CommandHandler("addalltitles", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Add title to yourself")]
+            "Add all titles to yourself")]
         public static void HandleAddAllTitles(Session session, params string[] parameters)
         {
             foreach(CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
