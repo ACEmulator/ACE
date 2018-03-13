@@ -298,10 +298,12 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesBool)
                 .Include(r => r.BiotaPropertiesContract)
                 .Include(r => r.BiotaPropertiesCreateList)
-                .Include(r => r.BiotaPropertiesDID)
+                .Include(r => r.BiotaPropertiesDID)                
                 .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
                 // .Include(r => r.BiotaPropertiesEmoteAction)
+                .Include(r => r.BiotaPropertiesEnchantmentRegistry)
                 .Include(r => r.BiotaPropertiesEventFilter)
+                .Include(r => r.BiotaPropertiesFillCompBook)
                 .Include(r => r.BiotaPropertiesFloat)
                 // .Include(r => r.BiotaPropertiesFriendListFriend)
                 .Include(r => r.BiotaPropertiesFriendListObject)
@@ -317,6 +319,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesSpellBook)
                 .Include(r => r.BiotaPropertiesString)
                 .Include(r => r.BiotaPropertiesTextureMap)
+                .Include(r => r.BiotaPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == id);
         }
 
