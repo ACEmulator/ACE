@@ -3,6 +3,7 @@
 ### 2018-03-13
 [Ripley]
 * Add three new tables to Shard Database.
+* Add CharacterTitle enum.
 
 ### 2018-03-11
 
