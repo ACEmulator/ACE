@@ -8,17 +8,16 @@ REM execute Base Scripts
 
 REM execute Update Scripts for Authentication Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < database\updates\authentication\changeme.sql
+REM FOR /D /r %%G in ("*.sql") DO "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_auth < %%~nxG
 
 REM execute Update Scripts for Shard Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < database\updates\shard\changeme.sql
+FOR /D /r %%G in ("database\updates\shard\*.sql") DO "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_shard < %%~nxG
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
 
 REM Download latest ACE-World database, extract and import it
-REM appveyor DownloadFile https://github.com/ACEmulator/ACE-World-16PY/releases/download/v0.0.3/ACE-World-16PY-db-v0.0.3.sql.zip
-REM 7z x ACE-World-16PY-db-v0.0.3.sql.zip
-REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < ACE-World-16PY-db-v0.0.3.sql
 Source\AppVeyor\DownloadACEWorld.bat
 
 REM execute Update Scripts for World Database
