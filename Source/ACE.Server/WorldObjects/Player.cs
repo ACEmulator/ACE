@@ -270,7 +270,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public bool FirstEnterWorldDone;
+        public bool FirstEnterWorldDone = false;
 
 
 
@@ -670,12 +670,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        public void SetTitle(uint title)
-        {
-            var updateTitle = new GameEventUpdateTitle(Session, title);
-            var message = new GameMessageSystemChat($"Your title is now {title}!", ChatMessageType.Broadcast);
-            Session.Network.EnqueueSend(updateTitle, message);
-        }
+        
 
         /// <summary>
         /// returns a list of the ObjectGuids of all known creatures

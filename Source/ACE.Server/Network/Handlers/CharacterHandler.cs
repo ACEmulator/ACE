@@ -298,10 +298,11 @@ namespace ACE.Server.Network.Handlers
             // Profession (Adventurer, Bow Hunter, etc)
             // TODO - Add this title to the available titles for this character.
             string templateName = cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Name;
-            player.SetProperty(PropertyString.Title, templateName);
+            //player.SetProperty(PropertyString.Title, templateName);
             player.SetProperty(PropertyString.Template, templateName);
-            player.SetProperty(PropertyInt.CharacterTitleId, (int)cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Title);
+            //player.SetProperty(PropertyInt.CharacterTitleId, (int)cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Title);
             //player.SetProperty(PropertyInt.NumCharacterTitles, 1);
+            player.AddTitle(cg.HeritageGroups[characterCreateInfo.Heritage].Templates[characterCreateInfo.TemplateOption].Title, true);
 
             // stats
             uint totalAttributeCredits = cg.HeritageGroups[characterCreateInfo.Heritage].AttributeCredits;

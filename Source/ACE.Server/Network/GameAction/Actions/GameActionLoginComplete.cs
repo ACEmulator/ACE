@@ -11,6 +11,8 @@ namespace ACE.Server.Network.GameAction.Actions
             session.Player.Hidden = false;
             session.Player.EnqueueBroadcastPhysicsState();
             session.Player.Teleporting = false;
+            if (!session.Player.FirstEnterWorldDone)
+                session.Player.FirstEnterWorldDone = true;
         }
     }
 }

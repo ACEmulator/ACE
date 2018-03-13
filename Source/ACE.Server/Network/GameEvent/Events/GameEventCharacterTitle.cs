@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventCharacterTitle : GameEventMessage
     {
@@ -6,10 +6,10 @@
             : base(GameEventType.CharacterTitle, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(1u);
-            Writer.Write(1u); // TODO: get current title from database
-            Writer.Write(10u); // TODO: get player's title list from database
-            for (uint i = 1; i <= 10; i++)
-                Writer.Write(i);
+            Writer.Write(session.Player.CharacterTitleId ?? 0);
+            Writer.Write(session.Player.Biota.BiotaPropertiesTitleBook.Count);
+            foreach (var title in session.Player.Biota.BiotaPropertiesTitleBook)
+                Writer.Write(title.TitleId);
         }
     }
 }
