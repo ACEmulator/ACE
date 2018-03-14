@@ -5,7 +5,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 
@@ -33,45 +33,48 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.LifeStone;
 
-            SetProperty(PropertyInt.RadarBlipColor, (int)ACE.Entity.Enum.RadarColor.LifeStone);
+            RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
         }
+
+        private static readonly UniversalMotion sanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
         public override void ActOnUse(ObjectGuid playerId)
         {
-            // All data on a lifestone is constant -- therefore we just run in context of player
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
-            string serverMessage;
-            // validate within use range, taking into account the radius of the model itself, as well
-            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
-            float radiusSquared = (UseRadius.Value + csetup.Radius) * (UseRadius.Value + csetup.Radius);
-
-            // Run this animation...
-            // Player Enqueue:
-            var motionSanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
-
-            var animationEvent = new GameMessageUpdateMotion(player.Guid, player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance), player.Sequences, motionSanctuary);
-
-            // This event was present for a pcap in the training dungeon.. Why? The sound comes with animationEvent...
-            var soundEvent = new GameMessageSound(Guid, Sound.LifestoneOn, 1);
-
-            if (player.Location.SquaredDistanceTo(Location) >= radiusSquared)
+            var player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
             {
-                serverMessage = "You wandered too far to attune with the Lifestone!";
+                return;
             }
+
+            if (!player.IsWithinUseRadiusOf(this))
+                player.DoMoveTo(this);
             else
             {
-                player.SetCharacterPosition(PositionType.Sanctuary, player.Location);
+                ActionChain sancTimer = new ActionChain();
+                sancTimer.AddAction(player, () =>
+                {
+                    CurrentLandblock.EnqueueBroadcastMotion(player, sanctuary);
+                    CurrentLandblock.EnqueueBroadcastSound(player, Sound.LifestoneOn, 1);
+                });
+                sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
+                sancTimer.AddAction(player, () =>
+                {
+                    if (player.IsWithinUseRadiusOf(this))
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                        player.Sanctuary = player.Location;
+                    }
+                    // Unsure if there was a fail message...
+                    //else
+                    //{
+                    //    var serverMessage = "You wandered too far to attune with the Lifestone!";
+                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(serverMessage, ChatMessageType.Magic));
+                    //}
 
-                // create the outbound server message
-                serverMessage = "You have attuned your spirit to this Lifestone. You will resurrect here after you die.";
-                player.HandleActionMotion(motionSanctuary);
-                player.Session.Network.EnqueueSend(soundEvent);
+                    player.SendUseDoneEvent();
+                });
+                sancTimer.EnqueueChain();                
             }
-
-            var lifestoneBindMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.Magic);
-            // always send useDone event
-            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(lifestoneBindMessage, sendUseDoneEvent);
         }
     }
 }
