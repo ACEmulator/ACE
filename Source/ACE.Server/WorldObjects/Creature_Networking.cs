@@ -127,7 +127,7 @@ namespace ACE.Server.WorldObjects
                                 itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
                             }
 
-                            //if (itemSubPal.Icon > 0)
+                            //if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
                             //    IconId = itemSubPal.Icon;
 
                             float shade = 0;

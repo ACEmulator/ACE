@@ -1271,6 +1271,12 @@ namespace ACE.Server.WorldObjects
             actionQueue.RunActions();
         }
 
+        public bool? IgnoreCloIcons
+        {
+            get => GetProperty(PropertyBool.IgnoreCloIcons);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCloIcons); else SetProperty(PropertyBool.IgnoreCloIcons, value.Value); }
+        }
+
         public virtual ACE.Entity.ObjDesc CalculateObjDesc()
         {
             ACE.Entity.ObjDesc objDesc = new ACE.Entity.ObjDesc();
@@ -1321,7 +1327,7 @@ namespace ACE.Server.WorldObjects
                         itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
                     }
 
-                    if (itemSubPal.Icon > 0)
+                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
                         IconId = itemSubPal.Icon;
 
                     float shade = 0;
