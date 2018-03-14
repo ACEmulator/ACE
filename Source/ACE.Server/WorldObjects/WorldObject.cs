@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Text;
 using log4net;
 
 using ACE.Database.Models.Shard;
@@ -198,6 +198,7 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
+            EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
@@ -434,7 +435,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
         }
 
-        public virtual int? CoinValue
+        public int? CoinValue
         {
             get => GetProperty(PropertyInt.CoinValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }
@@ -474,21 +475,23 @@ namespace ACE.Server.WorldObjects
  
         private string DebugOutputString(Type type, WorldObject obj)
         {
-            string debugOutput = "ACE Debug Output:\n";
-            debugOutput += "ACE Class File: " + type.Name + ".cs" + "\n";
-            debugOutput += "AceObjectId: " + obj.Guid.Full + " (0x" + obj.Guid.Full.ToString("X") + ")" + "\n";
+            var sb = new StringBuilder();
 
-            debugOutput += "-Private Fields-\n";
-            foreach (var prop in obj.GetType().GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+            sb.AppendLine("ACE Debug Output:");
+            sb.AppendLine("ACE Class File: " + type.Name + ".cs");
+            sb.AppendLine("Guid: " + obj.Guid.Full + " (0x" + obj.Guid.Full.ToString("X") + ")");
+
+            sb.AppendLine("----- Private Fields -----");
+            foreach (var prop in obj.GetType().GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).OrderBy(field => field.Name))
             {
                 if (prop.GetValue(obj) == null)
                     continue;
 
-                debugOutput += $"{prop.Name.Replace("<", "").Replace(">k__BackingField", "")} = {prop.GetValue(obj)}" + "\n";
+                sb.AppendLine($"{prop.Name.Replace("<", "").Replace(">k__BackingField", "")} = {prop.GetValue(obj)}");
             }
 
-            debugOutput += "-Public Properties-\n";
-            foreach (var prop in obj.GetType().GetProperties())
+            sb.AppendLine("----- Public Properties -----");
+            foreach (var prop in obj.GetType().GetProperties().OrderBy(property => property.Name))
             {
                 if (prop.GetValue(obj, null) == null)
                     continue;
@@ -496,116 +499,91 @@ namespace ACE.Server.WorldObjects
                 switch (prop.Name.ToLower())
                 {
                     case "guid":
-                        debugOutput += $"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.Guid.Type.ToString()})" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.Guid.Type.ToString()})");
                         break;
                     case "descriptionflags":
                         var descriptionFlags = CalculatedDescriptionFlag();
-                        debugOutput += $"{prop.Name} = {descriptionFlags.ToString()}" + " (" + (uint)descriptionFlags + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {descriptionFlags.ToString()}" + " (" + (uint)descriptionFlags + ")");
                         break;
                     case "weenieflags":
                         var weenieFlags = CalculatedWeenieHeaderFlag();
-                        debugOutput += $"{prop.Name} = {weenieFlags.ToString()}" + " (" + (uint)weenieFlags + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {weenieFlags.ToString()}" + " (" + (uint)weenieFlags + ")");
                         break;
                     case "weenieflags2":
                         var weenieFlags2 = CalculatedWeenieHeaderFlag2();
-                        debugOutput += $"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
                     case "positionflag":
-                        debugOutput += $"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")");
                         break;
                     case "itemtype":
-                        debugOutput += $"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");
                         break;
                     case "creaturetype":
-                        debugOutput += $"{prop.Name} = {obj.CreatureType.ToString()}" + " (" + (uint)obj.CreatureType + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.CreatureType.ToString()}" + " (" + (uint)obj.CreatureType + ")");
                         break;
                     case "containertype":
-                        debugOutput += $"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")");
                         break;
                     case "usable":
-                        debugOutput += $"{prop.Name} = {obj.Usable.ToString()}" + " (" + (uint)obj.Usable + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.Usable.ToString()}" + " (" + (uint)obj.Usable + ")");
                         break;
                     case "radarbehavior":
-                        debugOutput += $"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")");
                         break;
                     case "physicsdescriptionflag":
                         var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
-                        debugOutput += $"{prop.Name} = {physicsDescriptionFlag.ToString()}" + " (" + (uint)physicsDescriptionFlag + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {physicsDescriptionFlag.ToString()}" + " (" + (uint)physicsDescriptionFlag + ")");
                         break;
                     case "physicsstate":
                         var physicsState = CalculatedPhysicsState();
-                        debugOutput += $"{prop.Name} = {physicsState.ToString()}" + " (" + (uint)physicsState + ")" + "\n";
-                        break;
-                    case "propertiesint":
-                        foreach (var item in obj.GetAllPropertyInt())
-                        {
-                            debugOutput += $"PropertyInt.{System.Enum.GetName(typeof(PropertyInt), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
-                        break;
-                    case "propertiesint64":
-                        foreach (var item in obj.GetAllPropertyInt64())
-                        {
-                            debugOutput += $"PropertyInt64.{System.Enum.GetName(typeof(PropertyInt64), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
-                        break;
-                    case "propertiesbool":
-                        foreach (var item in obj.GetAllPropertyBools())
-                        {
-                            debugOutput += $"PropertyBool.{System.Enum.GetName(typeof(PropertyBool), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
-                        break;
-                    case "propertiesstring":
-                        foreach (var item in obj.GetAllPropertyString())
-                        {
-                            debugOutput += $"PropertyString.{System.Enum.GetName(typeof(PropertyString), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
-                        break;
-                    case "propertiesdouble":
-                        foreach (var item in obj.GetAllPropertyFloat())
-                        {
-                            debugOutput += $"PropertyDouble.{System.Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
-                        break;
-                    case "propertiesdid":
-                        foreach (var item in obj.GetAllPropertyDataId())
-                        {
-                            debugOutput += $"PropertyDataId.{System.Enum.GetName(typeof(PropertyDataId), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
-                        break;
-                    case "propertiesiid":
-                        foreach (var item in obj.GetAllPropertyInstanceId())
-                        {
-                            debugOutput += $"PropertyInstanceId.{System.Enum.GetName(typeof(PropertyInstanceId), item.Key)} ({(int)item.Key}) = {item.Value}" + "\n";
-                        }
+                        sb.AppendLine($"{prop.Name} = {physicsState.ToString()}" + " (" + (uint)physicsState + ")");
                         break;
                     //case "propertiesspellid":
                     //    foreach (var item in obj.PropertiesSpellId)
                     //    {
-                    //        debugOutput += $"PropertySpellId.{System.Enum.GetName(typeof(Spell), item.SpellId)} ({item.SpellId})" + "\n";
+                    //        sb.AppendLine($"PropertySpellId.{Enum.GetName(typeof(Spell), item.SpellId)} ({item.SpellId})");
                     //    }
                     //    break;
                     case "validlocations":
-                        debugOutput += $"{prop.Name} = {obj.ValidLocations}" + " (" + (uint)obj.ValidLocations + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.ValidLocations}" + " (" + (uint)obj.ValidLocations + ")");
                         break;
                     case "currentwieldedlocation":
-                        debugOutput += $"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")");
                         break;
                     case "priority":
-                        debugOutput += $"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")");
                         break;
                     case "radarcolor":
-                        debugOutput += $"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")");
                         break;
                     case "location":
-                        debugOutput += $"{prop.Name} = {obj.Location.ToLOCString()}" + "\n";
+                        sb.AppendLine($"{prop.Name} = {obj.Location.ToLOCString()}");
                         break;
                     default:
-                        debugOutput += $"{prop.Name} = {prop.GetValue(obj, null)}" + "\n";
+                        sb.AppendLine($"{prop.Name} = {prop.GetValue(obj, null)}");
                         break;
                 }
             }
 
-            return debugOutput;
+            sb.AppendLine("----- Property Dictionaries -----");
+
+            foreach (var item in obj.GetAllPropertyBools())
+                sb.AppendLine($"PropertyBool.{Enum.GetName(typeof(PropertyBool), item.Key)} ({(int)item.Key}) = {item.Value}");
+            foreach (var item in obj.GetAllPropertyDataId())
+                sb.AppendLine($"PropertyDataId.{Enum.GetName(typeof(PropertyDataId), item.Key)} ({(int)item.Key}) = {item.Value}");
+            foreach (var item in obj.GetAllPropertyFloat())
+                sb.AppendLine($"PropertyDouble.{Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}");
+            foreach (var item in obj.GetAllPropertyInstanceId())
+                sb.AppendLine($"PropertyInstanceId.{Enum.GetName(typeof(PropertyInstanceId), item.Key)} ({(int)item.Key}) = {item.Value}");
+            foreach (var item in obj.GetAllPropertyInt())
+                sb.AppendLine($"PropertyInt.{Enum.GetName(typeof(PropertyInt), item.Key)} ({(int)item.Key}) = {item.Value}");
+            foreach (var item in obj.GetAllPropertyInt64())
+                sb.AppendLine($"PropertyInt64.{Enum.GetName(typeof(PropertyInt64), item.Key)} ({(int)item.Key}) = {item.Value}");
+            foreach (var item in obj.GetAllPropertyString())
+                sb.AppendLine($"PropertyString.{Enum.GetName(typeof(PropertyString), item.Key)} ({(int)item.Key}) = {item.Value}");
+
+            return sb.ToString().Replace("\r", "");
         }
 
         public void QueryHealth(Session examiner)

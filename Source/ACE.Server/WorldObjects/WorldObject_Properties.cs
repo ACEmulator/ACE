@@ -476,7 +476,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AmmoType); else SetProperty(PropertyInt.AmmoType, (int)value.Value); }
         }
 
-        public virtual int? Value
+        public int? Value
         {
             // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
             //get => (StackUnitValue * (StackSize ?? 1));
@@ -615,8 +615,6 @@ namespace ACE.Server.WorldObjects
                     ItemWorkmanship = Convert.ToInt32(value);
             }
         }
-
-        public virtual ushort Burden => (ushort)(EncumbranceVal ?? ((StackUnitEncumbrance ?? 0) * (StackSize ?? 1)));
 
         public Spell? Spell
         {
@@ -1753,19 +1751,19 @@ namespace ACE.Server.WorldObjects
 
         public virtual int? StackUnitValue
         {
-            get => Biota.GetProperty(PropertyInt.StackUnitValue);
+            get => GetProperty(PropertyInt.StackUnitValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitValue); else SetProperty(PropertyInt.StackUnitValue, value.Value); }
         }
 
         public virtual int? StackUnitEncumbrance
         {
-            get => Biota.GetProperty(PropertyInt.StackUnitEncumbrance);
+            get => GetProperty(PropertyInt.StackUnitEncumbrance);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
         }
 
         public int? EncumbranceVal
         {
-            get => Biota.GetProperty(PropertyInt.EncumbranceVal);
+            get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
         }
 

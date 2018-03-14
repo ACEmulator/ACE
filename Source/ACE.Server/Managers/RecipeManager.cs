@@ -98,15 +98,15 @@ namespace ACE.Server.Managers
                     skillSuccess = _random.NextDouble() < percentSuccess;
 
                 if ((recipe.ResultFlags & (uint)RecipeResult.SourceItemDestroyed) > 0)
-                    player.DestroyInventoryItem(source);
+                    player.TryDestroyFromInventoryWithNetworking(source);
 
                 if ((recipe.ResultFlags & (uint)RecipeResult.TargetItemDestroyed) > 0)
-                    player.DestroyInventoryItem(target);
+                    player.TryDestroyFromInventoryWithNetworking(target);
 
                 if ((recipe.ResultFlags & (uint)RecipeResult.SourceItemUsesDecrement) > 0)
                 {
                     if (source.Structure <= 1)
-                        player.DestroyInventoryItem(source);
+                        player.TryDestroyFromInventoryWithNetworking(source);
                     else
                     {
                         source.Structure--;
@@ -117,7 +117,7 @@ namespace ACE.Server.Managers
                 if ((recipe.ResultFlags & (uint)RecipeResult.TargetItemUsesDecrement) > 0)
                 {
                     if (target.Structure <= 1)
-                        player.DestroyInventoryItem(target);
+                        player.TryDestroyFromInventoryWithNetworking(target);
                     else
                     {
                         target.Structure--;

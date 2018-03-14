@@ -29,10 +29,6 @@ namespace ACE.Server.WorldObjects
         {
             SetEphemeralValues();
 
-            // Containers are init at 0 burden. As inventory/equipment is added the burden will be increased
-            if (!EncumbranceVal.HasValue) // The weenie might contain a base burden. If it does, we don't want to remove that.
-                SetProperty(PropertyInt.EncumbranceVal, 0);
-
             InventoryLoaded = true;
         }
 
@@ -53,8 +49,8 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            SetProperty(PropertyInt.CoinValue, 0);
-            //SetProperty(PropertyInt.Value, 0);
+            Value = Value ?? 0;
+            // todo CoinValue
         }
 
 
@@ -95,7 +91,12 @@ namespace ACE.Server.WorldObjects
                 if ((worldObjects[i].ContainerId ?? 0) == Biota.Id)
                 {
                     Inventory[worldObjects[i].Guid] = worldObjects[i];
-                    EncumbranceVal += worldObjects[i].Burden;
+                    if (worldObjects[i].WeenieType != WeenieType.Container) // We skip over containers because we'll add their burden/value in the next loop.
+                    {
+                        EncumbranceVal += worldObjects[i].EncumbranceVal;
+                        Value += worldObjects[i].Value;
+                    }
+
                     worldObjects.RemoveAt(i);
                 }
             }
@@ -108,7 +109,8 @@ namespace ACE.Server.WorldObjects
             foreach (var container in sideContainers)
             { 
                 ((Container)container).SortWorldObjectsIntoInventory(worldObjects); // This will set the InventoryLoaded flag for this sideContainer
-                EncumbranceVal += container.Burden;
+                EncumbranceVal += container.EncumbranceVal; // This value includes the containers burden itself + all child items
+                Value += container.Value; // This value includes the containers value itself + all child items
             }
         }
 
@@ -227,7 +229,10 @@ namespace ACE.Server.WorldObjects
                         {
                             if (sidePack.TryAddToInventory(worldObject, out container, placementPosition, true))
                             {
-                                EncumbranceVal += worldObject.Burden;
+                                EncumbranceVal += worldObject.EncumbranceVal;
+                                Value += worldObject.Value;
+                                // todo CoinValue
+
                                 return true;
                             }
                         }
@@ -246,7 +251,9 @@ namespace ACE.Server.WorldObjects
 
             Inventory.Add(worldObject.Guid, worldObject);
 
-            EncumbranceVal += worldObject.Burden;
+            EncumbranceVal += worldObject.EncumbranceVal;
+            Value += worldObject.Value;
+            // todo CoinValue
 
             container = this;
             return true;
@@ -269,15 +276,11 @@ namespace ACE.Server.WorldObjects
                 int placement = item.PlacementPosition ?? 0;
                 Inventory.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
 
-                // todo calculate burdon / value / container properly
-
-                EncumbranceVal -= item.Burden;
-
+                EncumbranceVal -= item.EncumbranceVal;
+                Value -= item.Value;
+                // todo CoinValue
                 //if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                 //    UpdateCurrencyClientCalculations(WeenieType.Coin);
-
-                // TODO: research, should this only be done for pyreal and trade notes?   Does the value of your items add to the container value?   I am not sure.
-                Value -= item.Value;
 
                 return true;
             }
@@ -288,7 +291,9 @@ namespace ACE.Server.WorldObjects
             {
                 if (((Container)container).TryRemoveFromInventory(objectGuid, out item))
                 {
-                    // todo update our burden/CoinValue/Value
+                    EncumbranceVal -= item.EncumbranceVal;
+                    Value -= item.Value;
+                    // todo CoinValue
 
                     return true;
                 }
@@ -313,27 +318,13 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
 
-        private int coinValue;
-        public override int? CoinValue
-        {
-            get { return coinValue; }
-            set
-            {
-                if (value != coinValue)
-                {
-                    coinValue = (int)value;
-                    base.CoinValue = value;
-                }
-            }
-        }
-
         // Inventory Management Functions
         public void AddToInventory(WorldObject inventoryItem, int placement = 0)
         {
             AddToInventoryEx(inventoryItem, placement);
 
             //Burden += inventoryItem.Burden;
-            log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.Burden}, current Burden = {Burden}");
+            log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.EncumbranceVal}, current EncumbranceVal = {EncumbranceVal}");
 
             Value += inventoryItem.Value;
         }
@@ -390,16 +381,16 @@ namespace ACE.Server.WorldObjects
             Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
             Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
             Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            Debug.Assert(toWo.Burden != null, "toWo.Burden != null");
-            Debug.Assert(fromWo.Burden != null, "fromWo.Burden != null");
+            Debug.Assert(toWo.EncumbranceVal != null, "toWo.EncumbranceVal != null");
+            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.EncumbranceVal != null");
 
             int newValue = (int)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
-            uint newBurden = (uint)(toWo.Burden + ((fromWo.Burden / fromWo.StackSize) * amount));
+            uint newBurden = (uint)(toWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * amount));
 
             int oldStackSize = (int)toWo.StackSize;
             toWo.StackSize += (ushort)amount;
             toWo.Value = newValue;
-            //toWo.Burden = (ushort)newBurden;
+            toWo.EncumbranceVal = (int)newBurden;
 
             // Build the needed messages to the client.
             GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
@@ -425,15 +416,15 @@ namespace ACE.Server.WorldObjects
 
             Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
             Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            Debug.Assert(fromWo.Burden != null, "fromWo.Burden != null");
+            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.Burden != null");
 
             int newFromValue = (int)(fromWo.Value + ((fromWo.Value / fromWo.StackSize) * -amount));
-            uint newFromBurden = (uint)(fromWo.Burden + ((fromWo.Burden / fromWo.StackSize) * -amount));
+            uint newFromBurden = (uint)(fromWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * -amount));
 
             int oldFromStackSize = (int)fromWo.StackSize;
             fromWo.StackSize -= (ushort)amount;
             fromWo.Value = newFromValue;
-            //fromWo.Burden = (ushort)newFromBurden;
+            fromWo.EncumbranceVal = (int)newFromBurden;
 
             // Build the needed messages to the client.
             GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue);

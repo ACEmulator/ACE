@@ -34,5 +34,22 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.IsPsr) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsPsr); else SetProperty(PropertyBool.IsPsr, value); }
         }
+
+
+        /*private int coinValue;
+        public override int? CoinValue
+        {
+            get => coinValue;
+            set
+            {
+                if (value != coinValue)
+                {
+                    base.CoinValue = value;
+                    coinValue = (int)value;
+                    if (FirstEnterWorldDone) // We want to get rid of this. Updating a property shouldn't fire a network event
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
+                }
+            }
+        }*/
     }
 }

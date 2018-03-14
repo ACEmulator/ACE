@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override int? Value
+        /*public override int? Value
         {
             get
             {
@@ -53,6 +53,6 @@ namespace ACE.Server.WorldObjects
 
                 return value;
             }
-        }
+        }*/
     }
 }

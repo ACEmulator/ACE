@@ -16,6 +16,7 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
+        [Ephemeral]
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
         [LoginOnly]
         ItemsCapacity                            = 6,

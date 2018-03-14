@@ -147,8 +147,6 @@ namespace ACE.Server.WorldObjects
                 VitalTickInternal(Mana);
 
             ContainerCapacity = 7;
-
-            ////Burden = UpdateBurden();
         }
 
 
@@ -1273,29 +1271,6 @@ namespace ACE.Server.WorldObjects
         public void SendUseDoneEvent()
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
-        }
-
-        private int coinValue;
-        public override int? CoinValue
-        {
-            get => coinValue;
-            set
-            {
-                if (value != coinValue)
-                {
-                    base.CoinValue = value;
-                    coinValue = (int)value;
-                    if (FirstEnterWorldDone)
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
-                }
-            }
-        }
-
-        private int value = 0;
-        public override int? Value
-        {
-            get => value;
-            set { base.Value = 0; }
         }
 
         /// <summary>

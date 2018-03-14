@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
                 var worldObject = WorldObjectFactory.CreateWorldObject(biota);
                 EquippedObjects[worldObject.Guid] = worldObject;
 
-                EncumbranceVal += worldObject.Burden;
+                EncumbranceVal += worldObject.EncumbranceVal;
             }
 
             EquippedObjectsLoaded = true;
