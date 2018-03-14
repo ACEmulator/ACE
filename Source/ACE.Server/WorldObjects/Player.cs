@@ -192,8 +192,8 @@ namespace ACE.Server.WorldObjects
             Mana = 6
         }
 
-        // TODO: link to Town Network marketplace portal destination in db, when db for that is finalized and implemented.
-        private static readonly Position MarketplaceDrop = new Position(23855548, 49.206f, -31.935f, 0.005f, 0f, 0f, -0.7071068f, 0.7071068f); // PCAP verified drop
+        private static readonly Position MarketplaceDrop = DatabaseManager.World.GetCachedWeenie("portalmarketplace").GetPosition(PositionType.Destination);
+
         private static readonly float PickUpDistance = .75f;
 
         /// <summary>

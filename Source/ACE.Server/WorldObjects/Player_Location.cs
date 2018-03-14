@@ -32,36 +32,34 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        private static readonly UniversalMotion motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
+
         /// <summary>
         /// Handles teleporting a player to the lifestone (/ls or /lifestone command)
         /// </summary>
         public void TeleToLifestone()
         {
-            if (Positions.ContainsKey(PositionType.Sanctuary))
+            if (Sanctuary != null)
             {
                 // FIXME(ddevec): I should probably make a better interface for this
                 UpdateVitalInternal(Mana, Mana.Current / 2);
 
                 if (CombatMode != CombatMode.NonCombat)
                 {
+                    // this should be handled by a different thing, probably a function that forces player into peacemode
                     var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                     Session.Network.EnqueueSend(updateCombatMode);
                 }
-
-                var motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
-                // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
+                 
                 CurrentLandblock.EnqueueBroadcastSystemChat(this, $"{Name} is recalling to the lifestone.", ChatMessageType.Recall);
-                // FIX: Recall text isn't being broadcast yet, need to address
-                DoMotion(motionLifestoneRecall);
+                CurrentLandblock.EnqueueBroadcastMotion(this, motionLifestoneRecall);
 
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
-                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-                float lifestoneAnimationLength = motionTable.GetAnimationLength(MotionCommand.LifestoneRecall);
 
                 // Then do teleport
-                lifestoneChain.AddDelaySeconds(lifestoneAnimationLength);
-                lifestoneChain.AddChain(GetTeleportChain(Positions[PositionType.Sanctuary]));
+                lifestoneChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.LifestoneRecall));
+                lifestoneChain.AddChain(GetTeleportChain(Sanctuary));
 
                 lifestoneChain.EnqueueChain();
             }
@@ -71,21 +69,15 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private static readonly UniversalMotion motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
+
         public void TeleToMarketplace()
         {
-            string message = $"{Name} is recalling to the marketplace.";
-
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
-            var motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
-
-            var animationEvent = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motionMarketplaceRecall);
-
-            // TODO: This needs to be changed to broadcast sysChatMessage to only those in local chat hearing range
-            // FIX: Recall text isn't being broadcast yet, need to address
-            CurrentLandblock.EnqueueBroadcastSystemChat(this, message, ChatMessageType.Recall);
-            Session.Network.EnqueueSend(updateCombatMode);
-            DoMotion(motionMarketplaceRecall);
+            CurrentLandblock.EnqueueBroadcastSystemChat(this, $"{Name} is recalling to the marketplace.", ChatMessageType.Recall);
+            Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
+            CurrentLandblock.EnqueueBroadcastMotion(this, motionMarketplaceRecall);
 
             // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
             // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
@@ -112,6 +104,7 @@ namespace ACE.Server.WorldObjects
 
             teleportChain.AddAction(this, () => TeleportInternal(newPosition));
 
+            // should this be a thing? seems like when the client sends GameActionLoginComplete that should be our signal for InWorld=True ....
             teleportChain.AddDelaySeconds(3);
             // Once back in world we can start listening to the game's request for positions
             teleportChain.AddAction(this, () => InWorld = true);
