@@ -193,9 +193,6 @@ namespace ACE.Server.WorldObjects
                         TryEquipObject(wo, (int)wo.ValidLocations.Value);
                 }
             }
-
-            //if (EquippedObjects != null)
-            //    UpdateBaseAppearance(); todo see CalculateObjDesc()
         }
     }
 }

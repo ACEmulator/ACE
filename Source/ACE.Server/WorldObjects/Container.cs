@@ -39,8 +39,8 @@ namespace ACE.Server.WorldObjects
         {
             SetEphemeralValues();
 
-            // Containers are init at 0 burden. As inventory/equipment is added the burden will be increased
-            SetProperty(PropertyInt.EncumbranceVal, 0);
+            // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
+            EncumbranceVal = EncumbranceVal ?? 0;
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
             if (!(this is Player))

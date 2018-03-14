@@ -82,6 +82,8 @@ namespace ACE.Server.WorldObjects
 
             if (!(this is Player))
                 GenerateWieldList();
+
+            Value = null;
         }
 
 

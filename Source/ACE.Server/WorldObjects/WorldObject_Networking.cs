@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(Workmanship ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Burden) != 0)
-                writer.Write((ushort?)EncumbranceVal ?? 0);
+                writer.Write((ushort)(EncumbranceVal ?? 0));
 
             if ((weenieFlags & WeenieHeaderFlag.Spell) != 0)
                 writer.Write((ushort?)Spell ?? 0);
