@@ -8,9 +8,9 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventFellowshipUpdateFellow(Session session, Player player, bool sharexp)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
-            Writer.Write(session.Player.Guid.Full);
-            Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEventType.FellowshipUpdateFellow);
+            //Writer.Write(session.Player.Guid.Full);
+            //Writer.Write(session.GameEventSequence++);
+            //Writer.Write((uint)GameEventType.FellowshipUpdateFellow);
 
             // Information about fellow being added
             Writer.Write(player.Guid.Full);

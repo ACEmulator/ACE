@@ -7,9 +7,9 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventAllegianceAllegianceUpdateDone(Session session)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
-            Writer.Write(session.Player.Guid.Full);
-            Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.AllegianceAllegianceUpdateDone);
+            //Writer.Write(session.Player.Guid.Full);
+            //Writer.Write(session.GameEventSequence++);
+            //Writer.Write((uint)GameEvent.GameEventType.AllegianceAllegianceUpdateDone);
             Writer.Write(0x00);
         }
     }

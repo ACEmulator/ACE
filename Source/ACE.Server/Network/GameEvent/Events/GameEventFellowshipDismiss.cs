@@ -8,9 +8,9 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventFellowshipDismiss(Session session, Player dismissedPlayer)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
-            Writer.Write(session.Player.Guid.Full);
-            Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.FellowshipDismiss);
+            //Writer.Write(session.Player.Guid.Full);
+            //Writer.Write(session.GameEventSequence++);
+            //Writer.Write((uint)GameEvent.GameEventType.FellowshipDismiss);
             Writer.Write(dismissedPlayer.Guid.Full);
         }
     }

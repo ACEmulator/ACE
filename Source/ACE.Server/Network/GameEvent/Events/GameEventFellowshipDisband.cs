@@ -7,9 +7,9 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventFellowshipDisband(Session session) :
             base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
-            Writer.Write(session.Player.Guid.Full);
-            Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.FellowshipDisband);
+            //Writer.Write(session.Player.Guid.Full);
+            //Writer.Write(session.GameEventSequence++);
+            //Writer.Write((uint)GameEvent.GameEventType.FellowshipDisband);
         }
     }
 }
