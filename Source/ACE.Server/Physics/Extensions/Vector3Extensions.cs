@@ -4,6 +4,11 @@ namespace ACE.Server.Physics.Extensions
 {
     public static class Vector3Extensions
     {
+        public static float Dot2D(this Vector3 a, Vector3 b)
+        {
+            return a.X * b.X + a.Y * b.Y;
+        }
+
         public static bool IsValid(this Vector3 v)
         {
             return v.X != float.NaN && v.Y != float.NaN && v.Z != float.NaN;

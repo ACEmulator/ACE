@@ -163,7 +163,7 @@ namespace ACE.Server.Physics.BSP
                     var collisionNormal = path.LocalSpacePos.LocalToGlobalVec(offset) * scale;
                     path.AddOffsetToCheckPos(collisionNormal);
 
-                    var contactPlane = hitPoly.Plane.LocalToGlobal(path.CheckPos, path.LocalSpacePos);
+                    var contactPlane = hitPoly.Plane.LocalToGlobal(path.CheckPos, path.LocalSpacePos, hitPoly.Plane);
                     contactPlane.D *= scale;
 
                     collisions.SetContactPlane(contactPlane, false);
@@ -335,7 +335,7 @@ namespace ACE.Server.Physics.BSP
                 path.CheckPos.Frame.Origin += offset;
                 path.CacheGlobalSphere(offset);
 
-                var contactPlane = polyHit.Plane.LocalToGlobal(path.CheckPos, path.LocalSpacePos);
+                var contactPlane = polyHit.Plane.LocalToGlobal(path.CheckPos, path.LocalSpacePos, polyHit.Plane);
 
                 collisions.ContactPlaneValid = true;
                 collisions.ContactPlane.Normal = contactPlane.Normal;

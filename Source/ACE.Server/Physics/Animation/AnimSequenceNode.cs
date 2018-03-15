@@ -8,14 +8,14 @@ namespace ACE.Server.Physics.Animation
     {
         public Animation Anim;
         public float Framerate;
-        public int LowFrame;
-        public int HighFrame;
+        public uint LowFrame;
+        public uint HighFrame;
 
         public AnimSequenceNode()
         {
             Framerate = 30.0f;
-            LowFrame = -1;
-            HighFrame = 1;
+            LowFrame = 0;
+            HighFrame = uint.MaxValue;
         }
 
         public AnimSequenceNode(AnimData animData)
@@ -24,7 +24,7 @@ namespace ACE.Server.Physics.Animation
             LowFrame = animData.LowFrame;
             HighFrame = animData.HighFrame;
 
-            set_animation_id(animData.AnimId);
+            set_animation_id(animData.AnimID);
         }
 
         public AnimSequenceNode GetNext()
@@ -45,12 +45,12 @@ namespace ACE.Server.Physics.Animation
                 return LowFrame;
         }
 
-        public int get_high_frame()
+        public uint get_high_frame()
         {
             return HighFrame;
         }
 
-        public int get_low_frame()
+        public uint get_low_frame()
         {
             return LowFrame;
         }
@@ -67,7 +67,7 @@ namespace ACE.Server.Physics.Animation
         public AFrame get_pos_frame(int frameIdx)
         {
             if (Anim == null) return new AFrame();
-            if (frameIdx < 0 || frameIdx >= Anim.NumFrames)
+            if (frameIdx < 0 || frameIdx >= Anim.PosFrames.Count)
                 return new AFrame();
 
             return Anim.PosFrames[frameIdx];
@@ -109,13 +109,13 @@ namespace ACE.Server.Physics.Animation
             if (Anim == null) return;
 
             if (HighFrame < 0)
-                HighFrame = (int)Anim.NumFrames - 1;
+                HighFrame = Anim.NumFrames - 1;
 
             if (LowFrame >= Anim.NumFrames)
-                LowFrame = (int)Anim.NumFrames - 1;
+                LowFrame = Anim.NumFrames - 1;
 
             if (HighFrame >= Anim.NumFrames)
-                HighFrame = (int)Anim.NumFrames - 1;
+                HighFrame = Anim.NumFrames - 1;
 
             if (LowFrame > HighFrame)
                 HighFrame = LowFrame;

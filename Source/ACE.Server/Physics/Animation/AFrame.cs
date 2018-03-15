@@ -24,17 +24,15 @@ namespace ACE.Server.Physics.Animation
         public static AFrame Combine(AFrame a, AFrame b)
         {
             var frame = new AFrame();
-            frame.Origin = a.Origin + Vector3.Transform(b.Origin, a.Orientation);
+            frame.Origin = a.Origin + b.Origin;
             frame.Orientation = Quaternion.Multiply(a.Orientation, b.Orientation);
             return frame;
         }
 
-        public static AFrame Combine(AFrame a, AFrame b, Vector3 scale)
+        public void Combine(AFrame a, AFrame b, Vector3 scale)
         {
-            var frame = new AFrame();
-            frame.Origin = a.Origin + Vector3.Transform(b.Origin * scale, a.Orientation);
-            frame.Orientation = Quaternion.Multiply(a.Orientation, b.Orientation);
-            return frame;
+            Origin += a.Origin + b.Origin;
+            Orientation *= Quaternion.Multiply(a.Orientation, b.Orientation);
         }
 
         public Vector3 GlobalToLocal(Vector3 point)

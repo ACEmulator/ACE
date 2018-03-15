@@ -73,6 +73,12 @@ namespace ACE.Server.Physics
 
         public static readonly int UpdateTimeLength = 9;
 
+        static PhysicsObj()
+        {
+            CellArray = new CellArray();
+            ObjMaint = new ObjectMaint();
+        }
+
         public PhysicsObj()
         {
             PlayerVector = new Vector3(0, 0, 1);
@@ -93,6 +99,8 @@ namespace ACE.Server.Physics
             CachedVelocity = Vector3.Zero;
             Hooks = new LinkedList<PhysicsObjHook>();
             AnimHooks = new LinkedList<DatLoader.Entity.AnimationHook>();
+            ShadowObjects = new Dictionary<int, ShadowObj>();
+            Children = new ChildList();
             UpdateTimes = new int[UpdateTimeLength];
         }
 
@@ -241,13 +249,13 @@ namespace ACE.Server.Physics
                 PositionManager.ConstrainTo(pos, startDistance, maxDistance);
         }
 
-        public Sequence DoInterpretedMotion(int motion, MovementParameters movementParams)
+        public Sequence DoInterpretedMotion(uint motion, MovementParameters movementParams)
         {
             if (PartArray == null) return null;
             return PartArray.DoInterpretedMotion(motion, movementParams);
         }
 
-        public Sequence DoMotion(int motion, MovementParameters movementParams)
+        public Sequence DoMotion(uint motion, MovementParameters movementParams)
         {
             LastMoveWasAutonomous = true;
             if (MovementManager == null) return new Sequence(7);
@@ -983,7 +991,7 @@ namespace ACE.Server.Physics
             transition.InitObject(this, ObjectInfoState.Default);
 
             if (PartArray != null && PartArray.GetNumSphere() != 0)
-                transition.InitSphere(PartArray.GetNumSphere(), PartArray.GetSphere()[0], Scale);
+                transition.InitSphere(PartArray.GetNumSphere(), PartArray.GetSphere(), Scale);
             else
                 transition.InitSphere(1, PhysicsGlobals.DummySphere, 1.0f);
 
@@ -1268,7 +1276,7 @@ namespace ACE.Server.Physics
                 PositionManager.StopInterpolating();
         }
 
-        public Sequence StopInterpretedMotion(int motion, MovementParameters movementParams)
+        public Sequence StopInterpretedMotion(uint motion, MovementParameters movementParams)
         {
             var sequence = new Sequence();
             if (PartArray != null)
@@ -1276,7 +1284,7 @@ namespace ACE.Server.Physics
             return sequence;
         }
 
-        public Sequence StopMotion(int motion, MovementParameters movementParams, bool sendEvent)
+        public Sequence StopMotion(uint motion, MovementParameters movementParams, bool sendEvent)
         {
             LastMoveWasAutonomous = true;
             if (MovementManager == null) return new Sequence(7);
@@ -1359,7 +1367,7 @@ namespace ACE.Server.Physics
 
         public void UpdateObjectInternal(double quantum)
         {
-            if (!TransientState.HasFlag(TransientStateFlags.Active) || Cell == null)
+            if (!TransientState.HasFlag(TransientStateFlags.Active) /*|| Cell == null*/)    // todo: cells
                 return;
 
             if (TransientState.HasFlag(TransientStateFlags.CheckEthereal))
@@ -1387,7 +1395,7 @@ namespace ACE.Server.Physics
                         newPos.Frame.set_vector_heading(Velocity.Normalize());
                 }
                 var transit = transition(Position, newPos, false);
-                if (transit != null && transit.SpherePath.CurCell != null)
+                if (transit != null /*&& transit.SpherePath.CurCell != null*/)  // todo: add cell
                 {
                     CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                     SetPositionInternal(transit);
@@ -1433,7 +1441,7 @@ namespace ACE.Server.Physics
             PartArray.SetFrame(Position.Frame);
         }
 
-        public void UpdatePhysicsInternal(float quantum, AFrame frameOffset)
+        public void UpdatePhysicsInternal(float quantum, ref AFrame frameOffset)
         {
             var velocity_mag2 = Velocity.LengthSquared();
 
@@ -1449,6 +1457,7 @@ namespace ACE.Server.Physics
                     Velocity = Velocity.Normalize() * PhysicsGlobals.MaxVelocity;
                     velocity_mag2 = PhysicsGlobals.MaxVelocitySquared;
                 }
+                // todo: collision normals
                 calc_friction(quantum, velocity_mag2);
 
                 if (velocity_mag2 - PhysicsGlobals.SmallVelocitySquared < PhysicsGlobals.EPSILON)
@@ -1459,7 +1468,7 @@ namespace ACE.Server.Physics
             }
 
             Velocity += Acceleration * quantum;
-            frameOffset.Rotate(Omega * quantum);
+            frameOffset.GRotate(Omega * quantum);
         }
 
         public void UpdatePositionInternal(double quantum, ref AFrame newFrame)
@@ -1468,7 +1477,7 @@ namespace ACE.Server.Physics
 
             if (!State.HasFlag(PhysicsState.Hidden))
             {
-                if (PartArray != null) PartArray.Update(quantum, offsetFrame);
+                if (PartArray != null) PartArray.Update(quantum, ref offsetFrame);
 
                 if (TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     offsetFrame.Origin *= Scale;
@@ -1478,11 +1487,11 @@ namespace ACE.Server.Physics
             if (PositionManager != null)
                 PositionManager.AdjustOffset(offsetFrame, quantum);
 
+            newFrame = AFrame.Combine(Position.Frame, offsetFrame);
+
             if (!State.HasFlag(PhysicsState.Hidden))
-            {
-                newFrame = AFrame.Combine(Position.Frame, offsetFrame);
-                UpdatePhysicsInternal((float)quantum, newFrame);
-            }
+                UpdatePhysicsInternal((float)quantum, ref newFrame);
+
             process_hooks();
         }
 
@@ -1614,7 +1623,8 @@ namespace ACE.Server.Physics
             }
             if (State.HasFlag(PhysicsState.HasDefaultAnim))
             {
-                PartArray.Update(deltaTime, null);
+                AFrame empty = null;
+                PartArray.Update(deltaTime, ref empty);
                 Position.Frame.Rotate(Omega);
                 UpdatePartsInternal();
                 UpdateChildrenInternal();
@@ -3191,11 +3201,11 @@ namespace ACE.Server.Physics
                 trans.InitSphere(1, PhysicsGlobals.DummySphere, 1.0f);
             else
             {
-                var sphere = PartArray == null ? PartArray.GetSphere() : null;
+                var sphere = PartArray != null ? PartArray.GetSphere() : null;
                 if (PartArray != null)
-                    trans.InitSphere(PartArray.GetNumSphere(), sphere[0], Scale);
+                    trans.InitSphere(PartArray.GetNumSphere(), sphere, Scale);
                 else
-                    trans.InitSphere(0, sphere[0], Scale);
+                    trans.InitSphere(0, sphere, Scale);
             }
             trans.InitPath(Cell, oldPos, newPos);
 
@@ -3208,7 +3218,7 @@ namespace ACE.Server.Physics
 
             var validPos = trans.FindValidPosition();
             trans.CleanupTransition();
-            if (!validPos) return null;
+            //if (!validPos) return null;   // todo: add cell
             return trans;
         }
 
@@ -3259,38 +3269,35 @@ namespace ACE.Server.Physics
                 TransientState &= ~TransientStateFlags.Active;
                 return;
             }
-            if (PlayerObject != null)
+            /*if (PlayerObject != null)
             {
                 PlayerVector = PlayerObject.Position.GetOffset(Position);
                 PlayerDistance = PlayerVector.Length();
                 if (PlayerDistance > 96.0f && ObjMaint.IsActive)
                     TransientState &= ~TransientStateFlags.Active;
                 else
-                    set_active(true);
-            }
+                    set_active(true);   // sets UpdateTime
+            }*/
+
             var deltaTime = Timer.CurrentTime - UpdateTime;
             PhysicsTimer.CurrentTime = UpdateTime;
-            if (deltaTime > PhysicsGlobals.EPSILON)
+            if (deltaTime <= PhysicsGlobals.EPSILON /*|| deltaTime > 2.0f */)   // commented out for debugging
             {
-                if (deltaTime <= 2.0f)
-                {
-                    while (deltaTime > PhysicsGlobals.MaxQuantum)
-                    {
-                        PhysicsTimer.CurrentTime += PhysicsGlobals.MaxQuantum;
-                        UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
-                        deltaTime -= PhysicsGlobals.MaxQuantum;
-                    }
-                    if (deltaTime > PhysicsGlobals.MinQuantum)
-                    {
-                        PhysicsTimer.CurrentTime += deltaTime;
-                        UpdateObjectInternal(deltaTime);
-                    }
-                }
-                else
-                {
-                    UpdateTime = Timer.CurrentTime;
-                }
+                //UpdateTime = Timer.CurrentTime;   // consume time?
+                return;
             }
+            while (deltaTime > PhysicsGlobals.MaxQuantum)
+            {
+                PhysicsTimer.CurrentTime += PhysicsGlobals.MaxQuantum;
+                UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
+                deltaTime -= PhysicsGlobals.MaxQuantum;
+            }
+            if (deltaTime > PhysicsGlobals.MinQuantum)
+            {
+                PhysicsTimer.CurrentTime += deltaTime;
+                UpdateObjectInternal(deltaTime);
+            }
+            UpdateTime = Timer.CurrentTime;
         }
 
         public void update_position()
@@ -3298,8 +3305,14 @@ namespace ACE.Server.Physics
             if (Parent != null) return;
             PhysicsTimer.CurrentTime = Timer.CurrentTime;
             var deltaTime = Timer.CurrentTime - UpdateTime;
-            if (deltaTime >= PhysicsGlobals.MinQuantum/* && deltaTime <= 2.0f*/)    // commented out for debugging
+            if (deltaTime > PhysicsGlobals.EPSILON)
             {
+                if (deltaTime < PhysicsGlobals.MinQuantum) return;
+                /*if (deltaTime > PhysicsGlobals.MaxQuantum)    // commented out for debugging
+                {
+                    UpdateTime = Timer.CurrentTime;
+                    return;
+                }*/
                 var frame = new AFrame();
                 UpdatePositionInternal(deltaTime, ref frame);
                 set_frame(frame);
@@ -3307,8 +3320,10 @@ namespace ACE.Server.Physics
                     ParticleManager.UpdateParticles();
                 if (ScriptManager != null)
                     ScriptManager.UpdateScripts();
+                UpdateTime = Timer.CurrentTime;
             }
-            UpdateTime = Timer.CurrentTime;
+            else
+                UpdateTime = Timer.CurrentTime;
         }
     }
 }

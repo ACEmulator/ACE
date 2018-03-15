@@ -61,7 +61,7 @@ namespace ACE.Server.Physics.Animation
             else if (slideAngle <= 0.0f)
                 offset -= CollisionInfo.ContactPlane.Normal * slideAngle;
             else
-                CollisionInfo.ContactPlane.SnapToPlane(offset);
+                CollisionInfo.ContactPlane.SnapToPlane(ref offset);
 
             if (CollisionInfo.ContactPlaneCellID == 0 || CollisionInfo.ContactPlaneIsWater)
                 return offset;
@@ -622,9 +622,14 @@ namespace ACE.Server.Physics.Animation
                 CollisionInfo.SlidingNormal = Vector3.Zero;
         }
 
+        public void InitSphere(int numSphere, List<Sphere> sphere, float scale)
+        {
+            SpherePath.InitSphere(numSphere, sphere, scale);
+        }
+
         public void InitSphere(int numSphere, Sphere sphere, float scale)
         {
-            SpherePath.InitSphere(numSphere, new List<Sphere>() { sphere }, scale);
+            SpherePath.InitSphere(numSphere, new List<Sphere> { sphere }, scale);
         }
 
         public TransitionState InsertIntoCell(ObjCell cell, int num_insertion_attempts)
@@ -660,10 +665,11 @@ namespace ACE.Server.Physics.Animation
             var transition = new Transition();
             transition.Init();
 
-            if (Transitions.Count < TransitionLevel)
-                Transitions.Add(transition);
-            else
-                Transitions[TransitionLevel] = transition;
+            // verify correct transition indices
+            while (Transitions.Count <= TransitionLevel)
+                Transitions.Add(null);
+
+            Transitions[TransitionLevel] = transition;
 
             TransitionLevel++;
 

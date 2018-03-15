@@ -126,7 +126,7 @@ namespace ACE.Server.Physics
             Setup = null;
         }
 
-        public Sequence DoInterpretedMotion(int motion, MovementParameters movementParameters)
+        public Sequence DoInterpretedMotion(uint motion, MovementParameters movementParameters)
         {
             if (MotionTableManager == null)
                 return new Sequence(7);
@@ -275,10 +275,10 @@ namespace ACE.Server.Physics
             if (Setup.DefaultAnimID != 0)
             {
                 Sequence.clear_animations();
-                var animData = new AnimData();
-                /*animData.AnimId = Setup.DefaultAnimID;
+                var animData = new Animation.AnimData();
+                animData.AnimID = Setup.DefaultAnimID;
                 animData.LowFrame = 0;
-                animData.HighFrame = Int32.MaxValue;*/
+                animData.HighFrame = Int32.MaxValue;
                 Sequence.append_animation(animData);
                 WeenieDesc.Destroy(animData);
             }
@@ -579,7 +579,7 @@ namespace ACE.Server.Physics
             return MotionTableManager.PerformMovement(mvs, Sequence);
         }
 
-        public Sequence StopInterpretedMotion(int motion, MovementParameters movementParameters)
+        public Sequence StopInterpretedMotion(uint motion, MovementParameters movementParameters)
         {
             if (MotionTableManager == null) return new Sequence(7);
             var mvs = new MovementStruct(MovementType.StopInterpretedCommand);
@@ -588,18 +588,18 @@ namespace ACE.Server.Physics
             return MotionTableManager.PerformMovement(mvs, Sequence);
         }
 
-        public void Update(double quantum, AFrame offsetFrame)
+        public void Update(double quantum, ref AFrame offsetFrame)
         {
-            Sequence.Update((float)quantum, offsetFrame);
+            Sequence.Update((float)quantum, ref offsetFrame);
         }
 
         public void UpdateParts(AFrame frame)
         {
             var curFrame = Sequence.GetCurrAnimFrame();
             if (curFrame == null) return;
-            var numParts = Math.Min(curFrame.Frames.Count, NumParts);   // first numparts?
+            var numParts = Math.Min(NumParts, curFrame.Frames.Count);
             for (var i = 0; i < numParts; i++)
-                Parts[i].Pos.Frame = AFrame.Combine(frame, new AFrame(curFrame.Frames[i]), Scale);
+                Parts[i].Pos.Frame.Combine(frame, new AFrame(curFrame.Frames[i]), Scale);
         }
 
  

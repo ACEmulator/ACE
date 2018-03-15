@@ -3,12 +3,12 @@ namespace ACE.Server.Physics.Animation
     public class MotionNode
     {
         public int ContextID;
-        public int Motion;
+        public uint Motion;
         public int JumpErrorCode;
 
         public MotionNode() { }
 
-        public MotionNode(int contextID, int motion, int jumpErrorCode)
+        public MotionNode(int contextID, uint motion, int jumpErrorCode)
         {
             ContextID = contextID;
             Motion = motion;

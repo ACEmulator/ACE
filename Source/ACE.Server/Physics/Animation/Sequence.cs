@@ -99,16 +99,16 @@ namespace ACE.Server.Physics.Animation
             Velocity = velocity;
         }
 
-        public void Update(float quantum, AFrame frame)
+        public void Update(float quantum, ref AFrame offsetFrame)
         {
-            if (AnimList == null && AnimList.Count != 0)
+            if (AnimList.First != null)
             {
-                update_internal(quantum, CurrAnim.Value, FrameNumber, frame);
+                update_internal(quantum, CurrAnim.Value, FrameNumber, ref offsetFrame);
                 apricot();
             }
-            else if (frame != null)
+            else if (offsetFrame != null)
             {
-                apply_physics(frame, quantum, quantum);
+                apply_physics(offsetFrame, quantum, quantum);
             }
         }
 
@@ -295,7 +295,7 @@ namespace ACE.Server.Physics.Animation
             Omega -= omega;
         }
 
-        public void update_internal(float timeElapsed, AnimSequenceNode currAnim, float frameNum, AFrame frame)
+        public void update_internal(float timeElapsed, AnimSequenceNode currAnim, float frameNum, ref AFrame frame)
         {
             var framerate = currAnim.Framerate;
             var frametime = framerate * timeElapsed;
@@ -387,7 +387,7 @@ namespace ACE.Server.Physics.Animation
             timeElapsed = frameTimeElapsed;
 
             // loop to next anim
-            update_internal(timeElapsed, currAnim, frameNum, frame);    
+            update_internal(timeElapsed, currAnim, frameNum, ref frame);    
         }
     }
 }
