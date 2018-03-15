@@ -216,6 +216,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesBool.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -226,6 +227,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesDID.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -236,6 +238,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesFloat.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -246,6 +249,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesIID.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -256,6 +260,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesInt.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -266,6 +271,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesInt64.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -276,6 +282,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesString.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
@@ -287,6 +294,7 @@ namespace ACE.Database.Models.Shard
             if (result != null)
             {
                 biota.BiotaPropertiesPosition.Remove(result);
+                result.Object = null;
                 DatabaseManager.Shard.RemoveEntity(result, null);
             }
         }
