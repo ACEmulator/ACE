@@ -83,7 +83,7 @@ namespace ACE.Server.WorldObjects
             if (!(this is Player))
                 GenerateWieldList();
 
-            Value = null;
+            Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
         }
 
 

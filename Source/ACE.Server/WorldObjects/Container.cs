@@ -39,9 +39,6 @@ namespace ACE.Server.WorldObjects
         {
             SetEphemeralValues();
 
-            // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
-            EncumbranceVal = EncumbranceVal ?? 0;
-
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
             if (!(this is Player))
                 DatabaseManager.Shard.GetInventory(biota.Id, true, SortBiotasIntoInventory);
@@ -49,6 +46,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            EncumbranceVal = EncumbranceVal ?? 0; // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
             Value = Value ?? 0;
             // todo CoinValue
         }
