@@ -22,8 +22,8 @@ namespace ACE.Server.Physics.Animation
         public int TopLevelObjectID;
         public float SoughtObjectRadius;
         public float SoughtObjectHeight;
-        public int CurrentCommand;
-        public int AuxCommand;
+        public uint CurrentCommand;
+        public uint AuxCommand;
         public bool MovingAway;
         public bool Initialized;
         public List<MovementNode> PendingActions;
@@ -67,7 +67,7 @@ namespace ACE.Server.Physics.Animation
             if (heading < -PhysicsGlobals.EPSILON)
                 heading += 360.0f;
 
-            int motion = 0;
+            uint motion = 0;
             bool moveAway = false;
             HoldKey holdKey = HoldKey.Invalid;
             MovementParams.get_command(dist, heading, ref motion, ref holdKey, ref moveAway);
@@ -132,7 +132,7 @@ namespace ACE.Server.Physics.Animation
 
             var pendingAction = PendingActions[0];
             var headingDiff = heading_diff(pendingAction.Heading, PhysicsObj.get_heading(), 0x6500000D);
-            var motionID = 0;
+            uint motionID = 0;
             if (headingDiff <= 180.0f)
             {
                 if (headingDiff > PhysicsGlobals.EPSILON)
@@ -274,7 +274,7 @@ namespace ACE.Server.Physics.Animation
 
                 if (diff > 20.0f && diff < 340.0f)
                 {
-                    var motionID = diff >= 180.0f ? 0x6500000E : 0x6500000D;
+                    uint motionID = (uint)(diff >= 180.0f ? 0x6500000E : 0x6500000D);
                     if (motionID != AuxCommand)
                     {
                         _DoMotion(motionID, movementParams);
@@ -484,7 +484,7 @@ namespace ACE.Server.Physics.Animation
                 heading += 360.0f;
 
             HoldKey holdKey = HoldKey.Invalid;
-            int motionID = 0;
+            uint motionID = 0;
             bool moveAway = false;
             MovementParams.get_command(dist, heading, ref motionID, ref holdKey, ref moveAway);
 
@@ -523,7 +523,7 @@ namespace ACE.Server.Physics.Animation
                 headingDiff += 360.0f;
 
             HoldKey holdKey = HoldKey.Invalid;
-            int command = 0;
+            uint command = 0;
             bool moveAway = false;
             movementParams.get_command(distance, headingDiff, ref command, ref holdKey, ref moveAway);
 
@@ -672,7 +672,7 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public Sequence _DoMotion(int motion, MovementParameters movementParams)
+        public Sequence _DoMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
                 return new Sequence(8);
@@ -686,7 +686,7 @@ namespace ACE.Server.Physics.Animation
             return minterp.DoInterpretedMotion(motion, movementParams);
         }
 
-        public Sequence _StopMotion(int motion, MovementParameters movementParams)
+        public Sequence _StopMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
                 return new Sequence(8);
@@ -700,7 +700,7 @@ namespace ACE.Server.Physics.Animation
             return minterp.StopInterpretedMotion(motion, movementParams);
         }
 
-        public static float heading_diff(float x, float y, int motion)
+        public static float heading_diff(float x, float y, uint motion)
         {
             var result = x - y;
 
@@ -713,7 +713,7 @@ namespace ACE.Server.Physics.Animation
             return result;
         }
 
-        public static bool heading_greater(float x, float y, int motion)
+        public static bool heading_greater(float x, float y, uint motion)
         {
             var less = Math.Abs(x - y) <= 180.0f ? x < y : y < x;
             var result = (less || x == y) == false;

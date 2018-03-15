@@ -123,7 +123,7 @@ namespace ACE.Server.Physics.Animation
                         if ((motionData.Bitfield & 1) != 0)
                             currState.clear_modifiers();
 
-                        var link = get_link(currState.Style, currState.Substate, currState.SubstateMod, motion, speedMod);
+                        var link = get_link(currState.Style, currState.Substate, currState.SubstateMod, motion, speedMod);    // verify
                         if (link == null || Math.Sign(speedMod) != Math.Sign(currState.SubstateMod))
                         {
                             uint defaultMotion = 0;
@@ -333,7 +333,7 @@ namespace ACE.Server.Physics.Animation
             sequence.SetOmega(motionData.Omega * speed);
 
             for (var i = 0; i < motionData.Anims.Count; i++)
-                sequence.append_animation(motionData.Anims[i]); // speed
+                sequence.append_animation(new AnimData(motionData.Anims[i], speed));
         }
 
         public void change_cycle_speed(Sequence sequence, MotionData motionData, float substateMod, float speedMod)
@@ -381,8 +381,11 @@ namespace ACE.Server.Physics.Animation
             Dictionary<uint, MotionData> link = null;
             MotionData motionData = null;
 
-            Links.TryGetValue(style << 16, out link);
-            if (link == null || checkFirst && (first & 0xFFFFF) == 0)
+            var key = style << 16;
+            if (checkFirst)
+                key |= first & 0xFFFFF;
+            Links.TryGetValue(key, out link);
+            if (link == null)
                 return null;
 
             link.TryGetValue(second, out motionData);

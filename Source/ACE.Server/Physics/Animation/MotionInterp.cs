@@ -43,11 +43,11 @@ namespace ACE.Server.Physics.Animation
 
         public MotionInterp(PhysicsObj obj, WeenieObject wobj)
         {
-            RawState = new RawMotionState();
-            InterpretedState = new InterpretedMotionState();
+            CurrentSpeedFactor = 1.0f;
+            MyRunRate = 1.0f;
+
             SetPhysicsObject(obj);
             SetWeenieObject(wobj);
-            PendingMotions = new List<MotionNode>();
         }
 
         public static MotionInterp Create(PhysicsObj obj, WeenieObject wobj)
@@ -56,7 +56,7 @@ namespace ACE.Server.Physics.Animation
             return motionInterp;
         }
 
-        public Sequence DoInterpretedMotion(int motion, MovementParameters movementParams)
+        public Sequence DoInterpretedMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
                 return new Sequence(8);
@@ -77,7 +77,7 @@ namespace ACE.Server.Physics.Animation
 
                     sequence = PhysicsObj.DoInterpretedMotion(motion, movementParams);
 
-                    if (sequence != null)
+                    if (sequence == null)
                     {
                         var jump_error_code = 0;
 
@@ -113,7 +113,7 @@ namespace ACE.Server.Physics.Animation
             return sequence;
         }
 
-        public Sequence DoMotion(int motion, MovementParameters movementParams)
+        public Sequence DoMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
                 return new Sequence(8);
@@ -126,7 +126,7 @@ namespace ACE.Server.Physics.Animation
 
             var sequence = new Sequence();
 
-            if (InterpretedState.CurrentStyle != -2147483587)
+            if (InterpretedState.CurrentStyle != 0x8000003D)
             {
                 switch (motion)
                 {
@@ -324,7 +324,7 @@ namespace ACE.Server.Physics.Animation
             return new Sequence(0);
         }
 
-        public Sequence StopInterpretedMotion(int motion, MovementParameters movementParams)
+        public Sequence StopInterpretedMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
                 return new Sequence(8);
@@ -363,7 +363,7 @@ namespace ACE.Server.Physics.Animation
             return sequence;
         }
 
-        public Sequence StopMotion(int motion, MovementParameters movementParams)
+        public Sequence StopMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null) return new Sequence(8);
 
@@ -380,12 +380,12 @@ namespace ACE.Server.Physics.Animation
             return newMotion;
         }
 
-        public void add_to_queue(int contextID, int motion, int jumpErrorCode)
+        public void add_to_queue(int contextID, uint motion, int jumpErrorCode)
         {
             PendingMotions.Add(new MotionNode(contextID, motion, jumpErrorCode));
         }
 
-        public void adjust_motion(int motion, float speed, HoldKey holdKey)
+        public void adjust_motion(uint motion, float speed, HoldKey holdKey)
         {
             if (WeenieObj != null && !WeenieObj.IsCreature())
                 return;
@@ -426,10 +426,10 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null || !Initted) return;
 
-            if (WeenieObj != null && !WeenieObj.IsCreature() || !PhysicsObj.movement_is_autonomous())
-                apply_interpreted_movement(cancelMoveTo, allowJump);
-            else
+            if (WeenieObj == null || WeenieObj.IsCreature() && PhysicsObj.movement_is_autonomous())
                 apply_raw_movement(cancelMoveTo, allowJump);
+            else
+                apply_interpreted_movement(cancelMoveTo, allowJump);
         }
 
         public void apply_interpreted_movement(bool cancelMoveTo, bool allowJump)
@@ -445,7 +445,7 @@ namespace ACE.Server.Physics.Animation
             if (InterpretedState.ForwardCommand == 0x44000007)
                 MyRunRate = InterpretedState.ForwardSpeed;
 
-            DoInterpretedMotion((int)InterpretedState.CurrentStyle, movementParams);
+            DoInterpretedMotion(InterpretedState.CurrentStyle, movementParams);
 
             if (contact_allows_move(InterpretedState.ForwardCommand))
             {
@@ -514,7 +514,7 @@ namespace ACE.Server.Physics.Animation
             apply_interpreted_movement(cancelMoveTo, allowJump);
         }
 
-        public void apply_run_to_command(int motion, float speed)
+        public void apply_run_to_command(uint motion, float speed)
         {
             var speedMod = 1.0f;
 
@@ -573,7 +573,7 @@ namespace ACE.Server.Physics.Animation
             return 0;
         }
 
-        public bool contact_allows_move(int motion)
+        public bool contact_allows_move(uint motion)
         {
             if (PhysicsObj == null) return false;
 
@@ -599,6 +599,7 @@ namespace ACE.Server.Physics.Animation
             InterpretedState = new InterpretedMotionState();
 
             PhysicsObj.InitializeMotionTables();
+            PendingMotions = new List<MotionNode>();
 
             add_to_queue(0, 0x41000003, 0);     // hardcoded default state?
 
@@ -672,16 +673,12 @@ namespace ACE.Server.Physics.Animation
                 velocity.X = SidestepAnimSpeed * InterpretedState.SideStepSpeed;
             if (InterpretedState.ForwardCommand == 0x45000005)
                 velocity.Y = WalkAnimSpeed * InterpretedState.ForwardSpeed;
-            else
+            else if (InterpretedState.ForwardCommand == 0x44000007)
                 velocity.Y = RunAnimSpeed * InterpretedState.ForwardSpeed;
 
-            var rate = 1.0f;
+            var rate = MyRunRate;
 
-            if (WeenieObj != null)
-            {
-                if (!WeenieObj.InqRunRate(ref rate))
-                    rate = MyRunRate;
-            }
+            if (WeenieObj != null) WeenieObj.InqRunRate(ref rate);
 
             var maxSpeed = RunAnimSpeed * rate;
             if (velocity.Length() > maxSpeed)
@@ -759,7 +756,7 @@ namespace ACE.Server.Physics.Animation
             return new Sequence(0x24);
         }
 
-        public int motion_allows_jump(int substate)
+        public int motion_allows_jump(uint substate)
         {
             if (substate >= 0x40000016 && substate <= 0x40000018 || substate >= 0x10000128 && substate <= 0x10000131 ||
                 substate >= 0x1000006F && substate <= 0x10000078 || substate >= 0x41000012 && substate <= 0x41000014 ||

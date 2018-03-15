@@ -7,29 +7,28 @@ namespace ACE.Server.Physics.Animation
     {
         public List<ActionNode> Actions;
         public HoldKey CurrentHoldKey;
-        public int CurrentStyle;
-        public int ForwardCommand;
+        public uint CurrentStyle;
+        public uint ForwardCommand;
         public HoldKey ForwardHoldKey;
         public float ForwardSpeed;
-        public int SideStepCommand;
+        public uint SideStepCommand;
         public HoldKey SideStepHoldKey;
         public float SideStepSpeed;
-        public int TurnCommand;
+        public uint TurnCommand;
         public HoldKey TurnHoldKey;
         public float TurnSpeed;
 
         public RawMotionState()
         {
-            ForwardSpeed = 1.0f;
-            SideStepSpeed = 1.0f;
+            InitDefaults();
         }
 
-        public void AddAction(int action, float speed, int stamp, bool autonomous)
+        public void AddAction(uint action, float speed, int stamp, bool autonomous)
         {
             Actions.Add(new ActionNode(action, speed, stamp, autonomous));
         }
 
-        public void ApplyMotion(int motion, MovementParameters movementParams)
+        public void ApplyMotion(uint motion, MovementParameters movementParams)
         {
             switch (motion)
             {
@@ -97,7 +96,24 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public int RemoveAction()
+        public void InitDefaults()
+        {
+            Actions = new List<ActionNode>();
+
+            CurrentHoldKey = HoldKey.None;
+            CurrentStyle = 0x8000003D;
+            ForwardCommand = 0x41000003;
+            ForwardHoldKey = HoldKey.Invalid;
+            ForwardSpeed = 1.0f;
+            SideStepCommand = 0;
+            SideStepHoldKey = HoldKey.Invalid;
+            SideStepSpeed = 1.0f;
+            TurnCommand = 0;
+            TurnHoldKey = HoldKey.Invalid;
+            TurnSpeed = 1.0f;
+        }
+
+        public uint RemoveAction()
         {
             if (Actions.Count == 0)
                 return 0;
@@ -107,7 +123,7 @@ namespace ACE.Server.Physics.Animation
             return action.Action;
         }
 
-        public void RemoveMotion(int motion)
+        public void RemoveMotion(uint motion)
         {
             switch (motion)
             {
@@ -133,7 +149,7 @@ namespace ACE.Server.Physics.Animation
                     else if ((motion & 0x80000000) != 0)
                     {
                         if (motion == CurrentStyle)
-                            CurrentStyle = -2147483587;
+                            CurrentStyle = 0x8000003D;
                     }
                     break;
             }

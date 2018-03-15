@@ -142,6 +142,9 @@ namespace ACE.Server.Physics.Animation
 
         public void CacheGlobalCurrCenter()
         {
+            while (GlobalCurrCenter.Count < NumSphere)
+                GlobalCurrCenter.Add(new Sphere());
+
             for (var i = 0; i < NumSphere; i++)
                 GlobalCurrCenter[i].Center = CurPos.LocalToGlobal(LocalSphere[i].Center);
         }
@@ -157,6 +160,9 @@ namespace ACE.Server.Physics.Animation
             }
             else
             {
+                while (GlobalSphere.Count < NumSphere)
+                    GlobalSphere.Add(new Sphere());
+
                 for (var i = 0; i < NumSphere; i++)
                 {
                     GlobalSphere[i].Radius = LocalSphere[i].Radius;
@@ -169,6 +175,12 @@ namespace ACE.Server.Physics.Animation
         public void CacheLocalSpaceSphere(Position pos, float scaleZ)
         {
             var invScale = 1.0f / scaleZ;
+
+            while (LocalSpaceCurrCenter.Count < NumSphere)
+                LocalSpaceCurrCenter.Add(new Sphere());
+
+            while (LocalSpaceSphere.Count < NumSphere)
+                LocalSpaceSphere.Add(new Sphere());
 
             for (var i = 0; i < NumSphere; i++)
             {

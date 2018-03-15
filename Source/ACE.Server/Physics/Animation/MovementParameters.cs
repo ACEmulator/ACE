@@ -59,7 +59,7 @@ namespace ACE.Server.Physics.Animation
             Bitfield = 0x1EE0F;     // todo: union of bools
         }
 
-        public void get_command(float dist, float heading, ref int motion, ref HoldKey holdKey, ref bool movingAway)
+        public void get_command(float dist, float heading, ref uint motion, ref HoldKey holdKey, ref bool movingAway)
         {
             if (MoveTowards || !MoveAway)
             {
@@ -93,7 +93,7 @@ namespace ACE.Server.Physics.Animation
                 holdKey = HoldKey.None;
         }
 
-        public float get_desired_heading(int motion, bool movingAway)
+        public float get_desired_heading(uint motion, bool movingAway)
         {
             switch (motion)
             {
@@ -107,7 +107,7 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public void towards_and_away(float dist, float heading, ref int command, ref bool movingAway)
+        public void towards_and_away(float dist, float heading, ref uint command, ref bool movingAway)
         {
             if (dist > DistanceToObject)
             {

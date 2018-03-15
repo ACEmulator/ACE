@@ -81,13 +81,13 @@ namespace ACE.DatLoader.FileTypes
                         uint numFrames;
 
                         // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
-                        if ((anim.LowFrame == -1) && (anim.HighFrame == 0))
+                        if ((anim.LowFrame == 0) && (anim.HighFrame == uint.MaxValue))
                         {
                             var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
                             numFrames = animation.NumFrames;
                         }
                         else
-                            numFrames = (uint)(anim.HighFrame - anim.LowFrame);
+                            numFrames = anim.HighFrame - anim.LowFrame;
 
                         length += numFrames / Math.Abs(anim.Framerate); // Framerates can be negative, which tells the client to play in reverse
                     }

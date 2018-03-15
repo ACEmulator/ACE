@@ -23,7 +23,9 @@ namespace ACE.Server.Physics.Common
 
         public bool InqRunRate(ref float rate)
         {
-            return false;
+            // get run skill from WorldObject
+            rate = (float)MovementSystem.GetRunRate(0.0f, 300, 1.0f);
+            return true;
         }
 
         public bool IsCorpse()

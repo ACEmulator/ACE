@@ -11,6 +11,14 @@ namespace ACE.Server.Physics.Common
         public List<int> PartNumbers;
         public List<int> LocationIDs;
 
+        public ChildList()
+        {
+            Objects = new List<PhysicsObj>();
+            Frames = new List<AFrame>();
+            PartNumbers = new List<int>();
+            LocationIDs = new List<int>();
+        }
+
         public int FindChildIndex(PhysicsObj obj)
         {
             for (var i = 0; i < NumObjects; i++)

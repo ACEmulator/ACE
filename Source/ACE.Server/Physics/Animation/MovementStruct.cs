@@ -5,7 +5,7 @@ namespace ACE.Server.Physics.Animation
     public class MovementStruct
     {
         public MovementType Type;
-        public int Motion;
+        public uint Motion;
         public int ObjectId;
         public int TopLevelId;
         public Position Position;
@@ -20,7 +20,7 @@ namespace ACE.Server.Physics.Animation
             Type = type;
         }
 
-        public MovementStruct(MovementType type, int motion, MovementParameters movementParams)
+        public MovementStruct(MovementType type, uint motion, MovementParameters movementParams)
         {
             Type = type;
             Motion = motion;

@@ -117,14 +117,14 @@ namespace ACE.Server.Physics.Animation
             switch (mvs.Type)
             {
                 case MovementType.InterpretedCommand:
-                    if (!Table.DoObjectMotion((uint)mvs.Motion, State, seq, mvs.Params.Speed, ref counter))
+                    if (!Table.DoObjectMotion(mvs.Motion, State, seq, mvs.Params.Speed, ref counter))
                         return new Sequence(0x43);
 
-                    add_to_queue((uint)mvs.Motion, counter, seq);
+                    add_to_queue(mvs.Motion, counter, seq);
                     return null;
 
                 case MovementType.StopInterpretedCommand:
-                    if (!Table.StopObjectMotion((uint)mvs.Motion, mvs.Params.Speed, State, seq, ref counter))
+                    if (!Table.StopObjectMotion(mvs.Motion, mvs.Params.Speed, State, seq, ref counter))
                         return new Sequence(0x43);
 
                     add_to_queue(0x41000003, counter, seq);
@@ -133,7 +133,7 @@ namespace ACE.Server.Physics.Animation
                 case MovementType.StopCompletely:
                     Table.StopObjectCompletely(State, seq, ref counter);
                     add_to_queue(0x41000003, counter, seq);
-                    return null; ;
+                    return null;
 
                 default:
                     return seq;

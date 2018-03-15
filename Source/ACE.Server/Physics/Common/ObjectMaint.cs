@@ -94,6 +94,7 @@ namespace ACE.Server.Physics.Common
             if (obj.Parent != null) return;
             obj.set_cell_id(cellID);
             var lostCell = GetLostCell(obj.Position.ObjCellID);
+            if (lostCell == null) return;
             lostCell.Objects.Add(obj);
             lostCell.NumObjects++;
         }
