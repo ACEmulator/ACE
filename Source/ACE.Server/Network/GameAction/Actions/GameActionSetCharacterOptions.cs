@@ -129,7 +129,7 @@ namespace ACE.Server.Network.GameAction.Actions
             // TODO: Set other options from the packet
 
             // Save the options
-            session.Player.HandleActionSaveCharacter();
+            session.Player.SaveBiotaToDatabase();
         }
     }
 }

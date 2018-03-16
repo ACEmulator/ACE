@@ -180,7 +180,97 @@ namespace ACE.Database
             }));
         }
 
+        public void RemoveBiota(Biota biota, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveBiota(biota);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void AddeEntity(object entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void RemoveEntity(object entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesBool entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesDID entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesFloat entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesIID entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesInt entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesInt64 entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesPosition entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesString entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {

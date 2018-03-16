@@ -65,6 +65,8 @@ namespace ACE.Server.WorldObjects
         {
             Biota = biota;
 
+            ExistsInDatabase = true;
+
             SetEphemeralValues();
         }
 

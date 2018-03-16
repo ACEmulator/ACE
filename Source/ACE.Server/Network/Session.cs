@@ -212,10 +212,8 @@ namespace ACE.Server.Network
 
         public void SaveSession()
         {
-            if (this.Player != null)
-            {
-                this.Player.HandleActionSaveCharacter();
-            }
+            if (Player != null)
+                Player.GetSaveChain().EnqueueChain();
         }
 
         public uint GetIssacValue(PacketDirection direction)

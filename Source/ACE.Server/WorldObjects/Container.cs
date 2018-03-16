@@ -280,6 +280,8 @@ namespace ACE.Server.WorldObjects
                 //if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                 //    UpdateCurrencyClientCalculations(WeenieType.Coin);
 
+                item.SaveBiotaToDatabase();
+
                 return true;
             }
 

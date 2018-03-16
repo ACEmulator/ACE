@@ -606,35 +606,6 @@ namespace ACE.Server.WorldObjects
             Positions[type] = newPosition;
         }
 
-        // Just preps the character to save
-        public void HandleActionSaveCharacter()
-        {
-            GetSaveChain().EnqueueChain();
-        }
-
-        // Gets the ActionChain to save a character
-        public ActionChain GetSaveChain()
-        {
-            return new ActionChain(this, SavePlayer);
-        }
-
-        /// <summary>
-        /// Internal save character functionality
-        /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.
-        /// </summary>
-        private void SavePlayer()
-        {
-            // Save the current position to persistent storage, only during the server update interval
-            SetPhysicalCharacterPosition();
-
-            DatabaseManager.Shard.SaveBiota(Biota, null);
-
-            #if DEBUG
-            if (Session.Player != null)
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
-            #endif
-        }
-
         public void UpdateAge()
         {
             //if (Character != null)

@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePutObjectInContainer(Session, container.Guid, worldObject, worldObject.PlacementPosition ?? 0),
                 new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-            DatabaseManager.Shard.AddBiota(worldObject.Biota, null);
+            worldObject.SaveBiotaToDatabase();
 
             return true;
         }
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
 
-                DatabaseManager.Shard.RemoveEntity(worldObject.Biota, null);
+                worldObject.RemoveBiotaFromDatabase();
 
                 return true;
             }
@@ -310,8 +310,6 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
                 new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid));
-
-            Session.SaveSession();
         }
 
         /// <summary>

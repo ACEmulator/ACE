@@ -132,8 +132,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesBool.Add(new BiotaPropertiesBool {Type = (ushort)property, Value = value});
-
+            {
+                var entity = new BiotaPropertiesBool { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesBool.Add(entity);
+            }
         }
 
         public static void SetProperty(this Biota biota, PropertyDataId property, uint value)
@@ -142,7 +144,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesDID.Add(new BiotaPropertiesDID { Type = (ushort)property, Value = value });
+            {
+                var entity = new BiotaPropertiesDID { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesDID.Add(entity);
+            }
         }
 
         public static void SetProperty(this Biota biota, PropertyFloat property, double value)
@@ -151,7 +156,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat { Type = (ushort)property, Value = value });
+            {
+                var entity = new BiotaPropertiesFloat { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesFloat.Add(entity);
+            }
         }
 
         public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value)
@@ -160,7 +168,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesIID.Add(new BiotaPropertiesIID { Type = (ushort)property, Value = value });
+            {
+                var entity = new BiotaPropertiesIID { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesIID.Add(entity);
+            }
         }
 
         public static void SetProperty(this Biota biota, PropertyInt property, int value)
@@ -169,7 +180,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesInt.Add(new BiotaPropertiesInt { Type = (ushort)property, Value = value });
+            {
+                var entity = new BiotaPropertiesInt { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesInt.Add(entity);
+            }
         }
 
         public static void SetProperty(this Biota biota, PropertyInt64 property, long value)
@@ -178,7 +192,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64 { Type = (ushort)property, Value = value });
+            {
+                var entity = new BiotaPropertiesInt64 { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesInt64.Add(entity);
+            }
         }
 
         public static void SetProperty(this Biota biota, PropertyString property, string value)
@@ -187,7 +204,10 @@ namespace ACE.Database.Models.Shard
             if (result != null)
                 result.Value = value;
             else
-                biota.BiotaPropertiesString.Add(new BiotaPropertiesString { Type = (ushort)property, Value = value });
+            {
+                var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                biota.BiotaPropertiesString.Add(entity);
+            }
         }
 
         public static void SetPosition(this Biota biota, PositionType positionType, Position position)
@@ -205,98 +225,108 @@ namespace ACE.Database.Models.Shard
                 result.AnglesZ = position.RotationZ;
             }
             else
-                biota.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition { PositionType = (ushort)positionType, ObjCellId = position.Cell, OriginX = position.PositionX, OriginY = position.PositionY, OriginZ = position.PositionZ, AnglesW = position.RotationW, AnglesX = position.RotationX, AnglesY = position.RotationY, AnglesZ = position.RotationZ });
-        }
-
-
-
-        public static void RemoveProperty(this Biota biota, PropertyBool property)
-        {
-            var result = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property);
-            if (result != null)
             {
-                biota.BiotaPropertiesBool.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                var entity = new BiotaPropertiesPosition { ObjectId = biota.Id, PositionType = (ushort)positionType, ObjCellId = position.Cell, OriginX = position.PositionX, OriginY = position.PositionY, OriginZ = position.PositionZ, AnglesW = position.RotationW, AnglesX = position.RotationX, AnglesY = position.RotationY, AnglesZ = position.RotationZ, Object = biota };
+                biota.BiotaPropertiesPosition.Add(entity);
             }
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyDataId property)
+
+
+        public static bool TryRemoveProperty(this Biota biota, PropertyBool property, out BiotaPropertiesBool entity)
         {
-            var result = biota.BiotaPropertiesDID.FirstOrDefault(x => x.Type == (uint)property);
-            if (result != null)
+            entity = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property);
+            if (entity != null)
             {
-                biota.BiotaPropertiesDID.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesBool.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyFloat property)
+        public static bool TryRemoveProperty(this Biota biota, PropertyDataId property, out BiotaPropertiesDID entity)
         {
-            var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
-            if (result != null)
+            entity = biota.BiotaPropertiesDID.FirstOrDefault(x => x.Type == (uint)property);
+            if (entity != null)
             {
-                biota.BiotaPropertiesFloat.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesDID.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyInstanceId property)
+        public static bool TryRemoveProperty(this Biota biota, PropertyFloat property, out BiotaPropertiesFloat entity)
         {
-            var result = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
-            if (result != null)
+            entity = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
+            if (entity != null)
             {
-                biota.BiotaPropertiesIID.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesFloat.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyInt property)
+        public static bool TryRemoveProperty(this Biota biota, PropertyInstanceId property, out BiotaPropertiesIID entity)
         {
-            var result = biota.BiotaPropertiesInt.FirstOrDefault(x => x.Type == (uint)property);
-            if (result != null)
+            entity = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
+            if (entity != null)
             {
-                biota.BiotaPropertiesInt.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesIID.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyInt64 property)
+        public static bool TryRemoveProperty(this Biota biota, PropertyInt property, out BiotaPropertiesInt entity)
         {
-            var result = biota.BiotaPropertiesInt64.FirstOrDefault(x => x.Type == (uint)property);
-            if (result != null)
+            entity = biota.BiotaPropertiesInt.FirstOrDefault(x => x.Type == (uint)property);
+            if (entity != null)
             {
-                biota.BiotaPropertiesInt64.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesInt.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
         }
 
-        public static void RemoveProperty(this Biota biota, PropertyString property)
+        public static bool TryRemoveProperty(this Biota biota, PropertyInt64 property, out BiotaPropertiesInt64 entity)
         {
-            var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
-            if (result != null)
+            entity = biota.BiotaPropertiesInt64.FirstOrDefault(x => x.Type == (uint)property);
+            if (entity != null)
             {
-                biota.BiotaPropertiesString.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesInt64.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
         }
 
-        public static void RemovePosition(this Biota biota, PositionType positionType)
+        public static bool TryRemoveProperty(this Biota biota, PositionType positionType, out BiotaPropertiesPosition entity)
         {
-            var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
-
-            if (result != null)
+            entity = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
+            if (entity != null)
             {
-                biota.BiotaPropertiesPosition.Remove(result);
-                result.Object = null;
-                DatabaseManager.Shard.RemoveEntity(result, null);
+                biota.BiotaPropertiesPosition.Remove(entity);
+                entity.Object = null;
+                return true;
             }
+            return false;
+        }
+
+        public static bool TryRemoveProperty(this Biota biota, PropertyString property, out BiotaPropertiesString entity)
+        {
+            entity = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
+            if (entity != null)
+            {
+                biota.BiotaPropertiesString.Remove(entity);
+                entity.Object = null;
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -73,17 +73,19 @@ namespace ACE.Server.WorldObjects
 
         public void RemoveSpellIdGameAction(uint spellId)
         {
-            var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
+            var entity = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
 
-            if (result == null)
+            if (entity == null)
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;
             }
 
-            DatabaseManager.Shard.RemoveEntity(result, null);
+            Biota.BiotaPropertiesSpellBook.Remove(entity);
+            entity.Object = null;
 
-            Biota.BiotaPropertiesSpellBook.Remove(result);
+            if (ExistsInDatabase && entity.Id != 0)
+                DatabaseManager.Shard.RemoveEntity(entity, null);
 
             GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
             Session.Network.EnqueueSend(removeSpellEvent);
