@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-03-15
+[Ripley + gmriggs + OptimShi]
+* Add Corpse class and basic framework for spawning a corpse at death of creature.
+  * use /smite command when you have a creature selected.
+
 ### 2018-03-13
 [Ripley]
 * Add three new tables to Shard Database.
