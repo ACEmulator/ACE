@@ -165,16 +165,11 @@ namespace ACE.Server.WorldObjects
                 case spellLevel4: // Level 4
                 case spellLevel5: // Level 5
                 case spellLevel6: // Level 6
-                    if (session.Player.CanReadScroll(School, Power))
-                        success = true;
-                    else
+                    if (!session.Player.CanReadScroll(School, Power))
                     {
                         success = false;
                         failReason = "You are not skilled enough in the inscribed spell's school of magic to understand the writing on this scroll.";
                     }
-                    break;
-                default: // Level 1 or Level 7+ never fail
-                    success = true;
                     break;
             }
 
@@ -184,7 +179,8 @@ namespace ACE.Server.WorldObjects
                 failReason = "You already know the spell inscribed upon this scroll.";
             }
 
-            ActionChain readScrollChain = new ActionChain();
+            var readScrollChain = new ActionChain();
+
             readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading));
             readScrollChain.AddDelaySeconds(2);
 
@@ -192,20 +188,22 @@ namespace ACE.Server.WorldObjects
             {
                 readScrollChain.AddAction(session.Player, () => session.Player.LearnSpellWithNetworking(SpellId));
                 readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
-                var removeObjMessage = new GameMessageRemoveObject(this);
-                var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(destroyMessage, removeObjMessage));
+                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(
+                    new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic),
+                    new GameMessageRemoveObject(this)));
                 readScrollChain.AddAction(session.Player, () => session.Player.TryRemoveFromInventory(Guid, out WorldObject _));
             }
             else
             {
                 readScrollChain.AddDelaySeconds(2);
                 readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
-                var failMessage = new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic);
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(failMessage));
+                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic)));
             }
+
             var sendUseDoneEvent = new GameEventUseDone(session.Player.Session);
+
             readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(sendUseDoneEvent));
+
             readScrollChain.EnqueueChain();
         }
 
