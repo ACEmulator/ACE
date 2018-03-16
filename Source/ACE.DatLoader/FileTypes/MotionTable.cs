@@ -110,8 +110,6 @@ namespace ACE.DatLoader.FileTypes
         {
             float length = 0; // init our length var...will return as 0 if not found
 
-            //Frame finalFrame = new Frame();
-            //ACE.Entity.Position finalPosition = position;
             ACE.Entity.Position finalPosition = new ACE.Entity.Position();
 
             uint motionHash = ((uint)currentMotionState & 0xFFFFFF) | ((uint)style << 16);
@@ -138,24 +136,11 @@ namespace ACE.DatLoader.FileTypes
                             if (animation.PosFrames.Count > 0)
                             {
                                 finalPosition = position;
-                                //var origin = new Vector3(position.PositionX, position.PositionY, position.PositionZ);
-                                //var orientation = new Quaternion(position.RotationX, position.RotationY, position.RotationZ, position.RotationW);
-                                //foreach (var posFrame in animation.PosFrames)
-                                //{
-                                //    //origin += (posFrame.Origin * objScale);
-                                //    origin.X += (posFrame.Origin.X * objScale);
-                                //    origin.Y += (posFrame.Origin.Y * objScale);
-                                //    origin.Z += (posFrame.Origin.Z * objScale);
-
-                                //    orientation *= posFrame.Orientation * objScale;
-                                //    orientation = Quaternion.Normalize(orientation);
-                                //}
                                 var origin = new Vector3(position.PositionX, position.PositionY, position.PositionZ);
-                                var worldRotate = new Quaternion(position.RotationX, position.RotationY, position.RotationZ, position.RotationW);
                                 var orientation = new Quaternion(position.RotationX, position.RotationY, position.RotationZ, position.RotationW);
                                 foreach (var posFrame in animation.PosFrames)
                                 {
-                                    origin += Vector3.Transform(posFrame.Origin, worldRotate) * objScale;
+                                    origin += Vector3.Transform(posFrame.Origin, orientation) * objScale;
 
                                     orientation *= posFrame.Orientation;
                                     orientation = Quaternion.Normalize(orientation);
