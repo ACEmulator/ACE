@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Numerics;
 using ACE.Entity.Enum;
 
 using Newtonsoft.Json;
@@ -85,7 +85,8 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
+            var rotate = new Quaternion(0, 0, qz, qw) * Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.PI);
+            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, rotate.Z, rotate.W);
         }
 
         public Position()

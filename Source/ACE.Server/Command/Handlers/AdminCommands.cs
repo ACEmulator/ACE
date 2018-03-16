@@ -744,6 +744,16 @@ namespace ACE.Server.Command.Handlers
                 if (parameters[0] == "all")
                 {
                     //session.Player.HandleActionSmiteAllNearby();
+                    foreach (var guid in session.Player.GetKnownObjects())
+                    {
+                        if (guid.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
+                            continue;
+
+                        var wo = session.Player.CurrentLandblock.GetObject(guid);
+
+                        if (wo is Creature creature)
+                            creature.Smite(session.Player.Guid);
+                    }
                 }
                 else
                 {

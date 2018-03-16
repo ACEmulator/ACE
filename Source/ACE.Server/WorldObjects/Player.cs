@@ -683,6 +683,18 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// returns a list of the ObjectGuids of all known creatures
+        /// </summary>
+        public List<ObjectGuid> GetKnownObjects()
+        {
+            lock (clientObjectList)
+            {
+                //throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
+                return clientObjectList.Select(x => x.Key).ToList();
+            }
+        }
+
+        /// <summary>
         /// Tracks Interacive world object you are have interacted with recently.  this should be
         /// called from the context of an action chain being executed by the landblock loop.
         /// </summary>
