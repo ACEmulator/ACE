@@ -743,7 +743,6 @@ namespace ACE.Server.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    //session.Player.HandleActionSmiteAllNearby();
                     foreach (var guid in session.Player.GetKnownObjects())
                     {
                         if (guid.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
@@ -765,7 +764,7 @@ namespace ACE.Server.Command.Handlers
                 //session.Player.HandleActionSmiteSelected();
                 var objectId = new ObjectGuid();
 
-                if (session.Player.HealthQueryTarget.HasValue)
+                if (session.Player.HealthQueryTarget.HasValue) // Only Creatures will trigger this.. Excludes vendors automatically as a result (Can change design to mimic @delete command)
                 {
                     objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
 
@@ -779,6 +778,10 @@ namespace ACE.Server.Command.Handlers
 
                     if (wo != null)
                         wo.Smite(session.Player.Guid);
+                }
+                else
+                {
+                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
                 }
             }
         }
