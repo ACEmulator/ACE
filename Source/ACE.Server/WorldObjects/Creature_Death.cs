@@ -10,6 +10,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Motion;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
@@ -73,6 +74,20 @@ namespace ACE.Server.WorldObjects
                     corpse.PaletteTemplate = PaletteTemplate;
                 if (Shade.HasValue)
                     corpse.Shade = Shade;
+
+                if (EquippedObjects.Where(x => (x.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
+                {
+                    var objDesc = CalculateObjDesc();
+
+                    foreach (var animPartChange in objDesc.AnimPartChanges)
+                        corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex });
+
+                    foreach (var subPalette in objDesc.SubPalettes)
+                        corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+
+                    foreach (var textureChange in objDesc.TextureChanges)
+                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId=corpse.Guid.Full, Index=textureChange.PartIndex, OldId=textureChange.OldTexture, NewId=textureChange.NewTexture});
+                }
 
                 //corpse.Location = Location;
                 corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
