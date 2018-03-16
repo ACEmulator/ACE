@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Corpse : WorldObject
+    public class Corpse : Container
     {
         private static readonly UniversalMotion dead = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
 
