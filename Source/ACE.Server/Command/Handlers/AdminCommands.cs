@@ -761,7 +761,6 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                //session.Player.HandleActionSmiteSelected();
                 var objectId = new ObjectGuid();
 
                 if (session.Player.HealthQueryTarget.HasValue) // Only Creatures will trigger this.. Excludes vendors automatically as a result (Can change design to mimic @delete command)
