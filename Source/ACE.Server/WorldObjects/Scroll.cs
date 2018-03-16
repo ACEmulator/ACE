@@ -190,7 +190,7 @@ namespace ACE.Server.WorldObjects
 
             if (success)
             {
-                readScrollChain.AddAction(session.Player, () => session.Player.LearnSpell(SpellId));
+                readScrollChain.AddAction(session.Player, () => session.Player.LearnSpellWithNetworking(SpellId));
                 readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
                 var removeObjMessage = new GameMessageRemoveObject(this);
                 var destroyMessage = new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic);

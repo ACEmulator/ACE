@@ -6,6 +6,7 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -23,15 +24,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Will return true if the spell was added, or false if the spell already exists.
         /// </summary>
-        public bool AddKnownSpell(int spellId)
+        public bool AddKnownSpell(uint spellId)
         {
             var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
 
             if (result == null)
             {
-                result = new BiotaPropertiesSpellBook { ObjectId = Biota.Id, Spell = spellId };
+                result = new BiotaPropertiesSpellBook { ObjectId = Biota.Id, Spell = (int)spellId, Object = Biota };
 
                 Biota.BiotaPropertiesSpellBook.Add(result);
+                ChangesDetected = true;
 
                 return true;
             }
@@ -39,7 +41,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public void LearnSpell(uint spellId)
+        public void LearnSpellWithNetworking(uint spellId)
         {
             var spells = DatManager.PortalDat.SpellTable;
 
@@ -50,14 +52,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (SpellIsKnown(spellId))
+            if (!AddKnownSpell(spellId))
             {
                 GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(errorMessage);
                 return;
             }
-
-            Biota.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook { ObjectId = Biota.Id, Spell = (int)spellId });
 
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
@@ -65,72 +65,110 @@ namespace ACE.Server.WorldObjects
             // Always seems to be this SkillUpPurple effect
             Session.Player.ApplyVisualEffects(ACE.Entity.Enum.PlayScript.SkillUpPurple);
 
-            string spellName = spells.Spells[spellId].Name;
-            string message = "You learn the " + spellName + " spell.\n";
+            string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
             GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
             Session.Network.EnqueueSend(learnMessage);
         }
 
-        public void RemoveSpellIdGameAction(uint spellId)
+        public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            var entity = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
-
-            if (entity == null)
+            new ActionChain(this, () =>
             {
-                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
-                return;
-            }
+                var entity = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
 
-            Biota.BiotaPropertiesSpellBook.Remove(entity);
-            entity.Object = null;
+                if (entity == null)
+                {
+                    log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                    return;
+                }
 
-            if (ExistsInDatabase && entity.Id != 0)
-                DatabaseManager.Shard.RemoveEntity(entity, null);
+                Biota.BiotaPropertiesSpellBook.Remove(entity);
+                entity.Object = null;
 
-            GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
-            Session.Network.EnqueueSend(removeSpellEvent);
+                if (ExistsInDatabase && entity.Id != 0)
+                    DatabaseManager.Shard.RemoveEntity(entity, null);
+
+                GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+                Session.Network.EnqueueSend(removeSpellEvent);
+            }).EnqueueChain();
         }
 
-
-        /// <summary>
-        /// This method implements player spell bar management for - adding a spell to a specific spell bar (0 based) at a specific slot (0 based).
-        /// </summary>
-        public void AddSpellFavoriteGameAction(uint spellId, uint spellBarPositionId, uint spellBarId)
-        {
-            // The spell bar magic happens here.
-            /*SpellsInSpellBars.Add(new AceObjectPropertiesSpellBarPositions()
-            {
-                AceObjectId = AceObject.AceObjectId,
-                SpellId = spellId,
-                SpellBarId = spellBarId,
-                SpellBarPositionId = spellBarPositionId
-            });*/
-        }
-
-        /// <summary>
-        /// This method implements player spell bar management for - removing a spell to a specific spell bar (0 based)
-        /// </summary>
-        public void RemoveSpellFavoriteGameAction(uint spellId, uint spellBarId)
-        {
-            /*// More spell bar magic happens here.
-            SpellsInSpellBars.Remove(SpellsInSpellBars.Single(x => x.SpellBarId == spellBarId && x.SpellId == spellId));
-            // Now I have to reorder
-            var sorted = SpellsInSpellBars.FindAll(x => x.AceObjectId == AceObject.AceObjectId && x.SpellBarId == spellBarId).OrderBy(s => s.SpellBarPositionId);
-            uint newSpellBarPosition = 0;
-            foreach (AceObjectPropertiesSpellBarPositions spells in sorted)
-            {
-                spells.SpellBarPositionId = newSpellBarPosition;
-                newSpellBarPosition++;
-            }*/
-        }
 
         /// <summary>
         /// Will return the spells in the bar, sorted by their position
         /// </summary>
         public List<SpellBarPositions> GetSpellsInSpellBar(int barId)
         {
-            // todo fix for new EF model
-            return new List<SpellBarPositions>();
+            var spells = new List<SpellBarPositions>();
+
+            var results = Biota.BiotaPropertiesSpellBar.Where(x => x.SpellBarNumber == barId);
+
+            foreach (var result in results)
+            {
+                var entity = new SpellBarPositions(result.SpellBarNumber, result.SpellBarIndex, result.SpellId);
+
+                spells.Add(entity);
+            }
+
+            spells.Sort((a, b) => a.SpellBarPositionId.CompareTo(b.SpellBarPositionId));
+
+            return spells;
+        }
+
+        /// <summary>
+        /// This method implements player spell bar management for - adding a spell to a specific spell bar (0 based) at a specific slot (0 based).
+        /// </summary>
+        public void HandleActionAddSpellFavorite(uint spellId, uint spellBarPositionId, uint spellBarId)
+        {
+            new ActionChain(this, () =>
+            {
+                var spells = GetSpellsInSpellBar((int)spellBarId);
+
+                if (spellBarPositionId > spells.Count + 1)
+                    spellBarPositionId = (uint)(spells.Count + 1);
+
+                // We must increment the position of existing spells in the bar that exist on or after this position
+                foreach (var property in Biota.BiotaPropertiesSpellBar)
+                {
+                    if (property.SpellBarNumber == spellBarId && property.SpellBarIndex >= spellBarPositionId)
+                        property.SpellBarIndex++;
+                }
+
+                var entity = new BiotaPropertiesSpellBar { ObjectId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId, Object = Biota };
+
+                Biota.BiotaPropertiesSpellBar.Add(entity);
+                ChangesDetected = true;
+            }).EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method implements player spell bar management for - removing a spell to a specific spell bar (0 based)
+        /// </summary>
+        public void HandleActionRemoveSpellFavorite(uint spellId, uint spellBarId)
+        {
+            new ActionChain(this, () =>
+            {
+                var entity = Biota.BiotaPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == spellBarId && x.SpellId == spellId);
+
+                if (entity != null)
+                {
+                    // We must decrement the position of existing spells in the bar that exist after this position
+                    foreach (var property in Biota.BiotaPropertiesSpellBar)
+                    {
+                        if (property.SpellBarNumber == spellBarId && property.SpellBarIndex > entity.SpellBarIndex)
+                        {
+                            property.SpellBarIndex--;
+                            ChangesDetected = true;
+                        }
+                    }
+
+                    Biota.BiotaPropertiesSpellBar.Remove(entity);
+                    entity.Object = null;
+
+                    if (ExistsInDatabase && entity.Id != 0)
+                        DatabaseManager.Shard.RemoveEntity(entity, null);
+                }
+            }).EnqueueChain();
         }
     }
 }

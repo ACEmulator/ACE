@@ -11,9 +11,11 @@ namespace ACE.Server.WorldObjects
         protected DateTime LastDatabaseSave { get; set; }
 
         /// <summary>
-        /// This variable is set to true when a change is made, and set to false after a save completed.
+        /// This variable is set to true when a change is made, and set to false after a save completed.<para />
+        /// If you are removing an entity from a local property collection, and the database, you do not need to set this to true.<para />
+        /// The primary use for this is to trigger save on add/modify of properties.
         /// </summary>
-        public bool ChangesDetected { get; private set; }
+        public bool ChangesDetected { get; protected set; }
 
         private void AddBiotaToDatabase()
         {
@@ -61,6 +63,7 @@ namespace ACE.Server.WorldObjects
             if (ExistsInDatabase && Biota.Id != 0)
             {
                 ExistsInDatabase = false;
+                LastDatabaseSave = DateTime.MinValue;
                 DatabaseManager.Shard.RemoveBiota(Biota, null);
             }
         }

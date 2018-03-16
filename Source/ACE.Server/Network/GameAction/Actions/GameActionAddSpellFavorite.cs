@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
             uint spellId = message.Payload.ReadUInt32();
             uint spellBarPositionId = message.Payload.ReadUInt32();
             uint spellBarId = message.Payload.ReadUInt32();
-            session.Player.AddSpellFavoriteGameAction(spellId, spellBarPositionId, spellBarId);
+            session.Player.HandleActionAddSpellFavorite(spellId, spellBarPositionId, spellBarId);
         }
     }
 }

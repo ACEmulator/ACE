@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionMagicRemoveSpellId
     {
@@ -7,7 +7,7 @@
         {
             uint spellId = message.Payload.ReadUInt32();
 
-            session.Player.RemoveSpellIdGameAction(spellId);
+            session.Player.HandleActionMagicRemoveSpellId(spellId);
         }
     }
 }

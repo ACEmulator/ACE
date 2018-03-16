@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint spellId = message.Payload.ReadUInt32();
             uint spellBarId = message.Payload.ReadUInt32();
-            session.Player.RemoveSpellFavoriteGameAction(spellId, spellBarId);
+            session.Player.HandleActionRemoveSpellFavorite(spellId, spellBarId);
         }
     }
 }

@@ -985,19 +985,13 @@ namespace ACE.Server.Command.Handlers
         }
 
         // add <spell>
-        [CommandHandler("add", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Adds the specified spell to your own spellbook.",
-            "<spellid>")]
+        [CommandHandler("add", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
         public static void HandleAdd(Session session, params string[] parameters)
         {
-            // @add spell - Adds the specified spell to your own spellbook.
-
             if (Enum.TryParse(parameters[0], true, out Spell spellId))
             {
                 if (Enum.IsDefined(typeof(Spell), spellId))
-                {
-                    session.Player.LearnSpell((uint)spellId);
-                }
+                    session.Player.LearnSpellWithNetworking((uint)spellId);
             }
         }
 
