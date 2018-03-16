@@ -683,13 +683,12 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// returns a list of the ObjectGuids of all known creatures
+        /// returns a list of the ObjectGuids of all known objects
         /// </summary>
         public List<ObjectGuid> GetKnownObjects()
         {
             lock (clientObjectList)
             {
-                //throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
                 return clientObjectList.Select(x => x.Key).ToList();
             }
         }
