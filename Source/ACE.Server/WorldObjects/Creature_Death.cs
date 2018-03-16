@@ -74,8 +74,8 @@ namespace ACE.Server.WorldObjects
                     corpse.PaletteTemplate = PaletteTemplate;
                 if (Shade.HasValue)
                     corpse.Shade = Shade;
-                if (Translucency.HasValue)
-                    corpse.Translucency = Translucency;
+                //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
+                //    corpse.Translucency = Translucency;
 
                 if (EquippedObjects.Where(x => (x.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
                 {
