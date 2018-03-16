@@ -654,6 +654,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// returns a list of the ObjectGuids of all known objects
+        /// </summary>
+        public List<ObjectGuid> GetKnownObjects()
+        {
+            lock (clientObjectList)
+            {
+                return clientObjectList.Select(x => x.Key).ToList();
+            }
+        }
+
+        /// <summary>
         /// Tracks Interacive world object you are have interacted with recently.  this should be
         /// called from the context of an action chain being executed by the landblock loop.
         /// </summary>

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Numerics;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 
@@ -95,6 +95,78 @@ namespace ACE.DatLoader.FileTypes
             }
 
             return length;
+        }
+
+        public ACE.Entity.Position GetAnimationFinalPositionFromStart(ACE.Entity.Position position, float objScale, MotionCommand motion)
+        {
+            MotionStance defaultStyle = (MotionStance)DefaultStyle;
+
+            // get the default motion for the default
+            MotionCommand defaultMotion = GetDefaultMotion(defaultStyle);
+            return GetAnimationFinalPositionFromStart(position, objScale, defaultMotion, defaultStyle, motion);
+        }
+
+        public ACE.Entity.Position GetAnimationFinalPositionFromStart(ACE.Entity.Position position, float objScale, MotionCommand currentMotionState, MotionStance style, MotionCommand motion)
+        {
+            float length = 0; // init our length var...will return as 0 if not found
+
+            ACE.Entity.Position finalPosition = new ACE.Entity.Position();
+
+            uint motionHash = ((uint)currentMotionState & 0xFFFFFF) | ((uint)style << 16);
+
+            if (Links.ContainsKey(motionHash))
+            {
+                Dictionary<uint, MotionData> links = Links[motionHash];
+
+                if (links.ContainsKey((uint)motion))
+                {
+                    // loop through all that animations to get our total count
+                    for (int i = 0; i < links[(uint)motion].Anims.Count; i++)
+                    {
+                        AnimData anim = links[(uint)motion].Anims[i];
+
+                        uint numFrames;
+
+                        // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
+                        if ((anim.LowFrame == 0) && (anim.HighFrame == uint.MaxValue))
+                        {
+                            var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
+                            numFrames = animation.NumFrames;
+
+                            if (animation.PosFrames.Count > 0)
+                            {
+                                finalPosition = position;
+                                var origin = new Vector3(position.PositionX, position.PositionY, position.PositionZ);
+                                var orientation = new Quaternion(position.RotationX, position.RotationY, position.RotationZ, position.RotationW);
+                                foreach (var posFrame in animation.PosFrames)
+                                {
+                                    origin += Vector3.Transform(posFrame.Origin, orientation) * objScale;
+
+                                    orientation *= posFrame.Orientation;
+                                    orientation = Quaternion.Normalize(orientation);
+                                }
+
+                                finalPosition.PositionX = origin.X;
+                                finalPosition.PositionY = origin.Y;
+                                finalPosition.PositionZ = origin.Z;
+
+                                finalPosition.RotationW = orientation.W;
+                                finalPosition.RotationX = orientation.X;
+                                finalPosition.RotationY = orientation.Y;
+                                finalPosition.RotationZ = orientation.Z;
+                            }
+                            else
+                                return position;
+                        }
+                        else
+                            numFrames = anim.HighFrame - anim.LowFrame;
+
+                        length += numFrames / Math.Abs(anim.Framerate); // Framerates can be negative, which tells the client to play in reverse
+                    }
+                }
+            }
+
+            return finalPosition;
         }
     }
 }

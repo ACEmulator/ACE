@@ -732,7 +732,9 @@ namespace ACE.Server.Command.Handlers
         }
 
         // smite [all]
-        [CommandHandler("smite", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("smite", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+            "Kills the selected target or all monsters in radar range if \"all\" is specified.",
+            "[all]")]
         public static void HandleSmite(Session session, params string[] parameters)
         {
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
@@ -741,7 +743,16 @@ namespace ACE.Server.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    session.Player.HandleActionSmiteAllNearby();
+                    foreach (var guid in session.Player.GetKnownObjects())
+                    {
+                        if (guid.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
+                            continue;
+
+                        var wo = session.Player.CurrentLandblock.GetObject(guid);
+
+                        if (wo is Creature creature)
+                            creature.Smite(session.Player.Guid);
+                    }
                 }
                 else
                 {
@@ -750,7 +761,27 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                session.Player.HandleActionSmiteSelected();
+                var objectId = new ObjectGuid();
+
+                if (session.Player.HealthQueryTarget.HasValue) // Only Creatures will trigger this.. Excludes vendors automatically as a result (Can change design to mimic @delete command)
+                {
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+
+                    var wo = session.Player.CurrentLandblock.GetObject(objectId) as Creature;
+
+                    //if (objectId.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
+                    //    return;
+
+                    if (objectId == session.Player.Guid) // don't kill yourself
+                        return;
+
+                    if (wo != null)
+                        wo.Smite(session.Player.Guid);
+                }
+                else
+                {
+                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
+                }
             }
         }
 
@@ -1072,7 +1103,7 @@ namespace ACE.Server.Command.Handlers
             //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            loot.Location = session.Player.Location.InFrontOf(1.00f);
+            loot.Location = session.Player.Location.InFrontOf(5f);
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
