@@ -1091,7 +1091,7 @@ namespace ACE.Server.Command.Handlers
             //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            loot.Location = session.Player.Location.InFrontOf(1.00f);
+            loot.Location = session.Player.Location.InFrontOf(5f);
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
