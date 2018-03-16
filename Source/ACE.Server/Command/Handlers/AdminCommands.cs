@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
+using System.Collections.ObjectModel;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -16,9 +19,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using System.Linq;
-using System.Collections.ObjectModel;
-using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1104,44 +1104,28 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ci wclassid (number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an object in your inventory.", "wclassid (string or number)")]
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number)")]
         public static void HandleCI(Session session, params string[] parameters)
         {
-            throw new NotImplementedException();
-            /* todo fix for EF
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
-            if (wcid)
-            {
-                if (weenieClassId < 1 && weenieClassId > AceObject.WEENIE_MAX)
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {AceObject.WEENIE_MAX}", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
 
-            int palette = 0;
-            float shade = 0;
+            if (parameters.Length > 1 && !int.TryParse(parameters[1], out int palette))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                return;
+            }
+            if (parameters.Length > 2 && !float.TryParse(parameters[2], out float shade))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
+                return;
+            }
             int stackSize = 1;
-            if (parameters.Length > 1)
-                if (!int.TryParse(parameters[1], out palette))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
-                    return;
-                }
-            if (parameters.Length > 2)
-                if (!float.TryParse(parameters[2], out shade))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
-                    return;
-                }
-            if (parameters.Length > 3)
-                if (!int.TryParse(parameters[3], out stackSize))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
-                    return;
-                }
+            if (parameters.Length > 3 && !int.TryParse(parameters[3], out stackSize))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                return;
+            }
 
             WorldObject loot;
             if (wcid)
@@ -1149,21 +1133,15 @@ namespace ACE.Server.Command.Handlers
             else
                 loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
 
-            throw new NotImplementedException();
-            // set the palette, shade, stackSize here
-
             if (loot == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
 
-            loot.ContainerId = (int)session.Player.Guid.Full;
-            loot.PlacementPosition = 0;
-            session.Player.AddToInventory(loot);
-            session.Player.TrackObject(loot);
-            session.Network.EnqueueSend(new GameMessagePutObjectInContainer(session, session.Player.Guid, loot, 0),
-                new GameMessageUpdateInstanceId(loot.Guid, session.Player.Guid, PropertyInstanceId.Container));*/
+            // todo set the palette, shade, stackSize here
+
+            session.Player.TryCreateInInventoryWithNetworking(loot);
         }
 
         // cm <material type> <quantity> <ave. workmanship>

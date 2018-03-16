@@ -82,8 +82,6 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePutObjectInContainer(Session, container.Guid, worldObject, worldObject.PlacementPosition ?? 0),
                 new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-            worldObject.SaveBiotaToDatabase();
-
             return true;
         }
 
