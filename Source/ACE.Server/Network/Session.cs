@@ -117,7 +117,7 @@ namespace ACE.Server.Network
             lastAgeIntUpdateTime = DateTime.MinValue;
             lastSendAgeIntUpdateTime = DateTime.MinValue;
 
-            GameEventSequence = 0;
+            GameEventSequence = 1;
         }
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
