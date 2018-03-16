@@ -342,13 +342,13 @@ namespace ACE.Server.Network.GameEvent.Events
             // Write total count.
             Writer.Write((uint)Session.Player.Inventory.Count);
             // write out all of the non-containers and foci
-            foreach (var item in Session.Player.Inventory.Values.Where(i => !i.UseBackpackSlot))
+            foreach (var item in Session.Player.Inventory.Values.Where(i => !i.UseBackpackSlot).OrderBy(i => i.PlacementPosition))
             {
                 Writer.Write(item.Guid.Full);
                 Writer.Write((uint)ContainerType.NonContainer);
             }
             // Containers and foci go in side slots, they come last with their own placement order.
-            foreach (var item in Session.Player.Inventory.Values.Where(i => i.UseBackpackSlot))
+            foreach (var item in Session.Player.Inventory.Values.Where(i => i.UseBackpackSlot).OrderBy(i => i.PlacementPosition))
             {
                 Writer.Write(item.Guid.Full);
                 if (item.WeenieType == WeenieType.Container)
