@@ -41,6 +41,8 @@ namespace ACE.Server.Network
 
         public Player Player { get; private set; }
 
+        private DateTime lastAutoSaveTime;
+
         private DateTime logOffRequestTime;
 
         private DateTime lastAgeIntUpdateTime;
@@ -182,8 +184,17 @@ namespace ACE.Server.Network
 
             if (Player != null)
             {
+                // First, we check if the player hasn't been saved in the last 5 minutes
                 if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                    SaveSessionPlayer();
+                {
+                    // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
+                    // We do this because SaveSessionPlayer will queue an ActionChain that may not execute immediateyl. This prevents refiring while a save is pending.
+                    if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
+                    {
+                        lastAutoSaveTime = DateTime.UtcNow;
+                        SaveSessionPlayer();
+                    }
+                }
 
                 /*if (lastAgeIntUpdateTime == DateTime.MinValue)
                     lastAgeIntUpdateTime = DateTime.UtcNow;
