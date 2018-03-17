@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Server.Managers;
+
 using log4net;
 
 namespace ACE.Server.Entity.Actions
@@ -10,12 +12,13 @@ namespace ACE.Server.Entity.Actions
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private SortedSet<DelayAction> delayHeap = new SortedSet<DelayAction>();
+        private readonly SortedSet<DelayAction> delayHeap = new SortedSet<DelayAction>();
 
         public void RunActions()
         {
             // While the minimum time of our delayHeap is > our current time, kick off actions
             bool checkNeeded = true;
+
             while (checkNeeded)
             {
                 checkNeeded = false;
@@ -49,16 +52,14 @@ namespace ACE.Server.Entity.Actions
                     Tuple<IActor, IAction> next = action.Act();
 
                     if (next != null)
-                    {
                         next.Item1.EnqueueAction(next.Item2);
-                    }
                 }
             }
         }
 
         public LinkedListNode<IAction> EnqueueAction(IAction action)
         {
-            DelayAction delayAction = action as DelayAction;
+            var delayAction = action as DelayAction;
 
             if (delayAction == null)
             {
@@ -69,9 +70,7 @@ namespace ACE.Server.Entity.Actions
             delayAction.Start();
 
             lock (delayHeap)
-            {
                 delayHeap.Add(delayAction);
-            }
 
             return null;
         }

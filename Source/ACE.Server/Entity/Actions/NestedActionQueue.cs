@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Server.Entity.Actions
@@ -29,12 +29,11 @@ namespace ACE.Server.Entity.Actions
         /// </summary>
         public void RemoveParent()
         {
-            lock (queueLock)
+            lock (QueueLock)
             {
                 if (enqueued && parent != null)
-                {
                     parent.DequeueAction(node);
-                }
+
                 parent = null;
                 node = null;
             }
@@ -43,16 +42,14 @@ namespace ACE.Server.Entity.Actions
         /// <summary>
         /// NOT Thread safe
         /// </summary>
-        /// <param name="parent"></param>
         public void SetParent(IActor parent)
         {
-            lock (queueLock)
+            lock (QueueLock)
             {
                 this.parent = parent;
+
                 if (enqueued && parent != null)
-                {
                     node = parent.EnqueueAction(this);
-                }
             }
         }
 
@@ -61,14 +58,14 @@ namespace ACE.Server.Entity.Actions
         /// Enqueues an action in our actionQueue, and automatically enqueues our NestedActionQueue in its parent
         ///    (If the parent is a NestedActionQueue this process repeats -- woot)
         /// </summary>
-        /// <param name="action"></param>
         public override LinkedListNode<IAction> EnqueueAction(IAction action)
         {
             bool needEnqueue = false;
             LinkedListNode<IAction> ret;
-            lock (queueLock)
+
+            lock (QueueLock)
             {
-                ret = queue.AddLast(action);
+                ret = Queue.AddLast(action);
 
                 if (enqueued == false)
                 {
@@ -81,9 +78,7 @@ namespace ACE.Server.Entity.Actions
             // The race between adding an action to my queue, and adding an action to their queue is safe
             //   They will eventually run my action, even if more come along, and I will still enqueue only once (enqueued=true is locked)
             if (needEnqueue)
-            {
                 node = parent.EnqueueAction(this);
-            }
 
             return ret;
         }
@@ -104,8 +99,6 @@ namespace ACE.Server.Entity.Actions
         /// <summary>
         /// NOT Thread safe, must be set before EnqueueAction
         /// </summary>
-        /// <param name="nextActor"></param>
-        /// <param name="nextAction"></param>
         public void RunOnFinish(IActor nextActor, IAction nextAction)
         {
             nextAct = new Tuple<IActor, IAction>(nextActor, nextAction);

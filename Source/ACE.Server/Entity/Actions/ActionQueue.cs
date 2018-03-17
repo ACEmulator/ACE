@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using log4net;
 
 namespace ACE.Server.Entity.Actions
@@ -9,16 +10,17 @@ namespace ACE.Server.Entity.Actions
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected object queueLock = new object();
-        protected LinkedList<IAction> queue = new LinkedList<IAction>();
+        protected readonly object QueueLock = new object();
+        protected LinkedList<IAction> Queue { get; private set; } = new LinkedList<IAction>();
 
         public void RunActions()
         {
             LinkedList<IAction> tmp;
-            lock (queueLock)
+
+            lock (QueueLock)
             {
-                tmp = queue;
-                queue = new LinkedList<IAction>();
+                tmp = Queue;
+                Queue = new LinkedList<IAction>();
             }
 
             foreach (var next in tmp)
@@ -26,9 +28,7 @@ namespace ACE.Server.Entity.Actions
                 Tuple<IActor, IAction> enqueue = next.Act();
 
                 if (enqueue != null)
-                {
                     enqueue.Item1.EnqueueAction(enqueue.Item2);
-                }
             }
         }
 
@@ -36,10 +36,11 @@ namespace ACE.Server.Entity.Actions
         public void RunActionsParallel()
         {
             LinkedList<IAction> tmp;
-            lock (queueLock)
+
+            lock (QueueLock)
             {
-                tmp = queue;
-                queue = new LinkedList<IAction>();
+                tmp = Queue;
+                Queue = new LinkedList<IAction>();
             }
 
             Parallel.ForEach(tmp, next =>
@@ -47,32 +48,24 @@ namespace ACE.Server.Entity.Actions
                 Tuple<IActor, IAction> enqueue = next.Act();
 
                 if (enqueue != null)
-                {
                     enqueue.Item1.EnqueueAction(enqueue.Item2);
-                }
             });
         }
 
         public virtual LinkedListNode<IAction> EnqueueAction(IAction action)
         {
-            lock (queueLock)
-            {
-                return queue.AddLast(action);
-            }
+            lock (QueueLock)
+                return Queue.AddLast(action);
         }
 
         public void DequeueAction(LinkedListNode<IAction> node)
         {
-            lock (queueLock)
+            lock (QueueLock)
             {
-                if (node.List == queue)
-                {
-                    queue.Remove(node);
-                }
+                if (node.List == Queue)
+                    Queue.Remove(node);
                 else
-                {
                     log.Warn("Unexpected dequeue of node not in queue?");
-                }
             }
         }
     }

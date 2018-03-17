@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Server.Managers;
 
 namespace ACE.Server.Entity.Actions
@@ -9,11 +10,11 @@ namespace ACE.Server.Entity.Actions
     /// </summary>
     public class DelayAction : ActionEventBase, IComparable<DelayAction>
     {
-        public double WaitTime { get; private set; }
+        public double WaitTime { get; }
         public double EndTime { get; private set; }
 
         // For breaking ties on compareto, two actions cannot be equal
-        private long sequence;
+        private readonly long sequence;
         private static volatile uint glblSequence;
 
         public DelayAction(double waitTimePortalTickYears)
@@ -30,10 +31,10 @@ namespace ACE.Server.Entity.Actions
         public int CompareTo(DelayAction rhs)
         {
             int ret = EndTime.CompareTo(rhs.EndTime);
+
             if (ret == 0)
-            {
                 return sequence.CompareTo(rhs.sequence);
-            }
+
             return ret;
         }
     }

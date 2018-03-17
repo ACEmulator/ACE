@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace ACE.Server.Entity.Actions
 {
@@ -6,10 +6,14 @@ namespace ACE.Server.Entity.Actions
     {
         void RunActions();
 
-        // Returns the next action to be run
+        /// <summary>
+        /// Returns the next action to be run
+        /// </summary>
         LinkedListNode<IAction> EnqueueAction(IAction action);
 
-        // Not thread safe
+        /// <summary>
+        /// Not thread safe
+        /// </summary>
         void DequeueAction(LinkedListNode<IAction> node);
     }
 }
