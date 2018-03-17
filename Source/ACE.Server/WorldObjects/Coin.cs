@@ -33,7 +33,7 @@ namespace ACE.Server.WorldObjects
             {
                 var value = Value ?? 0;
 
-                SetProperty(PropertyInt.CoinValue, value);
+                base.CoinValue = value;
 
                 return value;
             }

@@ -33,7 +33,7 @@ namespace ACE.Server.WorldObjects
             {
                 var value = ((StackUnitEncumbrance ?? 0) * (StackSize ?? 1));
 
-                SetProperty(PropertyInt.EncumbranceVal, value);
+                base.EncumbranceVal = value;
 
                 return value;
             }
@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
             {
                 var value = ((StackUnitValue ?? 0) * (StackSize ?? 1));
 
-                SetProperty(PropertyInt.Value, value);
+                base.Value = value;
 
                 return value;
             }
