@@ -43,6 +43,9 @@ namespace ACE.Server.WorldObjects
             //    //Ethereal = true;
             //}
 
+            ContainerCapacity = 10;
+            ItemCapacity = 120;
+
             CurrentMotionState = motionStateClosed; // What chest defaults to open?
 
             if (UseRadius < 2)

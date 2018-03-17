@@ -35,6 +35,9 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse;
 
             CurrentMotionState = dead;
+
+            ContainerCapacity = 10;
+            ItemCapacity = 120;
         }
 
         public override ACE.Entity.ObjDesc CalculateObjDesc()
