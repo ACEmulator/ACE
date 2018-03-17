@@ -32,6 +32,8 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse;
+
             CurrentMotionState = dead;
         }
 

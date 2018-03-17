@@ -209,8 +209,8 @@ namespace ACE.Server.WorldObjects
                             Close(playerId);
                         }
 
-                            // Create Door auto close timer
-                            ActionChain autoCloseTimer = new ActionChain();
+                        // Create Door auto close timer
+                        ActionChain autoCloseTimer = new ActionChain();
                         autoCloseTimer.AddDelaySeconds(ResetInterval);
                         autoCloseTimer.AddAction(this, () => Reset());
                         autoCloseTimer.EnqueueChain();
@@ -237,8 +237,8 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motionStateOpen;
             Ethereal = true;
             IsOpen = true;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
+            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
+            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
             if (opener.Full > 0)
                 UseTimestamp++;
         }
@@ -252,8 +252,8 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motionStateClosed;
             Ethereal = false;
             IsOpen = false;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
+            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
+            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
             if (closer.Full > 0)
                 UseTimestamp++;
         }

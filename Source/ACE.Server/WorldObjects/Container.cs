@@ -15,6 +15,8 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
@@ -49,6 +51,11 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = EncumbranceVal ?? 0; // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
             Value = Value ?? 0;
             // todo CoinValue
+
+            //CurrentMotionState = motionStateClosed; // What container defaults to open?
+
+            if (UseRadius < 2)
+                UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
         }
 
 
@@ -303,11 +310,81 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        public override void ActOnUse(ObjectGuid playerId)
+        {
+            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
+            {
+                return;
+            }
 
+            if (!player.IsWithinUseRadiusOf(this) && Viewer != player.Guid.Full)
+                player.DoMoveTo(this);
+            else
+            {
+                if (!(IsOpen ?? false))
+                {
+                    var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                    turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
+                    ActionChain turnToTimer = new ActionChain();
+                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion)); ;
+                    turnToTimer.AddDelaySeconds(1);
+                    turnToTimer.AddAction(this, () => Open(player));
+                    turnToTimer.EnqueueChain();
 
+                    return;
+                }
+                else
+                {
+                    if (Viewer == player.Guid.Full)
+                    {
+                        Close(player);
+                    }
+                    // else error msg?
+                }
 
+                player.SendUseDoneEvent();
+            }
+        }
 
+        public uint? Viewer
+        {
+            get => GetProperty(PropertyInstanceId.Viewer);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Viewer); else SetProperty(PropertyInstanceId.Viewer, value.Value); }
+        }
+
+        public virtual void Open(Player player)
+        {
+            if (IsOpen ?? false)
+                return;
+
+            IsOpen = true;
+
+            Viewer = player.Guid.Full;
+
+            player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
+
+            // send createobject for all objects in this container's inventory to player
+
+            player.SendUseDoneEvent();
+        }
+
+        public virtual void Close(Player player)
+        {
+            if (!(IsOpen ?? false))
+                return;
+
+            player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
+
+            // send removeobject for all objects in this container's inventory to player
+
+            //player.SendUseDoneEvent();
+
+            Viewer = null;
+
+            IsOpen = false;
+        }
 
 
         // ******************************************************************* OLD CODE BELOW ********************************

@@ -74,6 +74,8 @@ namespace ACE.Server.Factories
                     return new Missile(weenie, guid);
                 case WeenieType.Corpse:
                     return new Corpse(weenie, guid);
+                case WeenieType.Chest:
+                    return new Chest(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -137,6 +139,8 @@ namespace ACE.Server.Factories
                     return new Missile(biota);
                 case WeenieType.Corpse:
                     return new Corpse(biota);
+                case WeenieType.Chest:
+                    return new Chest(biota);
                 default:
                     return new GenericObject(biota);
             }
