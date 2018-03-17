@@ -20,6 +20,8 @@ namespace ACE.Server.WorldObjects
     //
     // todo: Also, properties only used by certain WorldObjectTypes should be moved to that worldobject type class and not remain here in the base.
     // todo: For example, ChessGamesWon would only be used by a player. That property doesn't need to be in WorldObject and thus accessable to all WorldObject classes.
+    //
+    // todo: When we're confident a set of functions, or a group of properties are "final", we can wrap them in a region
     partial class WorldObject
     {
         public Dictionary<PropertyBool, bool?> EphemeralPropertyBools = new Dictionary<PropertyBool, bool?>();
@@ -30,6 +32,7 @@ namespace ACE.Server.WorldObjects
         public Dictionary<PropertyInt64, long?> EphemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
         public Dictionary<PropertyString, string> EphemeralPropertyStrings = new Dictionary<PropertyString, string>();
 
+        #region GetProperty Functions
         public bool? GetProperty(PropertyBool property) { if (EphemeralPropertyBools.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public uint? GetProperty(PropertyDataId property) { if (EphemeralPropertyDataIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public double? GetProperty(PropertyFloat property) { if (EphemeralPropertyFloats.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
@@ -37,7 +40,9 @@ namespace ACE.Server.WorldObjects
         public int? GetProperty(PropertyInt property) { if (EphemeralPropertyInts.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public long? GetProperty(PropertyInt64 property) { if (EphemeralPropertyInt64s.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
         public string GetProperty(PropertyString property) { if (EphemeralPropertyStrings.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property); }
+        #endregion
 
+        #region SetProperty Functions
         public void SetProperty(PropertyBool property, bool value)
         {
             if (EphemeralPropertyBools.ContainsKey(property))
@@ -108,7 +113,9 @@ namespace ACE.Server.WorldObjects
                 ChangesDetected = true;
             }
         }
+        #endregion
 
+        #region RemoveProperty Functions
         public void RemoveProperty(PropertyBool property)
         {
             if (EphemeralPropertyBools.ContainsKey(property))
@@ -158,7 +165,9 @@ namespace ACE.Server.WorldObjects
             else if (Biota.TryRemoveProperty(property, out var entity) && ExistsInDatabase && entity.Id != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
+        #endregion
 
+        #region GetAllProperty Functions
         public Dictionary<PropertyBool, bool> GetAllPropertyBools()
         {
             var results = new Dictionary<PropertyBool, bool>();
@@ -256,6 +265,7 @@ namespace ACE.Server.WorldObjects
 
             return results;
         }
+        #endregion
 
 
         //public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
@@ -310,6 +320,54 @@ namespace ACE.Server.WorldObjects
             if (Biota.TryRemoveProperty(positionType, out var entity) && ExistsInDatabase && entity.Id != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
+
+
+        // SetPropertiesForWorld, SetPropertiesForContainer, SetPropertiesForVendor
+        #region Utility Functions
+        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)
+        {
+            Location = objectToPlaceInRelationTo.Location.InFrontOf(1.1f);
+            PositionFlag = UpdatePositionFlag.Contact
+                           | UpdatePositionFlag.Placement
+                           | UpdatePositionFlag.ZeroQy
+                           | UpdatePositionFlag.ZeroQx;
+
+            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
+            PlacementPosition = null;
+
+            ContainerId = null;
+            WielderId = null;
+            CurrentWieldedLocation = null;
+        }
+
+        internal void SetPropertiesForContainer(int placement)
+        {
+            if (Location != null)
+                LandblockManager.RemoveObject(this);
+            Location = null;
+            PositionFlag = UpdatePositionFlag.None;
+
+            Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
+            PlacementPosition = placement;
+
+            ParentLocation = null;
+            WielderId = null;
+            CurrentWieldedLocation = null;
+        }
+
+        internal void SetPropertiesForVendor()
+        {
+            Location = null;
+            PositionFlag = UpdatePositionFlag.None;
+
+            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
+            PlacementPosition = null;
+
+            ContainerId = null;
+            WielderId = null;
+            CurrentWieldedLocation = null;
+        }
+        #endregion
 
 
         // ========================================
@@ -1808,16 +1866,15 @@ namespace ACE.Server.WorldObjects
 
 
 
-
+        // todo is this a book only property? If so, it should go with the Books properties
         public string Inscription
         {
             get => GetProperty(PropertyString.Inscription);
             set { if (value == null) RemoveProperty(PropertyString.Inscription); else SetProperty(PropertyString.Inscription, value); }
         }
 
+        // todo should these be moved to Book_Properties.cs?
         #region Books
-
-
         public string ScribeName
         {
             get => GetProperty(PropertyString.ScribeName);
@@ -1876,6 +1933,222 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
+        }
+
+        public uint? PaletteBaseId
+        {
+            get => GetProperty(PropertyDataId.PaletteBase);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
+        }
+
+        public ParentLocation? ParentLocation
+        {
+            get => (ParentLocation?)GetProperty(PropertyInt.ParentLocation);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ParentLocation); else SetProperty(PropertyInt.ParentLocation, (int)value.Value); }
+        }
+
+        public CombatStyle? DefaultCombatStyle
+        {
+            get => (CombatStyle?)GetProperty(PropertyInt.DefaultCombatStyle);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DefaultCombatStyle); else SetProperty(PropertyInt.DefaultCombatStyle, (int)value.Value); }
+        }
+
+        public uint? GeneratorId
+        {
+            get => GetProperty(PropertyInstanceId.Generator);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Generator); else SetProperty(PropertyInstanceId.Generator, value.Value); }
+        }
+
+        public uint? ClothingBase
+        {
+            get => GetProperty(PropertyDataId.ClothingBase);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ClothingBase); else SetProperty(PropertyDataId.ClothingBase, value.Value); }
+        }
+
+        public int? ItemCurMana
+        {
+            get => GetProperty(PropertyInt.ItemCurMana);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemCurMana); else SetProperty(PropertyInt.ItemCurMana, value.Value); }
+        }
+
+        public int? ItemMaxMana
+        {
+            get => GetProperty(PropertyInt.ItemMaxMana);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemMaxMana); else SetProperty(PropertyInt.ItemMaxMana, value.Value); }
+        }
+
+        public bool? NpcLooksLikeObject
+        {
+            get => GetProperty(PropertyBool.NpcLooksLikeObject);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.NpcLooksLikeObject); else SetProperty(PropertyBool.NpcLooksLikeObject, value.Value); }
+        }
+
+        public bool? SuppressGenerateEffect
+        {
+            get => GetProperty(PropertyBool.SuppressGenerateEffect);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.SuppressGenerateEffect); else SetProperty(PropertyBool.SuppressGenerateEffect, value.Value); }
+        }
+
+        public CreatureType? CreatureType
+        {
+            get => (CreatureType?)GetProperty(PropertyInt.CreatureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CreatureType); else SetProperty(PropertyInt.CreatureType, (int)value.Value); }
+        }
+
+        public string LongDesc
+        {
+            get => GetProperty(PropertyString.LongDesc);
+            set { if (value == null) RemoveProperty(PropertyString.LongDesc); else SetProperty(PropertyString.LongDesc, value); }
+        }
+
+        public string Use
+        {
+            get => GetProperty(PropertyString.Use);
+            set { if (value == null) RemoveProperty(PropertyString.Use); else SetProperty(PropertyString.Use, value); }
+        }
+
+        public int? Boost
+        {
+            get => GetProperty(PropertyInt.BoostValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, (int)value.Value); }
+        }
+
+        public uint? SpellDID
+        {
+            get => GetProperty(PropertyDataId.Spell);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, value.Value); }
+        }
+
+        public int? BoostEnum
+        {
+            get => GetProperty(PropertyInt.BoosterEnum);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value.Value); }
+        }
+
+        public double? HealkitMod
+        {
+            get => GetProperty(PropertyFloat.HealkitMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
+        }
+
+        public int? CoinValue
+        {
+            get => GetProperty(PropertyInt.CoinValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }
+        }
+
+        public int? ChessGamesLost
+        {
+            get => GetProperty(PropertyInt.ChessGamesLost);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessGamesLost); else SetProperty(PropertyInt.ChessGamesLost, value.Value); }
+        }
+
+        public int? ChessGamesWon
+        {
+            get => GetProperty(PropertyInt.ChessGamesWon);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessGamesWon); else SetProperty(PropertyInt.ChessGamesWon, value.Value); }
+        }
+
+        public int? ChessRank
+        {
+            get => GetProperty(PropertyInt.ChessRank);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessRank); else SetProperty(PropertyInt.ChessRank, value.Value); }
+        }
+
+        public int? ChessTotalGames
+        {
+            get => GetProperty(PropertyInt.ChessTotalGames);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessTotalGames); else SetProperty(PropertyInt.ChessTotalGames, value.Value); }
+        }
+
+        public int? MerchandiseItemTypes
+        {
+            get => GetProperty(PropertyInt.MerchandiseItemTypes);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseItemTypes); else SetProperty(PropertyInt.MerchandiseItemTypes, value.Value); }
+        }
+
+        public int? MerchandiseMinValue
+        {
+            get => GetProperty(PropertyInt.MerchandiseMinValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMinValue); else SetProperty(PropertyInt.MerchandiseMinValue, value.Value); }
+        }
+
+        public int? MerchandiseMaxValue
+        {
+            get => GetProperty(PropertyInt.MerchandiseMaxValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMaxValue); else SetProperty(PropertyInt.MerchandiseMaxValue, value.Value); }
+        }
+
+        public double? BuyPrice
+        {
+            get => GetProperty(PropertyFloat.BuyPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BuyPrice); else SetProperty(PropertyFloat.BuyPrice, value.Value); }
+        }
+
+        public double? SellPrice
+        {
+            get => GetProperty(PropertyFloat.SellPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.SellPrice, value.Value); }
+        }
+
+        public bool? DealMagicalItems
+        {
+            get => GetProperty(PropertyBool.DealMagicalItems);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
+        }
+
+        public uint? AlternateCurrencyDID
+        {
+            get => GetProperty(PropertyDataId.AlternateCurrency);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
+        }
+
+        public double? HeartbeatInterval
+        {
+            get => GetProperty(PropertyFloat.HeartbeatInterval);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.HeartbeatInterval, value.Value); }
+        }
+
+        public int? InitGeneratedObjects
+        {
+            get => GetProperty(PropertyInt.InitGeneratedObjects);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.InitGeneratedObjects); else SetProperty(PropertyInt.InitGeneratedObjects, value.Value); }
+        }
+
+        public int? MaxGeneratedObjects
+        {
+            get => GetProperty(PropertyInt.MaxGeneratedObjects);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxGeneratedObjects); else SetProperty(PropertyInt.MaxGeneratedObjects, value.Value); }
+        }
+
+        public double? RegenerationInterval
+        {
+            get => GetProperty(PropertyFloat.RegenerationInterval);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value.Value); }
+        }
+
+        public bool? GeneratorEnteredWorld
+        {
+            get => GetProperty(PropertyBool.GeneratorEnteredWorld);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value.Value); }
+        }
+
+        public bool? Visibility
+        {
+            get => GetProperty(PropertyBool.Visibility);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value.Value); }
+        }
+
+        public int? PaletteTemplate
+        {
+            get => GetProperty(PropertyInt.PaletteTemplate);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PaletteTemplate); else SetProperty(PropertyInt.PaletteTemplate, value.Value); }
+        }
+
+        public double? Shade
+        {
+            get => GetProperty(PropertyFloat.Shade);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
         }
 
 
@@ -2136,55 +2409,6 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
-        }
-
-
-
-        // ========================================
-        // ========== Utility Functions ===========
-        // ========================================
-        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)
-        {
-            Location = objectToPlaceInRelationTo.Location.InFrontOf(1.1f);
-            PositionFlag = UpdatePositionFlag.Contact
-                                         | UpdatePositionFlag.Placement
-                                         | UpdatePositionFlag.ZeroQy
-                                         | UpdatePositionFlag.ZeroQx;
-
-            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-            PlacementPosition = null;
-
-            ContainerId = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
-        internal void SetPropertiesForContainer(int placement)
-        {
-            if (Location != null)
-                LandblockManager.RemoveObject(this);
-            Location = null;
-            PositionFlag = UpdatePositionFlag.None;
-
-            Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
-            PlacementPosition = placement;
-
-            ParentLocation = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
-        internal void SetPropertiesForVendor()
-        {
-            Location = null;
-            PositionFlag = UpdatePositionFlag.None;
-
-            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-            PlacementPosition = null;
-
-            ContainerId = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
         }
     }
 }

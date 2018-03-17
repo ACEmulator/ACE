@@ -254,49 +254,6 @@ namespace ACE.Server.WorldObjects
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
-
-
-        // START of Logical Model Data
-
-        public uint? PaletteBaseId
-        {
-            get => GetProperty(PropertyDataId.PaletteBase);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
-        }
-
-
-
-
-        public ParentLocation? ParentLocation
-        {
-            get => (ParentLocation?)GetProperty(PropertyInt.ParentLocation);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ParentLocation); else SetProperty(PropertyInt.ParentLocation, (int)value.Value); }
-        }
-
-   
-
-
-
-
-        
-
-        // movement_buffer
-
-
-
-
-
-
-        // pos
-
-
-
-
-
-
-
-
-
         public IActor CurrentParent { get; private set; }
 
         public Position ForcedLocation { get; private set; }
@@ -340,56 +297,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public CombatStyle? DefaultCombatStyle
-        {
-            get => (CombatStyle?)GetProperty(PropertyInt.DefaultCombatStyle);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.DefaultCombatStyle); else SetProperty(PropertyInt.DefaultCombatStyle, (int)value.Value); }
-        }
-
-        public uint? GeneratorId
-        {
-            get => GetProperty(PropertyInstanceId.Generator);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Generator); else SetProperty(PropertyInstanceId.Generator, value.Value); }
-        }
-
-        public uint? ClothingBase
-        {
-            get => GetProperty(PropertyDataId.ClothingBase);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ClothingBase); else SetProperty(PropertyDataId.ClothingBase, value.Value); }
-        }
-
-        public int? ItemCurMana
-        {
-            get => GetProperty(PropertyInt.ItemCurMana);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemCurMana); else SetProperty(PropertyInt.ItemCurMana, value.Value); }
-        }
-
-        public int? ItemMaxMana
-        {
-            get => GetProperty(PropertyInt.ItemMaxMana);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemMaxMana); else SetProperty(PropertyInt.ItemMaxMana, value.Value); }
-        }
-
-        public bool? NpcLooksLikeObject
-        {
-            get => GetProperty(PropertyBool.NpcLooksLikeObject);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.NpcLooksLikeObject); else SetProperty(PropertyBool.NpcLooksLikeObject, value.Value); }
-        }
-
-        public bool? SuppressGenerateEffect
-        {
-            get => GetProperty(PropertyBool.SuppressGenerateEffect);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.SuppressGenerateEffect); else SetProperty(PropertyBool.SuppressGenerateEffect, value.Value); }
-        }
-
-        public CreatureType? CreatureType
-        {
-            get => (CreatureType?)GetProperty(PropertyInt.CreatureType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CreatureType); else SetProperty(PropertyInt.CreatureType, (int)value.Value); }
-        }
-
-
-        /// <summary>
+         /// <summary>
         /// This is used to determine how close you need to be to use an item.
         /// NOTE: cheat factor added for items with null use radius.   Og II
         /// </summary>
@@ -401,49 +309,6 @@ namespace ACE.Server.WorldObjects
                 return false;
             return true;
         }
-
-        public string LongDesc
-        {
-            get => GetProperty(PropertyString.LongDesc);
-            set { if (value == null) RemoveProperty(PropertyString.LongDesc); else SetProperty(PropertyString.LongDesc, value); }
-        }
-
-        public string Use
-        {
-            get => GetProperty(PropertyString.Use);
-            set { if (value == null) RemoveProperty(PropertyString.Use); else SetProperty(PropertyString.Use, value); }
-        }
-
-        public int? Boost
-        {
-            get => GetProperty(PropertyInt.BoostValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, (int)value.Value); }
-        }
-
-        public uint? SpellDID
-        {
-            get => GetProperty(PropertyDataId.Spell);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, value.Value); }
-        }
-
-        public int? BoostEnum
-        {
-            get => GetProperty(PropertyInt.BoosterEnum);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value.Value); }
-        }
-
-        public double? HealkitMod
-        {
-            get => GetProperty(PropertyFloat.HealkitMod);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
-        }
-
-        public int? CoinValue
-        {
-            get => GetProperty(PropertyInt.CoinValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }
-        }
-
 
         public void Examine(Session examiner)
         {
@@ -684,30 +549,6 @@ namespace ACE.Server.WorldObjects
             // todo: implement.  default is probably to do nothing.
         }
 
-        public int? ChessGamesLost
-        {
-            get => GetProperty(PropertyInt.ChessGamesLost);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessGamesLost); else SetProperty(PropertyInt.ChessGamesLost, value.Value); }
-        }
-
-        public int? ChessGamesWon
-        {
-            get => GetProperty(PropertyInt.ChessGamesWon);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessGamesWon); else SetProperty(PropertyInt.ChessGamesWon, value.Value); }
-        }
-
-        public int? ChessRank
-        {
-            get => GetProperty(PropertyInt.ChessRank);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessRank); else SetProperty(PropertyInt.ChessRank, value.Value); }
-        }
-
-        public int? ChessTotalGames
-        {
-            get => GetProperty(PropertyInt.ChessTotalGames);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessTotalGames); else SetProperty(PropertyInt.ChessTotalGames, value.Value); }
-        }
-
         public void HandleActionMotion(UniversalMotion motion)
         {
             if (CurrentLandblock != null)
@@ -753,55 +594,7 @@ namespace ACE.Server.WorldObjects
             get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Shop).ToList(); }
         }*/
 
-        public int? MerchandiseItemTypes
-        {
-            get => GetProperty(PropertyInt.MerchandiseItemTypes);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseItemTypes); else SetProperty(PropertyInt.MerchandiseItemTypes, value.Value); }
-        }
-
-        public int? MerchandiseMinValue
-        {
-            get => GetProperty(PropertyInt.MerchandiseMinValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMinValue); else SetProperty(PropertyInt.MerchandiseMinValue, value.Value); }
-        }
-
-        public int? MerchandiseMaxValue
-        {
-            get => GetProperty(PropertyInt.MerchandiseMaxValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMaxValue); else SetProperty(PropertyInt.MerchandiseMaxValue, value.Value); }
-        }
-
-        public double? BuyPrice
-        {
-            get => GetProperty(PropertyFloat.BuyPrice);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BuyPrice); else SetProperty(PropertyFloat.BuyPrice, value.Value); }
-        }
-
-        public double? SellPrice
-        {
-            get => GetProperty(PropertyFloat.SellPrice);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.SellPrice, value.Value); }
-        }
-
-        public bool? DealMagicalItems
-        {
-            get => GetProperty(PropertyBool.DealMagicalItems);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
-        }
-
-        public uint? AlternateCurrencyDID
-        {
-            get => GetProperty(PropertyDataId.AlternateCurrency);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
-        }
-
         public List<BiotaPropertiesGenerator> GeneratorProfiles = new List<BiotaPropertiesGenerator>();
-
-        public double? HeartbeatInterval
-        {
-            get => GetProperty(PropertyFloat.HeartbeatInterval);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.HeartbeatInterval, value.Value); }
-        }
 
         public void EnterWorld()
         {
@@ -816,30 +609,6 @@ namespace ACE.Server.WorldObjects
         public Dictionary<uint, GeneratorRegistryNode> GeneratorRegistry = new Dictionary<uint, GeneratorRegistryNode>();
 
         public List<GeneratorQueueNode> GeneratorQueue = new List<GeneratorQueueNode>();
-
-        public int? InitGeneratedObjects
-        {
-            get => GetProperty(PropertyInt.InitGeneratedObjects);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.InitGeneratedObjects); else SetProperty(PropertyInt.InitGeneratedObjects, value.Value); }
-        }
-
-        public int? MaxGeneratedObjects
-        {
-            get => GetProperty(PropertyInt.MaxGeneratedObjects);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxGeneratedObjects); else SetProperty(PropertyInt.MaxGeneratedObjects, value.Value); }
-        }
-
-        public double? RegenerationInterval
-        {
-            get => GetProperty(PropertyFloat.RegenerationInterval);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value.Value); }
-        }
-
-        public bool? GeneratorEnteredWorld
-        {
-            get => GetProperty(PropertyBool.GeneratorEnteredWorld);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value.Value); }
-        }
 
         public virtual void HeartBeat()
         {
@@ -1018,25 +787,5 @@ namespace ACE.Server.WorldObjects
                 }
             }
         }
-
-        public bool? Visibility
-        {
-            get => GetProperty(PropertyBool.Visibility);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value.Value); }
-        }
-
-        public int? PaletteTemplate
-        {
-            get => GetProperty(PropertyInt.PaletteTemplate);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.PaletteTemplate); else SetProperty(PropertyInt.PaletteTemplate, value.Value); }
-        }
-
-        public double? Shade
-        {
-            get => GetProperty(PropertyFloat.Shade);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
-        }
-
-        
     }
 }
