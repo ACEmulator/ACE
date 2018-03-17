@@ -633,7 +633,7 @@ namespace ACE.Server.WorldObjects
                 var iwo = GetInventoryItem(usedItemId);
 
                 if (iwo != null)
-                    iwo.OnUse(Session);
+                    iwo.DoActionUseItem(Session);
                 else
                 {
                     if (CurrentLandblock != null)

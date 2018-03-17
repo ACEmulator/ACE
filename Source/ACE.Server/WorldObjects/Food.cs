@@ -43,7 +43,10 @@ namespace ACE.Server.WorldObjects
                 BoostEnum = 0;
         }
 
-        public override void OnUse(Session session)
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// </summary>
+        public override void DoActionUseItem(Session session)
         {
             Player.ConsumableBuffType buffType;
 

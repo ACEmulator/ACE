@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
         /// quest or how much longer we have to complete it in the case of at timed quest.   Og II
         /// </summary>
         /// <param name="session">Pass the session variable so we will have access to player and the correct sequences</param>
-        public override void OnUse(Session session)
+        public override void DoActionUseItem(Session session)
         {
             if (UseCreateContractId == null)
             {

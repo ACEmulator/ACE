@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
@@ -1389,6 +1390,22 @@ namespace ACE.Server.WorldObjects
             if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
             //AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
+        }
+
+
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// </summary>
+        public virtual void DoActionUseItem(Session session)
+        {
+            // Do Nothing by default
+            #if DEBUG
+            var errorMessage = new GameMessageSystemChat($"Default OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
+            session.Network.EnqueueSend(errorMessage);
+            #endif
+
+            var sendUseDoneEvent = new GameEventUseDone(session);
+            session.Network.EnqueueSend(sendUseDoneEvent);
         }
     }
 }

@@ -152,7 +152,10 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        public override void OnUse(Session session)
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// </summary>
+        public override void DoActionUseItem(Session session)
         {
             bool success = true;
             string failReason = "You are unable to read the scroll.";
@@ -181,30 +184,34 @@ namespace ACE.Server.WorldObjects
 
             var readScrollChain = new ActionChain();
 
-            readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading));
-            readScrollChain.AddDelaySeconds(2);
+            readScrollChain
+                .AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading))
+                .AddDelaySeconds(2);
 
             if (success)
             {
-                readScrollChain.AddAction(session.Player, () => session.Player.LearnSpellWithNetworking(SpellId));
-                readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(
-                    new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic),
-                    new GameMessageRemoveObject(this)));
-                readScrollChain.AddAction(session.Player, () => session.Player.TryRemoveFromInventory(Guid, out WorldObject _));
+                readScrollChain.AddAction(session.Player, () =>
+                {
+                    session.Player.LearnSpellWithNetworking(SpellId);
+                    session.Player.HandleActionMotion(motionReady);
+                    if (session.Player.TryDestroyFromInventoryWithNetworking(this))
+                        session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
+                });
             }
             else
             {
-                readScrollChain.AddDelaySeconds(2);
-                readScrollChain.AddAction(session.Player, () => session.Player.HandleActionMotion(motionReady));
-                readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic)));
+                readScrollChain
+                    .AddDelaySeconds(2)
+                    .AddAction(session.Player, () =>
+                    {
+                        session.Player.HandleActionMotion(motionReady);
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
+                    });
             }
 
-            var sendUseDoneEvent = new GameEventUseDone(session.Player.Session);
-
-            readScrollChain.AddAction(session.Player, () => session.Network.EnqueueSend(sendUseDoneEvent));
-
-            readScrollChain.EnqueueChain();
+            readScrollChain
+                .AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventUseDone(session.Player.Session)))
+                .EnqueueChain();
         }
 
         //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

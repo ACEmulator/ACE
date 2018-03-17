@@ -678,18 +678,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public virtual void OnUse(Session session)
-        {
-            // Do Nothing by default
-#if DEBUG
-            var errorMessage = new GameMessageSystemChat($"Default OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-            session.Network.EnqueueSend(errorMessage);
-#endif
-
-            var sendUseDoneEvent = new GameEventUseDone(session);
-            session.Network.EnqueueSend(sendUseDoneEvent);
-        }
-
         public virtual void HandleActionOnCollide(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.

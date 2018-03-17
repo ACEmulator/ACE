@@ -45,19 +45,23 @@ namespace ACE.Server.Entity.Actions
             lastElement = FirstElement;
         }
 
-        public void AddAction(IActor actor, Action action)
+        public ActionChain AddAction(IActor actor, Action action)
         {
             ChainElement newElm = new ChainElement(actor, new ActionEventDelegate(action));
             AddAction(newElm);
+
+            return this;
         }
 
-        public void AddAction(IActor actor, IAction action)
+        public ActionChain AddAction(IActor actor, IAction action)
         {
             ChainElement newElm = new ChainElement(actor, action);
             AddAction(newElm);
+
+            return this;
         }
 
-        public void AddAction(ChainElement elm)
+        public ActionChain AddAction(ChainElement elm)
         {
             if (FirstElement == null)
             {
@@ -69,9 +73,11 @@ namespace ACE.Server.Entity.Actions
                 lastElement.Action.RunOnFinish(elm.Actor, elm.Action);
                 lastElement = elm;
             }
+
+            return this;
         }
 
-        public void AddChain(ActionChain chain)
+        public ActionChain AddChain(ActionChain chain)
         {
             if (chain != null)
             {
@@ -88,31 +94,43 @@ namespace ACE.Server.Entity.Actions
                     lastElement = chain.lastElement;
                 }
             }
+
+            return this;
         }
 
-        public void AddBranch(IActor conditionActor, Func<bool> condition, ChainElement trueBranch, ChainElement falseBranch)
+        public ActionChain AddBranch(IActor conditionActor, Func<bool> condition, ChainElement trueBranch, ChainElement falseBranch)
         {
             AddBranch(conditionActor, condition, new ActionChain(trueBranch), new ActionChain(falseBranch));
+
+            return this;
         }
 
-        public void AddBranch(IActor conditionActor, Func<bool> condition, ActionChain trueBranch, ActionChain falseBranch)
+        public ActionChain AddBranch(IActor conditionActor, Func<bool> condition, ActionChain trueBranch, ActionChain falseBranch)
         {
             AddAction(new ChainElement(conditionActor, new ConditionalAction(condition, trueBranch, falseBranch)));
+
+            return this;
         }
 
-        public void AddLoop(IActor conditionActor, Func<bool> condition, ActionChain body)
+        public ActionChain AddLoop(IActor conditionActor, Func<bool> condition, ActionChain body)
         {
             AddAction(new ChainElement(conditionActor, new LoopAction(conditionActor, condition, body)));
+
+            return this;
         }
 
-        public void AddDelaySeconds(double timeInSeconds)
+        public ActionChain AddDelaySeconds(double timeInSeconds)
         {
             AddAction(WorldManager.DelayManager, new DelayAction(WorldManager.SecondsToTicks(timeInSeconds)));
+
+            return this;
         }
 
-        public void AddDelayTicks(double timeInTicks)
+        public ActionChain AddDelayTicks(double timeInTicks)
         {
             AddAction(WorldManager.DelayManager, new DelayAction(timeInTicks));
+
+            return this;
         }
 
         public void EnqueueChain()

@@ -82,8 +82,10 @@ namespace ACE.Server.WorldObjects
                 BookUseHandler(player.Session);
         }
 
-        // Called when the items is in a player's inventory
-        public override void OnUse(Session session)
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// </summary>
+        public override void DoActionUseItem(Session session)
         {
             BookUseHandler(session);
         }
