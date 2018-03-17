@@ -64,7 +64,7 @@ namespace ACE.Server.Network.GameMessages.Messages
             Writer.Write(0u);
             Writer.Write(0u);
 
-            Writer.Write(fellow.Level);
+            Writer.Write(fellow.Level ?? 1);
 
             Writer.Write(fellow.Health.MaxValue);
             Writer.Write(fellow.Stamina.MaxValue);

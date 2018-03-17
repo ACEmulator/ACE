@@ -9,23 +9,23 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public int Level
-        {
-            get => GetProperty(PropertyInt.Level) ?? 1;
-            set => SetProperty(PropertyInt.Level, value);
-        }
+        //public int Level
+        //{
+        //    get => GetProperty(PropertyInt.Level) ?? 1;
+        //    set => SetProperty(PropertyInt.Level, value);
+        //}
 
-        public long TotalExperience
-        {
-            get => GetProperty(PropertyInt64.TotalExperience) ?? 0;
-            set => SetProperty(PropertyInt64.TotalExperience, value);
-        }
+        //public long TotalExperience
+        //{
+        //    get => GetProperty(PropertyInt64.TotalExperience) ?? 0;
+        //    set => SetProperty(PropertyInt64.TotalExperience, value);
+        //}
 
-        public long AvailableExperience
-        {
-            get => GetProperty(PropertyInt64.AvailableExperience) ?? 0;
-            set => SetProperty(PropertyInt64.AvailableExperience, value);
-        }
+        //public long AvailableExperience
+        //{
+        //    get => GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+        //    set => SetProperty(PropertyInt64.AvailableExperience, value);
+        //}
 
         /// <summary>
         /// Raise the available XP by a specified amount
@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
 
             if (Level != maxLevel)
             {
-                var amountLeftToEnd = (long)maxLevelXp - TotalExperience;
+                var amountLeftToEnd = (long)maxLevelXp - TotalExperience ?? 0;
                 if (amount > amountLeftToEnd)
                     amount = amountLeftToEnd;
 
@@ -99,15 +99,15 @@ namespace ACE.Server.WorldObjects
             if (Level == maxLevel) return;
 
             // increases until the correct level is found
-            while (xpTable.CharacterLevelXPList[Level + 1] <= (ulong)TotalExperience)
+            while (xpTable.CharacterLevelXPList[Level ?? 1 + 1] <= (ulong)TotalExperience)
             {
                 Level++;
 
                 // increase the skill credits if the chart allows this level to grant a credit
-                if (xpTable.CharacterLevelSkillCreditList[Level] > 0)
+                if (xpTable.CharacterLevelSkillCreditList[Level ?? 1] > 0)
                 {
-                    AvailableSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level];
-                    TotalSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level];
+                    AvailableSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level ?? 1];
+                    TotalSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level ?? 1];
                     creditEarned = true;
                 }
 
@@ -127,14 +127,14 @@ namespace ACE.Server.WorldObjects
                 string xpUpdateText = (AvailableSkillCredits > 0) ? $"You have {AvailableExperience:#,###0} experience points and {AvailableSkillCredits} skill credits available to raise skills and attributes." : $"You have {AvailableExperience:#,###0} experience points available to raise skills and attributes.";
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
 
-                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Level, Level);
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits);
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Level, Level ?? 1);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
                 if (Level != maxLevel && !creditEarned)
                 {
                     var nextLevelWithCredits = 0;
 
-                    for (int i = Level + 1; i <= maxLevel; i++)
+                    for (int i = (Level ?? 1) + 1; i <= maxLevel; i++)
                     {
                         if (xpTable.CharacterLevelSkillCreditList[i] > 0)
                         {

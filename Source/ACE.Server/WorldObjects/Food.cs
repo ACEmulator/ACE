@@ -8,7 +8,7 @@ using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Food : WorldObject
+    public class Food : Stackable
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

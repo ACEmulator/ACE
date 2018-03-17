@@ -12,17 +12,17 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public int TotalSkillCredits
-        {
-            get => GetProperty(PropertyInt.TotalSkillCredits) ?? 0;
-            set => SetProperty(PropertyInt.TotalSkillCredits, value);
-        }
+        //public int TotalSkillCredits
+        //{
+        //    get => GetProperty(PropertyInt.TotalSkillCredits) ?? 0;
+        //    set => SetProperty(PropertyInt.TotalSkillCredits, value);
+        //}
 
-        public int AvailableSkillCredits
-        {
-            get => GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
-            set => SetProperty(PropertyInt.AvailableSkillCredits, value);
-        }
+        //public int AvailableSkillCredits
+        //{
+        //    get => GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+        //    set => SetProperty(PropertyInt.AvailableSkillCredits, value);
+        //}
 
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace ACE.Server.WorldObjects
                 bool trainNewSkill = TrainSkill(skill, creditsSpent);
 
                 // create an update to send to the client
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
                 // as long as the skill is sent, the train new triangle button on the client will not lock up.
                 // Sending Skill.None with status untrained worked in test

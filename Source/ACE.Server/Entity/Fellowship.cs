@@ -219,7 +219,7 @@ namespace ACE.Server.Entity
                 Player leader = WorldManager.GetPlayerByGuidId(FellowshipLeaderGuid);
                 foreach (Player p in nonLeaderMembers)
                 {
-                    if (Math.Abs(leader.Level - p.Level) > 5)
+                    if (Math.Abs((leader.Level ?? 1) - (p.Level ?? 1)) > 5)
                     {
                         EvenShare = false;
                         return;
@@ -254,7 +254,7 @@ namespace ACE.Server.Entity
                 double totalLevels = 0;
                 foreach (Player p in FellowshipMembers)
                 {
-                    totalLevels += p.Level;
+                    totalLevels += p.Level ?? 1;
                 }
                 double percentPerLevel = totalLevels / FellowshipMembers.Count;
                 Parallel.ForEach(FellowshipMembers, member =>
