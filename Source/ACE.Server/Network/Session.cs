@@ -43,8 +43,6 @@ namespace ACE.Server.Network
 
         private DateTime logOffRequestTime;
 
-        private DateTime lastSaveTime;
-
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
         private bool bootSession;
@@ -113,7 +111,6 @@ namespace ACE.Server.Network
         {
             CharacterRequested = null;
 
-            lastSaveTime = DateTime.MinValue;
             lastAgeIntUpdateTime = DateTime.MinValue;
             lastSendAgeIntUpdateTime = DateTime.MinValue;
 
@@ -183,34 +180,35 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
-            //if (Player != null)
-            //{
-            //    if (lastSaveTime == DateTime.MinValue)
-            //        lastSaveTime = DateTime.UtcNow;
-            //    if (lastSaveTime != DateTime.MinValue && lastSaveTime.AddMinutes(5) <= DateTime.UtcNow)
-            //    {
-            //        SaveSession();
-            //        lastSaveTime = DateTime.UtcNow;
-            //    }
+            if (Player != null)
+            {
+                if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
+                    SaveSessionPlayer();
 
-            //    if (lastAgeIntUpdateTime == DateTime.MinValue)
-            //        lastAgeIntUpdateTime = DateTime.UtcNow;
-            //    if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-            //    {
-            //        Player.UpdateAge();
-            //        lastAgeIntUpdateTime = DateTime.UtcNow;
-            //    }
-            //    if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-            //        lastSendAgeIntUpdateTime = DateTime.UtcNow;
-            //    if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-            //    {
-            //        Player.SendAgeInt();
-            //        lastSendAgeIntUpdateTime = DateTime.UtcNow;
-            //    }
-            //}
+                /*if (lastAgeIntUpdateTime == DateTime.MinValue)
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+
+                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
+                {
+                    Player.UpdateAge();
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+                }
+
+                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+
+                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
+                {
+                    Player.SendAgeInt();
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+                }*/
+            }
         }
 
-        public void SaveSession()
+        /// <summary>
+        /// This will queue the SaveChain for the Player attached to this Session.
+        /// </summary>
+        public void SaveSessionPlayer()
         {
             if (Player != null)
                 Player.GetSaveChain().EnqueueChain();
@@ -259,7 +257,7 @@ namespace ACE.Server.Network
         {
             if (Player != null)
             {
-                SaveSession();
+                SaveSessionPlayer();
                 Player.HandleActionLogout(true);
             }
 

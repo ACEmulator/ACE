@@ -1,3 +1,4 @@
+using System;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -7,6 +8,8 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public static TimeSpan PlayerSaveInterval = TimeSpan.FromMinutes(5);
+
         /// <summary>
         /// Gets the ActionChain to save a character
         /// </summary>
@@ -22,6 +25,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void SavePlayer()
         {
+            LastRequestedDatabaseSave = DateTime.UtcNow;
+
             // Save the current position to persistent storage, only during the server update interval
             SetPhysicalCharacterPosition();
 

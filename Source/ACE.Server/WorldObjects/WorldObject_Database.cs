@@ -8,7 +8,7 @@ namespace ACE.Server.WorldObjects
     {
         protected bool ExistsInDatabase { get; private set; }
 
-        protected DateTime LastDatabaseSave { get; set; }
+        public DateTime LastRequestedDatabaseSave { get; protected set; }
 
         /// <summary>
         /// This variable is set to true when a change is made, and set to false after a save completed.<para />
@@ -27,10 +27,7 @@ namespace ACE.Server.WorldObjects
             DatabaseManager.Shard.AddBiota(Biota, result =>
             {
                 if (result)
-                {
-                    LastDatabaseSave = DateTime.UtcNow;
                     ChangesDetected = false;
-                }
                 else
                     // Uh oh, something went wrong...
                     ExistsInDatabase = false;
@@ -39,6 +36,8 @@ namespace ACE.Server.WorldObjects
 
         public void SaveBiotaToDatabase()
         {
+            LastRequestedDatabaseSave = DateTime.UtcNow;
+
             if (!ExistsInDatabase)
             {
                 AddBiotaToDatabase();
@@ -48,10 +47,7 @@ namespace ACE.Server.WorldObjects
             DatabaseManager.Shard.SaveBiota(Biota, result =>
             {
                 if (result)
-                {
-                    LastDatabaseSave = DateTime.UtcNow;
                     ChangesDetected = false;
-                }
                 else
                     // Uh oh, something went wrong...
                     ExistsInDatabase = false;
@@ -63,7 +59,7 @@ namespace ACE.Server.WorldObjects
             if (ExistsInDatabase && Biota.Id != 0)
             {
                 ExistsInDatabase = false;
-                LastDatabaseSave = DateTime.MinValue;
+                LastRequestedDatabaseSave = DateTime.MinValue;
                 DatabaseManager.Shard.RemoveBiota(Biota, null);
             }
         }

@@ -287,6 +287,8 @@ namespace ACE.Server.WorldObjects
                 //if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                 //    UpdateCurrencyClientCalculations(WeenieType.Coin);
 
+                // It's important that we save an item after it's been removed from inventory.
+                // We want to avoid the scenario where the server crashes and a player has too many items.
                 item.SaveBiotaToDatabase();
 
                 return true;
