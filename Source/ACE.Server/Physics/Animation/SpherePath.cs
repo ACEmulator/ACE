@@ -83,22 +83,23 @@ namespace ACE.Server.Physics.Animation
 
         public void InitPath(ObjCell beginCell, Position beginPos, Position endPos)
         {
+            BeginPos = beginPos;
+            BeginCell = beginCell;
+            EndPos = endPos;
+
             if (beginPos != null)
             {
-                CurPos.ObjCellID = beginPos.ObjCellID;
-                CurPos.Frame = beginPos.Frame;      // copy constructor
-                CurCell = beginCell;
-                CacheGlobalCurrCenter();
                 InsertType = InsertType.Transition;
+                CurPos = beginPos;
             }
             else
             {
-                CurPos.ObjCellID = endPos.ObjCellID;
-                CurPos.Frame = endPos.Frame;
-                CurCell = beginCell;    // sure?
-                CacheGlobalCurrCenter();
                 InsertType = InsertType.Placement;
+                CurPos = endPos;
             }
+
+            CurCell = beginCell;
+            CacheGlobalCurrCenter();
         }
 
         public void InitSphere(int numSphere, List<Sphere> spheres, float scale)
@@ -129,9 +130,9 @@ namespace ACE.Server.Physics.Animation
             AddOffsetToCheckPos(offset);    // radius ignored?
         }
 
-        public void AdjustCheckPos(int cellID)
+        public void AdjustCheckPos(uint cellID)
         {
-            if (cellID < 100)   // ?
+            if (cellID < 0x100)
             {
                 var offset = LandDefs.GetBlockOffset(cellID, CheckPos.ObjCellID);
                 CacheGlobalSphere(offset);

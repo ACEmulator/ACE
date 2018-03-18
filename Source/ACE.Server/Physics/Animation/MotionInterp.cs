@@ -107,7 +107,7 @@ namespace ACE.Server.Physics.Animation
                     InterpretedState.ApplyMotion(motion, movementParams);
             }
 
-            if (PhysicsObj != null && PhysicsObj.Cell == null)
+            if (PhysicsObj != null && PhysicsObj.CurCell == null)
                 PhysicsObj.RemoveLinkAnimations();
 
             return sequence;
@@ -318,7 +318,7 @@ namespace ACE.Server.Physics.Animation
 
             add_to_queue(0, 0x41000003, jump);
 
-            if (PhysicsObj.Cell != null)
+            if (PhysicsObj.CurCell != null)
                 PhysicsObj.RemoveLinkAnimations();
 
             return new Sequence(0);
@@ -357,7 +357,7 @@ namespace ACE.Server.Physics.Animation
                     InterpretedState.RemoveMotion(motion);
             }
 
-            if (PhysicsObj.Cell == null)
+            if (PhysicsObj.CurCell == null)
                 PhysicsObj.RemoveLinkAnimations();
 
             return sequence;
@@ -490,7 +490,7 @@ namespace ACE.Server.Physics.Animation
                         InterpretedState.RemoveMotion(0x6500000D);
                 }
 
-                if (PhysicsObj.Cell == null)
+                if (PhysicsObj.CurCell == null)
                     PhysicsObj.RemoveLinkAnimations();
             }
         }

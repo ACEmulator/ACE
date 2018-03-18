@@ -11,7 +11,7 @@ namespace ACE.Server.Physics.Combat
         public int NumObjects;
         public List<AtkObjInfo> ObjectList;
 
-        public void AddObject(int objectID, int hitLocation)
+        public void AddObject(uint objectID, int hitLocation)
         {
 
         }

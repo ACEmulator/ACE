@@ -19,7 +19,7 @@ namespace ACE.Server.Physics.Collision
 
     public class ObjCollisionProfile
     {
-        public int ID;
+        public uint ID;
         public Vector3 Velocity;
         public int wcid;
         public int ItemType;

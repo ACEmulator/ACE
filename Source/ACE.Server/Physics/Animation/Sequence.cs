@@ -112,7 +112,7 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public void advance_to_next_animation(float timeElapsed, AnimSequenceNode currAnim, double frameNum, AFrame frame)
+        public void advance_to_next_animation(float timeElapsed, AnimSequenceNode currAnim, ref float frameNum, AFrame frame)
         {
             var firstFrame = currAnim.Framerate >= 0.0f;
             var secondFrame = currAnim.Framerate < 0.0f;
@@ -122,7 +122,7 @@ namespace ACE.Server.Physics.Animation
                 firstFrame = currAnim.Framerate < 0.0f;
                 secondFrame = currAnim.Framerate > 0.0f;
             }
-            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, firstFrame);
+            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, firstFrame, true);
 
             if (currAnim.GetNext() != null)
                 currAnim = currAnim.GetNext();
@@ -132,16 +132,20 @@ namespace ACE.Server.Physics.Animation
             // ref?
             frameNum = currAnim.get_starting_frame();
 
-            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, secondFrame);
+            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, secondFrame, false);
         }
 
-        public void advance_to_next_animation_inner(float timeElapsed, AnimSequenceNode currAnim, double frameNum, AFrame frame, bool checkFrame)
+        public void advance_to_next_animation_inner(float timeElapsed, AnimSequenceNode currAnim, double frameNum, AFrame frame, bool checkFrame, bool firstCheck)
         {
             if (frame != null && checkFrame)
             {
                 if (currAnim.Anim.PosFrames.Count > 0)
-                    frame.Subtract(currAnim.get_pos_frame((int)Math.Floor(frameNum)));
-
+                {
+                    if (firstCheck)
+                        frame.Subtract(currAnim.get_pos_frame((int)Math.Floor(frameNum)));
+                    else
+                        frame = AFrame.Combine(frame, currAnim.get_pos_frame((int)Math.Floor(frameNum)));
+                }
                 if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
                     apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
             }
@@ -383,7 +387,7 @@ namespace ACE.Server.Physics.Animation
                     HookObj.add_anim_hook(animHook);
                 }
             }
-            advance_to_next_animation(timeElapsed, currAnim, frameNum, frame);
+            advance_to_next_animation(timeElapsed, currAnim, ref frameNum, frame);
             timeElapsed = frameTimeElapsed;
 
             // loop to next anim
