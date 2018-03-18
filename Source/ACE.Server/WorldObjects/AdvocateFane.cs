@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
 
                 if (AllowedActivator == null)
                 {
-                    if ((player.PkLevelModifier ?? -1) != -1) // PlayerKillers can't be Advocates.
+                    if ((player.PkLevelModifier ?? -1) != -1 || player.WeenieType == WeenieType.Admin || player.WeenieType == WeenieType.Sentinel) // PlayerKillers, Admins and Sentinels can't be Advocates.
                     {
                         //error msg here
                         if (UseTargetFailureAnimation.HasValue)
