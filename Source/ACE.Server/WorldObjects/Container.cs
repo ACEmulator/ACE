@@ -185,7 +185,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.
+        /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
+        /// It will also increase the EncumbranceVal and Value.
         /// </summary>
         public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false)
         {
@@ -193,7 +194,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.
+        /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
+        /// It will also increase the EncumbranceVal and Value.
         /// </summary>
         public bool TryAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false)
         {
@@ -252,7 +254,10 @@ namespace ACE.Server.WorldObjects
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
             // Move all the existing items PlacementPosition over.
-            containerItems.Where(i => i.PlacementPosition >= worldObject.PlacementPosition).ToList().ForEach(i => i.PlacementPosition++);
+            if (!worldObject.UseBackpackSlot)
+                containerItems.Where(i => !i.UseBackpackSlot && i.PlacementPosition >= placementPosition).ToList().ForEach(i => i.PlacementPosition++);
+            else
+                containerItems.Where(i => i.UseBackpackSlot && i.PlacementPosition >= placementPosition).ToList().ForEach(i => i.PlacementPosition++);
 
             Inventory.Add(worldObject.Guid, worldObject);
 
@@ -264,11 +269,19 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        /// <summary>
+        /// This will clear the ContainerId and PlacementPosition properties.<para />
+        /// It will also subtract the EncumbranceVal and Value.
+        /// </summary>
         public bool TryRemoveFromInventory(ObjectGuid objectGuid)
         {
             return TryRemoveFromInventory(objectGuid, out _);
         }
 
+        /// <summary>
+        /// This will clear the ContainerId and PlacementPosition properties and remove the object from the Inventory dictionary.<para />
+        /// It will also subtract the EncumbranceVal and Value.
+        /// </summary>
         public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item)
         {
             // first search me / add all items of type.
@@ -278,18 +291,17 @@ namespace ACE.Server.WorldObjects
                 item.PlacementPosition = null;
 
                 // Move all the existing items PlacementPosition over.
-                int placement = item.PlacementPosition ?? 0;
-                Inventory.Where(i => i.Value.PlacementPosition > placement).ToList().ForEach(i => --i.Value.PlacementPosition);
+                int placementPosition = item.PlacementPosition ?? 0;
+                if (!item.UseBackpackSlot)
+                    Inventory.Values.Where(i => !i.UseBackpackSlot && i.PlacementPosition > placementPosition).ToList().ForEach(i => i.PlacementPosition--);
+                else
+                    Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > placementPosition).ToList().ForEach(i => i.PlacementPosition--);
 
                 EncumbranceVal -= item.EncumbranceVal;
                 Value -= item.Value;
                 // todo CoinValue
                 //if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                 //    UpdateCurrencyClientCalculations(WeenieType.Coin);
-
-                // It's important that we save an item after it's been removed from inventory.
-                // We want to avoid the scenario where the server crashes and a player has too many items.
-                item.SaveBiotaToDatabase();
 
                 return true;
             }

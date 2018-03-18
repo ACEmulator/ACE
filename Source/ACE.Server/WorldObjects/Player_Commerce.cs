@@ -54,7 +54,9 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
                         Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(Guid, wo.Guid, PropertyInstanceId.Container));
                     }
-                    AddNewWorldObjectsToInventory(genlist);
+
+                    foreach (var gen in genlist)
+                        AddNewWorldObjectToInventory(gen);
                 }
                 else // not enough cash.
                 {

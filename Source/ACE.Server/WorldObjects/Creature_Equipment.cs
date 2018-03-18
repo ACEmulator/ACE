@@ -37,6 +37,12 @@ namespace ACE.Server.WorldObjects
             EquippedObjectsLoaded = true;
         }
 
+        public bool WieldedLocationIsAvailable(int wieldedLocation)
+        {
+            // todo actually check and stuff
+            return true;
+        }
+
         public bool HasWieldedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.ContainsKey(objectGuid);
@@ -51,22 +57,28 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.
+        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
+        /// It will also increase the EncumbranceVal and Value.
         /// </summary>
         public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
         {
-            // todo see if the wielded location is in use, if so, return false
+            if (!WieldedLocationIsAvailable(wieldedLocation))
+                return false;
 
-            worldObject.SetProperty(PropertyInt.CurrentWieldedLocation, wieldedLocation);
-            worldObject.SetProperty(PropertyInstanceId.Wielder, Biota.Id);
+            worldObject.CurrentWieldedLocation = (EquipMask)wieldedLocation;
+            worldObject.WielderId = Biota.Id;
             EquippedObjects[worldObject.Guid] = worldObject;
+
+            EncumbranceVal += worldObject.EncumbranceVal;
+            Value += worldObject.Value;
 
             return true;
         }
 
         /// <summary>
-        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II
+        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
+        /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
         public bool TryDequipObject(ObjectGuid objectGuid)
         {
@@ -74,15 +86,19 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II
+        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
+        /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject item)
+        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject)
         {
-            if (EquippedObjects.Remove(objectGuid, out item))
+            if (EquippedObjects.Remove(objectGuid, out worldObject))
             {
-                item.RemoveProperty(PropertyInt.CurrentWieldedLocation);
-                item.RemoveProperty(PropertyInstanceId.Wielder);
+                worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
+                worldObject.RemoveProperty(PropertyInstanceId.Wielder);
+
+                EncumbranceVal -= worldObject.EncumbranceVal;
+                Value -= worldObject.Value;
 
                 return true;
             }
@@ -97,16 +113,16 @@ namespace ACE.Server.WorldObjects
         /// and positioning for visual appearance of the child items held by the parent. Og II
         /// </summary>
         /// <param name="item">The child item - we link them together</param>
-        /// <param name="placement">Where is this on the parent - where is it equipped</param>
+        /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>
         /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
         /// <param name="parentLocation">out parameter - this is another part of the orientation data for correct visual display</param>
-        protected void SetChild(WorldObject item, int placement, out int placementId, out int parentLocation)
+        protected void SetChild(WorldObject item, int placementPosition, out int placementId, out int parentLocation)
         {
             placementId = 0;
             parentLocation = 0;
 
             // TODO: I think there is a state missing - it is one of the edge cases. I need to revist this.   Og II
-            switch ((EquipMask)placement)
+            switch ((EquipMask)placementPosition)
             {
                 case EquipMask.MeleeWeapon:
                     placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;

@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
             uint targetID = message.Payload.ReadUInt32();
             uint objectID = message.Payload.ReadUInt32();
             uint amount = message.Payload.ReadUInt32();
-            // session.Player.HandleGiveObjectRequest(targetID, objectID, amount);
+            session.Player.HandleActionGiveObjectRequest(targetID, objectID, amount);
         }
     }
 }

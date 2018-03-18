@@ -881,30 +881,35 @@ namespace ACE.Server.Entity
             }
         }
 
-        private void ItemTransferContainerInternal(ObjectGuid woGuid, Container container, int placement = 0)
+        private void ItemTransferContainerInternal(ObjectGuid objectGuid, Container container, int placementPosition = 0)
         {
-            WorldObject wo = GetObject(woGuid);
+            var item = GetObject(objectGuid);
 
-            if (container == null || wo == null)
+            if (container == null || item == null)
                 return;
-            throw new NotImplementedException();
-            RemoveWorldObjectInternal(woGuid, false);
-            wo.ContainerId = container.Guid.Full;
 
-            // We are coming off the world we need to be ready to save.
-            wo.Location = null;
-            container.AddToInventory(wo, placement);
+            RemoveWorldObjectInternal(objectGuid, false);
+
+            item.Location = null;
+
+            if (!container.TryAddToInventory(item, placementPosition, true))
+            {
+                log.Error("LandBlock ItemTransferContainerInternal TryAddToInventory failed");
+                return;
+            }
+
+            item.SaveBiotaToDatabase();
 
             // Was Item controlled by a generator?
             // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
 
-            if (wo.GeneratorId > 0)
+            if (item.GeneratorId > 0)
             {
-                WorldObject generator = GetObject(new ObjectGuid((uint)wo.GeneratorId));
+                WorldObject generator = GetObject(new ObjectGuid((uint)item.GeneratorId));
 
-                wo.GeneratorId = null;
+                item.GeneratorId = null;
 
-                generator.NotifyGeneratorOfPickup(wo.Guid.Full);
+                generator.NotifyGeneratorOfPickup(item.Guid.Full);
             }
         }
 
