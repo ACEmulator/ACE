@@ -36,8 +36,8 @@ namespace ACE.Server.Factories
                     return new Portal(weenie, guid);
                 case WeenieType.Book:
                     return new Book(weenie, guid);
-                // case WeenieType.PKModifier:
-                //    return new PKModifier(weenie, guid);
+                case WeenieType.PKModifier:
+                    return new PKModifier(weenie, guid);
                 case WeenieType.Cow:
                     return new Cow(weenie, guid);
                 case WeenieType.Creature:
@@ -80,6 +80,8 @@ namespace ACE.Server.Factories
                     return new Stackable(weenie, guid);
                 case WeenieType.SpellComponent:
                     return new SpellComponent(weenie, guid);
+                case WeenieType.Switch:
+                    return new Switch(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -105,8 +107,8 @@ namespace ACE.Server.Factories
                     return new Portal(biota);
                 case WeenieType.Book:
                     return new Book(biota);
-                // case WeenieType.PKModifier:
-                //    return new PKModifier(biota);
+                case WeenieType.PKModifier:
+                    return new PKModifier(biota);
                 case WeenieType.Cow:
                     return new Cow(biota);
                 case WeenieType.Creature:
@@ -149,6 +151,8 @@ namespace ACE.Server.Factories
                     return new Stackable(biota);
                 case WeenieType.SpellComponent:
                     return new SpellComponent(biota);
+                case WeenieType.Switch:
+                    return new Switch(biota);
                 default:
                     return new GenericObject(biota);
             }
