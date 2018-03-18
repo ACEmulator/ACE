@@ -340,7 +340,7 @@ namespace ACE.Server.WorldObjects
             CurrentWieldedLocation = null;
         }
 
-        internal void SetPropertiesForContainer(int placement)
+        internal void SetPropertiesForContainer(int placementPosition)
         {
             if (Location != null)
                 LandblockManager.RemoveObject(this);
@@ -348,7 +348,7 @@ namespace ACE.Server.WorldObjects
             PositionFlag = UpdatePositionFlag.None;
 
             Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
-            PlacementPosition = placement;
+            PlacementPosition = placementPosition;
 
             ParentLocation = null;
             WielderId = null;

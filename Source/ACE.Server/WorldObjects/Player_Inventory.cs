@@ -42,17 +42,17 @@ namespace ACE.Server.WorldObjects
 
         public int GetEncumbranceCapacity()
         {
-            var encumbranceAgumentations = 0; // todo
+            return int.MaxValue; // fix
+            /*var encumbranceAgumentations = 0; // todo
 
             var strength = Attributes[PropertyAttribute.Strength].Current;
 
-            return (int)((150 * strength) + (encumbranceAgumentations * 30 * strength));
+            return (int)((150 * strength) + (encumbranceAgumentations * 30 * strength));*/
         }
 
         public bool HasEnoughBurdenToAddToInventory(WorldObject worldObject)
         {
-            return true; // todo
-            //return (Burden + worldObject.Burden <= GetEncumbranceCapacity());
+            return (EncumbranceVal + worldObject.EncumbranceVal <= GetEncumbranceCapacity());
         }
 
 
@@ -111,16 +111,8 @@ namespace ACE.Server.WorldObjects
         /// In addition, it will move to objects that are out of range in the attemp to pick them up.
         /// It will call update apperiance if needed and you have wielded an item from the ground. Og II
         /// </summary>
-        private void PickupItemWithNetworking(Container container, ObjectGuid itemGuid, int placement, PropertyInstanceId iidPropertyId)
+        private void PickupItemWithNetworking(Container container, ObjectGuid itemGuid, int placementPosition, PropertyInstanceId iidPropertyId)
         {
-            // Logical operations:
-            // !! FIXME: How to handle repeat on condition?
-            // while (!objectInRange)
-            //   try Move to object
-            // !! FIXME: How to handle conditional
-            // Try acquire from landblock
-            // if acquire successful:
-            //   add to container
             ActionChain pickUpItemChain = new ActionChain();
 
             // Move to the object
@@ -142,83 +134,106 @@ namespace ACE.Server.WorldObjects
             var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
-            // Ask landblock to transfer item
-            // pickUpItemChain.AddAction(CurrentLandblock, () => CurrentLandblock.TransferItem(itemGuid, containerGuid));
-            if (container.Guid.IsPlayer())
-                CurrentLandblock.QueueItemTransfer(pickUpItemChain, itemGuid, container.Guid);
-            else
-                CurrentLandblock.ScheduleItemTransferInContainer(pickUpItemChain, itemGuid, (Container)GetInventoryItem(container.Guid));
+            // Grab a reference to the item before its removed from the CurrentLandblock
+            var item = CurrentLandblock.GetObject(itemGuid);
+
+            // Queue up an action that wait for the landblock to remove the item. The action that gets queued, when fired, will be run on the landblocks ActionChain, not this players.
+            CurrentLandblock.QueueItemRemove(pickUpItemChain, itemGuid);
 
             // Finish pickup animation
             pickUpItemChain.AddAction(this, () =>
             {
-                // If success, the item is in our inventory:
-                WorldObject item = GetInventoryItem(itemGuid);
-
-                if (item.ContainerId != Guid.Full)
+                // If the item still has a location, CurrentLandblock failed to remove it
+                if (item.Location != null)
                 {
-                    //Burden += item.Burden ?? 0;
-
-                    if (item.WeenieType == WeenieType.Coin)
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
+                    log.Error("Player_Inventory PickupItemWithNetworking item.Location != null");
+                    return;
                 }
 
-                if (item is Container itemAsContainer)
+                // If the item has a ContainerId, it was probably picked up by someone else before us
+                if (item.ContainerId != null && item.ContainerId != 0)
                 {
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
-
-                    foreach (var packItem in itemAsContainer.Inventory)
-                    {
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
-                        UpdateCurrencyClientCalculations(WeenieType.Coin);
-                    }
+                    log.Error("Player_Inventory PickupItemWithNetworking item.ContainerId != 0");
+                    return;
                 }
 
-                // Update all our stuff if we succeeded
-                if (item != null)
+                // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
+
+                if (iidPropertyId == PropertyInstanceId.Container)
                 {
-                    item.SetPropertiesForContainer(placement);
-
-                    // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
-                    var motion = new UniversalMotion(MotionStance.Standing);
-
-                    if (iidPropertyId == PropertyInstanceId.Container)
+                    if (!container.TryAddToInventory(item, placementPosition, true))
                     {
-                        Session.Network.EnqueueSend(
-                            ////new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, UpdateBurden()),
-                            new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
-                            new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
-                            new GameMessagePutObjectInContainer(Session, container.Guid, item, placement));
-                    }
-                    else
-                    {
-                        AddToWieldedObjects(item, container, (EquipMask)placement);
-                        Session.Network.EnqueueSend(
-                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                            new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                            new GameEventWieldItem(Session, itemGuid.Full, placement));
+                        log.Error("Player_Inventory PickupItemWithNetworking TryAddToInventory failed");
+                        return;
                     }
 
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
-                        new GameMessagePickupEvent(item));
+                    // If we've put the item to a side pack, we must increment our main EncumbranceValue and Value
+                    if (container != this)
+                    {
+                        EncumbranceVal += item.EncumbranceVal;
+                        Value += item.Value;
+                        // todo CoinValue
+                    }
 
-                    if (iidPropertyId == PropertyInstanceId.Wielder)
-                        CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+                    if (item is Container itemAsContainer)
+                    {
+                        Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
 
-                    // TODO: Og II - check this later to see if it is still required.
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                        foreach (var packItem in itemAsContainer.Inventory)
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                    }
+
+                    Session.Network.EnqueueSend(
+                        new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                        new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
+                        new GameMessagePutObjectInContainer(Session, container.Guid, item, placementPosition));
                 }
-                // If we didn't succeed, just stand up and be ashamed of ourself
-                else
+                else if (iidPropertyId == PropertyInstanceId.Wielder)
                 {
-                    var motion = new UniversalMotion(MotionStance.Standing);
+                    if (!TryEquipObject(item, placementPosition))
+                    {
+                        log.Error("Player_Inventory PickupItemWithNetworking TryEquipObject failed");
+                        return;
+                    }
 
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
-                    // CurrentLandblock.EnqueueBroadcast(self shame);
+                    if (((EquipMask)placementPosition & EquipMask.Selectable) != 0)
+                        SetChild(item, placementPosition, out _, out _);
+
+                    // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
+
+                    Session.Network.EnqueueSend(
+                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                        new GameMessageObjDescEvent(this),
+                        new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
+                        new GameEventWieldItem(Session, itemGuid.Full, placementPosition));
                 }
+
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                var motion = new UniversalMotion(MotionStance.Standing);
+
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                    new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
+                    new GameMessagePickupEvent(item));
+
+                if (iidPropertyId == PropertyInstanceId.Wielder)
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+
+                // TODO: Og II - check this later to see if it is still required.
+                Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+
+                // Was Item controlled by a generator?
+                // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
+                /*if (item.GeneratorId > 0)
+                {
+                    WorldObject generator = GetObject(new ObjectGuid((uint)item.GeneratorId));
+
+                    item.GeneratorId = null;
+
+                    generator.NotifyGeneratorOfPickup(item.Guid.Full);
+                }*/
+
+                item.SaveBiotaToDatabase();
             });
             // Set chain to run
             pickUpItemChain.EnqueueChain();
@@ -433,6 +448,8 @@ namespace ACE.Server.WorldObjects
                     // check to see if this item is wielded
                     if (TryDequipObject(itemGuid, out item))
                     {
+                        Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+
                         Session.Network.EnqueueSend(
                             new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
@@ -775,34 +792,6 @@ namespace ACE.Server.WorldObjects
                 else
                     EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
             }).EnqueueChain();
-        }
-
-        /// <summary>
-        /// This method removes an item from Inventory and adds it to wielded items.
-        /// It also clears all properties used when an object is contained and sets the needed properties to be wielded Og II
-        /// </summary>
-        /// <param name="item">The world object we are wielding</param>
-        /// <param name="wielder">Who is wielding the item</param>
-        /// <param name="currentWieldedLocation">What wield location are we going into</param>
-        [Obsolete("This needs to be refactored into the new system")]
-        private void AddToWieldedObjects(WorldObject item, WorldObject wielder, EquipMask currentWieldedLocation)
-        {
-            // Unset container fields
-            item.PlacementPosition = null;
-            item.ContainerId = null;
-            // Set fields needed to be wielded.
-            item.WielderId = wielder.Guid.Full;
-            item.CurrentWieldedLocation = currentWieldedLocation;
-
-            if (wielder is Creature creature)
-            {
-                if (!creature.EquippedObjects.ContainsKey(item.Guid))
-                {
-                    creature.EquippedObjects.Add(item.Guid, item);
-
-                    //Burden += item.Burden;
-                }
-            }
         }
 
         /// <summary>

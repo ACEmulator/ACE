@@ -109,8 +109,8 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// This method sets properties needed for items that will be child items.
-        /// Items here are only items equipped in the hands.  This deals with the orientation
-        /// and positioning for visual appearance of the child items held by the parent. Og II
+        /// Items here are only items equipped in the hands.
+        /// This deals with the orientation and positioning for visual appearance of the child items held by the parent. Og II
         /// </summary>
         /// <param name="item">The child item - we link them together</param>
         /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>

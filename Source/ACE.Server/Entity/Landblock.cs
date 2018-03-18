@@ -755,10 +755,9 @@ namespace ACE.Server.Entity
             List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
 
             List<WorldObject> ret = new List<WorldObject>();
+
             foreach (Landblock lb in landblocksInRange)
-            {
                 ret.AddRange(lb.worldObjects.Values.Where(x => x.Location.SquaredDistanceTo(pos) < distance * distance).ToList());
-            }
 
             return ret;
         }
@@ -779,16 +778,12 @@ namespace ACE.Server.Entity
         private Landblock GetOwner(ObjectGuid guid)
         {
             if (worldObjects.ContainsKey(guid))
-            {
                 return this;
-            }
 
             foreach (Landblock lb in adjacencies.Values)
             {
                 if (lb != null && lb.worldObjects.ContainsKey(guid))
-                {
                     return lb;
-                }
             }
 
             return null;
@@ -797,30 +792,30 @@ namespace ACE.Server.Entity
         public WorldObject GetObject(ObjectGuid guid)
         {
             Landblock lb = GetOwner(guid);
+
             if (lb == null)
-            {
                 return null;
-            }
+
             return lb.worldObjects[guid];
         }
 
         public IActor GetActor(ObjectGuid guid)
         {
             Landblock lb = GetOwner(guid);
+
             if (lb == null)
-            {
                 return null;
-            }
+
             return lb.worldObjects[guid];
         }
 
         public Position GetPosition(ObjectGuid guid)
         {
             Landblock lb = GetOwner(guid);
+
             if (lb == null)
-            {
                 return null;
-            }
+
             return lb.worldObjects[guid].Location;
         }
 
@@ -843,81 +838,36 @@ namespace ACE.Server.Entity
         */
 
         /// <summary>
-        /// Intended for when moving an item directly to a player's container (which is not visible to the landblock)
+        /// This will create a RemoveWorldObjectInternal action for objectGuid on the appropriate Landblocks ActionChain, and that action will be added to callersChain.<para />
+        /// What that means is, callersChain will start to execute after you queue it accordingly. When it gets to the point where you injected QueueItemRemove, it will block and wait for the objectGuids
+        /// landblock to begin executing the RemoveWorldObjectInternal on its own ActionChain. After the landblock finishes that command, it will return and allow callersChain to resume execution.<para />
+        /// This will also set the item.Location to null.
         /// </summary>
-        /// <param name="chain"></param>
-        /// <param name="wo"></param>
-        /// <param name="container"></param>
-        /// <param name="placeent"></param>
-        public void ScheduleItemTransferInContainer(ActionChain chain, ObjectGuid wo, Container container, uint placeent = 0)
+        public void QueueItemRemove(ActionChain callersChain, ObjectGuid objectGuid)
         {
             // Find owner of wo
-            Landblock lb = GetOwner(wo);
+            var lb = GetOwner(objectGuid);
 
-            if (lb != null)
+            if (lb == null)
             {
-                chain.AddAction(lb.motionQueue, () => ItemTransferContainerInternal(wo, container));
-            }
-            else
-            {
-                // I find some of our debug commands have races between create and use -- This warning will trigger then
-                log.Warn("Schedule transfer to item that doesn't exist -- ignoring");
-            }
-        }
-
-        public void QueueItemTransfer(ActionChain chain, ObjectGuid wo, ObjectGuid container, int placement = 0)
-        {
-            // Find owner of wo
-            Landblock lb = GetOwner(wo);
-
-            if (lb != null)
-            {
-                chain.AddAction(lb.motionQueue, () => ItemTransferInternal(wo, container, placement));
-            }
-            else
-            {
-                // I find some of our debug commands have races between create and use -- This warning will trigger then
-                log.Warn("Schedule transfer to item that doesn't exist -- ignoring");
-            }
-        }
-
-        private void ItemTransferContainerInternal(ObjectGuid objectGuid, Container container, int placementPosition = 0)
-        {
-            var item = GetObject(objectGuid);
-
-            if (container == null || item == null)
-                return;
-
-            RemoveWorldObjectInternal(objectGuid, false);
-
-            item.Location = null;
-
-            if (!container.TryAddToInventory(item, placementPosition, true))
-            {
-                log.Error("LandBlock ItemTransferContainerInternal TryAddToInventory failed");
+                log.Error("Landblock QueueItemRemove failed to GetOwner");
                 return;
             }
 
-            item.SaveBiotaToDatabase();
-
-            // Was Item controlled by a generator?
-            // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
-
-            if (item.GeneratorId > 0)
+            callersChain.AddAction(lb.motionQueue, () =>
             {
-                WorldObject generator = GetObject(new ObjectGuid((uint)item.GeneratorId));
+                var item = GetObject(objectGuid);
 
-                item.GeneratorId = null;
+                if (item == null)
+                {
+                    log.Error("Landblock QueueItemRemove failed to GetObject");
+                    return;
+                }
 
-                generator.NotifyGeneratorOfPickup(item.Guid.Full);
-            }
-        }
+                RemoveWorldObjectInternal(objectGuid, false);
 
-        private void ItemTransferInternal(ObjectGuid woGuid, ObjectGuid containerGuid, int placement = 0)
-        {
-            Container container = GetObject(containerGuid) as Container;
-
-            ItemTransferContainerInternal(woGuid, container, placement);
+                item.Location = null;
+            });
         }
 
         private void Log(string message)
