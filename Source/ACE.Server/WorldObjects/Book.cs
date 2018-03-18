@@ -65,6 +65,7 @@ namespace ACE.Server.WorldObjects
             };
 
             Biota.BiotaPropertiesBookPageData.Add(page);
+            SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc

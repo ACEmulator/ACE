@@ -635,10 +635,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+                //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
 
-                GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                //player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                player.SendUseDoneEvent();
             }
         }       
 

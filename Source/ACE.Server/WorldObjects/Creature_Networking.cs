@@ -90,10 +90,10 @@ namespace ACE.Server.WorldObjects
 
             foreach (var w in EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority))
             {
-                if ((w.CurrentWieldedLocation == EquipMask.HeadWear) && !showHelm)
+                if ((w.CurrentWieldedLocation == EquipMask.HeadWear) && !showHelm && (this is Player))
                     continue;
 
-                if ((w.CurrentWieldedLocation == EquipMask.Cloak) && !showCloak)
+                if ((w.CurrentWieldedLocation == EquipMask.Cloak) && !showCloak && (this is Player))
                     continue;
 
                 // We can wield things that are not part of our model, only use those items that can cover our model.

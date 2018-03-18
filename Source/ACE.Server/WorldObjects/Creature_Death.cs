@@ -9,7 +9,6 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Motion;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace ACE.Server.WorldObjects
@@ -59,7 +58,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!(NoCorpse ?? false))
             {
-                var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse"));
+                var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
                 
                 corpse.SetupTableId = SetupTableId;
                 corpse.MotionTableId = MotionTableId;
@@ -77,7 +76,7 @@ namespace ACE.Server.WorldObjects
                 //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
                 //    corpse.Translucency = Translucency;
 
-                if (EquippedObjects.Where(x => (x.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
+                if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
                 {
                     var objDesc = CalculateObjDesc();
 
@@ -88,16 +87,65 @@ namespace ACE.Server.WorldObjects
                         corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
 
                     foreach (var textureChange in objDesc.TextureChanges)
-                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId=corpse.Guid.Full, Index=textureChange.PartIndex, OldId=textureChange.OldTexture, NewId=textureChange.NewTexture});
+                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture });
                 }
 
                 //corpse.Location = Location;
                 corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
+                corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
 
                 corpse.Name = $"Corpse of {Name}";
-                corpse.LongDesc = $"Killed by {CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0)).Name}";
+
+                var killerName = CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0)).Name; // this might need to be rethought....
+
+                if (killerName == "")
+                    killerName = "misadventure";
+
+                corpse.LongDesc = $"Killed by {killerName}";
+                corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
 
                 // Transfer of generated treasure from creature to corpse here
+
+                var random = new Random((int)DateTime.UtcNow.Ticks);
+
+                foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
+                {
+                    if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
+                                                                                                      // Should there be rolls for each item or one roll to rule them all?
+                    {
+                        if (trophy.WeenieClassId == 0) // Randomized Loot
+                        {
+                            //var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
+
+                            //corpse.TryAddToInventory(wo);
+
+                            var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
+
+                            if (book == null)
+                                continue;
+
+                            book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
+                            book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
+
+                            corpse.TryAddToInventory(book);
+                        }
+                        else // Trophy Loot
+                        {
+                            var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
+
+                            if (wo == null)
+                                continue;
+
+                            if (trophy.StackSize > 1)
+                                wo.StackSize = (ushort)trophy.StackSize;
+
+                            if (trophy.Palette > 0)
+                                wo.PaletteTemplate = trophy.Palette;
+
+                            corpse.TryAddToInventory(wo);
+                        }
+                    }
+                }
 
                 LandblockManager.AddObject(corpse);
             }

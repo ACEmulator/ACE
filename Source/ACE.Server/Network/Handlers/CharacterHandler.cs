@@ -616,8 +616,8 @@ namespace ACE.Server.Network.Handlers
         {
             var book = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
-            book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "Ripley", "prewritten");
-            book.AddPage(player.Guid.Full, "Ripley", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
+            book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
+            book.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
             player.TryAddToInventory(book);
         }
