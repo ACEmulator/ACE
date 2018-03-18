@@ -1097,7 +1097,10 @@ namespace ACE.Server.Command.Handlers
             //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            loot.Location = session.Player.Location.InFrontOf(5f);
+            if (loot.WeenieType == WeenieType.Creature)
+                loot.Location = session.Player.Location.InFrontOf(5f, true);
+            else
+                loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();

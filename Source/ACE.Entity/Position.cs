@@ -72,7 +72,7 @@ namespace ACE.Entity
             return false;
         }
 
-        public Position InFrontOf(double distanceInFront = 3.0f)
+        public Position InFrontOf(double distanceInFront = 3.0f, bool rotate180 = false)
         {
             float qw = RotationW; // north
             float qz = RotationZ; // south
@@ -85,8 +85,13 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            var rotate = new Quaternion(0, 0, qz, qw) * Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.PI);
-            return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, rotate.Z, rotate.W);
+            if (rotate180)
+            {
+                var rotate = new Quaternion(0, 0, qz, qw) * Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.PI);
+                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, rotate.Z, rotate.W);
+            }
+            else
+                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
         }
 
         public Position()
