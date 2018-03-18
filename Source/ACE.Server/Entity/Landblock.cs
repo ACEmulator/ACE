@@ -560,6 +560,24 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Enqueues a message for broadcast, thread safe
+        /// </summary>
+        public void EnqueueBroadcast(Position pos, params GameMessage[] msgs)
+        {
+            // Atomically checks and sets the broadcastQueued bit --
+            //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
+            if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
+            {
+                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
+            }
+
+            foreach (GameMessage msg in msgs)
+            {
+                broadcastQueue.Enqueue(new Tuple<Position, float, GameMessage>(pos, MaxObjectRange, msg));
+            }
+        }
+
+        /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast a motion.
         /// </summary>
         /// <param name="wo"></param>

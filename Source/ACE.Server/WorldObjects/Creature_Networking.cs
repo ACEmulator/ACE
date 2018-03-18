@@ -83,13 +83,24 @@ namespace ACE.Server.WorldObjects
 
             var coverage = new List<uint>();
 
-            foreach (var w in EquippedObjects.OrderBy(x => x.Value.Priority))
+            var characterOptions2 = CharacterOptions2Mapping ?? 0;
+
+            bool showHelm = (characterOptions2 & (int)CharacterOptions2.ShowYourHelmOrHeadGear) == (int)CharacterOptions2.ShowYourHelmOrHeadGear;
+            bool showCloak = (characterOptions2 & (int)CharacterOptions2.ShowYourCloak) == (int)CharacterOptions2.ShowYourCloak;
+
+            foreach (var w in EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority))
             {
+                if ((w.CurrentWieldedLocation == EquipMask.HeadWear) && !showHelm)
+                    continue;
+
+                if ((w.CurrentWieldedLocation == EquipMask.Cloak) && !showCloak)
+                    continue;
+
                 // We can wield things that are not part of our model, only use those items that can cover our model.
-                if ((w.Value.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
+                if ((w.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0)
                 {
-                    if (w.Value.ClothingBase.HasValue)
-                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.Value.ClothingBase);
+                    if (w.ClothingBase.HasValue)
+                        item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.ClothingBase);
                     else
                         continue;
 
@@ -116,8 +127,8 @@ namespace ACE.Server.WorldObjects
 
                             CloSubPalEffect itemSubPal;
                             int palOption = 0;
-                            if (w.Value.PaletteTemplate.HasValue)
-                                palOption = (int)w.Value.PaletteTemplate;
+                            if (w.PaletteTemplate.HasValue)
+                                palOption = (int)w.PaletteTemplate;
                             if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
                             {
                                 itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
@@ -131,8 +142,8 @@ namespace ACE.Server.WorldObjects
                             //    IconId = itemSubPal.Icon;
 
                             float shade = 0;
-                            if (w.Value.Shade.HasValue)
-                                shade = (float)w.Value.Shade;
+                            if (w.Shade.HasValue)
+                                shade = (float)w.Shade;
                             for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                             {
                                 var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
