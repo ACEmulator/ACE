@@ -46,7 +46,37 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.Account15Days) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
-        }        
+        }
+
+        public bool? AdvocateQuest
+        {
+            get => GetProperty(PropertyBool.AdvocateQuest);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.AdvocateQuest); else SetProperty(PropertyBool.AdvocateQuest, value.Value); }
+        }
+
+        public bool? AdvocateState
+        {
+            get => GetProperty(PropertyBool.AdvocateState);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.AdvocateState); else SetProperty(PropertyBool.AdvocateState, value.Value); }
+        }
+
+        public int? AdvocateLevel
+        {
+            get => GetProperty(PropertyInt.AdvocateLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AdvocateLevel); else SetProperty(PropertyInt.AdvocateLevel, value.Value); }
+        }
+
+        public Channel? ChannelsActive
+        {
+            get => (Channel?)GetProperty(PropertyInt.ChannelsActive);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChannelsActive); else SetProperty(PropertyInt.ChannelsActive, (int)value.Value); }
+        }
+
+        public Channel? ChannelsAllowed
+        {
+            get => (Channel?)GetProperty(PropertyInt.ChannelsAllowed);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ChannelsAllowed); else SetProperty(PropertyInt.ChannelsAllowed, (int)value.Value); }
+        }
 
         /*private int coinValue;
         public override int? CoinValue

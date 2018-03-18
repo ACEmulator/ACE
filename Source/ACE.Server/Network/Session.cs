@@ -126,6 +126,11 @@ namespace ACE.Server.Network
             AccessLevel = accountAccesslevel;
         }
 
+        public void SetAccessLevel(AccessLevel accountAccesslevel)
+        {
+            AccessLevel = accountAccesslevel;
+        }
+
         public void UpdateCachedCharacters(IEnumerable<Character> characters)
         {
             AccountCharacters.Clear();

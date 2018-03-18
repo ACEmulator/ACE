@@ -318,7 +318,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // effect [Effect] (scale)
-        [CommandHandler("effect", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("effect", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Plays an effect.",
             "effect (float)\n" +
             "Effect can be uint or enum name" +

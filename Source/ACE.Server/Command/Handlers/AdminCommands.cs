@@ -71,17 +71,6 @@ namespace ACE.Server.Command.Handlers
             // just a placeholder, probably not needed or should be handled by a decal plugin to replicate the admin ui
         }
 
-        // attackable { on | off }
-        [CommandHandler("attackable", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleAttackable(Session session, params string[] parameters)
-        {
-            // usage: @attackable { on,off}
-            // This command sets whether monsters will attack you unprovoked.When turned on, monsters will attack you as if you are a normal player.  When turned off, monsters will ignore you.
-            // @attackable - Sets whether monsters will attack you or not.
-
-            // TODO: output
-        }
-
         // ban < acct > < days > < hours > < minutes >
         [CommandHandler("ban", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 4)]
         public static void HandleBanAccount(Session session, params string[] parameters)
@@ -783,70 +772,6 @@ namespace ACE.Server.Command.Handlers
                     ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
                 }
             }
-        }
-
-        // tele [name] longitude latitude
-        [CommandHandler("tele", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2,
-            "This command teleports yourself (or the specified character) to the given longitude and latitude.",
-            "[longitude latitude]\n")]
-        public static void HandleTele(Session session, params string[] parameters)
-        {
-            // Used PhatAC source to implement most of this.  Thanks Pea!
-
-            // usage: @tele [name,] longitude latitude
-            // This command teleports yourself (or the specified character) to the given longitude and latitude.
-            // @tele - Teleports you(or a player) to some location.
-
-            string northSouth = parameters[0].ToLower().Replace(",", "");
-            string eastWest = parameters[1].ToLower().Replace(",", "");
-
-            if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
-            {
-                ChatPacket.SendServerMessage(session, "Missing n or s indicator on first parameter", ChatMessageType.Broadcast);
-                return;
-            }
-
-            if (!eastWest.EndsWith("e") && !eastWest.EndsWith("w"))
-            {
-                ChatPacket.SendServerMessage(session, "Missing e or w indicator on second parameter", ChatMessageType.Broadcast);
-                return;
-            }
-
-            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out var coordNS))
-            {
-                ChatPacket.SendServerMessage(session, "North/South coordinate is not a valid number.", ChatMessageType.Broadcast);
-                return;
-            }
-
-            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out var coordEW))
-            {
-                ChatPacket.SendServerMessage(session, "East/West coordinate is not a valid number.", ChatMessageType.Broadcast);
-                return;
-            }
-
-            if (northSouth.EndsWith("s"))
-                coordNS *= -1.0f;
-            if (eastWest.EndsWith("w"))
-                coordEW *= -1.0f;
-
-            Position position = null;
-            try
-            {
-                position = new Position(coordNS, coordEW);
-                var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(position.Cell >> 16 | 0xFFFF);
-                position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
-            }
-            catch (System.Exception)
-            {
-                ChatPacket.SendServerMessage(session, "There was a problem teleporting to that location (bad coordinates?).", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // TODO: Check if water block?
-
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
-
-            session.Player.Teleport(position);
         }
 
         // teleto [char]

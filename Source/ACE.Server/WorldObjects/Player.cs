@@ -89,7 +89,13 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 7;
 
-            //AddCharacterBaseModelData();
+            if ((AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
+            {
+                if (Session.AccessLevel == AccessLevel.Player)
+                    Session.SetAccessLevel(AccessLevel.Advocate); // Elevate to Advocate permissions
+                if (AdvocateLevel > 4)
+                    IsPsr = true; // Enable AdvocateTeleport via MapClick
+            }
 
             return; // todo
             /* todo fix for new EF model

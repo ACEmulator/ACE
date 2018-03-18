@@ -80,12 +80,12 @@ namespace ACE.Server.WorldObjects
                     {
                         AllowedActivator = ObjectGuid.Invalid.Full;
 
-                        var sancTimer = new ActionChain();
+                        var switchTimer = new ActionChain();
                         var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-                        sancTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
-                        sancTimer.AddDelaySeconds(1);
-                        sancTimer.AddAction(player, () =>
+                        switchTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                        switchTimer.AddDelaySeconds(1);
+                        switchTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
                                 CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
@@ -93,10 +93,10 @@ namespace ACE.Server.WorldObjects
                                 CurrentLandblock.EnqueueBroadcastMotion(this, twitch);
                         });
                         if (UseTargetSuccessAnimation.HasValue)
-                            sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
+                            switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
                         else
-                            sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
-                        sancTimer.AddAction(player, () =>
+                            switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
+                        switchTimer.AddAction(player, () =>
                         {
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
                             player.PkLevelModifier = PkLevelModifier;
@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects
 
                             Reset();
                         });
-                        sancTimer.EnqueueChain();
+                        switchTimer.EnqueueChain();
                     }
                     else
                     {

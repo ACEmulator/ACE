@@ -148,7 +148,7 @@ namespace ACE.Server.Command
 
             if (session != null)
             {
-                bool isAdvocate = false; // we don't track/support this
+                bool isAdvocate = session.Player.IsAdvocate;
                 bool isSentinel = session.Player.IsEnvoy; // we map this to envoy
                 bool isEnvoy = isSentinel;
                 bool isArch = session.Player.IsArch;

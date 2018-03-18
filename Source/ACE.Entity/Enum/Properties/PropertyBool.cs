@@ -119,6 +119,7 @@ namespace ACE.Entity.Enum.Properties
         AppraisalHasAllowedActivator     = 94,
         ExistedBeforeAllegianceXpChanges = 95,
         IsDeaf                           = 96,
+        [Ephemeral]
         IsPsr                            = 97,
         Invincible                       = 98,
         Ivoryable                        = 99,

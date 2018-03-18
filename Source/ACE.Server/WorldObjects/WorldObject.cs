@@ -428,6 +428,15 @@ namespace ACE.Server.WorldObjects
                     case "location":
                         sb.AppendLine($"{prop.Name} = {obj.Location.ToLOCString()}");
                         break;
+                    case "channelsactive":
+                        sb.AppendLine($"{prop.Name} = {(Channel)obj.GetProperty(PropertyInt.ChannelsActive)}" + " (" + (uint)obj.GetProperty(PropertyInt.ChannelsActive) + ")");
+                        break;
+                    case "channelsallowed":
+                        sb.AppendLine($"{prop.Name} = {(Channel)obj.GetProperty(PropertyInt.ChannelsAllowed)}" + " (" + (uint)obj.GetProperty(PropertyInt.ChannelsAllowed) + ")");
+                        break;
+                    case "playerkillerstatus":
+                        sb.AppendLine($"{prop.Name} = {obj.PlayerKillerStatus}" + " (" + (uint)obj.PlayerKillerStatus + ")");
+                        break;
                     default:
                         sb.AppendLine($"{prop.Name} = {prop.GetValue(obj, null)}");
                         break;
@@ -450,6 +459,8 @@ namespace ACE.Server.WorldObjects
                 sb.AppendLine($"PropertyInt64.{Enum.GetName(typeof(PropertyInt64), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyString())
                 sb.AppendLine($"PropertyString.{Enum.GetName(typeof(PropertyString), item.Key)} ({(int)item.Key}) = {item.Value}");
+
+            sb.AppendLine("\n");
 
             return sb.ToString().Replace("\r", "");
         }

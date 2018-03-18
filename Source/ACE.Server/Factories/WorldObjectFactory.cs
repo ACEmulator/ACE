@@ -82,6 +82,10 @@ namespace ACE.Server.Factories
                     return new SpellComponent(weenie, guid);
                 case WeenieType.Switch:
                     return new Switch(weenie, guid);
+                case WeenieType.AdvocateFane:
+                    return new AdvocateFane(weenie, guid);
+                case WeenieType.AdvocateItem:
+                    return new AdvocateItem(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -153,6 +157,10 @@ namespace ACE.Server.Factories
                     return new SpellComponent(biota);
                 case WeenieType.Switch:
                     return new Switch(biota);
+                case WeenieType.AdvocateFane:
+                    return new AdvocateFane(biota);
+                case WeenieType.AdvocateItem:
+                    return new AdvocateItem(biota);
                 default:
                     return new GenericObject(biota);
             }
