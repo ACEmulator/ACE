@@ -53,6 +53,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetSuccessAnimation); else SetProperty(PropertyDataId.UseTargetSuccessAnimation, value.Value); }
         }
 
+        public uint? UseTargetFailureAnimation
+        {
+            get => GetProperty(PropertyDataId.UseTargetFailureAnimation);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetFailureAnimation); else SetProperty(PropertyDataId.UseTargetFailureAnimation, value.Value); }
+        }
+
         public override void ActOnUse(ObjectGuid playerId)
         {
             var player = CurrentLandblock.GetObject(playerId) as Player;
@@ -74,13 +80,16 @@ namespace ACE.Server.WorldObjects
 
                 if (AllowedActivator == null)
                 {
-                    if (player.IsAdvocate || (player.AdvocateLevel > 0) || (player.AdvocateQuest ?? false) || (player.AdvocateState ?? false))
+                    if (player.IsAdvocate || (player.AdvocateQuest ?? false) || (player.AdvocateState ?? false))
                     {
                         // Advocates cannot change their PK status
                         if (PkLevelModifier == 1)
+                        {
+                            player.SendUseDoneEvent();
                             return; // maybe send error msg to tell PK to ask another advocate to @remove them (or maybe make the @remove command support self removal)
+                        }
 
-                       // letting it fall through for the NpkSwitch because it will not change status and error properly.
+                        // letting it fall through for the NpkSwitch because it will not change status and error properly.
                     }
 
                     //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp(? maybe different timestamp) + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
@@ -125,6 +134,8 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
+                        if (UseTargetFailureAnimation.HasValue)
+                            CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
                         player.SendUseDoneEvent();
                     }
