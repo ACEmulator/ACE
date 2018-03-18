@@ -958,8 +958,10 @@ namespace ACE.Server.WorldObjects
             else
                 flag &= ~ObjectDescriptionFlag.Attackable;
             ////PlayerKiller           = 0x00000020,
-            // if (AceObject.PlayerKiller ?? false)
-            //    PlayerKiller = true;
+            if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.PK)
+                flag |= ObjectDescriptionFlag.PlayerKiller;
+            else
+                flag &= ~ObjectDescriptionFlag.PlayerKiller;
             ////HiddenAdmin            = 0x00000040,
             if (HiddenAdmin ?? false)
                 flag |= ObjectDescriptionFlag.HiddenAdmin;
@@ -1007,8 +1009,10 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.Admin ?? false)
             //    Admin = true;
             ////FreePkStatus           = 0x00200000,
-            // if (AceObject.FreePkStatus ?? false)
-            //    FreePkStatus = true;
+            if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.Free)
+                flag |= ObjectDescriptionFlag.FreePkStatus;
+            else
+                flag &= ~ObjectDescriptionFlag.FreePkStatus;
             ////ImmuneCellRestrictions = 0x00400000,
             if (IgnoreHouseBarriers ?? false)
                 flag |= ObjectDescriptionFlag.ImmuneCellRestrictions;
@@ -1025,8 +1029,10 @@ namespace ACE.Server.WorldObjects
             else
                 flag &= ~ObjectDescriptionFlag.Retained;
             ////PkLiteStatus           = 0x02000000,
-            // if (AceObject.PkLiteStatus ?? false)
-            //    PkLiteStatus = true;
+            if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.PKLite)
+                flag |= ObjectDescriptionFlag.PkLiteStatus;
+            else
+                flag &= ~ObjectDescriptionFlag.PkLiteStatus;
             ////IncludesSecondHeader   = 0x04000000,
             if (weenieFlags2 > WeenieHeaderFlag2.None)
                 flag |= ObjectDescriptionFlag.IncludesSecondHeader;

@@ -2410,5 +2410,17 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
         }
+
+        public int? PkLevelModifier
+        {
+            get => GetProperty(PropertyInt.PkLevelModifier);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value.Value); }
+        }
+
+        public PlayerKillerStatus? PlayerKillerStatus
+        {
+            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlayerKillerStatus); else SetProperty(PropertyInt.PlayerKillerStatus, (int)value.Value); }
+        }
     }
 }

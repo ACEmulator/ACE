@@ -345,7 +345,7 @@ namespace ACE.Server.WorldObjects
                     turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                     ActionChain turnToTimer = new ActionChain();
-                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion)); ;
+                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
                     turnToTimer.AddDelaySeconds(1);
                     turnToTimer.AddAction(this, () => Open(player));
                     turnToTimer.EnqueueChain();

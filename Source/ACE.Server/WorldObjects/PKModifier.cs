@@ -1,6 +1,14 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -24,6 +32,106 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            if (PkLevelModifier == -1)
+                BaseDescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
+
+            if (PkLevelModifier == 1)
+                BaseDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
+        }
+
+        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch1));
+
+        public uint? AllowedActivator
+        {
+            get => GetProperty(PropertyInstanceId.AllowedActivator);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.AllowedActivator); else SetProperty(PropertyInstanceId.AllowedActivator, value.Value); }
+        }
+
+        public uint? UseTargetSuccessAnimation
+        {
+            get => GetProperty(PropertyDataId.UseTargetSuccessAnimation);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetSuccessAnimation); else SetProperty(PropertyDataId.UseTargetSuccessAnimation, value.Value); }
+        }
+
+        public override void ActOnUse(ObjectGuid playerId)
+        {
+            var player = CurrentLandblock.GetObject(playerId) as Player;
+            if (player == null)
+            {
+                return;
+            }
+
+            if (!player.IsWithinUseRadiusOf(this))
+                player.DoMoveTo(this);
+            else
+            {
+                //if (ServerIsPKServer) // Need some form of config switch in configmanager...
+                //{
+                //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
+                //    player.SendUseDoneEvent();
+                //    return;
+                //}
+
+                if (AllowedActivator == null)
+                {
+                    //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
+                    //{
+                    if ((player.PkLevelModifier ?? -1) != PkLevelModifier)
+                    {
+                        AllowedActivator = ObjectGuid.Invalid.Full;
+
+                        var sancTimer = new ActionChain();
+                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+                        sancTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                        sancTimer.AddDelaySeconds(1);
+                        sancTimer.AddAction(player, () =>
+                        {
+                            if (UseTargetSuccessAnimation.HasValue)
+                                CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                            else
+                                CurrentLandblock.EnqueueBroadcastMotion(this, twitch);
+                        });
+                        if (UseTargetSuccessAnimation.HasValue)
+                            sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
+                        else
+                            sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
+                        sancTimer.AddAction(player, () =>
+                        {
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
+                            player.PkLevelModifier = PkLevelModifier;
+
+                            player.SendUseDoneEvent();
+
+                            if (player.PkLevelModifier == 1)
+                                player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.PK;
+                            else
+                                player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.NPK;
+
+                            player.CurrentLandblock.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player.Sequences, player.Guid, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+
+                            Reset();
+                        });
+                        sancTimer.EnqueueChain();
+                    }
+                    else
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
+                        player.SendUseDoneEvent();
+                    }
+                    //}
+                }
+                else
+                {
+                    // do nothing / in use error msg?
+                    player.SendUseDoneEvent();
+                }
+            }
+        }
+
+        public void Reset()
+        {
+            AllowedActivator = null;
         }
     }
 }

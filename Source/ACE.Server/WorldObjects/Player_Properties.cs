@@ -1,4 +1,5 @@
 
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
@@ -35,6 +36,17 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsPsr); else SetProperty(PropertyBool.IsPsr, value); }
         }
 
+        public bool IsAdvocate
+        {
+            get => GetProperty(PropertyBool.IsAdvocate) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsAdvocate); else SetProperty(PropertyBool.IsAdvocate, value); }
+        }
+
+        public bool Account15Days
+        {
+            get => GetProperty(PropertyBool.Account15Days) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
+        }        
 
         /*private int coinValue;
         public override int? CoinValue
