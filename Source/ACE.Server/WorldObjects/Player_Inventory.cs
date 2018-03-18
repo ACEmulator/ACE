@@ -647,7 +647,7 @@ namespace ACE.Server.WorldObjects
         {
             new ActionChain(this, () =>
             {
-                var item = GetInventoryItem(itemGuid);
+                var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
 
                 if (item == null)
                 {
