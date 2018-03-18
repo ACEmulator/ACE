@@ -193,7 +193,7 @@ namespace ACE.Server.Network
                 if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
                 {
                     // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
-                    // We do this because SaveSessionPlayer will queue an ActionChain that may not execute immediateyl. This prevents refiring while a save is pending.
+                    // We do this because SaveSessionPlayer will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
                     if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
                     {
                         lastAutoSaveTime = DateTime.UtcNow;
