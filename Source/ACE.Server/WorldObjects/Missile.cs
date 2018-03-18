@@ -7,7 +7,7 @@ using System.IO;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Missile : WorldObject
+    public class Missile : Stackable
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

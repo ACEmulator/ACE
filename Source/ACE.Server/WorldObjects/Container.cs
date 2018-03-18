@@ -17,6 +17,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -56,6 +57,8 @@ namespace ACE.Server.WorldObjects
 
             if (UseRadius < 2)
                 UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
+
+            GenerateContainList();
         }
 
 
@@ -112,7 +115,7 @@ namespace ACE.Server.WorldObjects
 
             var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
             foreach (var container in sideContainers)
-            { 
+            {
                 ((Container)container).SortWorldObjectsIntoInventory(worldObjects); // This will set the InventoryLoaded flag for this sideContainer
                 EncumbranceVal += container.EncumbranceVal; // This value includes the containers burden itself + all child items
                 Value += container.Value; // This value includes the containers value itself + all child items
@@ -380,6 +383,15 @@ namespace ACE.Server.WorldObjects
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
 
             // send createobject for all objects in this container's inventory to player
+            var itemsToSend = new List<GameMessage>();
+            var woToExamine = new List<WorldObject>();
+            foreach (var item in Inventory.Values)
+            {
+                itemsToSend.Add(new GameMessageCreateObject(item));
+                woToExamine.Add(item);
+            }
+            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+            player.TrackInteractiveObjects(woToExamine);
 
             player.SendUseDoneEvent();
         }
@@ -392,12 +404,43 @@ namespace ACE.Server.WorldObjects
             player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
             // send removeobject for all objects in this container's inventory to player
+            var itemsToSend = new List<GameMessage>();
+            foreach (var item in Inventory.Values)
+            {
+                itemsToSend.Add(new GameMessageRemoveObject(item));
+            }
+            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
             //player.SendUseDoneEvent();
 
             Viewer = null;
 
             IsOpen = false;
+        }
+
+        public virtual void Reset()
+        {
+            // do reset stuff here
+        }
+
+        public virtual void GenerateContainList()
+        {
+            foreach(var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (sbyte)DestinationType.Contain || x.DestinationType == (sbyte)DestinationType.ContainTreasure))
+            {
+                var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                if (wo == null)
+                    continue;
+
+                if (item.Palette > 0)
+                    wo.PaletteTemplate = item.Palette;
+                if (item.Shade > 0)
+                    wo.Shade = item.Shade;
+                if (item.StackSize > 1)
+                    wo.StackSize = (ushort)item.StackSize;
+
+                TryAddToInventory(wo);
+            }
         }
 
 

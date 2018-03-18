@@ -5,12 +5,12 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Coin : Stackable
+    public class Stackable : WorldObject
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Coin(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Stackable(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -18,22 +18,34 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Coin(Biota biota) : base(biota)
+        public Stackable(Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }
 
         private void SetEphemeralValues()
         {
-        }        
+        }
 
-        public override int? CoinValue
+        public override int? EncumbranceVal
         {
             get
             {
-                var value = Value ?? 0;
+                var value = ((StackUnitEncumbrance ?? 0) * (StackSize ?? 1));
 
-                base.CoinValue = value;
+                base.EncumbranceVal = value;
+
+                return value;
+            }
+        }
+
+        public override int? Value
+        {
+            get
+            {
+                var value = ((StackUnitValue ?? 0) * (StackSize ?? 1));
+
+                base.Value = value;
 
                 return value;
             }

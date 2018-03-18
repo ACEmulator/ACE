@@ -76,6 +76,10 @@ namespace ACE.Server.Factories
                     return new Corpse(weenie, guid);
                 case WeenieType.Chest:
                     return new Chest(weenie, guid);
+                case WeenieType.Stackable:
+                    return new Stackable(weenie, guid);
+                case WeenieType.SpellComponent:
+                    return new SpellComponent(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -141,6 +145,10 @@ namespace ACE.Server.Factories
                     return new Corpse(biota);
                 case WeenieType.Chest:
                     return new Chest(biota);
+                case WeenieType.Stackable:
+                    return new Stackable(biota);
+                case WeenieType.SpellComponent:
+                    return new SpellComponent(biota);
                 default:
                     return new GenericObject(biota);
             }

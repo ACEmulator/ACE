@@ -645,7 +645,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AmmoType); else SetProperty(PropertyInt.AmmoType, (int)value.Value); }
         }
 
-        public int? Value
+        public virtual int? Value
         {
             // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
             //get => (StackUnitValue * (StackSize ?? 1));
@@ -1929,7 +1929,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
         }
 
-        public int? EncumbranceVal
+        public virtual int? EncumbranceVal
         {
             get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
@@ -2031,7 +2031,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
         }
 
-        public int? CoinValue
+        public virtual int? CoinValue
         {
             get => GetProperty(PropertyInt.CoinValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }

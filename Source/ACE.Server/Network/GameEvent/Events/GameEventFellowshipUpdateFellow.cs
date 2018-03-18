@@ -16,7 +16,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(player.Guid.Full);
             Writer.Write(0u);
             Writer.Write(0u);
-            Writer.Write(player.Level);
+            Writer.Write(player.Level ?? 1);
             Writer.Write(player.Health.MaxValue);
             Writer.Write(player.Stamina.MaxValue);
             Writer.Write(player.Mana.MaxValue);
