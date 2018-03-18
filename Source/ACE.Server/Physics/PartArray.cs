@@ -386,7 +386,7 @@ namespace ACE.Server.Physics
             }
         }
 
-        public void SetCellID(int cellID)
+        public void SetCellID(uint cellID)
         {
             foreach (var part in Parts)
             {

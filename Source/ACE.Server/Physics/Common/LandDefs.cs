@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Extensions;
 
@@ -6,8 +7,28 @@ namespace ACE.Server.Physics.Common
 {
     public class LandDefs
     {
+        public enum Direction
+        {
+            Inside = 0x0,
+            North = 0x1,
+            South = 0x2,
+            East = 0x3,
+            West = 0x4,
+            NorthWest = 0x5,
+            SouthWest = 0x6,
+            NorthEast = 0x7,
+            SouthEast = 0x8,
+            Unknown = 0x9
+        };
+
+        public enum WaterType
+        {
+            NotWater = 0x0,
+            PartiallyWater = 0x1,
+            EntirelyWater = 0x2,
+        };
+
         public static readonly int BlockCellID = 0x0000FFFF;
-        public static readonly int CellID_Mask = 0x0000FFFF;
         public static readonly int FirstEnvCellID = 0x100;
         public static readonly int LastEnvCellID = 0xFFFD;
         public static readonly int FirstLandCellID = 1;
@@ -15,19 +36,26 @@ namespace ACE.Server.Physics.Common
 
         public static readonly int BlockX_Mask = 0xFF00;
         public static readonly int BlockY_Mask = 0x00FF;
+        public static readonly int CellID_Mask = 0x0000FFFF;
         public static readonly int LandblockMask = 7;
 
         public static readonly int BlockPartShift = 16;
         public static readonly int LandblockShift = 3;
         public static readonly int MaxBlockShift = 8;
 
-        public static readonly float BlockLength = 192.0f;
-        public static readonly float CellLength = 24.0f;
-        public static readonly float LandLength = 2040.0f;
+        public static readonly int BlockLength = 192;
+        public static readonly int CellLength = 24;
+        public static readonly int LandLength = 2040;
+
+        public static readonly int BlockSide = 8;
+        public static readonly int VertexPerCell = 1;
+        public static readonly int HalfSquareLength = 12;
+
+        public static List<float> LandHeightTable;
 
         public static bool AdjustToOutside(Position pos)
         {
-            var cellID = pos.ObjCellID & CellID_Mask;
+            var cellID = (uint)(pos.ObjCellID & CellID_Mask);
 
             if (cell_in_range(cellID))
             {
@@ -40,7 +68,7 @@ namespace ACE.Server.Physics.Common
                 var lcoord = get_outside_lcoord(cellID, offset.X, offset.Y);
                 if (lcoord.HasValue)
                 {
-                    pos.ObjCellID = lcoord_to_gid((int)lcoord.Value.X, (int)lcoord.Value.Y);
+                    pos.ObjCellID = (uint)lcoord_to_gid(lcoord.Value.X, lcoord.Value.Y);
                     offset.X -= (float)Math.Floor(offset.X / BlockLength) * BlockLength;
                     offset.Y -= (float)Math.Floor(offset.Y / BlockLength) * BlockLength;
                     return true;
@@ -50,8 +78,11 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
-        public static Vector3 GetBlockOffset(int cellFrom, int cellTo)
+        public static Vector3 GetBlockOffset(uint _cellFrom, uint _cellTo)
         {
+            var cellFrom = (int)_cellFrom;
+            var cellTo = (int)_cellTo;
+
             // refactor me
             if (cellFrom >> 16 == cellTo >> 16)
                 return Vector3.Zero;
@@ -87,7 +118,7 @@ namespace ACE.Server.Physics.Common
             return pos.X < dist && pos.Y < dist;
         }
 
-        public static Vector2? blockid_to_lcoord(int cellID)
+        public static Vector2? blockid_to_lcoord(uint cellID)
         {
             var x = (cellID >> BlockPartShift & BlockX_Mask) >> MaxBlockShift << LandblockShift;
             var y = (cellID >> BlockPartShift & BlockY_Mask) << LandblockShift;
@@ -98,7 +129,7 @@ namespace ACE.Server.Physics.Common
                 return new Vector2(x, y);
         }
 
-        public static Vector2? gid_to_lcoord(int cellID)
+        public static Vector2? gid_to_lcoord(uint cellID)
         {
             if (!inbound_valid_cellid(cellID))
                 return null;
@@ -118,9 +149,9 @@ namespace ACE.Server.Physics.Common
             return new Vector2(x, y);
         }
 
-        public static Vector2? get_outside_lcoord(int blockCellID, float _x, float _y)
+        public static Vector2? get_outside_lcoord(uint blockCellID, float _x, float _y)
         {
-            var cellID = blockCellID & CellID_Mask;
+            var cellID = (uint)(blockCellID & CellID_Mask);
              
             if (cell_in_range(cellID))
             {
@@ -138,15 +169,18 @@ namespace ACE.Server.Physics.Common
             return null;
         }
 
-        public static bool cell_in_range(int cellID)
+        public static bool cell_in_range(uint cellID)
         {
             return cellID == BlockCellID ||
                    cellID >= FirstLandCellID && cellID <= LastLandCellID ||
                    cellID >= FirstEnvCellID  && cellID <= LastEnvCellID;
         }
 
-        public static int lcoord_to_gid(int x, int y)
+        public static int lcoord_to_gid(float _x, float _y)
         {
+            var x = (int)_x;
+            var y = (int)_y;
+
             if (x < 0 || y < 0 || x >= LandLength || y >= LandLength)
                 return 0;
 
@@ -156,9 +190,9 @@ namespace ACE.Server.Physics.Common
             return block << BlockPartShift | cell;
         }
 
-        public static bool inbound_valid_cellid(int blockCellID)
+        public static bool inbound_valid_cellid(uint blockCellID)
         {
-            var cellID = blockCellID & CellID_Mask;
+            var cellID = (uint)(blockCellID & CellID_Mask);
 
             if (cell_in_range(cellID))
             {

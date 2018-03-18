@@ -10,7 +10,17 @@ namespace ACE.Server.Physics.Common
         {
             // TODO: map to ACE datloaders
             // return static or mutable?
-            if (qualifiedDID.Type == 6)
+            if (qualifiedDID.Type == 1)
+            {
+                var landblock = DatManager.CellDat.ReadFromDat<CellLandblock>(qualifiedDID.ID);
+                return landblock;
+            }
+            else if (qualifiedDID.Type == 3)
+            {
+                var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(qualifiedDID.ID);
+                return new EnvCell(envCell);
+            }
+            else if (qualifiedDID.Type == 6)
             {
                 var gfxObj = DatManager.PortalDat.ReadFromDat<GfxObj>(qualifiedDID.ID);
                 return gfxObj;

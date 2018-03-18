@@ -5,7 +5,7 @@ namespace ACE.Server.Physics.Common
 {
     public class WeenieObject
     {
-        public int ID;
+        public uint ID;
         public double UpdateTime;
 
         // connect to ACE wobj
@@ -50,7 +50,7 @@ namespace ACE.Server.Physics.Common
 
         public bool IsPlayer()
         {
-            return false;
+            return true;
         }
 
         public bool IsCreature()
@@ -73,7 +73,7 @@ namespace ACE.Server.Physics.Common
             return 0;
         }
 
-        public void DoCollisionEnd(int objectID)
+        public void DoCollisionEnd(uint objectID)
         {
 
         }

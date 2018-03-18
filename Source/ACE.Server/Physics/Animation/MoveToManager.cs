@@ -18,8 +18,8 @@ namespace ACE.Server.Physics.Animation
         public float OriginalDistance;
         public double OriginalDistanceTime;
         public int FailProgressCount;
-        public int SoughtObjectID;
-        public int TopLevelObjectID;
+        public uint SoughtObjectID;
+        public uint TopLevelObjectID;
         public float SoughtObjectRadius;
         public float SoughtObjectHeight;
         public uint CurrentCommand;
@@ -442,7 +442,7 @@ namespace ACE.Server.Physics.Animation
             SoughtObjectHeight = 0;
         }
 
-        public void MoveToObject(int objectID, int topLevelID, float radius, float height, MovementParameters movementParams)
+        public void MoveToObject(uint objectID, uint topLevelID, float radius, float height, MovementParameters movementParams)
         {
             if (PhysicsObj == null) return;
             PhysicsObj.StopCompletely(false);
@@ -604,7 +604,7 @@ namespace ACE.Server.Physics.Animation
             PendingActions.Add(new MovementNode(MovementType.TurnToHeading, movementParams.DesiredHeading));
         }
 
-        public void TurnToObject(int objectID, int topLevelID, MovementParameters movementParams)
+        public void TurnToObject(uint objectID, uint topLevelID, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
             {

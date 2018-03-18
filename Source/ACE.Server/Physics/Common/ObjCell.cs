@@ -8,9 +8,10 @@ namespace ACE.Server.Physics.Common
     public class ObjCell: PartCell
     {
         public static ObjectMaint ObjMaint;
+        public static LScape Landscape;
 
-        public int ID;
-        public WaterType WaterType;
+        public uint ID;
+        public LandDefs.WaterType WaterType;
         public Position Pos;
         public int NumObjects;
         public List<PhysicsObj> ObjectList;
@@ -18,13 +19,31 @@ namespace ACE.Server.Physics.Common
         public List<int> LightList;
         public int NumShadowObjects;
         public List<ShadowObj> ShadowObjectList;
-        public int RestrictionObj;
+        public List<uint> ShadowObjectIDs;
+        public uint RestrictionObj;
         public List<int> ClipPlanes;
         public int NumStabs;
-        public List<int> StabList;
+        public List<DatLoader.Entity.Stab> StabList;
         public bool SeenOutside;
-        public List<int> VoyeurTable;
-        public LandblockStruct CurLandblock;
+        public List<uint> VoyeurTable;
+        public Landblock CurLandblock;
+
+        static ObjCell()
+        {
+            ObjMaint = new ObjectMaint();   // global static?
+            Landscape = new LScape();
+        }
+
+        public ObjCell(): base()
+        {
+            Init();
+        }
+
+        public ObjCell(uint cellID): base()
+        {
+            ID = cellID;
+            Init();
+        }
 
         public void AddObject(PhysicsObj obj)
         {
@@ -53,7 +72,7 @@ namespace ACE.Server.Physics.Common
             shadowObj.Cell = this;
         }
 
-        public void CheckAttack(int attackerID, Position attackerPos, float attackerScale, AttackCone attackCone, AttackInfo attackInfo)
+        public void CheckAttack(uint attackerID, Position attackerPos, float attackerScale, AttackCone attackCone, AttackInfo attackInfo)
         {
             foreach (var shadowObj in ShadowObjectList)
             {
@@ -66,14 +85,14 @@ namespace ACE.Server.Physics.Common
             }
         }
 
-        public TransitionState FindCollisions(Transition transition)
+        public virtual TransitionState FindCollisions(Transition transition)
         {
-            return TransitionState.Invalid; // ???
+            return TransitionState.Invalid;
         }
 
-        public TransitionState FindEnvCollisions(Transition transition)
+        public virtual TransitionState FindEnvCollisions(Transition transition)
         {
-            return TransitionState.Invalid; // ???
+            return TransitionState.Invalid;
         }
 
         public TransitionState FindObjCollisions(Transition transition)
@@ -97,6 +116,17 @@ namespace ACE.Server.Physics.Common
             return TransitionState.OK;
         }
 
+        public static ObjCell Get(uint cellID)
+        {
+            if (cellID == 0) return null;
+
+            var objCell = new ObjCell(cellID);
+            if (cellID >= 0x100)
+                return (EnvCell)DBObj.Get(new QualifiedDataID(3, cellID));
+            else
+                return LandCell.Get(cellID);
+        }
+
         public PhysicsObj GetObject(int id)
         {
             foreach (var obj in ObjectList)
@@ -107,32 +137,26 @@ namespace ACE.Server.Physics.Common
             return null;
         }
 
-        public static ObjCell GetVisible(int cellID)
+        public static ObjCell GetVisible(uint cellID)
         {
             if (cellID == 0) return null;
 
-            if ((cellID & 0xFFFF)>= 0x100)
+            if ((cellID & 0xFFFF) >= 0x100)
                 return EnvCell.GetVisible(cellID);
             else
                 return LandCell.Get(cellID);
         }
 
-        public void ReleaseObjects()
+        public void Init()
         {
-            while (NumShadowObjects > 0)
-            {
-                var shadowObj = ShadowObjectList[0];
-                remove_shadow_object(shadowObj);
-
-                shadowObj.PhysicsObj.remove_parts(this);
-            }
-            if (NumObjects > 0 && ObjMaint != null)
-                ObjMaint.ReleaseObjCell(this);
+            Pos = new Position();
+            ObjectList = new List<PhysicsObj>();
+            ShadowObjectList = new List<ShadowObj>();
+            VoyeurTable = new List<uint>();
         }
 
         public void RemoveObject(PhysicsObj obj)
         {
-            // multiple objects?
             ObjectList.Remove(obj);
             NumObjects--;
             update_all_voyeur(obj, DetectionType.LeftDetection);
@@ -147,6 +171,17 @@ namespace ACE.Server.Physics.Common
                     return true;
             }
             return false;
+        }
+
+        public TransitionState check_entry_restrictions(Transition transition)
+        {
+            var objInfo = transition.ObjectInfo;
+
+            if (objInfo.Object == null) return TransitionState.Collided;
+            if (objInfo.Object.WeenieObj == null) return TransitionState.OK;
+
+            // check against world object
+            return TransitionState.OK;
         }
 
         public static ObjCell find_cell_list(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, ObjCell currCell, SpherePath path)
@@ -198,7 +233,7 @@ namespace ACE.Server.Physics.Common
                     var found = false;
                     foreach (var stab in cell.StabList)
                     {
-                        if (otherCell.ID == stab)
+                        if (otherCell.ID == stab.Id)
                         {
                             found = true;
                             break;
@@ -250,28 +285,28 @@ namespace ACE.Server.Physics.Common
 
         public virtual void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
         {
-            // override?
+            // empty base
         }
 
         public virtual void find_transit_cells(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, SpherePath path)
         {
-            // override?
+            // empty base
         }
 
-        public WaterType get_block_water_type()
+        public LandDefs.WaterType get_block_water_type()
         {
             if (CurLandblock != null)
                 return CurLandblock.WaterType;
             else
-                return WaterType.NotWater;
+                return LandDefs.WaterType.NotWater;
         }
 
         public float get_water_depth(Vector3 point)
         {
-            if (WaterType == WaterType.NotWater)
+            if (WaterType == LandDefs.WaterType.NotWater)
                 return 0.0f;
 
-            if (WaterType == WaterType.EntirelyWater)
+            if (WaterType == LandDefs.WaterType.EntirelyWater)
                 return 0.89999998f;
 
             if (CurLandblock != null)
@@ -285,9 +320,33 @@ namespace ACE.Server.Physics.Common
             update_all_voyeur(obj, DetectionType.LeftDetection);
         }
 
+        public void init_objects()
+        {
+            if (ObjMaint == null) return;
+            ObjMaint.InitObjCell(this);
+            foreach (var obj in ObjectList)
+            {
+                if (!obj.State.HasFlag(PhysicsState.Static) && !obj.is_completely_visible())
+                    obj.recalc_cross_cells();
+            }
+        }
+
         public virtual bool point_in_cell(Vector3 point)
         {
-            return false;   // override?
+            return false;
+        }
+
+        public void release_objects()
+        {
+            while (NumShadowObjects > 0)
+            {
+                var shadowObj = ShadowObjectList[0];
+                remove_shadow_object(shadowObj);
+
+                shadowObj.PhysicsObj.remove_parts(this);
+            }
+            if (NumObjects > 0 && ObjMaint != null)
+                ObjMaint.ReleaseObjCell(this);
         }
 
         public void remove_shadow_object(ShadowObj shadowObj)

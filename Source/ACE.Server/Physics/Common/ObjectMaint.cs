@@ -5,25 +5,25 @@ namespace ACE.Server.Physics.Common
     public class ObjectMaint
     {
         public bool IsActive;
-        public Dictionary<int, LostCell> LostCellTable;
-        public Dictionary<int, PhysicsObj> ObjectTable;
+        public Dictionary<uint, LostCell> LostCellTable;
+        public Dictionary<uint, PhysicsObj> ObjectTable;
         public List<PhysicsObj> NullObjectTable;
-        public Dictionary<int, WeenieObject> WeenieObjectTable;
+        public Dictionary<uint, WeenieObject> WeenieObjectTable;
         public List<WeenieObject> NullWeenieObjectTable;
         public List<int> VisibileObjectTable;
-        public Dictionary<int, double> DestructionObjectTable;
-        public Dictionary<int, int> ObjectInventoryTable;
+        public Dictionary<uint, double> DestructionObjectTable;
+        public Dictionary<uint, int> ObjectInventoryTable;
         public Queue<double> ObjectDestructionQueue;
 
         public ObjectMaint()
         {
-            LostCellTable = new Dictionary<int, LostCell>();
-            ObjectTable = new Dictionary<int, PhysicsObj>();
+            LostCellTable = new Dictionary<uint, LostCell>();
+            ObjectTable = new Dictionary<uint, PhysicsObj>();
             NullObjectTable = new List<PhysicsObj>();
-            WeenieObjectTable = new Dictionary<int, WeenieObject>();
+            WeenieObjectTable = new Dictionary<uint, WeenieObject>();
             NullWeenieObjectTable = new List<WeenieObject>();
-            DestructionObjectTable = new Dictionary<int, double>();
-            ObjectInventoryTable = new Dictionary<int, int>();
+            DestructionObjectTable = new Dictionary<uint, double>();
+            ObjectInventoryTable = new Dictionary<uint, int>();
             ObjectDestructionQueue = new Queue<double>();
         }
 
@@ -35,7 +35,7 @@ namespace ACE.Server.Physics.Common
                 ObjectTable[obj.ID] = obj;
         }
 
-        public void AddObjectToBeDestroyed(int objectID)
+        public void AddObjectToBeDestroyed(uint objectID)
         {
             var time = Timer.CurrentTime + 25.0f;
             if (!DestructionObjectTable.ContainsKey(objectID))
@@ -54,42 +54,42 @@ namespace ACE.Server.Physics.Common
                 WeenieObjectTable[wobj.ID] = wobj;
         }
 
-        public LostCell GetLostCell(int cellID)
+        public LostCell GetLostCell(uint cellID)
         {
             LostCell lostCell = null;
             LostCellTable.TryGetValue(cellID, out lostCell);
             return lostCell;
         }
 
-        public PhysicsObj GetObjectA(int objectID)
+        public PhysicsObj GetObjectA(uint objectID)
         {
             PhysicsObj obj = null;
             ObjectTable.TryGetValue(objectID, out obj);
             return obj;
         }
 
-        public bool GetObjectA(int objectID, ref PhysicsObj obj, ref WeenieObject wobj)
+        public bool GetObjectA(uint objectID, ref PhysicsObj obj, ref WeenieObject wobj)
         {
             obj = GetObjectA(objectID);
             wobj = GetWeenieObject(objectID);
             return (obj != null || wobj != null);
         }
 
-        public int GetObjectInventory(int objectID)
+        public int GetObjectInventory(uint objectID)
         {
             var inventory = 0;
             ObjectInventoryTable.TryGetValue(objectID, out inventory);
             return inventory;
         }
 
-        public WeenieObject GetWeenieObject(int objectID)
+        public WeenieObject GetWeenieObject(uint objectID)
         {
             WeenieObject wobj = null;
             WeenieObjectTable.TryGetValue(objectID, out wobj);
             return wobj;
         }
 
-        public void GotoLostCell(PhysicsObj obj, int cellID)
+        public void GotoLostCell(PhysicsObj obj, uint cellID)
         {
             if (obj.Parent != null) return;
             obj.set_cell_id(cellID);
@@ -127,13 +127,13 @@ namespace ACE.Server.Physics.Common
 
         public void RemoveFromLostCell(PhysicsObj obj)
         {
-            if (obj.Cell != null || obj.Parent != null) return;
+            if (obj.CurCell != null || obj.Parent != null) return;
             var lostCell = GetLostCell(obj.Position.ObjCellID);
             if (lostCell != null)
                 lostCell.remove_object(obj);
         }
 
-        public void RemoveObjectToBeDestroyed(int objectID)
+        public void RemoveObjectToBeDestroyed(uint objectID)
         {
             if (DestructionObjectTable.ContainsKey(objectID))
                 DestructionObjectTable.Remove(objectID);

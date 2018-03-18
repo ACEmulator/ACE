@@ -19,7 +19,7 @@ namespace ACE.Server.Physics.Combat
             PhysObj = physObj;
         }
 
-        public void SetTarget(int contextID, int objectID, float radius, double quantum)
+        public void SetTarget(int contextID, uint objectID, float radius, double quantum)
         {
 
         }

@@ -6,8 +6,8 @@ namespace ACE.Server.Physics.Animation
     {
         public MovementType Type;
         public uint Motion;
-        public int ObjectId;
-        public int TopLevelId;
+        public uint ObjectId;
+        public uint TopLevelId;
         public Position Position;
         public float Radius;
         public float Height;

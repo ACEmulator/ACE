@@ -86,7 +86,7 @@ namespace ACE.Server.Physics.Animation
             Object.set_velocity(Vector3.Zero, false);
         }
 
-        public TransitionState ValidateWalkable(Sphere checkPos, Plane contactPlane, bool isWater, float waterDepth, Transition transition, int landCellID)
+        public TransitionState ValidateWalkable(Sphere checkPos, Plane contactPlane, bool isWater, float waterDepth, Transition transition, uint landCellID)
         {
             var path = transition.SpherePath;
             var collision = transition.CollisionInfo;

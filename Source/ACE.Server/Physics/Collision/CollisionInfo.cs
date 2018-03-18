@@ -11,8 +11,8 @@ namespace ACE.Server.Physics.Collision
         public bool LastKnownContactPlaneIsWater;
         public bool ContactPlaneValid;
         public Plane ContactPlane;
-        public int ContactPlaneCellID;
-        public int LastKnownContactPlaneCellID;
+        public uint ContactPlaneCellID;
+        public uint LastKnownContactPlaneCellID;
         public bool ContactPlaneIsWater;
         public bool SlidingNormalValid;
         public Vector3 SlidingNormal;

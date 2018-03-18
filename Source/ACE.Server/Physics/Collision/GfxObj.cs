@@ -108,7 +108,7 @@ namespace ACE.Server.Physics.Collision
             polygon.NumPoints = _polygon.NumPts;
             polygon.PosSurface = _polygon.PosSurface;
             polygon.PosUVIndices = _polygon.PosUVIndices;
-            polygon.SidesType = (Sidedness)_polygon.SidesType;
+            polygon.SidesType = (CullMode)_polygon.SidesType;
             polygon.Stippling = _polygon.Stippling;
             polygon.VertexIDs = _polygon.VertexIds;
             // build vertices

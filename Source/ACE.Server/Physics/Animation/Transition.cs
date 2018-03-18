@@ -137,8 +137,7 @@ namespace ACE.Server.Physics.Animation
         public bool CheckCollisions(PhysicsObj obj)
         {
             SpherePath.InsertType = InsertType.Placement;
-            SpherePath.CheckPos.ObjCellID = SpherePath.CurPos.ObjCellID;
-            SpherePath.CheckPos.Frame = SpherePath.CurPos.Frame;
+            SpherePath.CheckPos = SpherePath.CurPos;
             SpherePath.CheckCell = SpherePath.CurCell;
             SpherePath.CellArrayValid = false;
             SpherePath.CacheGlobalSphere(Vector3.Zero);
@@ -557,7 +556,8 @@ namespace ACE.Server.Physics.Animation
                     SpherePath.CheckPos.Frame.Origin += SpherePath.GlobalOffset;
                     SpherePath.CacheGlobalSphere(SpherePath.GlobalOffset);
 
-                    transitionState = ValidateTransition(TransitionalInsert(3), ref redo);
+                    var transitionInsert = TransitionalInsert(3);
+                    transitionState = ValidateTransition(transitionInsert, ref redo);
 
                     if (CollisionInfo.FramesStationaryFall > 0) break;
                 }
@@ -585,7 +585,7 @@ namespace ACE.Server.Physics.Animation
             NewCellPtr = new ObjCell();
         }
 
-        public void InitContactPlane(int cellID, Plane contactPlane, bool isWater)
+        public void InitContactPlane(uint cellID, Plane contactPlane, bool isWater)
         {
             InitLastKnownContactPlane(cellID, contactPlane, isWater);
 
@@ -595,7 +595,7 @@ namespace ACE.Server.Physics.Animation
             CollisionInfo.ContactPlaneCellID = cellID;
         }
 
-        public void InitLastKnownContactPlane(int cellID, Plane contactPlane, bool isWater)
+        public void InitLastKnownContactPlane(uint cellID, Plane contactPlane, bool isWater)
         {
             CollisionInfo.LastKnownContactPlaneValid = true;
             CollisionInfo.LastKnownContactPlane = contactPlane;

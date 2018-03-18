@@ -1,18 +1,77 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
-    public class LandCell
+    public class LandCell: SortCell
     {
         public List<Polygon> Polygons;
         public bool InView;
 
-        public static ObjCell Get(int cellID)
+        public LandCell(): base()
         {
-            //return LScape.get_landcell(ObjCell.Landscape, cellID);
-            return null;
+            Init();
+        }
+
+        public LandCell(uint cellID): base(cellID)
+        {
+            Init();
+        }
+
+        public override TransitionState FindCollisions(Transition transition)
+        {
+            var transitState = FindEnvCollisions(transition);
+            if (transitState == TransitionState.OK)
+            {
+                transitState = FindCollisions(transition);
+                if (transitState == TransitionState.OK)
+                    transitState = FindObjCollisions(transition);
+            }
+            return transitState;
+        }
+
+        public override TransitionState FindEnvCollisions(Transition transition)
+        {
+            var transitState = check_entry_restrictions(transition);
+
+            if (transitState != TransitionState.OK)
+                return transitState;
+
+            var path = transition.SpherePath;
+
+            var blockOffset = LandDefs.GetBlockOffset(path.CheckPos.ObjCellID, ID);
+            var localPoint = transition.SpherePath.GlobalLowPoint - blockOffset;
+
+            Polygon walkable = null;
+            if (!find_terrain_poly(localPoint, ref walkable))
+                return transitState;
+
+            var objInfo = transition.ObjectInfo;
+
+            if (get_block_water_type() == LandDefs.WaterType.EntirelyWater &&
+                !objInfo.State.HasFlag(ObjectInfoState.IsViewer) && !objInfo.Object.State.HasFlag(PhysicsState.Missile))
+            {
+                return TransitionState.Collided;
+            }
+            var waterDepth = get_water_depth(localPoint);
+
+            var checkPos = path.GlobalSphere[0];
+            checkPos.Center -= LandDefs.GetBlockOffset(path.CheckPos.ObjCellID, ID);
+
+            return objInfo.ValidateWalkable(checkPos, walkable.Plane, WaterType != LandDefs.WaterType.NotWater, waterDepth, transition, ID);
+        }
+
+        public new static LandCell Get(uint cellID)
+        {
+            return Landscape.get_landcell(cellID);
+        }
+
+        public new void Init()
+        {
+            base.Init();
+            Polygons = new List<Polygon>();
         }
 
         public static void add_all_outside_cells(Position position, int numSphere, List<Sphere> spheres, CellArray cellArray)
@@ -59,7 +118,7 @@ namespace ACE.Server.Physics.Common
 
             if (x >= 0 && y >= 0 && x < 2040 && y < 2040)
             {
-                var cellID = (int)(y >> 3 | 32 * (x & 0xFFFFFFF8) << 16 | (y & 7) + 8 * (x & 7) + 1);
+                var cellID = y >> 3 | 32 * (x & 0xFFFFFFF8) << 16 | (y & 7) + 8 * (x & 7) + 1;
                 var landCell = Get(cellID);
                 if (landCell != null)
                     cellArray.add_cell(cellID, landCell);
@@ -94,6 +153,25 @@ namespace ACE.Server.Physics.Common
 
             else if (point.Y < minRad)
                 add_outside_cell(cellArray, point.X, point.Y - 1);
+        }
+
+        public bool find_terrain_poly(Vector3 origin, ref Polygon walkable)
+        {
+            for (var i = 0; i < 2; i++)
+            {
+                if (Polygons[i].point_in_poly2D(origin, Sidedness.Positive))
+                {
+                    walkable = Polygons[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override bool point_in_cell(Vector3 point)
+        {
+            Polygon poly = null;
+            return find_terrain_poly(point, ref poly);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace ACE.Server.Physics.Combat
 {
     public class AtkObjInfo
     {
-        public int ObjectID;
+        public uint ObjectID;
         public int HitLocation;
     }
 }

@@ -7,7 +7,7 @@ namespace ACE.Server.Physics.Common
 {
     public class Position: IEquatable<Position>
     {
-        public int ObjCellID;
+        public uint ObjCellID;
         public AFrame Frame;
 
         public Position()
@@ -15,10 +15,22 @@ namespace ACE.Server.Physics.Common
             Init();
         }
 
-        public Position(int objCellID)
+        public Position(uint objCellID)
         {
             ObjCellID = objCellID;
             Init();
+        }
+
+        public Position(uint objCellID, AFrame frame)
+        {
+            ObjCellID = objCellID;
+            Frame = frame;
+        }
+
+        public Position(Position p)
+        {
+            ObjCellID = p.ObjCellID;
+            Frame = new AFrame(p.Frame);
         }
 
         public void Init()

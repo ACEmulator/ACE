@@ -9,6 +9,11 @@ namespace ACE.Server.Physics.Common
         public List<ObjCell> Cells;
         public int NumCells;
 
+        public CellArray()
+        {
+            Cells = new List<ObjCell>();
+        }
+
         public void SetStatic()
         {
             AddedOutside = false;
@@ -23,7 +28,7 @@ namespace ACE.Server.Physics.Common
             NumCells = 0;
         }
 
-        public void add_cell(int cellID, ObjCell cell)
+        public void add_cell(uint cellID, ObjCell cell)
         {
             Cells.Add(cell);
             NumCells++;

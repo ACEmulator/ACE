@@ -2,10 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics
 {
+    public enum CullMode
+    {
+        Clockwise = 0x0,
+        None = 0x1,
+        Unknown = 0x2
+    };
+
     public enum Sidedness
     {
         Positive = 0x0,
@@ -34,13 +42,13 @@ namespace ACE.Server.Physics
 
     public class Polygon
     {
-        public List<Vector3> Vertices;
+        public List<Vertex> Vertices;
         public List<short> VertexIDs;
         public List<Vector2> Screen;
-        public short PolyID;
-        public byte NumPoints;
+        public int PolyID;
+        public int NumPoints;
         public byte Stippling;
-        public Sidedness SidesType;
+        public CullMode SidesType;
         public List<byte> PosUVIndices;
         public List<byte> NegUVIndices;
         public short PosSurface;
@@ -48,6 +56,19 @@ namespace ACE.Server.Physics
         public Plane Plane;
 
         public Polygon()
+        {
+            Init();
+        }
+
+        public Polygon(int idx, int numPoints, CullMode cullMode)
+        {
+            Init();
+            PolyID = idx;
+            NumPoints = numPoints;
+            SidesType = cullMode;
+        }
+
+        public void Init()
         {
             PolyID = -1;
             PosSurface = -1;
@@ -131,7 +152,7 @@ namespace ACE.Server.Physics
                 prevIdx--;
 
                 var edge = vertex - lastVertex;
-                var disp = center - lastVertex;
+                var disp = center - lastVertex.Origin;
                 var cross = Vector3.Cross(Plane.Normal, edge);
                 var diff = Vector3.Dot(disp, cross);
 
@@ -170,7 +191,7 @@ namespace ACE.Server.Physics
                 prevIdx--;
 
                 var edge = vertex - lastVertex;
-                var disp = center - lastVertex;
+                var disp = center - lastVertex.Origin;
                 var cross = Vector3.Cross(Plane.Normal, edge);
 
                 if (Vector3.Dot(disp, cross) < 0.0f)
@@ -205,7 +226,7 @@ namespace ACE.Server.Physics
             // calculate distance
             var distSum = 0.0f;
             for (int i = NumPoints, spread = 0; i > 0; i--, spread++)
-                distSum += Vector3.Dot(Vertices[spread], normal);
+                distSum += Vector3.Dot(Vertices[spread].Origin, normal);
 
             var dist = -(distSum / NumPoints);
 
@@ -223,7 +244,7 @@ namespace ACE.Server.Physics
                 var diff = vertex - prevVertex;
 
                 // 2d cross product difference?
-                var diffCross = -(diff.Y * vertex.X) - (diff.X * vertex.Y) + (diff.X * point.Y) + (diff.Y * point.X);
+                var diffCross = -(diff.Y * vertex.Origin.X) - (diff.X * vertex.Origin.Y) + (diff.X * point.Y) + (diff.Y * point.X);
 
                 if (side != Sidedness.Positive)
                 {
@@ -247,7 +268,7 @@ namespace ACE.Server.Physics
             foreach (var vertex in Vertices)
             {
                 var cross = Vector3.Cross(Plane.Normal, vertex - lastVertex);
-                var dp = Vector3.Dot(cross, point - lastVertex);
+                var dp = Vector3.Dot(cross, point - lastVertex.Origin);
 
                 if (dp < 0.0f) return false;
 
@@ -258,7 +279,7 @@ namespace ACE.Server.Physics
 
         public bool polygon_hits_ray(Ray ray, ref float time)
         {
-            if (SidesType != Sidedness.Positive && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)
+            if (SidesType != CullMode.Clockwise && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)
                 return false;
 
             if (!Plane.compute_time_of_intersection(ray, ref time))
@@ -286,7 +307,7 @@ namespace ACE.Server.Physics
                 lastIdx--;
 
                 var edge = vertex - prevVertex;
-                var disp = contactPoint - prevVertex;
+                var disp = contactPoint - prevVertex.Origin;
                 var cross = Vector3.Cross(Plane.Normal, edge);
                 var dp = Vector3.Dot(disp, cross);
                 if (dp < 0.0f)
@@ -326,9 +347,9 @@ namespace ACE.Server.Physics
                 prevIdx--;
 
                 var edge = vertex - lastVertex;
-                var disp = contactPoint - lastVertex;
+                var disp = contactPoint - lastVertex.Origin;
                 var cross = Vector3.Cross(Plane.Normal, edge);
-                if (Vector3.Dot(cross, contactPoint - lastVertex) >= 0.0f) continue;
+                if (Vector3.Dot(cross, contactPoint - lastVertex.Origin) >= 0.0f) continue;
 
                 // inner loop
                 prevIdx = NumPoints - 1;
@@ -338,7 +359,7 @@ namespace ACE.Server.Physics
                     prevIdx--;
 
                     edge = vertex - lastVertex;
-                    disp = contactPoint - lastVertex;
+                    disp = contactPoint - lastVertex.Origin;
                     cross = Vector3.Cross(Plane.Normal, edge);
                     var dispDot = Vector3.Dot(disp, cross);
 
