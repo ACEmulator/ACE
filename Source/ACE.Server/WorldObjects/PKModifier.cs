@@ -74,7 +74,16 @@ namespace ACE.Server.WorldObjects
 
                 if (AllowedActivator == null)
                 {
-                    //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
+                    if (player.IsAdvocate || (player.AdvocateLevel > 0) || (player.AdvocateQuest ?? false) || (player.AdvocateState ?? false))
+                    {
+                        // Advocates cannot change their PK status
+                        if (PkLevelModifier == 1)
+                            return; // maybe send error msg to tell PK to ask another advocate to @remove them (or maybe make the @remove command support self removal)
+
+                       // letting it fall through for the NpkSwitch because it will not change status and error properly.
+                    }
+
+                    //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp(? maybe different timestamp) + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
                     //{
                     if ((player.PkLevelModifier ?? -1) != PkLevelModifier)
                     {
