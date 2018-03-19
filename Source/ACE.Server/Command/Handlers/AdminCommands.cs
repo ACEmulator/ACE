@@ -209,59 +209,6 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(errorText);
         }
 
-        // cloak < on / off / player / creature >
-        [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
-            "Sets your cloaking state.",
-            "< on / off / player / creature >\n" +
-            "This command sets your current cloaking state\n" +
-            "< on > You will be completely invisible to players.\n" +
-            "< off > You will show up as a normal.\n" +
-            "< player > You will appear as a player. (No + and a white radar dot.)\n" +
-            "< creature > You will appear as a creature. (No + and an orange radar dot.)")]
-        public static void HandleCloak(Session session, params string[] parameters)
-        {
-            // Please specify if you want cloaking on or off.usage: @cloak < on / off / player / creature >
-            // This command sets your current cloaking state.
-            // < on > You will be completely invisible to players.
-            // < off > You will show up as a normal.
-            // < player > You will appear as a player. (No + and a white radar dot.)
-            // < creature > You will appear as a creature. (No + and an orange radar dot.)
-            // @cloak - Sets your cloaking state.
-
-            // TODO: investigate translucensy/visbility of other cloaked admins.
-
-            switch (parameters?[0].ToLower())
-            {
-                case "on":
-                    session.Player.Cloaked = true;
-                    session.Player.Ethereal = true;
-                    session.Player.IgnoreCollisions = true;
-                    session.Player.NoDraw = true;
-                    session.Player.ReportCollisions = false;
-                    session.Player.EnqueueBroadcastPhysicsState();
-                    // var test = session.Player.PhysicsDescriptionFlag;
-                    // test |= PhysicsDescriptionFlag.Translucency;
-                    // session.Player.PhysicsDescriptionFlag = test;
-                    // session.Player.Translucency = 0.5f;
-                    break;
-                case "off":
-                    session.Player.Cloaked = false;
-                    session.Player.Ethereal = false;
-                    session.Player.IgnoreCollisions = false;
-                    session.Player.NoDraw = false;
-                    session.Player.ReportCollisions = true;
-                    session.Player.EnqueueBroadcastPhysicsState();
-                    break;
-                case "player":
-                case "creature":
-                    session.Network.EnqueueSend(new GameMessageSystemChat("This cloaking option not implemented yet.", ChatMessageType.Broadcast));
-                    break;
-                default:
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Please specify if you want cloaking on or off.", ChatMessageType.Broadcast));
-                    break;
-            }
-        }
-
         // deaf < on / off >
         [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleDeaf(Session session, params string[] parameters)

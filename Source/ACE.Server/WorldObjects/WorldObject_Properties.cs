@@ -587,7 +587,7 @@ namespace ACE.Server.WorldObjects
         // ========== Generic Properties ==========
         // ========================================
         // used in SerializeCreateObject()
-        public string Name
+        public virtual string Name
         {
             get => GetProperty(PropertyString.Name);
             set => SetProperty(PropertyString.Name, value);

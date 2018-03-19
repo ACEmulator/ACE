@@ -4,6 +4,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 
 namespace ACE.Server.WorldObjects
@@ -29,6 +30,57 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
+
+            switch (CloakStatus)
+            {
+                case ACE.Entity.Enum.CloakStatus.Off:
+                    goto default;
+                case ACE.Entity.Enum.CloakStatus.On:
+                    Translucency = 0.5f;
+                    Cloaked = true;
+                    Ethereal = true;
+                    NoDraw = true;
+                    Visibility = true;
+                    break;
+                case ACE.Entity.Enum.CloakStatus.Player:
+                    BaseDescriptionFlags &= ~ObjectDescriptionFlag.Admin;
+                    goto default;
+                case ACE.Entity.Enum.CloakStatus.Creature:
+                    BaseDescriptionFlags &= ~ObjectDescriptionFlag.Admin;
+                    BaseDescriptionFlags &= ~ObjectDescriptionFlag.Player;
+                    goto default;
+                default:
+                    Translucency = null;
+                    Cloaked = false;
+                    Ethereal = false;
+                    NoDraw = false;
+                    Visibility = false;
+                    break;
+            }
         }
+
+        public override string Name
+        {
+            //get => GetProperty(PropertyString.Name);
+            get
+            {
+                if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) >= ACE.Entity.Enum.CloakStatus.Player)
+                    return base.Name;
+                else
+                    return "+" + base.Name;
+            }
+            //set => SetProperty(PropertyString.Name, value);
+        }
+
+        public CloakStatus? CloakStatus
+        {
+            get => (CloakStatus?)GetProperty(PropertyInt.CloakStatus);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value.Value); }
+        }
+
+        //public void UpdateBaseDescriptionFlags(ObjectDescriptionFlag newBaseDescriptionFlags)
+        //{
+        //    BaseDescriptionFlags = newBaseDescriptionFlags;
+        //}
     }
 }

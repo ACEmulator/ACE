@@ -8,7 +8,7 @@ using ACE.Server.Network;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Admin : Player
+    public class Admin : Sentinel
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
+            //BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
         }
     }
 }

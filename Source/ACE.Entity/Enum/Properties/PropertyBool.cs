@@ -35,7 +35,7 @@ namespace ACE.Entity.Enum.Properties
         ScriptedCollision                = 16,
         [ServerOnly]
         Inelastic                        = 17,
-        [ServerOnly]
+        [ServerOnly][Ephemeral]
         Visibility                       = 18,
         [ServerOnly]
         Attackable                       = 19,

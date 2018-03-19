@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <param name="sender"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public GameMessagePublicUpdatePropertyFloat(SequenceManager sequences, ObjectGuid sender, PropertyFloat property, uint value)
+        public GameMessagePublicUpdatePropertyFloat(SequenceManager sequences, ObjectGuid sender, PropertyFloat property, double value)
             : base(GameMessageOpcode.PublicUpdatePropertyFloat, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyDouble));

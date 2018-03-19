@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <param name="sender"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public GameMessagePublicUpdatePropertyInt64(SequenceManager sequences, ObjectGuid sender, PropertyInt64 property, uint value)
+        public GameMessagePublicUpdatePropertyInt64(SequenceManager sequences, ObjectGuid sender, PropertyInt64 property, long value)
             : base(GameMessageOpcode.PublicUpdatePropertyInt64, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInt64));
