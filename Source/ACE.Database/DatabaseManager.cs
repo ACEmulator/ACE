@@ -27,7 +27,8 @@ namespace ACE.Database
             shardDb.Exists(true);
 
             var playerWeenieLoadTest = World.GetCachedWeenie("human");
-            log.Fatal($"Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
+            if (playerWeenieLoadTest == null)
+                log.Fatal($"Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
         }
 
         public static void Start()
