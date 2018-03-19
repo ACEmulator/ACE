@@ -290,15 +290,16 @@ namespace ACE.Server.WorldObjects
             // first search me / add all items of type.
             if (Inventory.Remove(objectGuid, out item))
             {
+                int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
+
                 item.ContainerId = null;
                 item.PlacementPosition = null;
 
                 // Move all the existing items PlacementPosition over.
-                int placementPosition = item.PlacementPosition ?? 0;
                 if (!item.UseBackpackSlot)
-                    Inventory.Values.Where(i => !i.UseBackpackSlot && i.PlacementPosition > placementPosition).ToList().ForEach(i => i.PlacementPosition--);
+                    Inventory.Values.Where(i => !i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
                 else
-                    Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > placementPosition).ToList().ForEach(i => i.PlacementPosition--);
+                    Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
 
                 EncumbranceVal -= item.EncumbranceVal;
                 Value -= item.Value;
@@ -504,11 +505,10 @@ namespace ACE.Server.WorldObjects
         /// the updated values for stack size, value and burden, creates the needed client messages
         /// and sends them.   This must be called from within an action chain. Og II
         /// </summary>
-        /// <param name="session">Session is used for sequence and target</param>
         /// <param name="fromWo">World object of the item are we merging from</param>
         /// <param name="toWo">World object of the item we are merging into</param>
         /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        public void UpdateToStack(Session session, WorldObject fromWo, WorldObject toWo, int amount)
+        public void UpdateToStack(WorldObject fromWo, WorldObject toWo, int amount)
         {
             // unless we have a data issue, these are valid asserts Og II
             Debug.Assert(toWo.Value != null, "toWo.Value != null");
@@ -528,11 +528,11 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
-            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.PlacementPosition ?? 0);
+            //GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.PlacementPosition ?? 0);
             Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
             GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
 
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgPutObjectInContainer, msgAdjustNewStackSize);
+            //CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgPutObjectInContainer, msgAdjustNewStackSize);
         }
 
         /// <summary>
@@ -540,10 +540,9 @@ namespace ACE.Server.WorldObjects
         /// the updated values for stack size, value and burden, creates the needed client messages
         /// and sends them.   This must be called from within an action chain. Og II
         /// </summary>
-        /// <param name="session">Session is used for sequence and target</param>
         /// <param name="fromWo">World object of the item are we merging from</param>
         /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        public void UpdateFromStack(Session session, WorldObject fromWo,  int amount)
+        public void UpdateFromStack(WorldObject fromWo,  int amount)
         {
             // ok, there are some left, we need up update the stack size, value and burden of the fromWo
             // unless we have a data issue, these are valid asserts Og II
@@ -566,76 +565,6 @@ namespace ACE.Server.WorldObjects
             GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, (int)fromWo.StackSize, oldFromStackSize);
 
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgAdjustNewStackSize);
-        }
-
-        /// <summary>
-        /// This method will remove a worldobject if we have consumed all of the amount in the merge.
-        /// This checks inventory or wielded items (you could be pulling stackable ammo out of a wielded slot and into a stack in your pack
-        /// It then creates and sends the remove object message. Lastly, if the wo has ever been saved to the db, we clean up after ourselves.
-        /// </summary>
-        /// <param name="session">Session is used for sequence and target</param>
-        /// <param name="fromWo">World object of the item are we merging from that needs to be destroyed.</param>
-        public void RemoveWorldObject(Session session, WorldObject fromWo)
-        {
-            if (HasInventoryItem(fromWo.Guid))
-                session.Player.TryRemoveFromInventory(fromWo.Guid);
-
-            GameMessageRemoveObject msgRemoveFrom = new GameMessageRemoveObject(fromWo);
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgRemoveFrom);
-
-            // todo fix for EF
-            throw new NotImplementedException();
-            //if (fromWo.SnapShotOfAceObject().HasEverBeenSavedToDatabase)
-            //   DatabaseManager.Shard.DeleteObject(fromWo.SnapShotOfAceObject(), null);
-        }
-
-        /// <summary>
-        /// This method processes the Stackable Merge Game Action (F7B1) Stackable Merge (0x0054)
-        /// </summary>
-        /// <param name="session">Session is used for sequence and target</param>
-        /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
-        /// <param name="mergeToGuid">Guid of the item we are merging into</param>
-        /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
-        public void HandleActionStackableMerge(Session session, ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
-        {
-            new ActionChain(this, () =>
-            {
-                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                if (!HasInventoryItem(mergeFromGuid))
-                {
-                    // This is a pickup into our main pack.
-                    session.Player.HandleActionPutItemInContainer(mergeFromGuid, session.Player.Guid);
-                }
-
-                WorldObject fromWo = GetInventoryItem(mergeFromGuid);
-                WorldObject toWo = GetInventoryItem(mergeToGuid);
-
-                if (fromWo == null || toWo == null) return;
-
-                // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
-                // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
-                if (toWo.MaxStackSize == toWo.StackSize)
-                    return;
-
-                Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
-                if (toWo.MaxStackSize >= (ushort)(toWo.StackSize + amount))
-                {
-                    UpdateToStack(session, fromWo, toWo, amount);
-                    // Ok did we merge it all?   If so, let's destroy the from item.
-                    if (fromWo.StackSize == amount)
-                        RemoveWorldObject(session, fromWo);
-                    else
-                        UpdateFromStack(session, fromWo, amount);
-                }
-                else
-                {
-                    // ok we have more than the max stack size on the to object, just add what we can and adjust both.
-                    Debug.Assert(toWo.MaxStackSize != null, "toWo.MaxStackSize != null");
-                    int amtToFill = (int)(toWo.MaxStackSize - toWo.StackSize);
-                    UpdateToStack(session, fromWo, toWo, amtToFill);
-                    UpdateFromStack(session, toWo, amtToFill);
-                }
-            }).EnqueueChain();
         }
     }
 }

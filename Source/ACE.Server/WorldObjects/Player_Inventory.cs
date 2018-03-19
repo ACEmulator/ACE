@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -105,6 +106,7 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // =========== Helper Functions ===========
         // ========================================
+        // Used by HandleActionPutItemInContainer, HandleActionDropItem
 
         /// <summary>
         /// This method is used to pick items off the world - out of 3D space and into our inventory or to a wielded slot.
@@ -441,6 +443,60 @@ namespace ACE.Server.WorldObjects
                     new GameMessagePutObjectInContainer(Session, container.Guid, newStack, placementPosition),
                     new GameMessageSetStackSize(stack.Sequences, stack.Guid, stack.StackSize ?? 0, stack.Value ?? 0),
                     new GameMessageCreateObject(newStack));
+            }).EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method processes the Stackable Merge Game Action (F7B1) Stackable Merge (0x0054)
+        /// </summary>
+        /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
+        /// <param name="mergeToGuid">Guid of the item we are merging into</param>
+        /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
+        public void HandleActionStackableMerge(ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
+        {
+            new ActionChain(this, () =>
+            {
+                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                if (!HasInventoryItem(mergeFromGuid))
+                {
+                    // This is a pickup into our main pack.
+                    HandleActionPutItemInContainer(mergeFromGuid, Guid);
+                    return;
+                }
+
+                var fromItem = GetInventoryItem(mergeFromGuid);
+                var toItem = GetInventoryItem(mergeToGuid);
+
+                if (fromItem == null || toItem == null)
+                    return;
+
+                // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
+                // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
+                if (toItem.MaxStackSize == toItem.StackSize)
+                    return;
+
+                Debug.Assert(toItem.StackSize != null, "toWo.StackSize != null");
+
+                if (toItem.MaxStackSize >= (ushort)(toItem.StackSize + amount))
+                {
+                    UpdateToStack(fromItem, toItem, amount);
+
+                    // Ok did we merge it all?   If so, let's destroy the from item.
+                    if (fromItem.StackSize == amount)
+                        TryDestroyFromInventoryWithNetworking(fromItem);
+                    else
+                        UpdateFromStack(fromItem, amount);
+                }
+                else
+                {
+                    // ok we have more than the max stack size on the to object, just add what we can and adjust both.
+                    Debug.Assert(toItem.MaxStackSize != null, "toWo.MaxStackSize != null");
+
+                    int amtToFill = (int)(toItem.MaxStackSize - toItem.StackSize);
+
+                    UpdateToStack(fromItem, toItem, amtToFill);
+                    UpdateFromStack(toItem, amtToFill);
+                }
             }).EnqueueChain();
         }
 
