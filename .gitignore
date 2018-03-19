@@ -291,3 +291,11 @@ __pycache__/
 # ACEmulator specific files
 /Source/ACE.Server/config.json
 Database/tools/password.txt
+/Source/ACE.Database/Models/World/AceObject.cs
+/Source/ACE.Database/Models/World/AceLandblock.cs
+/Source/ACE.Database/Models/World/AceContentWeenie.cs
+/Source/ACE.Database/Models/World/AceContentResource.cs
+/Source/ACE.Database/Models/World/AceContentLink.cs
+/Source/ACE.Database/Models/World/AceContentLandblock.cs
+/Source/ACE.Database/Models/World/AceContent.cs
+/Source/ACE.Database/Models/World
