@@ -19,11 +19,14 @@ using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Database.Models.World;
+using log4net;
 
 namespace ACE.Server.Network.Handlers
 {
     public static class CharacterHandler
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
         {
@@ -204,6 +207,14 @@ namespace ACE.Server.Network.Handlers
 
             if (weenie == null)
                 weenie = DatabaseManager.World.GetCachedWeenie("human"); // Default catch-all
+
+            if (weenie == null) // If it is STILL null after the above catchall, the database is missing critical data and cannot continue with character creation.
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
+                log.Error($"Database does not contain the weenie for human (1). Characters cannot be created until the missing weenie is restored.");
+                return;
+            }
+
 
             var guid = GuidManager.NewPlayerGuid();
 
