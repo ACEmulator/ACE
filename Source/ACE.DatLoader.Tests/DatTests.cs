@@ -118,7 +118,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.SkillTable) continue;
                 if (fileType == DatFileType.ChatPoseTable) continue;
                 if (fileType == DatFileType.BadData) continue;
-                if (fileType == DatFileType.TabooTable) continue;
                 if (fileType == DatFileType.NameFilterTable) continue;
                 if (fileType == DatFileType.QualityFilter) continue;
                 if (fileType == DatFileType.STable) continue;
