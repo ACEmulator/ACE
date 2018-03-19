@@ -8,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -157,6 +158,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                item.SetPropertiesForContainer();
+
                 // FIXME(ddevec): I'm not 100% sure which of these need to be broadcasts, and which are local sends...
 
                 if (iidPropertyId == PropertyInstanceId.Container)
@@ -253,6 +256,8 @@ namespace ACE.Server.WorldObjects
                 log.Error("Player_Inventory UnwieldItemWithNetworking TryDequipObject failed");
                 return;
             }
+
+            item.SetPropertiesForContainer();
 
             if (!container.TryAddToInventory(item, placement))
             {
@@ -376,58 +381,66 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="stackId">This is the guild of the item we are spliting</param>
         /// <param name="containerId">The guid of the container</param>
-        /// <param name="place">Place is the slot in the container we are spliting into.   Range 0-MaxCapacity</param>
+        /// <param name="placementPosition">Place is the slot in the container we are spliting into. Range 0-MaxCapacity</param>
         /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
-        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int place, ushort amount)
+        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, ushort amount)
         {
-            // TODO: add the complementary method to combine items Og II
             new ActionChain(this, () =>
             {
                 Container container;
                 if (containerId == Guid.Full)
-                {
                     container = this;
-                }
                 else
-                {
-                    container = (Container)GetInventoryItem(new ObjectGuid(containerId));
-                }
+                    container = GetInventoryItem(new ObjectGuid(containerId)) as Container;
 
                 if (container == null)
                 {
-                    log.InfoFormat("Asked to split stack {0} in container {1} - the container was not found", stackId, containerId);
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer container not found");
                     return;
                 }
-                WorldObject stack = container.GetInventoryItem(new ObjectGuid(stackId));
+
+                var stack = container.GetInventoryItem(new ObjectGuid(stackId));
+
                 if (stack == null)
                 {
-                    log.InfoFormat("Asked to split stack {0} in container {1} - the stack item was not found", stackId, containerId);
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not found");
                     return;
                 }
+
                 if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
                 {
-                    log.InfoFormat("Asked to split stack {0} in container {1} - with amount of {2} but there is not enough to split", stackId, containerId, amount);
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not large enough for amount");
                     return;
                 }
 
                 // Ok we are in business
-                throw new System.NotImplementedException();/*
-                WorldObject newStack = WorldObjectFactory.CreateWorldObject(stack.NewAceObjectFromCopy()); // Fix suggested by Mogwai and Og II
-                container.AddToInventory(newStack);
+                stack.StackSize -= amount;
+                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
 
-                ushort oldStackSize = (ushort)stack.StackSize;
-                stack.StackSize = (ushort)(oldStackSize - amount);
-
+                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
                 newStack.StackSize = amount;
+                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
+                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
-                GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(Session, container.Guid, newStack, place);
-                GameMessageSetStackSize msgAdjustOldStackSize = new GameMessageSetStackSize(stack.Sequences, stack.Guid, (int)stack.StackSize, (int)stack.Value);
-                GameMessageCreateObject msgNewStack = new GameMessageCreateObject(newStack);
+                if (!container.TryAddToInventory(newStack, placementPosition, true))
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer TryAddToInventory failed");
+                    return;
+                }
 
-                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgPutObjectInContainer, msgAdjustOldStackSize, msgNewStack);
+                if (container == this)
+                {
+                    // We subtract the new stack from our main values because TryAddToInventory will end up readding them.
+                    EncumbranceVal -= newStack.EncumbranceVal;
+                    Value -= newStack.Value;
+                    // todo CoinValue
+                }
 
-                if (stack.WeenieType == WeenieType.Coin)
-                    UpdateCurrencyClientCalculations(WeenieType.Coin);*/
+                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                    new GameMessagePutObjectInContainer(Session, container.Guid, newStack, placementPosition),
+                    new GameMessageSetStackSize(stack.Sequences, stack.Guid, stack.StackSize ?? 0, stack.Value ?? 0),
+                    new GameMessageCreateObject(newStack));
             }).EnqueueChain();
         }
 

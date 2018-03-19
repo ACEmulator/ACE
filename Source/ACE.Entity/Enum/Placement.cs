@@ -12,8 +12,10 @@ namespace ACE.Entity.Enum
         Shield               = 6,
         LeftWeapon           = 7,
         LeftUnarmed          = 8,
+
         SpecialCrowssbowBolt = 51,
         MissileFlight        = 52,
+
         Resting              = 101,
         Other                = 102,
         Hook                 = 103,

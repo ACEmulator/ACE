@@ -327,10 +327,7 @@ namespace ACE.Server.WorldObjects
         internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)
         {
             Location = objectToPlaceInRelationTo.Location.InFrontOf(1.1f);
-            PositionFlag = UpdatePositionFlag.Contact
-                           | UpdatePositionFlag.Placement
-                           | UpdatePositionFlag.ZeroQy
-                           | UpdatePositionFlag.ZeroQx;
+            PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
 
             Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
             PlacementPosition = null;
@@ -340,15 +337,14 @@ namespace ACE.Server.WorldObjects
             CurrentWieldedLocation = null;
         }
 
-        internal void SetPropertiesForContainer(int placementPosition)
+        internal void SetPropertiesForContainer()
         {
-            if (Location != null)
-                LandblockManager.RemoveObject(this);
             Location = null;
             PositionFlag = UpdatePositionFlag.None;
 
             Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
-            PlacementPosition = placementPosition;
+            if (PlacementPosition == null)
+                PlacementPosition = 0;
 
             ParentLocation = null;
             WielderId = null;
