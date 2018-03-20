@@ -25,7 +25,7 @@ namespace ACE.Server.Physics.Common
             var transitState = FindEnvCollisions(transition);
             if (transitState == TransitionState.OK)
             {
-                transitState = FindCollisions(transition);
+                transitState = base.FindCollisions(transition);
                 if (transitState == TransitionState.OK)
                     transitState = FindObjCollisions(transition);
             }
@@ -71,29 +71,33 @@ namespace ACE.Server.Physics.Common
         public new void Init()
         {
             base.Init();
-            Polygons = new List<Polygon>();
+
+            // always 2 polys?
+            Polygons = new List<Polygon>(2);
+            for (var i = 0; i < 2; i++) Polygons.Add(null);
         }
 
         public static void add_all_outside_cells(Position position, int numSphere, List<Sphere> spheres, CellArray cellArray)
         {
-            if (cellArray.AddedOutside)
-                return;
+            if (cellArray.AddedOutside) return;
 
-            if (numSphere == 0)
+            if (numSphere != 0)
             {
                 foreach (var sphere in spheres)
                 {
-                    if (!LandDefs.AdjustToOutside(position)) // sphere.Center
+                    var cellPoint = position.ObjCellID;
+                    var center = sphere.Center;
+
+                    if (!LandDefs.AdjustToOutside(ref cellPoint, ref center))
                         break;
 
-                    var center = sphere.Center;
                     var point = new Vector2();
                     point.X = center.X - (float)Math.Floor(center.X / 24.0f) * 24.0f;
                     point.Y = center.Y - (float)Math.Floor(center.Y / 24.0f) * 24.0f;
                     var minRad = sphere.Radius;
                     var maxRad = 24.0f - minRad;
 
-                    var lcoord = LandDefs.gid_to_lcoord(position.ObjCellID);
+                    var lcoord = LandDefs.gid_to_lcoord(cellPoint);
                     if (lcoord != null)
                     {
                         add_outside_cell(cellArray, lcoord.Value);
@@ -103,7 +107,7 @@ namespace ACE.Server.Physics.Common
             }
             else
             {
-                if (!LandDefs.AdjustToOutside(position)) return; // position.Frame.Origin
+                if (!LandDefs.AdjustToOutside(position)) return;
 
                 var lcoord = LandDefs.gid_to_lcoord(position.ObjCellID);
                 if (lcoord != null)
@@ -118,7 +122,7 @@ namespace ACE.Server.Physics.Common
 
             if (x >= 0 && y >= 0 && x < 2040 && y < 2040)
             {
-                var cellID = y >> 3 | 32 * (x & 0xFFFFFFF8) << 16 | (y & 7) + 8 * (x & 7) + 1;
+                var cellID = (((y >> 3) | 32 * (x & 0xFFFFFFF8)) << 16) | ((y & 7) + 8 * (x & 7) + 1);
                 var landCell = Get(cellID);
                 if (landCell != null)
                     cellArray.add_cell(cellID, landCell);
@@ -130,29 +134,35 @@ namespace ACE.Server.Physics.Common
             add_outside_cell(cellArray, lcoord.X, lcoord.Y);
         }
 
+        /// <summary>
+        /// Checks if this sphere exceeds the boundaries of the cell
+        /// if it does, adds the neighboring cells to cellArray
+        /// </summary>
         public static void check_add_cell_boundary(CellArray cellArray, Vector2 point, Vector2 lcoord, float minRad, float maxRad)
         {
+            float x = lcoord.X, y = lcoord.Y;
+
             if (point.X > maxRad)
             {
-                add_outside_cell(cellArray, point.X + 1, point.Y);
+                add_outside_cell(cellArray, x + 1, y);
                 if (point.Y > maxRad)
-                    add_outside_cell(cellArray, point.X + 1, point.Y + 1);
+                    add_outside_cell(cellArray, x + 1, y + 1);
                 else
-                    add_outside_cell(cellArray, point.X + 1, point.Y - 1);
+                    add_outside_cell(cellArray, x + 1, y - 1);
             }
             if (point.X < minRad)
             {
-                add_outside_cell(cellArray, point.X - 1, point.Y);
+                add_outside_cell(cellArray, x - 1, y);
                 if (point.Y > maxRad)
-                    add_outside_cell(cellArray, point.X - 1, point.Y + 1);
+                    add_outside_cell(cellArray, x - 1, y + 1);
                 else
-                    add_outside_cell(cellArray, point.X - 1, point.Y - 1);
+                    add_outside_cell(cellArray, x - 1, y - 1);
             }
             if (point.Y > maxRad)
-                add_outside_cell(cellArray, point.X, point.Y + 1);
+                add_outside_cell(cellArray, x, y + 1);
 
             else if (point.Y < minRad)
-                add_outside_cell(cellArray, point.X, point.Y - 1);
+                add_outside_cell(cellArray, x, y - 1);
         }
 
         public bool find_terrain_poly(Vector3 origin, ref Polygon walkable)

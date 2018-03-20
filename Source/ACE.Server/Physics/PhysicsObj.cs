@@ -99,8 +99,9 @@ namespace ACE.Server.Physics
             CachedVelocity = Vector3.Zero;
             Hooks = new LinkedList<PhysicsObjHook>();
             AnimHooks = new LinkedList<DatLoader.Entity.AnimationHook>();
-            ShadowObjects = new Dictionary<uint, ShadowObj>();
             Children = new ChildList();
+            ShadowObjects = new Dictionary<uint, ShadowObj>();
+            CollisionTable = new Dictionary<uint, CollisionRecord>();
             UpdateTimes = new int[UpdateTimeLength];
         }
 
@@ -331,7 +332,7 @@ namespace ACE.Server.Physics
                         var spheres = PartArray.GetSphere();
                         for (var i = 0; i < PartArray.GetNumSphere(); i++)
                         {
-                            var intersects = spheres[i].IntersectsSphere(transition, isCreature);
+                            var intersects = spheres[i].IntersectsSphere(Position, Scale, transition, isCreature);
                             if (intersects != TransitionState.OK)
                             {
                                 return FindObjCollisions_Inner(transition, intersects, ethereal, isCreature);
@@ -346,7 +347,7 @@ namespace ACE.Server.Physics
                         var cylSpheres = PartArray.GetCylSphere();
                         for (var i = 0; i < PartArray.GetNumCylsphere(); i++)
                         {
-                            var intersects = cylSpheres[i].IntersectsSphere(transition);
+                            var intersects = cylSpheres[i].IntersectsSphere(Position, Scale, transition);
                             if (intersects != TransitionState.OK)
                             {
                                 return FindObjCollisions_Inner(transition, intersects, ethereal, isCreature);
@@ -1018,7 +1019,7 @@ namespace ACE.Server.Physics
                 return SetPositionError.GeneralFailure;
             }
 
-            if (transitCell == CurCell)
+            if (transitCell.Equals(CurCell))
             {
                 Position.ObjCellID = curPos.ObjCellID;
                 if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
@@ -1060,7 +1061,7 @@ namespace ACE.Server.Physics
 
             if (TransientState.HasFlag(TransientStateFlags.Contact))
             {
-                if (ContactPlane.Normal.Z >= PhysicsGlobals.FloorZ)
+                if (ContactPlane.Normal.Z < PhysicsGlobals.FloorZ)
                     set_on_walkable(false);
                 else
                     set_on_walkable(true);
@@ -1366,48 +1367,52 @@ namespace ACE.Server.Physics
 
         public void UpdateObjectInternal(double quantum)
         {
-            if (!TransientState.HasFlag(TransientStateFlags.Active) /*|| Cell == null*/)    // todo: cells
+            if (!TransientState.HasFlag(TransientStateFlags.Active) || CurCell == null)
                 return;
 
             if (TransientState.HasFlag(TransientStateFlags.CheckEthereal))
                 set_ethereal(false, false);
 
             JumpedThisFrame = false;
-            var newPos = new Position(Position.ObjCellID);
-            UpdatePositionInternal(quantum, ref newPos.Frame);
+            var offset = new Position(Position.ObjCellID);
+            UpdatePositionInternal(quantum, ref offset.Frame);
+
+            // added: is this supposed to be offset?
+            var newPos = new Position(offset.ObjCellID, AFrame.Combine(Position.Frame, offset.Frame));
 
             if (PartArray != null && PartArray.GetNumSphere() != 0)
             {
-                if (newPos.Frame.Origin.Equals(Position.Frame.Origin))  // epsilon compare?
+                if (offset.Frame.Origin.Equals(Position.Frame.Origin))  // epsilon compare?
                 {
                     CachedVelocity = Vector3.Zero;
-                    set_frame(newPos.Frame);
+                    set_frame(offset.Frame);
                 }
                 else
                 {
                     if (State.HasFlag(PhysicsState.AlignPath))
                     {
-                        var offset = newPos.Frame.Origin - Position.Frame.Origin;
-                        newPos.Frame.set_vector_heading(offset.Normalize());
+                        var diff = offset.Frame.Origin - Position.Frame.Origin;
+                        offset.Frame.set_vector_heading(diff.Normalize());
                     }
                     else if (State.HasFlag(PhysicsState.Sledding) && Velocity != Vector3.Zero)
-                        newPos.Frame.set_vector_heading(Velocity.Normalize());
+                        offset.Frame.set_vector_heading(Velocity.Normalize());
                 }
+
                 var transit = transition(Position, newPos, false);
-                if (transit != null /*&& transit.SpherePath.CurCell != null*/)  // todo: add cell
+                if (transit != null)
                 {
                     CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                     SetPositionInternal(transit);
                 }
                 else
-                    _UpdateObjectInternal(ref newPos);
+                    _UpdateObjectInternal(ref offset);
             }
             else
             {
                 if (MovementManager == null && TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     TransientState &= ~TransientStateFlags.Active;
 
-                _UpdateObjectInternal(ref newPos);
+                _UpdateObjectInternal(ref offset);
             }
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
@@ -1446,7 +1451,7 @@ namespace ACE.Server.Physics
 
             if (velocity_mag2 <= 0.0f)
             {
-                if (MovementManager != null && TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                if (MovementManager == null && TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     TransientState &= ~TransientStateFlags.Active;
             }
             else
@@ -1581,10 +1586,13 @@ namespace ACE.Server.Physics
                 add_particle_shadow_to_cell();
             else
             {
-                foreach (var cell in cellArray.Cells)
+                foreach (var cell in cellArray.Cells.Values)
                 {
                     var shadowObj = new ShadowObj(this, cell);
-                    ShadowObjects.Add(cell.ID, shadowObj);
+                    if (!ShadowObjects.ContainsKey(cell.ID))
+                        ShadowObjects.Add(cell.ID, shadowObj);
+                    else
+                        ShadowObjects[cell.ID] = shadowObj;
 
                     if (cell != null) cell.AddShadowObject(shadowObj);
 
@@ -1650,7 +1658,7 @@ namespace ACE.Server.Physics
 
             var attackInfo = AttackManager.NewAttack(attackCone.PartIdx);
 
-            foreach (var cell in cellArray.Cells)
+            foreach (var cell in cellArray.Cells.Values)
                 cell.CheckAttack(ID, Position, Scale, attackCone, attackInfo);
 
             if (!attackInfo.WaitingForCells)
@@ -1941,7 +1949,7 @@ namespace ACE.Server.Physics
             cellArray.AddedOutside = false;
             cellArray.add_cell(CurCell.ID, CurCell);
 
-            foreach (var cell in cellArray.Cells)
+            foreach (var cell in cellArray.Cells.Values)
                 PartArray.calc_cross_cells_static(cell, cellArray);
         }
 
@@ -2133,12 +2141,12 @@ namespace ACE.Server.Physics
                 Velocity = Vector3.Zero;
                 if (collisions.FramesStationaryFall == 3)
                 {
-                    TransientState &= ~TransientStateFlags.Active;
+                    TransientState &= ~TransientStateFlags.StationaryComplete;
                     return retval;
                 }
             }
             if (collisions.FramesStationaryFall == 0)
-                TransientState &= ~TransientStateFlags.Active;
+                TransientState &= ~TransientStateFlags.StationaryComplete;
             else if (collisions.FramesStationaryFall == 1)
                 TransientState |= TransientStateFlags.StationaryFall;
             else if (collisions.FramesStationaryFall == 2)
@@ -2512,9 +2520,10 @@ namespace ACE.Server.Physics
             foreach (var shadowObj in ShadowObjects.Values)
             {
                 if (shadowObj.Cell == null) continue;
+                var cell = shadowObj.Cell;
                 shadowObj.Cell.remove_shadow_object(shadowObj);
                 if (PartArray != null)
-                    PartArray.RemoveParts(shadowObj.Cell);
+                    PartArray.RemoveParts(cell);
             }
             NumShadowObjects = 0;   // should be ShadowObjects.Count
             var i = 0;
@@ -2599,7 +2608,7 @@ namespace ACE.Server.Physics
                 var collision = new EnvCollisionProfile();
                 collision.Velocity = Velocity;
                 collision.SetMeInContact(prev_has_contact);
-                // WeenieObj virtual function call
+                WeenieObj.DoCollision(collision);
                 result = true;
             }
             CollidingWithEnvironment = true;
@@ -3207,8 +3216,7 @@ namespace ACE.Server.Physics
         public Transition transition(Position oldPos, Position newPos, bool adminMove)
         {
             var trans = Transition.MakeTransition();
-            if (trans == null)
-                return null;
+            if (trans == null) return null;
 
             var objectInfo = get_object_info(trans, adminMove);
             trans.InitObject(this, objectInfo.State);
@@ -3234,7 +3242,7 @@ namespace ACE.Server.Physics
 
             var validPos = trans.FindValidPosition();
             trans.CleanupTransition();
-            //if (!validPos) return null;   // todo: add cell
+            if (!validPos) return null;
             return trans;
         }
 
@@ -3280,7 +3288,7 @@ namespace ACE.Server.Physics
 
         public void update_object()
         {
-            if (Parent != null || CurCell != null | State.HasFlag(PhysicsState.Frozen))
+            if (Parent != null || CurCell == null || State.HasFlag(PhysicsState.Frozen))
             {
                 TransientState &= ~TransientStateFlags.Active;
                 return;

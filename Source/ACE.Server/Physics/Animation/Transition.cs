@@ -81,12 +81,12 @@ namespace ACE.Server.Physics.Animation
             return offset;
         }
 
-        public ObjCell BuildCellArray(ObjCell newCell = null)
+        public void BuildCellArray(ref ObjCell newCell)
         {
             SpherePath.CellArrayValid = true;
             SpherePath.HitsInteriorCell = false;
 
-            return ObjCell.find_cell_list(CellArray, newCell, SpherePath);
+            ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
         }
 
         public void CalcNumSteps(ref Vector3 offset, ref Vector3 offsetPerStep, ref int numSteps)
@@ -151,9 +151,10 @@ namespace ACE.Server.Physics.Animation
 
             SpherePath.CellArrayValid = true;
             SpherePath.HitsInteriorCell = false;
-            var newCell = ObjCell.find_cell_list(CellArray, null, SpherePath);
+            ObjCell newCell = new ObjCell();    // null check?
+            ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
-            foreach (var cell in CellArray.Cells)
+            foreach (var cell in CellArray.Cells.Values)
             {
                 if (cell == null || cell.Equals(currCell)) continue;
                 var collides = cell.FindCollisions(this);
@@ -179,7 +180,7 @@ namespace ACE.Server.Physics.Animation
             if (SpherePath.StepDown) return TransitionState.Collided;
 
             var checkPos = SpherePath.CheckPos;
-            if (checkPos.ObjCellID < 0x100)
+            if ((checkPos.ObjCellID & 0xFFFF) < 0x100)
                 LandDefs.AdjustToOutside(checkPos);
 
             if (checkPos.ObjCellID != 0)
@@ -497,7 +498,8 @@ namespace ACE.Server.Physics.Animation
                 SpherePath.CellArrayValid = true;
                 SpherePath.HitsInteriorCell = false;
 
-                ObjCell.find_cell_list(CellArray, null, SpherePath);
+                ObjCell empty = null;
+                ObjCell.find_cell_list(CellArray, ref empty, SpherePath);
                 return true;
             }
 
@@ -658,6 +660,10 @@ namespace ACE.Server.Physics.Animation
             return TransitionState.OK;
         }
 
+        /// <summary>
+        /// Initializes a new default transition
+        /// </summary>
+        /// <returns></returns>
         public static Transition MakeTransition()
         {
             if (TransitionLevel >= MaxTransitionLevel) return null;
@@ -989,7 +995,8 @@ namespace ACE.Server.Physics.Animation
                             CollisionInfo.SetCollisionNormal(contactPlane.Normal);
                         }
                         SpherePath.SetCheckPos(SpherePath.CurPos, SpherePath.CurCell);
-                        BuildCellArray();
+                        ObjCell empty = null;
+                        BuildCellArray(ref empty);
                         transitionState = TransitionState.OK;
                     }
                 }

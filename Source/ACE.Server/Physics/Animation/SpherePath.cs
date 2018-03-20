@@ -132,7 +132,7 @@ namespace ACE.Server.Physics.Animation
 
         public void AdjustCheckPos(uint cellID)
         {
-            if (cellID < 0x100)
+            if ((cellID & 0xFFFF) < 0x100)
             {
                 var offset = LandDefs.GetBlockOffset(cellID, CheckPos.ObjCellID);
                 CacheGlobalSphere(offset);
@@ -258,8 +258,7 @@ namespace ACE.Server.Physics.Animation
 
         public void SetCheckPos(Position position, ObjCell cell)
         {
-            CheckPos.ObjCellID = position.ObjCellID;
-            CheckPos.Frame = position.Frame;
+            CheckPos = position;
             CheckCell = cell;
             CellArrayValid = false;
             CacheGlobalSphere(Vector3.Zero);

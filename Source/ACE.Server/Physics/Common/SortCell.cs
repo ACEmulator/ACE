@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -66,7 +66,7 @@ namespace ACE.Server.Physics.Common
             Building = null;
         }
 
-        public void Init()
+        public new void Init()
         {
             Building = new BuildingObj();
         }

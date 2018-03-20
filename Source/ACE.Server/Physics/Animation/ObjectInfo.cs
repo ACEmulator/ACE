@@ -40,7 +40,7 @@ namespace ACE.Server.Physics.Animation
         public void Init(PhysicsObj obj, ObjectInfoState state)
         {
             Object = obj;
-            State = state;
+            State = state;   // copy constructor?
             Scale = Object.Scale;
             StepUpHeight = Object.GetStepUpHeight();
             StepDownHeight = Object.GetStepDownHeight();
@@ -118,6 +118,11 @@ namespace ACE.Server.Physics.Animation
                     if (path.StepDown || !State.HasFlag(ObjectInfoState.OnWalkable) || Object.is_valid_walkable(contactPlane.Normal))
                     {
                         collision.SetContactPlane(contactPlane, isWater);
+                        collision.ContactPlaneCellID = landCellID;
+                    }
+                    if (!State.HasFlag(ObjectInfoState.Contact) && !path.StepDown)
+                    {
+                        collision.SetCollisionNormal(contactPlane.Normal);
                         collision.CollidedWithEnvironment = true;
                     }
                     return TransitionState.OK;

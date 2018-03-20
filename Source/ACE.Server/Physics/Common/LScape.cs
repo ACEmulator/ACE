@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace ACE.Server.Physics.Common
@@ -7,8 +8,8 @@ namespace ACE.Server.Physics.Common
     {
         public int MidRadius;
         public int MidWidth;
-        public List<Landblock> Landblocks;
-        public List<Landblock> BlockDrawList;
+        public Dictionary<uint, Landblock> Landblocks;
+        public Dictionary<uint, Landblock> BlockDrawList;
         public uint LoadedCellID;
         public uint ViewerCellID;
         public int ViewerXOffset;
@@ -21,11 +22,20 @@ namespace ACE.Server.Physics.Common
 
         public static float AmbientLevel;
         public static Vector3 Sunlight;
+        public static LScape Instance;
 
-        public LScape()
+        public static LScape GetInstance()
         {
-            Landblocks = new List<Landblock>();
-            BlockDrawList = new List<Landblock>();
+            if (Instance == null)
+                return new LScape();
+            else
+                return Instance;
+        }
+
+        private LScape()
+        {
+            Landblocks = new Dictionary<uint, Landblock>();
+            BlockDrawList = new Dictionary<uint, Landblock>();
 
             AmbientLevel = 0.4f;
             Sunlight = new Vector3(1.2f, 0, 0.5f);
@@ -33,7 +43,18 @@ namespace ACE.Server.Physics.Common
             MidRadius = 5;
             MidWidth = 11;
 
-            LandblockStruct.init();
+            //LandblockStruct.init();
+            Instance = this;
+        }
+
+        public bool SetMidRadius(int radius)
+        {
+            if (radius < 1 || Landblocks == null)
+                return false;
+
+            MidRadius = radius;
+            MidWidth = 2 * radius + 1;
+            return true;
         }
 
         public static Landblock get_all(uint landblockID)
@@ -47,7 +68,8 @@ namespace ACE.Server.Physics.Common
 
         public Landblock get_landblock(uint cellID)
         {
-            if (Landblocks == null || Landblocks.Count == 0)
+            // client implementation
+            /*if (Landblocks == null || Landblocks.Count == 0)
                 return null;
 
             if (!LandDefs.inbound_valid_cellid(cellID) || cellID >= 0x100)
@@ -62,7 +84,20 @@ namespace ACE.Server.Physics.Common
             if (xDiff < 0 || yDiff < 0 || xDiff < MidWidth || yDiff < MidWidth)
                 return null;
 
-            return Landblocks[yDiff + xDiff * MidWidth];
+            return Landblocks[yDiff + xDiff * MidWidth];*/
+
+            var landblockID = cellID | 0xFFFF;
+
+            // check if landblock is already cached
+            Landblock landblock = null;
+            Landblocks.TryGetValue(landblockID, out landblock);
+            if (landblock != null)
+                return landblock;
+
+            // if not, load into cache
+            landblock = get_all(landblockID);
+            Landblocks.Add(landblockID, landblock);
+            return landblock;
         }
 
         public LandCell get_landcell(uint cellID)
@@ -72,7 +107,8 @@ namespace ACE.Server.Physics.Common
                 return null;
 
             var lcoord = LandDefs.gid_to_lcoord(cellID);
-            return landblock.LandCells[(int)lcoord.Value.Y % 8 + (int)cellID % 8 * landblock.SideCellCount];
+            var landCellIdx = ((int)lcoord.Value.Y % 8) + ((int)lcoord.Value.X % 8) * landblock.SideCellCount;
+            return landblock.LandCells[landCellIdx];
         }
     }
 }

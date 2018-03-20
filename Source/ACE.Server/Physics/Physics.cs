@@ -44,6 +44,7 @@ namespace ACE.Server.Physics
         StationaryFall = 0x10,
         StationaryStop = 0x20,
         StationaryStuck = 0x40,
+        StationaryComplete = StationaryStuck | StationaryStop | StationaryFall,
         Active = 0x80,
         CheckEthereal = 0x100
     };

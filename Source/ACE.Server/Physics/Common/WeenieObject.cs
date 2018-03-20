@@ -1,5 +1,6 @@
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
+using ACE.Server.Physics.Collision;
 
 namespace ACE.Server.Physics.Common
 {
@@ -69,6 +70,11 @@ namespace ACE.Server.Physics.Common
         }
 
         public int DoCollision(AtkCollisionProfile prof)
+        {
+            return 0;
+        }
+
+        public int DoCollision(EnvCollisionProfile prof)
         {
             return 0;
         }

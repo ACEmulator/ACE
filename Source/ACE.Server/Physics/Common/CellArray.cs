@@ -6,12 +6,12 @@ namespace ACE.Server.Physics.Common
     {
         public bool AddedOutside;
         public bool LoadCells;
-        public List<ObjCell> Cells;
+        public Dictionary<uint, ObjCell> Cells;
         public int NumCells;
 
         public CellArray()
         {
-            Cells = new List<ObjCell>();
+            Cells = new Dictionary<uint, ObjCell>();
         }
 
         public void SetStatic()
@@ -30,14 +30,20 @@ namespace ACE.Server.Physics.Common
 
         public void add_cell(uint cellID, ObjCell cell)
         {
-            Cells.Add(cell);
-            NumCells++;
+            if (!Cells.ContainsKey(cellID))
+            {
+                Cells.Add(cellID, cell);
+                NumCells++;
+            }
         }
 
         public void remove_cell(ObjCell cell)
         {
-            Cells.Remove(cell);
-            NumCells = Cells.Count;
+            if (Cells.ContainsKey(cell.ID))
+            {
+                Cells.Remove(cell.ID);
+                NumCells--;
+            }
         }
     }
 }
