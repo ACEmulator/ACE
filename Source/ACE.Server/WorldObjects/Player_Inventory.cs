@@ -103,9 +103,9 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // ========================================
-        // =========== Helper Functions ===========
-        // ========================================
+        // =====================================
+        // Helper Functions - Inventory Movement
+        // =====================================
         // Used by HandleActionPutItemInContainer, HandleActionDropItem
 
         /// <summary>
@@ -333,9 +333,9 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // ========================================
-        // ========= Game Action Handlers =========
-        // ========================================
+        // =========================================
+        // Game Action Handlers - Inventory Movement 
+        // =========================================
         // These are raised by client actions
 
         /// <summary>
@@ -374,129 +374,6 @@ namespace ACE.Server.WorldObjects
 
                 // if were are still here, this needs to do a pack pack or main pack move.
                 MoveItemWithNetworking(item, container, placement);
-            }).EnqueueChain();
-        }
-
-        /// <summary>
-        /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
-        /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting item. Og II
-        /// </summary>
-        /// <param name="stackId">This is the guild of the item we are spliting</param>
-        /// <param name="containerId">The guid of the container</param>
-        /// <param name="placementPosition">Place is the slot in the container we are spliting into. Range 0-MaxCapacity</param>
-        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
-        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, ushort amount)
-        {
-            new ActionChain(this, () =>
-            {
-                Container container;
-                if (containerId == Guid.Full)
-                    container = this;
-                else
-                    container = GetInventoryItem(new ObjectGuid(containerId)) as Container;
-
-                if (container == null)
-                {
-                    log.Error("Player_Inventory HandleActionStackableSplitToContainer container not found");
-                    return;
-                }
-
-                var stack = container.GetInventoryItem(new ObjectGuid(stackId));
-
-                if (stack == null)
-                {
-                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not found");
-                    return;
-                }
-
-                if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
-                {
-                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not large enough for amount");
-                    return;
-                }
-
-                // Ok we are in business
-                stack.StackSize -= amount;
-                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
-
-                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.StackSize = amount;
-                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
-                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
-
-                if (!container.TryAddToInventory(newStack, placementPosition, true))
-                {
-                    log.Error("Player_Inventory HandleActionStackableSplitToContainer TryAddToInventory failed");
-                    return;
-                }
-
-                if (container == this)
-                {
-                    // We subtract the new stack from our main values because TryAddToInventory will end up readding them.
-                    EncumbranceVal -= newStack.EncumbranceVal;
-                    Value -= newStack.Value;
-                    // todo CoinValue
-                }
-
-                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameMessagePutObjectInContainer(Session, container.Guid, newStack, placementPosition),
-                    new GameMessageSetStackSize(stack.Sequences, stack.Guid, stack.StackSize ?? 0, stack.Value ?? 0),
-                    new GameMessageCreateObject(newStack));
-            }).EnqueueChain();
-        }
-
-        /// <summary>
-        /// This method processes the Stackable Merge Game Action (F7B1) Stackable Merge (0x0054)
-        /// </summary>
-        /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
-        /// <param name="mergeToGuid">Guid of the item we are merging into</param>
-        /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
-        public void HandleActionStackableMerge(ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
-        {
-            new ActionChain(this, () =>
-            {
-                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-                if (!HasInventoryItem(mergeFromGuid))
-                {
-                    // This is a pickup into our main pack.
-                    HandleActionPutItemInContainer(mergeFromGuid, Guid);
-                    return;
-                }
-
-                var fromItem = GetInventoryItem(mergeFromGuid);
-                var toItem = GetInventoryItem(mergeToGuid);
-
-                if (fromItem == null || toItem == null)
-                    return;
-
-                // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
-                // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
-                if (toItem.MaxStackSize == toItem.StackSize)
-                    return;
-
-                Debug.Assert(toItem.StackSize != null, "toWo.StackSize != null");
-
-                if (toItem.MaxStackSize >= (ushort)(toItem.StackSize + amount))
-                {
-                    UpdateToStack(fromItem, toItem, amount);
-
-                    // Ok did we merge it all?   If so, let's destroy the from item.
-                    if (fromItem.StackSize == amount)
-                        TryDestroyFromInventoryWithNetworking(fromItem);
-                    else
-                        UpdateFromStack(fromItem, amount);
-                }
-                else
-                {
-                    // ok we have more than the max stack size on the to object, just add what we can and adjust both.
-                    Debug.Assert(toItem.MaxStackSize != null, "toWo.MaxStackSize != null");
-
-                    int amtToFill = (int)(toItem.MaxStackSize - toItem.StackSize);
-
-                    UpdateToStack(fromItem, toItem, amtToFill);
-                    UpdateFromStack(toItem, amtToFill);
-                }
             }).EnqueueChain();
         }
 
@@ -652,6 +529,27 @@ namespace ACE.Server.WorldObjects
             }).EnqueueChain();
         }
 
+        /// <summary>
+        /// This code handle objects between players and other world objects
+        /// </summary>
+        public void HandleActionGiveObjectRequest(uint targetID, uint objectID, uint amount)
+        {
+            log.Error("Player_Inventory HandleActionGiveObjectRequest not implemented");
+            ////ObjectGuid target = new ObjectGuid(targetID);
+            ////ObjectGuid item = new ObjectGuid(objectID);
+            ////WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
+            ////WorldObject itemObject = GetInventoryItem(item);
+            ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
+            ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
+            ////SendUseDoneEvent();
+        }
+
+
+        // ===============================
+        // Game Action Handlers - Use Item
+        // ===============================
+        // These are raised by client actions
+
         public void HandleActionUseItem(ObjectGuid usedItemId)
         {
             new ActionChain(this, () =>
@@ -708,20 +606,11 @@ namespace ACE.Server.WorldObjects
             }).EnqueueChain();
         }
 
-        /// <summary>
-        /// This code handle objects between players and other world objects
-        /// </summary>
-        public void HandleActionGiveObjectRequest(uint targetID, uint objectID, uint amount)
-        {
-            log.Error("Player_Inventory HandleActionGiveObjectRequest not implemented");
-            ////ObjectGuid target = new ObjectGuid(targetID);
-            ////ObjectGuid item = new ObjectGuid(objectID);
-            ////WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
-            ////WorldObject itemObject = GetInventoryItem(item);
-            ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
-            ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
-            ////SendUseDoneEvent();
-        }
+
+        // ===========================
+        // Game Action Handlers - Misc
+        // ===========================
+        // These are raised by client actions
 
         /// <summary>
         /// This method handles inscription.   If you remove the inscription, it will remove the data from the object and
@@ -773,8 +662,202 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        // =====================================
+        // Helper Functions - Inventory Stacking
+        // =====================================
+        // Used by HandleActionStackableSplitToContainer
+
+        /// <summary>
+        /// This method handles the second part of the merge if we have not merged ALL of the fromWo into the toWo - split out for code reuse.
+        /// It calculates the updated values for stack size, value and burden, creates the needed client messages and sends them.
+        /// This must be called from within an action chain. Og II
+        /// </summary>
+        /// <param name="fromWo">World object of the item are we merging from</param>
+        /// <param name="amount">How many are we merging fromWo into the toWo</param>
+        private void UpdateFromStack(WorldObject fromWo, int amount)
+        {
+            Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
+            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
+            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.EncumbranceVal != null");
+
+            // ok, there are some left, we need up update the stack size, value and burden of the fromWo
+            int newFromValue = (int)(fromWo.Value + ((fromWo.Value / fromWo.StackSize) * -amount));
+            uint newFromBurden = (uint)(fromWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * -amount));
+
+            int oldFromStackSize = (int)fromWo.StackSize;
+            fromWo.StackSize -= (ushort)amount;
+            fromWo.Value = newFromValue;
+            fromWo.EncumbranceVal = (int)newFromBurden;
+
+            // Build the needed messages to the client.
+            GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue);
+            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
+            GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, (int)fromWo.StackSize, oldFromStackSize);
+
+            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgAdjustNewStackSize);
+        }
+
+        /// <summary>
+        /// This method handles the first part of the merge - split out for code reuse.
+        /// It calculates the updated values for stack size, value and burden, creates the needed client messages and sends them.
+        /// This must be called from within an action chain. Og II
+        /// </summary>
+        /// <param name="fromWo">World object of the item are we merging from</param>
+        /// <param name="toWo">World object of the item we are merging into</param>
+        /// <param name="amount">How many are we merging fromWo into the toWo</param>
+        private void UpdateToStack(WorldObject fromWo, WorldObject toWo, int amount)
+        {
+            Debug.Assert(toWo.Value != null, "toWo.Value != null");
+            Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
+            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
+            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
+            Debug.Assert(toWo.EncumbranceVal != null, "toWo.EncumbranceVal != null");
+            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.EncumbranceVal != null");
+
+            int newValue = (int)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
+            uint newBurden = (uint)(toWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * amount));
+
+            int oldStackSize = (int)toWo.StackSize;
+            toWo.StackSize += (ushort)amount;
+            toWo.Value = newValue;
+            toWo.EncumbranceVal = (int)newBurden;
+
+            // Build the needed messages to the client.
+            GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
+            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(Session, Guid, toWo, toWo.PlacementPosition ?? 0);
+            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
+            GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
+
+            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgPutObjectInContainer, msgAdjustNewStackSize);
+        }
 
 
+        // =========================================
+        // Game Action Handlers - Inventory Stacking 
+        // =========================================
+        // These are raised by client actions
+
+        /// <summary>
+        /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
+        /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting item. Og II
+        /// </summary>
+        /// <param name="stackId">This is the guild of the item we are spliting</param>
+        /// <param name="containerId">The guid of the container</param>
+        /// <param name="placementPosition">Place is the slot in the container we are spliting into. Range 0-MaxCapacity</param>
+        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
+        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, ushort amount)
+        {
+            new ActionChain(this, () =>
+            {
+                Container container;
+                if (containerId == Guid.Full)
+                    container = this;
+                else
+                    container = GetInventoryItem(new ObjectGuid(containerId)) as Container;
+
+                if (container == null)
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer container not found");
+                    return;
+                }
+
+                var stack = container.GetInventoryItem(new ObjectGuid(stackId));
+
+                if (stack == null)
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not found");
+                    return;
+                }
+
+                if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not large enough for amount");
+                    return;
+                }
+
+                // Ok we are in business
+                stack.StackSize -= amount;
+                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
+
+                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+                newStack.StackSize = amount;
+                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
+                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
+
+                if (!container.TryAddToInventory(newStack, placementPosition, true))
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer TryAddToInventory failed");
+                    return;
+                }
+
+                if (container == this)
+                {
+                    // We subtract the new stack from our main values because TryAddToInventory will end up readding them.
+                    EncumbranceVal -= newStack.EncumbranceVal;
+                    Value -= newStack.Value;
+                    // todo CoinValue
+                }
+
+                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                    new GameMessagePutObjectInContainer(Session, container.Guid, newStack, placementPosition),
+                    new GameMessageSetStackSize(stack.Sequences, stack.Guid, stack.StackSize ?? 0, stack.Value ?? 0),
+                    new GameMessageCreateObject(newStack));
+            }).EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method processes the Stackable Merge Game Action (F7B1) Stackable Merge (0x0054)
+        /// </summary>
+        /// <param name="mergeFromGuid">Guid of the item are we merging from</param>
+        /// <param name="mergeToGuid">Guid of the item we are merging into</param>
+        /// <param name="amount">How many are we merging fromGuid into the toGuid</param>
+        public void HandleActionStackableMerge(ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
+        {
+            new ActionChain(this, () =>
+            {
+                // is this something I already have? If not, it has to be a pickup - do the pickup and out.
+                if (!HasInventoryItem(mergeFromGuid))
+                {
+                    // This is a pickup into our main pack.
+                    HandleActionPutItemInContainer(mergeFromGuid, Guid);
+                    return;
+                }
+
+                var fromItem = GetInventoryItem(mergeFromGuid);
+                var toItem = GetInventoryItem(mergeToGuid);
+
+                if (fromItem == null || toItem == null)
+                    return;
+
+                // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
+                // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
+                if (toItem.MaxStackSize == toItem.StackSize)
+                    return;
+
+                if (toItem.MaxStackSize >= (ushort)((toItem.StackSize ?? 0) + amount))
+                {
+                    // The toItem has enoguh capacity to take the full amount
+                    UpdateToStack(fromItem, toItem, amount);
+
+                    // Ok did we merge it all? If so, let's destroy the from item.
+                    if (fromItem.StackSize == amount)
+                        TryDestroyFromInventoryWithNetworking(fromItem);
+                    else
+                        UpdateFromStack(fromItem, amount);
+                }
+                else
+                {
+                    // The toItem does not have enoguh capacity to take the full amount. Just add what we can and adjust both.
+                    Debug.Assert(toItem.MaxStackSize != null, "toWo.MaxStackSize != null");
+
+                    int amtToFill = (int)(toItem.MaxStackSize - toItem.StackSize);
+
+                    UpdateToStack(fromItem, toItem, amtToFill);
+                    UpdateFromStack(toItem, amtToFill);
+                }
+            }).EnqueueChain();
+        }
 
 
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 using log4net;
@@ -13,7 +12,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
-using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameEvent.Events;
@@ -454,7 +452,8 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
 
         // Inventory Management Functions
-        public void AddToInventory(WorldObject inventoryItem, int placement = 0)
+        [Obsolete("This needs to be refactored into the new system")]
+        protected void AddToInventory(WorldObject inventoryItem, int placement = 0)
         {
             AddToInventoryEx(inventoryItem, placement);
 
@@ -468,7 +467,8 @@ namespace ACE.Server.WorldObjects
         /// Adds a new item to the inventory collection AND NOTHING ELSE.  will not send updates to the client.  The
         /// primary use case here is as a helper function or for adding items prior to login (ie, char gen)
         /// </summary>
-        public void AddToInventoryEx(WorldObject inventoryItem, int placement = 0)
+        [Obsolete("This needs to be refactored into the new system")]
+        private void AddToInventoryEx(WorldObject inventoryItem, int placement = 0)
         {
             //if (InventoryObjects.ContainsKey(inventoryItem.Guid))
             //{
@@ -493,78 +493,6 @@ namespace ACE.Server.WorldObjects
             inventoryItem.PlacementPosition = placement;
             inventoryItem.Location = null;
             Inventory.Add(inventoryItem.Guid, inventoryItem);
-        }
-
-
-
-
-
-
-        /// <summary>
-        /// This method handles the first part of the merge - split out for code reuse.  It calculates
-        /// the updated values for stack size, value and burden, creates the needed client messages
-        /// and sends them.   This must be called from within an action chain. Og II
-        /// </summary>
-        /// <param name="fromWo">World object of the item are we merging from</param>
-        /// <param name="toWo">World object of the item we are merging into</param>
-        /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        public void UpdateToStack(WorldObject fromWo, WorldObject toWo, int amount)
-        {
-            // unless we have a data issue, these are valid asserts Og II
-            Debug.Assert(toWo.Value != null, "toWo.Value != null");
-            Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
-            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
-            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            Debug.Assert(toWo.EncumbranceVal != null, "toWo.EncumbranceVal != null");
-            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.EncumbranceVal != null");
-
-            int newValue = (int)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
-            uint newBurden = (uint)(toWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * amount));
-
-            int oldStackSize = (int)toWo.StackSize;
-            toWo.StackSize += (ushort)amount;
-            toWo.Value = newValue;
-            toWo.EncumbranceVal = (int)newBurden;
-
-            // Build the needed messages to the client.
-            GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
-            //GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(session, Guid, toWo, toWo.PlacementPosition ?? 0);
-            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
-            GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
-
-            //CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgPutObjectInContainer, msgAdjustNewStackSize);
-        }
-
-        /// <summary>
-        /// This method handles the second part of the merge if we have not merged ALL of the fromWo into the toWo - split out for code reuse.  It calculates
-        /// the updated values for stack size, value and burden, creates the needed client messages
-        /// and sends them.   This must be called from within an action chain. Og II
-        /// </summary>
-        /// <param name="fromWo">World object of the item are we merging from</param>
-        /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        public void UpdateFromStack(WorldObject fromWo,  int amount)
-        {
-            // ok, there are some left, we need up update the stack size, value and burden of the fromWo
-            // unless we have a data issue, these are valid asserts Og II
-
-            Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
-            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.Burden != null");
-
-            int newFromValue = (int)(fromWo.Value + ((fromWo.Value / fromWo.StackSize) * -amount));
-            uint newFromBurden = (uint)(fromWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * -amount));
-
-            int oldFromStackSize = (int)fromWo.StackSize;
-            fromWo.StackSize -= (ushort)amount;
-            fromWo.Value = newFromValue;
-            fromWo.EncumbranceVal = (int)newFromBurden;
-
-            // Build the needed messages to the client.
-            GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue);
-            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, (int)fromWo.StackSize, oldFromStackSize);
-
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgAdjustNewStackSize);
         }
     }
 }
