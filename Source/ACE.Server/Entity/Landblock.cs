@@ -341,7 +341,13 @@ namespace ACE.Server.Entity
             if (wo != null)
             {
                 wo.SetParent(null);
-                EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
+                if (wo.PreviousLocation != null)
+                {
+                    EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, false));
+                    wo.ClearPreviousLocation();
+                }
+                else
+                    EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
             }
         }
 

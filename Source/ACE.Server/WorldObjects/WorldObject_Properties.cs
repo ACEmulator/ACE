@@ -2418,5 +2418,11 @@ namespace ACE.Server.WorldObjects
             get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.PlayerKillerStatus); else SetProperty(PropertyInt.PlayerKillerStatus, (int)value.Value); }
         }
+
+        public CloakStatus? CloakStatus
+        {
+            get => (CloakStatus?)GetProperty(PropertyInt.CloakStatus);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value.Value); }
+        }
     }
 }

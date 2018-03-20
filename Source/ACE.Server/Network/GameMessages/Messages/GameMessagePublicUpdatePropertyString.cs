@@ -19,7 +19,6 @@ namespace ACE.Server.Network.GameMessages.Messages
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyString));
             Writer.Write((uint)property);
             Writer.Write(sender.Full);
-            //Writer.Write((uint)property);
             Writer.Align();
             Writer.WriteString16L(value);
         }

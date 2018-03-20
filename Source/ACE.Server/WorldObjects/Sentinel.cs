@@ -43,11 +43,8 @@ namespace ACE.Server.WorldObjects
                     Visibility = true;
                     break;
                 case ACE.Entity.Enum.CloakStatus.Player:
-                    BaseDescriptionFlags &= ~ObjectDescriptionFlag.Admin;
                     goto default;
                 case ACE.Entity.Enum.CloakStatus.Creature:
-                    BaseDescriptionFlags &= ~ObjectDescriptionFlag.Admin;
-                    BaseDescriptionFlags &= ~ObjectDescriptionFlag.Player;
                     goto default;
                 default:
                     Translucency = null;
@@ -61,7 +58,6 @@ namespace ACE.Server.WorldObjects
 
         public override string Name
         {
-            //get => GetProperty(PropertyString.Name);
             get
             {
                 if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) >= ACE.Entity.Enum.CloakStatus.Player)
@@ -71,16 +67,5 @@ namespace ACE.Server.WorldObjects
             }
             //set => SetProperty(PropertyString.Name, value);
         }
-
-        public CloakStatus? CloakStatus
-        {
-            get => (CloakStatus?)GetProperty(PropertyInt.CloakStatus);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value.Value); }
-        }
-
-        //public void UpdateBaseDescriptionFlags(ObjectDescriptionFlag newBaseDescriptionFlags)
-        //{
-        //    BaseDescriptionFlags = newBaseDescriptionFlags;
-        //}
     }
 }

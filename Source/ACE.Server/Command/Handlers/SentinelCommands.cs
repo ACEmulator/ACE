@@ -2,6 +2,7 @@ using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -44,13 +45,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = false;
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Off);
 
-                    //session.Player.UpdateBaseDescriptionFlags();
-                    //var player = session.Player as Sentinel;
-                    //var newFlags = ObjectDescriptionFlag.Admin | ObjectDescriptionFlag.Player;
-                    //player.UpdateBaseDescriptionFlags(newFlags);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessagePublicUpdatePropertyString(session.Player.Sequences, session.Player.Guid, ACE.Entity.Enum.Properties.PropertyString.Name, session.Player.Name));
-
-                    // TODO: Need a way to broadcast CreateObject to current landblock to everyone except this session
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
 
                     break;
                 case "on":
@@ -64,12 +62,11 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = true;
                     session.Player.Translucency = 0.5f;
 
-                    //player = session.Player as Sentinel;
-                    //newFlags = ObjectDescriptionFlag.Admin | ObjectDescriptionFlag.Player;
-                    //player.UpdateBaseDescriptionFlags(newFlags);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessagePublicUpdatePropertyString(session.Player.Sequences, session.Player.Guid, ACE.Entity.Enum.Properties.PropertyString.Name, session.Player.Name));
-
-                    // TODO: Need a way to broadcast RemoveObject to current landblock to everyone except this session
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Network.EnqueueSend(new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
 
                     break;
                 case "player":
@@ -83,10 +80,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = false;
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Player);
 
-                    //player = session.Player as Sentinel;
-                    //newFlags = ObjectDescriptionFlag.Player;
-                    //player.UpdateBaseDescriptionFlags(newFlags);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessagePublicUpdatePropertyString(session.Player.Sequences, session.Player.Guid, ACE.Entity.Enum.Properties.PropertyString.Name, session.Player.Name));
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
 
                     break;
                 case "creature":
@@ -100,12 +97,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = false;
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Creature);
 
-                    //player = session.Player as Sentinel;
-                    //newFlags = ObjectDescriptionFlag.None;
-                    //player.UpdateBaseDescriptionFlags(newFlags);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessagePublicUpdatePropertyString(session.Player.Sequences, session.Player.Guid, ACE.Entity.Enum.Properties.PropertyString.Name, session.Player.Name));
-
-                    //session.Network.EnqueueSend(new GameMessageSystemChat("This cloaking option not implemented yet.", ChatMessageType.Broadcast));
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
 
                     break;
                 default:

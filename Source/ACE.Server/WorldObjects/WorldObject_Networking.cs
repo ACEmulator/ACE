@@ -950,8 +950,13 @@ namespace ACE.Server.WorldObjects
             else
                 flag &= ~ObjectDescriptionFlag.Stuck;
             ////Player                 = 0x00000008,
-            // if (AceObject.Player ?? false)
-            //    Player = true;
+            if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
+            {
+                if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) < ACE.Entity.Enum.CloakStatus.Creature)
+                    flag |= ObjectDescriptionFlag.Player;
+                else
+                    flag &= ~ObjectDescriptionFlag.Player;
+            }
             ////Attackable             = 0x00000010,
             if (Attackable ?? false)
                 flag |= ObjectDescriptionFlag.Attackable;
@@ -1006,8 +1011,13 @@ namespace ACE.Server.WorldObjects
             // if (AceObject.Portal ?? false)
             //    Portal = true;
             ////Admin                  = 0x00100000,
-            // if (AceObject.Admin ?? false)
-            //    Admin = true;
+            if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
+            {
+                if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) < ACE.Entity.Enum.CloakStatus.Player)
+                    flag |= ObjectDescriptionFlag.Admin;
+                else
+                    flag &= ~ObjectDescriptionFlag.Admin;
+            }
             ////FreePkStatus           = 0x00200000,
             if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.Free)
                 flag |= ObjectDescriptionFlag.FreePkStatus;
@@ -1220,6 +1230,11 @@ namespace ACE.Server.WorldObjects
             RequestedLocation = null;
         }
 
+        public void ClearPreviousLocation()
+        {
+            PreviousLocation = null;
+        }
+
         /// <summary>
         /// Used by physics engine to actually update the entities position
         /// Automatically notifies clients of updated position
@@ -1227,14 +1242,17 @@ namespace ACE.Server.WorldObjects
         /// <param name="newPosition"></param>
         public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
         {
-            var previousLocation = Location;
+            //var previousLocation = Location;
+
+            if (Teleporting)
+                PreviousLocation = Location;
 
             Location = newPosition;
             SendUpdatePosition();
 
             if (Teleporting)
             {
-                CurrentLandblock.EnqueueBroadcast(previousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+                CurrentLandblock.EnqueueBroadcast(PreviousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
             }
 
             ForcedLocation = null;

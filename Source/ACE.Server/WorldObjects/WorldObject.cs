@@ -260,6 +260,8 @@ namespace ACE.Server.WorldObjects
 
         public Position RequestedLocation { get; private set; }
 
+        public Position PreviousLocation { get; private set; }
+
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
         /// </summary>

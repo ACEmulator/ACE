@@ -707,7 +707,6 @@ namespace ACE.Server.WorldObjects
                 if (!sendUpdate)
                 {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
-                    worldObject.PlayScript(this.Session);
                 }
                 else
                 {
