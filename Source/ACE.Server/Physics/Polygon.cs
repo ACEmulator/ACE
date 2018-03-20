@@ -66,6 +66,14 @@ namespace ACE.Server.Physics
             PolyID = idx;
             NumPoints = numPoints;
             SidesType = cullMode;
+
+            VertexIDs = new List<short>();
+            Vertices = new List<Vertex>(numPoints);
+            for (var i = 0; i < numPoints; i++)
+            {
+                Vertices.Add(null);
+                VertexIDs.Add(-1);
+            }
         }
 
         public void Init()
@@ -244,7 +252,7 @@ namespace ACE.Server.Physics
                 var diff = vertex - prevVertex;
 
                 // 2d cross product difference?
-                var diffCross = -(diff.Y * vertex.Origin.X) - (diff.X * vertex.Origin.Y) + (diff.X * point.Y) + (diff.Y * point.X);
+                var diffCross = (diff.Y * vertex.Origin.X) - (diff.X * vertex.Origin.Y) + (diff.X * point.Y) - (diff.Y * point.X);
 
                 if (side != Sidedness.Positive)
                 {

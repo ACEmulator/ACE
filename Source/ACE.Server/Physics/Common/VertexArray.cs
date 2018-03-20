@@ -12,7 +12,7 @@ namespace ACE.Server.Physics.Common
             Vertices = new List<Vertex>();
         }
 
-        public void Allocate(int numVertices, int type)
+        public VertexArray(int numVertices, int type)
         {
             Vertices = new List<Vertex>(numVertices);
             Type = type;

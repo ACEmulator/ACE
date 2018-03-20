@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.DatLoader.FileTypes;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Extensions;
@@ -9,7 +10,6 @@ namespace ACE.Server.Physics.Common
 {
     public class Landblock: LandblockStruct
     {
-        public uint ID;
         public Vector2 BlockCoord;
         public AFrame BlockFrame;
         public float MinZ;
@@ -19,7 +19,8 @@ namespace ACE.Server.Physics.Common
         public LandDefs.Direction Dir;
         public Vector2 Closest;
         public BoundingType InView;
-        public DatLoader.FileTypes.LandblockInfo Info;
+        public CellLandblock _landblock;
+        public LandblockInfo Info;
         public List<PhysicsObj> StaticObjects;
         public List<BuildingObj> Buildings;
         public List<uint> StabList;
@@ -32,11 +33,28 @@ namespace ACE.Server.Physics.Common
             Init();
         }
 
-        public Landblock(DatLoader.FileTypes.CellLandblock landblock): base()
+        public Landblock(CellLandblock landblock)
+            : base(landblock)
         {
             Init();
 
+            ID = landblock.Id;
+            BlockInfoExists = landblock.HasObjects;
+            if (BlockInfoExists)
+                Info = (LandblockInfo)DBObj.Get(new QualifiedDataID(2, ID - 1));
             BlockCoord = LandDefs.blockid_to_lcoord(landblock.Id).Value;
+            _landblock = landblock;
+            get_land_limits();
+        }
+
+        public new void Init()
+        {
+            InView = BoundingType.Outside;
+            Dir = LandDefs.Direction.Unknown;
+            Closest = new Vector2(-1, -1);
+            BlockCoord = new Vector2();
+            StaticObjects = new List<PhysicsObj>();
+            Buildings = new List<BuildingObj>();
         }
 
         public void add_static_object(PhysicsObj obj)
@@ -91,8 +109,8 @@ namespace ACE.Server.Physics.Common
                 if (height < minHeight) minHeight = height;
                 if (height > maxHeight) maxHeight = height;
             }
-            MinZ = LandDefs.LandHeightTable[minHeight] + 1.0f;
-            MaxZ = LandDefs.LandHeightTable[maxHeight] + 200.0f;
+            MinZ = LandDefs.LandHeightTable[minHeight]/* + 1.0f*/;
+            MaxZ = LandDefs.LandHeightTable[maxHeight]/* + 200.0f*/;
         }
 
         public void get_land_scenes()
@@ -222,16 +240,6 @@ namespace ACE.Server.Physics.Common
         public void release_visible_cells()
         {
             EnvCell.release_visible(StabList);
-        }
-
-        public void Init()
-        {
-            InView = BoundingType.Outside;
-            Dir = LandDefs.Direction.Unknown;
-            Closest = new Vector2(-1, -1);
-            BlockCoord = new Vector2();
-            StaticObjects = new List<PhysicsObj>();
-            Buildings = new List<BuildingObj>();
         }
     }
 }

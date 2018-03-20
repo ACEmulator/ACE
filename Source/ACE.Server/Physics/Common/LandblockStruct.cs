@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Server.Physics.Common
 {
     public class LandblockStruct
     {
+        public uint ID;
         //public Vector3 VertexLighting;    // RGBColor
         public LandDefs.Direction TransDir;
         public int SideVertexCount;
@@ -22,11 +24,19 @@ namespace ACE.Server.Physics.Common
         public List<bool> SWtoNEcut;
 
         public static List<VertexUV> LandUVs;
-        public static List<int> HeightTable;
         public static List<ushort> SurfChar;
 
         static LandblockStruct()
         {
+            LandUVs = new List<VertexUV>(4);
+            LandUVs.AddRange(new List<VertexUV>()
+            {
+                new VertexUV(0, 1),
+                new VertexUV(1, 1),
+                new VertexUV(1, 0),
+                new VertexUV(0, 0)
+            });
+
             SurfChar = new List<ushort>()
             {
                 0, 0, 0, 0, 0, 0, 0, 0,
@@ -38,9 +48,16 @@ namespace ACE.Server.Physics.Common
 
         public LandblockStruct()
         {
-            TransDir = LandDefs.Direction.Unknown;
-            WaterType = LandDefs.WaterType.NotWater;
-            BlockSurfaceIndex = -1;
+            Init();
+        }
+
+        public LandblockStruct(CellLandblock landblock)
+        {
+            Init();
+            Height = landblock.Height;
+            Terrain = landblock.Terrain;
+            // originally called from LScape.update_block()
+            Generate(landblock.Id, 1, LandDefs.Direction.Unknown);
         }
 
         public Polygon AddPolygon(int polyIdx, int _v0, int _v1, int _v2)
@@ -90,7 +107,7 @@ namespace ACE.Server.Physics.Common
                 for (var vy = y * LandDefs.VertexPerCell; vy < LandDefs.VertexPerCell * (y + 1); vy++)
                 {
                     var terrainIdx = vx * SideVertexCount + vy;
-                    if ((SurfChar[Terrain[terrainIdx]] & 0x7F) == 1)
+                    if (SurfChar[Terrain[terrainIdx] >> 2 & 0x1F] == 1)
                         cellHasWater = true;
                     else
                         cellFullyFlooded = false;
@@ -137,82 +154,75 @@ namespace ACE.Server.Physics.Common
 
         public void ConstructPolygons(uint landblockID)
         {
-            // refactor me
             var lcoord = LandDefs.blockid_to_lcoord(landblockID).Value;
 
-            // fsplit inline?
-            var v4 = 214614067 * LandDefs.VertexPerCell;
-            var v8 = 1109124029 * LandDefs.VertexPerCell;
-            var v20 = 1;
-            var v24 = lcoord.X * LandDefs.VertexPerCell * 214614067;
-            var v28 = lcoord.X * LandDefs.VertexPerCell * 1109124029;
-            var v2c = 0;
-            var v10 = lcoord.Y * LandDefs.VertexPerCell;
-            var v3c = LandDefs.VertexPerCell;
+            var polyNum = 1;
+            var seedA = (uint)((int)lcoord.X * LandDefs.VertexPerCell * 214614067);
+            var seedB = (uint)((int)lcoord.X * LandDefs.VertexPerCell * 1109124029);
+            var vertexCnt = 0;
 
             for (var x = 0; x < SideCellCount; x++)
             {
-                var v38 = lcoord.X + x;
-                var v30 = 1;
-                var v34 = 0;
-                var vc = v20;
+                var lcoordX = lcoord.X + x;
+                var originY = 1;
+                var colVertexCnt = 0;
+                var originX = polyNum;
 
                 for (var y = 0; y < SideCellCount; y++)
                 {
-                    var v14 = lcoord.Y + y;
-                    var v40 = v28;
-                    var v44 = v24 + 1813693831;
+                    var lcoordY = (int)lcoord.Y + y;
+                    var magicB = seedB;
+                    var magicA = seedA + 1813693831;
 
                     for (var i = 0; i < LandDefs.VertexPerCell; i++)
                     {
-                        var ebx = v2c + i;
-                        var edi = v34;
+                        var idxI = vertexCnt + i;
+                        var idxJ = colVertexCnt;
 
                         for (var j = 0; j < LandDefs.VertexPerCell; j++)
                         {
-                            var v54 = (v10 + edi) * v44 - v40 - 1369149221;
-                            var v50 = (LandDefs.VertexPerCell * i + j) * 2;
+                            var splitDir = (uint)(((int)lcoord.Y * LandDefs.VertexPerCell + idxJ) * magicA - magicB - 1369149221);
+                            var polyIdx = (LandDefs.VertexPerCell * i + j) * 2;
 
                             var cellIdx = x * SideCellCount + y;
-                            var polyIdx = ebx * SidePolyCount + edi;
-                            var vertIdx = ebx * SideVertexCount + edi;
-                            var nextVertIdx = (ebx + 1) * SideVertexCount + edi;
+                            var vertIdx = idxI * SideVertexCount + idxJ;
+                            var firstVertex = idxI * SidePolyCount + idxJ;
+                            var nextVertIdx = (idxI + 1) * SideVertexCount + idxJ;
 
-                            if (v54 * 2.3283064e-10 < 0.5f)
+                            if (splitDir * 2.3283064e-10 < 0.5f)
                             {
                                 SWtoNEcut[polyIdx] = false;
 
-                                LandCells[cellIdx].Polygons[v50] = AddPolygon(polyIdx * 2, vertIdx, nextVertIdx, vertIdx + 1);
-                                LandCells[cellIdx].Polygons[v50 + 1] = AddPolygon(polyIdx * 2 + 1, nextVertIdx + 1, vertIdx + 1, nextVertIdx);
+                                LandCells[cellIdx].Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, vertIdx + 1);
+                                LandCells[cellIdx].Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, nextVertIdx + 1, vertIdx + 1, nextVertIdx);
                             }
                             else
                             {
                                 SWtoNEcut[polyIdx] = true;
 
-                                LandCells[cellIdx].Polygons[v50] = AddPolygon(polyIdx * 2, vertIdx, nextVertIdx, nextVertIdx + 1);
-                                LandCells[cellIdx].Polygons[v50 + 1] = AddPolygon(polyIdx * 2 + 1, vertIdx, nextVertIdx + 1, vertIdx + 1);
+                                LandCells[cellIdx].Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, nextVertIdx + 1);
+                                LandCells[cellIdx].Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, vertIdx, nextVertIdx + 1, vertIdx + 1);
                             }
-                            edi++;
+                            idxJ++;
                         }
-                        v44 += 214614067;
-                        v40 += 1109124029;
+                        magicA += 214614067;
+                        magicB += 1109124029;
                     }
 
-                    var cellID = (uint)LandDefs.lcoord_to_gid(v38, v14);
+                    var cellID = (uint)LandDefs.lcoord_to_gid(lcoordX, lcoordY);
                     var landCell = LandCells[x * SideCellCount + y];
                     landCell.ID = cellID;
                     landCell.Pos.ObjCellID = cellID;
-                    landCell.Pos.Frame.Origin.X = vc * LandDefs.HalfSquareLength;
-                    landCell.Pos.Frame.Origin.Y = v30 * LandDefs.HalfSquareLength;
+                    landCell.Pos.Frame.Origin.X = originX * LandDefs.HalfSquareLength;
+                    landCell.Pos.Frame.Origin.Y = originY * LandDefs.HalfSquareLength;
 
-                    v30 += 2;
-                    v34 += LandDefs.VertexPerCell;
+                    originY += 2;
+                    colVertexCnt += LandDefs.VertexPerCell;
                 }
-
-                v2c += LandDefs.VertexPerCell;
-                v28 += v8;
-                v24 += v4;
-                v20 += 2;
+                vertexCnt += LandDefs.VertexPerCell;
+                seedB += 1109124029 * (uint)LandDefs.VertexPerCell;
+                seedA += 214614067 * (uint)LandDefs.VertexPerCell;
+                polyNum += 2;
             }
         }
 
@@ -224,22 +234,21 @@ namespace ACE.Server.Physics.Common
         public void ConstructVertices()
         {
             var cellScale = LandDefs.BlockSide / SideCellCount;
-            var gridSize = LandDefs.BlockLength / SidePolyCount;
+            var cellSize = LandDefs.BlockLength / SidePolyCount;
 
             for (var x = 0; x < SideVertexCount; x++)
             {
-                var gridX = x * gridSize;
+                var cellX = x * cellSize;
 
                 for (var y = 0; y < SideVertexCount; y++)
                 {
-                    var gridY = y * gridSize;
+                    var cellY = y * cellSize;
+                    var vertex_idx = x * SideVertexCount + y;
 
-                    var vertex = VertexArray.Vertices[x * SideVertexCount + y];
-                    var heightTableIdx = HeightTable[(x * SideVertexCount + y) * cellScale];
+                    var vertex = VertexArray.Vertices[vertex_idx];
+                    var zHeight = LandDefs.LandHeightTable[Height[vertex_idx]];
 
-                    var zHeight = LandDefs.LandHeightTable[heightTableIdx];
-
-                    vertex.Origin = new Vector3(gridX, gridY, zHeight);
+                    vertex.Origin = new Vector3(cellX, cellY, zHeight * cellScale);
                 }
             }
         }
@@ -304,10 +313,7 @@ namespace ACE.Server.Physics.Common
             if (!cellRegen)
                 AdjustPlanes();
             else
-            {
                 ConstructPolygons(landblockID);
-                ConstructUVs(landblockID);
-            }
 
             CalcWater();
 
@@ -319,26 +325,26 @@ namespace ACE.Server.Physics.Common
             // only for rotating texture coords?
         }
 
+        public void Init()
+        {
+            TransDir = LandDefs.Direction.Unknown;
+            WaterType = LandDefs.WaterType.NotWater;
+            BlockSurfaceIndex = -1;
+
+            // init for landcell
+            LandCells = new List<LandCell>();
+            for (uint i = 1; i <= 64; i++) LandCells.Add(new LandCell((i)));
+        }
+
         public void InitPVArrays()
         {
             var numSquares = SidePolyCount * SidePolyCount;
             var numVerts = SideVertexCount * SideVertexCount;
             var numCells = SideCellCount * SideCellCount;
 
-            VertexArray.Allocate(numVerts, 1);
-
-            for (var x = 0; x < SideVertexCount; x++)
-            {
-                for (var y = 0; y < SideVertexCount; y++)
-                {
-                    var vertexIdx = (ushort)(x * SideVertexCount + y);
-
-                    if (VertexArray.Type != 2)
-                        VertexArray.Vertices.Add(new Vertex(vertexIdx, LandUVs));
-                    else
-                        Console.WriteLine("VertexType=2");
-                }
-            }
+            VertexArray = new VertexArray(numVerts, 1);
+            for (ushort i = 0; i < numVerts; i++)
+                VertexArray.Vertices.Add(new Vertex(i, LandUVs));
 
             var numPolys = numSquares * 2;
             Polygons = new List<Polygon>(numPolys);
@@ -346,7 +352,12 @@ namespace ACE.Server.Physics.Common
                 Polygons.Add(new Polygon(i, 3, CullMode.Clockwise));
 
             SWtoNEcut = new List<bool>(numSquares);
+            for (var i = 0; i < numSquares; i++)
+                SWtoNEcut.Add(false);
+
             LandCells = new List<LandCell>(numCells);
+            for (uint i = 0; i < numCells; i++)
+                LandCells.Add(new LandCell((ID & LandDefs.BlockMask) + i));
 
             // omitted lighting
         }
@@ -486,15 +497,16 @@ namespace ACE.Server.Physics.Common
             }
             uint terrainIdx;
             uint surfOffset = 0;
+            // missing fpu instructions
             if (point.X <= point.Y)
             {
                 terrainIdx = (cellY + 8 * cellX + cellX + 1);
                 if (point.X == point.Y)
                     terrainIdx--;
             }
-            else if (point.X == point.Y)    // ?
+            else if (point.X >= point.Y)
                 terrainIdx = cellY + 8 * (cellX + 1) + cellX + 1;
-            else
+            else  // ?
             {
                 terrainIdx = 8 * cellX + 10;
                 surfOffset = (cellX + cellY) * 2;
@@ -510,18 +522,6 @@ namespace ACE.Server.Physics.Common
             }
             else
                 return 0.1f;
-        }
-
-        public static void init()
-        {
-            LandUVs = new List<VertexUV>(4);
-            LandUVs.AddRange(new List<VertexUV>()
-            {
-                new VertexUV(0, 1),
-                new VertexUV(1, 1),
-                new VertexUV(1, 0),
-                new VertexUV(0, 0)
-            });
         }
     }
 }

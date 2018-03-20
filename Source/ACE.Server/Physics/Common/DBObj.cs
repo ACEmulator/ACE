@@ -15,6 +15,11 @@ namespace ACE.Server.Physics.Common
                 var landblock = DatManager.CellDat.ReadFromDat<CellLandblock>(qualifiedDID.ID);
                 return landblock;
             }
+            else if (qualifiedDID.Type == 2)
+            {
+                var landblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>(qualifiedDID.ID);
+                return landblockInfo;
+            }
             else if (qualifiedDID.Type == 3)
             {
                 var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(qualifiedDID.ID);

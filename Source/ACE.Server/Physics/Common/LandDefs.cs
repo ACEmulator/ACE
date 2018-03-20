@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Extensions;
+using ACE.DatLoader;
 
 namespace ACE.Server.Physics.Common
 {
@@ -34,6 +35,7 @@ namespace ACE.Server.Physics.Common
         public static readonly int FirstLandCellID = 1;
         public static readonly int LastLandCellID = 64;
 
+        public static readonly uint BlockMask = 0xFFFF0000;
         public static readonly int BlockX_Mask = 0xFF00;
         public static readonly int BlockY_Mask = 0x00FF;
         public static readonly int CellID_Mask = 0x0000FFFF;
@@ -53,28 +55,38 @@ namespace ACE.Server.Physics.Common
 
         public static List<float> LandHeightTable;
 
+        static LandDefs()
+        {
+            if (DatManager.PortalDat != null)
+                LandHeightTable = DatManager.PortalDat.RegionDesc.LandDefs.LandHeightTable;
+        }
+
         public static bool AdjustToOutside(Position pos)
         {
-            var cellID = (uint)(pos.ObjCellID & CellID_Mask);
+            return AdjustToOutside(ref pos.ObjCellID, ref pos.Frame.Origin);
+        }
+
+        public static bool AdjustToOutside(ref uint blockCellID, ref Vector3 loc)
+        {
+            var cellID = (uint)(blockCellID & CellID_Mask);
 
             if (cell_in_range(cellID))
             {
-                var offset = pos.GetOffset(pos);
-                if (Math.Abs(offset.X) < PhysicsGlobals.EPSILON)
-                    offset.X = 0;
-                if (Math.Abs(offset.Y) < PhysicsGlobals.EPSILON)
-                    offset.Y = 0;
+                if (Math.Abs(loc.X) < PhysicsGlobals.EPSILON)
+                    loc.X = 0;
+                if (Math.Abs(loc.Y) < PhysicsGlobals.EPSILON)
+                    loc.Y = 0;
 
-                var lcoord = get_outside_lcoord(cellID, offset.X, offset.Y);
+                var lcoord = get_outside_lcoord(blockCellID, loc.X, loc.Y);
                 if (lcoord.HasValue)
                 {
-                    pos.ObjCellID = (uint)lcoord_to_gid(lcoord.Value.X, lcoord.Value.Y);
-                    offset.X -= (float)Math.Floor(offset.X / BlockLength) * BlockLength;
-                    offset.Y -= (float)Math.Floor(offset.Y / BlockLength) * BlockLength;
+                    blockCellID = (uint)lcoord_to_gid(lcoord.Value.X, lcoord.Value.Y);
+                    loc.X -= (float)Math.Floor(loc.X / BlockLength) * BlockLength;
+                    loc.Y -= (float)Math.Floor(loc.Y / BlockLength) * BlockLength;
                     return true;
                 }
             }
-            pos.ObjCellID = 0;
+            blockCellID = 0;
             return false;
         }
 
@@ -155,11 +167,11 @@ namespace ACE.Server.Physics.Common
              
             if (cell_in_range(cellID))
             {
-                var offset = blockid_to_lcoord(cellID);
+                var offset = blockid_to_lcoord(blockCellID);
                 if (!offset.HasValue) return null;
 
                 var x = offset.Value.X + (float)Math.Floor(_x / CellLength);
-                var y = offset.Value.X + (float)Math.Floor(_y / CellLength);
+                var y = offset.Value.Y + (float)Math.Floor(_y / CellLength);
 
                 if (x < 0 || y < 0 || x >= LandLength || y >= LandLength)
                     return null;

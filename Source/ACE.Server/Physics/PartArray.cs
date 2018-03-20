@@ -380,19 +380,13 @@ namespace ACE.Server.Physics
         public void RemoveParts(ObjCell cell)
         {
             foreach (var part in Parts)
-            {
-                if (part != null)
-                    cell.RemovePart(part);
-            }
+                cell.RemovePart(part);
         }
 
         public void SetCellID(uint cellID)
         {
             foreach (var part in Parts)
-            {
-                if (part != null)
-                    part.Pos.ObjCellID = cellID;
-            }
+                part.Pos.ObjCellID = cellID;
         }
 
         public void SetFrame(AFrame frame)

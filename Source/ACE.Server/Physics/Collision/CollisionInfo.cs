@@ -25,9 +25,14 @@ namespace ACE.Server.Physics.Collision
         public bool CollidedWithEnvironment;
         public int FramesStationaryFall;
 
+        public CollisionInfo()
+        {
+            Init();
+        }
+
         public void Init()
         {
-            // values already set to 0
+            CollideObject = new List<PhysicsObj>();
         }
 
         public void SetContactPlane(Plane plane, bool isWater)

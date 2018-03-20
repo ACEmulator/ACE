@@ -342,7 +342,7 @@ namespace ACE.Server.Physics
         /// Determines if this sphere collides with anything during its transition
         /// </summary>
         /// <returns>The collision result for this transition path</returns>
-        public TransitionState IntesectsSphere(Position pos, float scale, Transition transition)
+        public TransitionState IntersectsSphere(Position pos, float scale, Transition transition)
         {
             var path = transition.SpherePath;
 
