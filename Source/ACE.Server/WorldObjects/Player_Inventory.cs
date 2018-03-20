@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
             if (!TryAddToInventory(worldObject, out container, placementPosition, limitToMainPackOnly)) // We don't have enough burden available or no empty pack slot.
                 return false;
 
-            TrackObject(worldObject);
+            Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             if (worldObject is Container lootAsContainer)
                 Session.Network.EnqueueSend(new GameEventViewContents(Session, lootAsContainer));
@@ -86,13 +86,14 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public bool TryDestroyFromInventoryWithNetworking(WorldObject worldObject)
+        public bool TryDestroyFromInventoryWithNetworking(WorldObject worldObject, bool sendUpdateEncumbranceValMessage = true)
         {
             if (TryRemoveFromInventory(worldObject.Guid))
             {
-                StopTrackingObject(worldObject, true);
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                if (sendUpdateEncumbranceValMessage)
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 worldObject.RemoveBiotaFromDatabase();
 
@@ -690,11 +691,9 @@ namespace ACE.Server.WorldObjects
             fromWo.EncumbranceVal = (int)newFromBurden;
 
             // Build the needed messages to the client.
-            GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue);
-            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, (int)fromWo.StackSize, oldFromStackSize);
-
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgAdjustNewStackSize);
+            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue),
+                new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, fromWo.StackSize ?? 0, oldFromStackSize));
         }
 
         /// <summary>
@@ -723,12 +722,10 @@ namespace ACE.Server.WorldObjects
             toWo.EncumbranceVal = (int)newBurden;
 
             // Build the needed messages to the client.
-            GameMessagePrivateUpdatePropertyInt msgUpdateValue = new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue);
-            GameMessagePutObjectInContainer msgPutObjectInContainer = new GameMessagePutObjectInContainer(Session, Guid, toWo, toWo.PlacementPosition ?? 0);
-            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
-            GameMessageSetStackSize msgAdjustNewStackSize = new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, (int)toWo.StackSize, oldStackSize);
-
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange, msgUpdateValue, msgPutObjectInContainer, msgAdjustNewStackSize);
+            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue),
+                new GameMessagePutObjectInContainer(Session, Guid, toWo, toWo.PlacementPosition ?? 0),
+                new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, toWo.StackSize ?? 0, oldStackSize));
         }
 
 
@@ -842,7 +839,7 @@ namespace ACE.Server.WorldObjects
 
                     // Ok did we merge it all? If so, let's destroy the from item.
                     if (fromItem.StackSize == amount)
-                        TryDestroyFromInventoryWithNetworking(fromItem);
+                        TryDestroyFromInventoryWithNetworking(fromItem, false);
                     else
                         UpdateFromStack(fromItem, amount);
                 }
@@ -851,7 +848,7 @@ namespace ACE.Server.WorldObjects
                     // The toItem does not have enoguh capacity to take the full amount. Just add what we can and adjust both.
                     Debug.Assert(toItem.MaxStackSize != null, "toWo.MaxStackSize != null");
 
-                    int amtToFill = (int)(toItem.MaxStackSize - toItem.StackSize);
+                    var amtToFill = (toItem.MaxStackSize ?? 0) - (toItem.StackSize ?? 0);
 
                     UpdateToStack(fromItem, toItem, amtToFill);
                     UpdateFromStack(toItem, amtToFill);

@@ -15,7 +15,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
@@ -691,9 +690,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TrackObject(WorldObject worldObject)
         {
-            bool sendUpdate = true;
+            bool sendUpdate;
 
-            if (worldObject.Guid == this.Guid)
+            if (worldObject.Guid == Guid)
                 return;
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
@@ -705,13 +704,9 @@ namespace ACE.Server.WorldObjects
                 sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
 
                 if (!sendUpdate)
-                {
                     clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
-                }
                 else
-                {
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
-                }
             }
 
             log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
@@ -787,23 +782,22 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void StopTrackingObject(WorldObject worldObject, bool remove)
+        /// <summary>
+        /// This will return true of the object was being tracked and has successfully been removed.
+        /// </summary>
+        /// <returns></returns>
+        public bool StopTrackingObject(WorldObject worldObject, bool remove)
         {
-            bool sendUpdate = true;
+            bool removed;
+
             lock (clientObjectList)
-            {
-                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
-                if (sendUpdate)
-                {
-                    clientObjectList.Remove(worldObject.Guid);
-                }
-            }
+                removed = clientObjectList.Remove(worldObject.Guid);
 
             // Don't remove it if it went into our inventory...
-            if (sendUpdate && remove)
-            {
+            if (removed && remove)
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
-            }
+
+            return removed;
         }
 
         public void HandleMRT()
