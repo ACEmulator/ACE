@@ -57,7 +57,8 @@ namespace ACE.Server.Physics.Common
 
         static LandDefs()
         {
-            LandHeightTable = DatManager.PortalDat.RegionDesc.LandDefs.LandHeightTable;
+            if (DatManager.PortalDat != null)
+                LandHeightTable = DatManager.PortalDat.RegionDesc.LandDefs.LandHeightTable;
         }
 
         public static bool AdjustToOutside(Position pos)
