@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
 
                             player.IsAdvocate = true;
 
-                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player.Sequences, PropertyInt.AdvocateLevel, player.AdvocateLevel ?? 1));
+                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AdvocateLevel, player.AdvocateLevel ?? 1));
                             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(player.Session, PropertyBool.IsAdvocate, player.IsAdvocate));
 
                             if (player.ChannelsActive.HasValue)

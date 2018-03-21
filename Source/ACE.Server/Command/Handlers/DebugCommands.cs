@@ -808,7 +808,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             session.Player.CoinValue = coins;
-            session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player.Sequences, PropertyInt.CoinValue, coins));
+            session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.CoinValue, coins));
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,

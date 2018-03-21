@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, worldObject, worldObject.PlacementPosition ?? 0),
-                new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
             return true;
         }
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
 
                 if (sendUpdateEncumbranceValMessage)
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 worldObject.RemoveBiotaFromDatabase();
 
@@ -217,7 +217,7 @@ namespace ACE.Server.WorldObjects
                         new GameMessagePublicUpdatePropertyInt(item.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, (int)item.CurrentWieldedLocation));
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
@@ -451,7 +451,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(
                         new GameMessagePutObjectIn3d(Session, this, itemGuid),
                         new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Container),
-                        new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                     item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -703,7 +703,7 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue),
+                new GameMessagePrivateUpdatePropertyInt(fromWo, PropertyInt.Value, newFromValue),
                 new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, fromWo.StackSize ?? 0, oldFromStackSize));
         }
 
@@ -734,7 +734,7 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue),
+                new GameMessagePrivateUpdatePropertyInt(toWo, PropertyInt.Value, newValue),
                 new GameMessagePutObjectInContainer(Session, Guid, toWo, toWo.PlacementPosition ?? 0),
                 new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, toWo.StackSize ?? 0, oldStackSize));
         }
