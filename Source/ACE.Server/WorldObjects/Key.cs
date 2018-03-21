@@ -53,13 +53,13 @@ namespace ACE.Server.WorldObjects
 
                     if (target.WeenieType == WeenieType.Door)
                     {
-                        Door door = target as Door;
+                        var door = (Door)target;
 
                         Door.UnlockDoorResults results = door.UnlockDoor(keyCode);
 
                         switch (results)
                         {
-                            case WorldObjects.Door.UnlockDoorResults.UnlockSuccess:
+                            case Door.UnlockDoorResults.UnlockSuccess:
                                 Structure--;
                                 if (Structure < 1)
                                     player.RemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
@@ -67,11 +67,11 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
                                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
                                 break;
-                            case WorldObjects.Door.UnlockDoorResults.DoorOpen:
+                            case Door.UnlockDoorResults.DoorOpen:
                                 var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
                                 break;
-                            case WorldObjects.Door.UnlockDoorResults.AlreadyUnlocked:
+                            case Door.UnlockDoorResults.AlreadyUnlocked:
                                 var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock); // TODO: Messages are not quiet right. Need to find right one.
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
                                 break;

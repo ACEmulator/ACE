@@ -540,28 +540,6 @@ namespace ACE.Server.WorldObjects
             return snapshot;
         }*/
 
-
-        public virtual void ActOnUse(ObjectGuid playerId)
-        {
-            // Do Nothing by default
-            if (CurrentLandblock != null)
-            {
-                Player player = CurrentLandblock.GetObject(playerId) as Player;
-                if (player == null)
-                {
-                    return;
-                }
-
-#if DEBUG
-                var errorMessage = new GameMessageSystemChat($"Default HandleActionOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-                player.Session.Network.EnqueueSend(errorMessage);
-#endif
-
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            }
-        }
-
         public virtual void HandleActionOnCollide(ObjectGuid playerId)
         {
             // todo: implement.  default is probably to do nothing.

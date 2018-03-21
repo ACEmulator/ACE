@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
                 if (!spellTable.Spells.ContainsKey((uint)SpellDID))
                     return;
 
-                SpellBase spell = spellTable.Spells[(uint)SpellDID];
+                var spell = spellTable.Spells[(uint)SpellDID];
 
                 string castMessage = "The gem casts " + spell.Name + " on you";
                 ////These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
@@ -94,7 +94,7 @@ namespace ACE.Server.WorldObjects
 
             if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUse))
             {
-                TimeSpan timeRemaining = lastUse.AddSeconds(CooldownDuration ?? 0.00).Subtract(DateTime.Now);
+                var timeRemaining = lastUse.AddSeconds(CooldownDuration ?? 0.00).Subtract(DateTime.Now);
                 if (timeRemaining.Seconds > 0)
                 {
                     ChatPacket.SendServerMessage(session, "You cannot use another contract for " + timeRemaining.Seconds + " seconds", ChatMessageType.Broadcast);
@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
                 Debug.Assert(CooldownDuration != null, "CooldownDuration != null");
                 const uint layer = 0x10000; // FIXME: we need to track how many layers of the exact same spell we have in effect.
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
-                SpellBase spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
+                var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, session.Player, spellBase, layer, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.

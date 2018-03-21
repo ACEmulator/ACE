@@ -32,15 +32,10 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags |= ObjectDescriptionFlag.Food;
 
-            StackSize = (base.StackSize ?? 1);
-
-            if (StackSize == null)
-                StackSize = 1;
-
-            Boost = (base.Boost ?? 0);
-
-            if (BoostEnum == null)
-                BoostEnum = 0;
+            StackSize = StackSize ?? 1;
+            StackSize = StackSize ?? 1;
+            Boost = Boost ?? 0;
+            BoostEnum = BoostEnum ?? 0;
         }
 
         /// <summary>
@@ -54,14 +49,14 @@ namespace ACE.Server.WorldObjects
             //{
                 switch (BoostEnum)
                 {
-                    case (int)WorldObjects.Player.ConsumableBuffType.Health:
-                        buffType = WorldObjects.Player.ConsumableBuffType.Health;
+                    case (int)Player.ConsumableBuffType.Health:
+                        buffType = Player.ConsumableBuffType.Health;
                         break;
-                    case (int)WorldObjects.Player.ConsumableBuffType.Mana:
-                        buffType = WorldObjects.Player.ConsumableBuffType.Mana;
+                    case (int)Player.ConsumableBuffType.Mana:
+                        buffType = Player.ConsumableBuffType.Mana;
                         break;
                     default:
-                        buffType = WorldObjects.Player.ConsumableBuffType.Stamina;
+                        buffType = Player.ConsumableBuffType.Stamina;
                         break;
                 }
             //}
