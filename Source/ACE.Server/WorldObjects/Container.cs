@@ -9,7 +9,6 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
@@ -19,7 +18,7 @@ using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Container : WorldObject
+    public partial class Container : WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -327,11 +326,10 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            var player = CurrentLandblock.GetObject(playerId) as Player;
+
             if (player == null)
-            {
                 return;
-            }
 
             if (!player.IsWithinUseRadiusOf(this) && Viewer != player.Guid.Full)
                 player.DoMoveTo(this);
@@ -350,23 +348,14 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
-                else
-                {
-                    if (Viewer == player.Guid.Full)
-                    {
-                        Close(player);
-                    }
-                    // else error msg?
-                }
+
+                if (Viewer == player.Guid.Full)
+                    Close(player);
+
+                // else error msg?
 
                 player.SendUseDoneEvent();
             }
-        }
-
-        public uint? Viewer
-        {
-            get => GetProperty(PropertyInstanceId.Viewer);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Viewer); else SetProperty(PropertyInstanceId.Viewer, value.Value); }
         }
 
         public virtual void Open(Player player)
@@ -383,11 +372,13 @@ namespace ACE.Server.WorldObjects
             // send createobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
             var woToExamine = new List<WorldObject>();
+
             foreach (var item in Inventory.Values)
             {
                 itemsToSend.Add(new GameMessageCreateObject(item));
                 woToExamine.Add(item);
             }
+
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
             player.TrackInteractiveObjects(woToExamine);
 
@@ -403,10 +394,10 @@ namespace ACE.Server.WorldObjects
 
             // send removeobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
+
             foreach (var item in Inventory.Values)
-            {
                 itemsToSend.Add(new GameMessageRemoveObject(item));
-            }
+
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
             //player.SendUseDoneEvent();
@@ -421,7 +412,7 @@ namespace ACE.Server.WorldObjects
             // do reset stuff here
         }
 
-        public virtual void GenerateContainList()
+        private void GenerateContainList()
         {
             foreach(var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (sbyte)DestinationType.Contain || x.DestinationType == (sbyte)DestinationType.ContainTreasure))
             {
