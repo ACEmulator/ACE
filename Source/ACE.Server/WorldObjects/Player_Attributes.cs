@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
 
             if (result > 0u)
             {
-                GameMessage abilityUpdate = new GameMessagePrivateUpdateAbility(Session, attribute, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
+                GameMessage abilityUpdate = new GameMessagePrivateUpdateAttribute(this, attribute, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
 
                 // checks if max rank is achieved and plays fireworks w/ special text
                 string messageText;
