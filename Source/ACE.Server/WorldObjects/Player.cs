@@ -885,12 +885,12 @@ namespace ACE.Server.WorldObjects
                     if (option_bound == 1 && MotionTableId != EmpyreanMaleMotionDID)
                     {
                         MotionTableId = EmpyreanMaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                     else if (option_bound == 0 && MotionTableId != EmpyreanMaleFloatMotionDID)
                     {
                         MotionTableId = EmpyreanMaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
                 else // Female
@@ -898,12 +898,12 @@ namespace ACE.Server.WorldObjects
                     if (option_bound == 1 && MotionTableId != EmpyreanFemaleMotionDID)
                     {
                         MotionTableId = EmpyreanFemaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                     else if (option_bound == 0 && MotionTableId != EmpyreanFemaleFloatMotionDID)
                     {
                         MotionTableId = EmpyreanFemaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
             }

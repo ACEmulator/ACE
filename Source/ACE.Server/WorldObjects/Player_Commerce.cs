@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
                         AddToInventory(wo);
                         Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
                         Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
-                        Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Sequences, Guid, wo.Guid, PropertyInstanceId.Container));
+                        Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, Guid));
                     }
 
                     foreach (var gen in genlist)
@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(
                            new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
                            new GameMessageObjDescEvent(this),
-                           new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder),
+                           new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder,new ObjectGuid(0)),
                            new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
                     }
                 }
@@ -222,7 +222,7 @@ namespace ACE.Server.WorldObjects
                 {
                     TryRemoveFromInventory(wo.Guid);
                     ObjectGuid clearContainer = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(wo.Sequences, clearContainer, wo.Guid, PropertyInstanceId.Container));
+                    Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, clearContainer));
 
                     // clean up the shard database.
                     throw new NotImplementedException();

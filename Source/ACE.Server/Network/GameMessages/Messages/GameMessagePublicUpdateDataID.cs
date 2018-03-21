@@ -5,7 +5,7 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
-    public class GameMessagePublicUpdatePropertyInt : GameMessage
+    public class GameMessagePublicUpdatePropertyDataID : GameMessage
     {
         /// <summary>
         /// 
@@ -13,10 +13,10 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <param name="worldObject"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public GameMessagePublicUpdatePropertyInt(WorldObject worldObject, PropertyInt property, int value)
-            : base(GameMessageOpcode.PublicUpdatePropertyInt, GameMessageGroup.UIQueue)
+        public GameMessagePublicUpdatePropertyDataID(WorldObject worldObject, PropertyDataId property, uint value)
+            : base(GameMessageOpcode.PublicUpdatePropertyDataID, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInt));
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyDataID));
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
             Writer.Write(value);
