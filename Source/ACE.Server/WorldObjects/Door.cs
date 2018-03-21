@@ -269,7 +269,7 @@ namespace ACE.Server.WorldObjects
                 if (DefaultLocked)
                 {
                     IsLocked = true;
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Locked, IsLocked ?? true));
+                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true));
                     // CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess); // TODO: need to find the lock sound
                 }
             }
@@ -294,7 +294,7 @@ namespace ACE.Server.WorldObjects
                     return UnlockDoorResults.AlreadyUnlocked;
 
                 IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Locked, IsLocked ?? false));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
@@ -316,7 +316,7 @@ namespace ACE.Server.WorldObjects
                     return UnlockDoorResults.AlreadyUnlocked;
 
                 IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Locked, IsLocked ?? false));
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
                 return UnlockDoorResults.UnlockSuccess;
             }
