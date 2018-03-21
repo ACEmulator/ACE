@@ -333,7 +333,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placementPosition),
-                new GameMessagePrivateUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid.Full));
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
         }
 
 
