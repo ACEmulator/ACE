@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
                             else
                                 player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.NPK;
 
-                            player.CurrentLandblock.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player.Sequences, player.Guid, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+                            player.CurrentLandblock.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
 
                             Reset();
                         });

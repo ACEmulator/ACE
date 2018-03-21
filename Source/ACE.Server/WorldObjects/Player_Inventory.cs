@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, worldObject, worldObject.PlacementPosition ?? 0),
-                new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
             return true;
         }
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
 
                 if (sendUpdateEncumbranceValMessage)
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 worldObject.RemoveBiotaFromDatabase();
 
@@ -200,7 +200,8 @@ namespace ACE.Server.WorldObjects
 
                     Session.Network.EnqueueSend(
                         new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
-                        new GameMessageUpdateInstanceId(itemGuid, container.Guid, iidPropertyId),
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
+                        new GameMessageCreateObject(item),
                         new GameMessagePutObjectInContainer(Session, container.Guid, item, placementPosition));
                 }
                 else if (iidPropertyId == PropertyInstanceId.Wielder)
@@ -218,12 +219,14 @@ namespace ACE.Server.WorldObjects
 
                     Session.Network.EnqueueSend(
                         new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                        new GameMessageObjDescEvent(this),
-                        new GameMessageUpdateInstanceId(container.Guid, itemGuid, PropertyInstanceId.Wielder),
-                        new GameEventWieldItem(Session, itemGuid.Full, placementPosition));
+                        //new GameMessageObjDescEvent(this),
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, container.Guid),
+                        new GameEventWieldItem(Session, itemGuid.Full, placementPosition),
+                        new GameMessageCreateObject(item),
+                        new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)item.CurrentWieldedLocation));
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
@@ -235,7 +238,7 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
 
                 // TODO: Og II - check this later to see if it is still required.
-                Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
 
                 // Was Item controlled by a generator?
                 // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
@@ -293,9 +296,9 @@ namespace ACE.Server.WorldObjects
             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, new ObjectGuid(0)),
-                new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0),
-                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid),
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
+                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placement),
@@ -339,7 +342,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placementPosition),
-                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, container.Guid));
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
         }
 
 
@@ -409,10 +412,17 @@ namespace ACE.Server.WorldObjects
                     {
                         Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
 
-                        Session.Network.EnqueueSend(
+                        //Session.Network.EnqueueSend(
+                        //    new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
+                        //    new GameMessageObjDescEvent(this),
+                        //    new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder));
+
+                        CurrentLandblock.EnqueueBroadcast(Location,
                             new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
-                            new GameMessageUpdateInstanceId(Guid, new ObjectGuid(0), PropertyInstanceId.Wielder));
+                            new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)));
+
+
                     }
                 }
 
@@ -430,7 +440,7 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                Session.Network.EnqueueSend(new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container));
+                Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
                 // Set drop motion
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
@@ -449,11 +459,11 @@ namespace ACE.Server.WorldObjects
                 {
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                     Session.Network.EnqueueSend(
-                        new GameMessageSound(Guid, Sound.DropItem, (float)1.0),
                         new GameMessagePutObjectIn3d(Session, this, itemGuid),
-                        new GameMessageUpdateInstanceId(itemGuid, new ObjectGuid(0), PropertyInstanceId.Container),
-                        new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                        new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                     item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -461,7 +471,8 @@ namespace ACE.Server.WorldObjects
 
                     CurrentLandblock.AddWorldObject(item);
 
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                    //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageUpdatePosition(item));
                 });
 
                 chain.EnqueueChain();
@@ -500,9 +511,9 @@ namespace ACE.Server.WorldObjects
                                 new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                 new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, Guid),
-                                new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, wieldLocation));
+                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
+                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
 
                             if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                                 return;
@@ -527,9 +538,9 @@ namespace ACE.Server.WorldObjects
                             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                 new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                new GameMessageUpdateInstanceId(Session.Player.Sequences, item.Guid, PropertyInstanceId.Wielder, Guid),
-                                new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, wieldLocation),
+                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
+                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation),
                                 new GameMessageObjDescEvent(this));
                         }
                     }
@@ -704,7 +715,7 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessagePrivateUpdatePropertyInt(fromWo.Sequences, PropertyInt.Value, newFromValue),
+                new GameMessagePrivateUpdatePropertyInt(fromWo, PropertyInt.Value, newFromValue),
                 new GameMessageSetStackSize(fromWo.Sequences, fromWo.Guid, fromWo.StackSize ?? 0, oldFromStackSize));
         }
 
@@ -735,7 +746,7 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessagePrivateUpdatePropertyInt(toWo.Sequences, PropertyInt.Value, newValue),
+                new GameMessagePrivateUpdatePropertyInt(toWo, PropertyInt.Value, newValue),
                 new GameMessagePutObjectInContainer(Session, Guid, toWo, toWo.PlacementPosition ?? 0),
                 new GameMessageSetStackSize(toWo.Sequences, toWo.Guid, toWo.StackSize ?? 0, oldStackSize));
         }

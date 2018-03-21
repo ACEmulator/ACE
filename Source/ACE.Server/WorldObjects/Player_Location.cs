@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
                 if (CombatMode != CombatMode.NonCombat)
                 {
                     // this should be handled by a different thing, probably a function that forces player into peacemode
-                    var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                    var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                     Session.Network.EnqueueSend(updateCombatMode);
                 }
                  
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
 
         public void TeleToMarketplace()
         {
-            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
             CurrentLandblock.EnqueueBroadcastSystemChat(this, $"{Name} is recalling to the marketplace.", ChatMessageType.Recall);
             Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode

@@ -12,7 +12,7 @@ namespace ACE.Server.Network.GameMessages.Messages
             Writer.Write(session.GameEventSequence++);
             Writer.Write((uint)GameEvent.GameEventType.InventoryPutObjectIn3D);
             Writer.Write(itemGuid.Full);
-            Writer.Align();
+            //Writer.Align();
         }
     }
 }

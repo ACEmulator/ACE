@@ -1,6 +1,7 @@
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.Sequence;
+using ACE.Server.WorldObjects;
 using System;
 
 namespace ACE.Server.Network.GameMessages.Messages
@@ -10,17 +11,16 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <summary>
         /// Public Update of PropertyBool
         /// </summary>
-        /// <param name="sequences"></param>
-        /// <param name="sender"></param>
+        /// <param name="worldObject"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public GameMessagePublicUpdatePropertyBool(SequenceManager sequences, ObjectGuid sender, PropertyBool property, bool value)
+        public GameMessagePublicUpdatePropertyBool(WorldObject worldObject, PropertyBool property, bool value)
             : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.UIQueue)
         {
-            Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyBool));
-            Writer.Write(sender.Full);
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyBool));
+            Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
-            Writer.Write(Convert.ToInt32(value));
+            Writer.Write(Convert.ToUInt32(value));
         }
     }
 }

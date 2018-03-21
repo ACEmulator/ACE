@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
 
             if (result > 0u)
             {
-                GameMessage abilityUpdate = new GameMessagePrivateUpdateVital(Session, attribute, creatureVital.Ranks, creatureVital.StartingValue, result, creatureVital.Current);
+                GameMessage abilityUpdate = new GameMessagePrivateUpdateVital(this, attribute, creatureVital.Ranks, creatureVital.StartingValue, result, creatureVital.Current);
 
                 // checks if max rank is achieved and plays fireworks w/ special text
                 string messageText;
@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, v, vital.Current));
             }
         }
 
@@ -179,7 +179,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, v, vital.Current));
             }
         }
 

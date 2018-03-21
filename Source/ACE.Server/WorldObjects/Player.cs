@@ -358,10 +358,10 @@ namespace ACE.Server.WorldObjects
             // Send Vicitim Notification, or "Your Death" event to the client:
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
-            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.NumDeaths, NumDeaths.Value);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.DeathLevel, DeathLevel.Value);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths.Value);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel.Value);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
@@ -621,7 +621,7 @@ namespace ACE.Server.WorldObjects
         {
             try
             {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Age, Age.Value));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age.Value));
             }
             catch (NullReferenceException)
             {
@@ -830,7 +830,7 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
@@ -885,12 +885,12 @@ namespace ACE.Server.WorldObjects
                     if (option_bound == 1 && MotionTableId != EmpyreanMaleMotionDID)
                     {
                         MotionTableId = EmpyreanMaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                     else if (option_bound == 0 && MotionTableId != EmpyreanMaleFloatMotionDID)
                     {
                         MotionTableId = EmpyreanMaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
                 else // Female
@@ -898,12 +898,12 @@ namespace ACE.Server.WorldObjects
                     if (option_bound == 1 && MotionTableId != EmpyreanFemaleMotionDID)
                     {
                         MotionTableId = EmpyreanFemaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                     else if (option_bound == 0 && MotionTableId != EmpyreanFemaleFloatMotionDID)
                     {
                         MotionTableId = EmpyreanFemaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(Session, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
             }

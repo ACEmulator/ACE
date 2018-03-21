@@ -70,8 +70,8 @@ namespace ACE.Server.WorldObjects
                 TotalExperience += amount;
 
                 CheckForLevelup();
-                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, (long)TotalExperience);
-                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, (long)TotalExperience);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
         }
@@ -127,8 +127,8 @@ namespace ACE.Server.WorldObjects
                 string xpUpdateText = (AvailableSkillCredits > 0) ? $"You have {AvailableExperience:#,###0} experience points and {AvailableSkillCredits} skill credits available to raise skills and attributes." : $"You have {AvailableExperience:#,###0} experience points available to raise skills and attributes.";
                 var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
 
-                var levelUp = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.Level, Level ?? 1);
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
+                var levelUp = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Level, Level ?? 1);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
                 if (Level != maxLevel && !creditEarned)
                 {
@@ -166,7 +166,7 @@ namespace ACE.Server.WorldObjects
             {
                 AvailableExperience -= amount;
 
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
                 Session.Network.EnqueueSend(xpUpdate);
 
                 return true;
@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
         {
             AvailableExperience += amount;
 
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
             Session.Network.EnqueueSend(xpUpdate);
         }
     }

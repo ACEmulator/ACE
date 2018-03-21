@@ -267,7 +267,7 @@ namespace ACE.Server.Command.Handlers
                 if (ushort.TryParse(parameters[0], out var health))
                 {
                     session.Player.Health.Current = health;
-                    var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
+                    var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
                     var message = new GameMessageSystemChat($"Attempting to set health to {health}...", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(updatePlayersHealth, message);
                     return;
@@ -808,7 +808,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             session.Player.CoinValue = coins;
-            session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player.Sequences, PropertyInt.CoinValue, coins));
+            session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.CoinValue, coins));
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,

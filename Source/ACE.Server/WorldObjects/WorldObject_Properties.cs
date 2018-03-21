@@ -342,7 +342,7 @@ namespace ACE.Server.WorldObjects
             Location = null;
             PositionFlag = UpdatePositionFlag.None;
 
-            Placement = ACE.Entity.Enum.Placement.RightHandCombat; // FIXME: Is this right? Should this be Default or Resting instead?
+            Placement = ACE.Entity.Enum.Placement.Resting;
             if (PlacementPosition == null)
                 PlacementPosition = 0;
 

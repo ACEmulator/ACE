@@ -377,7 +377,7 @@ namespace ACE.Server.WorldObjects
                     case PropertyType.PropertyInt:
                         int? value = GetProperty((PropertyInt)property.PropertyId);
                         if (value != null)
-                            targetSession.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(targetSession.Player.Sequences, (PropertyInt)property.PropertyId, value.Value));
+                            targetSession.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(targetSession.Player, (PropertyInt)property.PropertyId, value.Value));
                         break;
                     default:
                         log.Debug($"Unsupported property in SendPartialUpdates: id {property.PropertyId}, type {property.PropertyType}.");

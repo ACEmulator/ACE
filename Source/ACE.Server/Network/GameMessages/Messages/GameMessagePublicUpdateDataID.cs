@@ -5,18 +5,18 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
-    public class GameMessagePublicUpdatePropertyInt64 : GameMessage
+    public class GameMessagePublicUpdatePropertyDataID : GameMessage
     {
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="worldObject"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public GameMessagePublicUpdatePropertyInt64(WorldObject worldObject, PropertyInt64 property, long value)
-            : base(GameMessageOpcode.PublicUpdatePropertyInt64, GameMessageGroup.UIQueue)
+        public GameMessagePublicUpdatePropertyDataID(WorldObject worldObject, PropertyDataId property, uint value)
+            : base(GameMessageOpcode.PublicUpdatePropertyDataID, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInt64));
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyDataID));
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
             Writer.Write(value);

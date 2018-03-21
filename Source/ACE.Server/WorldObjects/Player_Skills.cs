@@ -61,11 +61,11 @@ namespace ACE.Server.WorldObjects
                 bool trainNewSkill = TrainSkill(skill, creditsSpent);
 
                 // create an update to send to the client
-                var currentCredits = new GameMessagePrivateUpdatePropertyInt(Session.Player.Sequences, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
+                var currentCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
                 // as long as the skill is sent, the train new triangle button on the client will not lock up.
                 // Sending Skill.None with status untrained worked in test
-                var trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, Skill.None, SkillStatus.Untrained, 0, 0, 0);
+                var trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, Skill.None, SkillStatus.Untrained, 0, 0, 0);
                 // create a string placeholder for the correct after
                 string trainSkillMessageText;
 
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
                 if (trainNewSkill)
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
-                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, SkillStatus.Trained, 0, 0, 0);
+                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, skill, SkillStatus.Trained, 0, 0, 0);
                     trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {AvailableSkillCredits} credits available.";
                 }
                 else
@@ -170,7 +170,7 @@ namespace ACE.Server.WorldObjects
                 messageText = $"Your attempt to raise {skill} has failed!";
             }
 
-            var skillUpdate = new GameMessagePrivateUpdateSkill(Session, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result);
+            var skillUpdate = new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result);
             var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
             var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
             Session.Network.EnqueueSend(skillUpdate, soundEvent, message);

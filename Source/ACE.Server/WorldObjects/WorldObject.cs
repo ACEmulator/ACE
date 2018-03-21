@@ -82,6 +82,7 @@ namespace ACE.Server.WorldObjects
             Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
+
             Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
 
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
@@ -95,6 +96,7 @@ namespace ACE.Server.WorldObjects
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
+
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillAxe, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillBow, new ByteSequence(false));
@@ -150,12 +152,15 @@ namespace ACE.Server.WorldObjects
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillDirtyFighting, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillChallenge, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSummoning, new ByteSequence(false));
+
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
+            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInstanceID, new ByteSequence(false));
+
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyBool, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt64, new ByteSequence(false));

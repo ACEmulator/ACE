@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
 
             if (result > 0u)
             {
-                GameMessage abilityUpdate = new GameMessagePrivateUpdateAbility(Session, attribute, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
+                GameMessage abilityUpdate = new GameMessagePrivateUpdateAttribute(this, attribute, creatureAttribute.Ranks, creatureAttribute.StartingValue, result);
 
                 // checks if max rank is achieved and plays fireworks w/ special text
                 string messageText;
@@ -43,12 +43,12 @@ namespace ACE.Server.WorldObjects
                 // Needed when increasing health and endurance.
                 if (attribute == PropertyAttribute.Endurance)
                 {
-                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, PropertyAttribute2nd.MaxHealth, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
+                    var healthUpdate = new GameMessagePrivateUpdateVital(this, PropertyAttribute2nd.MaxHealth, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
                 }
                 else if (attribute == PropertyAttribute.Self)
                 {
-                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, PropertyAttribute2nd.MaxMana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
+                    var manaUpdate = new GameMessagePrivateUpdateVital(this, PropertyAttribute2nd.MaxMana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
                 }
                 else
