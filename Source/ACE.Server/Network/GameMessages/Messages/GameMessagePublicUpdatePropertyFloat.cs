@@ -1,6 +1,7 @@
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.Sequence;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
@@ -9,15 +10,14 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sequences"></param>
-        /// <param name="sender"></param>
+        /// <param name="worldObject"></param>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public GameMessagePublicUpdatePropertyFloat(SequenceManager sequences, ObjectGuid sender, PropertyFloat property, double value)
+        public GameMessagePublicUpdatePropertyFloat(WorldObject worldObject, PropertyFloat property, double value)
             : base(GameMessageOpcode.PublicUpdatePropertyFloat, GameMessageGroup.UIQueue)
         {
-            Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyDouble));
-            Writer.Write(sender.Full);
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyDouble));
+            Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
             Writer.Write(value);
         }
