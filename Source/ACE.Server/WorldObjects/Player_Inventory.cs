@@ -214,7 +214,7 @@ namespace ACE.Server.WorldObjects
                         new GameMessageUpdateInstanceId(item.Sequences, container.Guid, itemGuid, PropertyInstanceId.Wielder),
                         new GameEventWieldItem(Session, itemGuid.Full, placementPosition),
                         new GameMessageCreateObject(item),
-                        new GameMessagePublicUpdatePropertyInt(item.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, (int)item.CurrentWieldedLocation));
+                        new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)item.CurrentWieldedLocation));
                 }
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -288,7 +288,7 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                 new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder),
-                new GameMessagePublicUpdatePropertyInt(Session.Player.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, 0),
+                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
                 new GameMessageUpdateInstanceId(item.Sequences, container.Guid, item.Guid, PropertyInstanceId.Container),
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
@@ -501,7 +501,7 @@ namespace ACE.Server.WorldObjects
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                                 new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Container),
                                 new GameMessageUpdateInstanceId(item.Sequences, Guid, item.Guid, PropertyInstanceId.Wielder),
-                                new GameMessagePublicUpdatePropertyInt(item.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, wieldLocation));
+                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
 
                             if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                                 return;
@@ -528,7 +528,7 @@ namespace ACE.Server.WorldObjects
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                                 new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Container),
                                 new GameMessageUpdateInstanceId(item.Sequences, Guid, item.Guid, PropertyInstanceId.Wielder),
-                                new GameMessagePublicUpdatePropertyInt(item.Sequences, item.Guid, PropertyInt.CurrentWieldedLocation, wieldLocation),
+                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation),
                                 new GameMessageObjDescEvent(this));
                         }
                     }

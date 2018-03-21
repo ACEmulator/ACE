@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
                                     player.RemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
 
                                 player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(Sequences, Guid, PropertyInt.Structure, (int)Structure));
+                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
                                 break;
                             case WorldObjects.Door.UnlockDoorResults.DoorOpen:
                                 var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
