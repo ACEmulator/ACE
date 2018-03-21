@@ -141,8 +141,17 @@ namespace ACE.Server.WorldObjects
             // Grab a reference to the item before its removed from the CurrentLandblock
             var item = CurrentLandblock.GetObject(itemGuid);
 
-            // Queue up an action that wait for the landblock to remove the item. The action that gets queued, when fired, will be run on the landblocks ActionChain, not this players.
-            CurrentLandblock.QueueItemRemove(pickUpItemChain, itemGuid);
+            if (item != null)
+            {
+                // Queue up an action that wait for the landblock to remove the item. The action that gets queued, when fired, will be run on the landblocks ActionChain, not this players.
+                CurrentLandblock.QueueItemRemove(pickUpItemChain, itemGuid);
+            }
+            else
+            {
+                // Item is in the container which we should have open
+                log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers WIP");
+                return;
+            }
 
             // Finish pickup animation
             pickUpItemChain.AddAction(this, () =>
@@ -174,7 +183,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // If we've put the item to a side pack, we must increment our main EncumbranceValue and Value
-                    if (container != this)
+                    if (container != this && container.ContainerId == Guid.Full)
                     {
                         EncumbranceVal += item.EncumbranceVal;
                         Value += item.Value;
@@ -269,7 +278,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // If we've unwielded the item to a side pack, we must increment our main EncumbranceValue and Value
-            if (container != this)
+            if (container != this && container.ContainerId == Guid.Full)
             {
                 EncumbranceVal += item.EncumbranceVal;
                 Value += item.Value;
@@ -322,7 +331,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // If we've moved the item to a side pack, we must increment our main EncumbranceValue and Value
-            if (container != this)
+            if (container != this && container.ContainerId == Guid.Full)
             {
                 EncumbranceVal += item.EncumbranceVal;
                 Value += item.Value;
@@ -353,6 +362,9 @@ namespace ACE.Server.WorldObjects
                     container = this; // Destination is main pack
                 else
                     container = (Container)GetInventoryItem(containerGuid); // Destination is side pack
+
+                if (container == null) // Destination is a container in the world, not in our possession
+                    container = (Container)CurrentLandblock.GetObject(containerGuid);
 
                 var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
 
@@ -788,13 +800,14 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (container == this)
+                /* todo this needs to be fixed. There are many scenarios here, to/from main pack, to/from side pack, to/from landscape container??? maybe, test that.
+                if (container.Guid.Full == stack.ContainerId)
                 {
                     // We subtract the new stack from our main values because TryAddToInventory will end up readding them.
                     EncumbranceVal -= newStack.EncumbranceVal;
                     Value -= newStack.Value;
                     // todo CoinValue
-                }
+                }*/
 
                 CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                     new GameMessagePutObjectInContainer(Session, container.Guid, newStack, placementPosition),
