@@ -33,8 +33,6 @@ namespace ACE.Server.WorldObjects
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
-
-            EquippedObjectsLoaded = true;
         }
 
         /// <summary>
@@ -43,10 +41,6 @@ namespace ACE.Server.WorldObjects
         public Creature(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-
-            // A player has their possessions items passed via the ctor. All other world objects must load their own equipped items
-            if (!(this is Player))
-                DatabaseManager.Shard.GetWieldedItems(biota.Id, AddBiotasToEquippedObjects);
         }
 
         private void SetEphemeralValues()

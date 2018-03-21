@@ -3,7 +3,6 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
@@ -60,11 +59,10 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(ObjectGuid playerId)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            var player = CurrentLandblock.GetObject(playerId) as Player;
+
             if (player == null)
-            {
                 return;
-            }
 
             ////if (playerDistanceTo >= 2500)
             ////{
@@ -85,59 +83,38 @@ namespace ACE.Server.WorldObjects
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                         ActionChain turnToTimer = new ActionChain();
-                        turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion)); ;
+                        turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
                         turnToTimer.AddDelaySeconds(1);
                         turnToTimer.AddAction(this, () => Open(player));
                         turnToTimer.EnqueueChain();
 
                         return;
                     }
-                    else
-                    {
-                        if (Viewer == player.Guid.Full)
-                        {
-                            Close(player);
-                        }
-                        // else error msg?
-                    }
+
+                    if (Viewer == player.Guid.Full)
+                        Close(player);
+
+                    // else error msg?
                 }
                 else
                 {
                     CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                 }
+
                 player.SendUseDoneEvent();
             }
         }
 
-        public override void Open(Player player)
+        protected override void DoOnOpenMotionChanges()
         {
-            if (IsOpen ?? false)
-                return;
-
-            IsOpen = true;
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionStateOpen;
-            Viewer = player.Guid.Full;
-            player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
-
-            // send createobject msgs to player for all chest inventory here
-
-            player.SendUseDoneEvent();
         }
 
-        public override void Close(Player player)
+        protected override void DoOnCloseMotionChanges()
         {
-            if (!(IsOpen ?? false))
-                return;
-
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionStateClosed;
-            player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
-            // send removeobject msgs to player for all chest inventory here
-            Viewer = null;
-            IsOpen = false;
-
-            //player.SendUseDoneEvent();
         }
     }
 }

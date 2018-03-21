@@ -306,11 +306,13 @@ namespace ACE.Server.Entity
         public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove)
         {
             Landblock owner = GetOwner(objectId);
+
             if (owner != null)
             {
                 ActionChain chain = new ActionChain(owner, new ActionEventDelegate(() => RemoveWorldObjectInternal(objectId, adjacencyMove)));
                 return chain;
             }
+
             return null;
         }
 
@@ -799,6 +801,9 @@ namespace ACE.Server.Entity
             return GetWorldObjectsInRange(wo, distance);
         }
 
+        /// <summary>
+        /// This will return null if the object was not found in the current or adjacent landblocks.
+        /// </summary>
         private Landblock GetOwner(ObjectGuid guid)
         {
             if (worldObjects.ContainsKey(guid))
@@ -813,39 +818,21 @@ namespace ACE.Server.Entity
             return null;
         }
 
+        /// <summary>
+        /// This will return null if the object was not found in the current or adjacent landblocks.
+        /// </summary>
         public WorldObject GetObject(ObjectGuid guid)
         {
-            Landblock lb = GetOwner(guid);
+            if (worldObjects.TryGetValue(guid, out var worldObject))
+                return worldObject;
 
-            if (lb == null)
-                return null;
+            foreach (Landblock lb in adjacencies.Values)
+            {
+                if (lb != null && lb.worldObjects.TryGetValue(guid, out worldObject))
+                    return worldObject;
+            }
 
-            return lb.worldObjects[guid];
-        }
-
-        public IActor GetActor(ObjectGuid guid)
-        {
-            Landblock lb = GetOwner(guid);
-
-            if (lb == null)
-                return null;
-
-            return lb.worldObjects[guid];
-        }
-
-        public Position GetPosition(ObjectGuid guid)
-        {
-            Landblock lb = GetOwner(guid);
-
-            if (lb == null)
-                return null;
-
-            return lb.worldObjects[guid].Location;
-        }
-
-        public WeenieType GetWeenieType(ObjectGuid guid)
-        {
-            return worldObjects.ContainsKey(guid) ? worldObjects[guid].WeenieType : 0;
+            return null;
         }
 
         /*

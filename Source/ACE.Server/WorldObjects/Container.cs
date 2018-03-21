@@ -29,7 +29,9 @@ namespace ACE.Server.WorldObjects
         {
             SetEphemeralValues();
 
-            InventoryLoaded = true;
+            // A player has their possessions passed via the ctor. All other world objects must load their own inventory
+            if (!(this is Player) && !(new ObjectGuid(ContainerId ?? 0).IsPlayer()))
+                DatabaseManager.Shard.GetInventory(guid.Full, false, SortBiotasIntoInventory);
         }
 
         /// <summary>
@@ -40,8 +42,8 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
-            if (!(this is Player))
-                DatabaseManager.Shard.GetInventory(biota.Id, true, SortBiotasIntoInventory);
+            if (!(this is Player) && !(new ObjectGuid(ContainerId ?? 0).IsPlayer()))
+                DatabaseManager.Shard.GetInventory(biota.Id, false, SortBiotasIntoInventory);
         }
 
         private void SetEphemeralValues()
@@ -340,7 +342,7 @@ namespace ACE.Server.WorldObjects
                     var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
                     turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
-                    ActionChain turnToTimer = new ActionChain();
+                    var turnToTimer = new ActionChain();
                     turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
                     turnToTimer.AddDelaySeconds(1);
                     turnToTimer.AddAction(this, () => Open(player));
@@ -358,7 +360,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public virtual void Open(Player player)
+        public void Open(Player player)
         {
             if (IsOpen ?? false)
                 return;
@@ -366,6 +368,8 @@ namespace ACE.Server.WorldObjects
             IsOpen = true;
 
             Viewer = player.Guid.Full;
+
+            DoOnOpenMotionChanges();
 
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
 
@@ -385,7 +389,11 @@ namespace ACE.Server.WorldObjects
             player.SendUseDoneEvent();
         }
 
-        public virtual void Close(Player player)
+        protected virtual void DoOnOpenMotionChanges()
+        {
+        }
+
+        public void Close(Player player)
         {
             if (!(IsOpen ?? false))
                 return;
@@ -400,11 +408,15 @@ namespace ACE.Server.WorldObjects
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
-            //player.SendUseDoneEvent();
+            DoOnCloseMotionChanges();
 
             Viewer = null;
 
             IsOpen = false;
+        }
+
+        protected virtual void DoOnCloseMotionChanges()
+        {
         }
 
         public virtual void Reset()

@@ -1001,23 +1001,42 @@ namespace ACE.Server.WorldObjects
             ActionChain moveToBody = new ActionChain();
             moveToChain.AddAction(this, () =>
             {
-                Position dest = CurrentLandblock.GetPosition(target);
-                if (dest == null)
+                var targetObject = CurrentLandblock.GetObject(target);
+
+                if (targetObject == null)
                 {
-                    log.Error("FIXME: Need the ability to cancel actions on error");
+                    // Is the item we're trying to move to in the container we have open?
+                    var lastUsedContainer = CurrentLandblock.GetObject(lastUsedContainerId) as Container;
+
+                    if (lastUsedContainer != null)
+                    {
+                        if (lastUsedContainer.Inventory.ContainsKey(target))
+                            targetObject = lastUsedContainer;
+                        else
+                        {
+                            // could be a child container of this container
+                            log.Error("Player CreateMoveToChain container inception not finished");
+                            return;
+                        }
+                    }
+                }
+
+                if (targetObject == null)
+                {
+                    log.Error("Player CreateMoveToChain targetObject null");
                     return;
                 }
 
-                if (CurrentLandblock.GetWeenieType(target) == WeenieType.Portal)
+                if (targetObject.Location == null)
                 {
-                    OnAutonomousMove(CurrentLandblock.GetPosition(target),
-                                            Sequences, MovementTypes.MoveToPosition, target);
+                    log.Error("Player CreateMoveToChain targetObject.Location null");
+                    return;
                 }
+
+                if (targetObject.WeenieType == WeenieType.Portal)
+                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToPosition, target);
                 else
-                {
-                    OnAutonomousMove(CurrentLandblock.GetPosition(target),
-                                            Sequences, MovementTypes.MoveToObject, target);
-                }
+                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToObject, target);
             });
 
             // poll for arrival every .1 seconds

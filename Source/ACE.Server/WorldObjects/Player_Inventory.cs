@@ -10,7 +10,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
-using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -140,16 +139,33 @@ namespace ACE.Server.WorldObjects
 
             // Grab a reference to the item before its removed from the CurrentLandblock
             var item = CurrentLandblock.GetObject(itemGuid);
+            var itemWasRestingOnLandblock = false;
 
             if (item != null)
             {
+                itemWasRestingOnLandblock = true;
+
                 // Queue up an action that wait for the landblock to remove the item. The action that gets queued, when fired, will be run on the landblocks ActionChain, not this players.
                 CurrentLandblock.QueueItemRemove(pickUpItemChain, itemGuid);
             }
             else
             {
-                // Item is in the container which we should have open
-                log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers WIP");
+                var lastUsedContainer = CurrentLandblock.GetObject(lastUsedContainerId) as Container;
+
+                if (lastUsedContainer != null)
+                {
+                    if (!lastUsedContainer.TryRemoveFromInventory(itemGuid, out item))
+                    {
+                        // Item is in the container which we should have open
+                        log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers side pack WIP");
+                        return;
+                    }
+                }
+            }
+
+            if (item == null)
+            {
+                log.Error("Player_Inventory PickupItemWithNetworking item == null");
                 return;
             }
 
@@ -164,7 +180,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // If the item has a ContainerId, it was probably picked up by someone else before us
-                if (item.ContainerId != null && item.ContainerId != 0)
+                if (itemWasRestingOnLandblock && item.ContainerId != null && item.ContainerId != 0)
                 {
                     log.Error("Player_Inventory PickupItemWithNetworking item.ContainerId != 0");
                     return;
@@ -340,6 +356,10 @@ namespace ACE.Server.WorldObjects
                 Value += item.Value;
             }
 
+            // If we're putting the item into a container not on our person, we should save the changes to the db
+            if (container != this && container.ContainerId != Guid.Full)
+                item.SaveBiotaToDatabase();
+
             Session.Network.EnqueueSend(
                 new GameMessagePutObjectInContainer(Session, container.Guid, item, placementPosition),
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
@@ -367,7 +387,23 @@ namespace ACE.Server.WorldObjects
                     container = (Container)GetInventoryItem(containerGuid); // Destination is side pack
 
                 if (container == null) // Destination is a container in the world, not in our possession
-                    container = (Container)CurrentLandblock.GetObject(containerGuid);
+                {
+                    container = CurrentLandblock.GetObject(containerGuid) as Container;
+
+                    if (container == null) // Container is a container within a container in the world....
+                    {
+                        var lastUsedContainer = CurrentLandblock.GetObject(lastUsedContainerId) as Container;
+
+                        if (lastUsedContainer != null && lastUsedContainer.Inventory.TryGetValue(containerGuid, out var value))
+                            container = value as Container;
+                    }
+                }
+
+                if (container == null)
+                {
+                    log.Error("Player_Inventory HandleActionPutItemInContainer container not found");
+                    return;
+                }
 
                 var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
 
@@ -421,8 +457,6 @@ namespace ACE.Server.WorldObjects
                             new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
                             new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)));
-
-
                     }
                 }
 
@@ -566,68 +600,6 @@ namespace ACE.Server.WorldObjects
             ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
             ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
             ////SendUseDoneEvent();
-        }
-
-
-        // ===============================
-        // Game Action Handlers - Use Item
-        // ===============================
-        // These are raised by client actions
-
-        public void HandleActionUseItem(ObjectGuid usedItemId)
-        {
-            new ActionChain(this, () =>
-            {
-                var iwo = GetInventoryItem(usedItemId);
-
-                // todo, I think for this, DoActionUseItem should be renamed BuildUseItemActionChain
-                // Then, we can add the GameEventUseDone and queue the action.
-                // Overrides of the DoActionUseItem fn shouldn't have to be concerned with the GameEventUseDone message.
-                if (iwo != null)
-                    iwo.DoActionUseItem(Session);
-                else
-                {
-                    if (CurrentLandblock != null)
-                    {
-                        // Just forward our action to the appropriate user...
-                        var wo = CurrentLandblock.GetObject(usedItemId);
-
-                        if (wo != null)
-                            wo.ActOnUse(Guid);
-                    }
-                }
-            }).EnqueueChain();
-        }
-
-        public void HandleActionUseWithTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
-        {
-            new ActionChain(this, () =>
-            {
-                var invSource = GetInventoryItem(sourceObjectId);
-                var invTarget = GetInventoryItem(targetObjectId);
-
-                if (invTarget != null)
-                {
-                    // inventory on inventory, we can do this now
-                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
-                }
-                else if (invSource.WeenieType == WeenieType.Key)
-                {
-                    var theTarget = CurrentLandblock.GetObject(targetObjectId);
-                    var key = invSource as Key;
-                    key.HandleActionUseOnTarget(this, theTarget);
-                }
-                else if (targetObjectId == Guid)
-                {
-                    // using something on ourselves
-                    RecipeManager.UseObjectOnTarget(this, invSource, this);
-                }
-                else
-                {
-                    var theTarget = CurrentLandblock.GetObject(targetObjectId);
-                    RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
-                }
-            }).EnqueueChain();
         }
 
 
