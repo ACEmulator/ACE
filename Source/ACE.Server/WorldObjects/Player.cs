@@ -358,7 +358,7 @@ namespace ACE.Server.WorldObjects
             // Send Vicitim Notification, or "Your Death" event to the client:
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
-            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(Session, Vital.Health, Health.Current);
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths.Value);
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel.Value);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);

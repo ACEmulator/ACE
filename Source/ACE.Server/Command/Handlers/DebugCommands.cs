@@ -267,7 +267,7 @@ namespace ACE.Server.Command.Handlers
                 if (ushort.TryParse(parameters[0], out var health))
                 {
                     session.Player.Health.Current = health;
-                    var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session, Vital.Health, session.Player.Health.Current);
+                    var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
                     var message = new GameMessageSystemChat($"Attempting to set health to {health}...", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(updatePlayersHealth, message);
                     return;
