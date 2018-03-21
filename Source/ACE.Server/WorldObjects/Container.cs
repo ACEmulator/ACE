@@ -49,7 +49,6 @@ namespace ACE.Server.WorldObjects
         {
             EncumbranceVal = EncumbranceVal ?? 0; // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
             Value = Value ?? 0;
-            // todo CoinValue
 
             //CurrentMotionState = motionStateClosed; // What container defaults to open?
 

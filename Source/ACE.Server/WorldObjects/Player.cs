@@ -41,6 +41,10 @@ namespace ACE.Server.WorldObjects
         {
             Session = session;
 
+            // Make sure properties this WorldObject requires are not null.
+            AvailableExperience = AvailableExperience ?? 0;
+            TotalExperience = TotalExperience ?? 0;
+
             SetEphemeralValues();
         }
 
