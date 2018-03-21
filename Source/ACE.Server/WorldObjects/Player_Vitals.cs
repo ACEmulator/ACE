@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, v, vital.Current));
             }
         }
 
@@ -179,7 +179,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(Session, v, vital.Current));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, v, vital.Current));
             }
         }
 
