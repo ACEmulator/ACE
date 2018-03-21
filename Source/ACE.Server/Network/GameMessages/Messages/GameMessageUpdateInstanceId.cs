@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.Sequence;
 
@@ -6,24 +6,22 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageUpdateInstanceId : GameMessage
     {
-        public GameMessageUpdateInstanceId(ObjectGuid containerGuid, ObjectGuid itemGuid, PropertyInstanceId iidPropertyId)
-            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.UIQueue)
-        {
-            // TODO: research - could these types of sends be generalized by payload type?   for example GameMessageInt
-            Writer.Write((byte)1);  // wts
-            Writer.Write(containerGuid.Full); // sender
-            Writer.Write((uint)iidPropertyId);
-            Writer.Write(itemGuid.Full); // new value of the container id
-            Writer.Align(); // not sure that I need this - can someone explain when to use this?
-        }
-
-        public GameMessageUpdateInstanceId(SequenceManager sequences, ObjectGuid senderGuid, PropertyInstanceId idPropertyId, ObjectGuid value)
-            : base(GameMessageOpcode.UpdateInstanceId, GameMessageGroup.UIQueue)
+        public GameMessageUpdateInstanceId(SequenceManager sequences, ObjectGuid containerGuid, ObjectGuid itemGuid, PropertyInstanceId iidPropertyId)
+            : base(GameMessageOpcode.PublicUpdateInstanceId, GameMessageGroup.UIQueue)
         {
             Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInstanceId));  // wts
-            Writer.Write(senderGuid.Full);
-            Writer.Write((uint)idPropertyId);
-            Writer.Write(value.Full);
+            Writer.Write(itemGuid.Full); // sender
+            Writer.Write((uint)iidPropertyId);
+            Writer.Write(containerGuid.Full); // new value of the container id
         }
+
+        //public GameMessageUpdateInstanceId(SequenceManager sequences, ObjectGuid senderGuid, PropertyInstanceId idPropertyId, ObjectGuid value)
+        //    : base(GameMessageOpcode.PublicUpdateInstanceId, GameMessageGroup.UIQueue)
+        //{
+        //    Writer.Write(sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInstanceId));  // wts
+        //    Writer.Write(senderGuid.Full);
+        //    Writer.Write((uint)idPropertyId);
+        //    Writer.Write(value.Full);
+        //}
     }
 }
