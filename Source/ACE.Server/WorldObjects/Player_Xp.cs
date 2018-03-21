@@ -70,8 +70,8 @@ namespace ACE.Server.WorldObjects
                 TotalExperience += amount;
 
                 CheckForLevelup();
-                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.TotalExperience, (long)TotalExperience);
-                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, (long)TotalExperience);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
         }
@@ -166,7 +166,7 @@ namespace ACE.Server.WorldObjects
             {
                 AvailableExperience -= amount;
 
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
                 Session.Network.EnqueueSend(xpUpdate);
 
                 return true;
@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
         {
             AvailableExperience += amount;
 
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(Session, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
             Session.Network.EnqueueSend(xpUpdate);
         }
     }
