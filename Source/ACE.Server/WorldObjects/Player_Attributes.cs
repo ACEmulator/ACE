@@ -43,12 +43,12 @@ namespace ACE.Server.WorldObjects
                 // Needed when increasing health and endurance.
                 if (attribute == PropertyAttribute.Endurance)
                 {
-                    var healthUpdate = new GameMessagePrivateUpdateVital(Session, PropertyAttribute2nd.MaxHealth, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
+                    var healthUpdate = new GameMessagePrivateUpdateVital(this, PropertyAttribute2nd.MaxHealth, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
                 }
                 else if (attribute == PropertyAttribute.Self)
                 {
-                    var manaUpdate = new GameMessagePrivateUpdateVital(Session, PropertyAttribute2nd.MaxMana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
+                    var manaUpdate = new GameMessagePrivateUpdateVital(this, PropertyAttribute2nd.MaxMana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
                 }
                 else
