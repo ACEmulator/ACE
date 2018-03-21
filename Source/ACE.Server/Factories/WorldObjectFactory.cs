@@ -213,6 +213,9 @@ namespace ACE.Server.Factories
                 {
                     worldObject.SetPosition(PositionType.Location, new Position(aceO.ObjCellId, aceO.OriginX, aceO.OriginY, aceO.OriginZ, aceO.AnglesX, aceO.AnglesY, aceO.AnglesZ, aceO.AnglesW));
 
+                    if (worldObject.InitPhysics)
+                        worldObject.InitPhysicsObj();
+
                     results.Add(worldObject);
                 }
             }

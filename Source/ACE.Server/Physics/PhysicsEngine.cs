@@ -63,22 +63,25 @@ namespace ACE.Server.Physics
         NumPhysics = 0x9
     };
 
-    public class Physics
+    public class PhysicsEngine
     {
         public ObjectMaint ObjMaint;
         public SmartBox SmartBox;
         public PhysicsObj Player;
         public List<PhysicsObj> Iter;
 
+        public static PhysicsEngine Instance;
+        public bool Server;
+
         public static List<PhysicsObj> StaticAnimatingObjects;
         public static double LastUpdate;
 
-        static Physics()
+        static PhysicsEngine()
         {
             StaticAnimatingObjects = new List<PhysicsObj>();
         }
 
-        public Physics(ObjectMaint objMaint, SmartBox smartBox)
+        public PhysicsEngine(ObjectMaint objMaint, SmartBox smartBox)
         {
             ObjMaint = objMaint;
             SmartBox = smartBox;
@@ -86,6 +89,7 @@ namespace ACE.Server.Physics
             PhysicsTimer.CurrentTime = Timer.CurrentTime;
 
             SmartBox.Physics = this;
+            Instance = this;
         }
 
         public static void AddStaticAnimatingObject(PhysicsObj obj)

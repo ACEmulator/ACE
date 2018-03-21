@@ -26,6 +26,22 @@ namespace ACE.Entity
         [JsonIgnore]
         public uint Cell { get; set; }
 
+        public Vector3 Pos
+        {
+            get
+            {
+                return new Vector3(PositionX, PositionY, PositionZ);
+            }
+        }
+
+        public Quaternion Rotation
+        {
+            get
+            {
+                return new Quaternion(RotationX, RotationY, RotationZ, RotationW);
+            }
+        }
+
         [JsonProperty("positionX")]
         public float PositionX { get; set; }
 

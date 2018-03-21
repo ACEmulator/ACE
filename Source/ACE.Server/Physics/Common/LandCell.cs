@@ -22,13 +22,13 @@ namespace ACE.Server.Physics.Common
 
         public override TransitionState FindCollisions(Transition transition)
         {
-            var transitState = FindEnvCollisions(transition);
-            if (transitState == TransitionState.OK)
-            {
-                transitState = base.FindCollisions(transition);
-                if (transitState == TransitionState.OK)
-                    transitState = FindObjCollisions(transition);
-            }
+            //var transitState = FindEnvCollisions(transition);
+            //if (transitState == TransitionState.OK)
+            //{
+                //transitState = base.FindCollisions(transition);
+                //if (transitState == TransitionState.OK)
+                    var transitState = FindObjCollisions(transition);
+            //}
             return transitState;
         }
 
@@ -65,7 +65,7 @@ namespace ACE.Server.Physics.Common
 
         public new static LandCell Get(uint cellID)
         {
-            return Landscape.get_landcell(cellID);
+            return LScape.get_landcell(cellID);
         }
 
         public new void Init()

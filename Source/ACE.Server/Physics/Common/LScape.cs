@@ -4,35 +4,26 @@ using System.Numerics;
 
 namespace ACE.Server.Physics.Common
 {
-    public class LScape
+    public static class LScape
     {
-        public int MidRadius;
-        public int MidWidth;
-        public Dictionary<uint, Landblock> Landblocks;
-        public Dictionary<uint, Landblock> BlockDrawList;
-        public uint LoadedCellID;
-        public uint ViewerCellID;
-        public int ViewerXOffset;
-        public int ViewerYOffset;
-        //public GameSky GameSky;
-        //public Surface LandscapeDetailSurface;
-        //public Surface EnvironmentDetailSurface;
-        //public Surface BuildingDetailSurface;
-        //public Surface ObjectDetailSurface;
+        public static int MidRadius;
+        public static int MidWidth;
+        public static Dictionary<uint, Landblock> Landblocks;
+        public static Dictionary<uint, Landblock> BlockDrawList;
+        public static uint LoadedCellID;
+        public static uint ViewerCellID;
+        public static int ViewerXOffset;
+        public static int ViewerYOffset;
+        //public static GameSky GameSky;
+        //public static Surface LandscapeDetailSurface;
+        //public static Surface EnvironmentDetailSurface;
+        //public static Surface BuildingDetailSurface;
+        //public static Surface ObjectDetailSurface;
 
         public static float AmbientLevel;
         public static Vector3 Sunlight;
-        public static LScape Instance;
 
-        public static LScape GetInstance()
-        {
-            if (Instance == null)
-                return new LScape();
-            else
-                return Instance;
-        }
-
-        private LScape()
+        static LScape()
         {
             Landblocks = new Dictionary<uint, Landblock>();
             BlockDrawList = new Dictionary<uint, Landblock>();
@@ -44,10 +35,9 @@ namespace ACE.Server.Physics.Common
             MidWidth = 11;
 
             //LandblockStruct.init();
-            Instance = this;
         }
 
-        public bool SetMidRadius(int radius)
+        public static bool SetMidRadius(int radius)
         {
             if (radius < 1 || Landblocks == null)
                 return false;
@@ -57,16 +47,11 @@ namespace ACE.Server.Physics.Common
             return true;
         }
 
-        public static Landblock get_all(uint landblockID)
-        {
-            var landblock = (DatLoader.FileTypes.CellLandblock)DBObj.Get(new QualifiedDataID(1, landblockID));
-            if (landblock != null)
-                return new Landblock(landblock);
-            else
-                return null;
-        }
-
-        public Landblock get_landblock(uint cellID)
+        /// <summary>
+        /// Loads the backing store landblock structure
+        /// </summary>
+        /// <param name="cellID">Any cellID within the landblock</param>
+        public static Landblock get_landblock(uint cellID)
         {
             // client implementation
             /*if (Landblocks == null || Landblocks.Count == 0)
@@ -95,19 +80,24 @@ namespace ACE.Server.Physics.Common
                 return landblock;
 
             // if not, load into cache
-            landblock = get_all(landblockID);
+            landblock = new Landblock((DatLoader.FileTypes.CellLandblock)DBObj.Get(new QualifiedDataID(1, landblockID)));
             Landblocks.Add(landblockID, landblock);
             return landblock;
         }
 
-        public LandCell get_landcell(uint cellID)
+        public static LandCell get_landcell(uint cellID)
         {
             var landblock = get_landblock(cellID);
             if (landblock == null)
                 return null;
 
             var lcoord = LandDefs.gid_to_lcoord(cellID);
+            if (lcoord == null) return null;
             var landCellIdx = ((int)lcoord.Value.Y % 8) + ((int)lcoord.Value.X % 8) * landblock.SideCellCount;
+
+            if (landCellIdx >= landblock.LandCells.Count)
+                return null;
+
             return landblock.LandCells[landCellIdx];
         }
     }

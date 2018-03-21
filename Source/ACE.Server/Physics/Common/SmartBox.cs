@@ -14,7 +14,7 @@ namespace ACE.Server.Physics.Common
         public float ViewerLightFalloff;
         //public CameraManager CameraManager;
         //public CellManager CellManager;
-        public Physics Physics;
+        public PhysicsEngine Physics;
         //public ObjectMaint ObjMaint;
         //public LScape LScape;
         //public Ambient AmbientSounds;

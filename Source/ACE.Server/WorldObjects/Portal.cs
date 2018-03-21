@@ -1,3 +1,4 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -5,6 +6,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -106,6 +108,7 @@ namespace ACE.Server.WorldObjects
         public Portal(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -114,6 +117,17 @@ namespace ACE.Server.WorldObjects
         public Portal(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Instantiates a new physics object for a player
+        /// </summary>
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
+            PhysicsObj.makeAnimObject(0x02000001, true);    // get setup id
+            PhysicsObj.SetMotionTableID(0x09000001);
         }
 
         private void SetEphemeralValues()

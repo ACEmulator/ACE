@@ -23,6 +23,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects.Entity;
+using ACE.Server.Physics;
 
 using Position = ACE.Entity.Position;
 
@@ -46,6 +47,8 @@ namespace ACE.Server.WorldObjects
             TotalExperience = TotalExperience ?? 0;
 
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -59,6 +62,19 @@ namespace ACE.Server.WorldObjects
             Session = session;
 
             SetEphemeralValues();
+
+            InitPhysics = true;
+        }
+
+        /// <summary>
+        /// Instantiates a new physics object for a player
+        /// </summary>
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
+            PhysicsObj.makeAnimObject(0x02000001, true);
+            PhysicsObj.SetMotionTableID(0x09000001);
         }
 
         private void SetEphemeralValues()
