@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdatePropertyBool : GameMessage
     {
-        public GameMessagePrivateUpdatePropertyBool(Session session, PropertyBool property, bool value) : base(GameMessageOpcode.PrivateUpdatePropertyBool, GameMessageGroup.UIQueue)
+        public GameMessagePrivateUpdatePropertyBool(WorldObject worldObject, PropertyBool property, bool value) : base(GameMessageOpcode.PrivateUpdatePropertyBool, GameMessageGroup.UIQueue)
         {
-            Writer.Write(session.Player.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdatePropertyBool));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdatePropertyBool));
             Writer.Write((uint)property);
             Writer.Write(Convert.ToUInt32(value));
         }
