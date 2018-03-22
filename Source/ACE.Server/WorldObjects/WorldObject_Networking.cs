@@ -1243,7 +1243,22 @@ namespace ACE.Server.WorldObjects
         public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
         {
             //var previousLocation = Location;
+            if (PhysicsObj != null)
+            {
+                var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
+                if (dist > Physics.PhysicsGlobals.EPSILON)
+                {
+                    var curCell = Physics.Common.LScape.get_landcell(Location.Cell);
+                    if (curCell != null)
+                    {
+                        if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
+                            PhysicsObj.change_cell_server(curCell);
 
+                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation);
+                        PhysicsObj.update_object_server();
+                    }
+                }
+            }
             if (Teleporting)
                 PreviousLocation = Location;
 

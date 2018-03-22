@@ -974,9 +974,6 @@ namespace ACE.Server.Command.Handlers
                 loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
-            if (loot.InitPhysics)
-                loot.InitPhysicsObj();
-
             loot.EnterWorld();
         }
 

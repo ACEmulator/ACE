@@ -632,6 +632,9 @@ namespace ACE.Server.WorldObjects
                 LandblockManager.AddObject(this);
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+
+                if (InitPhysics)
+                    InitPhysicsObj();
             }
         }
 

@@ -300,7 +300,8 @@ namespace ACE.Server.Entity
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
                 AddPlayerTracking(wolist, ((Player)wo));
-                wo.InitPhysicsObj();
+                if (wo.PhysicsObj == null)
+                    wo.InitPhysicsObj();
             }
         }
 

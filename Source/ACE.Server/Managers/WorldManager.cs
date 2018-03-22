@@ -423,23 +423,6 @@ namespace ACE.Server.Managers
                     else if (wo.RequestedLocation != null)
                     {
                         newPosition = wo.RequestedLocation;
-
-                        if (wo.PhysicsObj != null)
-                        {
-                            var dist = (newPosition.Pos - wo.PhysicsObj.Position.Frame.Origin).Length();
-                            if (dist > PhysicsGlobals.EPSILON)
-                            {
-                                var curCell = LScape.get_landcell(wo.Location.Cell);
-                                if (curCell != null)
-                                {
-                                    if (wo.PhysicsObj.CurCell == null || curCell.ID != wo.PhysicsObj.CurCell.ID)
-                                        wo.PhysicsObj.change_cell_server(curCell);
-
-                                    wo.PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation);
-                                    wo.PhysicsObj.update_object_server();
-                                }
-                            }
-                        }
                         movedObjects.Enqueue(wo);
                     }
 
