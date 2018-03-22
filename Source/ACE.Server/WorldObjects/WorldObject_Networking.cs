@@ -1254,7 +1254,7 @@ namespace ACE.Server.WorldObjects
                         if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
                             PhysicsObj.change_cell_server(curCell);
 
-                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation);
+                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
                     }
                 }

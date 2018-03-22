@@ -166,7 +166,6 @@ namespace ACE.Server.Factories
             }
         }
 
-
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
@@ -213,7 +212,7 @@ namespace ACE.Server.Factories
                 {
                     worldObject.SetPosition(PositionType.Location, new Position(aceO.ObjCellId, aceO.OriginX, aceO.OriginY, aceO.OriginZ, aceO.AnglesX, aceO.AnglesY, aceO.AnglesZ, aceO.AnglesW));
 
-                    if (worldObject.InitPhysics)
+                    if (worldObject.InitPhysics && worldObject.PhysicsObj == null)
                         worldObject.InitPhysicsObj();
 
                     results.Add(worldObject);

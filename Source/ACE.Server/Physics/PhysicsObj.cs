@@ -3135,10 +3135,11 @@ namespace ACE.Server.Physics
         /// Sets the requested position to the AutonomousPosition
         /// received from the client
         /// </summary>
-        public void set_request_pos(Vector3 pos, Quaternion rotation)
+        public void set_request_pos(Vector3 pos, Quaternion rotation, ObjCell cell)
         {
             RequestPos.Frame.Origin = pos;
             RequestPos.Frame.Orientation = rotation;
+            RequestPos.ObjCellID = cell.ID;
         }
 
         public void set_sequence_animation(int animID, bool interrupt, int startFrame, float framerate)

@@ -633,7 +633,7 @@ namespace ACE.Server.WorldObjects
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
 
-                if (InitPhysics)
+                if (InitPhysics && PhysicsObj == null)
                     InitPhysicsObj();
             }
         }
