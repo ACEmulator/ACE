@@ -26,6 +26,7 @@ namespace ACE.Database
         public void Start()
         {
             _workerThread = new Thread(DoWork);
+            _workerThread.Name = "Serialized Shard Database";
             _workerThread.Start();
         }
 

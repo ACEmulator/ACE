@@ -57,6 +57,7 @@ namespace ACE.Server.Managers
         public static void Initialize()
         {
             var thread = new Thread(UpdateWorld);
+            thread.Name = "World Manager";
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using ACE.Common;
 using log4net;
@@ -52,6 +52,7 @@ namespace ACE.Server.Managers
         {
             ShutdownInitiated = true;
             var shutdownThread = new Thread(ShutdownServer);
+            shutdownThread.Name = "Shutdown Server";
             shutdownThread.Start();
         }
 
