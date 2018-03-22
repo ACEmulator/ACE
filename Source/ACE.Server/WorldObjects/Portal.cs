@@ -120,14 +120,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Instantiates a new physics object for a player
+        /// Instantiates a new physics object for a portal
         /// </summary>
         public override void InitPhysicsObj()
         {
             base.InitPhysicsObj();
 
-            PhysicsObj.makeAnimObject(0x02000001, true);    // get setup id
-            PhysicsObj.SetMotionTableID(0x09000001);
+            PhysicsObj.makeAnimObject(SetupTableId, true);
+            PhysicsObj.SetMotionTableID(MotionTableId);
         }
 
         private void SetEphemeralValues()
