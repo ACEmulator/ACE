@@ -117,6 +117,7 @@ namespace ACE.Server.WorldObjects
         public Portal(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+            InitPhysics = true;
         }
 
         private void SetEphemeralValues()

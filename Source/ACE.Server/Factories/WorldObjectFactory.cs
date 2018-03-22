@@ -281,7 +281,6 @@ namespace ACE.Server.Factories
             return results;
         }
 
-
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// </summary>

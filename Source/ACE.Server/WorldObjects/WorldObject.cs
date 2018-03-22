@@ -95,6 +95,13 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.makeAnimObject(SetupTableId, true);
             PhysicsObj.SetMotionTableID(MotionTableId);
+
+            var cell = LScape.get_landcell(Location.Cell);
+            if (cell != null)
+            {
+                PhysicsObj.enter_cell(cell);
+                PhysicsObj.add_shadows_to_cell(cell);
+            }
         }
 
         private void SetEphemeralValues()
