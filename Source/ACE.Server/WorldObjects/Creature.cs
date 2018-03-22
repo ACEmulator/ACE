@@ -3,7 +3,6 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader;
@@ -26,6 +25,8 @@ namespace ACE.Server.WorldObjects
     public partial class Creature : Container
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -636,7 +637,5 @@ namespace ACE.Server.WorldObjects
                 player.SendUseDoneEvent();
             }
         }       
-
-        protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
     }
 }
