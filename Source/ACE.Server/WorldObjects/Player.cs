@@ -66,17 +66,6 @@ namespace ACE.Server.WorldObjects
             InitPhysics = true;
         }
 
-        /// <summary>
-        /// Instantiates a new physics object for a player
-        /// </summary>
-        public override void InitPhysicsObj()
-        {
-            base.InitPhysicsObj();
-
-            PhysicsObj.makeAnimObject(0x02000001, true);
-            PhysicsObj.SetMotionTableID(0x09000001);
-        }
-
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;

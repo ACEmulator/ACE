@@ -119,17 +119,6 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
-        /// <summary>
-        /// Instantiates a new physics object for a portal
-        /// </summary>
-        public override void InitPhysicsObj()
-        {
-            base.InitPhysicsObj();
-
-            PhysicsObj.makeAnimObject(SetupTableId, true);
-            PhysicsObj.SetMotionTableID(MotionTableId);
-        }
-
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;

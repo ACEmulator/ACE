@@ -1000,11 +1000,11 @@ namespace ACE.Server.Physics.Animation
                         transitionState = TransitionState.OK;
                     }
                 }
-                else
-                    SetCurrentCheckPos();
+                //else
+                    //SetCurrentCheckPos();
             }
-            else
-                SetCurrentCheckPos();
+            //else
+                //SetCurrentCheckPos();
 
             if (CollisionInfo.CollisionNormalValid)
                 CollisionInfo.SetSlidingNormal(CollisionInfo.CollisionNormal);

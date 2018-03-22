@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.DatLoader.FileTypes;
@@ -178,7 +178,7 @@ namespace ACE.Server.Physics.Common
         public void init_landcell()
         {
             // should be length SideCellCount ^ 2
-            foreach (var landCell in LandCells)
+            foreach (var landCell in LandCells.Values)
                 landCell.CurLandblock = this;
         }
 

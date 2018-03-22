@@ -92,6 +92,9 @@ namespace ACE.Server.WorldObjects
 
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
+
+            PhysicsObj.makeAnimObject(SetupTableId, true);
+            PhysicsObj.SetMotionTableID(MotionTableId);
         }
 
         private void SetEphemeralValues()

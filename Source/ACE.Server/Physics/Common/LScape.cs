@@ -91,14 +91,18 @@ namespace ACE.Server.Physics.Common
             if (landblock == null)
                 return null;
 
-            var lcoord = LandDefs.gid_to_lcoord(cellID);
+            var lcoord = LandDefs.gid_to_lcoord(cellID, false);
             if (lcoord == null) return null;
             var landCellIdx = ((int)lcoord.Value.Y % 8) + ((int)lcoord.Value.X % 8) * landblock.SideCellCount;
+            LandCell lcell = null;
+            landblock.LandCells.TryGetValue(landCellIdx, out lcell);
+            if (lcell != null) return lcell;
 
-            if (landCellIdx >= landblock.LandCells.Count)
-                return null;
+            // cell not cached, add it
+            lcell = new LandCell(cellID);
+            landblock.LandCells.Add(landCellIdx, lcell);
+            return lcell;
 
-            return landblock.LandCells[landCellIdx];
         }
     }
 }
