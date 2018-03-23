@@ -52,13 +52,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(Player player)
         {
-            if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
-            else
-            {
-                LoadInventory();
-                ApproachVendor(player);
-            }
+            LoadInventory();
+            ApproachVendor(player);
         }
 
         /// <summary>

@@ -299,14 +299,9 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(Player player)
         {
-            if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
-            else
-            {
-                // always send useDone event
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            }
+            // always send useDone event
+            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+            player.Session.Network.EnqueueSend(sendUseDoneEvent);
         }
     }
 }

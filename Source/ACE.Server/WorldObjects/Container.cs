@@ -328,31 +328,26 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(Player player)
         {
-            if (!player.IsWithinUseRadiusOf(this) && Viewer != player.Guid.Full)
-                player.DoMoveTo(this);
-            else
+            if (!(IsOpen ?? false))
             {
-                if (!(IsOpen ?? false))
-                {
-                    var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
-                    turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+                var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
-                    var turnToTimer = new ActionChain();
-                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
-                    turnToTimer.AddDelaySeconds(1);
-                    turnToTimer.AddAction(this, () => Open(player));
-                    turnToTimer.EnqueueChain();
+                var turnToTimer = new ActionChain();
+                turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                turnToTimer.AddDelaySeconds(1);
+                turnToTimer.AddAction(this, () => Open(player));
+                turnToTimer.EnqueueChain();
 
-                    return;
-                }
-
-                if (Viewer == player.Guid.Full)
-                    Close(player);
-
-                // else error msg?
-
-                player.SendUseDoneEvent();
+                return;
             }
+
+            if (Viewer == player.Guid.Full)
+                Close(player);
+
+            // else error msg?
+
+            player.SendUseDoneEvent();
         }
 
         public void Open(Player player)

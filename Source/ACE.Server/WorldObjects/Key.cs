@@ -42,55 +42,47 @@ namespace ACE.Server.WorldObjects
 
             chain.AddAction(player, () =>
             {
-                if (player == null)
-                    return;
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
 
-                if (!player.IsWithinUseRadiusOf(target))
-                    player.DoMoveTo(target);
+                if (target.WeenieType == WeenieType.Door)
+                {
+                    var door = (Door)target;
+
+                    Door.UnlockDoorResults results = door.UnlockDoor(keyCode);
+
+                    switch (results)
+                    {
+                        case Door.UnlockDoorResults.UnlockSuccess:
+                            Structure--;
+                            if (Structure < 1)
+                                player.RemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
+
+                            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                            player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
+                            break;
+                        case Door.UnlockDoorResults.DoorOpen:
+                            var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
+                            player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
+                            break;
+                        case Door.UnlockDoorResults.AlreadyUnlocked:
+                            var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock); // TODO: Messages are not quiet right. Need to find right one.
+                            player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
+                            break;
+                        default:
+                            var messageIncorrectKey = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock);
+                            player.Session.Network.EnqueueSend(sendUseDoneEvent, messageIncorrectKey);
+                            break;
+                    }
+                }
+                else if (target.WeenieType == WeenieType.Chest)
+                {
+                    var message = new GameMessageSystemChat($"Unlocking {target.Name} has not been implemented, yet!", ChatMessageType.System);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
+                }
                 else
                 {
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-
-                    if (target.WeenieType == WeenieType.Door)
-                    {
-                        var door = (Door)target;
-
-                        Door.UnlockDoorResults results = door.UnlockDoor(keyCode);
-
-                        switch (results)
-                        {
-                            case Door.UnlockDoorResults.UnlockSuccess:
-                                Structure--;
-                                if (Structure < 1)
-                                    player.RemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
-
-                                player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
-                                break;
-                            case Door.UnlockDoorResults.DoorOpen:
-                                var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
-                                player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
-                                break;
-                            case Door.UnlockDoorResults.AlreadyUnlocked:
-                                var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock); // TODO: Messages are not quiet right. Need to find right one.
-                                player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
-                                break;
-                            default:
-                                var messageIncorrectKey = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock);
-                                player.Session.Network.EnqueueSend(sendUseDoneEvent, messageIncorrectKey);
-                                break;
-                        }
-                    }
-                    else if (target.WeenieType == WeenieType.Chest)
-                    {
-                        var message = new GameMessageSystemChat($"Unlocking {target.Name} has not been implemented, yet!", ChatMessageType.System);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
-                    }
-                    else
-                    {
-                        var message = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockOrUnlockThat);
-                        player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
-                    }
+                    var message = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockOrUnlockThat);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
                 }
             });
 

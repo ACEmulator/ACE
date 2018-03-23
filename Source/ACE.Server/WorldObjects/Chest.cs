@@ -66,38 +66,33 @@ namespace ACE.Server.WorldObjects
             ////    return;
             ////}
 
-            if (!player.IsWithinUseRadiusOf(this) && Viewer != player.Guid.Full)
-                player.DoMoveTo(this);
+            if (!(IsLocked ?? false))
+            {
+                if (!(IsOpen ?? false))
+                {
+                    var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                    turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+
+                    ActionChain turnToTimer = new ActionChain();
+                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                    turnToTimer.AddDelaySeconds(1);
+                    turnToTimer.AddAction(this, () => Open(player));
+                    turnToTimer.EnqueueChain();
+
+                    return;
+                }
+
+                if (Viewer == player.Guid.Full)
+                    Close(player);
+
+                // else error msg?
+            }
             else
             {
-                if (!(IsLocked ?? false))
-                {
-                    if (!(IsOpen ?? false))
-                    {
-                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
-                        turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-
-                        ActionChain turnToTimer = new ActionChain();
-                        turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
-                        turnToTimer.AddDelaySeconds(1);
-                        turnToTimer.AddAction(this, () => Open(player));
-                        turnToTimer.EnqueueChain();
-
-                        return;
-                    }
-
-                    if (Viewer == player.Guid.Full)
-                        Close(player);
-
-                    // else error msg?
-                }
-                else
-                {
-                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
-                }
-
-                player.SendUseDoneEvent();
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
             }
+
+            player.SendUseDoneEvent();
         }
 
         protected override void DoOnOpenMotionChanges()

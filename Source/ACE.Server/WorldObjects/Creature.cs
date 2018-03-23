@@ -618,18 +618,11 @@ namespace ACE.Server.WorldObjects
         /// <param name="player">The player we are interacting with</param>
         public override void ActOnUse(Player player)
         {
-            if (!player.IsWithinUseRadiusOf(this))
-            {
-                player.DoMoveTo(this);
-            }
-            else
-            {
-                //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+            //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
 
-                //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
-                //player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                player.SendUseDoneEvent();
-            }
-        }       
+            //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+            //player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            player.SendUseDoneEvent();
+        }
     }
 }

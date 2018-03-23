@@ -40,35 +40,30 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(Player player)
         {
-            if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
-            else
+            ActionChain sancTimer = new ActionChain();
+            sancTimer.AddAction(player, () =>
             {
-                ActionChain sancTimer = new ActionChain();
-                sancTimer.AddAction(player, () =>
+                CurrentLandblock.EnqueueBroadcastMotion(player, sanctuary);
+                CurrentLandblock.EnqueueBroadcastSound(player, Sound.LifestoneOn, 1);
+            });
+            sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
+            sancTimer.AddAction(player, () =>
+            {
+                if (player.IsWithinUseRadiusOf(this))
                 {
-                    CurrentLandblock.EnqueueBroadcastMotion(player, sanctuary);
-                    CurrentLandblock.EnqueueBroadcastSound(player, Sound.LifestoneOn, 1);
-                });
-                sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
-                sancTimer.AddAction(player, () =>
-                {
-                    if (player.IsWithinUseRadiusOf(this))
-                    {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
-                        player.Sanctuary = player.Location;
-                    }
-                    // Unsure if there was a fail message...
-                    //else
-                    //{
-                    //    var serverMessage = "You wandered too far to attune with the Lifestone!";
-                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(serverMessage, ChatMessageType.Magic));
-                    //}
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                    player.Sanctuary = player.Location;
+                }
+                // Unsure if there was a fail message...
+                //else
+                //{
+                //    var serverMessage = "You wandered too far to attune with the Lifestone!";
+                //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(serverMessage, ChatMessageType.Magic));
+                //}
 
-                    player.SendUseDoneEvent();
-                });
-                sancTimer.EnqueueChain();                
-            }
+                player.SendUseDoneEvent();
+            });
+            sancTimer.EnqueueChain();
         }
     }
 }

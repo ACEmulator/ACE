@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
             return moveToChain;
         }
 
-        public void DoMoveTo(WorldObject wo)
+        private void DoMoveTo(WorldObject wo)
         {
             ActionChain moveToObjectChain = new ActionChain();
 
@@ -130,7 +130,10 @@ namespace ACE.Server.WorldObjects
                             if (wo is Container)
                                 lastUsedContainerId = usedItemId;
 
-                            wo.ActOnUse(this);
+                            if (!IsWithinUseRadiusOf(wo))
+                                DoMoveTo(wo);
+                            else
+                                wo.ActOnUse(this);
                         }
                     }
                 }

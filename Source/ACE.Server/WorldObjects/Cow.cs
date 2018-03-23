@@ -67,18 +67,13 @@ namespace ACE.Server.WorldObjects
             ////    return;
             ////}
 
-            if (!player.IsWithinUseRadiusOf(this))
-                player.DoMoveTo(this);
-            else
+            if (AllowedActivator == null)
             {
-                if (AllowedActivator == null)
-                {
-                    Activate(player.Guid);
-                }
-
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                Activate(player.Guid);
             }
+
+            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+            player.Session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
         private void Activate(ObjectGuid activator = new ObjectGuid())
