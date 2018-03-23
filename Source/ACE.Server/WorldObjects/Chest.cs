@@ -57,13 +57,8 @@ namespace ACE.Server.WorldObjects
         private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            var player = CurrentLandblock.GetObject(playerId) as Player;
-
-            if (player == null)
-                return;
-
             ////if (playerDistanceTo >= 2500)
             ////{
             ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);

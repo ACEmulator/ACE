@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
             moveToObjectChain.AddChain(CreateMoveToChain(wo.Guid, 0.2f));
             moveToObjectChain.AddDelaySeconds(0.50);
 
-            moveToObjectChain.AddAction(wo, () => wo.ActOnUse(Guid));
+            moveToObjectChain.AddAction(wo, () => wo.ActOnUse(this));
 
             moveToObjectChain.EnqueueChain();
         }
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
                 // Then, we can add the GameEventUseDone and queue the action.
                 // Overrides of the DoActionUseItem fn shouldn't have to be concerned with the GameEventUseDone message.
                 if (iwo != null)
-                    iwo.DoActionUseItem(Session);
+                    iwo.DoActionUseItem(this);
                 else
                 {
                     if (CurrentLandblock != null)
@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
                             if (wo is Container)
                                 lastUsedContainerId = usedItemId;
 
-                            wo.ActOnUse(Guid);
+                            wo.ActOnUse(this);
                         }
                     }
                 }

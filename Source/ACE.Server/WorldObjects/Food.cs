@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
         /// </summary>
-        public override void DoActionUseItem(Session session)
+        public override void DoActionUseItem(Player player)
         {
             Player.ConsumableBuffType buffType;
 
@@ -63,12 +63,12 @@ namespace ACE.Server.WorldObjects
             //else
             //    buffType = WorldObjects.Player.ConsumableBuffType.Spell;
 
-            session.Player.ApplyComsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
+            player.ApplyComsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
 
-            session.Player.RemoveItemFromInventory(Guid.Full, session.Player.Guid.Full, 1);
+            player.RemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
 
-            var sendUseDoneEvent = new GameEventUseDone(session);
-            session.Network.EnqueueSend(sendUseDoneEvent);
+            var sendUseDoneEvent = new GameEventUseDone(player.Session);
+            player.Session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
         private Sound GetSoundDid()

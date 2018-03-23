@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
         /// </summary>
-        public override void DoActionUseItem(Session session)
+        public override void DoActionUseItem(Player player)
         {
             bool success = true;
             string failReason = "You are unable to read the scroll.";
@@ -168,7 +168,7 @@ namespace ACE.Server.WorldObjects
                 case spellLevel4: // Level 4
                 case spellLevel5: // Level 5
                 case spellLevel6: // Level 6
-                    if (!session.Player.CanReadScroll(School, Power))
+                    if (!player.CanReadScroll(School, Power))
                     {
                         success = false;
                         failReason = "You are not skilled enough in the inscribed spell's school of magic to understand the writing on this scroll.";
@@ -176,7 +176,7 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (session.Player.SpellIsKnown(SpellId))
+            if (player.SpellIsKnown(SpellId))
             {
                 success = false;
                 failReason = "You already know the spell inscribed upon this scroll.";
@@ -185,32 +185,32 @@ namespace ACE.Server.WorldObjects
             var readScrollChain = new ActionChain();
 
             readScrollChain
-                .AddAction(session.Player, () => session.Player.HandleActionMotion(motionReading))
+                .AddAction(player, () => player.HandleActionMotion(motionReading))
                 .AddDelaySeconds(2);
 
             if (success)
             {
-                readScrollChain.AddAction(session.Player, () =>
+                readScrollChain.AddAction(player, () =>
                 {
-                    session.Player.LearnSpellWithNetworking(SpellId);
-                    session.Player.HandleActionMotion(motionReady);
-                    if (session.Player.TryDestroyFromInventoryWithNetworking(this))
-                        session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
+                    player.LearnSpellWithNetworking(SpellId);
+                    player.HandleActionMotion(motionReady);
+                    if (player.TryDestroyFromInventoryWithNetworking(this))
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
                 });
             }
             else
             {
                 readScrollChain
                     .AddDelaySeconds(2)
-                    .AddAction(session.Player, () =>
+                    .AddAction(player, () =>
                     {
-                        session.Player.HandleActionMotion(motionReady);
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
+                        player.HandleActionMotion(motionReady);
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
                     });
             }
 
             readScrollChain
-                .AddAction(session.Player, () => session.Network.EnqueueSend(new GameEventUseDone(session.Player.Session)))
+                .AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)))
                 .EnqueueChain();
         }
 

@@ -326,13 +326,8 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            var player = CurrentLandblock.GetObject(playerId) as Player;
-
-            if (player == null)
-                return;
-
             if (!player.IsWithinUseRadiusOf(this) && Viewer != player.Guid.Full)
                 player.DoMoveTo(this);
             else

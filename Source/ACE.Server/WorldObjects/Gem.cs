@@ -51,8 +51,7 @@ namespace ACE.Server.WorldObjects
         /// and shows our progress for kill tasks as well as any timing information such as when we can repeat the
         /// quest or how much longer we have to complete it in the case of at timed quest.   Og II
         /// </summary>
-        /// <param name="session">Pass the session variable so we will have access to player and the correct sequences</param>
-        public override void DoActionUseItem(Session session)
+        public override void DoActionUseItem(Player player)
         {
             if (UseCreateContractId == null)
             {
@@ -74,16 +73,16 @@ namespace ACE.Server.WorldObjects
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
                 castMessage += "."; // If not refreshing/surpassing/less than active spell, which I will check for in the very near future when I get the active enchantment list implemented.
 
-                session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
-                session.Player.PlayParticleEffect((PlayScript)spell.TargetEffect, session.Player.Guid);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
+                player.PlayParticleEffect((PlayScript)spell.TargetEffect, player.Guid);
                 const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
-                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, session.Player, spell, layer, 1, 0x2009010)); ////The values that are hardcoded are not directly available from spell table, but will be available soon.
+                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, player, spell, layer, 1, 0x2009010)); ////The values that are hardcoded are not directly available from spell table, but will be available soon.
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
-                session.Player.SendUseDoneEvent();
+                player.SendUseDoneEvent();
                 return;
             }
 
-            ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, session.Player.Guid.Full)
+            ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, player.Guid.Full)
             {
                 Stage = 0,
                 TimeWhenDone = 0,
@@ -92,35 +91,35 @@ namespace ACE.Server.WorldObjects
                 SetAsDisplayContract = 1
             };
 
-            if (CooldownId != null && session.Player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUse))
+            if (CooldownId != null && player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUse))
             {
                 var timeRemaining = lastUse.AddSeconds(CooldownDuration ?? 0.00).Subtract(DateTime.Now);
                 if (timeRemaining.Seconds > 0)
                 {
-                    ChatPacket.SendServerMessage(session, "You cannot use another contract for " + timeRemaining.Seconds + " seconds", ChatMessageType.Broadcast);
-                    session.Player.SendUseDoneEvent();
+                    ChatPacket.SendServerMessage(player.Session, "You cannot use another contract for " + timeRemaining.Seconds + " seconds", ChatMessageType.Broadcast);
+                    player.SendUseDoneEvent();
                     return;
                 }
             }
 
             // We need to see if we are tracking this quest already.   Also, I cannot be used on world, so I must have a container id
-            if (!session.Player.TrackedContracts.ContainsKey((uint)UseCreateContractId) && ContainerId != null)
+            if (!player.TrackedContracts.ContainsKey((uint)UseCreateContractId) && ContainerId != null)
             {
-                session.Player.TrackedContracts.Add((uint)UseCreateContractId, contractTracker);
+                player.TrackedContracts.Add((uint)UseCreateContractId, contractTracker);
 
                 // This will track our use for each contract using the shared cooldown server side.
                 if (CooldownId != null)
                 {
                     // add or update.
-                    if (!session.Player.LastUseTracker.ContainsKey(CooldownId.Value))
-                        session.Player.LastUseTracker.Add(CooldownId.Value, DateTime.Now);
+                    if (!player.LastUseTracker.ContainsKey(CooldownId.Value))
+                        player.LastUseTracker.Add(CooldownId.Value, DateTime.Now);
                     else
-                        session.Player.LastUseTracker[CooldownId.Value] = DateTime.Now;
+                        player.LastUseTracker[CooldownId.Value] = DateTime.Now;
                 }
 
-                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session, contractTracker);
-                session.Network.EnqueueSend(contractMsg);
-                ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
+                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(player.Session, contractTracker);
+                player.Session.Network.EnqueueSend(contractMsg);
+                ChatPacket.SendServerMessage(player.Session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
 
                 // TODO: Add sending the 02C2 message UpdateEnchantment.   They added a second use to this existing system
                 // so they could show the delay on the client side - it is not really an enchantment but the they overloaded the use. Og II
@@ -132,17 +131,17 @@ namespace ACE.Server.WorldObjects
                 const uint layer = 0x10000; // FIXME: we need to track how many layers of the exact same spell we have in effect.
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
-                session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, session.Player, spellBase, layer, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
+                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, player, spellBase, layer, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
-                session.Player.RemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);
+                player.RemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1);
             }
             else
-                ChatPacket.SendServerMessage(session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(player.Session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
 
             // No mater any condition we need to send the use done event to clear the hour glass from the client.
-            session.Player.SendUseDoneEvent();
+            player.SendUseDoneEvent();
         }
     }
 }

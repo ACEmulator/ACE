@@ -175,14 +175,8 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
-            if (player == null)
-            {
-                return;
-            }
-
             ////if (playerDistanceTo >= 2500)
             ////{
             ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
@@ -202,11 +196,11 @@ namespace ACE.Server.WorldObjects
                     {
                         if (!IsOpen ?? false)
                         {
-                            Open(playerId);
+                            Open(player.Guid);
                         }
                         else
                         {
-                            Close(playerId);
+                            Close(player.Guid);
                         }
 
                         // Create Door auto close timer

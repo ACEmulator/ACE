@@ -71,14 +71,8 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseCreateItem); else SetProperty(PropertyDataId.UseCreateItem, value.Value); }
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            var player = CurrentLandblock.GetObject(playerId) as Player;
-            if (player == null)
-            {
-                return;
-            }
-
             if (!player.IsWithinUseRadiusOf(this))
                 player.DoMoveTo(this);
             else

@@ -50,14 +50,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Fired when Client clicks on the Vendor World Object
         /// </summary>
-        /// <param name="playerId"></param>
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
-
-            if (player == null)
-                return;
-
             if (!player.IsWithinUseRadiusOf(this))
                 player.DoMoveTo(this);
             else

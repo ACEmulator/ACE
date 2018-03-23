@@ -615,15 +615,9 @@ namespace ACE.Server.WorldObjects
         /// Note - we may need to make an NPC class vs monster as using a monster does not make them turn towrad you as I recall. Og II
         ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
         /// </summary>
-        /// <param name="playerId">Identity of the player we are interacting with</param>
-        public override void ActOnUse(ObjectGuid playerId)
+        /// <param name="player">The player we are interacting with</param>
+        public override void ActOnUse(Player player)
         {
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
-            if (player == null)
-            {
-                return;
-            }
-
             if (!player.IsWithinUseRadiusOf(this))
             {
                 player.DoMoveTo(this);

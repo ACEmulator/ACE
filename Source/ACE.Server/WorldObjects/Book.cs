@@ -69,13 +69,8 @@ namespace ACE.Server.WorldObjects
         }
 
         // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            var player = CurrentLandblock.GetObject(playerId) as Player;
-
-            if (player == null)
-                return;
-
             // Make sure player is within the use radius of the item.
             if (!player.IsWithinUseRadiusOf(this))
                 player.DoMoveTo(this);
@@ -86,9 +81,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
         /// </summary>
-        public override void DoActionUseItem(Session session)
+        public override void DoActionUseItem(Player player)
         {
-            BookUseHandler(session);
+            BookUseHandler(player.Session);
         }
 
         /// <summary>

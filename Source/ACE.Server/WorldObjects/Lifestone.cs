@@ -38,14 +38,8 @@ namespace ACE.Server.WorldObjects
 
         private static readonly UniversalMotion sanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            var player = CurrentLandblock.GetObject(playerId) as Player;
-            if (player == null)
-            {
-                return;
-            }
-
             if (!player.IsWithinUseRadiusOf(this))
                 player.DoMoveTo(this);
             else

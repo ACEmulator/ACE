@@ -37,9 +37,9 @@ namespace ACE.Server.WorldObjects
             // TODO: so much more than what's here now.
         }
 
-        public override void ActOnUse(ObjectGuid playerId)
+        public override void ActOnUse(Player player)
         {
-            ActOnJoin(playerId);
+            ActOnJoin(player.Guid);
         }
 
         public void ActOnJoin(ObjectGuid playerId)
