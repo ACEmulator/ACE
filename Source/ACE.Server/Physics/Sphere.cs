@@ -155,7 +155,7 @@ namespace ACE.Server.Physics
         public TransitionState IntersectsSphere(Position position, float scale, Transition transition, bool isCreature)
         {
             var globPos = transition.SpherePath.CheckPos.LocalToGlobal(position, Center * scale);
-            return new Sphere(globPos, Radius * scale).IntersectsSphere(transition, isCreature);    // check scaling
+            return new Sphere(globPos, Radius * scale).IntersectsSphere(transition, isCreature);
         }
 
         /// <summary>
@@ -265,8 +265,8 @@ namespace ACE.Server.Physics
                     movement *= time;
                     disp = (disp + movement) / radsum;
 
-                    if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
-                        return TransitionState.OK;  // ??
+                    //if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
+                        //return TransitionState.OK;  // ??
 
                     var contactPlane = new Plane(disp, (globSphere.Center - disp * globSphere.Radius).Length());   // verify, convert normal
                     transition.CollisionInfo.SetContactPlane(contactPlane, true);

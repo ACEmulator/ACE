@@ -20,7 +20,7 @@ namespace ACE.Server.Physics.Common
         public List<Polygon> Polygons;
         public List<int> SurfaceStrips;     // SurfaceTriStrips
         public int BlockSurfaceIndex;
-        public List<LandCell> LandCells;
+        public Dictionary<int, LandCell> LandCells;
         public List<bool> SWtoNEcut;
 
         public static List<VertexUV> LandUVs;
@@ -332,8 +332,8 @@ namespace ACE.Server.Physics.Common
             BlockSurfaceIndex = -1;
 
             // init for landcell
-            LandCells = new List<LandCell>();
-            for (uint i = 1; i <= 64; i++) LandCells.Add(new LandCell((i)));
+            LandCells = new Dictionary<int, LandCell>();
+            for (uint i = 1; i <= 64; i++) LandCells.Add((int)i, new LandCell((i)));
         }
 
         public void InitPVArrays()
@@ -355,9 +355,9 @@ namespace ACE.Server.Physics.Common
             for (var i = 0; i < numSquares; i++)
                 SWtoNEcut.Add(false);
 
-            LandCells = new List<LandCell>(numCells);
+            LandCells = new Dictionary<int, LandCell>(numCells);
             for (uint i = 0; i < numCells; i++)
-                LandCells.Add(new LandCell((ID & LandDefs.BlockMask) + i));
+                LandCells.Add((int)i, new LandCell((ID & LandDefs.BlockMask) + i));
 
             // omitted lighting
         }

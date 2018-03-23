@@ -22,6 +22,8 @@ using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Physics.Common;
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
 {
@@ -41,6 +43,12 @@ namespace ACE.Server.Entity
         public static float MaxXY { get; } = 192f;
         public static float MaxObjectRange { get; } = 192f;
         public static float MaxObjectGhostRange { get; } = 250f;
+
+        /// <summary>
+        /// The clientlib backing store landblock
+        /// Eventually these classes could be merged, but for now they are separate...
+        /// </summary>
+        private readonly Physics.Common.Landblock _landblock;
 
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
@@ -115,6 +123,7 @@ namespace ACE.Server.Entity
                 }
             });
 
+            _landblock = LScape.get_landblock(Id.Raw);
             LoadMeshes(objects);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
@@ -291,6 +300,8 @@ namespace ACE.Server.Entity
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
                 AddPlayerTracking(wolist, ((Player)wo));
+                if (wo.InitPhysics && wo.PhysicsObj == null)
+                    wo.InitPhysicsObj();
             }
         }
 

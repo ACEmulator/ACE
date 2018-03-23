@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using log4net;
 
@@ -19,7 +20,10 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Physics;
+using ACE.Server.Physics.Common;
 
+using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -39,6 +43,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public ObjectGuid Guid => new ObjectGuid(Biota.Id);
 
+        public PhysicsObj PhysicsObj { get; protected set; }
+
+        public bool InitPhysics { get; protected set; }
+
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
         public UpdatePositionFlag PositionFlag { get; protected set; }
@@ -48,7 +56,7 @@ namespace ACE.Server.WorldObjects
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
         /// <summary>
-        /// A new biota be created taking all of its values from weenie.
+        /// A new biota will be created taking all of its values from weenie.
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
@@ -69,6 +77,31 @@ namespace ACE.Server.WorldObjects
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
             SetEphemeralValues();
+        }
+
+        /// <summary>
+        /// Initializes a new default physics object
+        /// </summary>
+        public virtual void InitPhysicsObj()
+        {
+            PhysicsObj = new PhysicsObj();
+            PhysicsObj.set_object_guid(Guid);
+            PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
+
+            PhysicsObj.Position.Frame.Origin = new Vector3(Location.PositionX, Location.PositionY, Location.PositionZ);
+
+            // will eventually map directly to WorldObject
+            PhysicsObj.set_weenie_obj(new WeenieObject(this));
+
+            PhysicsObj.makeAnimObject(SetupTableId, true);
+            PhysicsObj.SetMotionTableID(MotionTableId);
+
+            var cell = LScape.get_landcell(Location.Cell);
+            if (cell != null)
+            {
+                PhysicsObj.enter_cell(cell);
+                PhysicsObj.add_shadows_to_cell(cell);
+            }
         }
 
         private void SetEphemeralValues()
@@ -599,6 +632,9 @@ namespace ACE.Server.WorldObjects
                 LandblockManager.AddObject(this);
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+
+                if (InitPhysics && PhysicsObj == null)
+                    InitPhysicsObj();
             }
         }
 
@@ -630,7 +666,7 @@ namespace ACE.Server.WorldObjects
         {
             GeneratorProfilesActive.Clear();
 
-            Random random = new Random((int)DateTime.UtcNow.Ticks);
+            var random = new System.Random((int)DateTime.UtcNow.Ticks);
 
             if (GeneratorProfiles.Count > 0)
             {

@@ -141,12 +141,12 @@ namespace ACE.Server.Physics.Common
                 return new Vector2(x, y);
         }
 
-        public static Vector2? gid_to_lcoord(uint cellID)
+        public static Vector2? gid_to_lcoord(uint cellID, bool envCheck = true)
         {
             if (!inbound_valid_cellid(cellID))
                 return null;
 
-            if ((cellID & CellID_Mask) >= FirstEnvCellID)
+            if (envCheck && (cellID & CellID_Mask) >= FirstEnvCellID)
                 return null;
 
             var x = (cellID >> BlockPartShift & BlockX_Mask) >> MaxBlockShift << LandblockShift;

@@ -16,6 +16,11 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Physics;
+using ACE.Server.Physics.Common;
+
+using Landblock = ACE.Server.Entity.Landblock;
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
@@ -29,6 +34,7 @@ namespace ACE.Server.Managers
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
         private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+        private static readonly PhysicsEngine Physics;
 
         /// <summary>
         /// Seconds until a session will timeout. 
@@ -53,6 +59,12 @@ namespace ACE.Server.Managers
         public static readonly ActionQueue BroadcastQueue = new ActionQueue();
 
         public static readonly DelayManager DelayManager = new DelayManager();
+
+        static WorldManager()
+        {
+            Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
+            Physics.Server = true;
+        }
 
         public static void Initialize()
         {
@@ -305,7 +317,7 @@ namespace ACE.Server.Managers
                 // Sequences of update thread:
                 // Update positions based on new tick
                 // TODO(ddevec): Physics here
-                IEnumerable<WorldObject> movedObjects = FakePhysics(PortalYearTicks);
+                IEnumerable<WorldObject> movedObjects = HandlePhysics(PortalYearTicks);
 
                 // Do any pre-calculated landblock transfers --
                 foreach (WorldObject wo in movedObjects)
@@ -393,7 +405,7 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
-        private static IEnumerable<WorldObject> FakePhysics(double timeTick)
+        private static IEnumerable<WorldObject> HandlePhysics(double timeTick)
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
             // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point

@@ -1,6 +1,9 @@
+using System;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Collision;
+using ACE.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Common
 {
@@ -8,8 +11,14 @@ namespace ACE.Server.Physics.Common
     {
         public uint ID;
         public double UpdateTime;
+        public WorldObject WorldObject;
 
-        // connect to ACE wobj
+        public WeenieObject() { }
+
+        public WeenieObject(WorldObject worldObject)
+        {
+            WorldObject = worldObject;
+        }
 
         public bool CanJump(float extent)
         {
@@ -69,13 +78,19 @@ namespace ACE.Server.Physics.Common
             return 0;
         }
 
-        public int DoCollision(AtkCollisionProfile prof)
+        public int DoCollision(AtkCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
         {
+            if (WorldObject != null)
+                obj.WeenieObj.WorldObject.HandleActionOnCollide(guid);
+
             return 0;
         }
 
-        public int DoCollision(EnvCollisionProfile prof)
+        public int DoCollision(EnvCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
         {
+            if (WorldObject != null)
+                obj.WeenieObj.WorldObject.HandleActionOnCollide(guid);
+
             return 0;
         }
 

@@ -1,3 +1,4 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -5,6 +6,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -106,6 +108,7 @@ namespace ACE.Server.WorldObjects
         public Portal(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -114,6 +117,7 @@ namespace ACE.Server.WorldObjects
         public Portal(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+            InitPhysics = true;
         }
 
         private void SetEphemeralValues()
@@ -304,8 +308,6 @@ namespace ACE.Server.WorldObjects
                 player.DoMoveTo(this);
             else
             {
-                // TODO: to be removed once physics collisions are implemented
-                HandleActionOnCollide(playerId);
                 // always send useDone event
                 var sendUseDoneEvent = new GameEventUseDone(player.Session);
                 player.Session.Network.EnqueueSend(sendUseDoneEvent);

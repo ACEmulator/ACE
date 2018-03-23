@@ -957,7 +957,6 @@ namespace ACE.Server.Command.Handlers
             else
                 loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
 
-
             // todo: set the palette, shade, stackSize here
 
             if (loot == null)

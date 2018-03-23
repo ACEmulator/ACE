@@ -8,9 +8,6 @@ namespace ACE.Server.Physics.Common
 {
     public class ObjCell: PartCell, IEquatable<ObjCell>
     {
-        public static ObjectMaint ObjMaint;
-        public static LScape Landscape;
-
         public uint ID;
         public LandDefs.WaterType WaterType;
         public Position Pos;
@@ -29,10 +26,11 @@ namespace ACE.Server.Physics.Common
         public List<uint> VoyeurTable;
         public Landblock CurLandblock;
 
+        public static ObjectMaint ObjMaint;
+
         static ObjCell()
         {
             ObjMaint = new ObjectMaint();   // global static?
-            Landscape = LScape.GetInstance();
         }
 
         public ObjCell(): base()
@@ -48,6 +46,7 @@ namespace ACE.Server.Physics.Common
 
         public void AddObject(PhysicsObj obj)
         {
+            // check for existing obj?
             ObjectList.Add(obj);
             NumObjects++;
             if (obj.ID == 0 || obj.Parent != null || obj.State.HasFlag(PhysicsState.Hidden) || VoyeurTable == null)
