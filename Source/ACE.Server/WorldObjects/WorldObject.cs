@@ -10,7 +10,6 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -335,19 +334,6 @@ namespace ACE.Server.WorldObjects
                     return ContainerType.Foci;
                 return ContainerType.NonContainer;
             }
-        }
-
-         /// <summary>
-        /// This is used to determine how close you need to be to use an item.
-        /// NOTE: cheat factor added for items with null use radius.   Og II
-        /// </summary>
-        public float UseRadiusSquared => ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius);
-
-        public bool IsWithinUseRadiusOf(WorldObject wo)
-        {
-            if (Location.SquaredDistanceTo(wo.Location) >= wo.UseRadiusSquared)
-                return false;
-            return true;
         }
 
         public void Examine(Session examiner)
