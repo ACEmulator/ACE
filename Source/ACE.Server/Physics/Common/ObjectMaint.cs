@@ -163,7 +163,10 @@ namespace ACE.Server.Physics.Common
             var visibleObjs = new List<PhysicsObj>();
 
             foreach (var envCell in cell.VisibleCells.Values)
+            {
+                if (envCell == null) continue; 
                 visibleObjs.AddRange(envCell.ObjectList);
+            }
 
             return visibleObjs.Distinct().ToList();
         }
