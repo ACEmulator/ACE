@@ -121,6 +121,10 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
+
+            MinLevel = MinLevel ?? 0;
+            MaxLevel = MaxLevel ?? 0;
+            PortalBitmask = PortalBitmask ?? 0;
         }
 
         public string AppraisalPortalDestination
@@ -133,14 +137,22 @@ namespace ACE.Server.WorldObjects
             get;
         }
 
-        public int MinimumLevel
+        private int? MinLevel
         {
-            get;
+            get => Biota.GetProperty(PropertyInt.MinLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
         }
 
-        public int MaximumLevel
+        private int? MaxLevel
         {
-            get;
+            get => Biota.GetProperty(PropertyInt.MaxLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
+        }
+
+        private int? PortalBitmask
+        {
+            get => Biota.GetProperty(PropertyInt.PortalBitmask);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, value.Value); }
         }
 
         public int SocietyId => 0;
@@ -174,7 +186,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
                 // Check player level -- requires remote query to player (ugh)...
-                if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
+                if ((player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)))
                 {
                     Position portalDest = Destination;
                     switch (WeenieClassId)
@@ -271,7 +283,7 @@ namespace ACE.Server.WorldObjects
                     if (IsRecallable)
                         player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                 }
-                else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
+                else if ((player.Level > MaxLevel) && (MaxLevel != 0))
                 {
                     // You are too powerful to interact with that portal!
                     var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouAreTooPowerfulToUsePortal);
