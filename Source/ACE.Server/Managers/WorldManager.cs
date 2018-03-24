@@ -412,7 +412,8 @@ namespace ACE.Server.Managers
             // This crashes sometimes with the following exception: System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
             Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
             {
-                foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+                var worldObjects = landblock.GetPhysicsWorldObjects().ToList();
+                foreach (WorldObject wo in worldObjects)
                 {
                     Position newPosition = wo.Location;
 

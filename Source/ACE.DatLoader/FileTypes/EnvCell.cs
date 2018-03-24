@@ -26,7 +26,7 @@ namespace ACE.DatLoader.FileTypes
         public ushort CellStructure { get; private set; }
         public Frame Position { get; } = new Frame();
         public List<CellPortal> CellPortals { get; } = new List<CellPortal>();
-        public List<ushort> Lights { get; } = new List<ushort>();
+        public List<ushort> VisibleCells { get; } = new List<ushort>();
         public List<Stab> Stabs { get; } = new List<Stab>();
         public uint RestrictionObj { get; private set; }
 
@@ -57,7 +57,7 @@ namespace ACE.DatLoader.FileTypes
             CellPortals.Unpack(reader, numPortals);
 
             for (uint i = 0; i < numStabs; i++)
-                Lights.Add(reader.ReadUInt16());
+                VisibleCells.Add(reader.ReadUInt16());
 
             if ((Bitfield & 2) != 0)
                 Stabs.Unpack(reader);

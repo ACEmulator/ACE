@@ -125,7 +125,7 @@ namespace ACE.Server.Physics.Common
             var idx = ((int)lcoord.X & 7) + ((int)lcoord.Y & 7) * SideCellCount;
 
             if (LandCells[idx].ID == cellID)
-                return LandCells[idx];
+                return (LandCell)LandCells[idx];
             else
                 return null;
         }
@@ -139,7 +139,8 @@ namespace ACE.Server.Physics.Common
 
         public void grab_visible_cells()
         {
-            EnvCell.grab_visible(StabList);
+            // legacy method
+            //EnvCell.grab_visible(StabList);
         }
 
         public void init_buildings()
@@ -239,7 +240,8 @@ namespace ACE.Server.Physics.Common
 
         public void release_visible_cells()
         {
-            EnvCell.release_visible(StabList);
+            // legacy method
+            //EnvCell.release_visible(StabList);
         }
     }
 }

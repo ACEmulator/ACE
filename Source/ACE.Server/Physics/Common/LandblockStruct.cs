@@ -20,7 +20,7 @@ namespace ACE.Server.Physics.Common
         public List<Polygon> Polygons;
         public List<int> SurfaceStrips;     // SurfaceTriStrips
         public int BlockSurfaceIndex;
-        public Dictionary<int, LandCell> LandCells;
+        public Dictionary<int, ObjCell> LandCells;
         public List<bool> SWtoNEcut;
 
         public static List<VertexUV> LandUVs;
@@ -189,19 +189,21 @@ namespace ACE.Server.Physics.Common
                             var firstVertex = idxI * SidePolyCount + idxJ;
                             var nextVertIdx = (idxI + 1) * SideVertexCount + idxJ;
 
+                            var lcell = (LandCell)LandCells[cellIdx];
+
                             if (splitDir * 2.3283064e-10 < 0.5f)
                             {
                                 SWtoNEcut[polyIdx] = false;
 
-                                LandCells[cellIdx].Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, vertIdx + 1);
-                                LandCells[cellIdx].Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, nextVertIdx + 1, vertIdx + 1, nextVertIdx);
+                                lcell.Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, vertIdx + 1);
+                                lcell.Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, nextVertIdx + 1, vertIdx + 1, nextVertIdx);
                             }
                             else
                             {
                                 SWtoNEcut[polyIdx] = true;
 
-                                LandCells[cellIdx].Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, nextVertIdx + 1);
-                                LandCells[cellIdx].Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, vertIdx, nextVertIdx + 1, vertIdx + 1);
+                                lcell.Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, nextVertIdx + 1);
+                                lcell.Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, vertIdx, nextVertIdx + 1, vertIdx + 1);
                             }
                             idxJ++;
                         }
@@ -332,7 +334,7 @@ namespace ACE.Server.Physics.Common
             BlockSurfaceIndex = -1;
 
             // init for landcell
-            LandCells = new Dictionary<int, LandCell>();
+            LandCells = new Dictionary<int, ObjCell>();
             for (uint i = 1; i <= 64; i++) LandCells.Add((int)i, new LandCell((i)));
         }
 
@@ -355,7 +357,7 @@ namespace ACE.Server.Physics.Common
             for (var i = 0; i < numSquares; i++)
                 SWtoNEcut.Add(false);
 
-            LandCells = new Dictionary<int, LandCell>(numCells);
+            LandCells = new Dictionary<int, ObjCell>(numCells);
             for (uint i = 0; i < numCells; i++)
                 LandCells.Add((int)i, new LandCell((ID & LandDefs.BlockMask) + i));
 

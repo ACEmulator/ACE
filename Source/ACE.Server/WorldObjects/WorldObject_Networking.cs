@@ -1335,8 +1335,8 @@ namespace ACE.Server.WorldObjects
             // Check if the player model has data. Gear Knights, this is usually you.
             {
                 // Add the model and texture(s)
-                ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
-                foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                ClothingBaseEffect clothingBaseEffect = item.ClothingBaseEffects[SetupTableId];
+                foreach (CloObjectEffect t in clothingBaseEffect.CloObjectEffects)
                 {
                     byte partNum = (byte)t.Index;
                     objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });

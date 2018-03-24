@@ -85,24 +85,33 @@ namespace ACE.Server.Physics.Common
             return landblock;
         }
 
-        public static LandCell get_landcell(uint cellID)
+        public static ObjCell get_landcell(uint blockCellID)
         {
-            var landblock = get_landblock(cellID);
+            var landblock = get_landblock(blockCellID);
             if (landblock == null)
                 return null;
 
-            var lcoord = LandDefs.gid_to_lcoord(cellID, false);
-            if (lcoord == null) return null;
-            var landCellIdx = ((int)lcoord.Value.Y % 8) + ((int)lcoord.Value.X % 8) * landblock.SideCellCount;
-            LandCell lcell = null;
-            landblock.LandCells.TryGetValue(landCellIdx, out lcell);
-            if (lcell != null) return lcell;
+            var cellID = blockCellID & 0xFFFF;
+            ObjCell cell = null;
 
-            // cell not cached, add it
-            lcell = new LandCell(cellID);
-            landblock.LandCells.Add(landCellIdx, lcell);
-            return lcell;
-
+            // outdoor cells
+            if (cellID < 0x100)
+            {
+                var lcoord = LandDefs.gid_to_lcoord(blockCellID, false);
+                if (lcoord == null) return null;
+                var landCellIdx = ((int)lcoord.Value.Y % 8) + ((int)lcoord.Value.X % 8) * landblock.SideCellCount;
+                landblock.LandCells.TryGetValue(landCellIdx, out cell);
+            }
+            // indoor cells
+            else
+            {
+                landblock.LandCells.TryGetValue((int)cellID, out cell);
+                if (cell != null) return cell;
+                cell = (EnvCell)DBObj.Get(new QualifiedDataID(3, blockCellID));
+                landblock.LandCells.Add((int)cellID, cell);
+                ((EnvCell)cell).build_visible_cells();
+            }
+            return cell;
         }
     }
 }

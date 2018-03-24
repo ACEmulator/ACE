@@ -250,6 +250,9 @@ namespace ACE.Server.Entity
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
+            // envcell tracking handled in PhysicsObj.handle_visible_cells()
+            if ((Id.Raw & 0xFFFF) >= 0x100) return;
+
             Parallel.ForEach(wolist, (o) =>
             {
                 //if (o is Creature)

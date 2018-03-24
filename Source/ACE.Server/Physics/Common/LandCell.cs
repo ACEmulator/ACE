@@ -65,7 +65,7 @@ namespace ACE.Server.Physics.Common
 
         public new static LandCell Get(uint cellID)
         {
-            return LScape.get_landcell(cellID);
+            return (LandCell)LScape.get_landcell(cellID);
         }
 
         public new void Init()
