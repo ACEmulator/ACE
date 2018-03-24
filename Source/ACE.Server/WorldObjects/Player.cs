@@ -47,8 +47,6 @@ namespace ACE.Server.WorldObjects
             TotalExperience = TotalExperience ?? 0;
 
             SetEphemeralValues();
-
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -62,8 +60,6 @@ namespace ACE.Server.WorldObjects
             Session = session;
 
             SetEphemeralValues();
-
-            InitPhysics = true;
         }
 
         private void SetEphemeralValues()

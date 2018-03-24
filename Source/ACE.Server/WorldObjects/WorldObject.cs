@@ -62,6 +62,8 @@ namespace ACE.Server.WorldObjects
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -76,6 +78,8 @@ namespace ACE.Server.WorldObjects
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         /// <summary>
