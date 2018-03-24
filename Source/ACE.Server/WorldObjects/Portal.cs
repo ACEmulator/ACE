@@ -127,9 +127,9 @@ namespace ACE.Server.WorldObjects
             SetProperty(PropertyBool.Stuck, true);
             SetProperty(PropertyBool.Attackable, true);
 
-            MinLevel = Biota.GetProperty(PropertyInt.MinLevel) ?? 0;
-            MaxLevel = Biota.GetProperty(PropertyInt.MaxLevel) ?? 0;
-            PortalBitmask = Biota.GetProperty(PropertyInt.PortalBitmask) ?? 0;
+            MinLevel = MinLevel ?? 0;
+            MaxLevel = MaxLevel ?? 0;
+            PortalBitmask = PortalBitmask ?? 0;
         }
 
         public string AppraisalPortalDestination
@@ -142,22 +142,22 @@ namespace ACE.Server.WorldObjects
             get;
         }
 
-        public int MinLevel
+        private int? MinLevel
         {
-            get;
-            set;
+            get => Biota.GetProperty(PropertyInt.MinLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
         }
 
-        public int MaxLevel
+        private int? MaxLevel
         {
-            get;
-            set;
+            get => Biota.GetProperty(PropertyInt.MaxLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
         }
 
-        public int PortalBitmask
+        private int? PortalBitmask
         {
-            get;
-            set;
+            get => Biota.GetProperty(PropertyInt.PortalBitmask);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
         }
 
         public int SocietyId => 0;
