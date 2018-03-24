@@ -475,7 +475,15 @@ namespace ACE.Server.Network.Handlers
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
                     return;
                 }
-
+                BadWords.ReadFile();
+                foreach (string words in BadWords.BadWordsList)
+                {
+                    if (characterCreateInfo.Name.ToLower().Contains(words))
+                    {
+                        SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+                        return;
+                    }
+                }
                 // player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
 
                 var character = new Character();

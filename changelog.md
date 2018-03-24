@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2018-03-18
+[CrimsonMage]
+* Add BannedWords.cs to handle TabooTable.json
+* Add TabooTable.json (Handles the banned names)
+* Added NameBanned message to CharacterHandler.cs
+
 ### 2018-03-15
 [Ripley + gmriggs + OptimShi]
 * Add Corpse class and basic framework for spawning a corpse at death of creature.
