@@ -720,16 +720,11 @@ namespace ACE.Server.WorldObjects
 
             log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
 
-            if (update)
-            {
-                 Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
-                // TODO: Better handling of sending updates to client. The above line is causing much more problems then it is solving until we get proper movement.
-                // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
-            }
-            else
-            {
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
-            }
+            Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+
+            // TODO: Better handling of sending updates to client. The above line is causing much more problems then it is solving until we get proper movement.
+            // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
+            // Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
         }
 
         public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
