@@ -1,11 +1,13 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+using ACE.Entity.Enum;
+
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventUseDone : GameEventMessage
     {
-        public GameEventUseDone(Session session)
+        public GameEventUseDone(Session session, WERROR errorType = WERROR.WERROR_NONE)
             : base(GameEventType.UseDone, GameMessageGroup.UIQueue, session)
         {
-            Writer.Write(0x00);
+            Writer.Write((uint)errorType);
         }
     }
 }
