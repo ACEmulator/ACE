@@ -151,13 +151,13 @@ namespace ACE.Server.WorldObjects
         private int? MaxLevel
         {
             get => Biota.GetProperty(PropertyInt.MaxLevel);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
         }
 
         private int? PortalBitmask
         {
             get => Biota.GetProperty(PropertyInt.PortalBitmask);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, value.Value); }
         }
 
         public int SocietyId => 0;
