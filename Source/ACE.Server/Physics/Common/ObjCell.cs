@@ -146,8 +146,9 @@ namespace ACE.Server.Physics.Common
         {
             if (cellID == 0) return null;
 
+            // is this supposed to return a list?
             if ((cellID & 0xFFFF) >= 0x100)
-                return EnvCell.GetVisible(cellID);
+               return EnvCell.get_visible(cellID);
             else
                 return LandCell.Get(cellID);
         }

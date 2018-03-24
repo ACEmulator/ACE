@@ -34,6 +34,8 @@ namespace ACE.Server.WorldObjects
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -42,6 +44,8 @@ namespace ACE.Server.WorldObjects
         public Creature(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         private void SetEphemeralValues()
