@@ -126,6 +126,10 @@ namespace ACE.Server.WorldObjects
 
             SetProperty(PropertyBool.Stuck, true);
             SetProperty(PropertyBool.Attackable, true);
+
+            MinLevel = Biota.GetProperty(PropertyInt.MinLevel) ?? 0;
+            MaxLevel = Biota.GetProperty(PropertyInt.MaxLevel) ?? 0;
+            PortalBitmask = Biota.GetProperty(PropertyInt.PortalBitmask) ?? 0;
         }
 
         public string AppraisalPortalDestination
@@ -138,14 +142,22 @@ namespace ACE.Server.WorldObjects
             get;
         }
 
-        public int MinimumLevel
+        public int MinLevel
         {
             get;
+            set;
         }
 
-        public int MaximumLevel
+        public int MaxLevel
         {
             get;
+            set;
+        }
+
+        public int PortalBitmask
+        {
+            get;
+            set;
         }
 
         public int SocietyId => 0;
@@ -179,7 +191,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
                 // Check player level -- requires remote query to player (ugh)...
-                if ((player.Level >= MinimumLevel) && ((player.Level <= MaximumLevel) || (MaximumLevel == 0)))
+                if ((player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)))
                 {
                     Position portalDest = Destination;
                     switch (WeenieClassId)
@@ -276,7 +288,7 @@ namespace ACE.Server.WorldObjects
                     if (IsRecallable)
                         player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                 }
-                else if ((player.Level > MaximumLevel) && (MaximumLevel != 0))
+                else if ((player.Level > MaxLevel) && (MaxLevel != 0))
                 {
                     // You are too powerful to interact with that portal!
                     var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouAreTooPowerfulToUsePortal);
