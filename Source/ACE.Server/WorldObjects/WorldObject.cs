@@ -24,6 +24,8 @@ using ACE.Server.Physics.Common;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
+using System.ComponentModel;
+using System.Timers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -304,11 +306,48 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock => CurrentParent as Landblock;
 
+        [DefaultValue(0)]
+        private int timeToDecay;
 
         /// <summary>
         /// Time when this object will despawn, -1 is never.
         /// </summary>
-        public double DespawnTime { get; set; } = -1;
+        [DefaultValue(-1)]
+        public int DespawnTime
+        {
+            get
+            {
+                return timeToDecay;
+            }
+            set
+            {
+                if (value > -1)
+                {
+                    if (despawnTimer == null)
+                        despawnTimer = new System.Timers.Timer();
+                    despawnTimer.Elapsed += DespawnTimer_Elapsed;
+                    despawnTimer.Enabled = true;
+                    despawnTimer.Interval = 1000;
+                    timeToDecay = value;
+                    Console.WriteLine($"Timer for {Name} started");
+                }
+            }
+        }
+
+        private System.Timers.Timer despawnTimer = null;
+
+        private void DespawnTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (timeToDecay > 0)
+                timeToDecay--;
+            if (timeToDecay == 0)
+                despawnTimer.Elapsed -= DespawnTimer_Elapsed;
+        }
+
+        public void UpdateDespawnTimer(bool enabled)
+        {
+            despawnTimer.Enabled = enabled;
+        }
 
         private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
@@ -539,6 +578,10 @@ namespace ACE.Server.WorldObjects
                 var physicsState = CalculatedPhysicsState();
                 GameMessage msg = new GameMessageSetState(this, physicsState);
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            }
+            else
+            {
+                Console.WriteLine("CurrnetLandblock is null");
             }
         }
 
