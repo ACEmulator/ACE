@@ -7,8 +7,10 @@ namespace ACE.Database.Models.Shard
     {
         public uint Id { get; set; }
         public uint ObjectId { get; set; }
-        public uint EmoteId { get; set; }
+        public uint EmoteCategory { get; set; }
+        public uint EmoteSetId { get; set; }
         public uint Type { get; set; }
+        public uint Order { get; set; }
         public float Delay { get; set; }
         public float Extent { get; set; }
         public int? Motion { get; set; }
@@ -47,7 +49,7 @@ namespace ACE.Database.Models.Shard
         public float? AnglesY { get; set; }
         public float? AnglesZ { get; set; }
 
-        public BiotaPropertiesEmote Emote { get; set; }
+        public BiotaPropertiesEmote BiotaPropertiesEmote { get; set; }
         public Biota Object { get; set; }
     }
 }
