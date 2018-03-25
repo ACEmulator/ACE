@@ -3,6 +3,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -39,9 +40,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the player using the item.<para />
+        /// The item should be in the players possession.
         /// </summary>
-        public override void DoActionUseItem(Player player)
+        public override void UseItem(Player player, ActionChain actionChain)
         {
             Player.ConsumableBuffType buffType;
 

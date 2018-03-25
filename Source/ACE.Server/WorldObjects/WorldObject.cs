@@ -295,8 +295,6 @@ namespace ACE.Server.WorldObjects
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
-        public IActor CurrentParent { get; private set; }
-
         public Position ForcedLocation { get; private set; }
 
         public Position RequestedLocation { get; private set; }
@@ -313,10 +311,6 @@ namespace ACE.Server.WorldObjects
         /// Time when this object will despawn, -1 is never.
         /// </summary>
         public double DespawnTime { get; set; } = -1;
-
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
-
-
 
         /// <summary>
         /// tick-stamp for the server time of the last time the player moved.

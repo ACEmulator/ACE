@@ -370,38 +370,16 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
-        public bool WithinUseRadius(ObjectGuid playerGuid, ObjectGuid targetGuid, out float arrivedRadiusSquared, out bool validGuids)
+        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid)
         {
-            var playerPosition = GetWorldObjectPosition(playerGuid);
-            var targetPosition = GetWorldObjectPosition(targetGuid);
-            if (playerPosition != null && targetPosition != null)
-            {
-                validGuids = true;
-                arrivedRadiusSquared = GetWorldObjectEffectiveUseRadius(targetGuid);
-                return (playerPosition.SquaredDistanceTo(targetPosition) <= arrivedRadiusSquared);
-            }
-            arrivedRadiusSquared = 0.00f;
-            validGuids = false;
+            var target = GetObject(targetGuid);
+
+            validTargetGuid = target != null;
+
+            if (target != null)
+                return player.IsWithinUseRadiusOf(target);
+
             return false;
-        }
-
-        private Position GetWorldObjectPosition(ObjectGuid objectId)
-        {
-            Log($"Getting WorldObject Position {objectId.Full:X}");
-
-            return worldObjects.ContainsKey(objectId) ? worldObjects[objectId].Location : null;
-        }
-
-        public float GetWorldObjectEffectiveUseRadius(ObjectGuid objectId)
-        {
-            Log($"Getting WorldObject Effective Use Radius {objectId.Full:X}");
-
-            WorldObject wo = worldObjects.ContainsKey(objectId) ? worldObjects[objectId] : null;
-            if (wo?.SetupTableId == null) return 0.00f;
-            var csetup = DatManager.PortalDat.ReadFromDat<SetupModel>(wo.SetupTableId);
-            if (wo.UseRadius != null)
-                return (float)Math.Pow(wo.UseRadius.Value + csetup.Radius + 1.5, 2);
-            return (float)Math.Pow(0.25 + csetup.Radius + 1.5, 2);
         }
 
         // FIXME(ddevec): Hacky kludge -- trying to get rid of UseTime

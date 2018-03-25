@@ -10,10 +10,8 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
@@ -1272,43 +1270,6 @@ namespace ACE.Server.WorldObjects
 
             ForcedLocation = null;
             RequestedLocation = null;
-        }
-
-
-        /// <summary>
-        /// Manages action/broadcast infrastructure
-        /// </summary>
-        /// <param name="parent"></param>
-        public void SetParent(IActor parent)
-        {
-            CurrentParent = parent;
-            actionQueue.RemoveParent();
-            actionQueue.SetParent(parent);
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
-        {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        /// <param name="node"></param>
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        public void RunActions()
-        {
-            actionQueue.RunActions();
         }
 
         public bool? IgnoreCloIcons

@@ -59,6 +59,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetFailureAnimation); else SetProperty(PropertyDataId.UseTargetFailureAnimation, value.Value); }
         }
 
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the item being used.<para />
+        /// The item does not exist in the players possession.<para />
+        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
+        /// When this is called, it should be assumed that the player is within range.
+        /// </summary>
         public override void ActOnUse(Player player)
         {
             //if (ServerIsPKServer) // Need some form of config switch in configmanager...

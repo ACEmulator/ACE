@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -68,16 +70,24 @@ namespace ACE.Server.WorldObjects
             SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
         }
 
-        // Called by the Landblock for books that are WorldObjects (some notes pinned to the ground, statues, pedestals and tips in training academy, etc
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the item being used.<para />
+        /// The item does not exist in the players possession.<para />
+        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
+        /// When this is called, it should be assumed that the player is within range.
+        /// </summary>
         public override void ActOnUse(Player player)
         {
             BookUseHandler(player.Session);
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the player using the item.<para />
+        /// The item should be in the players possession.
         /// </summary>
-        public override void DoActionUseItem(Player player)
+        public override void UseItem(Player player, ActionChain actionChain)
         {
             BookUseHandler(player.Session);
         }
