@@ -108,7 +108,6 @@ namespace ACE.Server.WorldObjects
         public Portal(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -117,15 +116,11 @@ namespace ACE.Server.WorldObjects
         public Portal(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-            InitPhysics = true;
         }
 
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
-
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
 
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
