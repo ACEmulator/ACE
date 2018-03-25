@@ -20,6 +20,9 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        private static readonly float PickUpDistance = .75f;
+
+
         /// <summary>
         /// Returns all inventory, side slot items, items in side containers, and all wielded items.
         /// </summary>
