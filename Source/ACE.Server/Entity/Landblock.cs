@@ -308,7 +308,15 @@ namespace ACE.Server.Entity
             }
             else
             {
-                wo.DespawnTime = 150;
+                double? woHasRotTimer = wo.GetProperty(PropertyFloat.TimeToRot);
+                if (woHasRotTimer != null)
+                {
+                    wo.DespawnTime = Convert.ToInt32(woHasRotTimer);
+                }
+                else
+                {
+                    wo.DespawnTime = 150;
+                }
             }
 
         }
