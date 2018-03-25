@@ -545,13 +545,27 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_emote");
 
+                entity.HasIndex(e => e.Category)
+                    .HasName("category_idx");
+
+                entity.HasIndex(e => e.EmoteSetId)
+                    .HasName("emoteset_idx");
+
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_emote_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Category, e.EmoteSetId })
+                    .HasName("wcid_category_emoteset_uidx")
+                    .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Category)
                     .HasColumnName("category")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EmoteSetId)
+                    .HasColumnName("emote_Set_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.MaxHealth).HasColumnName("max_Health");
@@ -592,11 +606,21 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_emote_action");
 
-                entity.HasIndex(e => e.EmoteId)
-                    .HasName("emoteset_emoteaction_idx");
+                entity.HasIndex(e => e.EmoteCategory)
+                    .HasName("emotecategory_idx");
 
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_emoteaction_idx");
+
+                entity.HasIndex(e => e.Order)
+                    .HasName("emoteorder_idx");
+
+                entity.HasIndex(e => e.Type)
+                    .HasName("emotetype_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Order })
+                    .HasName("wcid_category_set_order_uidx")
+                    .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -628,8 +652,12 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("display")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.EmoteId)
-                    .HasColumnName("emote_Id")
+                entity.Property(e => e.EmoteCategory)
+                    .HasColumnName("emote_Category")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EmoteSetId)
+                    .HasColumnName("emote_Set_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Extent)
@@ -672,6 +700,10 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Order)
+                    .HasColumnName("order")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
@@ -736,15 +768,16 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("weenie_Class_Id")
                     .HasColumnType("int(10)");
 
-                entity.HasOne(d => d.Emote)
-                    .WithMany(p => p.BiotaPropertiesEmoteAction)
-                    .HasForeignKey(d => d.EmoteId)
-                    .HasConstraintName("emote_emoteaction");
-
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesEmoteAction)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_emoteaction");
+
+                entity.HasOne(d => d.BiotaPropertiesEmote)
+                    .WithMany(p => p.BiotaPropertiesEmoteAction)
+                    .HasPrincipalKey(p => new { p.ObjectId, p.Category, p.EmoteSetId })
+                    .HasForeignKey(d => new { d.ObjectId, d.EmoteCategory, d.EmoteSetId })
+                    .HasConstraintName("wcid_emoteset");
             });
 
             modelBuilder.Entity<BiotaPropertiesEnchantmentRegistry>(entity =>
