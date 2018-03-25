@@ -1,1 +1,0 @@
-https://ci.appveyor.com/api/buildjobs/5l5w1fors9ubohv4/artifacts/ACE-World-16PY-db-v0.0.7-bmgmufes.sql.zip
