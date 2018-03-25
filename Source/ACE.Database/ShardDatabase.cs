@@ -109,13 +109,13 @@ namespace ACE.Database
                     .Include(r => r.BiotaPropertiesBool)
                     .FirstOrDefault(r => r.Id == biotaId);
 
-                if (result.GetProperty(PropertyBool.IsAdmin) ?? false)
+                if (result.GetProperty(PropertyBool.IsAdmin, new ReaderWriterLockSlim()) ?? false)
                     ret = true;
-                if (result.GetProperty(PropertyBool.IsArch) ?? false)
+                if (result.GetProperty(PropertyBool.IsArch, new ReaderWriterLockSlim()) ?? false)
                     ret = true;
-                if (result.GetProperty(PropertyBool.IsPsr) ?? false)
+                if (result.GetProperty(PropertyBool.IsPsr, new ReaderWriterLockSlim()) ?? false)
                     ret = true;
-                if (result.GetProperty(PropertyBool.IsSentinel) ?? false)
+                if (result.GetProperty(PropertyBool.IsSentinel, new ReaderWriterLockSlim()) ?? false)
                     ret = true;
 
                 if (result.WeenieType == (int)WeenieType.Admin || result.WeenieType == (int)WeenieType.Sentinel)

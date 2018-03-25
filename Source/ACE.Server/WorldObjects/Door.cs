@@ -72,10 +72,10 @@ namespace ACE.Server.WorldObjects
                 //Ethereal = true;
             }
 
-            IsLocked = Biota.GetProperty(PropertyBool.Locked) ?? false;
-            ResetInterval = Biota.GetProperty(PropertyFloat.ResetInterval) ?? 30.0f;
-            ResistLockpick = Biota.GetProperty(PropertyInt.ResistLockpick) ?? 0;
-            LockCode = Biota.GetProperty(PropertyString.LockCode) ?? "";
+            IsLocked = IsLocked ?? false;
+            ResetInterval = ResetInterval ?? 30.0f;
+            ResistLockpick = ResistLockpick ?? 0;
+            LockCode = LockCode ?? "";
 
             // If we had the base weenies this would be the way to go
             ////if (DefaultLocked)
@@ -106,10 +106,10 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        private double ResetInterval
+        private double? ResetInterval
         {
-            get;
-            set;
+            get => GetProperty(PropertyFloat.ResetInterval);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResetInterval); else SetProperty(PropertyFloat.ResetInterval, value.Value); }
         }
 
         private double? resetTimestamp;
@@ -147,8 +147,8 @@ namespace ACE.Server.WorldObjects
 
         private string LockCode
         {
-            get;
-            set;
+            get => GetProperty(PropertyString.LockCode);
+            set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
         }
 
         private string ShortDesc
@@ -165,8 +165,8 @@ namespace ACE.Server.WorldObjects
 
         private int? ResistLockpick
         {
-            get;
-            set;
+            get => GetProperty(PropertyInt.ResistLockpick);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
         }
 
         private int? AppraisalLockpickSuccessPercent
@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
 
                     // Create Door auto close timer
                     ActionChain autoCloseTimer = new ActionChain();
-                    autoCloseTimer.AddDelaySeconds(ResetInterval);
+                    autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
                     autoCloseTimer.AddAction(this, () => Reset());
                     autoCloseTimer.EnqueueChain();
                 }

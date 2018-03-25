@@ -58,7 +58,7 @@ namespace ACE.Server.Managers
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
                     session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
 
-                var location = biotas.Player.GetPosition(PositionType.Location);
+                var location = player.GetPosition(PositionType.Location);
                 Landblock block = GetLandblock(location.LandblockId, true);
                 // Must enqueue add world object -- this is called from a message handler context
                 block.AddWorldObject(session.Player);

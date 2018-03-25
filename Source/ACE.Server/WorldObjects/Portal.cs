@@ -139,19 +139,19 @@ namespace ACE.Server.WorldObjects
 
         private int? MinLevel
         {
-            get => Biota.GetProperty(PropertyInt.MinLevel);
+            get => GetProperty(PropertyInt.MinLevel);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
         }
 
         private int? MaxLevel
         {
-            get => Biota.GetProperty(PropertyInt.MaxLevel);
+            get => GetProperty(PropertyInt.MaxLevel);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
         }
 
         private int? PortalBitmask
         {
-            get => Biota.GetProperty(PropertyInt.PortalBitmask);
+            get => GetProperty(PropertyInt.PortalBitmask);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, value.Value); }
         }
 
