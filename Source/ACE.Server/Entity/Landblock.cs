@@ -407,8 +407,9 @@ namespace ACE.Server.Entity
 
             var allworldobj = worldObjects.Values;
             allplayers = allworldobj.OfType<Player>().ToList();
+            // TODO: replace this once new collections are created (Morosity)
             decayedObjects = (from d in allworldobj
-                            where d.DespawnTime == 0
+                            where d.DespawnTime == 0 && !allplayers.Contains(d)
                             select d).ToList();
             foreach (WorldObject wo in decayedObjects)
             {
