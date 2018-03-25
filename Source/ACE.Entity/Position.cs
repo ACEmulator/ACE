@@ -273,33 +273,34 @@ namespace ACE.Entity
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-
-            if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            //if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            else
             {
+                // verify this is working correctly if one of these is indoors
                 var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
                 var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
-            return float.NaN;
         }
 
         public float DistanceTo(Position p)
         {
+            // originally this returned the offset instead of distance...
             if (p.LandblockId == this.LandblockId)
             {
                 var dx = this.PositionX - p.PositionX;
                 var dy = this.PositionY - p.PositionY;
-                return dx + dy;
+                return (float)Math.Sqrt(dx * dx + dy * dy);
             }
-
-            if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            //if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            else
             {
+                // verify this is working correctly if one of these is indoors
                 var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
                 var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
-                return dx + dy;
+                return (float)Math.Sqrt(dx * dx + dy * dy);
             }
-            return float.NaN;
         }
 
         public override string ToString()
