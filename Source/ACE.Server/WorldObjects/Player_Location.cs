@@ -1,5 +1,6 @@
-using System;
 
+using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -9,12 +10,13 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
-using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        private static readonly Position MarketplaceDrop = DatabaseManager.World.GetCachedWeenie("portalmarketplace").GetPosition(PositionType.Destination);
+
         /// <summary>
         /// Teleports the player to position
         /// </summary>

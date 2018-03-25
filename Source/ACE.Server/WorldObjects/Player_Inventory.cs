@@ -20,6 +20,9 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        private static readonly float PickUpDistance = .75f;
+
+
         /// <summary>
         /// Returns all inventory, side slot items, items in side containers, and all wielded items.
         /// </summary>
@@ -119,12 +122,22 @@ namespace ACE.Server.WorldObjects
             ActionChain pickUpItemChain = new ActionChain();
 
             // Move to the object
-            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance));
+            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance, out var thisMoveToChainNumber));
 
             // Pick up the object
             // Start pickup animation
+            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
             pickUpItemChain.AddAction(this, () =>
             {
+                /*if (thisMoveToChainNumberCopy != moveToChainCounter)
+                {
+                    // todo we need to break the pickUpItemChain to stop further elements from executing
+                    // todo alternatively, we create a MoveToManager (see the physics implementation) to manage this.
+                    // todo I figured having the ability to someChain.BreakChain() might come in handy in the future. - Mag
+                    return;
+                }*/
+
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,

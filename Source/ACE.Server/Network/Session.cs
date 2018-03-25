@@ -201,7 +201,7 @@ namespace ACE.Server.Network
                     }
                 }
 
-                /*if (lastAgeIntUpdateTime == DateTime.MinValue)
+                if (lastAgeIntUpdateTime == DateTime.MinValue)
                     lastAgeIntUpdateTime = DateTime.UtcNow;
 
                 if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
@@ -217,7 +217,7 @@ namespace ACE.Server.Network
                 {
                     Player.SendAgeInt();
                     lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }*/
+                }
             }
         }
 
