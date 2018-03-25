@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace ACE.DatLoader.Entity
 {
@@ -16,6 +17,8 @@ namespace ACE.DatLoader.Entity
 
         public List<byte> PosUVIndices { get; } = new List<byte>();
         public List<byte> NegUVIndices { get; private set; } = new List<byte>();
+
+        public List<SWVertex> Vertices;
 
         public void Unpack(BinaryReader reader)
         {
@@ -46,6 +49,14 @@ namespace ACE.DatLoader.Entity
                 NegSurface = PosSurface;
                 NegUVIndices = PosUVIndices;
             }
+        }
+
+        public void LoadVertices(CVertexArray vertexArray)
+        {
+            Vertices = new List<SWVertex>();
+
+            foreach (var id in VertexIds)
+                Vertices.Add(vertexArray.Vertices[(ushort)id]);
         }
     }
 }

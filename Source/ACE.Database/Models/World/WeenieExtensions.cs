@@ -266,6 +266,7 @@ namespace ACE.Database.Models.World
                     ObjectId = biota.Id,
                     Category = value.Category,
                     Probability = value.Probability,
+                    EmoteSetId = value.EmoteSetId,
                     WeenieClassId = value.WeenieClassId,
                     Style = value.Style,
                     Substyle = value.Substyle,
@@ -280,8 +281,10 @@ namespace ACE.Database.Models.World
                     var action = new BiotaPropertiesEmoteAction
                     {
                         ObjectId = biota.Id,
-                        // EmoteId
+                        EmoteCategory = subValue.EmoteCategory,
+                        EmoteSetId = subValue.EmoteSetId,
                         Type = subValue.Type,
+                        Order = subValue.Order,
                         Delay = subValue.Delay,
                         Extent = subValue.Extent,
                         Motion = subValue.Motion,

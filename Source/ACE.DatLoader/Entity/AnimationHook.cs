@@ -3,11 +3,14 @@ using System.IO;
 
 using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
+using log4net;
 
 namespace ACE.DatLoader.Entity
 {
     public class AnimationHook : IUnpackable
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public AnimationHookType HookType { get; private set; }
         public AnimationHookDir Direction { get; private set; }
 
@@ -137,10 +140,13 @@ namespace ACE.DatLoader.Entity
                     break;
 
                 default:
-                    throw new NotImplementedException($"Hook type: {hookType}");
+                    log.Warn($"Not Implemented Hook type encountered: {hookType}");
+                    hook = null;
+                    break;
             }
 
-            hook.Unpack(reader);
+            if (hook != null)
+                hook.Unpack(reader);
 
             return hook;
         }

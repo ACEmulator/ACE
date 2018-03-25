@@ -9,6 +9,30 @@ namespace ACE.Server.Physics.Collision
         public Vector3 Min;
         public Vector3 Max;
 
+        public BBox() { }
+
+        public BBox(List<DatLoader.Entity.Polygon> polys, Matrix4x4 transform)
+        {
+            Min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+            foreach (var poly in polys)
+            {
+                foreach (var vertex in poly.Vertices)
+                {
+                    var v = Vector3.Transform(new Vector3(vertex.X, vertex.Y, vertex.Z), transform);
+
+                    if (v.X < Min.X) Min.X = v.X;
+                    if (v.Y < Min.Y) Min.Y = v.Y;
+                    if (v.Z < Min.Z) Min.Z = v.Z;
+
+                    if (v.X > Max.X) Max.X = v.X;
+                    if (v.Y > Max.Y) Max.Y = v.Y;
+                    if (v.Z > Max.Z) Max.Z = v.Z;
+                }
+            }
+        }
+
         public void AdjustBBox(Vector3 v)
         {
             if (v.X < Min.X) Min.X = v.X;
@@ -29,6 +53,16 @@ namespace ACE.Server.Physics.Collision
             if (Max.X > bbox.Max.X) bbox.Max.X = Max.X;
             if (Max.Y > bbox.Max.Y) bbox.Max.Y = Max.Y;
             if (Max.Z > bbox.Max.Z) bbox.Max.Z = Max.Z;
+        }
+
+        /// <summary>
+        /// Returns TRUE if point is inside box
+        /// </summary>
+        public bool Contains(Vector3 point)
+        {
+            return (point.X >= Min.X && point.X <= Max.X) &&
+                   (point.Y >= Min.Y && point.Y <= Max.Y) &&
+                   (point.Z >= Min.Z && point.Z <= Max.Z);
         }
 
         public void ConvertToGlobal(Position pos)

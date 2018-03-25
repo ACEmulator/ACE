@@ -11,6 +11,7 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Hooks;
 using ACE.Server.Physics.Sound;
+using log4net;
 using ObjectGuid = ACE.Entity.ObjectGuid;
 
 namespace ACE.Server.Physics
@@ -20,6 +21,8 @@ namespace ACE.Server.Physics
     /// </summary>
     public class PhysicsObj
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint ID;
         public ObjectGuid ObjID;
         public PartArray PartArray;
@@ -521,14 +524,16 @@ namespace ACE.Server.Physics
 
             if (setup.DefaultSTableID != 0)
             {
-                var qdid = new QualifiedDataID(setup.DefaultSTableID, 0x22);
-                SoundTable = (SoundTable)DBObj.Get(qdid);
+                //var qdid = new QualifiedDataID(0x22, setup.DefaultSTableID);
+                //SoundTable = (SoundTable)DBObj.Get(qdid);
+                log.Warn($"PhysicsObj has DefaultSTableID, (SoundTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x22, {setup.DefaultSTableID});");
             }
 
             if (setup.DefaultPhsTableID != 0)
             {
-                var qdid = new QualifiedDataID(setup.DefaultPhsTableID, 0x2C);
-                PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
+                //    var qdid = new QualifiedDataID(0x2C, setup.DefaultPhsTableID);
+                //    PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
+                log.Warn($"PhysicsObj has DefaultPhsTableID, (PhysicsScriptTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x2C, {setup.DefaultPhsTableID});");
             }
 
             if (State.HasFlag(PhysicsState.Static))

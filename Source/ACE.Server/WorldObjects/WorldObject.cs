@@ -21,6 +21,7 @@ using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Util;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
@@ -64,6 +65,8 @@ namespace ACE.Server.WorldObjects
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -78,6 +81,8 @@ namespace ACE.Server.WorldObjects
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
             SetEphemeralValues();
+
+            InitPhysics = true;
         }
 
         /// <summary>
@@ -96,6 +101,8 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.makeAnimObject(SetupTableId, true);
             PhysicsObj.SetMotionTableID(MotionTableId);
+
+            AdjustDungeonCells(Location);
 
             var cell = LScape.get_landcell(Location.Cell);
             if (cell != null)
@@ -293,8 +300,6 @@ namespace ACE.Server.WorldObjects
 
         public static float MaxObjectTrackingRange { get; } = 20000f;
 
-        public IActor CurrentParent { get; private set; }
-
         public Position ForcedLocation { get; private set; }
 
         public Position RequestedLocation { get; private set; }
@@ -348,10 +353,6 @@ namespace ACE.Server.WorldObjects
         {
             despawnTimer.Enabled = enabled;
         }
-
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
-
-
 
         /// <summary>
         /// tick-stamp for the server time of the last time the player moved.
@@ -847,6 +848,19 @@ namespace ACE.Server.WorldObjects
                     QueueGenerator();
                 }
             }
+        }
+
+        private void AdjustDungeonCells(Position pos)
+        {
+            var dungeonID = pos.Cell >> 16;
+            if (!AdjustCell.AdjustDungeons.Contains(dungeonID))
+                return;
+
+            var adjustCell = AdjustCell.Get(dungeonID);
+            var cellID = adjustCell.GetCell(pos.Pos);
+
+            if (cellID != null)
+                pos.Cell = cellID.Value;
         }
     }
 }

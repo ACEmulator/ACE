@@ -108,7 +108,6 @@ namespace ACE.Server.WorldObjects
         public Portal(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -117,15 +116,11 @@ namespace ACE.Server.WorldObjects
         public Portal(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-            InitPhysics = true;
         }
 
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
-
-            SetProperty(PropertyBool.Stuck, true);
-            SetProperty(PropertyBool.Attackable, true);
 
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
@@ -309,11 +304,16 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the item being used.<para />
+        /// The item does not exist in the players possession.<para />
+        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
+        /// When this is called, it should be assumed that the player is within range.
+        /// </summary>
         public override void ActOnUse(Player player)
         {
-            // always send useDone event
-            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
     }
 }

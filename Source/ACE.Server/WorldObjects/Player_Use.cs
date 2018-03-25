@@ -18,8 +18,6 @@ namespace ACE.Server.WorldObjects
         private ActionChain CreateMoveToChain(ObjectGuid target, float distance)
         {
             ActionChain moveToChain = new ActionChain();
-            // While !at(thing) moveToThing
-            ActionChain moveToBody = new ActionChain();
 
             moveToChain.AddAction(this, () =>
             {
@@ -37,7 +35,7 @@ namespace ACE.Server.WorldObjects
                         else
                         {
                             // could be a child container of this container
-                            log.Error("Player CreateMoveToChain container inception not finished");
+                            log.Error("Player_Use CreateMoveToChain container inception not finished");
                             return;
                         }
                     }
@@ -45,13 +43,13 @@ namespace ACE.Server.WorldObjects
 
                 if (targetObject == null)
                 {
-                    log.Error("Player CreateMoveToChain targetObject null");
+                    log.Error("Player_Use CreateMoveToChain targetObject null");
                     return;
                 }
 
                 if (targetObject.Location == null)
                 {
-                    log.Error("Player CreateMoveToChain targetObject.Location null");
+                    log.Error("Player_Use CreateMoveToChain targetObject.Location null");
                     return;
                 }
 
@@ -62,17 +60,17 @@ namespace ACE.Server.WorldObjects
             });
 
             // poll for arrival every .1 seconds
+            ActionChain moveToBody = new ActionChain();
             moveToBody.AddDelaySeconds(.1);
 
             moveToChain.AddLoop(this, () =>
             {
-                float outdistance;
-
-                // Break loop if CurrentLandblock == null (we portaled or logged out), or if we arrive at the item
+                // Break loop if CurrentLandblock == null (we portaled or logged out)
                 if (CurrentLandblock == null)
                     return false;
 
-                bool ret = !CurrentLandblock.WithinUseRadius(Guid, target, out outdistance, out var valid);
+                // Are we within use radius?
+                bool ret = !CurrentLandblock.WithinUseRadius(this, target, out var valid);
 
                 // If one of the items isn't on a landblock
                 if (!valid)
@@ -84,16 +82,45 @@ namespace ACE.Server.WorldObjects
             return moveToChain;
         }
 
-        private void DoMoveTo(WorldObject wo)
+        private ActionChain CreateMoveToChain(WorldObject target, float distance)
         {
-            ActionChain moveToObjectChain = new ActionChain();
+            ActionChain moveToChain = new ActionChain();
 
-            moveToObjectChain.AddChain(CreateMoveToChain(wo.Guid, 0.2f));
-            moveToObjectChain.AddDelaySeconds(0.50);
+            moveToChain.AddAction(this, () =>
+            {
+                if (target.Location == null)
+                {
+                    log.Error("Player_Use CreateMoveToChain targetObject.Location null");
+                    return;
+                }
 
-            moveToObjectChain.AddAction(wo, () => wo.ActOnUse(this));
+                if (target.WeenieType == WeenieType.Portal)
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid);
+                else
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid);
+            });
 
-            moveToObjectChain.EnqueueChain();
+            // poll for arrival every .1 seconds
+            ActionChain moveToBody = new ActionChain();
+            moveToBody.AddDelaySeconds(.1);
+
+            moveToChain.AddLoop(this, () =>
+            {
+                // Break loop if CurrentLandblock == null (we portaled or logged out)
+                if (CurrentLandblock == null)
+                    return false;
+
+                // Are we within use radius?
+                bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
+
+                // If one of the items isn't on a landblock
+                if (!valid)
+                    ret = false;
+
+                return ret;
+            }, moveToBody);
+
+            return moveToChain;
         }
 
         public void SendUseDoneEvent()
@@ -101,44 +128,11 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
 
- 
+
         // ===============================
         // Game Action Handlers - Use Item
         // ===============================
         // These are raised by client actions
-
-        public void HandleActionUseItem(ObjectGuid usedItemId)
-        {
-            new ActionChain(this, () =>
-            {
-                var iwo = GetInventoryItem(usedItemId);
-
-                // todo, I think for this, DoActionUseItem should be renamed BuildUseItemActionChain
-                // Then, we can add the GameEventUseDone and queue the action.
-                // Overrides of the DoActionUseItem fn shouldn't have to be concerned with the GameEventUseDone message.
-                if (iwo != null)
-                    iwo.DoActionUseItem(this);
-                else
-                {
-                    if (CurrentLandblock != null)
-                    {
-                        // Just forward our action to the appropriate user...
-                        var wo = CurrentLandblock.GetObject(usedItemId);
-
-                        if (wo != null)
-                        {
-                            if (wo is Container)
-                                lastUsedContainerId = usedItemId;
-
-                            if (!IsWithinUseRadiusOf(wo))
-                                DoMoveTo(wo);
-                            else
-                                wo.ActOnUse(this);
-                        }
-                    }
-                }
-            }).EnqueueChain();
-        }
 
         public void HandleActionUseWithTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
         {
@@ -169,6 +163,51 @@ namespace ACE.Server.WorldObjects
                     RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
                 }
             }).EnqueueChain();
+        }
+
+        public void HandleActionUseItem(ObjectGuid usedItemId)
+        {
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(this, () =>
+            {
+                // Search our inventory first
+                var item = GetInventoryItem(usedItemId);
+
+                if (item != null)
+                    item.UseItem(this, actionChain);
+                else
+                {
+                    // Search the world second
+                    item = CurrentLandblock.GetObject(usedItemId);
+
+                    if (item == null)
+                    {
+                        Session.Network.EnqueueSend(new GameEventUseDone(Session)); // todo add an argument that indicates the item was not found
+                        return;
+                    }
+
+                    if (item is Container)
+                        lastUsedContainerId = usedItemId;
+
+                    if (!IsWithinUseRadiusOf(item))
+                    {
+                        actionChain.AddChain(CreateMoveToChain(item, item.UseRadiusSquared));
+                        actionChain.AddDelaySeconds(0.50);
+
+                        // Make sure that after we've executed our MoveToChain, and waited our delay, we're still within use radius.
+                        actionChain.AddAction(this, () =>
+                        {
+                            if (IsWithinUseRadiusOf(item))
+                                actionChain.AddAction(item, () => item.ActOnUse(this));
+                        });
+                    }
+                    else
+                        actionChain.AddAction(item, () => item.ActOnUse(this));
+                }
+            });
+
+            actionChain.EnqueueChain();
         }
     }
 }

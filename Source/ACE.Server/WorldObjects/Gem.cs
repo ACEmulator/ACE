@@ -8,6 +8,7 @@ using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -46,12 +47,16 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the player using the item.<para />
+        /// The item should be in the players possession.
+        /// 
         /// The OnUse method for this class is to use a contract to add a tracked quest to our quest panel.
         /// This gives the player access to information about the quest such as starting and ending NPC locations,
         /// and shows our progress for kill tasks as well as any timing information such as when we can repeat the
         /// quest or how much longer we have to complete it in the case of at timed quest.   Og II
         /// </summary>
-        public override void DoActionUseItem(Player player)
+        public override void UseItem(Player player, ActionChain actionChain)
         {
             if (UseCreateContractId == null)
             {

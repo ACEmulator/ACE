@@ -153,9 +153,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the player using the item.<para />
+        /// The item should be in the players possession.
         /// </summary>
-        public override void DoActionUseItem(Player player)
+        public override void UseItem(Player player, ActionChain actionChain)
         {
             bool success = true;
             string failReason = "You are unable to read the scroll.";
@@ -182,15 +184,13 @@ namespace ACE.Server.WorldObjects
                 failReason = "You already know the spell inscribed upon this scroll.";
             }
 
-            var readScrollChain = new ActionChain();
-
-            readScrollChain
+            actionChain
                 .AddAction(player, () => player.HandleActionMotion(motionReading))
                 .AddDelaySeconds(2);
 
             if (success)
             {
-                readScrollChain.AddAction(player, () =>
+                actionChain.AddAction(player, () =>
                 {
                     player.LearnSpellWithNetworking(SpellId);
                     player.HandleActionMotion(motionReady);
@@ -200,7 +200,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                readScrollChain
+                actionChain
                     .AddDelaySeconds(2)
                     .AddAction(player, () =>
                     {
@@ -209,9 +209,8 @@ namespace ACE.Server.WorldObjects
                     });
             }
 
-            readScrollChain
-                .AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)))
-                .EnqueueChain();
+            actionChain
+                .AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)));
         }
 
         //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

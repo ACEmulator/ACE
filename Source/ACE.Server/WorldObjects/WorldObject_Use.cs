@@ -1,5 +1,6 @@
 
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -19,31 +20,39 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the player using the item.<para />
+        /// The item should be in the players possession.
         /// </summary>
-        public virtual void DoActionUseItem(Player player)
+        public virtual void UseItem(Player player, ActionChain actionChain)
         {
             // Do Nothing by default
             #if DEBUG
-            var errorMessage = new GameMessageSystemChat($"Default OnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-            player.Session.Network.EnqueueSend(errorMessage);
+            var message = $"Default UseItem reached, this object ({Name}) not programmed yet.";
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
+            log.Error(message);
             #endif
 
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
 
+        /// <summary>
+        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
+        /// The actor of the ActionChain is the item being used.<para />
+        /// The item does not exist in the players possession.<para />
+        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
+        /// When this is called, it should be assumed that the player is within range.
+        /// </summary>
         public virtual void ActOnUse(Player player)
         {
             // Do Nothing by default
-            if (CurrentLandblock != null)
-            {
-                #if DEBUG
-                var errorMessage = new GameMessageSystemChat($"Default HandleActionOnUse reached, this object ({Name}) not programmed yet.", ChatMessageType.System);
-                player.Session.Network.EnqueueSend(errorMessage);
-                #endif
+            #if DEBUG
+            var message = $"Default ActOnUse reached, this object ({Name}) not programmed yet.";
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
+            log.Error(message);
+            #endif
 
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-            }
+            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
     }
 }
