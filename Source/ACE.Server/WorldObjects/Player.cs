@@ -159,7 +159,14 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        public override void HeartBeat()
+        {
+            // Do Stuff
 
+            
+
+            QueueNextHeartBeat();
+        }
 
 
 
@@ -564,15 +571,17 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateAge()
         {
-            //if (Character != null)
+            if (Age != null)
                 Age++;
+            else
+                Age = 1;
         }
 
         public void SendAgeInt()
         {
             try
             {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age.Value));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
             }
             catch (NullReferenceException)
             {
