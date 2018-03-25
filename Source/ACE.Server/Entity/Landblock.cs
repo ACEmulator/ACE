@@ -306,6 +306,19 @@ namespace ACE.Server.Entity
                 if (wo.InitPhysics && wo.PhysicsObj == null)
                     wo.InitPhysicsObj();
             }
+            else
+            {
+                double? woHasRotTimer = wo.GetProperty(PropertyFloat.TimeToRot);
+                if (woHasRotTimer != null)
+                {
+                    wo.DespawnTime = Convert.ToInt32(woHasRotTimer);
+                }
+                else
+                {
+                    wo.DespawnTime = 150;
+                }
+            }
+
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
@@ -398,9 +411,20 @@ namespace ACE.Server.Entity
             // here we'd move server objects in motion (subject to landscape) and do physics collision detection
 
             List<Player> allplayers = null;
+            List<WorldObject> decayedObjects = null;
 
             var allworldobj = worldObjects.Values;
             allplayers = allworldobj.OfType<Player>().ToList();
+            // TODO: replace this once new collections are created (Morosity)
+            decayedObjects = (from d in allworldobj
+                            where d.DespawnTime == 0 && !allplayers.Contains(d)
+                            select d).ToList();
+            foreach (WorldObject wo in decayedObjects)
+            {
+                RemoveWorldObject(wo.Guid, true);
+            }
+
+
 
             UpdateStatus(allplayers.Count);
 
