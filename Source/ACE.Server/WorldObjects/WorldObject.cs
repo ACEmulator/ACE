@@ -21,6 +21,7 @@ using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Util;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
@@ -98,6 +99,8 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.makeAnimObject(SetupTableId, true);
             PhysicsObj.SetMotionTableID(MotionTableId);
+
+            AdjustDungeonCells(Location);
 
             var cell = LScape.get_landcell(Location.Cell);
             if (cell != null)
@@ -802,6 +805,19 @@ namespace ACE.Server.WorldObjects
                     QueueGenerator();
                 }
             }
+        }
+
+        private void AdjustDungeonCells(Position pos)
+        {
+            var dungeonID = pos.Cell >> 16;
+            if (!AdjustCell.AdjustDungeons.Contains(dungeonID))
+                return;
+
+            var adjustCell = AdjustCell.Get(dungeonID);
+            var cellID = adjustCell.GetCell(pos.Pos);
+
+            if (cellID != null)
+                pos.Cell = cellID.Value;
         }
     }
 }
