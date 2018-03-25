@@ -1,3 +1,4 @@
+using System.Threading;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -15,8 +16,22 @@ namespace ACE.Server.WorldObjects
         private ObjectGuid lastUsedContainerId;
 
 
-        private ActionChain CreateMoveToChain(ObjectGuid target, float distance)
+        private int moveToChainCounter;
+
+        private int GetNextMoveToChainNumber()
         {
+            return Interlocked.Increment(ref moveToChainCounter);
+        }
+
+        private void StopExistingMoveToChains()
+        {
+            Interlocked.Increment(ref moveToChainCounter);
+        }
+
+        private ActionChain CreateMoveToChain(ObjectGuid target, float distance, out int thisMoveToChainNumber)
+        {
+            thisMoveToChainNumber = GetNextMoveToChainNumber();
+
             ActionChain moveToChain = new ActionChain();
 
             moveToChain.AddAction(this, () =>
@@ -63,8 +78,13 @@ namespace ACE.Server.WorldObjects
             ActionChain moveToBody = new ActionChain();
             moveToBody.AddDelaySeconds(.1);
 
+            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
             moveToChain.AddLoop(this, () =>
             {
+                if (thisMoveToChainNumberCopy != moveToChainCounter)
+                    return false;
+
                 // Break loop if CurrentLandblock == null (we portaled or logged out)
                 if (CurrentLandblock == null)
                     return false;
@@ -82,8 +102,10 @@ namespace ACE.Server.WorldObjects
             return moveToChain;
         }
 
-        private ActionChain CreateMoveToChain(WorldObject target, float distance)
+        private ActionChain CreateMoveToChain(WorldObject target, float distance, out int thisMoveToChainNumber)
         {
+            thisMoveToChainNumber = GetNextMoveToChainNumber();
+
             ActionChain moveToChain = new ActionChain();
 
             moveToChain.AddAction(this, () =>
@@ -104,8 +126,13 @@ namespace ACE.Server.WorldObjects
             ActionChain moveToBody = new ActionChain();
             moveToBody.AddDelaySeconds(.1);
 
+            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
             moveToChain.AddLoop(this, () =>
             {
+                if (thisMoveToChainNumberCopy != moveToChainCounter)
+                    return false;
+
                 // Break loop if CurrentLandblock == null (we portaled or logged out)
                 if (CurrentLandblock == null)
                     return false;
@@ -123,6 +150,7 @@ namespace ACE.Server.WorldObjects
             return moveToChain;
         }
 
+
         public void SendUseDoneEvent()
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session));
@@ -136,6 +164,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionUseWithTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
         {
+            StopExistingMoveToChains();
+
             new ActionChain(this, () =>
             {
                 var invSource = GetInventoryItem(sourceObjectId);
@@ -167,6 +197,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionUseItem(ObjectGuid usedItemId)
         {
+            StopExistingMoveToChains();
+
             var actionChain = new ActionChain();
 
             actionChain.AddAction(this, () =>
@@ -192,14 +224,19 @@ namespace ACE.Server.WorldObjects
 
                     if (!IsWithinUseRadiusOf(item))
                     {
-                        actionChain.AddChain(CreateMoveToChain(item, item.UseRadiusSquared));
+                        var moveToChain = CreateMoveToChain(item, item.UseRadiusSquared, out var thisMoveToChainNumber);
+
+                        actionChain.AddChain(moveToChain);
                         actionChain.AddDelaySeconds(0.50);
 
                         // Make sure that after we've executed our MoveToChain, and waited our delay, we're still within use radius.
                         actionChain.AddAction(this, () =>
                         {
-                            if (IsWithinUseRadiusOf(item))
+                            if (IsWithinUseRadiusOf(item) && thisMoveToChainNumber == moveToChainCounter)
                                 actionChain.AddAction(item, () => item.ActOnUse(this));
+                            else
+                                // Action is cancelled
+                                Session.Network.EnqueueSend(new GameEventUseDone(Session));
                         });
                     }
                     else
