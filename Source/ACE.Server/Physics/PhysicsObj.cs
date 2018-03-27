@@ -1938,13 +1938,13 @@ namespace ACE.Server.Physics
 
         public void enqueue_objs(AddUpdateObjs addUpdateObjs)
         {
-            /*var player = WeenieObj.WorldObject as WorldObjects.Player;
+            var player = WeenieObj.WorldObject as WorldObjects.Player;
 
             foreach (var obj in addUpdateObjs.AddObjects)
                 player.TrackObject(obj.WeenieObj.WorldObject);
 
             foreach (var obj in addUpdateObjs.UpdateObjects)
-                player.TrackObject(obj.WeenieObj.WorldObject, true);*/
+                player.TrackObject(obj.WeenieObj.WorldObject, true);
         }
 
         public void enter_cell(ObjCell newCell)
