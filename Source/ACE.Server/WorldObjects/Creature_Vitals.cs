@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
             vital.Current = newVal;
 
             // Check for amount
-            if (old == vital.MaxValue && vital.Current != vital.MaxValue)
+            if (vital.Current != vital.MaxValue)
             {
                 // Start up a vital ticker
                 new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();

@@ -31,6 +31,19 @@ namespace ACE.Server.WorldObjects.Entity
                 creature.Biota.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd { ObjectId = creature.Biota.Id, Type = (ushort)Vital });
                 biotaPropertiesAttribute2nd = creature.Biota.GetAttribute2nd(Vital);
             }
+
+            switch (Vital)
+            {
+                case PropertyAttribute2nd.MaxHealth:
+                    RegenRate = creature.GetProperty(PropertyFloat.HealthRate) ?? 0;
+                    break;
+                case PropertyAttribute2nd.MaxStamina:
+                    RegenRate = creature.GetProperty(PropertyFloat.StaminaRate) ?? 0;
+                    break;
+                case PropertyAttribute2nd.MaxMana:
+                    RegenRate = creature.GetProperty(PropertyFloat.ManaRate) ?? 0;
+                    break;
+            }
         }
 
         /// <summary>

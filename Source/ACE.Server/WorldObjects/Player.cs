@@ -100,6 +100,18 @@ namespace ACE.Server.WorldObjects
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
 
+            // Start vital ticking, if they need it
+            if (Health.Current != Health.MaxValue)
+                VitalTickInternal(Health);
+
+            if (Stamina.Current != Stamina.MaxValue)
+                VitalTickInternal(Stamina);
+
+            if (Mana.Current != Mana.MaxValue)
+                VitalTickInternal(Mana);
+
+            IsOnline = true;
+
             return; // todo
             /* todo fix for new EF model
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -143,19 +155,6 @@ namespace ACE.Server.WorldObjects
             FirstEnterWorldDone = false;
 
             IsAlive = true;
-            IsOnline = true;            
-
-            // Start vital ticking, if they need it
-            if (Health.Current != Health.MaxValue)
-                VitalTickInternal(Health);
-
-            if (Stamina.Current != Stamina.MaxValue)
-                VitalTickInternal(Stamina);
-
-            if (Mana.Current != Mana.MaxValue)
-                VitalTickInternal(Mana);
-
-            ContainerCapacity = 7;
         }
 
 
