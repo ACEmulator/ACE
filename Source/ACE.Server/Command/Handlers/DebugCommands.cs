@@ -464,13 +464,6 @@ namespace ACE.Server.Command.Handlers
                 session.Player.DeltaVital(vital, value);
         }
 
-        [CommandHandler("createportal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Creates a portal in front of you.")]
-        public static void CreatePortal(Session session, params string[] parameters)
-        {
-            SpecialPortalObjectFactory.SpawnPortal(SpecialPortalObjectFactory.PortalWcid.HummingCrystal, session.Player.Location.InFrontOf(3.0f), 15.0f);
-        }
-
         /// <summary>
         /// Debug command to saves the character from in-game.
         /// </summary>
