@@ -20,20 +20,30 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
-            var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-            session.Network.EnqueueSend(failedUsePortalMessage);
+            switch (spellId)
+            {
+                default:
+                    string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
+                    var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                    session.Network.EnqueueSend(failedUsePortalMessage);
 
-            session.Network.EnqueueSend(new GameEventUseDone(session));
+                    session.Network.EnqueueSend(new GameEventUseDone(session));
+                    break;
+            }
         }
 
         public void HandleActionCastUntargetedSpell(uint spellId, Session session)
         {
-            string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
-            var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-            session.Network.EnqueueSend(failedUsePortalMessage);
+            switch (spellId)
+            {
+                default:
+                    string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
+                    var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+                    session.Network.EnqueueSend(failedUsePortalMessage);
 
-            session.Network.EnqueueSend(new GameEventUseDone(session));
+                    session.Network.EnqueueSend(new GameEventUseDone(session));
+                    break;
+            }
         }
     }
 }
