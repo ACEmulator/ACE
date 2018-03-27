@@ -23,6 +23,8 @@ namespace ACE.Server.WorldObjects
             string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
             var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
             session.Network.EnqueueSend(failedUsePortalMessage);
+
+            session.Network.EnqueueSend(new GameEventUseDone(session));
         }
 
         public void HandleActionCastUntargetedSpell(uint spellId, Session session)
@@ -30,6 +32,8 @@ namespace ACE.Server.WorldObjects
             string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
             var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
             session.Network.EnqueueSend(failedUsePortalMessage);
+
+            session.Network.EnqueueSend(new GameEventUseDone(session));
         }
     }
 }
