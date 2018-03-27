@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var spellId = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionCastUntargetedSpell(spellId, session);
+            session.Player.HandleActionCastUntargetedSpell(spellId);
         }
     }
 }

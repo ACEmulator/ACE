@@ -12,7 +12,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(objectId);
 
-            session.Player.HandleActionCastTargetedSpell(guid, spellId, session);
+            session.Player.HandleActionCastTargetedSpell(guid, spellId);
         }
     }
 }

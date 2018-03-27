@@ -11,42 +11,42 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling player targeted casting
         /// </summary>
-        public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId, Session session)
+        public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)
         {
-            CastResult result = CreateSpell(session.Player.Guid, guidTarget, spellId);
+            CastResult result = CreateSpell(Guid, guidTarget, spellId);
 
             switch (result)
             {
                 case CastResult.SpellTargetInvalid:
-                    var targetOutOfRangeMessage = new GameEventWeenieError(session, WeenieError.YourSpellTargetIsMissing);
-                    session.Network.EnqueueSend(targetOutOfRangeMessage);
+                    var targetOutOfRangeMessage = new GameEventWeenieError(Session, WeenieError.YourSpellTargetIsMissing);
+                    Session.Network.EnqueueSend(targetOutOfRangeMessage);
                     break;
                 default:
                     string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
                     var unImplementedMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                    session.Network.EnqueueSend(unImplementedMessage);
+                    Session.Network.EnqueueSend(unImplementedMessage);
                     break;
             }
 
-            session.Network.EnqueueSend(new GameEventUseDone(session));
+            Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
 
         /// <summary>
         /// Method used for handling player untargeted casting
         /// </summary>
-        public void HandleActionCastUntargetedSpell(uint spellId, Session session)
+        public void HandleActionCastUntargetedSpell(uint spellId)
         {
-            CastResult result = CreateSpell(session.Player.Guid, null, spellId);
+            CastResult result = CreateSpell(Guid, null, spellId);
             switch (spellId)
             {
                 default:
                     string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
                     var unImplementedMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                    session.Network.EnqueueSend(unImplementedMessage);
+                    Session.Network.EnqueueSend(unImplementedMessage);
                     break;
             }
 
-            session.Network.EnqueueSend(new GameEventUseDone(session));
+            Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
     }
 }
