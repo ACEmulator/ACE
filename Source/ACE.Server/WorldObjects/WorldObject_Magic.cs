@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
@@ -17,10 +15,21 @@ namespace ACE.Server.WorldObjects
 
             if (spellTarget == null)
             {
-                var targetOutOfRangeMessage = new GameEventDisplayStatusMessage(session.Player.Session, StatusMessageType1.YourSpellTargetIsMissing);
-                session.Player.Session.Network.EnqueueSend(targetOutOfRangeMessage);
+                var targetOutOfRangeMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.YourSpellTargetIsMissing);
+                session.Network.EnqueueSend(targetOutOfRangeMessage);
                 return;
             }
+
+            string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
+            var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+            session.Network.EnqueueSend(failedUsePortalMessage);
+        }
+
+        public void HandleActionCastUntargetedSpell(uint spellId, Session session)
+        {
+            string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
+            var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
+            session.Network.EnqueueSend(failedUsePortalMessage);
         }
     }
 }
