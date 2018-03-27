@@ -1,15 +1,16 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// The StatusMessageType2 identifies the specific message to be displayed in the chat window.<para />
-    /// Used with F7B0 028B: Game Event -> Display a parameterized status message in the chat window.<para />
+    /// The WeenieErrorWithString identifies the specific message to be displayed in the chat window along
+    /// with a custom string.<para />
+    /// Used with F7B0 028B: Game Event -> Display an error message in the chat window.<para />
     /// <para />
-    /// StatusMessageType1 and StatusMessageType2 are actually a single enum in the clients.<para />   
-    /// The combined enum is only used by 2 functions in the client.<para />
-    /// We split the enum up into 2 enums because each function uses only a specific set of the enum values.<para />
-    /// No one value is used by both functions.
+    /// WeenieError and WeenieErrorWithString are actually a single enum in the client.<para/>   
+    /// The enum is used in handling 0x028A and 0x028B messages and also some other messages like UseDone.<para/>
+    /// We split the enum up into 2 enums because each function uses only a specific set of the enum values.<para/>
+    /// There are cases where the value was used by multiple messages e.g. 0x0036 ActionCancelled.
     /// </summary>
-    public enum StatusMessageType2
+    public enum WeenieErrorWithString
     {
         /// <summary>
         ///  is too busy to accept gifts right now.

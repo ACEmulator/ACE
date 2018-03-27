@@ -146,7 +146,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                 case GroupChatType.TellFellowship:
                     {
-                        var statusMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.YouDoNotBelongToAFellowship);
+                        var statusMessage = new GameEventWeenieError(session, WeenieError.YouDoNotBelongToAFellowship);
                         session.Network.EnqueueSend(statusMessage);
 
                         ChatPacket.SendServerMessage(session, "GameActionChatChannel TellFellowship Needs work.", ChatMessageType.Broadcast);

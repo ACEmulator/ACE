@@ -100,6 +100,18 @@ namespace ACE.Server.WorldObjects
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
 
+            // Start vital ticking, if they need it
+            if (Health.Current != Health.MaxValue)
+                VitalTickInternal(Health);
+
+            if (Stamina.Current != Stamina.MaxValue)
+                VitalTickInternal(Stamina);
+
+            if (Mana.Current != Mana.MaxValue)
+                VitalTickInternal(Mana);
+
+            IsOnline = true;
+
             return; // todo
             /* todo fix for new EF model
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -143,19 +155,6 @@ namespace ACE.Server.WorldObjects
             FirstEnterWorldDone = false;
 
             IsAlive = true;
-            IsOnline = true;            
-
-            // Start vital ticking, if they need it
-            if (Health.Current != Health.MaxValue)
-                VitalTickInternal(Health);
-
-            if (Stamina.Current != Stamina.MaxValue)
-                VitalTickInternal(Stamina);
-
-            if (Mana.Current != Mana.MaxValue)
-                VitalTickInternal(Mana);
-
-            ContainerCapacity = 7;
         }
 
 
@@ -654,10 +653,10 @@ namespace ACE.Server.WorldObjects
                 // Thie retail server sends a ChatRoomTracker 0x0295 first, then the status message, 0x028B. It does them one at a time for each individual channel.
                 // The ChatRoomTracker message doesn't seem to change at all.
                 // For the purpose of ACE, we simplify this process.
-                var general = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "General");
-                var trade = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Trade");
-                var lfg = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "LFG");
-                var roleplay = new GameEventDisplayParameterizedStatusMessage(Session, StatusMessageType2.YouHaveLeftThe_Channel, "Roleplay");
+                var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "General");
+                var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Trade");
+                var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "LFG");
+                var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Roleplay");
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
         }

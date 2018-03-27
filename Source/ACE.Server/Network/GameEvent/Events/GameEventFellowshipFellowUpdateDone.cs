@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventFellowshipFellowUpdateDone : GameMessage
     {
-        public GameEventFellowshipFellowUpdateDone(Session session, WERROR errorType = WERROR.WERROR_NONE)
+        public GameEventFellowshipFellowUpdateDone(Session session, WeenieError errorType = WeenieError.None)
             : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
         {
             //Writer.Write(session.Player.Guid.Full);
