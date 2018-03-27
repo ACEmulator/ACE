@@ -16,11 +16,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling the spell cast
         /// </summary>
-        public CastResult CreateSpell(ObjectGuid? guid, uint spellId)
+        public CastResult CreateSpell(ObjectGuid guidCaster, ObjectGuid? guidTarget, uint spellId)
         {
-            if (guid != null)
+            if (guidTarget != null)
             {
-                WeenieType? spellTarget = CurrentLandblock.GetObject((ObjectGuid)guid).WeenieType;
+                WeenieType? spellTarget = CurrentLandblock.GetObject((ObjectGuid)guidTarget).WeenieType;
 
                 if (spellTarget == null)
                     return CastResult.SpellTargetInvalid;

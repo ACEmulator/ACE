@@ -11,9 +11,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling player targeted casting
         /// </summary>
-        public void HandleActionCastTargetedSpell(ObjectGuid guid, uint spellId, Session session)
+        public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId, Session session)
         {
-            CastResult result = CreateSpell(guid, spellId);
+            CastResult result = CreateSpell(session.Player.Guid, guidTarget, spellId);
 
             switch (result)
             {
@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCastUntargetedSpell(uint spellId, Session session)
         {
-            CastResult result = CreateSpell(null, spellId);
+            CastResult result = CreateSpell(session.Player.Guid, null, spellId);
             switch (spellId)
             {
                 default:
