@@ -288,7 +288,7 @@ namespace ACE.Server.WorldObjects
                     player.Session.Player.Teleport(portalDest);
                     // If the portal just used is able to be recalled to,
                     // save the destination coordinates to the LastPortal character position save table
-                    if (NoRecall)
+                    if (!NoRecall)
                         player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                 }
                 else if ((player.Level > MaxLevel) && (MaxLevel != 0))
