@@ -17,6 +17,7 @@ namespace ACE.Entity.Enum.Properties
         Freezer                          = 4,
         [Ephemeral]
         Viewer                           = 5,
+        [Ephemeral]
         Generator                        = 6,
         Scribe                           = 7,
         [Ephemeral]

@@ -27,6 +27,7 @@ namespace ACE.Server.WorldObjects
             dieChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead));
             dieChain.AddAction(this, () =>
             {
+                NotifyOfEvent(RegenerationType.Destruction);
                 LandblockManager.RemoveObject(this);
                 CreateCorpse();
             });

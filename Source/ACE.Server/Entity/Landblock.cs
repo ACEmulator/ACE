@@ -124,7 +124,7 @@ namespace ACE.Server.Entity
             });
 
             _landblock = LScape.get_landblock(Id.Raw);
-            LoadMeshes(objects);
+            //LoadMeshes(objects);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
