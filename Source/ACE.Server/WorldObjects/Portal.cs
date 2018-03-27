@@ -157,17 +157,25 @@ namespace ACE.Server.WorldObjects
 
         public int SocietyId => 0;
 
-        public bool IsTieable
+        public bool NoRecall
         {
-            get;
+            get
+            {
+                if ((((int)PortalBitmask & (int)ACE.Entity.Enum.PortalBitmask.NoRecall) >> 5) == 1) return true;
+                else return false;
+            }
         }
 
-        public bool IsSummonable
+        public bool NoSummon
         {
-            get;
+            get
+            {
+                if ((((int)PortalBitmask & (int)ACE.Entity.Enum.PortalBitmask.NoSummon) >> 4) == 1) return true;
+                else return false;
+            }
         }
 
-        public bool IsRecallable => IsTieable;
+        public bool NoTie => NoRecall;
 
         public override void HandleActionOnCollide(ObjectGuid playerId)
         {
@@ -280,7 +288,7 @@ namespace ACE.Server.WorldObjects
                     player.Session.Player.Teleport(portalDest);
                     // If the portal just used is able to be recalled to,
                     // save the destination coordinates to the LastPortal character position save table
-                    if (IsRecallable)
+                    if (NoRecall)
                         player.SetCharacterPosition(PositionType.LastPortal, portalDest);
                 }
                 else if ((player.Level > MaxLevel) && (MaxLevel != 0))
