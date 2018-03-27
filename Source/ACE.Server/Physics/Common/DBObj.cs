@@ -40,6 +40,11 @@ namespace ACE.Server.Physics.Common
                 var animation = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(qualifiedDID.ID);
                 return animation;
             }
+            else if (qualifiedDID.Type == 16)
+            {
+                var environment = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Environment>(qualifiedDID.ID);
+                return environment;
+            }
             return -1;
         }
     }

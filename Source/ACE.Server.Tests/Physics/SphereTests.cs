@@ -190,12 +190,12 @@ namespace ACE.Server.Tests.Physics
 
             // test collision
             var transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
-            Assert.AreEqual(transitionState, TransitionState.Collided);
+            Assert.AreEqual(transitionState, TransitionState.Adjusted);
 
             // test adjusted
             transition.SpherePath.GlobalCurrCenter[0] = new Sphere(new Vector3(0, 0, 0.0001f), 5.0f);
             transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
-            Assert.AreEqual(transitionState, TransitionState.Adjusted);
+            Assert.AreEqual(transitionState, TransitionState.Collided);
             Assert.AreEqual(transition.SpherePath.Collide, true);
         }
 
@@ -238,13 +238,13 @@ namespace ACE.Server.Tests.Physics
 
             var transition = new Transition();
 
-            var transitionState = sphere.SlideSphere(transition, collisionNormal, Vector3.Zero);
+            var transitionState = sphere.SlideSphere(transition, ref collisionNormal, Vector3.Zero);
             Assert.AreEqual(transitionState, TransitionState.Slid);
 
             transition.CollisionInfo.LastKnownContactPlaneValid = true;
             transition.CollisionInfo.LastKnownContactPlane = new Plane(new Vector3(0, 0, 1), 0);
 
-            transitionState = sphere.SlideSphere(transition, collisionNormal, Vector3.Zero);
+            transitionState = sphere.SlideSphere(transition, ref collisionNormal, Vector3.Zero);
             Assert.AreEqual(transitionState, TransitionState.Collided);
         }
     }

@@ -22,13 +22,13 @@ namespace ACE.Server.Physics.Common
 
         public override TransitionState FindCollisions(Transition transition)
         {
-            //var transitState = FindEnvCollisions(transition);
-            //if (transitState == TransitionState.OK)
-            //{
-                //transitState = base.FindCollisions(transition);
-                //if (transitState == TransitionState.OK)
-                    var transitState = FindObjCollisions(transition);
-            //}
+            var transitState = FindEnvCollisions(transition);
+            if (transitState == TransitionState.OK)
+            {
+                transitState = base.FindCollisions(transition);
+                if (transitState == TransitionState.OK)
+                    transitState = FindObjCollisions(transition);
+            }
             return transitState;
         }
 
@@ -113,6 +113,11 @@ namespace ACE.Server.Physics.Common
                 if (lcoord != null)
                     add_outside_cell(cellArray, lcoord.Value);
             }
+        }
+
+        public static void add_all_outside_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
+        {
+            // not implemented yet
         }
 
         public static void add_outside_cell(CellArray cellArray, float _x, float _y)

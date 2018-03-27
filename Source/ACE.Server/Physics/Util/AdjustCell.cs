@@ -49,10 +49,12 @@ namespace ACE.Server.Physics.Util
         {
             AdjustCell adjustCell = null;
             AdjustCells.TryGetValue(dungeonID, out adjustCell);
-            if (adjustCell != null)
-                return adjustCell;
-            else
-                return new AdjustCell(dungeonID);
+            if (adjustCell == null)
+            {
+                adjustCell = new AdjustCell(dungeonID);
+                AdjustCells.Add(dungeonID, adjustCell);
+            }
+            return adjustCell;
         }
     }
 }

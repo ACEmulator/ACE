@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
@@ -61,11 +62,10 @@ namespace ACE.Server.Physics.Collision
         public static bool NormalizeCheckSmall(ref Vector3 v)
         {
             var dist = v.Length();
-            if (dist >= PhysicsGlobals.EPSILON)
-            {
-                v *= 1.0f / dist;
+            if (dist < PhysicsGlobals.EPSILON)
                 return true;
-            }
+
+            v *= 1.0f / dist;
             return false;
         }
 

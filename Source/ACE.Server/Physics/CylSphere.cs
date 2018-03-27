@@ -381,7 +381,7 @@ namespace ACE.Server.Physics
             if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
 
-            return checkPos.SlideSphere(transition, collisionNormal, transition.SpherePath.GlobalCurrCenter[sphereNum].Center);
+            return checkPos.SlideSphere(transition, ref collisionNormal, transition.SpherePath.GlobalCurrCenter[sphereNum].Center);
         }
 
         /// <summary>

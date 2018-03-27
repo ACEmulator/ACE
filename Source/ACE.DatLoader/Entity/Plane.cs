@@ -13,5 +13,10 @@ namespace ACE.DatLoader.Entity
             N = reader.ReadVector3();
             D = reader.ReadSingle();
         }
+
+        public System.Numerics.Plane ToNumerics()
+        {
+            return new System.Numerics.Plane(new Vector3(N.X, N.Y, N.Z), D);
+        }
     }
 }

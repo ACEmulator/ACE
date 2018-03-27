@@ -37,13 +37,15 @@ namespace ACE.Server.Physics.Animation
 
         public void Combine(AFrame a, AFrame b, Vector3 scale)
         {
-            Origin += a.Origin + b.Origin;
-            Orientation *= Quaternion.Multiply(a.Orientation, b.Orientation);
+            Origin = a.Origin + b.Origin;
+            Orientation = Quaternion.Multiply(a.Orientation, b.Orientation);
         }
 
         public Vector3 GlobalToLocal(Vector3 point)
         {
-            return Origin + GlobalToLocalVec(point);
+            //return Origin + GlobalToLocalVec(point);
+            var offset = point - Origin;    // rotation?
+            return offset;
         }
 
         public Vector3 GlobalToLocalVec(Vector3 point)
@@ -89,10 +91,12 @@ namespace ACE.Server.Physics.Animation
 
         public Vector3 LocalToGlobalVec(Vector3 point)
         {
-            var rotation = Matrix4x4.CreateFromQuaternion(Orientation);
-            rotation = Matrix4x4.Transpose(rotation);
-
-            return Vector3.Transform(point, rotation);   
+            // ??
+            //var rotation = Matrix4x4.CreateFromQuaternion(Orientation);
+            //rotation = Matrix4x4.Transpose(rotation);
+            //return Vector3.Transform(point, rotation);
+            return Vector3.Transform(point, Matrix4x4.CreateFromQuaternion(Orientation));
+            //return point;
         }
 
         public void GRotate(Vector3 rotation)

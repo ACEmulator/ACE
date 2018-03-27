@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
@@ -27,6 +28,7 @@ namespace ACE.Server.Physics.BSP
         public BSPTreeType Type;
         public string Typename;
         public int NumPolys;
+        public List<ushort> PolyIDs;
         public List<Polygon> Polygons;
         public BSPNode PosNode;
         public BSPNode NegNode;
@@ -39,6 +41,38 @@ namespace ACE.Server.Physics.BSP
         public BSPNode(BSPTreeType type)
         {
             Type = type;
+        }
+
+        public BSPNode(DatLoader.Entity.BSPNode node, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
+        {
+            if (node.Sphere != null)
+                Sphere = new Sphere(node.Sphere);
+            if (node.SplittingPlane != null)
+                SplittingPlane = node.SplittingPlane.ToNumerics();
+            Type = (BSPTreeType)node.Type;
+            //Typename
+            if (node.InPolys != null)
+            {
+                NumPolys = node.InPolys.Count;
+                PolyIDs = node.InPolys;
+                Polygons = new List<Polygon>();
+                foreach (var poly in node.InPolys)
+                    Polygons.Add(new Polygon(polys[poly], vertexArray));
+            }
+            if (node.PosNode != null)
+            {
+                if (!(node.PosNode is DatLoader.Entity.BSPLeaf))
+                    PosNode = new BSPNode(node.PosNode, polys, vertexArray);
+                else
+                    PosNode = new BSPLeaf((DatLoader.Entity.BSPLeaf)node.PosNode, polys, vertexArray);
+            }
+            if (node.NegNode != null)
+            {
+                if (!(node.NegNode is DatLoader.Entity.BSPLeaf))
+                    NegNode = new BSPNode(node.NegNode, polys, vertexArray);
+                else
+                    NegNode = new BSPLeaf((DatLoader.Entity.BSPLeaf)node.NegNode, polys, vertexArray);
+            }
         }
 
         public void LinkPortals(List<BSPPortal> portals)
@@ -111,7 +145,7 @@ namespace ACE.Server.Physics.BSP
         {
             if (!Sphere.Intersects(validPos)) return;
 
-            var dist = Vector3.Dot(SplittingPlane.Normal, validPos.Center);
+            var dist = Vector3.Dot(SplittingPlane.Normal, validPos.Center) + SplittingPlane.D;
             var reach = validPos.Radius - PhysicsGlobals.EPSILON;
 
             if (dist >= reach)
@@ -134,7 +168,7 @@ namespace ACE.Server.Physics.BSP
             if (!Sphere.Intersects(validPos))
                 return false;
 
-            var dist = Vector3.Dot(SplittingPlane.Normal, validPos.Center);
+            var dist = Vector3.Dot(SplittingPlane.Normal, validPos.Center) + SplittingPlane.D;
             var reach = validPos.Radius - PhysicsGlobals.EPSILON;
 
             if (dist >= reach)
@@ -174,7 +208,7 @@ namespace ACE.Server.Physics.BSP
 
         public virtual bool point_intersects_solid(Vector3 point)
         {
-            if (Vector3.Dot(point, SplittingPlane.Normal) > 0.0f)
+            if (Vector3.Dot(point, SplittingPlane.Normal) + SplittingPlane.D > 0.0f)
                 return PosNode.point_intersects_solid(point);
             else
                 return NegNode.point_intersects_solid(point);
@@ -182,7 +216,7 @@ namespace ACE.Server.Physics.BSP
 
         public BoundingType sphere_intersects_cell_bsp(Sphere curSphere)
         {
-            var dist = Vector3.Dot(SplittingPlane.Normal, curSphere.Center);
+            var dist = Vector3.Dot(SplittingPlane.Normal, curSphere.Center) + SplittingPlane.D;
             var checkRad = curSphere.Radius + 0.01f;   // 0.0099999998;
 
             if (dist <= -checkRad)
@@ -203,24 +237,24 @@ namespace ACE.Server.Physics.BSP
             return BoundingType.PartiallyInside;
         }
 
-        public virtual bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, ref Polygon polygon, Vector3 contactPoint)
+        public virtual bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, ref Polygon polygon, ref Vector3 contactPoint)
         {
             if (!Sphere.Intersects(checkPos))
                 return false;
 
-            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center);
+            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center) + SplittingPlane.D;
             var reach = checkPos.Radius - PhysicsGlobals.EPSILON;
 
             if (dist >= reach)
-                return PosNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint);
+                return PosNode.sphere_intersects_poly(checkPos, movement, ref polygon, ref contactPoint);
 
             if (dist <= -reach)
-                return NegNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint);
+                return NegNode.sphere_intersects_poly(checkPos, movement, ref polygon, ref contactPoint);
 
-            if (PosNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint))
+            if (PosNode != null && PosNode.sphere_intersects_poly(checkPos, movement, ref polygon, ref contactPoint))
                 return true;
 
-            if (NegNode.sphere_intersects_poly(checkPos, movement, ref polygon, contactPoint))
+            if (NegNode != null && NegNode.sphere_intersects_poly(checkPos, movement, ref polygon, ref contactPoint))
                 return true;
 
             return false;
@@ -231,7 +265,7 @@ namespace ACE.Server.Physics.BSP
             if (!Sphere.Intersects(checkPos))
                 return false;
 
-            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center);
+            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center) + SplittingPlane.D;
             var reach = checkPos.Radius - PhysicsGlobals.EPSILON;
 
             if (dist >= reach)
@@ -261,7 +295,7 @@ namespace ACE.Server.Physics.BSP
             if (!Sphere.Intersects(checkPos))
                 return false;
 
-            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center);
+            var dist = Vector3.Dot(SplittingPlane.Normal, checkPos.Center) + SplittingPlane.D;
             var reach = radius - PhysicsGlobals.EPSILON;
 
             if (dist >= reach)

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Numerics;
-using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -126,7 +125,7 @@ namespace ACE.Server.Physics
             }
 
             var part = new PhysicsPart();
-            part.GfxObj = gfxObj;
+            part.GfxObj = new List<Collision.GfxObj>() { gfxObj };
             setup.Parts.Add(part);
 
             var placementType = new PlacementType();

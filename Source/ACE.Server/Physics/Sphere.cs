@@ -29,6 +29,15 @@ namespace ACE.Server.Physics
         }
 
         /// <summary>
+        /// Copy constructor
+        /// </summary>
+        public Sphere(Sphere sphere)
+        {
+            Center = new Vector3(sphere.Center.X, sphere.Center.Y, sphere.Center.Z);
+            Radius = sphere.Radius;
+        }
+        
+        /// <summary>
         /// Constructs a sphere from a center point and radius
         /// </summary>
         /// <param name="center">The center point of the sphere</param>
@@ -365,13 +374,13 @@ namespace ACE.Server.Physics
             if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
             else
-                return checkPos.SlideSphere(transition, collisionNormal, globalCenter);
+                return checkPos.SlideSphere(transition, ref collisionNormal, globalCenter);
         }
 
         /// <summary>
         /// Attempts to slide a sphere from a collision
         /// </summary>
-        public TransitionState SlideSphere(Transition transition, Vector3 collisionNormal, Vector3 currPos)
+        public TransitionState SlideSphere(Transition transition, ref Vector3 collisionNormal, Vector3 currPos)
         {
             var path = transition.SpherePath;
             var collisions = transition.CollisionInfo;
@@ -408,9 +417,9 @@ namespace ACE.Server.Physics
                 return TransitionState.Slid;
             }
 
-            var negNormal = -gDelta;
-            if (CollisionInfo.NormalizeCheckSmall(ref negNormal))
-                collisions.SetCollisionNormal(negNormal);
+            collisionNormal = -gDelta;
+            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+                collisions.SetCollisionNormal(collisionNormal);
 
             return TransitionState.Collided;
         }
