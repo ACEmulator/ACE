@@ -286,13 +286,13 @@ namespace ACE.Server.WorldObjects
                 else if ((player.Level > MaxLevel) && (MaxLevel != 0))
                 {
                     // You are too powerful to interact with that portal!
-                    var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouAreTooPowerfulToUsePortal);
+                    var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
                 }
                 else
                 {
                     // You are not powerful enough to interact with that portal!
-                    var failedUsePortalMessage = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouAreNotPowerfulEnoughToUsePortal);
+                    var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreNotPowerfulEnoughToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
                 }
             }

@@ -18,7 +18,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (targetsession == null)
             {
-                var statusMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.CharacterNotAvailable);
+                var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
                 session.Network.EnqueueSend(statusMessage);
             }
             else

@@ -61,15 +61,15 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
                             break;
                         case Door.UnlockDoorResults.DoorOpen:
-                            var messageDoorOpen = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
+                            var messageDoorOpen = new GameEventWeenieError(player.Session, WeenieError.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
                             break;
                         case Door.UnlockDoorResults.AlreadyUnlocked:
-                            var messageAlreadyUnlocked = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock); // TODO: Messages are not quiet right. Need to find right one.
+                            var messageAlreadyUnlocked = new GameEventWeenieError(player.Session, WeenieError.KeyDoesntFitThisLock); // TODO: Messages are not quiet right. Need to find right one.
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
                             break;
                         default:
-                            var messageIncorrectKey = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.KeyDoesntFitThisLock);
+                            var messageIncorrectKey = new GameEventWeenieError(player.Session, WeenieError.KeyDoesntFitThisLock);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, messageIncorrectKey);
                             break;
                     }
@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    var message = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.YouCannotLockOrUnlockThat);
+                    var message = new GameEventWeenieError(player.Session, WeenieError.YouCannotLockOrUnlockThat);
                     player.Session.Network.EnqueueSend(sendUseDoneEvent, message);
                 }
             });
