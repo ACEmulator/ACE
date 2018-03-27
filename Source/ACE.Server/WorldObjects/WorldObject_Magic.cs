@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects
 
             if (spellTarget == null)
             {
-                var targetOutOfRangeMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.YourSpellTargetIsMissing);
+                var targetOutOfRangeMessage = new GameEventWeenieError(session, WeenieError.YourSpellTargetIsMissing);
                 session.Network.EnqueueSend(targetOutOfRangeMessage);
                 return;
             }
