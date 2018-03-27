@@ -82,6 +82,32 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public float GetZ(Vector3 point)
+        {
+            var cell = GetCell(point);
+            if (cell == null)
+                return point.Z;
+            Polygon walkable = null;
+            if (!cell.find_terrain_poly(point, ref walkable))
+                return point.Z;
+            var adjZ = point.Z;
+            if (Math.Abs(walkable.Plane.Normal.Z) > PhysicsGlobals.EPSILON)
+                adjZ = (point.Dot2D(walkable.Plane.Normal) + walkable.Plane.D) / walkable.Plane.Normal.Z * -1;
+            return adjZ;
+        }
+
+        public LandCell GetCell(Vector3 point)
+        {
+            if (point.X < 0 || point.Y < 0 || point.X > 192 || point.Y > 192)
+                return null;
+
+            var cellX = (int)point.X / 24;
+            var cellY = (int)point.Y / 24;
+
+            var blockCellID = (ID & 0xFFFF0000) | (uint)(cellX * 8 + cellY) + 1;
+            return (LandCell)LScape.get_landcell((uint)blockCellID);
+        }
+
         public void destroy_buildings()
         {
             foreach (var building in Buildings)

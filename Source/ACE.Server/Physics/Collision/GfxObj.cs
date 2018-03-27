@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Collision
@@ -24,7 +25,7 @@ namespace ACE.Server.Physics.Collision
         public int NumPolygons;
         public Dictionary<ushort, Polygon> Polygons;
         public Sphere DrawingSphere;
-        //public BSPTree DrawingBSP;
+        public BSP.BSPTree DrawingBSP;
 
         // is this useful for collision detection,
         // or only for drawing?
@@ -43,17 +44,18 @@ namespace ACE.Server.Physics.Collision
             NumPhysicsPolygons = gfxObj.PhysicsPolygons.Count;
             PhysicsPolygons = new Dictionary<ushort, Polygon>();
             foreach (var kvp in gfxObj.PhysicsPolygons)
-                PhysicsPolygons.Add(kvp.Key, CreateMutable(kvp.Value));
+                PhysicsPolygons.Add(kvp.Key, new Polygon(kvp.Value, gfxObj.VertexArray));
             // usebuiltmesh
             // physicssphere
-            PhysicsBSP = CreateMutable(gfxObj.PhysicsBSP);  // not mutable,
-            // but still has non-unpack methods associated with it
+            PhysicsBSP = new BSP.BSPTree(gfxObj.PhysicsBSP, gfxObj.PhysicsPolygons, gfxObj.VertexArray);
             SortCenter = gfxObj.SortCenter;
             NumPolygons = gfxObj.Polygons.Count;
             Polygons = new Dictionary<ushort, Polygon>();
             foreach (var kvp in gfxObj.Polygons)
-                Polygons.Add(kvp.Key, CreateMutable(kvp.Value));
-            // drawing sphere/bsp
+                Polygons.Add(kvp.Key, new Polygon(kvp.Value, gfxObj.VertexArray));
+            // drawing sphere
+            DrawingBSP = new BSP.BSPTree(gfxObj.DrawingBSP, gfxObj.Polygons, gfxObj.VertexArray);
+            
         }
 
         public TransitionState FindObjCollisions(GfxObj gfxObj, Transition transition, float scaleZ)
@@ -97,27 +99,6 @@ namespace ACE.Server.Physics.Collision
             vertex.Y = _vertex.Y;
             vertex.Z = _vertex.Z;
             return vertex;
-        }
-
-        public static Polygon CreateMutable(DatLoader.Entity.Polygon _polygon)
-        {
-            var polygon = new Polygon();
-            // clone lists?
-            polygon.NegSurface = _polygon.NegSurface;
-            polygon.NegUVIndices = _polygon.NegUVIndices;
-            polygon.NumPoints = _polygon.NumPts;
-            polygon.PosSurface = _polygon.PosSurface;
-            polygon.PosUVIndices = _polygon.PosUVIndices;
-            polygon.SidesType = (CullMode)_polygon.SidesType;
-            polygon.Stippling = _polygon.Stippling;
-            polygon.VertexIDs = _polygon.VertexIds;
-            // build vertices
-            return polygon;
-        }
-
-        public static BSP.BSPTree CreateMutable(DatLoader.Entity.BSPTree _bspTree)
-        {
-            return null;
         }
     }
 }

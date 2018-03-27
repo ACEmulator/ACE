@@ -58,7 +58,7 @@ namespace ACE.Server.Physics
         {
             foreach (var part in Parts)
             {
-                if (part.GfxObj.PhysicsBSP != null)
+                if (part.GfxObj[0].PhysicsBSP != null)
                 {
                     State |= 0x10000;
                     return true;
@@ -181,7 +181,7 @@ namespace ACE.Server.Physics
                 return Setup.ID;
 
             if (NumParts == 1)
-                return Parts[0].GfxObj.ID;
+                return Parts[0].GfxObj[0].ID;
 
             return 0;
         }
@@ -585,7 +585,7 @@ namespace ACE.Server.Physics
         public void Update(double quantum, ref AFrame offsetFrame)
         {
             Sequence.Update((float)quantum, ref offsetFrame);
-        }
+        } 
 
         public void UpdateParts(AFrame frame)
         {

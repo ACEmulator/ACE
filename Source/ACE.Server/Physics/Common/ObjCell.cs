@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
@@ -209,7 +210,8 @@ namespace ACE.Server.Physics.Common
 
             if (visibleCell != null && numSphere != 0)
             {
-                foreach (var cell in cellArray.Cells.Values)
+                var cells = cellArray.Cells.Values.ToList();
+                foreach (var cell in cells)
                     cell.find_transit_cells(position, numSphere, sphere, cellArray, path);
 
                 if (currCell != null)
@@ -234,9 +236,13 @@ namespace ACE.Server.Physics.Common
             }
             if (!cellArray.LoadCells && (position.ObjCellID & 0xFFFF) >= 0x100)
             {
-                foreach (var cell in cellArray.Cells.Values)
+                var cells = cellArray.Cells.Values.ToList();
+                foreach (var cell in cells)
                 {
                     if (visibleCell.ID == cell.ID)
+                        continue;
+
+                    if (visibleCell.StabList == null)
                         continue;
 
                     var found = false;

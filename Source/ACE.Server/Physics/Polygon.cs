@@ -60,6 +60,22 @@ namespace ACE.Server.Physics
             Init();
         }
 
+        public Polygon(DatLoader.Entity.Polygon polygon, DatLoader.Entity.CVertexArray vertexArray)
+        {
+            NegSurface = polygon.NegSurface;
+            NegUVIndices = polygon.NegUVIndices;
+            NumPoints = polygon.NumPts;
+            PosSurface = polygon.PosSurface;
+            PosUVIndices = polygon.PosUVIndices;
+            SidesType = (CullMode)polygon.SidesType;
+            Stippling = polygon.Stippling;
+            VertexIDs = polygon.VertexIds;
+            Vertices = new List<Vertex>();
+            foreach (var vertexIdx in VertexIDs)
+                Vertices.Add(new Vertex(vertexArray.Vertices[(ushort)vertexIdx]));
+            make_plane();
+        }
+
         public Polygon(int idx, int numPoints, CullMode cullMode)
         {
             Init();
@@ -85,8 +101,8 @@ namespace ACE.Server.Physics
 
         public bool adjust_sphere_to_plane(SpherePath path, Sphere validPos, Vector3 movement)
         {
-            var dpPos = Vector3.Dot(Plane.Normal, validPos.Center);
-            var dpMove = Vector3.Dot(Plane.Normal, movement);
+            var dpPos = Vector3.Dot(validPos.Center, Plane.Normal) + Plane.D;
+            var dpMove = Vector3.Dot(movement, Plane.Normal);   // dist?
             var distSq = 0.0f;
 
             if (dpMove <= PhysicsGlobals.EPSILON)
@@ -111,11 +127,11 @@ namespace ACE.Server.Physics
 
         public double adjust_sphere_to_poly(Sphere checkPos, Vector3 currPos, Vector3 movement)
         {
-            var dpPos = Vector3.Dot(Plane.Normal, currPos) + Plane.D;
+            var dpPos = Vector3.Dot(currPos, Plane.Normal) + Plane.D;
             if (Math.Abs(dpPos) < checkPos.Radius)
                 return 1.0f;
 
-            var dpMove = Vector3.Dot(Plane.Normal, movement);
+            var dpMove = Vector3.Dot(movement, Plane.Normal);    // dist?
             if (Math.Abs(dpMove) < PhysicsGlobals.EPSILON)
                 return 0.0f;
 
@@ -126,14 +142,14 @@ namespace ACE.Server.Physics
             return (dist - dpPos) / dpMove;
         }
 
-        public void adjust_to_placement_poly(Sphere struckSphere, Sphere otherSphere, float radius, bool centerSolid, bool solidCheck)
+        public void adjust_to_placement_poly(Sphere hitSphere, Sphere otherSphere, float radius, bool centerSolid, bool solidCheck)
         {
-            var dp = Vector3.Dot(Plane.Normal, struckSphere.Center);
+            var dp = Vector3.Dot(hitSphere.Center, Plane.Normal) + Plane.D;
             if (solidCheck && (centerSolid || dp <= 0.0f))
                 radius *= -1.0f;
             var diff = radius - dp;
             var adjusted = Plane.Normal * diff;
-            struckSphere.Center += adjusted;
+            hitSphere.Center += adjusted;
             otherSphere.Center += adjusted;
         }
 
@@ -144,20 +160,21 @@ namespace ACE.Server.Physics
 
         public bool check_walkable(Sphere sphere, Vector3 up, bool small = false)
         {
-            var angleUp = Vector3.Dot(Plane.Normal, up);
+            var angleUp = Vector3.Dot(Plane.Normal, up);    // dist?
             if (angleUp < PhysicsGlobals.EPSILON) return false;
 
             var result = true;
 
-            var center = sphere.Center - up * (Vector3.Dot(Plane.Normal, sphere.Center) / angleUp);
+            var center = sphere.Center - up * ((Vector3.Dot(Plane.Normal, sphere.Center) + Plane.D) / angleUp);
             var radsum = sphere.Radius * sphere.Radius;
             if (small) radsum *= 0.25f;
 
             var prevIdx = NumPoints - 1;
-            foreach (var vertex in Vertices)
+            for (var i = 0; i < Vertices.Count; i++)
             {
+                var vertex = Vertices[i];
                 var lastVertex = Vertices[prevIdx];
-                prevIdx--;
+                prevIdx = i;
 
                 var edge = vertex - lastVertex;
                 var disp = center - lastVertex.Origin;
@@ -189,14 +206,15 @@ namespace ACE.Server.Physics
             if (Math.Abs(angleUp) < PhysicsGlobals.EPSILON)
                 return false;
 
-            var angle = Vector3.Dot(Plane.Normal, sphere.Center) / angleUp;
+            var angle = (Vector3.Dot(Plane.Normal, sphere.Center) + Plane.D) / angleUp;
             var center = sphere.Center - up * angle;
 
             var prevIdx = NumPoints - 1;
-            foreach (var vertex in Vertices)
+            for (var i = 0; i < Vertices.Count; i++)
             {
+                var vertex = Vertices[i];
                 var lastVertex = Vertices[prevIdx];
-                prevIdx--;
+                prevIdx = i;
 
                 var edge = vertex - lastVertex;
                 var disp = center - lastVertex.Origin;
@@ -229,12 +247,12 @@ namespace ACE.Server.Physics
 
                 normal += Vector3.Cross(v1, v2);
             }
-            normal.Normalize();
+            normal = normal.Normalize();
 
             // calculate distance
             var distSum = 0.0f;
             for (int i = NumPoints, spread = 0; i > 0; i--, spread++)
-                distSum += Vector3.Dot(Vertices[spread].Origin, normal);
+                distSum += Vector3.Dot(normal, Vertices[spread].Origin);
 
             var dist = -(distSum / NumPoints);
 
@@ -287,7 +305,7 @@ namespace ACE.Server.Physics
 
         public bool polygon_hits_ray(Ray ray, ref float time)
         {
-            if (SidesType != CullMode.Clockwise && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)
+            if (SidesType != CullMode.Clockwise && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)   // dist?
                 return false;
 
             if (!Plane.compute_time_of_intersection(ray, ref time))
@@ -298,7 +316,7 @@ namespace ACE.Server.Physics
 
         public bool polygon_hits_sphere(Sphere sphere, ref Vector3 contactPoint)
         {
-            var dpPos = Vector3.Dot(Plane.Normal, sphere.Center);
+            var dpPos = Vector3.Dot(sphere.Center, Plane.Normal) + Plane.D;
             var rad = sphere.Radius - PhysicsGlobals.EPSILON;
 
             if (Math.Abs(dpPos) > rad) return false;
@@ -308,14 +326,15 @@ namespace ACE.Server.Physics
 
             contactPoint = sphere.Center - Plane.Normal * dpPos;
 
-            var lastIdx = NumPoints - 1;
-            foreach (var vertex in Vertices)
+            var prevIdx = NumPoints - 1;
+            for (var i = 0; i < Vertices.Count; i++)
             {
-                var prevVertex = Vertices[lastIdx];
-                lastIdx--;
+                var vertex = Vertices[i];
+                var lastVertex = Vertices[prevIdx];
+                prevIdx = i;
 
-                var edge = vertex - prevVertex;
-                var disp = contactPoint - prevVertex.Origin;
+                var edge = vertex - lastVertex;
+                var disp = contactPoint - lastVertex.Origin;
                 var cross = Vector3.Cross(Plane.Normal, edge);
                 var dp = Vector3.Dot(disp, cross);
                 if (dp < 0.0f)
@@ -341,30 +360,33 @@ namespace ACE.Server.Physics
         {
             if (NumPoints == 0) return true;
 
-            var dpPos = Vector3.Dot(Plane.Normal, sphere.Center);
+            var dpPos = Vector3.Dot(Plane.Normal, sphere.Center) + Plane.D;
             var rad = sphere.Radius - PhysicsGlobals.EPSILON;
             if (Math.Abs(dpPos) > rad) return false;
 
-            var diff = dpPos * dpPos - rad * rad;
+            var diff = rad * rad - dpPos * dpPos;
             contactPoint = sphere.Center - Plane.Normal * dpPos;
 
             var prevIdx = NumPoints - 1;
-            foreach (var vertex in Vertices)
+            for (var i = 0; i < Vertices.Count; i++)
             {
+                var vertex = Vertices[i];
                 var lastVertex = Vertices[prevIdx];
-                prevIdx--;
+                prevIdx = i;
 
                 var edge = vertex - lastVertex;
                 var disp = contactPoint - lastVertex.Origin;
                 var cross = Vector3.Cross(Plane.Normal, edge);
-                if (Vector3.Dot(cross, contactPoint - lastVertex.Origin) >= 0.0f) continue;
+
+                if (Vector3.Dot(disp, cross) >= 0.0f) continue;
 
                 // inner loop
-                prevIdx = NumPoints - 1;
-                foreach (var _vertex in Vertices)
+                prevIdx = NumPoints - 1;    // alt idx?
+                for (var j = 0; j < Vertices.Count; j++)
                 {
+                    vertex = Vertices[j];
                     lastVertex = Vertices[prevIdx];
-                    prevIdx--;
+                    prevIdx = j;
 
                     edge = vertex - lastVertex;
                     disp = contactPoint - lastVertex.Origin;
@@ -384,18 +406,21 @@ namespace ACE.Server.Physics
                     if (disp.LengthSquared() <= diff)
                         return true;
                 }
+                return false;
             }
             return true;
         }
 
-        public bool pos_hits_sphere(Sphere sphere, Vector3 movement, Vector3 contactPoint, Polygon struckPoly)
+        public bool pos_hits_sphere(Sphere sphere, Vector3 movement, ref Vector3 contactPoint, ref Polygon hitPoly)
         {
-            if (Vector3.Dot(movement, Plane.Normal) >= 0.0f)
-                return false;
-
             var hit = polygon_hits_sphere_precise(sphere, ref contactPoint);
 
-            if (hit) struckPoly = this;
+            if (hit)
+                hitPoly = this;
+
+            var dist = Vector3.Dot(movement, Plane.Normal);
+            if (dist >= 0.0f)
+                return false;
 
             return hit;
         }

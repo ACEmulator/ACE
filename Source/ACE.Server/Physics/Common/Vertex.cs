@@ -20,6 +20,18 @@ namespace ACE.Server.Physics.Common
             UVs = uvs;  // copy?
         }
 
+        public Vertex(DatLoader.Entity.SWVertex v)
+        {
+            Origin = new Vector3(v.X, v.Y, v.Z);
+            Normal = new Vector3(v.NormalX, v.NormalY, v.NormalZ);
+            // omitted UV texture coordinates
+        }
+
+        public Vertex(Vector3 origin)
+        {
+            Origin = origin;
+        }
+
         public static Vector3 operator+ (Vertex a, Vertex b)
         {
             return a.Origin + b.Origin;

@@ -52,6 +52,7 @@ namespace ACE.Server.Physics.Common
         public static readonly int BlockSide = 8;
         public static readonly int VertexPerCell = 1;
         public static readonly int HalfSquareLength = 12;
+        public static readonly int SquareLength = 24;
 
         public static List<float> LandHeightTable;
 
@@ -90,35 +91,15 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
-        public static Vector3 GetBlockOffset(uint _cellFrom, uint _cellTo)
+        public static Vector3 GetBlockOffset(uint cellFrom, uint cellTo)
         {
-            var cellFrom = (int)_cellFrom;
-            var cellTo = (int)_cellTo;
-
-            // refactor me
-            if (cellFrom >> 16 == cellTo >> 16)
+            if (cellFrom >> BlockPartShift == cellTo >> BlockPartShift)
                 return Vector3.Zero;
 
-            int xShift21 = 0, xShift16 = 0;
-            int yShift21 = 0, yShift16 = 0;
+            var localFrom = blockid_to_lcoord(cellFrom).Value;
+            var localTo = blockid_to_lcoord(cellTo).Value;
 
-            if (cellFrom != 0)
-            {
-                xShift21 = (cellFrom >> 21) & 0x7F8;
-                xShift16 = 8 * (cellFrom >> 16);
-            }
-            if (cellTo != 0)
-            {
-                yShift21 = (cellTo >> 21) & 0x7F8;
-                yShift16 = 8 * ((cellTo >> 16) & 0xFF);
-            }
-            else
-                yShift21 = yShift16 = cellFrom;
-
-            var shift21Diff = (yShift21 - xShift21);
-            var shift16Diff = (yShift16 - xShift16);
-
-            return new Vector3(shift21Diff * 24, shift16Diff * 24, 0);
+            return new Vector3((localTo.X - localFrom.X) * SquareLength, (localTo.Y - localFrom.Y) * SquareLength, 0.0f);
         }
 
         public static bool InBlock(Vector3 pos, float radius)

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 
@@ -17,6 +19,13 @@ namespace ACE.Server.Physics.BSP
         {
         }
 
+        public BSPLeaf(DatLoader.Entity.BSPLeaf node, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
+            : base(node, polys, vertexArray)
+        {
+            LeafIdx = node.LeafIndex;
+            Solid = node.Solid == 1;
+        }
+
         public override void find_walkable(SpherePath path, Sphere validPos, ref Polygon hitPoly, Vector3 movement, Vector3 up, ref bool changed)
         {
             if (NumPolys == 0 || !Sphere.Intersects(validPos))
@@ -24,7 +33,12 @@ namespace ACE.Server.Physics.BSP
 
             foreach (var polygon in Polygons)
             {
-                if (polygon.walkable_hits_sphere(path, validPos, up) && polygon.adjust_sphere_to_plane(path, validPos, movement))
+                var walkable = polygon.walkable_hits_sphere(path, validPos, up);
+                var adjusted = false;
+                if (walkable)
+                    adjusted = polygon.adjust_sphere_to_plane(path, validPos, movement);
+
+                if (walkable && adjusted)
                 {
                     changed = true;
                     hitPoly = polygon;
@@ -50,14 +64,14 @@ namespace ACE.Server.Physics.BSP
             return NumPolys != 0;
         }
 
-        public override bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, ref Polygon hitPoly, Vector3 contactPoint)
+        public override bool sphere_intersects_poly(Sphere checkPos, Vector3 movement, ref Polygon hitPoly, ref Vector3 contactPoint)
         {
             if (NumPolys == 0 || !Sphere.Intersects(checkPos))
                 return false;
 
             foreach (var polygon in Polygons)
             {
-                if (polygon.pos_hits_sphere(checkPos, movement, contactPoint, hitPoly))
+                if (polygon.pos_hits_sphere(checkPos, movement, ref contactPoint, ref hitPoly))
                     return true;
             }
             return false;

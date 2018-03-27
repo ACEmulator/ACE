@@ -113,7 +113,7 @@ namespace ACE.Server.Physics
             CollisionTable = new Dictionary<uint, CollisionRecord>();
             UpdateTimes = new int[UpdateTimeLength];
 
-            if (PhysicsEngine.Instance.Server)
+            if (PhysicsEngine.Instance != null && PhysicsEngine.Instance.Server)
             {
                 RequestPos = new Position();
             }
@@ -1510,16 +1510,16 @@ namespace ACE.Server.Physics
 
                 if (TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     offsetFrame.Origin *= Scale;
-                else
-                    offsetFrame.Origin *= 0.0f;
+                //else
+                    //offsetFrame.Origin *= 0.0f;     // OnWalkable getting reset?
             }
             if (PositionManager != null)
                 PositionManager.AdjustOffset(offsetFrame, quantum);
 
-            var newFrame = AFrame.Combine(Position.Frame, offsetFrame);
+            //var newFrame = AFrame.Combine(Position.Frame, offsetFrame);
 
             if (!State.HasFlag(PhysicsState.Hidden))
-                UpdatePhysicsInternal((float)quantum, ref newFrame);
+                UpdatePhysicsInternal((float)quantum, ref offsetFrame);
 
             process_hooks();
         }
@@ -1938,13 +1938,13 @@ namespace ACE.Server.Physics
 
         public void enqueue_objs(AddUpdateObjs addUpdateObjs)
         {
-            var player = WeenieObj.WorldObject as WorldObjects.Player;
+            /*var player = WeenieObj.WorldObject as WorldObjects.Player;
 
             foreach (var obj in addUpdateObjs.AddObjects)
                 player.TrackObject(obj.WeenieObj.WorldObject);
 
             foreach (var obj in addUpdateObjs.UpdateObjects)
-                player.TrackObject(obj.WeenieObj.WorldObject, true);
+                player.TrackObject(obj.WeenieObj.WorldObject, true);*/
         }
 
         public void enter_cell(ObjCell newCell)
@@ -2186,7 +2186,7 @@ namespace ACE.Server.Physics
 
         public bool handle_all_collisions(CollisionInfo collisions, bool prev_has_contact, bool prev_on_walkable)
         {
-            var apply_bounce = !prev_on_walkable || !TransientState.HasFlag(TransientStateFlags.OnWalkable);
+            var apply_bounce = !prev_on_walkable || !TransientState.HasFlag(TransientStateFlags.OnWalkable) || !!TransientState.HasFlag(TransientStateFlags.Sliding);
             var retval = false;
             foreach (var collideObject in collisions.CollideObject)
             {
@@ -3103,12 +3103,18 @@ namespace ACE.Server.Physics
         /// <param name="isOnWalkable">Flag indicates if this object is currently standing on the ground</param>
         public void set_on_walkable(bool isOnWalkable)
         {
+            var prevOnWalkable = TransientState.HasFlag(TransientStateFlags.OnWalkable);
+
+            if (isOnWalkable)
+                TransientState |= TransientStateFlags.OnWalkable;
+            else
+                TransientState &= ~TransientStateFlags.OnWalkable;
+
             if (MovementManager != null)
             {
-                if (TransientState.HasFlag(TransientStateFlags.OnWalkable) && !isOnWalkable)
+                if (!isOnWalkable)
                     MovementManager.LeaveGround();
-
-                if (!TransientState.HasFlag(TransientStateFlags.OnWalkable) && isOnWalkable)
+                else
                     MovementManager.HitGround();
             }
             calc_acceleration();
@@ -3453,8 +3459,8 @@ namespace ACE.Server.Physics
             {
                 PhysicsTimer.CurrentTime += deltaTime;
                 UpdateObjectInternal(deltaTime);
+                UpdateTime = Timer.CurrentTime;
             }
-            UpdateTime = Timer.CurrentTime;
         }
 
         public void update_object_server()

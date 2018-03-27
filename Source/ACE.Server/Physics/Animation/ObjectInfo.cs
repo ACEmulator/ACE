@@ -93,7 +93,7 @@ namespace ACE.Server.Physics.Animation
 
             if (State.HasFlag(ObjectInfoState.IsViewer))
             {
-                var dist = Vector3.Dot(checkPos.Center, contactPlane.Normal) - checkPos.Radius;
+                var dist = Vector3.Dot(checkPos.Center, contactPlane.Normal) + contactPlane.D - checkPos.Radius;
                 if (dist > -PhysicsGlobals.EPSILON && path.BeginPos != null && (path.BeginPos.ObjCellID & 0xFFFF) >= 0x100)
                     return TransitionState.OK;
 
@@ -109,7 +109,7 @@ namespace ACE.Server.Physics.Animation
             }
             else
             {
-                var dist = Vector3.Dot(checkPos.Center - new Vector3(0, 0, checkPos.Radius), contactPlane.Normal) + waterDepth;
+                var dist = Vector3.Dot(checkPos.Center - new Vector3(0, 0, checkPos.Radius), contactPlane.Normal) + contactPlane.D + waterDepth;
                 if (dist >= -PhysicsGlobals.EPSILON)
                 {
                     if (dist > PhysicsGlobals.EPSILON)

@@ -827,7 +827,7 @@ namespace ACE.Server.Physics.Animation
                             }
                             else
                                 transitState = SpherePath.GlobalSphere[0].SlideSphere(this,
-                                    SpherePath.NegCollisionNormal, SpherePath.GlobalCurrCenter[0].Center);
+                                    ref SpherePath.NegCollisionNormal, SpherePath.GlobalCurrCenter[0].Center);
                         }
                         else
                         {

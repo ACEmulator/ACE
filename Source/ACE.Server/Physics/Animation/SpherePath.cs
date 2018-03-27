@@ -190,6 +190,9 @@ namespace ACE.Server.Physics.Animation
                 LocalSpaceSphere[i].Radius = LocalSphere[i].Radius * invScale;
                 LocalSpaceSphere[i].Center = pos.LocalToLocal(CheckPos, LocalSphere[i].Center) * invScale;
             }
+            LocalSpacePos = new Position(pos);
+            LocalSpaceZ = pos.GlobalToLocalVec(Vector3.UnitZ);
+            LocalSpaceLowPoint = LocalSpaceSphere[0].Center - (LocalSpaceZ * LocalSpaceSphere[0].Radius);
         }
 
         public bool CheckWalkables()
@@ -237,13 +240,12 @@ namespace ACE.Server.Physics.Animation
             if (Vector3.Dot(collisionNormal, offset) > 0.0f)
                 collisionNormal *= -1.0f;
 
-            return GlobalSphere[0].SlideSphere(transition, collisionNormal, GlobalCurrCenter[0].Center);
+            return GlobalSphere[0].SlideSphere(transition, ref collisionNormal, GlobalCurrCenter[0].Center);
         }
 
         public void RestoreCheckPos()
         {
-            CheckPos.ObjCellID = BackupCheckPos.ObjCellID;
-            CheckPos.Frame = BackupCheckPos.Frame;
+            CheckPos = BackupCheckPos;
             CheckCell = BackupCell;
             CellArrayValid = false;
             CacheGlobalSphere(Vector3.Zero);
@@ -252,8 +254,7 @@ namespace ACE.Server.Physics.Animation
         public void SaveCheckPos()
         {
             BackupCell = CheckCell;
-            BackupCheckPos.ObjCellID = CheckPos.ObjCellID;
-            BackupCheckPos.Frame = CheckPos.Frame;
+            BackupCheckPos = CheckPos;
         }
 
         public void SetCheckPos(Position position, ObjCell cell)
@@ -268,10 +269,9 @@ namespace ACE.Server.Physics.Animation
         {
             Collide = true;
             BackupCell = CheckCell;
-            BackupCheckPos.ObjCellID = CheckPos.ObjCellID;
-            BackupCheckPos.Frame = CheckPos.Frame;
+            BackupCheckPos = CheckPos;
             StepUpNormal = collisionNormal;
-            WalkInterp = 1; // 1065353216 & 0x0000FFFF;
+            WalkInterp = 1.0f;
         }
 
         public void SetNegPolyHit(bool stepUp, Vector3 collisionNormal)
@@ -286,8 +286,7 @@ namespace ACE.Server.Physics.Animation
             WalkableCheckPos = sphere;
             Walkable = poly;
             WalkableUp = zAxis;
-            WalkablePos.ObjCellID = localPos.ObjCellID;
-            WalkablePos.Frame = localPos.Frame;
+            WalkablePos = localPos;
             WalkableScale = scale;
         }
 
@@ -303,7 +302,7 @@ namespace ACE.Server.Physics.Animation
             collisions.ContactPlaneValid = false;
             collisions.ContactPlaneIsWater = false;
 
-            return GlobalCurrCenter[0].SlideSphere(transition, StepUpNormal, GlobalCurrCenter[0].Center);
+            return GlobalCurrCenter[0].SlideSphere(transition, ref StepUpNormal, GlobalCurrCenter[0].Center);
         }
     }
 }

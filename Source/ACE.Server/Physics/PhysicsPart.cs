@@ -14,7 +14,7 @@ namespace ACE.Server.Physics
         public DatLoader.FileTypes.GfxObjDegradeInfo Degrades;
         public int DegLevel;
         public int DegMode;
-        public GfxObj GfxObj;
+        public List<GfxObj> GfxObj;
         public Vector3 GfxObjScale;
         public Position Pos;
         public Position DrawPos;
@@ -45,17 +45,17 @@ namespace ACE.Server.Physics
 
         public TransitionState FindObjCollisions(Transition transition)
         {
-            if (GfxObj != null && GfxObj.PhysicsBSP != null)
+            if (GfxObj != null && GfxObj[0].PhysicsBSP != null)
             {
                 transition.SpherePath.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
-                return GfxObj.FindObjCollisions(GfxObj, transition, GfxObjScale.Z);
+                return GfxObj[0].FindObjCollisions(GfxObj[0], transition, GfxObjScale.Z);
             }
             return TransitionState.Invalid;
         }
 
         public BBox GetBoundingBox()
         {
-            return GfxObj.GfxBoundBox;
+            return GfxObj[0].GfxBoundBox;
         }
 
         public uint GetPhysObjID()
@@ -90,7 +90,7 @@ namespace ACE.Server.Physics
         public bool LoadGfxObjArray(uint rootObjectID/*, GfxObjDegradeInfo newDegrades*/)
         {
             var gfxObj = (DatLoader.FileTypes.GfxObj)DBObj.Get(new QualifiedDataID(6, rootObjectID));
-            GfxObj = new GfxObj(gfxObj);
+            GfxObj = new List<GfxObj>() { new GfxObj(gfxObj) };
             // degrades omitted
             return GfxObj != null;
         }

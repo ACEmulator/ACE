@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Collision;
 
 namespace ACE.Server.Physics.Extensions
 {
@@ -42,6 +43,31 @@ namespace ACE.Server.Physics.Extensions
 
             time = (Vector3.Dot(ray.Point, p.Normal) + p.D) * (-1.0f / angle);
             return time >= 0.0f;
+        }
+
+        public static Sidedness intersect_box(this Plane p, BBox box)
+        {
+            Sidedness result;
+
+            var dist = Vector3.Dot(box.Min, p.Normal) + p.D;
+            if (dist <= PhysicsGlobals.EPSILON)
+            {
+                if (dist >= -PhysicsGlobals.EPSILON)
+                    return Sidedness.Crossing;
+                else
+                    result = Sidedness.Negative;
+            }
+            else
+                result = Sidedness.Positive;
+
+            var corners = box.GetCorners();
+
+            foreach (var corner in corners)
+            {
+                if (result != (Sidedness)GetSide(p, corner, PhysicsGlobals.EPSILON))
+                    return Sidedness.Crossing;
+            }
+            return result;
         }
     }
 }

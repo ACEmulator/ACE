@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
@@ -21,6 +23,11 @@ namespace ACE.Server.Physics.BSP
         public BSPTree(BSPNode rootNode)
         {
             RootNode = rootNode;
+        }
+
+        public BSPTree(DatLoader.Entity.BSPTree bsp, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
+        {
+            RootNode = new BSPNode(bsp.RootNode, polys, vertexArray);
         }
 
         public Sphere GetSphere()
@@ -47,7 +54,7 @@ namespace ACE.Server.Physics.BSP
                 {
                     checkPos.Center = curPos + movement * (float)touchTime;
 
-                    if (!RootNode.sphere_intersects_poly(checkPos, movement, ref hitPoly, contactPoint))
+                    if (!RootNode.sphere_intersects_poly(checkPos, movement, ref hitPoly, ref contactPoint))
                     {
                         lowerTime = touchTime;
                         break;
@@ -65,7 +72,7 @@ namespace ACE.Server.Physics.BSP
 
                 checkPos.Center = curPos + movement * (float)averageTime;
 
-                if (!RootNode.sphere_intersects_poly(checkPos, movement, ref hitPoly, contactPoint))
+                if (!RootNode.sphere_intersects_poly(checkPos, movement, ref hitPoly, ref contactPoint))
                     upperTime = (lowerTime + upperTime) * 0.5f;
                 else
                     lowerTime = (lowerTime + upperTime) * 0.5f;
@@ -153,7 +160,7 @@ namespace ACE.Server.Physics.BSP
             if (path.Collide)
             {
                 var changed = false;
-                var validPos = localSphere;     // copy constructor call
+                var validPos = localSphere;
 
                 RootNode.find_walkable(path, validPos, ref hitPoly, movement, path.LocalSpaceZ, ref changed);
 
@@ -181,7 +188,7 @@ namespace ACE.Server.Physics.BSP
 
             if (obj.State.HasFlag(ObjectInfoState.Contact))
             {
-                if (RootNode.sphere_intersects_poly(localSphere, movement, ref hitPoly, contactPoint))
+                if (RootNode.sphere_intersects_poly(localSphere, movement, ref hitPoly, ref contactPoint))
                     return step_sphere_up(transition, hitPoly.Plane.Normal);
 
                 if (path.NumSphere > 1)
@@ -189,7 +196,7 @@ namespace ACE.Server.Physics.BSP
                     Polygon hitPoly_ = null;
                     var localSphere_ = path.LocalSpaceSphere[1];
 
-                    if (RootNode.sphere_intersects_poly(localSphere_, movement, ref hitPoly_, contactPoint))
+                    if (RootNode.sphere_intersects_poly(localSphere_, movement, ref hitPoly_, ref contactPoint))
                         return slide_sphere(transition, hitPoly_.Plane.Normal);
 
                     if (hitPoly_ != null) return SetPolyHit(path, hitPoly_);
@@ -199,7 +206,7 @@ namespace ACE.Server.Physics.BSP
                     return TransitionState.OK;
             }
             
-            if (RootNode.sphere_intersects_poly(localSphere, movement, ref hitPoly, contactPoint) || hitPoly != null)
+            if (RootNode.sphere_intersects_poly(localSphere, movement, ref hitPoly, ref contactPoint) || hitPoly != null)
             {
                 if (obj.State.HasFlag(ObjectInfoState.PathClipped))
                     return collide_with_pt(transition, localSphere, center, hitPoly, contactPoint, scale);
@@ -209,12 +216,11 @@ namespace ACE.Server.Physics.BSP
                 path.SetCollide(collisionNormal);
 
                 return TransitionState.Adjusted;
-
             }
             else if (path.NumSphere > 1)
             {
                 var localSphere_ = path.LocalSpaceSphere[1];
-                if (RootNode.sphere_intersects_poly(localSphere_, movement, ref hitPoly, contactPoint) || hitPoly != null)
+                if (RootNode.sphere_intersects_poly(localSphere_, movement, ref hitPoly, ref contactPoint) || hitPoly != null)
                 {
                     var collisionNormal = path.LocalSpacePos.LocalToGlobalVec(hitPoly.Plane.Normal);
                     collisions.SetCollisionNormal(collisionNormal);
@@ -304,9 +310,10 @@ namespace ACE.Server.Physics.BSP
 
         public TransitionState slide_sphere(Transition transition, Vector3 collisionNormal)
         {
+            // modifies collision normal?
             var path = transition.SpherePath;
             var globNormal = path.LocalSpacePos.LocalToGlobalVec(collisionNormal);
-            return path.GlobalSphere[0].SlideSphere(transition, globNormal, path.GlobalCurrCenter[0].Center);
+            return path.GlobalSphere[0].SlideSphere(transition, ref globNormal, path.GlobalCurrCenter[0].Center);
         }
 
         public BoundingType sphere_intersects_cell_bsp(Sphere sphere)
