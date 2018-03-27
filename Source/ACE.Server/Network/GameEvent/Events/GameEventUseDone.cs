@@ -4,7 +4,7 @@ namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventUseDone : GameEventMessage
     {
-        public GameEventUseDone(Session session, WERROR errorType = WERROR.WERROR_NONE)
+        public GameEventUseDone(Session session, WeenieError errorType = WeenieError.None)
             : base(GameEventType.UseDone, GameMessageGroup.UIQueue, session)
         {
             Writer.Write((uint)errorType);

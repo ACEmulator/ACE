@@ -207,7 +207,7 @@ namespace ACE.Server.Command.Handlers
             // On error
             {
                 // You are too powerful to interact with that portal!
-                var portalRecallMessage = new GameEventDisplayStatusMessage(session, StatusMessageType1.YouMustLinkToPortalToRecall);
+                var portalRecallMessage = new GameEventWeenieError(session, WeenieError.YouMustLinkToPortalToRecall);
                 session.Network.EnqueueSend(portalRecallMessage);
             }
         }

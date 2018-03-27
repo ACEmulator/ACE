@@ -1,521 +1,848 @@
 namespace ACE.Entity.Enum
 {
-    // Corresponds to giant string switch in ClientCommunicationSystem::HandleFailureEvent
-    public enum WERROR : uint
+    /// <summary>
+    /// The WeenieError identifies the specific message to be displayed in the chat window or top of the UI.<para/>
+    /// Used with F7B0 028A: Game Event -> Display an error message in the chat window if necessary.<para/>
+    /// <para/>
+    /// WeenieError and WeenieErrorWithString are actually a single enum in the client.<para/>   
+    /// The enum is used in handling 0x028A and 0x028B messages and also some other messages like UseDone.<para/>
+    /// We split the enum up into 2 enums because each function uses only a specific set of the enum values.<para/>
+    /// There are cases where the value was used by multiple messages e.g. 0x0036 ActionCancelled.
+    /// </summary>
+    public enum WeenieError
     {
-        WERROR_NONE,
-        WERROR_NOMEM,
-        WERROR_BAD_PARAM,
-        WERROR_DIV_ZERO,
-        WERROR_SEGV,
-        WERROR_UNIMPLEMENTED,
-        WERROR_UNKNOWN_MESSAGE_TYPE,
-        WERROR_NO_ANIMATION_TABLE,
-        WERROR_NO_PHYSICS_OBJECT,
-        WERROR_NO_BOOKIE_OBJECT,
-        WERROR_NO_WSL_OBJECT,
-        WERROR_NO_MOTION_INTERPRETER,
-        WERROR_UNHANDLED_SWITCH,
-        WERROR_DEFAULT_CONSTRUCTOR_CALLED,
-        WERROR_INVALID_COMBAT_MANEUVER,
-        WERROR_BAD_CAST,
-        WERROR_MISSING_QUALITY,
-        UNKNOWN__GUESSEDNAME17, // NOTE: Missing 1
-        WERROR_MISSING_DATABASE_OBJECT,
-        WERROR_NO_CALLBACK_SET,
-        WERROR_CORRUPT_QUALITY,
-        WERROR_BAD_CONTEXT,
-        WERROR_NO_EPHSEQ_MANAGER,
-        WERROR_BAD_MOVEMENT_EVENT,
-        WERROR_CANNOT_CREATE_NEW_OBJECT,
-        WERROR_NO_CONTROLLER_OBJECT,
-        WERROR_CANNOT_SEND_EVENT,
-        WERROR_PHYSICS_CANT_TRANSITION,
-        WERROR_PHYSICS_MAX_DISTANCE_EXCEEDED,
-        WERROR_ACTIONS_LOCKED,
-        WERROR_EXTERNAL_ACTIONS_LOCKED,
-        WERROR_CANNOT_SEND_MESSAGE,
-        WERROR_ILLEGAL_INVENTORY_TRANSACTION,
-        WERROR_EXTERNAL_WEENIE_OBJECT,
-        WERROR_INTERNAL_WEENIE_OBJECT,
-        WERROR_MOTION_FAILURE,
-        WERROR_NO_CONTACT,
-        WERROR_INQ_CYL_SPHERE_FAILURE,
-        WERROR_BAD_COMMAND,
-        WERROR_CARRYING_ITEM,
-        WERROR_FROZEN,
-        WERROR_STUCK,
-        WERROR_OVERLOAD,
-        WERROR_EXTERNAL_OVERLOAD,
-        WERROR_BAD_CONTAIN,
-        WERROR_BAD_PARENT,
-        WERROR_BAD_DROP,
-        WERROR_BAD_RELEASE,
-        WERROR_MSG_BAD_MSG,
-        WERROR_MSG_UNPACK_FAILED,
-        WERROR_MSG_NO_MSG,
-        WERROR_MSG_UNDERFLOW,
-        WERROR_MSG_OVERFLOW,
-        WERROR_MSG_CALLBACK_FAILED,
-        WERROR_INTERRUPTED,
-        WERROR_OBJECT_GONE,
-        WERROR_NO_OBJECT,
-        WERROR_CANT_GET_THERE,
-        WERROR_DEAD,
-        WERROR_I_LEFT_THE_WORLD,
-        WERROR_I_TELEPORTED,
-        WERROR_TOO_FAR,
-        WERROR_STAMINA_TOO_LOW,
-        WERROR_CANT_CROUCH_IN_COMBAT,
-        WERROR_CANT_SIT_IN_COMBAT,
-        WERROR_CANT_LIE_DOWN_IN_COMBAT,
-        WERROR_CANT_CHAT_EMOTE_IN_COMBAT,
-        WERROR_NO_MTABLE_DATA,
-        WERROR_CANT_CHAT_EMOTE_NOT_STANDING,
-        WERROR_TOO_MANY_ACTIONS,
-        WERROR_HIDDEN,
-        WERROR_GENERAL_MOVEMENT_FAILURE,
-        WERROR_CANT_JUMP_POSITION,
-        WERROR_CANT_JUMP_LOAD,
-        WERROR_SELF_INFLICTED_DEATH,
-        WERROR_MSG_RESPONSE_FAILURE,
-        WERROR_OBJECT_IS_STATIC,
-        WERROR_PK_INVALID_STATUS,
-        WERROR_PK_PROTECTED_ATTACKER,
-        WERROR_PK_PROTECTED_TARGET,
-        WERROR_PK_UNPROTECTED_TARGET,
-        WERROR_PK_NPK_ATTACKER,
-        WERROR_PK_NPK_TARGET,
-        WERROR_PK_WRONG_KIND,
-        WERROR_PK_CROSS_HOUSE_BOUNDARY,
-        // NOTE: Large skip
-        WERROR_INVALID_XP_AMOUNT = 1001,
-        WERROR_INVALID_PP_CALCULATION,
-        WERROR_INVALID_CP_CALCULATION,
-        WERROR_UNHANDLED_STAT_ANSWER,
-        WERROR_HEART_ATTACK,
-        WERROR_CLOSED,
-        WERROR_GIVE_NOT_ALLOWED,
-        WERROR_INVALID_INVENTORY_LOCATION,
-        WERROR_CHANGE_COMBAT_MODE_FAILURE,
-        WERROR_FULL_INVENTORY_LOCATION,
-        WERROR_CONFLICTING_INVENTORY_LOCATION,
-        WERROR_ITEM_NOT_PENDING,
-        WERROR_BE_WIELDED_FAILURE,
-        WERROR_BE_DROPPED_FAILURE,
-        WERROR_COMBAT_FATIGUE,
-        WERROR_COMBAT_OUT_OF_AMMO,
-        WERROR_COMBAT_MISFIRE,
-        WERROR_BAD_MISSILE_CALCULATIONS,
-        WERROR_MAGIC_INCOMPLETE_ANIM_LIST,
-        WERROR_MAGIC_INVALID_SPELL_TYPE,
-        WERROR_MAGIC_INQ_POSITION_AND_VELOCITY_FAILURE,
-        WERROR_MAGIC_UNLEARNED_SPELL,
-        WERROR_MAGIC_BAD_TARGET_TYPE,
-        WERROR_MAGIC_MISSING_COMPONENTS,
-        WERROR_MAGIC_INSUFFICIENT_MANA,
-        WERROR_MAGIC_FIZZLE,
-        WERROR_MAGIC_MISSING_TARGET,
-        WERROR_MAGIC_MISFIRED_PROJECTILE_SPELL,
-        WERROR_MAGIC_SPELLBOOK_ADDSPELL_FAILURE,
-        WERROR_MAGIC_TARGET_OUT_OF_RANGE,
-        WERROR_MAGIC_NON_OUTDOOR_SPELL_CAST_OUTSIDE,
-        WERROR_MAGIC_NON_INDOOR_SPELL_CAST_INSIDE,
-        WERROR_MAGIC_GENERAL_FAILURE,
-        WERROR_MAGIC_UNPREPARED,
-        WERROR_ALLEGIANCE_PATRON_EXISTS,
-        WERROR_ALLEGIANCE_INSUFFICIENT_CP,
-        WERROR_ALLEGIANCE_IGNORING_REQUESTS,
-        WERROR_ALLEGIANCE_SQUELCHED,
-        WERROR_ALLEGIANCE_MAX_DISTANCE_EXCEEDED,
-        WERROR_ALLEGIANCE_ILLEGAL_LEVEL,
-        WERROR_ALLEGIANCE_BAD_CREATION,
-        WERROR_ALLEGIANCE_PATRON_BUSY,
-        WERROR_ALLEGIANCE_ADD_HIERARCHY_FAILURE,
-        WERROR_ALLEGIANCE_NONEXISTENT,
-        WERROR_ALLEGIANCE_REMOVE_HIERARCHY_FAILURE,
-        WERROR_ALLEGIANCE_MAX_VASSALS,
-        WERROR_FELLOWSHIP_IGNORING_REQUESTS,
-        WERROR_FELLOWSHIP_SQUELCHED,
-        WERROR_FELLOWSHIP_MAX_DISTANCE_EXCEEDED,
-        WERROR_FELLOWSHIP_MEMBER,
-        WERROR_FELLOWSHIP_ILLEGAL_LEVEL,
-        WERROR_FELLOWSHIP_RECRUIT_BUSY,
-        WERROR_FELLOWSHIP_NOT_LEADER,
-        WERROR_FELLOWSHIP_FULL,
-        WERROR_FELLOWSHIP_UNCLEAN_NAME,
-        WERROR_LEVEL_TOO_LOW,
-        WERROR_LEVEL_TOO_HIGH,
-        WERROR_CHAN_INVALID,
-        WERROR_CHAN_SECURITY,
-        WERROR_CHAN_ALREADY_ACTIVE,
-        WERROR_CHAN_NOT_ACTIVE,
-        WERROR_ATTUNED_ITEM,
-        WERROR_MERGE_BAD,
-        WERROR_MERGE_ENCHANTED,
-        WERROR_UNCONTROLLED_STACK,
-        WERROR_CURRENTLY_ATTACKING,
-        WERROR_MISSILE_ATTACK_NOT_OK,
-        WERROR_TARGET_NOT_ACQUIRED,
-        WERROR_IMPOSSIBLE_SHOT,
-        WERROR_BAD_WEAPON_SKILL,
-        WERROR_UNWIELD_FAILURE,
-        WERROR_LAUNCH_FAILURE,
-        WERROR_RELOAD_FAILURE,
-        WERROR_CRAFT_UNABLE_TO_MAKE_CRAFTREQ,
-        WERROR_CRAFT_ANIMATION_FAILED,
-        WERROR_CRAFT_NO_MATCH_WITH_NUMPREOBJ,
-        WERROR_CRAFT_GENERAL_ERROR_UI_MSG,
-        WERROR_CRAFT_GENERAL_ERROR_NO_UI_MSG,
-        WERROR_CRAFT_FAILED_REQUIREMENTS,
-        WERROR_CRAFT_DONT_CONTAIN_EVERYTHING,
-        WERROR_CRAFT_ALL_OBJECTS_NOT_FROZEN,
-        WERROR_CRAFT_NOT_IN_PEACE_MODE,
-        WERROR_CRAFT_NOT_HAVE_SKILL,
-        WERROR_HANDS_NOT_FREE,
-        WERROR_PORTAL_NOT_LINKABLE,
-        WERROR_QUEST_SOLVED_TOO_RECENTLY,
-        WERROR_QUEST_SOLVED_MAX_TIMES,
-        WERROR_QUEST_UNKNOWN,
-        WERROR_QUEST_TABLE_CORRUPT,
-        WERROR_QUEST_BAD,
-        WERROR_QUEST_DUPLICATE,
-        WERROR_QUEST_UNSOLVED,
-        WERROR_QUEST_RESRICTION_UNSOLVED,
-        WERROR_QUEST_SOLVED_TOO_LONG_AGO,
-        UNKNOWN__GUESSEDNAME1095, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1096, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1097, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1098, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1099, // NOTE: Missing 1
-        WERROR_TRADE_IGNORING_REQUESTS,
-        WERROR_TRADE_SQUELCHED,
-        WERROR_TRADE_MAX_DISTANCE_EXCEEDED,
-        WERROR_TRADE_ALREADY_TRADING,
-        WERROR_TRADE_BUSY,
-        WERROR_TRADE_CLOSED,
-        WERROR_TRADE_EXPIRED,
-        WERROR_TRADE_ITEM_BEING_TRADED,
-        WERROR_TRADE_NON_EMPTY_CONTAINER,
-        WERROR_TRADE_NONCOMBAT_MODE,
-        WERROR_TRADE_INCOMPLETE,
-        WERROR_TRADE_STAMP_MISMATCH,
-        WERROR_TRADE_UNOPENED,
-        WERROR_TRADE_EMPTY,
-        WERROR_TRADE_ALREADY_ACCEPTED,
-        WERROR_TRADE_OUT_OF_SYNC,
-        WERROR_PORTAL_PK_NOT_ALLOWED,
-        WERROR_PORTAL_NPK_NOT_ALLOWED,
-        WERROR_HOUSE_ABANDONED,
-        WERROR_HOUSE_EVICTED,
-        WERROR_HOUSE_ALREADY_OWNED,
-        WERROR_HOUSE_BUY_FAILED,
-        WERROR_HOUSE_RENT_FAILED,
-        WERROR_HOOKED,
-        UNKNOWN__GUESSEDNAME1124, // NOTE: Missing 1
-        WERROR_MAGIC_INVALID_POSITION,
-        WERROR_PORTAL_ACDM_ONLY,
-        WERROR_INVALID_AMMO_TYPE,
-        WERROR_SKILL_TOO_LOW,
-        WERROR_HOUSE_MAX_NUMBER_HOOKS_USED,
-        WERROR_TRADE_AI_DOESNT_WANT,
-        WERROR_HOOK_HOUSE_NOTE_OWNED,
-        UNKNOWN__GUESSEDNAME1132, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1133, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1134, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1135, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1136, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1137, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1138, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1139, // NOTE: Missing 1
-        WERROR_PORTAL_QUEST_RESTRICTED,
-        UNKNOWN__GUESSEDNAME1141, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1142, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1143, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1144, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1145, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1146, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1147, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1148, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1149, // NOTE: Missing 1
-        WERROR_HOUSE_NO_ALLEGIANCE,
-        WERROR_NO_HOUSE,
-        WERROR_HOUSE_NO_MANSION_NO_POSITION,
-        WERROR_HOUSE_NOT_A_MANSION,
-        WERROR_HOUSE_NOT_ALLOWED_IN,
-        UNKNOWN__GUESSEDNAME1155, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1156, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1157, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1158, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1159, // NOTE: Missing 1
-        WERROR_HOUSE_UNDER_MIN_LEVEL,
-        WERROR_HOUSE_OVER_MAX_LEVEL,
-        WERROR_HOUSE_NOT_A_MONARCH,
-        WERROR_HOUSE_UNDER_MIN_RANK,
-        WERROR_HOUSE_OVER_MAX_RANK,
-        WERROR_ALLEGIANCE_DECLINED,
-        WERROR_ALLEGIANCE_TIMEOUT,
-        WERROR_CONFIRMATION_IN_PROGRESS,
-        WERROR_MONARCH_ONLY,
-        WERROR_ALLEGIANCE_BOOT_EMPTY_NAME,
-        WERROR_ALLEGIANCE_BOOT_SELF,
-        WERROR_NO_SUCH_CHARACTER,
-        WERROR_ALLEGIANCE_TARGET_NOT_A_MEMBER,
-        WERROR_ALLEGIANCE_REMOVE_NO_PATRON,
-        WERROR_ALLEGIANCE_OFFLINE_DISSOLVED,
-        WERROR_ALLEGIANCE_OFFLINE_DISMISSED,
-        WERROR_MOVED_TOO_FAR,
-        WERROR_TELETO_INVALID_POSITION,
-        WERROR_ACDM_ONLY,
-        WERROR_LIFESTONE_LINK_FAILED,
-        WERROR_LIFESTONE_LINK_TOO_FAR,
-        WERROR_LIFESTONE_LINK_SUCCESS,
-        WERROR_LIFESTONE_RECALL_NO_LINK,
-        WERROR_LIFESTONE_RECALL_FAILED,
-        WERROR_PORTAL_LINK_FAILED,
-        WERROR_PORTAL_LINK_SUCCESS,
-        WERROR_PORTAL_RECALL_FAILED,
-        WERROR_PORTAL_RECALL_NO_LINK,
-        WERROR_PORTAL_SUMMON_FAILED,
-        WERROR_PORTAL_SUMMON_NO_LINK,
-        WERROR_PORTAL_TELEPORT_FAILED,
-        WERROR_PORTAL_TOO_RECENTLY,
-        WERROR_PORTAL_ADVOCATE_ONLY,
-        WERROR_PORTAL_AIS_NOT_ALLOWED,
-        WERROR_PORTAL_PLAYERS_NOT_ALLOWED,
-        WERROR_PORTAL_LEVEL_TOO_LOW,
-        WERROR_PORTAL_LEVEL_TOO_HIGH,
-        WERROR_PORTAL_NOT_RECALLABLE,
-        WERROR_PORTAL_NOT_SUMMONABLE,
-        WERROR_LOCK_ALREADY_UNLOCKED,
-        WERROR_LOCK_NOT_LOCKABLE,
-        WERROR_LOCK_ALREADY_OPEN, // Chest or door is already in an open and unlocked state
-        WERROR_LOCK_WRONG_KEY,
-        WERROR_LOCK_USED_TOO_RECENTLY,
-        WERROR_DONT_KNOW_LOCKPICKING,
-        WERROR_ALLEGIANCE_INFO_EMPTY_NAME,
-        WERROR_ALLEGIANCE_INFO_SELF,
-        WERROR_ALLEGIANCE_INFO_TOO_RECENT,
-        WERROR_ABUSE_NO_SUCH_CHARACTER,
-        WERROR_ABUSE_REPORTED_SELF,
-        WERROR_ABUSE_COMPLAINT_HANDLED,
-        UNKNOWN__GUESSEDNAME1211, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1212, // NOTE: Missing 1
-        WERROR_SALVAGE_DONT_OWN_TOOL,
-        WERROR_SALVAGE_DONT_OWN_LOOT,
-        WERROR_SALVAGE_NOT_SUITABLE,
-        WERROR_SALVAGE_WRONG_MATERIAL,
-        WERROR_SALVAGE_CREATION_FAILED,
-        WERROR_SALVAGE_INVALID_LOOT_LIST,
-        WERROR_SALVAGE_TRADING_LOOT,
-        WERROR_PORTAL_HOUSE_RESTRICTED,
-        WERROR_ACTIVATION_RANK_TOO_LOW,
-        WERROR_ACTIVATION_WRONG_RACE,
-        WERROR_ACTIVATION_ARCANE_LORE_TOO_LOW,
-        WERROR_ACTIVATION_NOT_ENOUGH_MANA,
-        WERROR_ACTIVATION_SKILL_TOO_LOW,
-        WERROR_ACTIVATION_NOT_CRAFTSMAN,
-        WERROR_ACTIVATION_NOT_SPECIALIZED,
-        WERROR_PORTAL_PK_ATTACKED_TO_RECENTLY,
-        WERROR_TRADE_AI_REFUSE_EMOTE,
-        WERROR_TRADE_AI_REFUSE_EMOTE_FAILED_TOO_BUSY,
-        WERROR_TRADE_AI_TOO_MANY,
-        WERROR_SKILL_ALTERATION_FAILED,
-        WERROR_SKILL_ALTERATION_RAISE_NOT_TRAINED,
-        WERROR_SKILL_ALTERATION_RAISE_NOT_ENOUGH_CREDITS,
-        WERROR_SKILL_ALTERATION_WRAP_AROUND,
-        WERROR_SKILL_ALTERATION_LOWER_UNTRAINED,
-        WERROR_SKILL_ALTERATION_ILLEGAL_WIELDED_ITEMS,
-        WERROR_SKILL_ALTERATION_SPEC_SUCCEEDED,
-        WERROR_SKILL_ALTERATION_UNSPEC_SUCCEEDED,
-        WERROR_SKILL_ALTERATION_UNTRAIN_SUCCEEDED,
-        WERROR_SKILL_ALTERATION_UNTRAIN_RACIAL_SUCCEEDED,
-        WERROR_SKILL_ALTERATION_RAISE_TOO_MANY_SPEC_CREDITS,
-        WERROR_FELLOWSHIP_DECLINED,
-        WERROR_FELLOWSHIP_TIMEOUT,
-        WERROR_ATTRIBUTE_ALTERATION_FAILED,
-        WERROR_ATTRIBUTE_TRANSFER_FROM_TOO_LOW,
-        WERROR_ATTRIBUTE_TRANSFER_TO_TOO_HIGH,
-        WERROR_ATTRIBUTE_ALTERATION_ILLEGAL_WIELDED_ITEMS,
-        WERROR_ATTRIBUTE_ALTERATION_SUCCEEDED,
-        WERROR_HOUSE_DYNAMIC_HOOK_ADD,
-        WERROR_HOUSE_WRONG_HOOK_TYPE,
-        WERROR_HOUSE_DYNAMIC_STORAGE_ADD,
-        WERROR_HOUSE_DYNAMIC_HOOK_CLOSE,
-        WERROR_HOUSE_DYNAMIC_STORAGE_CLOSE,
-        WERROR_ALLEGIANCE_OWNS_MANSION,
-        WERROR_HOOK_ITEM_ON_HOOK_NOT_USEABLE,
-        WERROR_HOOK_ITEM_ON_HOOK_NOT_USEABLE_OWNER,
-        WERROR_HOOKER_NOT_USEABLE_OFF_HOOK,
-        WERROR_MIDAIR,
-        WERROR_PK_SWITCH_RECOVERING,
-        WERROR_PK_SWITCH_ADVOCATE,
-        WERROR_PK_SWITCH_MIN_LEVEL,
-        WERROR_PK_SWITCH_MAX_LEVEL,
-        WERROR_PK_SWITCH_RECENT_KILL,
-        WERROR_PK_SWITCH_AUTO_PK,
-        WERROR_PK_SWITCH_RESPITE,
-        WERROR_PORTAL_PKLITE_NOT_ALLOWED,
-        WERROR_PK_PROTECTED_ATTACKER_PASSIVE,
-        WERROR_PK_PROTECTED_TARGET_PASSIVE,
-        WERROR_PK_NPK_ATTACKER_PASSIVE,
-        WERROR_PK_NPK_TARGET_PASSIVE,
-        WERROR_PK_WRONG_KIND_PASSIVE,
-        WERROR_PK_CROSS_HOUSE_BOUNDARY_PASSIVE,
-        WERROR_MAGIC_INVALID_TARGET,
-        WERROR_MAGIC_INVALID_TARGET_PASSIVE,
-        WERROR_HEAL_NOT_TRAINED,
-        WERROR_HEAL_DONT_OWN_KIT,
-        WERROR_HEAL_CANT_HEAL_THAT,
-        WERROR_HEAL_FULL_HEALTH,
-        WERROR_HEAL_NOT_READY,
-        WERROR_HEAL_PLAYERS_ONLY,
-        WERROR_LIFESTONE_PROTECTION,
-        WERROR_PORTAL_PROTECTION,
-        WERROR_PK_SWITCH_PKLITE_OFF,
-        WERROR_DEATH_TOO_CLOSE_TO_SANCTUARY,
-        WERROR_TRADE_IN_PROGRESS,
-        WERROR_PK_SWITCH_PKLITE_ON_PK,
-        WERROR_PK_SWITCH_PKLITE_ON,
-        WERROR_MAGIC_NO_SUITABLE_ALTERNATE_TARGET,
-        WERROR_MAGIC_NO_SUITABLE_ALTERNATE_TARGET_PASSIVE,
-        WERROR_FELLOWSHIP_NOW_OPEN,
-        WERROR_FELLOWSHIP_NOW_CLOSED,
-        WERROR_FELLOWSHIP_NEW_LEADER,
-        WERROR_FELLOWSHIP_NO_LONGER_LEADER,
-        WERROR_FELLOWSHIP_NO_FELLOWSHIP,
-        WERROR_HOUSE_MAX_HOOK_GROUP_REACHED,
-        WERROR_HOUSE_MAX_HOOK_GROUP_REACHED_SILENT,
-        WERROR_HOUSE_NOW_USING_MAX_HOOKS,
-        WERROR_HOUSE_NO_LONGER_USING_MAX_HOOKS,
-        WERROR_HOUSE_NOW_USING_MAX_IN_HOOKGROUP,
-        WERROR_HOUSE_NO_LONGER_USING_MAX_IN_HOOKGROUP,
-        WERROR_HOOK_NOT_PERMITED_TO_USE_HOOK,
-        WERROR_FELLOWSHIP_NOT_CLOSE_ENOUGH_LEVEL,
-        WERROR_FELLOWSHIP_LOCKED_RECRUITER,
-        WERROR_FELLOWSHIP_LOCKED_RECRUITEE,
-        WERROR_ACTIVATION_NOT_ALLOWED_NO_NAME,
-        WERROR_CHAT_ENTERED_TURBINE_CHAT_ROOM,
-        WERROR_CHAT_LEFT_TURBINE_CHAT_ROOM,
-        WERROR_CHAT_NOW_USING_TURBINE_CHAT,
-        WERROR_ADMIN_IS_DEAF,
-        WERROR_ADMIN_DEAF_TO_MESSAGE,
-        WERROR_LOUD_LIST_IS_FULL,
-        WERROR_CHARACTER_ADDED_LOUD_LIST,
-        WERROR_CHARACTER_REMOVED_LOUD_LIST,
-        WERROR_DEAF_MODE_ON,
-        WERROR_DEAF_MODE_OFF,
-        WERROR_FAILED_MUTE,
-        WERROR_CRAFT_CHICKEN_OUT_MSG,
-        WERROR_CRAFT_NO_CHANCE,
-        WERROR_FELLOWSHIP_FELLOW_LOCKED_CAN_NOT_OPEN,
-        WERROR_TRADE_COMPLETE,
-        WERROR_SALVAGE_NOT_A_TOOL,
-        WERROR_CHARACTER_NOT_AVAILABLE,
-        WERROR_SNOOP_STARTED,
-        WERROR_SNOOP_STOPED,
-        WERROR_SNOOP_FAILED,
-        WERROR_SNOOP_UNAUTHORIZED,
-        WERROR_SNOOP_ALREADY_SNOOPED_ON,
-        WERROR_CHARACTER_IN_LIMBO_MSG_NOT_RECIVED,
-        WERROR_HOUSE_PURCHASE_TOO_SOON,
-        WERROR_ALLEGIANCE_I_AM_BOOTED_FROM_CHAT,
-        WERROR_ALLEGIANCE_TARGET_BOOTED_FROM_CHAT,
-        WERROR_ALLEGIANCE_NOT_AUTHORIZED,
-        WERROR_ALLEGIANCE_CHAR_ALREADY_BANNED,
-        WERROR_ALLEGIANCE_CHAR_NOT_BANNED,
-        WERROR_ALLEGIANCE_CHAR_NOT_UNBANNED,
-        WERROR_ALLEGIANCE_CHAR_BANNED_SUCCESSFULLY,
-        WERROR_ALLEGIANCE_CHAR_UNBANNED_SUCCESSFULLY,
-        WERROR_ALLEGIANCE_LIST_BANNED_CHARACTERS,
-        UNKNOWN__GUESSEDNAME1340, // NOTE: Missing 1
-        UNKNOWN__GUESSEDNAME1341, // NOTE: Missing 1
-        WERROR_ALLEGIANCE_BANNED,
-        WERROR_ALLEGIANCE_YOU_ARE_BANNED,
-        WERROR_ALLEGIANCE_BANNED_LIST_FULL,
-        WERROR_ALLEGIANCE_OFFICER_SET,
-        WERROR_ALLEGIANCE_OFFICER_NOT_SET,
-        WERROR_ALLEGIANCE_OFFICER_REMOVED,
-        WERROR_ALLEGIANCE_OFFICER_NOT_REMOVED,
-        WERROR_ALLEGIANCE_OFFICER_FULL,
-        WERROR_ALLEGIANCE_OFFICERS_CLEARED,
-        WERROR_CHAT_MUST_WAIT_TO_COMMUNICATE,
-        WERROR_CHAT_NO_JOIN_CHANNEL_WHILE_GAGGED,
-        WERROR_ALLEGIANCE_YOU_ARE_NOW_AN_OFFICER,
-        WERROR_ALLEGIANCE_YOU_ARE_NO_LONGER_AN_OFFICER,
-        WERROR_ALLEGIANCE_OFFICER_ALREADY_OFFICER,
-        WERROR_ALLEGIANCE_HOMETOWN_NOT_SET,
-        WERROR_ALREADY_BEING_USED,
-        WERROR_HOOK_EMPTY_NOT_OWNER,
-        WERROR_HOOK_EMPTY_OWNER,
-        WERROR_MISSILE_OUT_OF_RANGE,
-        WERROR_CHAT_NOT_LISTENING_TO_CHANNEL,
-        WERROR_ACTOD_ONLY,
-        WERROR_ITEM_ACTOD_ONLY,
-        WERROR_PORTAL_ACTOD_ONLY,
-        WERROR_QUEST_ACTOD_ONLY,
-        WERROR_AUGMENTATION_FAILED,
-        WERROR_AUGMENTATION_TOO_MANY_TIMES,
-        WERROR_AUGMENTATION_FAMILY_TOO_MANY_TIMES,
-        WERROR_AUGMENTATION_NOT_ENOUGH_XP,
-        WERROR_AUGMENTATION_SKILL_NOT_TRAINED,
-        WERROR_AUGMENTATION_SUCCEEDED,
-        WERROR_SKILL_ALTERATION_UNTRAIN_AUGMENTED_SUCCEEDED,
-        WERROR_PORTAL_RECALLS_DISABLED,
-        WERROR_AFK,
-        WERROR_PK_ONLY,
-        WERROR_PKL_ONLY,
-        WERROR_FRIENDS_EXCEEDED_MAX,
-        WERROR_FRIENDS_ALREADY_FRIEND,
-        WERROR_FRIENDS_NOT_FRIEND,
-        WERROR_HOUSE_NOT_OWNER,
-        WERROR_ALLEGIANCE_NAME_EMPTY,
-        WERROR_ALLEGIANCE_NAME_TOO_LONG,
-        WERROR_ALLEGIANCE_NAME_BAD_CHARACTER,
-        WERROR_ALLEGIANCE_NAME_NOT_APPROPRIATE,
-        WERROR_ALLEGIANCE_NAME_IN_USE,
-        WERROR_ALLEGIANCE_NAME_TIMER,
-        WERROR_ALLEGIANCE_NAME_CLEARED,
-        WERROR_ALLEGIANCE_NAME_SAME_NAME,
-        WERROR_ALLEGIANCE_OFFICER_ALREADY_MONARCH,
-        WERROR_ALLEGIANCE_OFFICER_TITLE_SET,
-        WERROR_ALLEGIANCE_OFFICER_INVALID_LEVEL,
-        WERROR_ALLEGIANCE_OFFICER_TITLE_NOT_APPROPRIATE,
-        WERROR_ALLEGIANCE_OFFICER_TITLE_TOO_LONG,
-        WERROR_ALLEGIANCE_OFFICER_TITLE_CLEARED,
-        WERROR_ALLEGIANCE_OFFICER_TITLE_BAD_CHARACTER,
-        WERROR_ALLEGIANCE_LOCK_DISPLAY,
-        WERROR_ALLEGIANCE_LOCK_SET,
-        WERROR_ALLEGIANCE_LOCK_PREVENTS_PATRON,
-        WERROR_ALLEGIANCE_LOCK_PREVENTS_VASSAL,
-        WERROR_ALLEGIANCE_LOCK_APPROVED_DISPLAY,
-        WERROR_ALLEGIANCE_LOCK_NO_APPROVED,
-        WERROR_ALLEGIANCE_TARGET_ALREADY_A_MEMBER,
-        WERROR_ALLEGIANCE_APPROVED_SET,
-        WERROR_ALLEGIANCE_APPROVED_CLEARED,
-        WERROR_ALLEGIANCE_GAG_ALREADY,
-        WERROR_ALLEGIANCE_GAG_NOT_ALREADY,
-        WERROR_ALLEGIANCE_GAG_TARGET,
-        WERROR_ALLEGIANCE_GAG_OFFICER,
-        WERROR_ALLEGIANCE_GAG_AUTO_UNGAG,
-        WERROR_ALLEGIANCE_GAG_UNGAG_TARGET,
-        WERROR_ALLEGIANCE_GAG_UNGAG_OFFICER,
-        WERROR_TOO_MANY_UNIQUE_ITEMS,
-        WERROR_HERITAGE_REQUIRES_SPECIFIC_ARMOR,
-        WERROR_SPECIFIC_ARMOR_REQUIRES_HERITAGE,
-        WERROR_NOT_OLTHOI_INTERACTION,
-        WERROR_NOT_OLTHOI_LIFESTONE,
-        WERROR_NOT_OLTHOI_VENDOR,
-        WERROR_NOT_OLTHOI_NPC,
-        WERROR_NO_OLTHOI_FELLOWSHIP,
-        WERROR_NO_OLTHOI_ALLEGIANCE,
-        WERROR_ITEM_INTERACTION_RESTRICTED,
-        WERROR_PERSON_INTERACTION_RESTRICTED,
-        WERROR_PORTAL_ONLY_OLTHOI_PK,
-        WERROR_PORTAL_NO_OLTHOI_PK,
-        WERROR_PORTAL_NO_VITAE,
-        WERROR_PORTAL_NO_NEW_ACCOUNTS,
-        WERROR_BAD_OLTHOI_RECALL,
-        WERROR_CONTRACT_ERROR
+        /// <summary>
+        /// No error (success)
+        /// </summary>
+        None = 0x0000,
+
+        /// <summary>
+        /// You're too busy!
+        /// </summary>
+        YoureTooBusy = 0x001D,
+
+        /// <summary>
+        /// You can't jump while in the air
+        /// </summary>
+        YouCantJumpWhileInTheAir = 0x0024,
+
+        /// <summary>
+        /// That is not a valid command.
+        /// </summary>
+        ThatIsNotAValidCommand = 0x0026,
+
+        /// <summary>
+        /// You are too encumbered to carry that!
+        /// </summary>
+        YouAreTooEncumbered = 0x002A,
+
+        /// <summary>
+        /// Action cancelled!
+        /// </summary>
+        ActionCancelled = 0x0036,
+
+        /// <summary>
+        /// Unable to move to object!
+        /// </summary>
+        UnableToMoveToObject = 0x0037,
+
+        /// <summary>
+        /// Unable to move to object!
+        /// </summary>
+        Enum_0039 = 0x0039,
+
+        /// <summary>
+        /// You can't do that... you're dead!
+        /// </summary>
+        YouCantDoThatYoureDead = 0x003A,
+
+        Enum_003C = 0x003C,
+
+        /// <summary>
+        /// You charged too far!
+        /// </summary>
+        YouChargedTooFar = 0x003D,
+
+        /// <summary>
+        /// You are too tired to do that!
+        /// </summary>
+        YouAreTooTiredToDoThat = 0x003E,
+
+        /// <summary>
+        /// You can't jump from this position
+        /// </summary>
+        YouCantJumpFromThisPosition = 0x0048,
+
+        /// <summary>
+        /// Ack! You killed yourself!
+        /// </summary>
+        YouKilledYourself = 0x004A,
+
+        Enum_004B = 0x004B,
+
+        /// <summary>
+        /// You are too fatigued to attack!
+        /// </summary>
+        YouAreTooFatiguedToAttack = 0x03F7,
+
+        /// <summary>
+        /// You are out of ammunition!
+        /// </summary>
+        YouAreOutOfAmmunition = 0x03F8,
+
+        /// <summary>
+        /// Your missile attack misfired!
+        /// </summary>
+        YourAttackMisfired = 0x03F9,
+
+        /// <summary>
+        /// You've attempted an impossible spell path!
+        /// </summary>
+        YouveAttemptedAnImpossibleSpellPath = 0x03FA,
+
+        /// <summary>
+        /// You don't know that spell!
+        /// </summary>
+        YouDontKnowThatSpell = 0x03FE,
+
+        /// <summary>
+        /// Incorrect target type
+        /// </summary>
+        IncorrectTargetType = 0x03FF,
+
+        /// <summary>
+        /// You don't have all the components for this spell.
+        /// </summary>
+        YouDontHaveAllTheComponents = 0x0400,
+
+        /// <summary>
+        /// You don't have enough Mana to cast this spell.
+        /// </summary>
+        YouDontHaveEnoughManaToCast = 0x0401,
+
+        /// <summary>
+        /// Your spell fizzled.
+        /// </summary>
+        YourSpellFizzled = 0x0402,
+
+        /// <summary>
+        /// Your spell's target is missing!
+        /// </summary>
+        YourSpellTargetIsMissing = 0x0403,
+
+        /// <summary>
+        /// Your projectile spell mislaunched!
+        /// </summary>
+        YourProjectileSpellMislaunched = 0x0404,
+
+        /// <summary>
+        /// Your spell cannot be cast outside
+        /// </summary>
+        YourSpellCannotBeCastOutside = 0x0407,
+
+        /// <summary>
+        /// Your spell cannot be cast inside
+        /// </summary>
+        YourSpellCannotBeCastInside = 0x0408,
+
+        Enum_0409 = 0x0409,
+
+        /// <summary>
+        /// You are unprepared to cast a spell
+        /// </summary>
+        YouAreUnpreparedToCastASpell = 0x040A,
+
+        /// <summary>
+        /// You are not in an allegiance!
+        /// </summary>
+        YouAreNotInAllegiance = 0x0414,
+
+        /// <summary>
+        /// You must be the leader of a Fellowship
+        /// </summary>
+        YouMustBeLeaderOfFellowship = 0x041D,
+
+        /// <summary>
+        /// Your Fellowship is full
+        /// </summary>
+        YourFellowshipIsFull = 0x041E,
+
+        /// <summary>
+        /// That Fellowship name is not permitted
+        /// </summary>
+        FellowshipNameIsNotPermitted = 0x041F,
+
+        /// <summary>
+        /// Your craft attempt fails.
+        /// </summary>
+        YourCraftAttemptFails = 0x0433,
+
+        /// <summary>
+        /// Your craft attempt fails.
+        /// </summary>
+        Enum_0435 = 0x0435,
+
+        Enum_0436 = 0x0436,
+
+        /// <summary>
+        /// Either you or one of the items involved does not pass the requirements for this craft interaction.
+        /// </summary>
+        YouDoNotPassCraftingRequirements = 0x0437,
+
+        /// <summary>
+        /// You do not have all the neccessary items.
+        /// </summary>
+        YouDoNotHaveAllTheNecessaryItems = 0x0438,
+
+        /// <summary>
+        /// Not all the items are avaliable.
+        /// </summary>
+        NotAllTheItemsAreAvailable = 0x0439,
+
+        /// <summary>
+        /// You must be at rest in peace mode to do trade skills.
+        /// </summary>
+        YouMustBeInPeaceModeToTrade = 0x043A,
+
+        /// <summary>
+        /// You are not trained in that trade skill.
+        /// </summary>
+        YouAreNotTrainedInThatTradeSkill = 0x043B,
+
+        /// <summary>
+        /// You cannot link to that portal!
+        /// </summary>
+        YouCannotLinkToThatPortal = 0x043D,
+
+        /// <summary>
+        /// You have solved this quest too recently!
+        /// </summary>
+        YouHaveSolvedThisQuestTooRecently = 0x043E,
+
+        /// <summary>
+        /// You have solved this quest too many times!
+        /// </summary>
+        YouHaveSolvedThisQuestTooManyTimes = 0x043F,
+
+        /// <summary>
+        /// This item requires you to complete a specific quest before you can pick it up!
+        /// </summary>
+        ItemRequiresQuestToBePickedUp = 0x0445,
+
+        Enum_0446 = 0x0446,
+
+        /// <summary>
+        /// Player killers may not interact with that portal!
+        /// </summary>
+        PKsMayNotUsePortal = 0x045C,
+
+        /// <summary>
+        /// Non-player killers may not interact with that portal!
+        /// </summary>
+        NonPKsMayNotUsePortal = 0x045D,
+
+        Enum_0465 = 0x0465,
+
+        /// <summary>
+        /// You must purchase Asheron's Call: Dark Majesty to interact with that portal.
+        /// </summary>
+        YouMustHaveDarkMajestyToUsePortal = 0x0466,
+
+        /// <summary>
+        /// You have used all the hooks you are allowed to use for this house.
+        /// </summary>
+        YouHaveUsedAllTheHooks = 0x0469,
+
+        /// <summary>
+        /// You must complete a quest to interact with that portal.
+        /// </summary>
+        YouMustCompleteQuestToUsePortal = 0x0474,
+
+        /// <summary>
+        /// You must own a house to use this command.
+        /// </summary>
+        YouMustOwnHouseToUseCommand = 0x047F,
+
+        /// <summary>
+        /// You can't lock or unlock that!
+        /// </summary>
+        YouCannotLockOrUnlockThat = 0x0480,
+
+        /// <summary>
+        /// You can't lock or unlock what is open!
+        /// </summary>
+        YouCannotLockWhatIsOpen = 0x0481,
+
+        /// <summary>
+        /// You must be a monarch to purchase this dwelling.
+        /// </summary>
+        YouMustBeMonarchToPurchaseDwelling = 0x048A,
+
+        /// <summary>
+        /// Your Allegiance has been dissolved!
+        /// </summary>
+        YourAllegianceHasBeenDissolved = 0x0496,
+
+        /// <summary>
+        /// Your patron's Allegiance to you has been broken!
+        /// </summary>
+        YourPatronsAllegianceHasBeenBroken = 0x0497,
+
+        /// <summary>
+        /// You have moved too far!
+        /// </summary>
+        YouHaveMovedTooFar = 0x0498,
+
+        /// <summary>
+        /// You fail to link with the lifestone!
+        /// </summary>
+        YouFailToLinkWithLifestone = 0x049B,
+
+        /// <summary>
+        /// You wandered too far to link with the lifestone!
+        /// </summary>
+        YouWanderedTooFarToLinkWithLifestone = 0x049C,
+
+        /// <summary>
+        /// You successfully link with the lifestone!
+        /// </summary>
+        YouSuccessfullyLinkWithLifestone = 0x049D,
+
+        /// <summary>
+        /// You must have linked with a lifestone in order to recall to it!
+        /// </summary>
+        YouMustLinkToLifestoneToRecall = 0x049E,
+
+        /// <summary>
+        /// You fail to recall to the lifestone!
+        /// </summary>
+        YouFailToRecallToLifestone = 0x049F,
+
+        /// <summary>
+        /// You fail to link with the portal!
+        /// </summary>
+        YouFailToLinkWithPortal = 0x04A0,
+
+        /// <summary>
+        /// You successfully link with the portal!
+        /// </summary>
+        YouSuccessfullyLinkWithPortal = 0x04A1,
+
+        /// <summary>
+        /// You fail to recall to the portal!
+        /// </summary>
+        YouFailToRecallToPortal = 0x04A2,
+
+        /// <summary>
+        /// You must have linked with a portal in order to recall to it!
+        /// </summary>
+        YouMustLinkToPortalToRecall = 0x04A3,
+
+        /// <summary>
+        /// You fail to summon the portal!
+        /// </summary>
+        YouFailToSummonPortal = 0x04A4,
+
+        /// <summary>
+        /// You must have linked with a portal in order to summon it!
+        /// </summary>
+        YouMustLinkToPortalToSummonIt = 0x04A5,
+
+        /// <summary>
+        /// You fail to teleport!
+        /// </summary>
+        YouFailToTeleport = 0x04A6,
+
+        /// <summary>
+        /// You have been teleported too recently!
+        /// </summary>
+        YouHaveBeenTeleportedTooRecently = 0x04A7,
+
+        /// <summary>
+        /// You must be an Advocate to interact with that portal.
+        /// </summary>
+        YouMustBeAnAdvocateToUsePortal = 0x04A8,
+
+        /// <summary>
+        /// Players may not interact with that portal.
+        /// </summary>
+        PlayersMayNotUsePortal = 0x04AA,
+
+        /// <summary>
+        /// You are not powerful enough to interact with that portal!
+        /// </summary>
+        YouAreNotPowerfulEnoughToUsePortal = 0x04AB,
+
+        /// <summary>
+        /// You are too powerful to interact with that portal!
+        /// </summary>
+        YouAreTooPowerfulToUsePortal = 0x04AC,
+
+        /// <summary>
+        /// You cannot recall to that portal!
+        /// </summary>
+        YouCannotRecallPortal = 0x04AD,
+
+        /// <summary>
+        /// You cannot summon that portal!
+        /// </summary>
+        YouCannotSummonPortal = 0x04AE,
+
+        /// <summary>
+        /// The key doesn't fit this lock.
+        /// </summary>
+        KeyDoesntFitThisLock = 0x04B2,
+
+        /// <summary>
+        /// You do not own that salvage tool!
+        /// </summary>
+        YouDoNotOwnThatSalvageTool = 0x04BD,
+
+        /// <summary>
+        /// You do not own that item!
+        /// </summary>
+        YouDoNotOwnThatItem = 0x04BE,
+
+        /// <summary>
+        /// The material cannot be created.
+        /// </summary>
+        MaterialCannotBeCreated = 0x04C1,
+
+        /// <summary>
+        /// The list of items you are attempting to salvage is invalid.
+        /// </summary>
+        ItemsAttemptingToSalvageIsInvalid = 0x04C2,
+
+        /// <summary>
+        /// You cannot salvage items that you are trading!
+        /// </summary>
+        YouCannotSalvageItemsInTrading = 0x04C3,
+
+        /// <summary>
+        /// You must be a guest in this house to interact with that portal.
+        /// </summary>
+        YouMustBeHouseGuestToUsePortal = 0x04C4,
+
+        /// <summary>
+        /// Your Allegiance Rank is too low to use that item's magic.
+        /// </summary>
+        YourAllegianceRankIsTooLowToUseMagic = 0x04C5,
+
+        /// <summary>
+        /// Your Arcane Lore skill is too low to use that item's magic.
+        /// </summary>
+        YourArcaneLoreIsTooLowToUseMagic = 0x04C7,
+
+        /// <summary>
+        /// That item doesn't have enough Mana.
+        /// </summary>
+        ItemDoesntHaveEnoughMana = 0x04C8,
+
+        /// <summary>
+        /// You have been involved in a player killer battle too recently to do that!
+        /// </summary>
+        YouHaveBeenInPKBattleTooRecently = 0x04CC,
+
+        Enum_04DC = 0x04DC,
+
+        /// <summary>
+        /// You have failed to alter your attributes.
+        /// </summary>
+        YouHaveFailedToAlterAttributes = 0x04DD,
+
+        /// <summary>
+        /// You are currently wielding items which require a certain level of skill. Your attributes cannot be transferred while you are wielding these items. Please remove these items and try again.
+        /// </summary>
+        CannotTransferAttributesWhileWieldingItem = 0x04E0,
+
+        /// <summary>
+        /// You have succeeded in transferring your attributes!
+        /// </summary>
+        YouHaveSucceededTransferringAttributes = 0x04E1,
+
+        /// <summary>
+        /// This hook is a duplicated housing object. You may not add items to a duplicated housing object. Please empty the hook and allow it to reset.
+        /// </summary>
+        HookIsDuplicated = 0x04E2,
+
+        /// <summary>
+        /// That item is of the wrong type to be placed on this hook.
+        /// </summary>
+        ItemIsWrongTypeForHook = 0x04E3,
+
+        /// <summary>
+        /// This chest is a duplicated housing object. You may not add items to a duplicated housing object. Please empty everything -- including backpacks -- out of the chest and allow the chest to reset.
+        /// </summary>
+        HousingChestIsDuplicated = 0x04E4,
+
+        /// <summary>
+        /// This hook was a duplicated housing object. Since it is now empty, it will be deleted momentarily. Once it is gone, it is safe to use the other, non-duplicated hook that is here.
+        /// </summary>
+        HookWillBeDeleted = 0x04E5,
+
+        /// <summary>
+        /// This chest was a duplicated housing object. Since it is now empty, it will be deleted momentarily. Once it is gone, it is safe to use the other, non-duplicated chest that is here.
+        /// </summary>
+        HousingChestWillBeDeleted = 0x04E6,
+
+        /// <summary>
+        /// You cannot swear allegiance to anyone because you own a monarch-only house. Please abandon your house and try again.
+        /// </summary>
+        CannotSwearAllegianceWhileOwningMansion = 0x04E7,
+
+        /// <summary>
+        /// You cannot modify your player killer status while you are recovering from a PK death.
+        /// </summary>
+        CannotChangePKStatusWhileRecovering = 0x04EC,
+
+        /// <summary>
+        /// Advocates may not change their player killer status!
+        /// </summary>
+        AdvocatesCannotChangePKStatus = 0x04ED,
+
+        /// <summary>
+        /// Your level is too low to change your player killer status with this object.
+        /// </summary>
+        LevelTooLowToChangePKStatusWithObject = 0x04EE,
+
+        /// <summary>
+        /// Your level is too high to change your player killer status with this object.
+        /// </summary>
+        LevelTooHighToChangePKStatusWithObject = 0x04EF,
+
+        /// <summary>
+        /// You feel a harsh dissonance, and you sense that an act of killing you have committed recently is interfering with the conversion.
+        /// </summary>
+        YouFeelAHarshDissonance = 0x04F0,
+
+        /// <summary>
+        /// Bael'Zharon's power flows through you again. You are once more a player killer.
+        /// </summary>
+        YouArePKAgain = 0x04F1,
+
+        /// <summary>
+        /// Bael'Zharon has granted you respite after your moment of weakness. You are temporarily no longer a player killer.
+        /// </summary>
+        YouAreTemporarilyNoLongerPK = 0x04F2,
+
+        /// <summary>
+        /// Lite Player Killers may not interact with that portal!
+        /// </summary>
+        PKLiteMayNotUsePortal = 0x04F3,
+
+        /// <summary>
+        /// You aren't trained in healing!
+        /// </summary>
+        YouArentTrainedInHealing = 0x04FC,
+
+        /// <summary>
+        /// You aren't ready to heal!
+        /// </summary>
+        YouArentReadyToHeal = 0x0500,
+
+        /// <summary>
+        /// You can only use Healing Kits on player characters.
+        /// </summary>
+        YouCanOnlyHealPlayers = 0x0501,
+
+        /// <summary>
+        /// The Lifestone's magic protects you from the attack!
+        /// </summary>
+        LifestoneMagicProtectsYou = 0x0502,
+
+        /// <summary>
+        /// The portal's residual energy protects you from the attack!
+        /// </summary>
+        PortalEnergyProtectsYou = 0x0503,
+
+        /// <summary>
+        /// You are enveloped in a feeling of warmth as you are brought back into the protection of the Light. You are once again a Non-Player Killer.
+        /// </summary>
+        YouAreNonPKAgain = 0x0504,
+
+        /// <summary>
+        /// You're too close to your sanctuary!
+        /// </summary>
+        YoureTooCloseToYourSanctuary = 0x0505,
+
+        /// <summary>
+        /// Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.
+        /// </summary>
+        OnlyNonPKsMayEnterPKLite = 0x0507,
+
+        /// <summary>
+        /// A cold wind touches your heart. You are now a Player Killer Lite.
+        /// </summary>
+        YouAreNowPKLite = 0x0508,
+
+        /// <summary>
+        /// You do not belong to a Fellowship.
+        /// </summary>
+        YouDoNotBelongToAFellowship = 0x050F,
+
+        /// <summary>
+        /// You are now using the maximum number of hooks.  You cannot use another hook until you take an item off one of your hooks.
+        /// </summary>
+        YouAreNowUsingMaxHooks = 0x0512,
+
+        /// <summary>
+        /// You are no longer using the maximum number of hooks.  You may again add items to your hooks.
+        /// </summary>
+        YouAreNoLongerUsingMaxHooks = 0x0513,
+
+        /// <summary>
+        /// You are not permitted to use that hook.
+        /// </summary>
+        YouAreNotPermittedToUseThatHook = 0x0516,
+
+        /// <summary>
+        /// You have entered your allegiance chat room.
+        /// </summary>
+        YouHaveEnteredYourAllegianceChat = 0x051B,
+
+        /// <summary>
+        /// You have left an allegiance chat room.
+        /// </summary>
+        YouHaveLeftAnAllegianceChat = 0x051C,
+
+        /// <summary>
+        /// Turbine Chat is enabled.
+        /// </summary>
+        TurbineChatIsEnabled = 0x051D,
+
+        /// <summary>
+        /// You cannot add anymore people to the list of players that you can hear.
+        /// </summary>
+        YouCannotAddPeopleToHearList = 0x0520,
+
+        /// <summary>
+        /// You are now deaf to player's screams.
+        /// </summary>
+        YouAreNowDeafTo_Screams = 0x0523,
+
+        /// <summary>
+        /// You can hear all players once again.
+        /// </summary>
+        YouCanHearAllPlayersOnceAgain = 0x0524,
+
+        /// <summary>
+        /// You chicken out.
+        /// </summary>
+        YouChickenOut = 0x0526,
+
+        /// <summary>
+        /// The fellowship is locked; you cannot open locked fellowships.
+        /// </summary>
+        FellowshipIsLocked = 0x0528,
+
+        /// <summary>
+        /// Trade Complete!
+        /// </summary>
+        TradeComplete = 0x0529,
+
+        /// <summary>
+        /// Character not available.
+        /// </summary>
+        CharacterNotAvailable = 0x052B,
+
+        /// <summary>
+        /// You must wait 30 days after purchasing a house before you may purchase another with any character on the same account. This applies to all housing except apartments.
+        /// </summary>
+        YouMustWaitToPurchaseHouse = 0x0532,
+
+        /// <summary>
+        /// You have been booted from your allegiance chat room. Use "@allegiance chat on" to rejoin. ().
+        /// </summary>
+        YouHaveBeenBootedFromAllegianceChat = 0x0533,
+
+        /// <summary>
+        /// You do not have the authority within your allegiance to do that.
+        /// </summary>
+        YouDoNotHaveAuthorityInAllegiance = 0x0535,
+
+        /// <summary>
+        /// You have the maximum number of accounts banned.!
+        /// </summary>
+        YouHaveMaxAccountsBanned = 0x0540,
+
+        /// <summary>
+        /// You already have the maximum number of allegiance officers. You must remove some before you add any more.
+        /// </summary>
+        YouHaveMaxAllegianceOfficers = 0x0545,
+
+        /// <summary>
+        /// Your allegiance officers have been cleared.
+        /// </summary>
+        YourAllegianceOfficersHaveBeenCleared = 0x0546,
+
+        /// <summary>
+        /// You cannot join any chat channels while gagged.
+        /// </summary>
+        YouCannotJoinChannelsWhileGagged = 0x0548,
+
+        /// <summary>
+        /// You are no longer an allegiance officer.
+        /// </summary>
+        YouAreNoLongerAllegianceOfficer = 0x054A,
+
+        /// <summary>
+        /// Your allegiance does not have a hometown.
+        /// </summary>
+        YourAllegianceDoesNotHaveHometown = 0x054C,
+
+        /// <summary>
+        /// The hook does not contain a usable item. You cannot open the hook because you do not own the house to which it belongs.
+        /// </summary>
+        HookItemNotUsable_CannotOpen = 0x054E,
+
+        /// <summary>
+        /// The hook does not contain a usable item. Use the '@house hooks on'command to make the hook openable.
+        /// </summary>
+        HookItemNotUsable_CanOpen = 0x054F,
+
+        /// <summary>
+        /// You have failed to complete the augmentation.
+        /// </summary>
+        YouFailedToCompleteAugmentation = 0x0556,
+
+        /// <summary>
+        /// You have used this augmentation too many times already.
+        /// </summary>
+        AugmentationUsedTooManyTimes = 0x0557,
+
+        /// <summary>
+        /// You have used augmentations of this type too many times already.
+        /// </summary>
+        AugmentationTypeUsedTooManyTimes = 0x0558,
+
+        /// <summary>
+        /// You do not have enough unspent experience available to purchase this augmentation.
+        /// </summary>
+        AugmentationNotEnoughExperience = 0x0559,
+
+        /// <summary>
+        /// You must exit the Training Academy before that command will be available to you.
+        /// </summary>
+        ExitTrainingAcademyToUseCommand = 0x055D,
+
+        /// <summary>
+        /// Only Player Killer characters may use this command!
+        /// </summary>
+        OnlyPKsMayUseCommand = 0x055F,
+
+        /// <summary>
+        /// Only Player Killer Lite characters may use this command!
+        /// </summary>
+        OnlyPKLiteMayUseCommand = 0x0560,
+
+        /// <summary>
+        /// That is an invalid officer level.
+        /// </summary>
+        InvalidOfficerLevel = 0x056F,
+
+        /// <summary>
+        /// That allegiance officer title is not appropriate.
+        /// </summary>
+        AllegianceOfficerTitleIsNotAppropriate = 0x0570,
+
+        /// <summary>
+        /// That allegiance name is too long. Please choose another name.
+        /// </summary>
+        AllegianceNameIsTooLong = 0x0571,
+
+        /// <summary>
+        /// All of your allegiance officer titles have been cleared.
+        /// </summary>
+        AllegianceOfficerTitlesCleared = 0x0572,
+
+        /// <summary>
+        /// That allegiance title contains illegal characters. Please choose another name using only letters, spaces, - and '.
+        /// </summary>
+        AllegianceTitleHasIllegalChars = 0x0573,
+
+        /// <summary>
+        /// You have not pre-approved any vassals to join your allegiance.
+        /// </summary>
+        YouHaveNotPreApprovedVassals = 0x0579,
+
+        /// <summary>
+        /// You have cleared the pre-approved vassal for your allegiance.
+        /// </summary>
+        YouHaveClearedPreApprovedVassal = 0x057C,
+
+        /// <summary>
+        /// That character is already gagged!
+        /// </summary>
+        CharIsAlreadyGagged = 0x057D,
+
+        /// <summary>
+        /// That character is not currently gagged!
+        /// </summary>
+        CharIsNotCurrentlyGagged = 0x057E,
+
+        /// <summary>
+        /// Your allegiance chat privileges have been restored.
+        /// </summary>
+        YourAllegianceChatPrivilegesRestored = 0x0581,
+
+        /// <summary>
+        /// Olthoi cannot interact with that!
+        /// </summary>
+        OlthoiCannotInteractWithThat = 0x0587,
+
+        /// <summary>
+        /// Olthoi cannot use regular lifestones! Asheron would not allow it!
+        /// </summary>
+        OlthoiCannotUseLifestones = 0x0588,
+
+        /// <summary>
+        /// The vendor looks at you in horror!
+        /// </summary>
+        OlthoiVendorLooksInHorror = 0x0589,
+
+        /// <summary>
+        /// As a mindless engine of destruction an Olthoi cannot join a fellowship!
+        /// </summary>
+        OlthoiCannotJoinFellowship = 0x058B,
+
+        /// <summary>
+        /// The Olthoi only have an allegiance to the Olthoi Queen!
+        /// </summary>
+        OlthoiCannotJoinAllegiance = 0x058C,
+
+        /// <summary>
+        /// You cannot use that item!
+        /// </summary>
+        YouCannotUseThatItem = 0x058D,
+
+        /// <summary>
+        /// This person will not interact with you!
+        /// </summary>
+        ThisPersonWillNotInteractWithYou = 0x058E,
+
+        /// <summary>
+        /// Only Olthoi may pass through this portal!
+        /// </summary>
+        OnlyOlthoiMayUsePortal = 0x058F,
+
+        /// <summary>
+        /// Olthoi may not pass through this portal!
+        /// </summary>
+        OlthoiMayNotUsePortal = 0x0590,
+
+        /// <summary>
+        /// You may not pass through this portal while Vitae weakens you!
+        /// </summary>
+        YouMayNotUsePortalWithVitae = 0x0591,
+
+        /// <summary>
+        /// This character must be two weeks old or have been created on an account at least two weeks old to use this portal!
+        /// </summary>
+        YouMustBeTwoWeeksOldToUsePortal = 0x0592,
+
+        /// <summary>
+        /// Olthoi characters can only use Lifestone and PK Arena recalls!
+        /// </summary>
+        OlthoiCanOnlyRecallToLifestone = 0x0593,
     }
 }
