@@ -29,6 +29,8 @@ namespace ACE.Server.WorldObjects
             {
                 NotifyOfEvent(RegenerationType.Destruction);
                 LandblockManager.RemoveObject(this);
+                PhysicsObj.leave_cell(false);
+                PhysicsObj.remove_shadows_from_cells();
                 CreateCorpse();
             });
             dieChain.EnqueueChain();

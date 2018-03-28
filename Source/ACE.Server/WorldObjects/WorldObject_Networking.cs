@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
             writer.WriteGuid(Guid);
             SerializeModelData(writer);
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
-            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
+            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectVisualDesc));
         }
 
         private void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)

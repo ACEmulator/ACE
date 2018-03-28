@@ -9,6 +9,8 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        public WorldObject Generator { get; private set; }
+
         public List<BiotaPropertiesGenerator> GeneratorProfiles = new List<BiotaPropertiesGenerator>();
 
         public Dictionary<uint, GeneratorRegistryNode> GeneratorRegistry = new Dictionary<uint, GeneratorRegistryNode>();
@@ -29,7 +31,7 @@ namespace ACE.Server.WorldObjects
                 {
                     int slot = GeneratorProfiles.IndexOf(profile);
 
-                    if (random.NextDouble() < profile.Probability)
+                    if (random.NextDouble() < profile.Probability) // || profile.Probability == -1)
                     {
                         GeneratorProfilesActive.Add(slot);
                     }
@@ -139,13 +141,15 @@ namespace ACE.Server.WorldObjects
                                 else
                                     wo.Location = new Position(Location.Cell,
                                         Location.PositionX + profile.OriginX ?? 0, Location.PositionY + profile.OriginY ?? 0, Location.PositionZ + profile.OriginZ ?? 0,
-                                        Location.RotationX + profile.AnglesX ?? 0, Location.RotationY + profile.AnglesY ?? 0, Location.RotationZ + profile.AnglesZ ?? 0, Location.RotationW + profile.AnglesW ?? 0);
+                                        profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
+                                        //Location.RotationX + profile.AnglesX ?? 0, Location.RotationY + profile.AnglesY ?? 0, Location.RotationZ + profile.AnglesZ ?? 0, Location.RotationW + profile.AnglesW ?? 0);
                                 break;
                             default:
                                 wo.Location = Location;
                                 break;
                         }
 
+                        wo.Generator = this;
                         wo.GeneratorId = Guid.Full;
 
                         // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
@@ -166,20 +170,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void NotifyGeneratorOfPickup(uint guid)
-        {
-            if (GeneratorRegistry.ContainsKey(guid))
-            {
-                int slot = (int)GeneratorRegistry[guid].Slot;
-
-                if (GeneratorProfiles[slot].WhenCreate == (uint)RegenerationType.PickUp)
-                {
-                    GeneratorRegistry.Remove(guid);
-                    QueueGenerator();
-                }
-            }
-        }
-
         public void NotifyGenerator(ObjectGuid target, RegenerationType eventType)
         {
             if (GeneratorRegistry.ContainsKey(target.Full))
@@ -196,24 +186,12 @@ namespace ACE.Server.WorldObjects
 
         public void NotifyOfEvent(RegenerationType regenerationType)
         {
-            // Was Item controlled by a generator?
-            // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
-            /*if (item.GeneratorId > 0)
-            {
-                WorldObject generator = GetObject(new ObjectGuid((uint)item.GeneratorId));
-
-                item.GeneratorId = null;
-
-                generator.NotifyGeneratorOfPickup(item.Guid.Full);
-            }*/
-
             if (GeneratorId != null)
             {
-                var generator = CurrentLandblock.GetObject(new ObjectGuid((uint)GeneratorId)); // Likely needs something to be able to search the whole world for.
-
-                generator.NotifyGenerator(Guid, regenerationType);
+                Generator.NotifyGenerator(Guid, regenerationType);
 
                 GeneratorId = null;
+                Generator = null;
             }
         }
     }
