@@ -22,10 +22,10 @@ namespace ACE.Server.Network.GameEvent.Events
 
             var fellowship = session.Player.Fellowship;
 
+            #region PackableHashTable of fellowship table - <ObjectID,Fellow>
             // the current number of fellowship members
-            Writer.Write((ushort)fellowship.FellowshipMembers.Count);
-
-            Writer.Write(64);
+            Writer.Write((ushort)fellowship.FellowshipMembers.Count); //count - number of items in the table
+            Writer.Write(64); //tablesize - max size of the table - default of 64 taken from GDL source.
 
             // --- FellowInfo ---
 
@@ -35,6 +35,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 // Write data associated with each fellowship member
                 WriteFellow(fellow);
             }
+            #endregion
 
             Writer.WriteString16L(fellowship.FellowshipName);
             Writer.Write(fellowship.FellowshipLeaderGuid);
