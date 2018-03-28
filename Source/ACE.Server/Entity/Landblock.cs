@@ -303,9 +303,12 @@ namespace ACE.Server.Entity
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
                 AddPlayerTracking(wolist, ((Player)wo));
-                if (wo.InitPhysics && wo.PhysicsObj == null)
-                    wo.InitPhysicsObj();
+                //if (wo.InitPhysics && wo.PhysicsObj == null)
+                //    wo.InitPhysicsObj();
             }
+
+            if (wo.InitPhysics && wo.PhysicsObj == null)
+                wo.InitPhysicsObj();
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)

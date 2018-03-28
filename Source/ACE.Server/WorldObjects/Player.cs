@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
 
         public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
         {
-            Session.Network.EnqueueSend(new GameMessageConfirmationDone(this, confirmationType, contextId));
+            Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
         }
 
         //[Obsolete]

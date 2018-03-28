@@ -1,4 +1,4 @@
-using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             if (session.Player.Fellowship != null)
             {
-                session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(session));
+                session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(session));
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameMessages.Messages
+namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageCharacterDelete : GameMessage
     {

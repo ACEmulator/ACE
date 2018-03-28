@@ -1,14 +1,14 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+using ACE.Server.Network.Enum;
+
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventConfirmationDone : GameEventMessage
     {
-        public GameEventConfirmationDone(Session session, int confirmationType, uint context)
+        public GameEventConfirmationDone(Session session, ConfirmationType confirmationType, uint contextId)
             : base(GameEventType.CharacterConfirmationDone, GameMessageGroup.UIQueue, session)
         {
-            // TODO: implement
-            // TODO: verify GameMessageGroup with pcap data
-            Writer.Write(confirmationType);
-            Writer.Write(context);
+            Writer.Write((uint)confirmationType);
+            Writer.Write(contextId);
         }
     }
 }

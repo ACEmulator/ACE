@@ -1,15 +1,13 @@
-using System;
-
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
+using System;
 
-namespace ACE.Server.Network.GameMessages.Messages
+namespace ACE.Server.Network.GameEvent.Events
 {
-    public class GameMessageFellowshipFullUpdate : GameMessage
+    public class GameEventFellowshipFullUpdate : GameEventMessage
     {
-        public GameMessageFellowshipFullUpdate(Session session)
-            : base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
+        public GameEventFellowshipFullUpdate(Session session)
+            : base(GameEventType.FellowshipFullUpdate, GameMessageGroup.UIQueue, session)
         {
             // This is a naive, bare-bones implementation of 0x02BE, FullFellowshipUpdate.
             // 0x02BE is fairly complicated, so the following code is at least valuable as an example of a valid server response.
@@ -22,22 +20,16 @@ namespace ACE.Server.Network.GameMessages.Messages
             // Currently, creating and leaving a fellowship is supported.
             // Any other fellowship function is not yet supported.
 
-            Fellowship fellowship = session.Player.Fellowship;
-
-            Writer.Write(session.Player.Guid.Full);
-            Writer.Write(session.GameEventSequence++);
-            Writer.Write((uint)GameEvent.GameEventType.FellowshipFullUpdate);
+            var fellowship = session.Player.Fellowship;
 
             // the current number of fellowship members
-            Writer.Write((UInt16)fellowship.FellowshipMembers.Count);
+            Writer.Write((ushort)fellowship.FellowshipMembers.Count);
 
-            // todo: figure out what these two bytes are for
-            Writer.Write((byte)0x10);
-            Writer.Write((byte)0x00);
+            Writer.Write(64);
 
             // --- FellowInfo ---
 
-            ActionChain fellowChain = new ActionChain();
+            var fellowChain = new ActionChain();
             foreach (Player fellow in fellowship.FellowshipMembers)
             {
                 // Write data associated with each fellowship member
@@ -50,19 +42,19 @@ namespace ACE.Server.Network.GameMessages.Messages
             Writer.Write(Convert.ToUInt32(fellowship.EvenShare));
             Writer.Write(Convert.ToUInt32(fellowship.Open));
 
-            Writer.Write(0u);
+            Writer.Write(Convert.ToUInt32(false)); //TODO: locked
 
-            // End of meaningful data?
+            // TODO PackableHashTable of fellows departed - fellowsDeparted  -<ObjectID,int>
             Writer.Write((uint)0x00200000);
             Writer.Write((uint)0x00200000);
         }
 
         public void WriteFellow(Player fellow)
         {
-            Writer.Write(fellow.Guid.Full);
+            Writer.WriteGuid(fellow.Guid);
 
-            Writer.Write(0u);
-            Writer.Write(0u);
+            Writer.Write(0u); // TODO: cpCached - Perhaps cp stored up before distribution?
+            Writer.Write(0u); // TODO: lumCached - Perhaps lum stored up before distribution?
 
             Writer.Write(fellow.Level ?? 1);
 
@@ -75,7 +67,7 @@ namespace ACE.Server.Network.GameMessages.Messages
             Writer.Write(fellow.Mana.Current);
 
             // todo: share loot with this fellow?
-            Writer.Write((uint)0x1);
+            Writer.Write((uint)0x1); // TODO: shareLoot - if 0 then noSharePhatLoot, if 16(0x0010) then sharePhatLoot
 
             Writer.WriteString16L(fellow.Name);
         }

@@ -7,9 +7,9 @@ namespace ACE.Server.Network.GameMessages.Messages
     {
         public GameMessageRemoveObject(WorldObject worldObject) : base(GameMessageOpcode.ObjectDelete, GameMessageGroup.SmartboxQueue)
         {
-            // TODO: Verify.  this was done without referencing the protocol spec
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            Writer.Align();
         }
     }
 }

@@ -329,11 +329,12 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                if (ItemCapacity != null && ItemCapacity != 0)
+                if (WeenieType == WeenieType.Container)
                     return ContainerType.Container;
-                if (Name.Contains("Foci"))
+                else if (RequiresBackpackSlot ?? false)
                     return ContainerType.Foci;
-                return ContainerType.NonContainer;
+                else
+                    return ContainerType.NonContainer;
             }
         }
 

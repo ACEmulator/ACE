@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
                         wo.PlacementPosition = 0;
                         AddToInventory(wo);
                         Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                        Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, Guid, wo, 0));
+                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, wo, this));
                         Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, Guid));
                     }
 

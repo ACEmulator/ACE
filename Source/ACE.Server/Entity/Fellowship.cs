@@ -8,6 +8,7 @@ using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Entity
 {
@@ -112,7 +113,7 @@ namespace ACE.Server.Entity
         {
             Parallel.ForEach(FellowshipMembers, member =>
             {
-                member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
+                member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             });
         }
@@ -121,8 +122,8 @@ namespace ACE.Server.Entity
         {
             Parallel.ForEach(FellowshipMembers, member =>
             {
-                member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, global::ACE.Entity.Enum.ChatMessageType.Fellowship));
-                member.Session.Network.EnqueueSend(new GameMessageFellowshipFullUpdate(member.Session));
+                member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
+                member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             });
         }
@@ -135,7 +136,7 @@ namespace ACE.Server.Entity
                 {
                     Parallel.ForEach(FellowshipMembers, member =>
                     {
-                        member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, member.Guid.Full));
+                        member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
                         {
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
@@ -152,7 +153,7 @@ namespace ACE.Server.Entity
                 {                 
                     FellowshipMembers.Remove(player);
                     oldFellows.Add(player.Guid.Full, DateTime.Now);
-                    player.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(player.Session, player.Guid.Full));
+                    player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                     //member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, player.Guid.Full));
                     CalculateEvenSplit();
                     AssignNewLeader(null);
@@ -163,7 +164,7 @@ namespace ACE.Server.Entity
             {
                 FellowshipMembers.Remove(player);
                 oldFellows.Add(player.Guid.Full, DateTime.Now);
-                player.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(player.Session, player.Guid.Full));
+                player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                 CalculateEvenSplit();
                 SendMessageAndUpdate($"{player.Name} left the fellowship");
             }
