@@ -13,13 +13,19 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)
         {
-            CastResult result = CreateSpell(Guid, guidTarget, spellId);
+            CastResult result = CreateSpell(guidTarget, spellId);
 
             switch (result)
             {
                 case CastResult.SpellTargetInvalid:
                     var targetOutOfRangeMessage = new GameEventWeenieError(Session, WeenieError.YourSpellTargetIsMissing);
                     Session.Network.EnqueueSend(targetOutOfRangeMessage);
+                    break;
+                case CastResult.InvalidSpell:
+                    var invalidSpellMessage = new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell);
+                    Session.Network.EnqueueSend(invalidSpellMessage);
+                    break;
+                case CastResult.SpellCastCompleted:
                     break;
                 default:
                     string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
@@ -36,9 +42,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCastUntargetedSpell(uint spellId)
         {
-            CastResult result = CreateSpell(Guid, null, spellId);
-            switch (spellId)
+            CastResult result = CreateSpell(spellId);
+            switch (result)
             {
+                case CastResult.InvalidSpell:
+                    var invalidSpellMessage = new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell);
+                    Session.Network.EnqueueSend(invalidSpellMessage);
+                    break;
+                case CastResult.SpellCastCompleted:
+                    break;
                 default:
                     string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
                     var unImplementedMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
