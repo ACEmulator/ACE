@@ -245,7 +245,7 @@ namespace ACE.Server.Tests.Physics
             transition.CollisionInfo.LastKnownContactPlane = new Plane(new Vector3(0, 0, 1), 0);
 
             transitionState = sphere.SlideSphere(transition, ref collisionNormal, Vector3.Zero);
-            Assert.AreEqual(transitionState, TransitionState.Collided);
+            Assert.AreEqual(transitionState, TransitionState.OK);
         }
     }
 }
