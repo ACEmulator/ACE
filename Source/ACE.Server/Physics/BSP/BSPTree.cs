@@ -96,7 +96,8 @@ namespace ACE.Server.Physics.BSP
 
         public TransitionState check_walkable(SpherePath path, Sphere checkPos, float scale)
         {
-            return RootNode.hits_walkable(path, checkPos, path.LocalSpaceZ) ? TransitionState.Collided : TransitionState.OK;
+            var validPos = new Sphere(checkPos);
+            return RootNode.hits_walkable(path, validPos, path.LocalSpaceZ) ? TransitionState.Collided : TransitionState.OK;
         }
 
         public TransitionState collide_with_pt(Transition transition, Sphere checkPos, Vector3 curPos, Polygon hitPoly, Vector3 contactPoint, float scale)
@@ -112,7 +113,7 @@ namespace ACE.Server.Physics.BSP
                 return TransitionState.Collided;
             }
 
-            var validPos = checkPos;    // copy constructor?
+            var validPos = new Sphere(checkPos);
 
             if (!adjust_to_plane(validPos, curPos, hitPoly, contactPoint))
                 return TransitionState.Collided;
@@ -160,7 +161,7 @@ namespace ACE.Server.Physics.BSP
             if (path.Collide)
             {
                 var changed = false;
-                var validPos = localSphere;
+                var validPos = new Sphere(localSphere);
 
                 RootNode.find_walkable(path, validPos, ref hitPoly, movement, path.LocalSpaceZ, ref changed);
 
@@ -202,8 +203,7 @@ namespace ACE.Server.Physics.BSP
                     if (hitPoly_ != null) return SetPolyHit(path, hitPoly_);
                     if (hitPoly  != null) return SetPolyHit(path, hitPoly);
                 }
-                else
-                    return TransitionState.OK;
+                return TransitionState.OK;
             }
             
             if (RootNode.sphere_intersects_poly(localSphere, movement, ref hitPoly, ref contactPoint) || hitPoly != null)
@@ -329,7 +329,7 @@ namespace ACE.Server.Physics.BSP
             var step_down_amount = -(path.StepDownAmt * path.WalkInterp);
 
             var trans = path.LocalSpaceZ * step_down_amount * (1.0f / scale);
-            var validPos = checkPos;
+            var validPos = new Sphere(checkPos);
             var changed = false;
             Polygon polyHit = null;
 

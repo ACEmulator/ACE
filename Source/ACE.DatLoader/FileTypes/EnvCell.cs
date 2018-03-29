@@ -27,7 +27,7 @@ namespace ACE.DatLoader.FileTypes
         public Frame Position { get; } = new Frame();
         public List<CellPortal> CellPortals { get; } = new List<CellPortal>();
         public List<ushort> VisibleCells { get; } = new List<ushort>();
-        public List<Stab> Stabs { get; } = new List<Stab>();
+        public List<Stab> StaticObjects { get; } = new List<Stab>();
         public uint RestrictionObj { get; private set; }
 
         public bool SeenOutside => (Bitfield & 1) != 0;
@@ -60,7 +60,7 @@ namespace ACE.DatLoader.FileTypes
                 VisibleCells.Add(reader.ReadUInt16());
 
             if ((Bitfield & 2) != 0)
-                Stabs.Unpack(reader);
+                StaticObjects.Unpack(reader);
 
             if ((Bitfield & 8) != 0)
                 RestrictionObj = reader.ReadUInt32();

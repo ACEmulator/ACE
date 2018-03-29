@@ -39,14 +39,14 @@ namespace ACE.Server.Physics.Collision
         public void SetContactPlane(Plane plane, bool isWater)
         {
             ContactPlaneValid = true;
-            ContactPlane = plane;
+            ContactPlane = new Plane(plane.Normal, plane.D);
             ContactPlaneIsWater = isWater;
         }
 
         public void SetCollisionNormal(Vector3 normal)
         {
             CollisionNormalValid = true;
-            CollisionNormal = normal;
+            CollisionNormal = normal;   // use original?
             if (NormalizeCheckSmall(ref normal))
                 CollisionNormal = Vector3.Zero;
         }
@@ -54,7 +54,7 @@ namespace ACE.Server.Physics.Collision
         public void SetSlidingNormal(Vector3 normal)
         {
             SlidingNormalValid = true;
-            SlidingNormal = normal;
+            SlidingNormal = new Vector3(normal.X, normal.Y, 0.0f);
             if (NormalizeCheckSmall(ref normal))
                 SlidingNormal = Vector3.Zero;
         }

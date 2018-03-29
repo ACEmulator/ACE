@@ -387,13 +387,13 @@ namespace ACE.Server.Physics
 
             if (collisionNormal.Equals(Vector3.Zero))
             {
-                var halfDeltaPos = (currPos - Center) * 0.5f;
-                path.AddOffsetToCheckPos(halfDeltaPos, Radius);
+                var halfOffset = (currPos - Center) * 0.5f;
+                path.AddOffsetToCheckPos(halfOffset, Radius);
                 return TransitionState.Adjusted;
             }
             collisions.SetCollisionNormal(collisionNormal);
             var blockOffset = LandDefs.GetBlockOffset(path.CurPos.ObjCellID, path.CheckPos.ObjCellID);
-            var gDelta = blockOffset + Center - currPos;
+            var gDelta = blockOffset + (Center - currPos);
             var contactPlane = collisions.ContactPlaneValid ? collisions.ContactPlane : collisions.LastKnownContactPlane;
             var direction = Vector3.Cross(collisionNormal, contactPlane.Normal);
             var dirLenSq = direction.LengthSquared();
@@ -401,12 +401,12 @@ namespace ACE.Server.Physics
             {
                 var diff = Vector3.Dot(direction, gDelta);
                 var invDirLenSq = 1.0f / dirLenSq;
-                var newVec = direction * diff * invDirLenSq;
-                if (newVec.LengthSquared() < PhysicsGlobals.EPSILON)
+                var offset = direction * diff * invDirLenSq;
+                if (offset.LengthSquared() < PhysicsGlobals.EPSILON)
                     return TransitionState.Collided;
 
-                var newOffset = newVec - gDelta;
-                path.AddOffsetToCheckPos(newOffset, Radius);
+                offset -= gDelta;
+                path.AddOffsetToCheckPos(offset, Radius);
                 return TransitionState.Slid;
             }
             if (Vector3.Dot(collisionNormal, contactPlane.Normal) >= 0.0f)
@@ -418,10 +418,10 @@ namespace ACE.Server.Physics
             }
 
             collisionNormal = -gDelta;
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (!CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
                 collisions.SetCollisionNormal(collisionNormal);
 
-            return TransitionState.Collided;
+            return TransitionState.OK;
         }
 
         /// <summary>
@@ -526,6 +526,11 @@ namespace ACE.Server.Physics
                 timeOfIntersection = (b - dist) / distSq;
 
             return true;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Center: {0} Radius: {1}", Center, Radius);
         }
     }
 }

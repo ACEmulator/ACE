@@ -102,25 +102,25 @@ namespace ACE.Server.Physics
         public bool adjust_sphere_to_plane(SpherePath path, Sphere validPos, Vector3 movement)
         {
             var dpPos = Vector3.Dot(validPos.Center, Plane.Normal) + Plane.D;
-            var dpMove = Vector3.Dot(movement, Plane.Normal);   // dist?
-            var distSq = 0.0f;
+            var dpMove = Vector3.Dot(movement, Plane.Normal);
+            var dist = 0.0f;
 
             if (dpMove <= PhysicsGlobals.EPSILON)
             {
                 if (dpMove >= -PhysicsGlobals.EPSILON)
                     return false;
 
-                distSq = dpPos - validPos.Radius;
+                dist = dpPos - validPos.Radius;
             }
             else
-                distSq = -validPos.Radius - dpPos;
+                dist = -validPos.Radius - dpPos;
 
-            var dist = distSq / dpMove;
-            var interp = (1.0f - dist) * path.WalkInterp;
+            var iDist = dist / dpMove;
+            var interp = (1.0f - iDist) * path.WalkInterp;
             if (interp >= path.WalkInterp || interp < -0.5f)
                 return false;
 
-            validPos.Center -= movement * dist;
+            validPos.Center -= movement * iDist;
             path.WalkInterp = interp;
             return true;
         }

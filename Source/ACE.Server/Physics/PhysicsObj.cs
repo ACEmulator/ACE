@@ -1510,8 +1510,8 @@ namespace ACE.Server.Physics
 
                 if (TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     offsetFrame.Origin *= Scale;
-                //else
-                    //offsetFrame.Origin *= 0.0f;     // OnWalkable getting reset?
+                else
+                    offsetFrame.Origin *= 0.0f;     // OnWalkable getting reset?
             }
             if (PositionManager != null)
                 PositionManager.AdjustOffset(offsetFrame, quantum);
@@ -2957,6 +2957,9 @@ namespace ACE.Server.Physics
         /// </summary>
         public void set_frame(AFrame frame)
         {
+            // set position?
+            Position.Frame.set_position(frame);
+
             if (!frame.IsValid() && frame.IsValidExceptForHeading())
                 frame = null;
 
@@ -3370,6 +3373,7 @@ namespace ACE.Server.Physics
                 else
                     trans.InitSphere(0, sphere, Scale);
             }
+
             trans.InitPath(CurCell, oldPos, newPos);
 
             if (TransientState.HasFlag(TransientStateFlags.StationaryStuck))

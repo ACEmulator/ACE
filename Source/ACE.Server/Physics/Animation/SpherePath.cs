@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Common;
@@ -90,12 +91,12 @@ namespace ACE.Server.Physics.Animation
             if (beginPos != null)
             {
                 InsertType = InsertType.Transition;
-                CurPos = beginPos;
+                CurPos = new Position(beginPos);
             }
             else
             {
                 InsertType = InsertType.Placement;
-                CurPos = endPos;
+                CurPos = new Position(endPos);
             }
 
             CurCell = beginCell;
@@ -185,12 +186,15 @@ namespace ACE.Server.Physics.Animation
 
             for (var i = 0; i < NumSphere; i++)
             {
+                // pos = the cell location in global space
+                // curpos = the current player position in global space
+                // localsphere = the sphere relative to the player
                 LocalSpaceCurrCenter[i].Center = pos.LocalToLocal(CurPos, LocalSphere[i].Center) * invScale;
 
                 LocalSpaceSphere[i].Radius = LocalSphere[i].Radius * invScale;
                 LocalSpaceSphere[i].Center = pos.LocalToLocal(CheckPos, LocalSphere[i].Center) * invScale;
             }
-            LocalSpacePos = new Position(pos);
+            LocalSpacePos = pos;
             LocalSpaceZ = pos.GlobalToLocalVec(Vector3.UnitZ);
             LocalSpaceLowPoint = LocalSpaceSphere[0].Center - (LocalSpaceZ * LocalSpaceSphere[0].Radius);
         }
@@ -245,7 +249,7 @@ namespace ACE.Server.Physics.Animation
 
         public void RestoreCheckPos()
         {
-            CheckPos = BackupCheckPos;
+            CheckPos = new Position(BackupCheckPos);
             CheckCell = BackupCell;
             CellArrayValid = false;
             CacheGlobalSphere(Vector3.Zero);
@@ -254,12 +258,12 @@ namespace ACE.Server.Physics.Animation
         public void SaveCheckPos()
         {
             BackupCell = CheckCell;
-            BackupCheckPos = CheckPos;
+            BackupCheckPos = new Position(CheckPos);
         }
 
         public void SetCheckPos(Position position, ObjCell cell)
         {
-            CheckPos = position;
+            CheckPos = new Position(position);
             CheckCell = cell;
             CellArrayValid = false;
             CacheGlobalSphere(Vector3.Zero);
@@ -269,8 +273,8 @@ namespace ACE.Server.Physics.Animation
         {
             Collide = true;
             BackupCell = CheckCell;
-            BackupCheckPos = CheckPos;
-            StepUpNormal = collisionNormal;
+            BackupCheckPos = new Position(CheckPos);
+            StepUpNormal = new Vector3(collisionNormal.X, collisionNormal.Y, collisionNormal.Z);
             WalkInterp = 1.0f;
         }
 
@@ -283,16 +287,16 @@ namespace ACE.Server.Physics.Animation
 
         public void SetWalkable(Sphere sphere, Polygon poly, Vector3 zAxis, Position localPos, float scale)
         {
-            WalkableCheckPos = sphere;
+            WalkableCheckPos = new Sphere(sphere);
             Walkable = poly;
-            WalkableUp = zAxis;
-            WalkablePos = localPos;
+            WalkableUp = new Vector3(zAxis.X, zAxis.Y, zAxis.Z);
+            WalkablePos = new Position(localPos);
             WalkableScale = scale;
         }
 
         public void SetWalkableCheckPos(Sphere sphere)
         {
-            WalkableCheckPos = sphere;
+            WalkableCheckPos = new Sphere(sphere);
         }
 
         public TransitionState StepUpSlide(Transition transition)
@@ -302,7 +306,8 @@ namespace ACE.Server.Physics.Animation
             collisions.ContactPlaneValid = false;
             collisions.ContactPlaneIsWater = false;
 
-            return GlobalCurrCenter[0].SlideSphere(transition, ref StepUpNormal, GlobalCurrCenter[0].Center);
+            return GlobalSphere[0].SlideSphere(transition, ref StepUpNormal, GlobalCurrCenter[0].Center);
+            //return GlobalCurrCenter[0].SlideSphere(transition, ref StepUpNormal, GlobalCurrCenter[0].Center);
         }
     }
 }

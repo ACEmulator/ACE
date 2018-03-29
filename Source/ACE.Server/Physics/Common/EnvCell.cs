@@ -45,15 +45,16 @@ namespace ACE.Server.Physics.Common
             NumPortals = Portals.Count;
             StaticObjectIDs = new List<uint>();
             StaticObjectFrames = new List<AFrame>();
-            foreach (var stab in envCell.Stabs)
+            foreach (var staticObj in envCell.StaticObjects)
             {
-                StaticObjectIDs.Add(stab.Id);
-                StaticObjectFrames.Add(new AFrame(stab.Frame));
+                StaticObjectIDs.Add(staticObj.Id);
+                StaticObjectFrames.Add(new AFrame(staticObj.Frame));
             }
             NumStabs = StaticObjectIDs.Count;
             VisibleCellIDs = envCell.VisibleCells;
             RestrictionObj = envCell.RestrictionObj;
             SeenOutside = envCell.SeenOutside;
+
             EnvironmentID = envCell.EnvironmentId;
             Environment = (DatLoader.FileTypes.Environment)DBObj.Get(new QualifiedDataID(16, EnvironmentID));
             CellStructureID = envCell.CellStructure;
@@ -82,7 +83,6 @@ namespace ACE.Server.Physics.Common
                 if (transitState != TransitionState.OK && !transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact))
                     transition.CollisionInfo.CollidedWithEnvironment = true;
             }
-
             return transitState;
         }
 
@@ -290,8 +290,7 @@ namespace ACE.Server.Physics.Common
         public override bool point_in_cell(Vector3 point)
         {
             var localPoint = Pos.Frame.GlobalToLocal(point);
-            //return CellStructure.point_in_cell(localPoint);   // add cellstruct ref
-            return false;
+            return CellStructure.point_in_cell(localPoint);
         }
 
         public void release_visible(List<uint> stabs)
