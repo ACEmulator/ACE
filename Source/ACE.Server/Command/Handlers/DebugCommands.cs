@@ -198,20 +198,6 @@ namespace ACE.Server.Command.Handlers
             session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[3], positionData[4], positionData[5], positionData[6]));
         }
 
-        // portalrecall
-        [CommandHandler("portalrecall", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Recalls the last portal used.")]
-        public static void HandleDebugPortalRecall(Session session, params string[] parameters)
-        {
-            if (!session.Player.TeleToPosition(PositionType.LastPortal))
-            // On error
-            {
-                // You are too powerful to interact with that portal!
-                var portalRecallMessage = new GameEventWeenieError(session, WeenieError.YouMustLinkToPortalToRecall);
-                session.Network.EnqueueSend(portalRecallMessage);
-            }
-        }
-
         // grantxp ulong
         [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Give XP to yourself.",
