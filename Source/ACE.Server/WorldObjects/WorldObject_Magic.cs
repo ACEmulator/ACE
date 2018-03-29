@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
                 var motionWindUp = new UniversalMotion(MotionStance.Spellcasting);
                 motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
                 motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
-                motionWindUp.MovementData.ForwardSpeed = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(windUpMotion);
+                motionWindUp.MovementData.ForwardSpeed = (float)2;
                 DoMotion(motionWindUp);
             });
 
@@ -174,7 +174,7 @@ namespace ACE.Server.WorldObjects
                 var motionCastSpell = new UniversalMotion(MotionStance.Spellcasting);
                 motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
                 motionCastSpell.MovementData.ForwardCommand = (uint)spellGesture;
-                motionCastSpell.MovementData.ForwardSpeed = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(spellGesture);
+                motionCastSpell.MovementData.ForwardSpeed = (float)2;
                 DoMotion(motionCastSpell);
             });
 
@@ -252,7 +252,7 @@ namespace ACE.Server.WorldObjects
                 var motionReturnToCastStance = new UniversalMotion(MotionStance.Spellcasting);
                 motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
                 motionReturnToCastStance.MovementData.ForwardCommand = (uint)0;
-                motionReturnToCastStance.MovementData.ForwardSpeed = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(0);
+                motionReturnToCastStance.MovementData.ForwardSpeed = (float)2;
                 DoMotion(motionReturnToCastStance);
             });
 
