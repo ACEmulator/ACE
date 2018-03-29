@@ -39,27 +39,39 @@ namespace ACE.Server.Physics.Animation
             Init();
         }
 
-        public Vector3 AdjustOffset(Vector3 offset)
+        public Vector3 AdjustOffset(Vector3 _offset)
         {
+            var offset = new Vector3(_offset.X, _offset.Y, _offset.Z);
+            var checkSlide = false;
+
             var collisionAngle = Vector3.Dot(offset, CollisionInfo.SlidingNormal);
-
-            if (CollisionInfo.SlidingNormalValid && collisionAngle >= 0.0f)
-                CollisionInfo.SlidingNormalValid = false;
-
-            if (!CollisionInfo.ContactPlaneValid)
-                return offset - CollisionInfo.SlidingNormal * collisionAngle;
-
-            var slideAngle = Vector3.Dot(CollisionInfo.ContactPlane.Normal, CollisionInfo.SlidingNormal);
             if (CollisionInfo.SlidingNormalValid)
             {
-                var contactSlide = Vector3.Cross(CollisionInfo.ContactPlane.Normal, CollisionInfo.SlidingNormal);
-                if (!CollisionInfo.NormalizeCheckSmall(ref contactSlide))
-                    offset = Vector3.Dot(contactSlide, offset) * contactSlide;
+                if (collisionAngle < 0.0f)
+                    checkSlide = true;
                 else
-                    offset = Vector3.Zero;
+                    CollisionInfo.SlidingNormalValid = false;
             }
-            else if (slideAngle <= 0.0f)
-                offset -= CollisionInfo.ContactPlane.Normal * slideAngle;
+
+            if (!CollisionInfo.ContactPlaneValid)
+            {
+                if (checkSlide)
+                    offset -= CollisionInfo.SlidingNormal * collisionAngle;
+
+                return offset;
+            }
+
+            var slideOffset = Vector3.Cross(CollisionInfo.ContactPlane.Normal, CollisionInfo.SlidingNormal);
+
+            if (checkSlide)
+            {
+                if (CollisionInfo.NormalizeCheckSmall(ref slideOffset))
+                    offset = Vector3.Zero;
+                else
+                    offset = slideOffset = Vector3.Dot(slideOffset, offset) * slideOffset;
+            }
+            else if (collisionAngle <= 0.0f)
+                slideOffset = offset -= CollisionInfo.ContactPlane.Normal * collisionAngle;
             else
                 CollisionInfo.ContactPlane.SnapToPlane(ref offset);
 
@@ -68,15 +80,15 @@ namespace ACE.Server.Physics.Animation
 
             var globSphere = SpherePath.GlobalSphere[0];
             var blockOffset = LandDefs.GetBlockOffset(SpherePath.CheckPos.ObjCellID, CollisionInfo.ContactPlaneCellID);
-            var dist = Vector3.Dot(globSphere.Center - blockOffset, CollisionInfo.ContactPlane.Normal);
+            var dist = Vector3.Dot(globSphere.Center - blockOffset, CollisionInfo.ContactPlane.Normal) + CollisionInfo.ContactPlane.D;
             if (dist >= globSphere.Radius - PhysicsGlobals.EPSILON)
                 return offset;
 
             var zDist = (globSphere.Radius - dist) / CollisionInfo.ContactPlane.Normal.Z;
             if (globSphere.Radius > Math.Abs(zDist))
             {
-                offset = new Vector3(0.0f, 0.0f, zDist);
-                SpherePath.AddOffsetToCheckPos(offset);
+                var checkOffset = new Vector3(0.0f, 0.0f, zDist);
+                SpherePath.AddOffsetToCheckPos(checkOffset);
             }
             return offset;
         }
@@ -538,6 +550,14 @@ namespace ACE.Server.Physics.Animation
                 CollisionInfo.ContactPlaneValid = false;
                 CollisionInfo.ContactPlaneIsWater = false;
 
+                // custom debugging
+                if (CollisionInfo.LastKnownContactPlaneValid)
+                {
+                    CollisionInfo.ContactPlaneValid = true;
+                    CollisionInfo.SetContactPlane(CollisionInfo.LastKnownContactPlane, CollisionInfo.LastKnownContactPlaneIsWater);
+                    CollisionInfo.ContactPlaneCellID = CollisionInfo.LastKnownContactPlaneCellID;
+                }
+
                 if (SpherePath.InsertType != InsertType.Transition)
                 {
                     var insert = TransitionalInsert(3);
@@ -553,10 +573,7 @@ namespace ACE.Server.Physics.Animation
                 }
                 else
                 {
-                    SpherePath.CellArrayValid = false;
-
-                    SpherePath.CheckPos.Frame.Origin += SpherePath.GlobalOffset;
-                    SpherePath.CacheGlobalSphere(SpherePath.GlobalOffset);
+                    SpherePath.AddOffsetToCheckPos(SpherePath.GlobalOffset);
 
                     var transitionInsert = TransitionalInsert(3);
                     transitionState = ValidateTransition(transitionInsert, ref redo);
@@ -592,7 +609,7 @@ namespace ACE.Server.Physics.Animation
             InitLastKnownContactPlane(cellID, contactPlane, isWater);
 
             CollisionInfo.ContactPlaneValid = true;
-            CollisionInfo.ContactPlane = contactPlane;
+            CollisionInfo.ContactPlane = new Plane(contactPlane.Normal, contactPlane.D);
             CollisionInfo.ContactPlaneIsWater = isWater;
             CollisionInfo.ContactPlaneCellID = cellID;
         }
@@ -600,7 +617,7 @@ namespace ACE.Server.Physics.Animation
         public void InitLastKnownContactPlane(uint cellID, Plane contactPlane, bool isWater)
         {
             CollisionInfo.LastKnownContactPlaneValid = true;
-            CollisionInfo.LastKnownContactPlane = contactPlane;
+            CollisionInfo.LastKnownContactPlane = new Plane(contactPlane.Normal, contactPlane.D);
             CollisionInfo.LastKnownContactPlaneIsWater = isWater;
             CollisionInfo.LastKnownContactPlaneCellID = cellID;
         }
@@ -618,7 +635,7 @@ namespace ACE.Server.Physics.Animation
         public void InitSlidingNormal(Vector3 normal)
         {
             CollisionInfo.SlidingNormalValid = true;
-            CollisionInfo.SlidingNormal = new Vector3(normal.X, normal.Y, 0);
+            CollisionInfo.SlidingNormal = new Vector3(normal.X, normal.Y, normal.Z);
 
             if (CollisionInfo.NormalizeCheckSmall(ref CollisionInfo.SlidingNormal))
                 CollisionInfo.SlidingNormal = Vector3.Zero;
@@ -651,13 +668,16 @@ namespace ACE.Server.Physics.Animation
                     case TransitionState.Collided:
                         return transitionState;
 
+                    case TransitionState.Adjusted:
+                        break;  // debug breakpoint
+
                     case TransitionState.Slid:
                         CollisionInfo.ContactPlaneValid = false;
                         CollisionInfo.ContactPlaneIsWater = false;
                         break;
                 }
             }
-            return TransitionState.OK;
+            return transitionState;
         }
 
         /// <summary>
@@ -737,7 +757,7 @@ namespace ACE.Server.Physics.Animation
             CollisionInfo.ContactPlaneIsWater = false;
 
             SpherePath.StepUp = true;
-            SpherePath.StepUpNormal = collisionNormal;
+            SpherePath.StepUpNormal = new Vector3(collisionNormal.X, collisionNormal.Y, collisionNormal.Z);
 
             var stepDownHeight = 0.039999999f;  // set global
 
@@ -759,12 +779,9 @@ namespace ACE.Server.Physics.Animation
             SpherePath.Walkable = null;
 
             if (!stepDown)
-            {
                 SpherePath.RestoreCheckPos();
-                return false;
-            }
-            else
-                return true;
+
+            return stepDown;
         }
 
         public TransitionState TransitionalInsert(int num_insertion_attempts)
@@ -980,7 +997,7 @@ namespace ACE.Server.Physics.Animation
                         if (CollisionInfo.LastKnownContactPlaneValid)
                         {
                             ObjectInfo.StopVelocity();
-                            var angle = Vector3.Dot(CollisionInfo.LastKnownContactPlane.Normal, SpherePath.GlobalCurrCenter[0].Center);
+                            var angle = Vector3.Dot(CollisionInfo.LastKnownContactPlane.Normal, SpherePath.GlobalCurrCenter[0].Center) + CollisionInfo.LastKnownContactPlane.D;
                             if (SpherePath.GlobalSphere[0].Radius + PhysicsGlobals.EPSILON > Math.Abs(angle))
                             {
                                 CollisionInfo.SetContactPlane(CollisionInfo.LastKnownContactPlane, CollisionInfo.LastKnownContactPlaneIsWater);
@@ -1000,11 +1017,11 @@ namespace ACE.Server.Physics.Animation
                         transitionState = TransitionState.OK;
                     }
                 }
-                //else
-                    //SetCurrentCheckPos();
+                else
+                    SetCurrentCheckPos();   // commented out to fix portals?
             }
-            //else
-                //SetCurrentCheckPos();
+            else
+                SetCurrentCheckPos();
 
             if (CollisionInfo.CollisionNormalValid)
                 CollisionInfo.SetSlidingNormal(CollisionInfo.CollisionNormal);
@@ -1013,7 +1030,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (ObjectInfo.Object.State.HasFlag(PhysicsState.Gravity))
                 {
-                    if (_redo > 0)
+                    if (_redo == 0)
                     {
                         if (CollisionInfo.FramesStationaryFall > 0)
                         {

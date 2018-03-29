@@ -4,7 +4,7 @@ using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
 {
-    public class AFrame
+    public class AFrame: IEquatable<AFrame>
     {
         public Vector3 Origin;
         public Quaternion Orientation;
@@ -43,14 +43,14 @@ namespace ACE.Server.Physics.Animation
 
         public Vector3 GlobalToLocal(Vector3 point)
         {
-            //return Origin + GlobalToLocalVec(point);
-            var offset = point - Origin;    // rotation?
+            var offset = point - Origin;
+            //var rotated = GlobalToLocalVec(offset);   // ??
             return offset;
         }
 
         public Vector3 GlobalToLocalVec(Vector3 point)
         {
-            return Vector3.Transform(point, Orientation);
+            return Vector3.Transform(point, Orientation);   // verify
         }
 
         public void InterpolateOrigin(AFrame from, AFrame to, float t)
@@ -91,17 +91,14 @@ namespace ACE.Server.Physics.Animation
 
         public Vector3 LocalToGlobalVec(Vector3 point)
         {
-            // ??
-            //var rotation = Matrix4x4.CreateFromQuaternion(Orientation);
-            //rotation = Matrix4x4.Transpose(rotation);
-            //return Vector3.Transform(point, rotation);
-            return Vector3.Transform(point, Matrix4x4.CreateFromQuaternion(Orientation));
-            //return point;
+            //return Vector3.Transform(point, Matrix4x4.CreateFromQuaternion(Orientation));
+            return point;
         }
 
         public void GRotate(Vector3 rotation)
         {
-            Orientation = Quaternion.CreateFromYawPitchRoll(rotation.Z, rotation.X, rotation.Y);
+            Orientation *= Quaternion.CreateFromYawPitchRoll(rotation.X, rotation.Y, rotation.Z);
+            Orientation  = Quaternion.Normalize(Orientation);
         }
 
         public void Rotate(Vector3 rotation)
@@ -113,6 +110,7 @@ namespace ACE.Server.Physics.Animation
         public void Rotate(Quaternion rotation)
         {
             Orientation = Quaternion.Multiply(rotation, Orientation);
+            Orientation = Quaternion.Normalize(Orientation);
         }
 
         public void Subtract(AFrame frame)
@@ -164,6 +162,12 @@ namespace ACE.Server.Physics.Animation
             set_vector_heading(heading);
         }
 
+        public void set_position(AFrame frame)
+        {
+            var offset = frame.Origin - Origin;
+            Origin += Vector3.Transform(offset, Orientation);
+        }
+
         public void set_rotate(Quaternion orientation)
         {
             Orientation = orientation;
@@ -174,6 +178,19 @@ namespace ACE.Server.Physics.Animation
             // copy constructor?
             if (heading.NormalizeCheckSmall()) return;
             Orientation = Quaternion.CreateFromYawPitchRoll(heading.Z, heading.X, heading.Y);
+        }
+
+        public override string ToString()
+        {
+            return Origin + " " + Orientation;
+        }
+
+        public bool Equals(AFrame frame)
+        {
+            return Math.Abs(frame.Origin.X - Origin.X) < PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Origin.Y - Origin.Y) < PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Origin.Z - Origin.Z) < PhysicsGlobals.EPSILON;
+            // compare orientation?
         }
     }
 }

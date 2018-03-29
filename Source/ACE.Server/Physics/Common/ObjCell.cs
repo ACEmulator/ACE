@@ -148,10 +148,11 @@ namespace ACE.Server.Physics.Common
             if (cellID == 0) return null;
 
             // is this supposed to return a list?
-            if ((cellID & 0xFFFF) >= 0x100)
+            /*if ((cellID & 0xFFFF) >= 0x100)
                return EnvCell.get_visible(cellID);
             else
-                return LandCell.Get(cellID);
+                return LandCell.Get(cellID);*/
+            return LScape.get_landcell(cellID);
         }
 
         public void Init()
@@ -242,13 +243,11 @@ namespace ACE.Server.Physics.Common
                     if (visibleCell.ID == cell.ID)
                         continue;
 
-                    if (visibleCell.StabList == null)
-                        continue;
-
                     var found = false;
-                    foreach (var stab in visibleCell.StabList)
+
+                    foreach (var stab in ((EnvCell)visibleCell).VisibleCells.Values)
                     {
-                        if (cell.ID == stab.Id)
+                        if (cell.ID == stab.ID)
                         {
                             found = true;
                             break;
