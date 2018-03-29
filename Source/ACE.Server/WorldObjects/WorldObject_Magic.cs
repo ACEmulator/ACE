@@ -75,11 +75,6 @@ namespace ACE.Server.WorldObjects
                 // Enchant Self Harmful
                 spellGesture = MotionCommand.MagicHarm;
             }
-            else if (spell.Bitfield == 0x00000013)
-            {
-                // Enchant Other Harmful
-                spellGesture = MotionCommand.MagicHarm;
-            }
             else if (spell.Bitfield == 0x00000004 && spell.School == (MagicSchool)0x00000002)
             {
                 // Life heal other
