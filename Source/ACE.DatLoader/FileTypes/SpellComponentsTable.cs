@@ -22,10 +22,31 @@ namespace ACE.DatLoader.FileTypes
             SpellComponents.Unpack(reader, numComps);
         }
 
-        // TODO - Complete this function.
-        public static string GetSpellWords(List<uint> comps)
+        public static string GetSpellWords(SpellComponentsTable comps, List<uint> formula)
         {
-            string result = "";
+            string firstSpellWord = null;
+            string secondSpellWord = null;
+            string thirdSpellWord = null;
+
+            for (int i = 0; i < formula.Count; i++)
+            {
+                if (comps.SpellComponents[formula[i]].Type == 2)
+                    firstSpellWord = comps.SpellComponents[formula[i]].Text;
+            }
+
+            for (int i = 0; i < formula.Count; i++)
+            {
+                if (comps.SpellComponents[formula[i]].Type == 3)
+                    secondSpellWord = comps.SpellComponents[formula[i]].Text;
+            }
+
+            for (int i = 0; i < formula.Count; i++)
+            {
+                if (comps.SpellComponents[formula[i]].Type == 4)
+                    thirdSpellWord = comps.SpellComponents[formula[i]].Text;
+            }
+
+            string result = $"{firstSpellWord} {secondSpellWord}{thirdSpellWord.ToLower()}";
             return result;
         }
     }
