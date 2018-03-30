@@ -63,6 +63,11 @@ namespace ACE.Entity.Enum
         _IsNotAcceptingGiftsRightNow = 0x03EF,
 
         /// <summary>
+        ///  is already one of your followers
+        /// </summary>
+        _IsAlreadyOneOfYourFollowers = 0x0413,
+
+        /// <summary>
         ///  cannot have any more Vassals
         /// </summary>
         _CannotHaveAnyMoreVassals = 0x0416,
@@ -83,9 +88,24 @@ namespace ACE.Entity.Enum
         YouMustBeAtOrBelowLevel_ToBuyHouse = 0x0489,
 
         /// <summary>
+        /// You must be above allegiance rank  to purchase this dwelling.
+        /// </summary>
+        YouMustBeAboveAllegianceRank_ToBuyHouse = 0x048B,
+
+        /// <summary>
         /// You must be at or below allegiance rank  to purchase this dwelling.
         /// </summary>
         YouMustBeAtOrBelowAllegianceRank_ToBuyHouse = 0x048C,
+
+        /// <summary>
+        /// "The  was not suitable for salvaging."
+        /// </summary>
+        The_WasNotSuitableForSalvaging = 0x04BF,
+
+        /// <summary>
+        /// The  contains the wrong material.
+        /// </summary>
+        The_ContainseTheWrongMaterial = 0x04C0,
 
         /// <summary>
         /// You must be  to use that item's magic.
@@ -110,17 +130,12 @@ namespace ACE.Entity.Enum
         /// <summary>
         ///  is too busy to accept gifts right now.
         /// </summary>
-        Enum_04CE = 0x04CE,
+        AiRefuseItemDuringEmote = 0x04CE,
 
         /// <summary>
         ///  cannot accept stacked objects. Try giving one at a time.
         /// </summary>
         _CannotAcceptStackedItems = 0x04CF,
-
-        /// <summary>
-        /// You have failed to alter your skill.
-        /// </summary>
-        YouFailToAlterSkill = 0x04D0,
 
         /// <summary>
         /// Your  skill must be trained, not untrained or specialized, in order to be altered in this way!
@@ -171,6 +186,16 @@ namespace ACE.Entity.Enum
         /// You have too many credits invested in specialized skills already! Before you can specialize your  skill, you will need to unspecialize some other skill.
         /// </summary>
         TooManyCreditsInSpecializedSkills = 0x04DA,
+
+        /// <summary>
+        /// Sends {message}\n to the chat window. Unknown usage.
+        /// </summary>
+        AttributeTransferFromTooLow = 0x04DE,
+
+        /// <summary>
+        /// Sends {message}\n to the chat window. Unknown usage.
+        /// </summary>
+        AttributeTransferToTooHigh = 0x04DF,
 
         /// <summary>
         /// The  cannot be used while on a hook and only the owner may open the hook.
@@ -288,11 +313,6 @@ namespace ACE.Entity.Enum
         LockedFellowshipCannotRecruit_ = 0x0518,
 
         /// <summary>
-        /// The fellowship is locked, you were not added to the fellowship.
-        /// </summary>
-        LockedFellowshipCannotRecruitYou = 0x0519,
-
-        /// <summary>
         /// You have entered the  channel.
         /// </summary>
         YouHaveEnteredThe_Channel = 0x051B,
@@ -306,6 +326,11 @@ namespace ACE.Entity.Enum
         ///  will not receive your message, please use urgent assistance to speak with an in-game representative
         /// </summary>
         _WillNotReceiveMessage = 0x051E,
+
+        /// <summary>
+        /// "Message Blocked: "
+        /// </summary>
+        MessageBlocked_ = 0x051F,
 
         /// <summary>
         ///  has been added to the list of people you can hear.
@@ -356,6 +381,11 @@ namespace ACE.Entity.Enum
         ///  is in limbo and cannot receive your message.
         /// </summary>
         _IsInLimbo = 0x0531,
+
+        /// <summary>
+        /// You have been booted from your allegiance chat room. Use "@allegiance chat on" to rejoin. ({message}).
+        /// </summary>
+        YouHaveBeenBootedFromAllegianceChat = 0x0533,
 
         /// <summary>
         ///  has been booted from the allegiance chat room.
@@ -438,9 +468,19 @@ namespace ACE.Entity.Enum
         _IsAlreadyAllegianceOfficerOfThatLevel = 0x054B,
 
         /// <summary>
+        /// The  is currently in use.
+        /// </summary>
+        The_IsCurrentlyInUse = 0x54D,
+
+        /// <summary>
         /// You are not listening to the  channel!
         /// </summary>
         YouAreNotListeningTo_Channel = 0x0551,
+
+        /// <summary>
+        /// Sends "{message}\n" to the chat window. Unknown usage
+        /// </summary>
+        AugmentationSkillNotTrained = 0x055A,
 
         /// <summary>
         /// Congratulations! You have succeeded in acquiring the  augmentation.
@@ -453,9 +493,29 @@ namespace ACE.Entity.Enum
         YouSucceededRecoveringXPFromSkill_AugmentationNotUntrainable = 0x055C,
 
         /// <summary>
+        /// Sends "{message}\n" to the chat window. Unknown usage
+        /// </summary>
+        AFK = 0x055E,
+
+        /// <summary>
         ///  is already on your friends list!
         /// </summary>
         _IsAlreadyOnYourFriendsList = 0x0562,
+
+        /// <summary>
+        /// You may only change your allegiance name once every 24 hours. You may change your allegiance name again in {message}.
+        /// </summary>
+        YouMayOnlyChangeAllegianceNameOnceEvery24Hours = 0x056A,
+
+        /// <summary>
+        ///  is the monarch and cannot be promoted or demoted.
+        /// </summary>
+        _IsTheMonarchAndCannotBePromotedOrDemoted = 0x056D,
+
+        /// <summary>
+        /// That level of allegiance officer is now known as: {message}.
+        /// </summary>
+        ThatLevelOfAllegianceOfficerIsNowKnownAs_ = 0x056E,
 
         /// <summary>
         /// Your allegiance is currently: .

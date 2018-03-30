@@ -16,25 +16,99 @@ namespace ACE.Entity.Enum
         /// </summary>
         None = 0x0000,
 
+        NoMem = 0x0001,
+        BadParam = 0x0002,
+        DivZero = 0x0003,
+        SegV = 0x0004,
+        Unimplemented = 0x0005,
+        UnknownMessageType = 0x0006,
+        NoAnimationTable = 0x0007,
+        NoPhysicsObject = 0x0008,
+        NoBookieObject = 0x0009,
+        NoWslObject = 0x000A,
+        NoMotionInterpreter = 0x000B,
+        UnhandledSwitch = 0x000C,
+        DefaultConstructorCalled = 0x000D,
+        InvalidCombatManeuver = 0x000E,
+        BadCast = 0x000F,
+        MissingQuality = 0x0010,
+        // Skip 1
+        MissingDatabaseObject = 0x0012,
+        NoCallbackSet = 0x0013,
+        CorruptQuality = 0x0014,
+        BadContext = 0x0015,
+        NoEphseqManager = 0x0016,
+
+        /// <summary>
+        /// You failed to go to non-combat mode.
+        /// </summary>
+        BadMovementEvent = 0x0017,
+
+        CannotCreateNewObject = 0x0018,
+        NoControllerObject = 0x0019,
+        CannotSendEvent = 0x001A,
+        PhysicsCantTransition = 0x001B,
+        PhysicsMaxDistanceExceeded = 0x001C,
+
         /// <summary>
         /// You're too busy!
         /// </summary>
         YoureTooBusy = 0x001D,
+
+        CannotSendMessage = 0x001F,
+
+        /// <summary>
+        /// You must control both objects!
+        /// </summary>
+        IllegalInventoryTransaction = 0x0020,
+
+        ExternalWeenieObject = 0x0021,
+        InternalWeenieObject = 0x0022,
+
+        /// <summary>
+        /// Unable to move to object!
+        /// </summary>
+        MotionFailure = 0x0023,
 
         /// <summary>
         /// You can't jump while in the air
         /// </summary>
         YouCantJumpWhileInTheAir = 0x0024,
 
+        InqCylSphereFailure = 0x0025,
+
         /// <summary>
         /// That is not a valid command.
         /// </summary>
         ThatIsNotAValidCommand = 0x0026,
 
+        CarryingItem = 0x0027,
+
+        /// <summary>
+        /// The item is under someone else's control!
+        /// </summary>
+        Frozen = 0x0028,
+
+        /// <summary>
+        /// You cannot pick that up!
+        /// </summary>
+        Stuck = 0x0029,
+
         /// <summary>
         /// You are too encumbered to carry that!
         /// </summary>
         YouAreTooEncumbered = 0x002A,
+
+        BadContain = 0x002C,
+        BadParent = 0x002D,
+        BadDrop = 0x002E,
+        BadRelease = 0x002F,
+        MsgBadMsg = 0x0030,
+        MsgUnpackFailed = 0x0031,
+        MsgNoMsg = 0x0032,
+        MsgUnderflow = 0x0033,
+        MsgOverflow = 0x0034,
+        MsgCallbackFailed = 0x0035,
 
         /// <summary>
         /// Action cancelled!
@@ -44,19 +118,25 @@ namespace ACE.Entity.Enum
         /// <summary>
         /// Unable to move to object!
         /// </summary>
-        UnableToMoveToObject = 0x0037,
+        ObjectGone = 0x0037,
 
         /// <summary>
         /// Unable to move to object!
         /// </summary>
-        Enum_0039 = 0x0039,
+        NoObject = 0x0038,
+
+        /// <summary>
+        /// Unable to move to object!
+        /// </summary>
+        CantGetThere = 0x0039,
 
         /// <summary>
         /// You can't do that... you're dead!
         /// </summary>
         YouCantDoThatYoureDead = 0x003A,
 
-        Enum_003C = 0x003C,
+        ILeftTheWorld = 0x003B,
+        ITeleported = 0x003C,
 
         /// <summary>
         /// You charged too far!
@@ -68,17 +148,69 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouAreTooTiredToDoThat = 0x003E,
 
+        // Client side only
+        CantCrouchInCombat = 0x003F,
+        // Client side only
+        CantSitInCombat = 0x0040,
+        // Client side only
+        CantLieDownInCombat = 0x0041,
+        // Client side only
+        CantChatEmoteInCombat = 0x0042,
+
+        NoMtableData = 0x0043,
+
+        // Client side only
+        CantChatEmoteNotStanding = 0x0044,
+
+        TooManyActions = 0x0045,
+        Hidden = 0x0046,
+        GeneralMovementFailure = 0x0047,
+
         /// <summary>
         /// You can't jump from this position
         /// </summary>
         YouCantJumpFromThisPosition = 0x0048,
+
+        // Client side only
+        CantJumpLoadedDown = 0x0049,
 
         /// <summary>
         /// Ack! You killed yourself!
         /// </summary>
         YouKilledYourself = 0x004A,
 
-        Enum_004B = 0x004B,
+        MsgResponseFailure = 0x004B,
+        ObjectIsStatic = 0x004C,
+
+        /// <summary>
+        /// Invalid PK Status!
+        /// </summary>
+        InvalidPkStatus = 0x004D,
+
+        InvalidXpAmount = 0x03E9,
+        InvalidPpCalculation = 0x03EA,
+        InvalidCpCalculation = 0x03EB,
+        UnhandledStatAnswer = 0x03EC,
+        HeartAttack = 0x03ED,
+
+        /// <summary>
+        /// The container is closed!
+        /// </summary>
+        TheContainerIsClosed = 0x03EE,
+
+        InvalidInventoryLocation = 0x03F0,
+
+        /// <summary>
+        /// You failed to go to non-combat mode.
+        /// </summary>
+        ChangeCombatModeFailure = 0x03F1,
+
+
+        FullInventoryLocation = 0x03F2,
+        ConflictingInventoryLocation = 0x03F3,
+        ItemNotPending = 0x03F4,
+        BeWieldedFailure = 0x03F5,
+        BeDroppedFailure = 0x03F6,
 
         /// <summary>
         /// You are too fatigued to attack!
@@ -99,6 +231,10 @@ namespace ACE.Entity.Enum
         /// You've attempted an impossible spell path!
         /// </summary>
         YouveAttemptedAnImpossibleSpellPath = 0x03FA,
+
+        MagicIncompleteAnimList = 0x03FB,
+        MagicInvalidSpellType = 0x03FC,
+        MagicInqPositionAndVelocityFailure = 0x03FD,
 
         /// <summary>
         /// You don't know that spell!
@@ -135,6 +271,9 @@ namespace ACE.Entity.Enum
         /// </summary>
         YourProjectileSpellMislaunched = 0x0404,
 
+        MagicSpellbookAddSpellFailure = 0x0405,
+        MagicTargetOutOfRange = 0x0406,
+
         /// <summary>
         /// Your spell cannot be cast outside
         /// </summary>
@@ -145,7 +284,7 @@ namespace ACE.Entity.Enum
         /// </summary>
         YourSpellCannotBeCastInside = 0x0408,
 
-        Enum_0409 = 0x0409,
+        MagicGeneralFailure = 0x0409,
 
         /// <summary>
         /// You are unprepared to cast a spell
@@ -153,9 +292,35 @@ namespace ACE.Entity.Enum
         YouAreUnpreparedToCastASpell = 0x040A,
 
         /// <summary>
+        /// You've already sworn your Allegiance
+        /// </summary>
+        YouveAlreadySwornAllegiance = 0x040B,
+
+        /// <summary>
+        /// You don't have enough experience available to swear Allegiance
+        /// </summary>
+        CantSwearAllegianceInsufficientXp = 0x040C,
+
+        AllegianceIgnoringRequests = 0x040D,
+        AllegianceSquelched = 0x040E,
+        AllegianceMaxDistanceExceeded = 0x040F,
+        AllegianceIllegalLevel = 0x0410,
+        AllegianceBadCreation = 0x0411,
+        AllegiancePatronBusy = 0x0412,
+
+        /// <summary>
         /// You are not in an allegiance!
         /// </summary>
         YouAreNotInAllegiance = 0x0414,
+
+        AllegianceRemoveHierarchyFailure = 0x0415,
+
+        FellowshipIgnoringRequests = 0x0417,
+        FellowshipSquelched = 0x0418,
+        FellowshipMaxDistanceExceeded = 0x0419,
+        FellowshipMember = 0x041A,
+        FellowshipIllegalLevel = 0x041B,
+        FellowshipRecruitBusy = 0x041C,
 
         /// <summary>
         /// You must be the leader of a Fellowship
@@ -172,17 +337,76 @@ namespace ACE.Entity.Enum
         /// </summary>
         FellowshipNameIsNotPermitted = 0x041F,
 
+        LevelTooLow = 0x0420,
+        LevelTooHigh = 0x0421,
+
         /// <summary>
-        /// Your craft attempt fails.
+        /// That channel doesn't exist.
         /// </summary>
-        YourCraftAttemptFails = 0x0433,
+        ThatChannelDoesntExist = 0x0422,
+
+        /// <summary>
+        /// You can't use that channel.
+        /// </summary>
+        YouCantUseThatChannel = 0x0423,
+
+        /// <summary>
+        /// You're already on that channel.
+        /// </summary>
+        YouAreAlreadyOnThatChannel = 0x0424,
+
+        /// <summary>
+        /// You're not currently on that channel.
+        /// </summary>
+        YouAreNotOnThatChannel = 0x0425,
+
+        AttunedItem = 0x0426,
+
+        /// <summary>
+        /// You cannot merge different stacks!
+        /// </summary>
+        YouCannotMergeDifferentStacks = 0x0427,
+
+        /// <summary>
+        /// You cannot merge enchanted items!
+        /// </summary>
+        YouCannotMergeEnchantedItems = 0x0428,
+
+        /// <summary>
+        /// You must control at least one stack!
+        /// </summary>
+        YouMustControlAtLeastOneStack = 0x0429,
+
+        CurrentlyAttacking = 0x042A,
+        MissileAttackNotOk = 0x042B,
+        TargetNotAcquired = 0x042C,
+        ImpossibleShot = 0x042D,
+        BadWeaponSkill = 0x042E,
+        UnwieldFailure = 0x042F,
+        LaunchFailure = 0x0430,
+        ReloadFailure = 0x0431,
 
         /// <summary>
         /// Your craft attempt fails.
         /// </summary>
-        Enum_0435 = 0x0435,
+        UnableToMakeCraftReq = 0x0432,
 
-        Enum_0436 = 0x0436,
+        /// <summary>
+        /// Your craft attempt fails.
+        /// </summary>
+        CraftAnimationFailed = 0x0433,
+
+        /// <summary>
+        /// Given that number of items, you cannot craft anything.
+        /// </summary>
+        YouCantCraftWithThatNumberOfItems = 0x0434,
+
+        /// <summary>
+        /// Your craft attempt fails.
+        /// </summary>
+        CraftGeneralErrorUiMsg = 0x0435,
+
+        CraftGeneralErrorNoUiMsg = 0x0436,
 
         /// <summary>
         /// Either you or one of the items involved does not pass the requirements for this craft interaction.
@@ -210,6 +434,11 @@ namespace ACE.Entity.Enum
         YouAreNotTrainedInThatTradeSkill = 0x043B,
 
         /// <summary>
+        /// Your hands must be free.
+        /// </summary>
+        YourHandsMustBeFree = 0x043C,
+
+        /// <summary>
         /// You cannot link to that portal!
         /// </summary>
         YouCannotLinkToThatPortal = 0x043D,
@@ -224,12 +453,35 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouHaveSolvedThisQuestTooManyTimes = 0x043F,
 
+        QuestUnknown = 0x0440,
+        QuestTableCorrupt = 0x0441,
+        QuestBad = 0x0442,
+        QuestDuplicate = 0x0443,
+        QuestUnsolved = 0x0444,
+
         /// <summary>
         /// This item requires you to complete a specific quest before you can pick it up!
         /// </summary>
         ItemRequiresQuestToBePickedUp = 0x0445,
 
-        Enum_0446 = 0x0446,
+        QuestSolvedTooLongAgo = 0x0446,
+
+        TradeIgnoringRequests = 0x044C,
+        TradeSquelched = 0x044D,
+        TradeMaxDistanceExceeded = 0x044E,
+        TradeAlreadyTrading = 0x044F,
+        TradeBusy = 0x0450,
+        TradeClosed = 0x0451,
+        TradeExpired = 0x0452,
+        TradeItemBeingTraded = 0x0453,
+        TradeNonEmptyContainer = 0x0454,
+        TradeNonCombatMode = 0x0455,
+        TradeIncomplete = 0x0456,
+        TradeStampMismatch = 0x0457,
+        TradeUnopened = 0x0458,
+        TradeEmpty = 0x0459,
+        TradeAlreadyAccepted = 0x045A,
+        TradeOutOfSync = 0x045B,
 
         /// <summary>
         /// Player killers may not interact with that portal!
@@ -241,22 +493,44 @@ namespace ACE.Entity.Enum
         /// </summary>
         NonPKsMayNotUsePortal = 0x045D,
 
-        Enum_0465 = 0x0465,
+        /// <summary>
+        ///  You do not own a house!
+        /// </summary>
+        HouseAbandoned = 0x045E,
+
+        /// <summary>
+        ///  You do not own a house!
+        /// </summary>
+        HouseEvicted = 0x045F,
+
+        HouseAlreadyOwned = 0x0460,
+        HouseBuyFailed = 0x0461,
+        HouseRentFailed = 0x0462,
+        Hooked = 0x0463,
+
+        MagicInvalidPosition = 0x0465,
 
         /// <summary>
         /// You must purchase Asheron's Call: Dark Majesty to interact with that portal.
         /// </summary>
         YouMustHaveDarkMajestyToUsePortal = 0x0466,
 
+        InvalidAmmoType = 0x0467,
+        SkillTooLow = 0x0468,
+
         /// <summary>
         /// You have used all the hooks you are allowed to use for this house.
         /// </summary>
         YouHaveUsedAllTheHooks = 0x0469,
 
+        HookHouseNotOwned = 0x046B,
+
         /// <summary>
         /// You must complete a quest to interact with that portal.
         /// </summary>
         YouMustCompleteQuestToUsePortal = 0x0474,
+
+        HouseNoAllegiance = 0x047E,
 
         /// <summary>
         /// You must own a house to use this command.
@@ -264,19 +538,67 @@ namespace ACE.Entity.Enum
         YouMustOwnHouseToUseCommand = 0x047F,
 
         /// <summary>
-        /// You can't lock or unlock that!
+        /// Your monarch does not own a mansion or a villa!
         /// </summary>
-        YouCannotLockOrUnlockThat = 0x0480,
+        YourMonarchDoesNotOwnAMansionOrVilla = 0x0480,
 
         /// <summary>
-        /// You can't lock or unlock what is open!
+        /// Your monarch does not own a mansion or a villa!
         /// </summary>
-        YouCannotLockWhatIsOpen = 0x0481,
+        YourMonarchsHouseIsNotAMansionOrVilla = 0x0481,
+
+        /// <summary>
+        /// Your monarch has closed the mansion to the Allegiance.
+        /// </summary>
+        YourMonarchHasClosedTheMansion = 0x0482,
 
         /// <summary>
         /// You must be a monarch to purchase this dwelling.
         /// </summary>
         YouMustBeMonarchToPurchaseDwelling = 0x048A,
+
+        // Perhaps 30 seconds like fellowship timeout?
+        AllegianceTimeout = 0x048D,
+
+        /// <summary>
+        /// Your offer of Allegiance has been ignored.
+        /// </summary>
+        YourOfferOfAllegianceWasIgnored = 0x048E,
+
+        /// <summary>
+        /// You are already involved in something!
+        /// </summary>
+        ConfirmationInProgress = 0x048F,
+
+        /// <summary>
+        /// You must be a monarch to use this command.
+        /// </summary>
+        YouMustBeAMonarchToUseCommand = 0x0490,
+
+        /// <summary>
+        /// You must specify a character to boot. (From allegiance)
+        /// </summary>
+        YouMustSpecifyCharacterToBoot = 0x0491,
+
+        /// <summary>
+        /// You can't boot yourself! (From allegiance)
+        /// </summary>
+        YouCantBootYourself = 0x0492,
+
+        /// <summary>
+        /// That character does not exist.
+        /// </summary>
+        ThatCharacterDoesNotExist = 0x0493,
+
+        /// <summary>
+        /// That person is not a member of your Allegiance!
+        /// </summary>
+        ThatPersonIsNotInYourAllegiance = 0x0494,
+
+        /// <summary>
+        /// No patron from which to break!
+        /// </summary>
+        CantBreakFromPatronNotInAllegiance = 0x0495,
 
         /// <summary>
         /// Your Allegiance has been dissolved!
@@ -292,6 +614,16 @@ namespace ACE.Entity.Enum
         /// You have moved too far!
         /// </summary>
         YouHaveMovedTooFar = 0x0498,
+
+        /// <summary>
+        /// That is not a valid destination!
+        /// </summary>
+        TeleToInvalidPosition = 0x0499,
+
+        /// <summary>
+        /// You must purchase Asheron's Call -- Dark Majesty to use this function.
+        /// </summary>
+        MustHaveDarkMajestyToUse = 0x049A,
 
         /// <summary>
         /// You fail to link with the lifestone!
@@ -363,6 +695,8 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouMustBeAnAdvocateToUsePortal = 0x04A8,
 
+        PortalAisNotAllowed = 0x04A9,
+
         /// <summary>
         /// Players may not interact with that portal.
         /// </summary>
@@ -389,9 +723,53 @@ namespace ACE.Entity.Enum
         YouCannotSummonPortal = 0x04AE,
 
         /// <summary>
+        /// The lock is already unlocked.
+        /// </summary>
+        LockAlreadyUnlocked = 0x04AF,
+
+        /// <summary>
+        /// You can't lock or unlock that!
+        /// </summary>
+        YouCannotLockOrUnlockThat = 0x04B0,
+
+        /// <summary>
+        /// You can't lock or unlock what is open!
+        /// </summary>
+        YouCannotLockWhatIsOpen = 0x04B1,
+
+        /// <summary>
         /// The key doesn't fit this lock.
         /// </summary>
         KeyDoesntFitThisLock = 0x04B2,
+
+        /// <summary>
+        /// The lock has been used too recently.
+        /// </summary>
+        LockUsedTooRecently = 0x04B3,
+
+        /// <summary>
+        /// You aren't trained in lockpicking!
+        /// </summary>
+        YouArentTrainedInLockpicking = 0x04B4,
+
+        /// <summary>
+        /// You must specify a character to query.
+        /// </summary>
+        AllegianceInfoEmptyName = 0x04B5,
+
+        /// <summary>
+        /// Please use the allegiance panel to view your own information.
+        /// </summary>
+        AllegianceInfoSelf = 0x04B6,
+
+        /// <summary>
+        /// You have used that command too recently.
+        /// </summary>
+        AllegianceInfoTooRecent = 0x04B7,
+
+        AbuseNoSuchCharacter = 0x04B8,
+        AbuseReportedSelf = 0x04B9,
+        AbuseComplaintHandled = 0x04BA,
 
         /// <summary>
         /// You do not own that salvage tool!
@@ -443,7 +821,19 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouHaveBeenInPKBattleTooRecently = 0x04CC,
 
-        Enum_04DC = 0x04DC,
+        TradeAiRefuseEmote = 0x04CD,
+
+        /// <summary>
+        /// You have failed to alter your skill.
+        /// </summary>
+        YouFailToAlterSkill = 0x04D0,
+
+        FellowshipDeclined = 0x04DB,
+
+        /// <summary>
+        /// Appears to be sent to a recruiter 30 seconds after the initial recruit message when the recruitee doesn't respond.
+        /// </summary>
+        FellowshipTimeout = 0x04DC,
 
         /// <summary>
         /// You have failed to alter your attributes.
@@ -491,6 +881,11 @@ namespace ACE.Entity.Enum
         CannotSwearAllegianceWhileOwningMansion = 0x04E7,
 
         /// <summary>
+        /// You can't do that while in the air!
+        /// </summary>
+        YouCantDoThatWhileInTheAir = 0x04EB,
+
+        /// <summary>
         /// You cannot modify your player killer status while you are recovering from a PK death.
         /// </summary>
         CannotChangePKStatusWhileRecovering = 0x04EC,
@@ -536,6 +931,16 @@ namespace ACE.Entity.Enum
         YouArentTrainedInHealing = 0x04FC,
 
         /// <summary>
+        /// You don't own that healing kit!
+        /// </summary>
+        YouDontOwnThatHealingKit = 0x04FD,
+
+        /// <summary>
+        /// You can't heal that!
+        /// </summary>
+        YouCantHealThat = 0x04FE,
+
+        /// <summary>
         /// You aren't ready to heal!
         /// </summary>
         YouArentReadyToHeal = 0x0500,
@@ -566,6 +971,11 @@ namespace ACE.Entity.Enum
         YoureTooCloseToYourSanctuary = 0x0505,
 
         /// <summary>
+        /// You can't do that -- you're trading!
+        /// </summary>
+        CantDoThatTradeInProgress = 0x0506,
+
+        /// <summary>
         /// Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.
         /// </summary>
         OnlyNonPKsMayEnterPKLite = 0x0507,
@@ -579,6 +989,8 @@ namespace ACE.Entity.Enum
         /// You do not belong to a Fellowship.
         /// </summary>
         YouDoNotBelongToAFellowship = 0x050F,
+
+        UsingMaxHooksSilent = 0x0511,
 
         /// <summary>
         /// You are now using the maximum number of hooks.  You cannot use another hook until you take an item off one of your hooks.
@@ -596,14 +1008,14 @@ namespace ACE.Entity.Enum
         YouAreNotPermittedToUseThatHook = 0x0516,
 
         /// <summary>
-        /// You have entered your allegiance chat room.
+        /// The fellowship is locked, you were not added to the fellowship.
         /// </summary>
-        YouHaveEnteredYourAllegianceChat = 0x051B,
+        LockedFellowshipCannotRecruitYou = 0x0519,
 
         /// <summary>
-        /// You have left an allegiance chat room.
+        /// Only the original owner may use that item's magic.
         /// </summary>
-        YouHaveLeftAnAllegianceChat = 0x051C,
+        ActivationNotAllowedNotOwner = 0x051A,
 
         /// <summary>
         /// Turbine Chat is enabled.
@@ -631,6 +1043,11 @@ namespace ACE.Entity.Enum
         YouChickenOut = 0x0526,
 
         /// <summary>
+        /// You cannot posssibly succeed.
+        /// </summary>
+        YouCanPossiblySucceed = 0x0527,
+
+        /// <summary>
         /// The fellowship is locked; you cannot open locked fellowships.
         /// </summary>
         FellowshipIsLocked = 0x0528,
@@ -641,7 +1058,12 @@ namespace ACE.Entity.Enum
         TradeComplete = 0x0529,
 
         /// <summary>
-        /// Character not available.
+        /// That is not a salvaging tool.
+        /// </summary>
+        NotASalvageTool = 0x052A,
+
+        /// <summary>
+        /// That person is not available now.
         /// </summary>
         CharacterNotAvailable = 0x052B,
 
@@ -649,11 +1071,6 @@ namespace ACE.Entity.Enum
         /// You must wait 30 days after purchasing a house before you may purchase another with any character on the same account. This applies to all housing except apartments.
         /// </summary>
         YouMustWaitToPurchaseHouse = 0x0532,
-
-        /// <summary>
-        /// You have been booted from your allegiance chat room. Use "@allegiance chat on" to rejoin. ().
-        /// </summary>
-        YouHaveBeenBootedFromAllegianceChat = 0x0533,
 
         /// <summary>
         /// You do not have the authority within your allegiance to do that.
@@ -701,6 +1118,31 @@ namespace ACE.Entity.Enum
         HookItemNotUsable_CanOpen = 0x054F,
 
         /// <summary>
+        /// Out of Range!
+        /// </summary>
+        MissileOutOfRange = 0x0550,
+
+        /// <summary>
+        /// You must purchase Asheron's Call -- Throne of Destiny to use this function.
+        /// </summary>
+        MustPurchaseThroneOfDestinyToUseFunction = 0x0552,
+
+        /// <summary>
+        /// You must purchase Asheron's Call -- Throne of Destiny to use this item.
+        /// </summary>
+        MustPurchaseThroneOfDestinyToUseItem = 0x0553,
+
+        /// <summary>
+        /// You must purchase Asheron's Call -- Throne of Destiny to use this portal.
+        /// </summary>
+        MustPurchaseThroneOfDestinyToUsePortal = 0x0554,
+
+        /// <summary>
+        /// You must purchase Asheron's Call -- Throne of Destiny to access this quest.
+        /// </summary>
+        MustPurchaseThroneOfDestinyToAccessQuest = 0x0555,
+
+        /// <summary>
         /// You have failed to complete the augmentation.
         /// </summary>
         YouFailedToCompleteAugmentation = 0x0556,
@@ -734,6 +1176,56 @@ namespace ACE.Entity.Enum
         /// Only Player Killer Lite characters may use this command!
         /// </summary>
         OnlyPKLiteMayUseCommand = 0x0560,
+
+        /// <summary>
+        /// You may only have a maximum of 50 friends at once. If you wish to add more friends, you must first remove some.
+        /// </summary>
+        MaxFriendsExceeded = 0x0561,
+
+        /// <summary>
+        /// That character is not on your friends list!
+        /// </summary>
+        ThatCharacterNotOnYourFriendsList = 0x0563,
+
+        /// <summary>
+        /// Only the character who owns the house may use this command.
+        /// </summary>
+        OnlyHouseOwnerCanUseCommand = 0x0564,
+
+        /// <summary>
+        /// That allegiance name is invalid because it is empty. Please use the @allegiance name clear command to clear your allegiance name.
+        /// </summary>
+        InvalidAllegianceNameCantBeEmpty = 0x0565,
+
+        /// <summary>
+        /// That allegiance name is too long. Please choose another name.
+        /// </summary>
+        InvalidAllegianceNameTooLong = 0x0566,
+
+        /// <summary>
+        /// That allegiance name contains illegal characters. Please choose another name using only letters, spaces, - and '.
+        /// </summary>
+        InvalidAllegianceNameBadCharacters = 0x0567,
+
+        /// <summary>
+        /// That allegiance name is not appropriate. Please choose another name.
+        /// </summary>
+        InvalidAllegianceNameInappropriate = 0x0568,
+
+        /// <summary>
+        /// That allegiance name is already in use. Please choose another name.
+        /// </summary>
+        InvalidAllegianceNameAlreadyInUse = 0x0569,
+
+        /// <summary>
+        /// Your allegiance name has been cleared.
+        /// </summary>
+        AllegianceNameCleared = 0x056B,
+
+        /// <summary>
+        /// That is already the name of your allegiance!
+        /// </summary>
+        InvalidAllegianceNameSameName = 0x056C,
 
         /// <summary>
         /// That is an invalid officer level.
@@ -784,6 +1276,21 @@ namespace ACE.Entity.Enum
         /// Your allegiance chat privileges have been restored.
         /// </summary>
         YourAllegianceChatPrivilegesRestored = 0x0581,
+
+        /// <summary>
+        /// You cannot pick up more of that item!
+        /// </summary>
+        TooManyUniqueItems = 0x0584,
+
+        /// <summary>
+        /// You are restricted to clothes and armor created for your race.
+        /// </summary>
+        HeritageRequiresSpecificArmor = 0x0585,
+
+        /// <summary>
+        /// That item was specifically created for another race.
+        /// </summary>
+        ArmorRequiresSpecificHeritage = 0x0586,
 
         /// <summary>
         /// Olthoi cannot interact with that!
@@ -844,5 +1351,7 @@ namespace ACE.Entity.Enum
         /// Olthoi characters can only use Lifestone and PK Arena recalls!
         /// </summary>
         OlthoiCanOnlyRecallToLifestone = 0x0593,
+
+        ContractError = 0x0594
     }
 }
