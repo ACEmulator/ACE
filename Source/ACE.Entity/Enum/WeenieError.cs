@@ -1,6 +1,7 @@
 namespace ACE.Entity.Enum
 {
     /// <summary>
+    /// These were tested against the last available client version: 0.0.11.6096<para/>
     /// The WeenieError identifies the specific message to be displayed in the chat window or top of the UI.<para/>
     /// Used with F7B0 028A: Game Event -> Display an error message in the chat window if necessary.<para/>
     /// <para/>
