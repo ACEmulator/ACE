@@ -24,6 +24,10 @@ namespace ACE.Server.WorldObjects
 {
     public partial class Creature : Container
     {
+        private bool busyCasting;
+
+        public bool BusyCasting { get => busyCasting; set => busyCasting = value; }
+
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static readonly UniversalMotion MotionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));

@@ -9,56 +9,49 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
-        /// Method used for handling player targeted casting
+        /// Handles player targeted casting message
         /// </summary>
         public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)
         {
-            CastResult result = CreateSpell(guidTarget, spellId);
+            CastResult result = CreatePlayerSpell(guidTarget, spellId);
 
             switch (result)
             {
+                case CastResult.BusyCasting:
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, errorType: WeenieError.YoureTooBusy));
+                    break;
                 case CastResult.SpellTargetInvalid:
-                    var targetOutOfRangeMessage = new GameEventWeenieError(Session, WeenieError.YourSpellTargetIsMissing);
-                    Session.Network.EnqueueSend(targetOutOfRangeMessage);
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourSpellTargetIsMissing));
                     break;
                 case CastResult.InvalidSpell:
-                    var invalidSpellMessage = new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell);
-                    Session.Network.EnqueueSend(invalidSpellMessage);
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell));
                     break;
                 case CastResult.SpellCastCompleted:
                     break;
                 default:
-                    string serverMessage = "Targeted SpellID " + spellId + " not yet implemented!";
-                    var unImplementedMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                    Session.Network.EnqueueSend(unImplementedMessage);
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                     break;
             }
-
-            Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
 
         /// <summary>
-        /// Method used for handling player untargeted casting
+        /// Handles player untargeted casting message
         /// </summary>
         public void HandleActionCastUntargetedSpell(uint spellId)
         {
-            CastResult result = CreateSpell(spellId);
+            CastResult result = CreatePlayerSpell(spellId);
+
             switch (result)
             {
                 case CastResult.InvalidSpell:
-                    var invalidSpellMessage = new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell);
-                    Session.Network.EnqueueSend(invalidSpellMessage);
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell));
                     break;
                 case CastResult.SpellCastCompleted:
                     break;
                 default:
-                    string serverMessage = "UnTargeted SpellID " + spellId + " not yet implemented!";
-                    var unImplementedMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                    Session.Network.EnqueueSend(unImplementedMessage);
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("UnTargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                     break;
             }
-
-            Session.Network.EnqueueSend(new GameEventUseDone(Session));
         }
     }
 }
