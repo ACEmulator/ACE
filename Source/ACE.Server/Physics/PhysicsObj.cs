@@ -1093,6 +1093,8 @@ namespace ACE.Server.Physics
                 calc_acceleration();
             }
 
+            SlidingNormal = collisions.SlidingNormal;
+
             if (collisions.SlidingNormalValid)
                 TransientState |= TransientStateFlags.Sliding;
             else

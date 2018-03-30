@@ -189,6 +189,9 @@ namespace ACE.Server.Physics.Animation
                 // pos = the cell location in global space
                 // curpos = the current player position in global space
                 // localsphere = the sphere relative to the player
+
+                // localspacecurrcenter = curpos in local space
+                // localspacesphere = checkpos in local space
                 LocalSpaceCurrCenter[i].Center = pos.LocalToLocal(CurPos, LocalSphere[i].Center) * invScale;
 
                 LocalSpaceSphere[i].Radius = LocalSphere[i].Radius * invScale;

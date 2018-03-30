@@ -63,14 +63,14 @@ namespace ACE.Server.Physics.BSP
             {
                 if (!(node.PosNode is DatLoader.Entity.BSPLeaf))
                     PosNode = new BSPNode(node.PosNode, polys, vertexArray);
-                else
+                else if (!(node.PosNode is DatLoader.Entity.BSPPortal))
                     PosNode = new BSPLeaf((DatLoader.Entity.BSPLeaf)node.PosNode, polys, vertexArray);
             }
             if (node.NegNode != null)
             {
                 if (!(node.NegNode is DatLoader.Entity.BSPLeaf))
                     NegNode = new BSPNode(node.NegNode, polys, vertexArray);
-                else
+                else if (!(node.NegNode is DatLoader.Entity.BSPPortal))
                     NegNode = new BSPLeaf((DatLoader.Entity.BSPLeaf)node.NegNode, polys, vertexArray);
             }
         }

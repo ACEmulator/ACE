@@ -112,14 +112,23 @@ namespace ACE.Server.Physics.Common
             if (point_in_cell(origin))
                 return this;
 
-            // omitted portal search
-            if (!searchCells) return null;
-
-            foreach (var stab in StabList)
+            if (searchCells)
             {
-                var envCell = GetVisible(stab.Id);
-                if (envCell != null && envCell.point_in_cell(origin))
-                    return envCell;
+                foreach (var visibleCell in VisibleCells.Values)
+                {
+                    var envCell = GetVisible(visibleCell.ID);
+                    if (envCell != null && envCell.point_in_cell(origin))
+                        return envCell;
+                }
+            }
+            else
+            {
+                foreach (var portal in Portals)
+                {
+                    var envCell = GetVisible(portal.OtherCellId);
+                    if (envCell != null && envCell.point_in_cell(origin))
+                        return envCell;
+                }
             }
             return null;
         }
@@ -155,7 +164,7 @@ namespace ACE.Server.Physics.Common
             var i = 0;
             foreach (var portal in Portals)
             {
-                var sPortal = CellStructure.Portals[i];
+                var portalPoly = CellStructure.Portals[i];
 
                 foreach (var part in parts)
                 {
@@ -169,7 +178,7 @@ namespace ACE.Server.Physics.Common
                     var center = Pos.LocalToGlobal(part.Pos, sphere.Center);
                     rad = sphere.Radius + PhysicsGlobals.EPSILON;
 
-                    var dist = Vector3.Dot(center, sPortal.Plane.Normal) + sPortal.Plane.D;
+                    var dist = Vector3.Dot(center, portalPoly.Plane.Normal) + portalPoly.Plane.D;
                     if (portal.PortalSide)
                     {
                         if (dist < -rad)
@@ -184,7 +193,7 @@ namespace ACE.Server.Physics.Common
                     var bbox = part.GetBoundingBox();
                     BBox box = null;
                     box.LocalToLocal(bbox, part.Pos, Pos);
-                    var sidedness = sPortal.Plane.intersect_box(box);
+                    var sidedness = portalPoly.Plane.intersect_box(box);
                     if (sidedness == Sidedness.Positive && !portal.PortalSide || sidedness == Sidedness.Negative && portal.PortalSide)
                         continue;
 
@@ -221,7 +230,7 @@ namespace ACE.Server.Physics.Common
             var i = 0;
             foreach (var portal in Portals)
             {
-                var sPortal = CellStructure.Portals[i];
+                var portalPoly = CellStructure.Portals[i];
 
                 if (portal.OtherCellId == ushort.MaxValue)
                 {
@@ -230,7 +239,7 @@ namespace ACE.Server.Physics.Common
                         var rad = sphere.Radius + PhysicsGlobals.EPSILON;
                         var center = Pos.Frame.GlobalToLocal(sphere.Center);
 
-                        var dist = Vector3.Dot(center, sPortal.Plane.Normal) + sPortal.Plane.D;
+                        var dist = Vector3.Dot(center, portalPoly.Plane.Normal) + portalPoly.Plane.D;
                         if (dist > -rad && dist < -rad)
                         {
                             checkOutside = true;
@@ -245,9 +254,10 @@ namespace ACE.Server.Physics.Common
                     {
                         foreach (var sphere in spheres)
                         {
-                            var center = Pos.Frame.GlobalToLocal(sphere.Center);
+                            var center = otherCell.Pos.Frame.GlobalToLocal(sphere.Center);
                             var _sphere = new Sphere(center, sphere.Radius);
-                            if (otherCell.CellStructure.sphere_intersects_cell(_sphere) != BoundingType.Outside)
+                            var boundingType = otherCell.CellStructure.sphere_intersects_cell(_sphere);
+                            if (boundingType != BoundingType.Outside)
                             {
                                 cellArray.add_cell(otherCell.ID, otherCell);
                                 break;
@@ -261,7 +271,7 @@ namespace ACE.Server.Physics.Common
                             var center = Pos.Frame.GlobalToLocal(sphere.Center);
                             var _sphere = new Sphere(center, sphere.Radius + PhysicsGlobals.EPSILON);
                             var portalSide = portal.PortalSide;
-                            var dist = Vector3.Dot(_sphere.Center, sPortal.Plane.Normal) + sPortal.Plane.D;
+                            var dist = Vector3.Dot(_sphere.Center, portalPoly.Plane.Normal) + portalPoly.Plane.D;
                             if (dist > -_sphere.Radius && portalSide || dist < _sphere.Radius && !portalSide)
                             {
                                 cellArray.add_cell(portal.OtherCellId, null);

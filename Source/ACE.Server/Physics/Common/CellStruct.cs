@@ -35,7 +35,7 @@ namespace ACE.Server.Physics.Common
             foreach (var portal in cellStruct.Portals)
                 Portals.Add(Polygons[portal]);
             PhysicsPolygons = new Dictionary<ushort, Polygon>();
-            foreach (var poly in cellStruct.PhysicsPolygons)
+            foreach (var poly in cellStruct.PhysicsPolygons)    // todo: link to regular polys
                 PhysicsPolygons.Add(poly.Key, new Polygon(poly.Value, cellStruct.VertexArray));
             if (cellStruct.CellBSP != null)
                 CellBSP = new BSPTree(cellStruct.CellBSP, cellStruct.PhysicsPolygons, cellStruct.VertexArray); // physics or drawing?

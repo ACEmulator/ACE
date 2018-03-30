@@ -72,13 +72,10 @@ namespace ACE.Server.Physics.Common
             var time = Timer.CurrentTime + DestructionTime;
             if (!DestructionObjectTable.ContainsKey(obj))
             {
-                //Console.WriteLine("Adding object to be destroyed " + obj.ID + " at " + time);
                 DestructionObjectTable.Add(obj, time);
                 ObjectDestructionQueue.Enqueue(time);
                 return true;
             }
-            //else
-                //DestructionObjectTable[objectID] = time;
             return false;
         }
 

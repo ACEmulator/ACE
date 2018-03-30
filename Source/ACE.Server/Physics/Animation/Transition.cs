@@ -184,6 +184,7 @@ namespace ACE.Server.Physics.Animation
             }
 
             SpherePath.CheckCell = newCell;
+
             if (newCell != null)
             {
                 SpherePath.AdjustCheckPos(newCell.ID);
@@ -984,7 +985,8 @@ namespace ACE.Server.Physics.Animation
 
         public TransitionState ValidateTransition(TransitionState transitionState, ref int redo)
         {
-            int _redo = 1;
+            redo = 0;
+            var _redo = 1;
             Plane contactPlane = new Plane();
 
             if (transitionState != TransitionState.OK || SpherePath.CheckPos.Equals(SpherePath.CurPos))
@@ -1018,7 +1020,7 @@ namespace ACE.Server.Physics.Animation
                     }
                 }
                 else
-                    SetCurrentCheckPos();   // commented out to fix portals?
+                    SetCurrentCheckPos();
             }
             else
                 SetCurrentCheckPos();

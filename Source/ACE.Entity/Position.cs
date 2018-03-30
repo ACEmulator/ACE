@@ -262,7 +262,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// calculates the square of the distance to the referenced position
+        /// Returns the 3D squared distance between 2 objects
         /// </summary>
         public float SquaredDistanceTo(Position p)
         {
@@ -284,6 +284,9 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Returns the 2D distance between 2 objects
+        /// </summary>
         public float DistanceTo(Position p)
         {
             // originally this returned the offset instead of distance...
