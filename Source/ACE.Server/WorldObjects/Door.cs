@@ -179,7 +179,7 @@ namespace ACE.Server.WorldObjects
         {
             ////if (playerDistanceTo >= 2500)
             ////{
-            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+            ////    var sendTooFarMsg = new GameEventWeenieError(player.Session, WeenieError.CantGetThere);
             ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
             ////    return;
             ////}

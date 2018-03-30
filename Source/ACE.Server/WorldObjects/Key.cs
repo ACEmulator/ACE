@@ -61,11 +61,11 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
                             break;
                         case Door.UnlockDoorResults.DoorOpen:
-                            var messageDoorOpen = new GameEventWeenieError(player.Session, WeenieError.YouCannotLockWhatIsOpen); // TODO: Messages are not quiet right. Need to find right one.
+                            var messageDoorOpen = new GameEventWeenieError(player.Session, WeenieError.YouCannotLockWhatIsOpen);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, messageDoorOpen);
                             break;
                         case Door.UnlockDoorResults.AlreadyUnlocked:
-                            var messageAlreadyUnlocked = new GameEventWeenieError(player.Session, WeenieError.KeyDoesntFitThisLock); // TODO: Messages are not quiet right. Need to find right one.
+                            var messageAlreadyUnlocked = new GameEventWeenieError(player.Session, WeenieError.LockAlreadyUnlocked);
                             player.Session.Network.EnqueueSend(sendUseDoneEvent, messageAlreadyUnlocked);
                             break;
                         default:
