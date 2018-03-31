@@ -37,12 +37,12 @@ namespace ACE.Server.Entity
                 var cellX = i / LandblockMesh.VertexDim;
                 var cellY = i % LandblockMesh.VertexDim;
 
-                var globalCellX = (int)(cellX + blockX);
-                var globalCellY = (int)(cellY + blockY);
+                var globalCellX = (uint)(cellX + blockX);
+                var globalCellY = (uint)(cellY + blockY);
 
                 var cellMat = globalCellY * (712977289 * globalCellX + 1813693831) - 1109124029 * globalCellX + 2139937281;
                 var offset = cellMat * 2.3283064e-10;
-                var scene_idx = (int)Math.Abs(Math.Floor(scenes.Count * offset));
+                var scene_idx = (int)(scenes.Count * offset);
                 if (scene_idx >= scenes.Count) scene_idx = 0;
 
                 var sceneId = scenes[scene_idx];
@@ -56,9 +56,9 @@ namespace ACE.Server.Entity
                 for (var j = 0; j < scene.Objects.Count; j++)
                 {
                     var obj = scene.Objects[j];
-                    var noise = cellXMat + cellYMat - cellMat * 23399;
+                    var noise = (uint)(cellXMat + cellYMat - cellMat * 23399) * 2.3283064e-10;
 
-                    if (Math.Abs(noise * 2.3283064e-10) < obj.Freq && obj.WeenieObj == 0)
+                    if (noise < obj.Freq && obj.WeenieObj == 0)
                     {
                         var position = Displace(obj, globalCellX, globalCellY, j);
 
@@ -74,6 +74,7 @@ namespace ACE.Server.Entity
                         model.ObjectDesc = obj;
                         model.Cell = new Vector2(cellX, cellY);
                         model.Position = new Vector3(position.X, position.Y, GetZ(_landblock, model));
+                        model.Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, RotateObj(obj, globalCellX, globalCellY, j));
                         model.Scale = ScaleObj(obj, globalCellX, globalCellY, j);
                         model.BuildPolygons();
                         model.BoundingBox = new BoundingBox(model);
@@ -97,7 +98,7 @@ namespace ACE.Server.Entity
         /// <param name="iy">The global cell Y-offset</param>
         /// <param name="iq">The scene index of the object</param>
         /// <returns>The new location of the object</returns>
-        public static Vector2 Displace(ObjectDesc obj, int ix, int iy, int iq)
+        public static Vector2 Displace(ObjectDesc obj, uint ix, uint iy, int iq)
         {
             float x;
             float y;
@@ -132,7 +133,7 @@ namespace ACE.Server.Entity
         /// <param name="x">The global cell X-offset</param>
         /// <param name="y">The global cell Y-offset</param>
         /// <param name="k">The scene index of the object</param>
-        public static float ScaleObj(ObjectDesc obj, int x, int y, int k)
+        public static float ScaleObj(ObjectDesc obj, uint x, uint y, int k)
         {
             var scale = 1.0f;
 
@@ -146,6 +147,17 @@ namespace ACE.Server.Entity
                     (1813693831 * y - (k + 32593) * (1360117743 * y * x + 1888038839) - 1109124029 * x) * 2.3283064e-10) * minScale);
 
             return scale;
+        }
+
+        /// <summary>
+        /// Returns the rotation for a scenery object
+        /// </summary>
+        public static float RotateObj(ObjectDesc obj, uint x, uint y, int k)
+        {
+            if (obj.MaxRotation <= 0.0f)
+                return 0.0f;
+
+            return (float)((1813693831 * y - (k + 63127) * (1360117743 * y * x + 1888038839) - 1109124029 * x) * 2.3283064e-10 * obj.MaxRotation * 0.0174533f);
         }
 
         /// <summary>
