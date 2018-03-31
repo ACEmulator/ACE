@@ -402,7 +402,8 @@ namespace ACE.Server.Physics
                 var diff = Vector3.Dot(direction, gDelta);
                 var invDirLenSq = 1.0f / dirLenSq;
                 var offset = direction * diff * invDirLenSq;
-                if (offset.LengthSquared() < PhysicsGlobals.EPSILON)
+                var offsetLenSq = offset.LengthSquared();
+                if (offsetLenSq < PhysicsGlobals.EPSILON)
                     return TransitionState.Collided;
 
                 offset -= gDelta;

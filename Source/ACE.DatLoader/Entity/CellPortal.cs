@@ -5,7 +5,7 @@ namespace ACE.DatLoader.Entity
     public class CellPortal : IUnpackable
     {
         public ushort Bitfield { get; private set; }
-        public ushort EnvironmentId { get; private set; }
+        public ushort PolygonId { get; private set; }
         public ushort OtherCellId { get; private set; }
         public ushort OtherPortalId { get; private set; }
 
@@ -15,7 +15,7 @@ namespace ACE.DatLoader.Entity
         public void Unpack(BinaryReader reader)
         {
             Bitfield        = reader.ReadUInt16();
-            EnvironmentId   = reader.ReadUInt16();
+            PolygonId       = reader.ReadUInt16();
             OtherCellId     = reader.ReadUInt16();
             OtherPortalId   = reader.ReadUInt16();
         }

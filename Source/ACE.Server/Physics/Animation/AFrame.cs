@@ -30,27 +30,28 @@ namespace ACE.Server.Physics.Animation
         public static AFrame Combine(AFrame a, AFrame b)
         {
             var frame = new AFrame();
-            frame.Origin = a.Origin + b.Origin;
+            frame.Origin = a.Origin + Vector3.Transform(b.Origin, a.Orientation);
             frame.Orientation = Quaternion.Multiply(a.Orientation, b.Orientation);
             return frame;
         }
 
         public void Combine(AFrame a, AFrame b, Vector3 scale)
         {
-            Origin = a.Origin + b.Origin;
+            Origin = a.Origin + Vector3.Transform(b.Origin * scale, a.Orientation);
             Orientation = Quaternion.Multiply(a.Orientation, b.Orientation);
         }
 
         public Vector3 GlobalToLocal(Vector3 point)
         {
             var offset = point - Origin;
-            //var rotated = GlobalToLocalVec(offset);   // ??
-            return offset;
+            var rotate = GlobalToLocalVec(offset); 
+            return rotate;
         }
 
         public Vector3 GlobalToLocalVec(Vector3 point)
         {
-            return Vector3.Transform(point, Orientation);   // verify
+            var rotate = Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(Orientation));
+            return Vector3.Transform(point, rotate);
         }
 
         public void InterpolateOrigin(AFrame from, AFrame to, float t)
@@ -91,8 +92,7 @@ namespace ACE.Server.Physics.Animation
 
         public Vector3 LocalToGlobalVec(Vector3 point)
         {
-            //return Vector3.Transform(point, Matrix4x4.CreateFromQuaternion(Orientation));
-            return point;
+            return Vector3.Transform(point, Orientation);
         }
 
         public void GRotate(Vector3 rotation)

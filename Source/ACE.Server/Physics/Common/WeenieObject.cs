@@ -1,8 +1,8 @@
 using System;
+using ACE.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Collision;
-using ACE.Entity;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Common
