@@ -35,7 +35,12 @@ namespace ACE.Server.Entity
         private Vector3? _position;
 
         /// <summary>
-        /// The position of the model
+        /// The rotation backing store
+        /// </summary>
+        private Quaternion? _rotation;
+
+        /// <summary>
+        /// The position of the model instance
         /// </summary>
         public Vector3 Position
         {
@@ -46,6 +51,21 @@ namespace ACE.Server.Entity
             set
             {
                 _position = value;
+            }
+        }
+
+        /// <summary>
+        /// The rotation of the model instance
+        /// </summary>
+        public Quaternion Rotation
+        {
+            get
+            {
+                return _rotation == null ? Frame.Orientation : _rotation.Value;
+            }
+            set
+            {
+                _rotation = value;
             }
         }
 
@@ -130,7 +150,7 @@ namespace ACE.Server.Entity
 
             foreach (var polygon in StaticMesh.Polygons)
             {
-                Polygons.Add(new Polygon(polygon, Position, Frame.Orientation, Scale));
+                Polygons.Add(new Polygon(polygon, Position, Rotation, Scale));
             }
         }
 
