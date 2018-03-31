@@ -259,7 +259,7 @@ namespace ACE.Server.WorldObjects
                 {
                     IsLocked = true;
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true));
-                    // CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess); // TODO: need to find the lock sound
+                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
                 }
             }
             else
