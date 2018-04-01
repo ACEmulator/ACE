@@ -283,6 +283,7 @@ CREATE TABLE `biota_properties_emote` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
   `probability` float NOT NULL DEFAULT '1' COMMENT 'Probability of this EmoteSet being chosen',
+  `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
   `weenie_Class_Id` int(10) DEFAULT NULL,
   `style` int(10) unsigned DEFAULT NULL,
   `substyle` int(10) unsigned DEFAULT NULL,
@@ -291,7 +292,10 @@ CREATE TABLE `biota_properties_emote` (
   `min_Health` float DEFAULT NULL,
   `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_category_emoteset_uidx` (`object_Id`,`category`,`emote_Set_Id`),
   KEY `wcid_emote_idx` (`object_Id`),
+  KEY `category_idx` (`category`),
+  KEY `emoteset_idx` (`emote_Set_Id`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -306,8 +310,10 @@ DROP TABLE IF EXISTS `biota_properties_emote_action`;
 CREATE TABLE `biota_properties_emote_action` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
-  `emote_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Emote this Action belongs to',
+  `emote_Category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
+  `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
   `type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteType',
+  `order` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Action Sequence Order',
   `delay` float NOT NULL DEFAULT '1' COMMENT 'Time to wait before EmoteAction starts execution',
   `extent` float NOT NULL DEFAULT '1' COMMENT '?',
   `motion` int(10) DEFAULT NULL,
@@ -346,11 +352,47 @@ CREATE TABLE `biota_properties_emote_action` (
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_category_set_order_uidx` (`object_Id`,`emote_Category`,`emote_Set_Id`,`order`),
   KEY `wcid_emoteaction_idx` (`object_Id`),
-  KEY `emoteset_emoteaction_idx` (`emote_Id`),
-  CONSTRAINT `emote_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `biota_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `wcid_emoteaction` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `emotecategory_idx` (`emote_Category`),
+  KEY `emotetype_idx` (`type`),
+  KEY `emoteorder_idx` (`order`),
+  CONSTRAINT `wcid_emoteaction` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `wcid_emoteset` FOREIGN KEY (`object_Id`, `emote_Category`, `emote_Set_Id`) REFERENCES `biota_properties_emote` (`object_Id`, `category`, `emote_Set_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `biota_properties_enchantment_registry`
+--
+
+DROP TABLE IF EXISTS `biota_properties_enchantment_registry`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `biota_properties_enchantment_registry` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+  `enchantment_Category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Which PackableList this Enchantment goes in (enchantmentMask)',
+  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `spell_Id` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell',
+  `layer_Id` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Layer',
+  `has_Spell_Set_Id` bit(1) NOT NULL COMMENT 'Has Spell Set Id?',
+  `spell_Category` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Category of Spell',
+  `power_Level` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Power Level of Spell',
+  `start_Time` double NOT NULL DEFAULT '0' COMMENT 'the amount of time this enchantment has been active',
+  `duration` double NOT NULL DEFAULT '0' COMMENT 'the duration of the spell',
+  `caster_Object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object that cast this spell',
+  `degrade_Modifier` float NOT NULL DEFAULT '0' COMMENT '???',
+  `degrade_Limit` float NOT NULL DEFAULT '0' COMMENT '???',
+  `last_Time_Degraded` double NOT NULL DEFAULT '0' COMMENT 'the time when this enchantment was cast',
+  `stat_Mod_Type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'flags that indicate the type of effect the spell has',
+  `stat_Mod_Key` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'along with flags, indicates which attribute is affected by the spell',
+  `stat_Mod_Value` float NOT NULL DEFAULT '0' COMMENT 'the effect value/amount',
+  `spell_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Spell Set for this spell',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_enchantmentregistry_objectId_spellId_layerId_uidx` (`object_Id`,`spell_Id`,`layer_Id`),
+  KEY `wcid_enchantmentregistry_idx` (`object_Id`),
+  CONSTRAINT `wcid_enchantmentregistry` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Enchantment Registry Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -369,6 +411,25 @@ CREATE TABLE `biota_properties_event_filter` (
   KEY `wcid_eventfilter_idx` (`object_Id`),
   CONSTRAINT `wcid_eventfilter` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EventFilter Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `biota_properties_fill_comp_book`
+--
+
+DROP TABLE IF EXISTS `biota_properties_fill_comp_book`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `biota_properties_fill_comp_book` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `spell_Component_Id` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell Component',
+  `quantity_To_Rebuy` int(10) NOT NULL DEFAULT '0' COMMENT 'Amount of this component to add to the buy list for repurchase',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_fillcompbook_type_uidx` (`object_Id`,`spell_Component_Id`),
+  KEY `wcid_fillcompbook_idx` (`object_Id`),
+  CONSTRAINT `wcid_fillcompbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FillCompBook Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -674,6 +735,24 @@ CREATE TABLE `biota_properties_texture_map` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `biota_properties_title_book`
+--
+
+DROP TABLE IF EXISTS `biota_properties_title_book`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `biota_properties_title_book` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `title_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Title',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_titlebook_type_uidx` (`object_Id`,`title_Id`),
+  KEY `wcid_titlebook_idx` (`object_Id`),
+  CONSTRAINT `wcid_titlebook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='TitleBook Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `character`
 --
 
@@ -705,4 +784,4 @@ CREATE TABLE `character` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-11 13:51:36
+-- Dump completed on 2018-03-31 21:45:07
