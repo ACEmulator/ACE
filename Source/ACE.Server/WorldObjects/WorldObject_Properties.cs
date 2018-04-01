@@ -2436,5 +2436,17 @@ namespace ACE.Server.WorldObjects
             get => (CloakStatus?)GetProperty(PropertyInt.CloakStatus);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value.Value); }
         }
+
+        public bool? IgnorePortalRestrictions
+        {
+            get => GetProperty(PropertyBool.IgnorePortalRestrictions);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnorePortalRestrictions); else SetProperty(PropertyBool.IgnorePortalRestrictions, value.Value); }
+        }
+
+        public bool? Invincible
+        {
+            get => GetProperty(PropertyBool.Invincible);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Invincible); else SetProperty(PropertyBool.Invincible, value.Value); }
+        }
     }
 }

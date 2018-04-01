@@ -8,8 +8,6 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -450,33 +448,11 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        // neversaydie [on/off]
-        [CommandHandler("neversaydie", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleNeverSayDie(Session session, params string[] parameters)
-        {
-            // @neversaydie [on/off] - Turn immortality on or off. Defaults to on.
-
-            // TODO: output
-
-            // output: You are now immortal.
-
-            ChatPacket.SendServerMessage(session, "You are now immortal.", ChatMessageType.Broadcast);
-        }
-
         // pk
         [CommandHandler("pk", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandlePk(Session session, params string[] parameters)
         {
             // @pk - Toggles or sets your own PK state.
-
-            // TODO: output
-        }
-
-        // portal_bypass
-        [CommandHandler("portal_bypass", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandlePortalBypass(Session session, params string[] parameters)
-        {
-            // @portal_bypass - Toggles the ability to bypass portal restrictions.
 
             // TODO: output
         }

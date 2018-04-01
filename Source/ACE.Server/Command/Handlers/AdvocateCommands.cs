@@ -2,7 +2,9 @@ using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -19,10 +21,25 @@ namespace ACE.Server.Command.Handlers
             // This command sets whether monsters will attack you unprovoked.When turned on, monsters will attack you as if you are a normal player.  When turned off, monsters will ignore you.
             // @attackable - Sets whether monsters will attack you or not.
 
-            // TODO: output
-
             if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5)
                 return;
+
+            var param = parameters[0];
+
+            switch (param)
+            {
+                case "off":
+                    session.Player.Attackable = false;
+                    session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessagePublicUpdatePropertyBool(session.Player, PropertyBool.Attackable, session.Player.Attackable ?? false));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Monsters will only attack you if provoked by you first.", ChatMessageType.Broadcast));
+                    break;
+                case "on":
+                default:
+                    session.Player.Attackable = true;
+                    session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessagePublicUpdatePropertyBool(session.Player, PropertyBool.Attackable, session.Player.Attackable ?? false));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Monsters will attack you normally.", ChatMessageType.Broadcast));
+                    break;
+            }
         }
 
         // bestow <name> <level>
