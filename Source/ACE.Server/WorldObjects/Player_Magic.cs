@@ -1,8 +1,7 @@
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -13,25 +12,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)
         {
-            CastResult result = CreatePlayerSpell(guidTarget, spellId);
+            WorldObject target = CurrentLandblock.GetObject(guidTarget) as WorldObject;
 
-            switch (result)
-            {
-                case CastResult.BusyCasting:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, errorType: WeenieError.YoureTooBusy));
-                    break;
-                case CastResult.SpellTargetInvalid:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourSpellTargetIsMissing));
-                    break;
-                case CastResult.InvalidSpell:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell));
-                    break;
-                case CastResult.SpellCastCompleted:
-                    break;
-                default:
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
-                    break;
-            }
+            var turnToMotion = new UniversalMotion(MotionStance.Spellcasting, Location, guidTarget);
+            turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+
+            ActionChain turnToTimer = new ActionChain();
+            turnToTimer.AddAction(this, () => CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion));
+            turnToTimer.AddDelaySeconds(1);
+            turnToTimer.AddAction(this, () => CreatePlayerSpell(guidTarget, spellId));
+            turnToTimer.EnqueueChain();
         }
 
         /// <summary>
@@ -39,19 +29,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCastUntargetedSpell(uint spellId)
         {
-            CastResult result = CreatePlayerSpell(spellId);
-
-            switch (result)
-            {
-                case CastResult.InvalidSpell:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDontKnowThatSpell));
-                    break;
-                case CastResult.SpellCastCompleted:
-                    break;
-                default:
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("UnTargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
-                    break;
-            }
+            CreatePlayerSpell(spellId);
         }
     }
 }
