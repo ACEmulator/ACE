@@ -485,7 +485,13 @@ namespace ACE.Server.Network.Handlers
                 character.IsDeleted = false;
 
                 CharacterCreateSetDefaultCharacterOptions(player);
-                CharacterCreateSetDefaultCharacterPositions(player, startArea);
+
+                player.Location = new Position(cg.StarterAreas[(int)startArea].Locations[0].ObjCellID,
+                    cg.StarterAreas[(int)startArea].Locations[0].Frame.Origin.X, cg.StarterAreas[(int)startArea].Locations[0].Frame.Origin.Y, cg.StarterAreas[(int)startArea].Locations[0].Frame.Origin.Z,
+                    cg.StarterAreas[(int)startArea].Locations[0].Frame.Orientation.X, cg.StarterAreas[(int)startArea].Locations[0].Frame.Orientation.Y, cg.StarterAreas[(int)startArea].Locations[0].Frame.Orientation.Z, cg.StarterAreas[(int)startArea].Locations[0].Frame.Orientation.W);
+
+                player.Instantiation = player.Location;
+                player.Sanctuary = player.Location;
 
                 var possessions = player.GetAllPossessions();
                 var possessedBiotas = new Collection<Biota>();
@@ -538,6 +544,10 @@ namespace ACE.Server.Network.Handlers
             player.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
             player.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
             player.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
+
+            // Not official client defaults, might have been creation defaults however to avoid initial confusion about helm/cloak equipping
+            player.SetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear, true);
+            player.SetCharacterOption(CharacterOption.ShowYourCloak, true);
         }
 
         public static void CharacterCreateSetDefaultCharacterPositions(Player player, uint startArea)
