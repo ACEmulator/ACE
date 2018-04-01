@@ -324,12 +324,15 @@ namespace ACE.Server.WorldObjects
                                 // TODO: To be changed with the implementation of StatMod
 								if (spell.Name.Contains("Harm Other") || spell.Name.Contains("Drain Health Other"))
                                 {
+                                    uint dmg;
                                     int newMonsterHealth;
                                     Creature monster = (Creature)target;
                                     if (spell.Name.Contains("Harm Other"))
-                                        newMonsterHealth = (int)(monster.Health.Current - CalculateDamage(spellId));
+                                        dmg = CalculateDamage(spellId);
                                     else
-                                        newMonsterHealth = (int)(monster.Health.Current - (monster.Health.Current * 0.25));
+                                        dmg = (uint)(monster.Health.Current * 0.25);
+                                    newMonsterHealth = (int)(monster.Health.Current - dmg);
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You drain {dmg} of health from {monster.Name}", ChatMessageType.Magic));
                                     if (newMonsterHealth <= 0)
                                     {
                                         monster.Health.Current = 0;
