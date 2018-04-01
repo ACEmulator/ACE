@@ -192,9 +192,10 @@ namespace ACE.Server.WorldObjects
             uint targetEffect = spell.TargetEffect;
 
 #if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell bitfield = 0x{spell.Bitfield.ToString("X")}", ChatMessageType.System));
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell power = {spell.Power}", ChatMessageType.System));
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} pell range = {spell.BaseRangeConstant} yards", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell bitfield is 0x{spell.Bitfield.ToString("X")}", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell power is {spell.Power}", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(
+                new GameMessageSystemChat($"{spell.Name} spell range is {spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)} yards", ChatMessageType.System));
 #endif
 
             if (guidTarget == null)
@@ -212,7 +213,7 @@ namespace ACE.Server.WorldObjects
                 {
                     float distanceTo = Location.DistanceTo(target.Location);
 
-                    if (distanceTo > spell.BaseRangeConstant)
+                    if (distanceTo > (spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)))
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
                             new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
