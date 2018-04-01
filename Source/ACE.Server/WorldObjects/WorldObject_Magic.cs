@@ -320,7 +320,8 @@ namespace ACE.Server.WorldObjects
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             if (spell.Bitfield == 0x00000013)
                             {
-                                if (spell.Name.Contains("Harm Other") || spell.Name.Contains("Drain Health Other"))
+                                // TODO: To be changed with the implementation of StatMod
+								if (spell.Name.Contains("Harm Other") || spell.Name.Contains("Drain Health Other"))
                                 {
                                     int newMonsterHealth;
                                     Creature monster = (Creature)target;
