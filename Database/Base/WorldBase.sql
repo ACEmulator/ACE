@@ -337,6 +337,7 @@ CREATE TABLE `weenie_properties_emote` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
   `probability` float NOT NULL DEFAULT '1' COMMENT 'Probability of this EmoteSet being chosen',
+  `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
   `weenie_Class_Id` int(10) DEFAULT NULL,
   `style` int(10) unsigned DEFAULT NULL,
   `substyle` int(10) unsigned DEFAULT NULL,
@@ -345,7 +346,10 @@ CREATE TABLE `weenie_properties_emote` (
   `min_Health` float DEFAULT NULL,
   `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_category_emoteset_uidx` (`object_Id`,`category`,`emote_Set_Id`),
   KEY `wcid_emote_idx` (`object_Id`),
+  KEY `category_idx` (`category`),
+  KEY `emoteset_idx` (`emote_Set_Id`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -360,8 +364,10 @@ DROP TABLE IF EXISTS `weenie_properties_emote_action`;
 CREATE TABLE `weenie_properties_emote_action` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
-  `emote_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Emote this Action belongs to',
+  `emote_Category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
+  `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
   `type` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteType',
+  `order` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Action Sequence Order',
   `delay` float NOT NULL DEFAULT '1' COMMENT 'Time to wait before EmoteAction starts execution',
   `extent` float NOT NULL DEFAULT '1' COMMENT '?',
   `motion` int(10) DEFAULT NULL,
@@ -400,10 +406,13 @@ CREATE TABLE `weenie_properties_emote_action` (
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_category_set_order_uidx` (`object_Id`,`emote_Category`,`emote_Set_Id`,`order`),
   KEY `wcid_emoteaction_idx` (`object_Id`),
-  KEY `emoteset_emoteaction_idx` (`emote_Id`),
-  CONSTRAINT `emote_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `weenie_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `wcid_emoteaction` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `emotecategory_idx` (`emote_Category`),
+  KEY `emotetype_idx` (`type`),
+  KEY `emoteorder_idx` (`order`),
+  CONSTRAINT `wcid_emoteaction` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `wcid_emoteset` FOREIGN KEY (`object_Id`, `emote_Category`, `emote_Set_Id`) REFERENCES `weenie_properties_emote` (`object_Id`, `category`, `emote_Set_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -673,4 +682,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-11 13:51:38
+-- Dump completed on 2018-03-31 21:48:17
