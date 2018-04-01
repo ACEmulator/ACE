@@ -1,3 +1,4 @@
+using System;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
@@ -12,16 +13,56 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public enum CastResult
+        // TODO: Used to pass the scale of a spell to CalcuateDamage; to be removed once the StatMod properties are added
+        private float spellScaling;
+
+        private enum SpellLevel
         {
-            SpellTargetInvalid,
-            SpellNotImplemented,
-            InvalidSpell,
-            BusyCasting,
-            SpellCastCompleted
+            One     = 1,
+            Two     = 50,
+            Three   = 100,
+            Four    = 150,
+            Five    = 200,
+            Six     = 250,
+            Seven   = 300,
+            Eight   = 350
         }
 
-        private float spellAttributes(uint spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture)
+        private SpellLevel CalculateSpellLevel(uint spellPower)
+        {
+            if (spellPower < 50)
+                return SpellLevel.One;
+            else if (spellPower < 100)
+                return SpellLevel.Two;
+            else if (spellPower < 150)
+                return SpellLevel.Three;
+            else if (spellPower < 200)
+                return SpellLevel.Four;
+            else if (spellPower < 250)
+                return SpellLevel.Five;
+            else if (spellPower < 300)
+                return SpellLevel.Six;
+            else if (spellPower < 350)
+                return SpellLevel.Seven;
+            else return SpellLevel.Eight;
+        }
+
+        /// <summary>
+        /// Method used for handling player targeted spell casts
+        /// </summary>
+        private uint CalculateDamage(uint spellId)
+        {
+            Random rng = new Random();
+            // TODO: Replace with damage values obtained from the StatMod properties, when added to the World DB
+            uint damage = (uint)rng.Next((int)(50 * spellScaling), (int)(100 * spellScaling));
+
+            return damage;
+        }
+
+        /// <summary>
+        /// Method used for the scaling, windup motion, and spell gestures for spell casts
+        /// </summary>
+        private float SpellAttributes(uint spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture)
         {
             float scale;
 
@@ -85,29 +126,30 @@ namespace ACE.Server.WorldObjects
             }
 
             ////Determine scale of the spell effects and windup animation
-            switch(spell.Power)
+            SpellLevel spellLevel = CalculateSpellLevel(spell.Power);
+            switch (spellLevel)
             {
-                case 1:
+                case SpellLevel.One:
                     scale = 0.1f;
                     windUpMotion = MotionCommand.MagicPowerUp01;
                     break;
-                case 50:
+                case SpellLevel.Two:
                     scale = 0.2f;
                     windUpMotion = MotionCommand.MagicPowerUp02;
                     break;
-                case 100:
+                case SpellLevel.Three:
                     scale = 0.4f;
                     windUpMotion = MotionCommand.MagicPowerUp03;
                     break;
-                case 150:
+                case SpellLevel.Four:
                     scale = 0.5f;
                     windUpMotion = MotionCommand.MagicPowerUp04;
                     break;
-                case 200:
+                case SpellLevel.Five:
                     scale = 0.6f;
                     windUpMotion = MotionCommand.MagicPowerUp05;
                     break;
-                case 250:
+                case SpellLevel.Six:
                     scale = 1.0f;
                     windUpMotion = MotionCommand.MagicPowerUp06;
                     break;
@@ -117,55 +159,79 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
+            spellScaling = scale;
             return scale;
         }
 
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
-        public CastResult CreatePlayerSpell(ObjectGuid guidTarget, uint spellId)
+        public void CreatePlayerSpell(ObjectGuid guidTarget, uint spellId)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject target = CurrentLandblock.GetObject(guidTarget);
 
-            if (player.BusyCasting == true)
+            if (player.BusyState == true)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                return CastResult.BusyCasting;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
+                return;
             }
             else
-                player.BusyCasting = true;
+                player.BusyState = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                player.BusyCasting = false;
-                return CastResult.InvalidSpell;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
+                player.BusyState = false;
+                return;
             }
 
             SpellBase spell = spellTable.Spells[spellId];
 
             uint targetEffect = spell.TargetEffect;
 
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell bitfield is 0x{spell.Bitfield.ToString("X")}", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell power is {spell.Power}", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(
+                new GameMessageSystemChat($"{spell.Name} spell range is {spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)} yards", ChatMessageType.System));
+#endif
+
             if (guidTarget == null)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                player.BusyCasting = false;
-                return CastResult.SpellTargetInvalid;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YourSpellTargetIsMissing));
+                player.BusyState = false;
+                return;
             }
 
             if (target == null)
                 target = player.GetWieldedItem(guidTarget);
+            else
+            {
+                if (guidTarget != Guid)
+                {
+                    float distanceTo = Location.DistanceTo(target.Location);
+
+                    if (distanceTo > (spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)))
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
+                            new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
+                        player.BusyState = false;
+                        return;
+                    }
+                }
+            }
 
             if (spell.School == MagicSchool.WarMagic || spell.School == MagicSchool.VoidMagic)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                player.BusyCasting = false;
-                return CastResult.SpellNotImplemented;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                    new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                player.BusyState = false;
+                return;
             }
 
-            float scale = spellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
             ActionChain spellChain = new ActionChain();
 
@@ -181,7 +247,8 @@ namespace ACE.Server.WorldObjects
             spellChain.AddAction(this, () =>
             {
                 var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
-                CurrentLandblock.EnqueueBroadcast(Location, new GameMessageCreatureMessage(SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable, formula), Name, Guid.Full, ChatMessageType.Magic));
+                CurrentLandblock.EnqueueBroadcast(Location, new GameMessageCreatureMessage(SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable,
+                    formula), Name, Guid.Full, ChatMessageType.Magic));
             });
 
             spellChain.AddAction(this, () =>
@@ -252,6 +319,29 @@ namespace ACE.Server.WorldObjects
                             break;
                         default:
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                            if (spell.Bitfield == 0x00000013)
+                            {
+                                // TODO: To be changed with the implementation of StatMod
+								if (spell.Name.Contains("Harm Other") || spell.Name.Contains("Drain Health Other"))
+                                {
+                                    uint dmg;
+                                    int newMonsterHealth;
+                                    Creature monster = (Creature)target;
+                                    if (spell.Name.Contains("Harm Other"))
+                                        dmg = CalculateDamage(spellId);
+                                    else
+                                        dmg = (uint)(monster.Health.Current * 0.25);
+                                    newMonsterHealth = (int)(monster.Health.Current - dmg);
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You drain {dmg} of health from {monster.Name}", ChatMessageType.Magic));
+                                    if (newMonsterHealth <= 0)
+                                    {
+                                        monster.Health.Current = 0;
+                                        monster.DoOnKill(player.Session);
+                                    }
+                                    else
+                                        monster.Health.Current = (uint)newMonsterHealth;
+                                }
+                            }
                             break;
                     }
                 }
@@ -269,98 +359,101 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                player.BusyCasting = false;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
+                player.BusyState = false;
             });
 
             spellChain.EnqueueChain();
 
-            return CastResult.SpellCastCompleted;
+            return;
         }
 
         /// <summary>
         /// Method used for handling player untargeted spell casts
         /// </summary>
-        public CastResult CreatePlayerSpell(uint spellId)
+        public void CreatePlayerSpell(uint spellId)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
-            if (player.BusyCasting == true)
+            if (player.BusyState == true)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                return CastResult.BusyCasting;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
+                return;
             }
             else
-                player.BusyCasting = true;
+                player.BusyState = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                player.BusyCasting = false;
-                return CastResult.InvalidSpell;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YourSpellTargetIsMissing));
+                player.BusyState = false;
+                return;
             }
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            float scale = spellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
-            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-            player.BusyCasting = false;
-            return CastResult.SpellNotImplemented;
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
+            player.BusyState = false;
+
+            return;
         }
 
         /// <summary>
         /// Method used for handling creature untargeted spell casts
         /// </summary>
-        public CastResult CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
+        public void CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
         {
             Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
 
-            if (creature.BusyCasting == true)
-                return CastResult.BusyCasting;
+            if (creature.BusyState == true)
+                return;
             else
-                creature.BusyCasting = true;
+                creature.BusyState = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                creature.BusyCasting = false;
-                return CastResult.InvalidSpell;
+                creature.BusyState = false;
+                return;
             }
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            float scale = spellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
-            creature.BusyCasting = false;
-            return CastResult.SpellNotImplemented;
+            creature.BusyState = false;
+            return;
         }
 
         /// <summary>
         /// Method used for handling creature untargeted spell casts
         /// </summary>
-        public CastResult CreateCreatureSpell(uint spellId)
+        public void CreateCreatureSpell(uint spellId)
         {
             Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
 
-            if (creature.BusyCasting == true)
-                return CastResult.BusyCasting;
+            if (creature.BusyState == true)
+                return;
             else
-                creature.BusyCasting = true;
+                creature.BusyState = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                creature.BusyCasting = false;
-                return CastResult.InvalidSpell;
+                creature.BusyState = false;
+                return;
             }
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            float scale = spellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
-            creature.BusyCasting = false;
-            return CastResult.SpellNotImplemented;
+            creature.BusyState = false;
+            return;
         }
     }
 }

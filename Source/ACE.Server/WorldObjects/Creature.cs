@@ -24,9 +24,9 @@ namespace ACE.Server.WorldObjects
 {
     public partial class Creature : Container
     {
-        private bool busyCasting;
+        private bool busyState;
 
-        public bool BusyCasting { get => busyCasting; set => busyCasting = value; }
+        public bool BusyState { get => busyState; set => busyState = value; }
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
