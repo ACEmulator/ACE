@@ -1,6 +1,6 @@
 USE `ace_world`;
 
-CREATE TABLE `spell` (
+CREATE TABLE IF NOT EXISTS `spell` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Spell',
   `spell_Id` int(10) unsigned NOT NULL COMMENT 'Unique Spell Id',
   `name` text NOT NULL,

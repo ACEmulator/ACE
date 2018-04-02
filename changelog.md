@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2018-04-02
+
+**ACE-World-16PY world db release v0.0.8+ required with this update**
+
+**You will need to update world database with scripts in the respective update folders**
+
+[Ripley]
+* Added Spell Table to World Database.
+
 ### 2018-03-25
 
 **ACE-World-16PY world db release v0.0.7+ required with this update**

@@ -9,7 +9,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 
 ***
 ## Disclaimer
-**This project is for educational and non-commerical purposes only, use of the game client is for interoperability with the emulated server.**
+**This project is for educational and non-commercial purposes only, use of the game client is for interoperability with the emulated server.**
 - Asheron's Call was a registered trademark of Turbine, Inc. and WB Games Inc which has since expired.
 - ACEmulator is not associated or affiliated in any way with Turbine, Inc. or WB Games Inc.
 ***
@@ -34,7 +34,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
 * Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release](https://github.com/ACEmulator/ACE-World-16PY/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE-World-16PY minimum required version - 0.0.7+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
+  - [ACE-World-16PY minimum required version - 0.0.8+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Open ACE.sln with Visual Studio and build the solution.
@@ -70,19 +70,19 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 #### 2. My PR failed because AppVeyor timed out - "Build execution time has reached the maximum allowed time for your plan (60 minutes)."
 * _Problem_
->When you submit a PR, we have automation in place that automatically kicks off a build in AppVeyor.  These builds sometimes time out.  The most common cause is because a Debug.Assert statement was hit that popped up a UI dialog on AppVeyor.  However, because it's just running a command line tool, there's no way to click the popup.  Even worse, there's now way for you to even see what it says.
+>When you submit a PR, we have automation in place that automatically kicks off a build in AppVeyor.  These builds sometimes time out.  The most common cause is because a Debug.Assert statement was hit that popped up a UI dialog on AppVeyor.  However, because it's just running a command line tool, there's no way to click the pop-up.  Even worse, there's no way for you to even see what it says.
 * _Solution_
-> 1) Right click your solution in Visual Studio, select "Rebuild Solution" and make sure there are no compliation errors.
+> 1) Right click your solution in Visual Studio, select "Rebuild Solution" and make sure there are no compilation errors.
 > 2) Installed with Visual Studio 2015 is "Developer Command Prompt for VS2015".  Open it up, and change to your "ACE\Source" directory.
-> 3) Run the following command  and you'll be able to see the popup triggering the build failure.  
+> 3) Run the following command and you'll be able to see the pop-up triggering the build failure.  
    `vstest.console /inIsolation "ACE.Tests\bin\x64\Debug\ACE.Tests.dll" /Platform:x64`
 
 #### 3. Startup projects are not set / working
 * _Problem_
-> When you first load the solution and try to "run" the server, you may get a popup that says "A project with Output Type of Class Library cannot be started directly."
+> When you first load the solution and try to "run" the server, you may get a pop-up that says "A project with Output Type of Class Library cannot be started directly."
 * _Solution_
 > 1) Right click the Solution in Visual Studio ("Solution 'ACE' (8 projects)"), and select "Set StartUp Projects".
-> 2) Click on the circle next to Single startup project and in the dropdown select: ACE.Server.
+> 2) Click on the circle next to Single startup project and in the drop-down select: ACE.Server.
 
 ## Other Resources
 * [ACEmulator Protocol documentation](https://acemulator.github.io/protocol/) (Recommended)
