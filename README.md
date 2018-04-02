@@ -66,7 +66,7 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 * _Problem_
 > When opening the solution, you get a "The imported project "{project path}\ACE\Source\packages\StyleCop.MSBuild.5.0.0\build\StyleCop.MSBuild.targets" was not found. Confirm that the path in the <Import> declaration is correct, and that the file exists on disk" error.
 * _Solution_
-> Right click "Solution 'ACE'" in the Solution Explorer and select "Restore Nuget Packages".  After it restores, right click "ACE (load failed)" and select "Reload Project."
+> Right click "Solution 'ACE'" in the Solution Explorer and select "Restore NuGet Packages".  After it restores, right click "ACE (load failed)" and select "Reload Project."
 
 #### 2. My PR failed because AppVeyor timed out - "Build execution time has reached the maximum allowed time for your plan (60 minutes)."
 * _Problem_
