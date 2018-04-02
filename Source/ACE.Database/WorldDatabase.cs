@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -153,6 +154,30 @@ namespace ACE.Database
             return GetCachedWeenie(GetWeenieClassId(weenieClassName));
         }
 
+        public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.Weenie
+                    .AsNoTracking()
+                    .Where(r => r.Type == weenieTypeId)
+                    .ToList();
+
+                var rand = new Random();
+
+                var weenies = new List<Weenie>();
+
+                for (int i = 0; i < count; i++)
+                {
+                    var index = rand.Next(0, results.Count - 1);
+
+                    weenies.Add(GetCachedWeenie(results[index].ClassId));
+                }
+
+                return weenies;
+            }
+        }
+
         /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
@@ -183,6 +208,7 @@ namespace ACE.Database
             return ret;
         }
 
+
         private readonly ConcurrentDictionary<ushort, List<LandblockInstances>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstances>>();
 
         /// <summary>
@@ -206,11 +232,11 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<string, PointsOfInterest> cachedAcePositions = new ConcurrentDictionary<string, PointsOfInterest>();
+        private readonly ConcurrentDictionary<string, PointsOfInterest> cachedPointsOfInterest = new ConcurrentDictionary<string, PointsOfInterest>();
 
         public PointsOfInterest GetCachedPointOfInterest(string name)
         {
-            if (cachedAcePositions.TryGetValue(name.ToLower(), out var value))
+            if (cachedPointsOfInterest.TryGetValue(name.ToLower(), out var value))
                 return value;
 
             using (var context = new WorldDbContext())
@@ -221,7 +247,7 @@ namespace ACE.Database
 
                 if (result != null)
                 {
-                    cachedAcePositions[name.ToLower()] = result;
+                    cachedPointsOfInterest[name.ToLower()] = result;
                     return result;
                 }
             }
@@ -280,10 +306,14 @@ namespace ACE.Database
                     .AsNoTracking()
                     .FirstOrDefault(r => r.Id == spellId);
 
-                spellCache.TryAdd(spellId, result);
-
-                return result;
+                if (result != null)
+                {
+                    spellCache[spellId] = result;
+                    return result;
+                }
             }
+
+            return null;
         }
     }
 }

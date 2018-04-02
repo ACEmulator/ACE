@@ -3,17 +3,12 @@ using System.Collections.Generic;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
-using ACE.Server.Managers;
-using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.Factories
 {
     public class LootGenerationFactory
     {
-        // This is throw away code to understand the world object creation process.
-
         public static void Spawn(WorldObject inventoryItem, Position position)
         {
             throw new System.NotImplementedException();
@@ -26,17 +21,19 @@ namespace ACE.Server.Factories
             LandblockManager.AddObject(inventoryItem);*/
         }
 
-        public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)
+        public static List<WorldObject> CreateRandomObjectsOfType(WeenieType type, int count)
         {
-            throw new System.NotImplementedException();/*
-            var weenieList = DatabaseManager.World.GetRandomWeeniesOfType(typeId, numItems);
-            List<WorldObject> items = new List<WorldObject>();
-            for (int i = 0; i < numItems; i++)
+            var weenies = DatabaseManager.World.GetRandomWeeniesOfType((int)type, count);
+
+            var worldObjects = new List<WorldObject>();
+
+            foreach (var weenie in weenies)
             {
-                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(weenieList[i].WeenieClassId);
-                items.Add(wo);
+                var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+                worldObjects.Add(wo);
             }
-            player.HandleAddNewWorldObjectsToInventory(items);*/
+
+            return worldObjects;
         }
     }
 }

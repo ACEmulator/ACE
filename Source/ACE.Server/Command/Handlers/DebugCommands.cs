@@ -733,45 +733,6 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(message);
         }
 
-
-        private static void AddWeeniesToInventory(Session session, HashSet<uint> weenieIds)
-        {
-            foreach (uint weenieId in weenieIds)
-            {
-                var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-
-                if (loot == null) // weenie doesn't exist
-                    continue;
-
-                session.Player.TryCreateInInventoryWithNetworking(loot);
-            }
-        }
-
-        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates testing items in your inventory.")]
-        public static void HandleWeapons(Session session, params string[] parameters)
-        {
-            HashSet<uint> weenieIds = new HashSet<uint> { 93, 127, 130, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
-
-            AddWeeniesToInventory(session, weenieIds);
-        }
-
-        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates sample items, foci and containers in your inventory.")]
-        public static void HandleInv(Session session, params string[] parameters)
-        {
-            HashSet<uint> weenieIds = new HashSet<uint> { 44, 45, 46, 136, 5893, 15268, 15269, 15270, 15271, 12748 };
-
-            AddWeeniesToInventory(session, weenieIds);
-        }
-
-        [CommandHandler("splits", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some stackable items in your inventory for testing.")]
-        public static void HandleSplits(Session session, params string[] parameters)
-        {
-            HashSet<uint> weenieIds = new HashSet<uint> { 300, 690, 20630, 20631, 31198, 37155 };
-
-            AddWeeniesToInventory(session, weenieIds);
-        }
-
-
         [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
         "Set Coin display debug only usage")]
         public static void HandleSetCoin(Session session, params string[] parameters)
@@ -788,36 +749,6 @@ namespace ACE.Server.Command.Handlers
             }
             session.Player.CoinValue = coins;
             session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.CoinValue, coins));
-        }
-
-        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an random object in your inventory.", "typeId (number) <num to create) defaults to 10 if omitted max 50")]
-        public static void HandleCIRandom(Session session, params string[] parameters)
-        {
-            uint typeId;
-            byte numItems = 10;
-            try
-            {
-                typeId = Convert.ToUInt32(parameters[0]);
-            }
-            catch (Exception)
-            {
-                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
-                return;
-            }
-            if (parameters.Length == 2)
-            {
-                try
-                {
-                    numItems = Convert.ToByte(parameters[1]);
-                }
-                catch (Exception)
-                {
-                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 0 - 50", ChatMessageType.Broadcast);
-                    return;
-                }
-            }
-            LootGenerationFactory.CreateRandomTestWorldObjects(session.Player, typeId, numItems);
         }
 
         /// <summary>
@@ -940,6 +871,105 @@ namespace ACE.Server.Command.Handlers
         {
             foreach(CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
                 session.Player.AddTitle((uint)title);
+        }
+
+
+        // ==================================
+        // Create Objects in Player Inventory
+        // ==================================
+
+        private static void AddWeeniesToInventory(Session session, HashSet<uint> weenieIds)
+        {
+            foreach (uint weenieId in weenieIds)
+            {
+                var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+
+                if (loot == null) // weenie doesn't exist
+                    continue;
+
+                session.Player.TryCreateInInventoryWithNetworking(loot);
+            }
+        }
+
+        [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates testing items in your inventory.")]
+        public static void HandleWeapons(Session session, params string[] parameters)
+        {
+            HashSet<uint> weenieIds = new HashSet<uint> { 93, 127, 130, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+
+            AddWeeniesToInventory(session, weenieIds);
+        }
+
+        [CommandHandler("inv", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates sample items, foci and containers in your inventory.")]
+        public static void HandleInv(Session session, params string[] parameters)
+        {
+            HashSet<uint> weenieIds = new HashSet<uint> { 44, 45, 46, 136, 5893, 15268, 15269, 15270, 15271, 12748 };
+
+            AddWeeniesToInventory(session, weenieIds);
+        }
+
+        [CommandHandler("splits", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates some stackable items in your inventory for testing.")]
+        public static void HandleSplits(Session session, params string[] parameters)
+        {
+            HashSet<uint> weenieIds = new HashSet<uint> { 300, 690, 20630, 20631, 31198, 37155 };
+
+            AddWeeniesToInventory(session, weenieIds);
+        }
+
+        [CommandHandler("food", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates some food items in your inventory for testing.")]
+        public static void HandleFood(Session session, params string[] parameters)
+        {
+            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260 };
+
+            AddWeeniesToInventory(session, weenieIds);
+        }
+
+        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted max 50")]
+        public static void HandleCIRandom(Session session, params string[] parameters)
+        {
+            string weenieTypeName = parameters[0];
+            bool isNumericType = uint.TryParse(weenieTypeName, out uint weenieTypeNumber);
+
+            if (!isNumericType)
+            {
+                try
+                {
+                    weenieTypeNumber = (uint) Enum.Parse(typeof(WeenieType), weenieTypeName);
+                }
+                catch
+                {
+                    ChatPacket.SendServerMessage(session, "Not a valid type name", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+
+            if (weenieTypeNumber == 0)
+            {
+                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
+                return;
+            }
+
+            byte numItems = 10;
+
+            if (parameters.Length == 2)
+            {
+                try
+                {
+                    numItems = Convert.ToByte(parameters[1]);
+
+                    if (numItems < 1) numItems = 1;
+                    if (numItems > 50) numItems = 50;
+                }
+                catch (Exception)
+                {
+                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 1 - 50", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+
+            var items = LootGenerationFactory.CreateRandomObjectsOfType((WeenieType)weenieTypeNumber, numItems);
+
+            foreach (var item in items)
+                session.Player.TryCreateInInventoryWithNetworking(item);
         }
     }
 }
