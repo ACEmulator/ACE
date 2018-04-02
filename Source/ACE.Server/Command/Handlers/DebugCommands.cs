@@ -18,21 +18,10 @@ using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Command.Handlers
 {
-    internal enum TestWeenieClassIds : uint
-    {
-        Pants        = 120,
-        Tunic        = 134,
-        TrainingWand = 12748,
-        ColoBackpack = 36561
-    }
-
     public static class DebugCommands
     {
         // echo "text to send back to yourself" [ChatMessageType]
-        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Send text back to yourself.",
-            "\"text to send back to yourself\" [ChatMessageType]\n" +
-            "ChatMessageType can be a uint or enum name")]
+        [CommandHandler("echo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Send text back to yourself.", "\"text to send back to yourself\" [ChatMessageType]\n" + "ChatMessageType can be a uint or enum name")]
         public static void HandleDebugEcho(Session session, params string[] parameters)
         {
             try
@@ -50,9 +39,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // echoflags [flagtype] [int]
-        [CommandHandler("echoflags", AccessLevel.Developer, CommandHandlerFlag.None, 2,
-            "Echo flags back to you",
-            "[type to test] [int]\n")]
+        [CommandHandler("echoflags", AccessLevel.Developer, CommandHandlerFlag.None, 2, "Echo flags back to you", "[type to test] [int]\n")]
         public static void HandleDebugEchoFlags(Session session, params string[] parameters)
         {
             try
@@ -168,8 +155,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gps
-        [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Display location.")]
+        [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Display location.")]
         public static void HandleDebugGPS(Session session, params string[] parameters)
         {
             var position = session.Player.Location;
@@ -177,10 +163,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // telexyz cell x y z qx qy qz qw
-        [CommandHandler("telexyz", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 8,
-            "Teleport to a location.",
-            "cell x y z qx qy qz qw\n" +
-            "all parameters must be specified and cell must be in decimal form")]
+        [CommandHandler("telexyz", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 8, "Teleport to a location.", "cell x y z qx qy qz qw\n" + "all parameters must be specified and cell must be in decimal form")]
         public static void HandleDebugTeleportXYZ(Session session, params string[] parameters)
         {
             if (!uint.TryParse(parameters[0], out var cell))
@@ -199,10 +182,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // grantxp ulong
-        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Give XP to yourself.",
-            "ulong\n" +
-            "@grantxp 191226310247 is max level 275")]
+        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give XP to yourself.", "ulong\n" + "@grantxp 191226310247 is max level 275")]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
@@ -218,8 +198,7 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
-        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
+        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
         public static void HandleContract(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0)) return;
@@ -242,32 +221,8 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
 
-        // grantxp ulong
-        [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "sets your current health to a specific value.",
-            "ushort")]
-        public static void HandleSetHealth(Session session, params string[] parameters)
-        {
-            if (parameters?.Length > 0)
-            {
-                if (ushort.TryParse(parameters[0], out var health))
-                {
-                    session.Player.Health.Current = health;
-                    var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
-                    var message = new GameMessageSystemChat($"Attempting to set health to {health}...", ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(updatePlayersHealth, message);
-                    return;
-                }
-            }
-            ChatPacket.SendServerMessage(session, "Usage: /sethealth 200 (max Max Health)", ChatMessageType.Broadcast);
-        }
-
         // playsound [Sound] (volumelevel)
-        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Plays a sound.",
-            "sound (float)\n" +
-            "Sound can be uint or enum name" +
-            "float is volume level")]
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Plays a sound.", "sound (float)\n" + "Sound can be uint or enum name" + "float is volume level")]
         public static void HandlePlaySound(Session session, params string[] parameters)
         {
             try
@@ -304,11 +259,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // effect [Effect] (scale)
-        [CommandHandler("effect", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Plays an effect.",
-            "effect (float)\n" +
-            "Effect can be uint or enum name" +
-            "float is scale level")]
+        [CommandHandler("effect", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Plays an effect.", "effect (float)\n" + "Effect can be uint or enum name" + "float is scale level")]
         public static void HandlePlayEffect(Session session, params string[] parameters)
         {
             try
@@ -341,8 +292,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Spews 1000 lines of text to you.")]
+        [CommandHandler("chatdump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spews 1000 lines of text to you.")]
         public static void ChatDump(Session session, params string[] parameters)
         {
             for (int i = 0; i < 1000; i++)
@@ -351,9 +301,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Sends a MovementEvent to you.",
-            "uint\n")]
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends a MovementEvent to you.", "uint\n")]
         public static void Animation(Session session, params string[] parameters)
         {
             uint animationId;
@@ -371,8 +319,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
-        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Movement testing command, to be removed soon")]
+        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Movement testing command, to be removed soon")]
         public static void Movement(Session session, params string[] parameters)
         {
             ushort forwardCommand = 24;
@@ -392,10 +339,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
-        [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-             "Used to test the MoveToObject message.   It will spawn a training wand in front of you and then move to that object.",
-            "moveto\n" +
-            "optional parameter distance if omitted 10f")]
+        [CommandHandler("MoveTo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Used to test the MoveToObject message.   It will spawn a training wand in front of you and then move to that object.", "moveto\n" + "optional parameter distance if omitted 10f")]
         public static void MoveTo(Session session, params string[] parameters)
         {
             var distance = 10.0f;
@@ -406,48 +350,6 @@ namespace ACE.Server.Command.Handlers
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
 
             session.Player.HandleActionPutItemInContainer(loot.Guid, session.Player.Guid);
-        }
-
-        // This function
-        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
-             "Sets the specified vital to a specified value",
-            "Usage: @setvital <vital> <value>\n" +
-            "<vital> is one of the following strings:\n" +
-            "    health, hp\n" +
-            "    stamina, stam, sp\n" +
-            "    mana, mp\n" +
-            "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
-        public static void SetVital(Session session, params string[] parameters)
-        {
-            string paramVital = parameters[0].ToLower();
-            string paramValue = parameters[1];
-
-            bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
-
-            if (!int.TryParse(paramValue, out var value))
-            {
-                ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // Parse args...
-            CreatureVital vital;
-            if (paramVital == "health" || paramVital == "hp")
-                vital = session.Player.Health;
-            else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
-                vital = session.Player.Stamina;
-            else if (paramVital == "mana" || paramVital == "mp")
-                vital = session.Player.Mana;
-            else
-            {
-                ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
-                return;
-            }
-
-            if (!relValue)
-                session.Player.UpdateVital(vital, (uint)value);
-            else
-                session.Player.DeltaVital(vital, value);
         }
 
         /// <summary>
@@ -464,8 +366,7 @@ namespace ACE.Server.Command.Handlers
         /// Returns the Player's GUID
         /// </summary>
         /// <remarks>Added a quick way to access the player GUID.</remarks>
-        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Shows you your GUIDs.")]
+        [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows you your GUIDs.")]
         public static void HandleWhoAmI(Session session, params string[] parameters)
         {
             ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
@@ -473,8 +374,7 @@ namespace ACE.Server.Command.Handlers
 
         // Kill a player - equivalent to legal virtual murder, by admin
         // TODO: Migrate this code into "smite" Admin command
-        [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "See @smite")]
+        [CommandHandler("kill", AccessLevel.Admin, CommandHandlerFlag.None, 1, "See @smite")]
         public static void HandleSendKill(Session session, params string[] parameters)
         {
             // lame checks on first parameter
@@ -578,10 +478,7 @@ namespace ACE.Server.Command.Handlers
         /// Debug command to save the player's current location as sepecific position type.
         /// </summary>
         /// <param name="parameters">A single uint value within the range of 1 through 27</param>
-        [CommandHandler("setposition", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Saves the supplied character position type to the database.",
-            "uint 1-27\n" +
-            "@setposition 1")]
+        [CommandHandler("setposition", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Saves the supplied character position type to the database.", "uint 1-27\n" + "@setposition 1")]
         public static void HandleSetPosition(Session session, params string[] parameters)
         {
             if (parameters?.Length == 1)
@@ -613,10 +510,7 @@ namespace ACE.Server.Command.Handlers
         /// Debug command to teleport a player to a saved position, if the position type exists within the database.
         /// </summary>
         /// <param name="parameters">A single uint value within the range of 1 through 27</param>
-        [CommandHandler("teletype", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Teleport to a saved character position.",
-            "uint 0-22\n" +
-            "@teletype 1")]
+        [CommandHandler("teletype", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleport to a saved character position.", "uint 0-22\n" + "@teletype 1")]
         public static void HandleTeleType(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
@@ -640,9 +534,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to print out all of the saved character positions.
         /// </summary>
-        [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Displays all available saved character positions from the database.",
-            "@listpositions")]
+        [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.", "@listpositions")]
         public static void HandleListPositions(Session session, params string[] parameters)
         {
             // Build a string message containing all available character positions and send as a System Chat message
@@ -662,8 +554,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to test the ObjDescEvent message.
         /// </summary>
-        [CommandHandler("equiptest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Simulates equipping a new item to your character, replacing all other items.")]
+        [CommandHandler("equiptest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Simulates equipping a new item to your character, replacing all other items.")]
         public static void EquipTest(Session session, params string[] parameters)
         {
             if (!(parameters?.Length > 0))
@@ -710,9 +601,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to print out all of the active players connected too the server.
         /// </summary>
-        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0,
-            "Displays all of the active players connected too the server.",
-            "")]
+        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Displays all of the active players connected too the server.", "")]
         public static void HandleListPlayers(Session session, params string[] parameters)
         {
             uint playerCounter = 0;
@@ -733,8 +622,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(message);
         }
 
-        [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-        "Set Coin display debug only usage")]
+        [CommandHandler("setcoin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Set Coin display debug only usage")]
         public static void HandleSetCoin(Session session, params string[] parameters)
         {
             int coins;
@@ -761,9 +649,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // addspell <spell>
-        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Adds the specified spell to your own spellbook.",
-            "<spellid>")]
+        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
         public static void HandleAddSpell(Session session, params string[] parameters)
         {
             AdminCommands.HandleAdd(session, parameters);
@@ -800,21 +686,9 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to set player vitals to 1
-        /// </summary>
-        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void HarmSelf(Session session, params string[] parameters)
-        {
-            session.Player.UpdateVital(session.Player.Health, 1);
-            session.Player.UpdateVital(session.Player.Stamina, 1);
-            session.Player.UpdateVital(session.Player.Mana, 1);
-        }
-
-        /// <summary>
         /// Force PhysicsState change that occurs upon login complete.
         /// </summary
-        [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Fake Login Complete response")]
+        [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Fake Login Complete response")]
         public static void HandleFakeLogin(Session session, params string[] parameters)
         {
             session.Player.InWorld = true;
@@ -827,8 +701,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// List all clothing bases which are compatible with setup
         /// </summary
-        [CommandHandler("listcb", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke,
-            "List Clothing Tables available")]
+        [CommandHandler("listcb", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, "List Clothing Tables available")]
         public static void HandleShowCompatibleClothingBases(Session session, params string[] parameters)
         {
             uint.TryParse(parameters[0], out var setupId);
@@ -854,8 +727,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Add a specific title to yourself
         /// </summary
-        [CommandHandler("addtitle", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Add title to yourself", "[titleid]")]
+        [CommandHandler("addtitle", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Add title to yourself", "[titleid]")]
         public static void HandleAddTitle(Session session, params string[] parameters)
         {
             if (uint.TryParse(parameters[0], out var titleId))
@@ -865,12 +737,87 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Add all titles to yourself
         /// </summary
-        [CommandHandler("addalltitles", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld,
-            "Add all titles to yourself")]
+        [CommandHandler("addalltitles", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Add all titles to yourself")]
         public static void HandleAddAllTitles(Session session, params string[] parameters)
         {
             foreach(CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
                 session.Player.AddTitle((uint)title);
+        }
+
+
+        // ==================================
+        // Adjust Vitals
+        // ==================================
+
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+            "Sets the specified vital to a specified value",
+            "Usage: @setvital <vital> <value>\n" +
+            "<vital> is one of the following strings:\n" +
+            "    health, hp\n" +
+            "    stamina, stam, sp\n" +
+            "    mana, mp\n" +
+            "<value> is an integral value [0-9]+, or a relative value [-+][0-9]+")]
+        public static void SetVital(Session session, params string[] parameters)
+        {
+            string paramVital = parameters[0].ToLower();
+            string paramValue = parameters[1];
+
+            bool relValue = paramValue[0] == '+' || paramValue[0] == '-';
+
+            if (!int.TryParse(paramValue, out var value))
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid set value", ChatMessageType.Broadcast);
+                return;
+            }
+
+            // Parse args...
+            CreatureVital vital;
+
+            if (paramVital == "health" || paramVital == "hp")
+                vital = session.Player.Health;
+            else if (paramVital == "stamina" || paramVital == "stam" || paramVital == "sp")
+                vital = session.Player.Stamina;
+            else if (paramVital == "mana" || paramVital == "mp")
+                vital = session.Player.Mana;
+            else
+            {
+                ChatPacket.SendServerMessage(session, "setvital Error: Invalid vital", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (!relValue)
+                session.Player.UpdateVital(vital, (uint)value);
+            else
+                session.Player.DeltaVital(vital, value);
+        }
+
+        [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "sets your current health to a specific value.", "ushort")]
+        public static void HandleSetHealth(Session session, params string[] parameters)
+        {
+            if (parameters?.Length > 0)
+            {
+                if (ushort.TryParse(parameters[0], out var health))
+                {
+                    session.Player.Health.Current = health;
+                    var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
+                    var message = new GameMessageSystemChat($"Attempting to set health to {health}...", ChatMessageType.Broadcast);
+                    session.Network.EnqueueSend(updatePlayersHealth, message);
+                    return;
+                }
+            }
+
+            ChatPacket.SendServerMessage(session, "Usage: /sethealth 200 (max Max Health)", ChatMessageType.Broadcast);
+        }
+
+        /// <summary>
+        /// Debug command to set player vitals to 1
+        /// </summary>
+        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HarmSelf(Session session, params string[] parameters)
+        {
+            session.Player.UpdateVital(session.Player.Health, 1);
+            session.Player.UpdateVital(session.Player.Stamina, 1);
+            session.Player.UpdateVital(session.Player.Mana, 1);
         }
 
 
