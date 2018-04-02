@@ -648,46 +648,9 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameEventStartBarber(session));
         }
 
-        // addspell <spell>
-        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
-        public static void HandleAddSpell(Session session, params string[] parameters)
-        {
-            AdminCommands.HandleAdd(session, parameters);
-        }
-
-        /// <summary>
-        /// Debug console command to test the GetSpellFormula function.
-        /// </summary>
-        [CommandHandler("getspellformula", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
-        public static void GetSpellFormula(Session session, params string[] parameters)
-        {
-            if (parameters?.Length != 2)
-            {
-                Console.WriteLine("getspellformula <accountname> <spellid>");
-                return;
-            }
-
-            if (!uint.TryParse(parameters[1], out var spellid))
-            {
-                Console.WriteLine("getspellformula <accountname> <spellid>");
-                return;
-            }
-
-            DatLoader.FileTypes.SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
-            DatLoader.FileTypes.SpellTable spellTable = DatManager.PortalDat.SpellTable;
-            string spellName = spellTable.Spells[spellid].Name;
-            var formula = DatLoader.FileTypes.SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
-            Console.WriteLine("Formula for " + spellName);
-            for (int i = 0; i < formula.Count; i++)
-            {
-                Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
-            }
-            Console.WriteLine();
-        }
-
         /// <summary>
         /// Force PhysicsState change that occurs upon login complete.
-        /// </summary
+        /// </summary>
         [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Fake Login Complete response")]
         public static void HandleFakeLogin(Session session, params string[] parameters)
         {
@@ -700,7 +663,7 @@ namespace ACE.Server.Command.Handlers
 
         /// <summary>
         /// List all clothing bases which are compatible with setup
-        /// </summary
+        /// </summary>
         [CommandHandler("listcb", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, "List Clothing Tables available")]
         public static void HandleShowCompatibleClothingBases(Session session, params string[] parameters)
         {
@@ -724,9 +687,14 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine($"{string.Join("\n", compatibleCBs.ToArray())}");
         }
 
+
+        // ==================================
+        // Titles
+        // ==================================
+
         /// <summary>
         /// Add a specific title to yourself
-        /// </summary
+        /// </summary>
         [CommandHandler("addtitle", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Add title to yourself", "[titleid]")]
         public static void HandleAddTitle(Session session, params string[] parameters)
         {
@@ -736,7 +704,7 @@ namespace ACE.Server.Command.Handlers
 
         /// <summary>
         /// Add all titles to yourself
-        /// </summary
+        /// </summary>
         [CommandHandler("addalltitles", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Add all titles to yourself")]
         public static void HandleAddAllTitles(Session session, params string[] parameters)
         {
@@ -746,7 +714,7 @@ namespace ACE.Server.Command.Handlers
 
 
         // ==================================
-        // Adjust Vitals
+        // Vitals
         // ==================================
 
         [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
@@ -917,6 +885,49 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var item in items)
                 session.Player.TryCreateInInventoryWithNetworking(item);
+        }
+
+
+        // ==================================
+        // Spells
+        // ==================================
+
+        // addspell <spell>
+        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
+        public static void HandleAddSpell(Session session, params string[] parameters)
+        {
+            AdminCommands.HandleAdd(session, parameters);
+        }
+
+        /// <summary>
+        /// Debug console command to test the GetSpellFormula function.
+        /// </summary>
+        [CommandHandler("getspellformula", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
+        public static void GetSpellFormula(Session session, params string[] parameters)
+        {
+            if (parameters?.Length != 2)
+            {
+                Console.WriteLine("getspellformula <accountname> <spellid>");
+                return;
+            }
+
+            if (!uint.TryParse(parameters[1], out var spellid))
+            {
+                Console.WriteLine("getspellformula <accountname> <spellid>");
+                return;
+            }
+
+            SpellTable spellTable = DatManager.PortalDat.SpellTable;
+            SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
+
+            Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name);
+
+            var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
+
+            for (int i = 0; i < formula.Count; i++)
+                Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
+
+            Console.WriteLine();
         }
     }
 }
