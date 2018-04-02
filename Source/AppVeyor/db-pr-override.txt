@@ -1,0 +1,1 @@
+https://ci.appveyor.com/api/buildjobs/1liqyg4obw35sk91/artifacts/ACE-World-16PY-db-v0.0.8-hjiciktx.sql.zip
