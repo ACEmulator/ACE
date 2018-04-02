@@ -265,5 +265,25 @@ namespace ACE.Database
                 return result;
             }
         }
+
+
+        private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
+
+        public Spell GetCachedSpell(uint spellId)
+        {
+            if (spellCache.TryGetValue(spellId, out var spell))
+                return spell;
+
+            using (var context = new WorldDbContext())
+            {
+                var result = context.Spell
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.Id == spellId);
+
+                spellCache.TryAdd(spellId, result);
+
+                return result;
+            }
+        }
     }
 }
