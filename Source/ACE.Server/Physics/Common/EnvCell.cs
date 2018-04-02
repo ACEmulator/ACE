@@ -282,7 +282,7 @@ namespace ACE.Server.Physics.Common
                 }
             }
             if (checkOutside)
-                LandCell.add_all_outside_cells(Pos, numSphere, spheres, cellArray);
+                LandCell.add_all_outside_cells(position, numSphere, spheres, cellArray);
         }
 
         public static ObjCell get_visible(uint cellID)

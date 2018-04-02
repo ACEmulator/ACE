@@ -200,8 +200,8 @@ namespace ACE.Server.Physics.BSP
                     if (RootNode.sphere_intersects_poly(localSphere_, movement, ref hitPoly_, ref contactPoint))
                         return slide_sphere(transition, hitPoly_.Plane.Normal);
 
-                    if (hitPoly_ != null) return SetPolyHit(path, hitPoly_);
-                    if (hitPoly  != null) return SetPolyHit(path, hitPoly);
+                    if (hitPoly_ != null) return NegPolyHit(path, hitPoly_, false);
+                    if (hitPoly  != null) return NegPolyHit(path, hitPoly,  true);
                 }
                 return TransitionState.OK;
             }
@@ -231,10 +231,10 @@ namespace ACE.Server.Physics.BSP
             return TransitionState.OK;
         }
 
-        public TransitionState SetPolyHit(SpherePath path, Polygon hitPoly)
+        public TransitionState NegPolyHit(SpherePath path, Polygon hitPoly, bool stepUp)
         {
             var collisionNormal = path.LocalSpacePos.LocalToGlobalVec(hitPoly.Plane.Normal);
-            path.SetNegPolyHit(false, collisionNormal);
+            path.SetNegPolyHit(stepUp, collisionNormal);
 
             return TransitionState.OK;
         }
@@ -328,12 +328,12 @@ namespace ACE.Server.Physics.BSP
 
             var step_down_amount = -(path.StepDownAmt * path.WalkInterp);
 
-            var trans = path.LocalSpaceZ * step_down_amount * (1.0f / scale);
+            var movement = path.LocalSpaceZ * step_down_amount * (1.0f / scale);
             var validPos = new Sphere(checkPos);
             var changed = false;
             Polygon polyHit = null;
 
-            RootNode.find_walkable(path, validPos, ref polyHit, trans, path.LocalSpaceZ, ref changed);
+            RootNode.find_walkable(path, validPos, ref polyHit, movement, path.LocalSpaceZ, ref changed);
 
             if (changed)
             {
@@ -353,7 +353,7 @@ namespace ACE.Server.Physics.BSP
 
                 path.SetWalkable(validPos, polyHit, path.LocalSpaceZ, path.LocalSpacePos, scale);
 
-                return TransitionState.Collided;
+                return TransitionState.Adjusted;
             }
 
             return TransitionState.OK;

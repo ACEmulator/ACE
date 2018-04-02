@@ -148,6 +148,13 @@ namespace ACE.Server.Physics.Animation
             return heading;
         }
 
+        public static Quaternion get_rotate_offset(Vector3 offset)
+        {
+            var rotate = Quaternion.CreateFromYawPitchRoll(offset.X, offset.Y, offset.Z);
+            rotate = Quaternion.Normalize(rotate);
+            return rotate;
+        }
+
         public void rotate_around_axis_to_vector(int axis, Vector3 dir)
         {
             // will implement when actually needed...

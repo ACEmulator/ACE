@@ -427,7 +427,8 @@ namespace ACE.Server.Physics
 
         public bool walkable_hits_sphere(SpherePath path, Sphere sphere, Vector3 up)
         {
-            if (Vector3.Dot(up, Plane.Normal) <= path.WalkableAllowance) return false;
+            var dp = Vector3.Dot(up, Plane.Normal);
+            if (dp <= path.WalkableAllowance) return false;
             Vector3 contactPoint = Vector3.Zero;
             var hit = polygon_hits_sphere_precise(sphere, ref contactPoint);
             if (hit != polygon_hits_sphere(sphere, ref contactPoint))

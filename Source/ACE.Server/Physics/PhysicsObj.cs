@@ -1337,7 +1337,7 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint == null) return;
             var obj = ObjMaint.GetObjectA(objectID);
-            if (obj != null) return;
+            if (obj == null) return;
             var parent = obj.Parent != null ? obj.Parent : obj;
 
             TurnToObject_Internal(objectID, parent.ID, movementParams);
@@ -1401,20 +1401,20 @@ namespace ACE.Server.Physics
 
             if (PartArray != null && PartArray.GetNumSphere() != 0)
             {
-                if (offset.Frame.Origin.Equals(Position.Frame.Origin))  // epsilon compare?
+                if (newPos.Frame.Equals(Position.Frame))
                 {
                     CachedVelocity = Vector3.Zero;
-                    set_frame(offset.Frame);
+                    set_frame(newPos.Frame);
                 }
                 else
                 {
                     if (State.HasFlag(PhysicsState.AlignPath))
                     {
-                        var diff = offset.Frame.Origin - Position.Frame.Origin;
-                        offset.Frame.set_vector_heading(diff.Normalize());
+                        var diff = newPos.Frame.Origin - Position.Frame.Origin;
+                        newPos.Frame.set_vector_heading(diff.Normalize());
                     }
                     else if (State.HasFlag(PhysicsState.Sledding) && Velocity != Vector3.Zero)
-                        offset.Frame.set_vector_heading(Velocity.Normalize());
+                        newPos.Frame.set_vector_heading(Velocity.Normalize());
                 }
 
                 var transit = transition(Position, newPos, false);
@@ -1424,14 +1424,14 @@ namespace ACE.Server.Physics
                     SetPositionInternal(transit);
                 }
                 else
-                    _UpdateObjectInternal(ref offset);
+                    _UpdateObjectInternal(ref newPos);
             }
             else
             {
                 if (MovementManager == null && TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     TransientState &= ~TransientStateFlags.Active;
 
-                _UpdateObjectInternal(ref offset);
+                _UpdateObjectInternal(ref newPos);
             }
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
@@ -2787,6 +2787,15 @@ namespace ACE.Server.Physics
             return false;
         }
 
+        public void rotate(Vector3 offset)
+        {
+            var offsetFrame = new AFrame();
+            offsetFrame.Orientation = AFrame.get_rotate_offset(offset);
+            //set_frame(newFrame);
+            Position.Frame.GRotate(offset);
+            PartArray.SetFrame(offsetFrame);
+        }
+
         /// <summary>
         /// Sets the active transient state flags
         /// </summary>
@@ -2960,7 +2969,7 @@ namespace ACE.Server.Physics
         public void set_frame(AFrame frame)
         {
             // set position?
-            Position.Frame.set_position(frame);
+            Position.Frame.Origin = frame.Origin;
 
             if (!frame.IsValid() && frame.IsValidExceptForHeading())
                 frame = null;
