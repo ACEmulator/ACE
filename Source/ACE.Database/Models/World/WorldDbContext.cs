@@ -9,6 +9,7 @@ namespace ACE.Database.Models.World
         public virtual DbSet<AceRecipe> AceRecipe { get; set; }
         public virtual DbSet<LandblockInstances> LandblockInstances { get; set; }
         public virtual DbSet<PointsOfInterest> PointsOfInterest { get; set; }
+        public virtual DbSet<Spell> Spell { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public virtual DbSet<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -175,6 +176,315 @@ namespace ACE.Database.Models.World
                     .WithMany(p => p.PointsOfInterest)
                     .HasForeignKey(d => d.WeenieClassId)
                     .HasConstraintName("wcid_poi");
+            });
+
+            modelBuilder.Entity<Spell>(entity =>
+            {
+                entity.ToTable("spell");
+
+                entity.HasIndex(e => e.MetaSpellId)
+                    .HasName("metaspell_id_uidx")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.SpellId)
+                    .HasName("spell_id_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Align)
+                    .HasColumnName("align")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.BaseIntensity)
+                    .HasColumnName("base_Intensity")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Bitfield)
+                    .HasColumnName("bitfield")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Boost)
+                    .HasColumnName("boost")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.BoostVariance)
+                    .HasColumnName("boost_Variance")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.CasterEffect)
+                    .HasColumnName("caster_Effect")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Category)
+                    .HasColumnName("category")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ComponentLoss).HasColumnName("component_Loss");
+
+                entity.Property(e => e.CreateOffsetOriginX).HasColumnName("create_Offset_Origin_X");
+
+                entity.Property(e => e.CreateOffsetOriginY).HasColumnName("create_Offset_Origin_Y");
+
+                entity.Property(e => e.CreateOffsetOriginZ).HasColumnName("create_Offset_Origin_Z");
+
+                entity.Property(e => e.CritFreq).HasColumnName("crit_Freq");
+
+                entity.Property(e => e.CritMultiplier).HasColumnName("crit_Multiplier");
+
+                entity.Property(e => e.DamageRatio).HasColumnName("damage_Ratio");
+
+                entity.Property(e => e.DamageType)
+                    .HasColumnName("damage_Type")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.DefaultLaunchAngle).HasColumnName("default_Launch_Angle");
+
+                entity.Property(e => e.DegradeLimit).HasColumnName("degrade_Limit");
+
+                entity.Property(e => e.DegradeModifier).HasColumnName("degrade_Modifier");
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasColumnName("description")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.Destination)
+                    .HasColumnName("destination")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.DimsOriginX).HasColumnName("dims_Origin_X");
+
+                entity.Property(e => e.DimsOriginY).HasColumnName("dims_Origin_Y");
+
+                entity.Property(e => e.DimsOriginZ).HasColumnName("dims_Origin_Z");
+
+                entity.Property(e => e.DispelSchool)
+                    .HasColumnName("dispel_School")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.DisplayOrder)
+                    .HasColumnName("display_Order")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DrainPercentage).HasColumnName("drain_Percentage");
+
+                entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.EType).HasColumnName("e_Type");
+
+                entity.Property(e => e.EconomyMod).HasColumnName("economy_Mod");
+
+                entity.Property(e => e.ElementalModifier).HasColumnName("elemental_Modifier");
+
+                entity.Property(e => e.FizzleEffect)
+                    .HasColumnName("fizzle_Effect")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FormulaVersion)
+                    .HasColumnName("formula_Version")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.IconId)
+                    .HasColumnName("icon_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.IgnoreMagicResist)
+                    .HasColumnName("ignore_Magic_Resist")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.ImbuedEffect).HasColumnName("imbued_Effect");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Link)
+                    .HasColumnName("link")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.LossPercent).HasColumnName("loss_Percent");
+
+                entity.Property(e => e.Mana)
+                    .HasColumnName("mana")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ManaMod)
+                    .HasColumnName("mana_Mod")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MaxBoostAllowed)
+                    .HasColumnName("max_Boost_Allowed")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MaxPower)
+                    .HasColumnName("max_Power")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MetaSpellId)
+                    .HasColumnName("meta_Spell_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MetaSpellType)
+                    .HasColumnName("meta_Spell_Type")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MinPower)
+                    .HasColumnName("min_Power")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.NonComponentTargetType)
+                    .HasColumnName("non_Component_Target_Type")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.NonTracking)
+                    .HasColumnName("non_Tracking")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.NumProjectiles)
+                    .HasColumnName("num_Projectiles")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.NumProjectilesVariance)
+                    .HasColumnName("num_Projectiles_Variance")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Number)
+                    .HasColumnName("number")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.NumberVariance).HasColumnName("number_Variance");
+
+                entity.Property(e => e.PaddingOriginX).HasColumnName("padding_Origin_X");
+
+                entity.Property(e => e.PaddingOriginY).HasColumnName("padding_Origin_Y");
+
+                entity.Property(e => e.PaddingOriginZ).HasColumnName("padding_Origin_Z");
+
+                entity.Property(e => e.PeturbationOriginX).HasColumnName("peturbation_Origin_X");
+
+                entity.Property(e => e.PeturbationOriginY).HasColumnName("peturbation_Origin_Y");
+
+                entity.Property(e => e.PeturbationOriginZ).HasColumnName("peturbation_Origin_Z");
+
+                entity.Property(e => e.PortalLifetime).HasColumnName("portal_Lifetime");
+
+                entity.Property(e => e.PositionAnglesW).HasColumnName("position_Angles_W");
+
+                entity.Property(e => e.PositionAnglesX).HasColumnName("position_Angles_X");
+
+                entity.Property(e => e.PositionAnglesY).HasColumnName("position_Angles_Y");
+
+                entity.Property(e => e.PositionAnglesZ).HasColumnName("position_Angles_Z");
+
+                entity.Property(e => e.PositionObjCellId).HasColumnName("position_Obj_Cell_ID");
+
+                entity.Property(e => e.PositionOriginX).HasColumnName("position_Origin_X");
+
+                entity.Property(e => e.PositionOriginY).HasColumnName("position_Origin_Y");
+
+                entity.Property(e => e.PositionOriginZ).HasColumnName("position_Origin_Z");
+
+                entity.Property(e => e.Power)
+                    .HasColumnName("power")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.PowerVariance).HasColumnName("power_Variance");
+
+                entity.Property(e => e.Proportion).HasColumnName("proportion");
+
+                entity.Property(e => e.RangeConstant).HasColumnName("range_Constant");
+
+                entity.Property(e => e.RangeMod).HasColumnName("range_Mod");
+
+                entity.Property(e => e.RecoveryAmount).HasColumnName("recovery_Amount");
+
+                entity.Property(e => e.RecoveryInterval).HasColumnName("recovery_Interval");
+
+                entity.Property(e => e.School)
+                    .HasColumnName("school")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SlayerCreatureType)
+                    .HasColumnName("slayer_Creature_Type")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.SlayerDamageBonus).HasColumnName("slayer_Damage_Bonus");
+
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.SourceLoss)
+                    .HasColumnName("source_Loss")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.SpellFormulaComp1ComponentId)
+                    .HasColumnName("spell_Formula_Comp_1_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp2ComponentId)
+                    .HasColumnName("spell_Formula_Comp_2_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp3ComponentId)
+                    .HasColumnName("spell_Formula_Comp_3_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp4ComponentId)
+                    .HasColumnName("spell_Formula_Comp_4_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp5ComponentId)
+                    .HasColumnName("spell_Formula_Comp_5_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp6ComponentId)
+                    .HasColumnName("spell_Formula_Comp_6_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp7ComponentId)
+                    .HasColumnName("spell_Formula_Comp_7_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellFormulaComp8ComponentId)
+                    .HasColumnName("spell_Formula_Comp_8_Component_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellId).HasColumnName("spell_Id");
+
+                entity.Property(e => e.SpreadAngle).HasColumnName("spread_Angle");
+
+                entity.Property(e => e.StatModKey).HasColumnName("stat_Mod_Key");
+
+                entity.Property(e => e.StatModType).HasColumnName("stat_Mod_Type");
+
+                entity.Property(e => e.StatModVal).HasColumnName("stat_Mod_Val");
+
+                entity.Property(e => e.TargetEffect)
+                    .HasColumnName("target_Effect")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TransferBitfield).HasColumnName("transfer_Bitfield");
+
+                entity.Property(e => e.TransferCap)
+                    .HasColumnName("transfer_Cap")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Variance)
+                    .HasColumnName("variance")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.VerticalAngle).HasColumnName("vertical_Angle");
+
+                entity.Property(e => e.Wcid).HasColumnName("wcid");
             });
 
             modelBuilder.Entity<Weenie>(entity =>
