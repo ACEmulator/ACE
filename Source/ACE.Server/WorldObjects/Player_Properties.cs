@@ -6,6 +6,10 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        // ========================================
+        // ========= Admin Tier Properties ========
+        // ========================================
+
         public bool IsAdmin
         {
             get => GetProperty(PropertyBool.IsAdmin) ?? false;
@@ -42,11 +46,33 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsAdvocate); else SetProperty(PropertyBool.IsAdvocate, value); }
         }
 
+
+        // ========================================
+        // ========== Account Properties ==========
+        // ========================================
+
+        public int? TotalLogins
+        {
+            get => GetProperty(PropertyInt.TotalLogins);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalLogins); else SetProperty(PropertyInt.TotalLogins, value.Value); }
+        }
+
         public bool Account15Days
         {
             get => GetProperty(PropertyBool.Account15Days) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
         }
+
+        public long? DeleteTime
+        {
+            get => GetProperty(PropertyInt64.DeleteTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.DeleteTime); else SetProperty(PropertyInt64.DeleteTime, value.Value); }
+        }
+
+
+        // ========================================
+        // ========= Advocate Properties ==========
+        // ========================================
 
         public bool? AdvocateQuest
         {
@@ -66,6 +92,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AdvocateLevel); else SetProperty(PropertyInt.AdvocateLevel, value.Value); }
         }
 
+
+        // ========================================
+        // ========= Channel Properties ===========
+        // ========================================
+
         public Channel? ChannelsActive
         {
             get => (Channel?)GetProperty(PropertyInt.ChannelsActive);
@@ -78,20 +109,74 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ChannelsAllowed); else SetProperty(PropertyInt.ChannelsAllowed, (int)value.Value); }
         }
 
-        /*private int coinValue;
-        public override int? CoinValue
+
+        // ========================================
+        // ========== Client Properties ===========
+        // ========================================
+
+        public int? CharacterOptions1Mapping
         {
-            get => coinValue;
-            set
-            {
-                if (value != coinValue)
-                {
-                    base.CoinValue = value;
-                    coinValue = (int)value;
-                    if (FirstEnterWorldDone) // We want to get rid of this. Updating a property shouldn't fire a network event
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(Sequences, PropertyInt.CoinValue, coinValue));
-                }
-            }
-        }*/
+            get => GetProperty(PropertyInt.CharacterOptions1);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CharacterOptions1); else SetProperty(PropertyInt.CharacterOptions1, value.Value); }
+        }
+
+        public int? CharacterOptions2Mapping
+        {
+            get => GetProperty(PropertyInt.CharacterOptions2);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CharacterOptions2); else SetProperty(PropertyInt.CharacterOptions2, value.Value); }
+        }
+
+
+        // ========================================
+        // ========== Player Properties ===========
+        // ========================================
+
+        public int? Age
+        {
+            get => GetProperty(PropertyInt.Age);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Age); else SetProperty(PropertyInt.Age, value.Value); }
+        }
+
+        public long? AvailableExperience
+        {
+            get => GetProperty(PropertyInt64.AvailableExperience);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.AvailableExperience); else SetProperty(PropertyInt64.AvailableExperience, value.Value); }
+        }
+
+        public long? TotalExperience
+        {
+            get => GetProperty(PropertyInt64.TotalExperience);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.TotalExperience); else SetProperty(PropertyInt64.TotalExperience, value.Value); }
+        }
+
+        public int? AvailableSkillCredits
+        {
+            get => GetProperty(PropertyInt.AvailableSkillCredits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AvailableSkillCredits); else SetProperty(PropertyInt.AvailableSkillCredits, value.Value); }
+        }
+
+        public int? TotalSkillCredits
+        {
+            get => GetProperty(PropertyInt.TotalSkillCredits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalSkillCredits); else SetProperty(PropertyInt.TotalSkillCredits, value.Value); }
+        }
+
+        public int? NumDeaths
+        {
+            get => GetProperty(PropertyInt.NumDeaths);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumDeaths); else SetProperty(PropertyInt.NumDeaths, value.Value); }
+        }
+
+        public int? DeathLevel
+        {
+            get => GetProperty(PropertyInt.DeathLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DeathLevel); else SetProperty(PropertyInt.DeathLevel, value.Value); }
+        }
+
+        public int? VitaeCpPool
+        {
+            get => GetProperty(PropertyInt.VitaeCpPool);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VitaeCpPool); else SetProperty(PropertyInt.VitaeCpPool, value.Value); }
+        }
     }
 }

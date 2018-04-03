@@ -9,24 +9,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        //public int Level
-        //{
-        //    get => GetProperty(PropertyInt.Level) ?? 1;
-        //    set => SetProperty(PropertyInt.Level, value);
-        //}
-
-        //public long TotalExperience
-        //{
-        //    get => GetProperty(PropertyInt64.TotalExperience) ?? 0;
-        //    set => SetProperty(PropertyInt64.TotalExperience, value);
-        //}
-
-        //public long AvailableExperience
-        //{
-        //    get => GetProperty(PropertyInt64.AvailableExperience) ?? 0;
-        //    set => SetProperty(PropertyInt64.AvailableExperience, value);
-        //}
-
         /// <summary>
         /// Raise the available XP by a specified amount
         /// </summary>

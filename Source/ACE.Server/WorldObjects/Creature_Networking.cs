@@ -83,10 +83,16 @@ namespace ACE.Server.WorldObjects
 
             var coverage = new List<uint>();
 
-            var characterOptions2 = CharacterOptions2Mapping ?? 0;
+            bool showHelm = true;
+            bool showCloak = true;
 
-            bool showHelm = (characterOptions2 & (int)CharacterOptions2.ShowYourHelmOrHeadGear) == (int)CharacterOptions2.ShowYourHelmOrHeadGear;
-            bool showCloak = (characterOptions2 & (int)CharacterOptions2.ShowYourCloak) == (int)CharacterOptions2.ShowYourCloak;
+            if (this is Player player)
+            { 
+                var characterOptions2 = player.CharacterOptions2Mapping ?? 0;
+
+                showHelm = (characterOptions2 & (int)CharacterOptions2.ShowYourHelmOrHeadGear) == (int)CharacterOptions2.ShowYourHelmOrHeadGear;
+                showCloak = (characterOptions2 & (int)CharacterOptions2.ShowYourCloak) == (int)CharacterOptions2.ShowYourCloak;
+            }
 
             foreach (var w in EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority))
             {
