@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
             // until we are max level we must make sure that we send
             var xpTable = DatManager.PortalDat.XpTable;
 
-            var maxLevel = xpTable.CharacterLevelXPList.Count;
+            var maxLevel = xpTable.CharacterLevelXPList.Count - 1; // The count is 276 but 275 is the maxLevel
             var maxLevelXp = xpTable.CharacterLevelXPList.Last();
 
             if (Level != maxLevel)
@@ -52,8 +52,8 @@ namespace ACE.Server.WorldObjects
                 TotalExperience += amount;
 
                 CheckForLevelup();
-                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, (long)TotalExperience);
-                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+                var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, TotalExperience ?? 0);
+                var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
         }
@@ -61,35 +61,27 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if the player has advanced a level
         /// </summary>
-        /// <remarks>
-        /// Known issues:
-        ///         1. XP updates from outside of the grantxp command have not been done yet.
-        /// </remarks>
         private void CheckForLevelup()
         {
-            // Question: Where do *we* call CheckForLevelup()? :
-            //      From within the player.cs file, the options might be:
-            //           GrantXp()
-            //      From outside of the player.cs file, we may call CheckForLevelup() durring? :
-            //           XP Updates?
             var xpTable = DatManager.PortalDat.XpTable;
 
-            var startingLevel = Level;
-            var maxLevel = xpTable.CharacterLevelXPList.Count - 1;
-            bool creditEarned = false;
+            var maxLevel = xpTable.CharacterLevelXPList.Count - 1; // The count is 276 but 275 is the maxLevel
 
             if (Level == maxLevel) return;
 
+            var startingLevel = Level;
+            bool creditEarned = false;
+
             // increases until the correct level is found
-            while (xpTable.CharacterLevelXPList[Level ?? 1 + 1] <= (ulong)TotalExperience)
+            while ((ulong)(TotalExperience ?? 0) >= xpTable.CharacterLevelXPList[(Level ?? 0) + 1])
             {
                 Level++;
 
                 // increase the skill credits if the chart allows this level to grant a credit
-                if (xpTable.CharacterLevelSkillCreditList[Level ?? 1] > 0)
+                if (xpTable.CharacterLevelSkillCreditList[Level ?? 0] > 0)
                 {
-                    AvailableSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level ?? 1];
-                    TotalSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level ?? 1];
+                    AvailableSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level ?? 0];
+                    TotalSkillCredits += (int)xpTable.CharacterLevelSkillCreditList[Level ?? 0];
                     creditEarned = true;
                 }
 
@@ -116,7 +108,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var nextLevelWithCredits = 0;
 
-                    for (int i = (Level ?? 1) + 1; i <= maxLevel; i++)
+                    for (int i = (Level ?? 0) + 1; i <= maxLevel; i++)
                     {
                         if (xpTable.CharacterLevelSkillCreditList[i] > 0)
                         {
@@ -148,7 +140,7 @@ namespace ACE.Server.WorldObjects
             {
                 AvailableExperience -= amount;
 
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
                 Session.Network.EnqueueSend(xpUpdate);
 
                 return true;
@@ -164,7 +156,7 @@ namespace ACE.Server.WorldObjects
         {
             AvailableExperience += amount;
 
-            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, (long)AvailableExperience);
+            var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
             Session.Network.EnqueueSend(xpUpdate);
         }
     }

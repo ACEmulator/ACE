@@ -51,22 +51,10 @@ namespace ACE.Server.WorldObjects
         // ========== Account Properties ==========
         // ========================================
 
-        public int? TotalLogins
-        {
-            get => GetProperty(PropertyInt.TotalLogins);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalLogins); else SetProperty(PropertyInt.TotalLogins, value.Value); }
-        }
-
         public bool Account15Days
         {
             get => GetProperty(PropertyBool.Account15Days) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
-        }
-
-        public long? DeleteTime
-        {
-            get => GetProperty(PropertyInt64.DeleteTime);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt64.DeleteTime); else SetProperty(PropertyInt64.DeleteTime, value.Value); }
         }
 
 
@@ -130,6 +118,18 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // ========== Player Properties ===========
         // ========================================
+
+        public int? TotalLogins
+        {
+            get => GetProperty(PropertyInt.TotalLogins);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalLogins); else SetProperty(PropertyInt.TotalLogins, value.Value); }
+        }
+
+        public long? DeleteTime
+        {
+            get => GetProperty(PropertyInt64.DeleteTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.DeleteTime); else SetProperty(PropertyInt64.DeleteTime, value.Value); }
+        }
 
         public int? Age
         {
