@@ -1821,6 +1821,12 @@ namespace ACE.Server.Physics
 
         public void change_cell(ObjCell newCell)
         {
+            if (PhysicsEngine.Instance.Server)
+            {
+                change_cell_server(newCell);
+                return;
+            }
+
             if (CurCell != null) leave_cell(true);
             if (newCell == null)
             {
