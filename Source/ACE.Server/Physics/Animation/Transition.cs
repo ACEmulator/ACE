@@ -551,14 +551,6 @@ namespace ACE.Server.Physics.Animation
                 CollisionInfo.ContactPlaneValid = false;
                 CollisionInfo.ContactPlaneIsWater = false;
 
-                // custom debugging
-                if (CollisionInfo.LastKnownContactPlaneValid)
-                {
-                    CollisionInfo.ContactPlaneValid = true;
-                    CollisionInfo.SetContactPlane(CollisionInfo.LastKnownContactPlane, CollisionInfo.LastKnownContactPlaneIsWater);
-                    CollisionInfo.ContactPlaneCellID = CollisionInfo.LastKnownContactPlaneCellID;
-                }
-
                 if (SpherePath.InsertType != InsertType.Transition)
                 {
                     var insert = TransitionalInsert(3);
