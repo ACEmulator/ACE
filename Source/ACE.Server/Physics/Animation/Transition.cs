@@ -213,7 +213,7 @@ namespace ACE.Server.Physics.Animation
             if (!ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable) || SpherePath.CheckWalkables())
                 return true;
 
-            SpherePath.BackupCheckPos = SpherePath.CheckPos;
+            SpherePath.BackupCheckPos = new Position(SpherePath.CheckPos);
             SpherePath.BackupCell = SpherePath.CheckCell;
 
             var stepHeight = ObjectInfo.StepDownHeight;
@@ -772,7 +772,7 @@ namespace ACE.Server.Physics.Animation
 
             SpherePath.WalkableAllowance = zLandingValue;
             SpherePath.BackupCell = SpherePath.CheckCell;
-            SpherePath.BackupCheckPos = SpherePath.CheckPos;
+            SpherePath.BackupCheckPos = SpherePath.CheckPos;    // reference?
 
             var stepDown = StepDown(stepDownHeight, zLandingValue);
 
@@ -876,7 +876,7 @@ namespace ACE.Server.Physics.Animation
                             if (radsum < stepDownHeight)
                             {
                                 stepDownHeight *= 0.5f;
-                                if (StepDown(stepDownHeight, zVal) || StepDown(stepDownHeight, zVal))   // double step?
+                                if (StepDown(stepDownHeight, zVal) || StepDown(stepDownHeight, zVal))   // double step..
                                 {
                                     SpherePath.Walkable = null;
                                     return TransitionState.OK;

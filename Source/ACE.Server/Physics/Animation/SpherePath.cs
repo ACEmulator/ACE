@@ -151,6 +151,10 @@ namespace ACE.Server.Physics.Animation
                 GlobalCurrCenter[i].Center = CurPos.LocalToGlobal(LocalSphere[i].Center);
         }
 
+        /// <summary>
+        /// Converts the local sphere to global space
+        /// relative to checkPos offset
+        /// </summary>
         public void CacheGlobalSphere(Vector3 offset)
         {
             if (offset != Vector3.Zero)
@@ -242,7 +246,7 @@ namespace ACE.Server.Physics.Animation
             collisionNormal = WalkablePos.Frame.LocalToGlobalVec(collisionNormal);
 
             var blockOffset = LandDefs.GetBlockOffset(CurPos.ObjCellID, CheckPos.ObjCellID);
-            var offset = GlobalSphere[0].Center - GlobalCurrCenter[0].Center + blockOffset; ;
+            var offset = GlobalSphere[0].Center - GlobalCurrCenter[0].Center + blockOffset;
 
             if (Vector3.Dot(collisionNormal, offset) > 0.0f)
                 collisionNormal *= -1.0f;
@@ -261,7 +265,7 @@ namespace ACE.Server.Physics.Animation
         public void SaveCheckPos()
         {
             BackupCell = CheckCell;
-            BackupCheckPos = new Position(CheckPos);
+            BackupCheckPos = CheckPos;    // reference?
         }
 
         public void SetCheckPos(Position position, ObjCell cell)
@@ -276,7 +280,7 @@ namespace ACE.Server.Physics.Animation
         {
             Collide = true;
             BackupCell = CheckCell;
-            BackupCheckPos = new Position(CheckPos);
+            BackupCheckPos = CheckPos;  // reference?
             StepUpNormal = new Vector3(collisionNormal.X, collisionNormal.Y, collisionNormal.Z);
             WalkInterp = 1.0f;
         }
@@ -285,7 +289,7 @@ namespace ACE.Server.Physics.Animation
         {
             NegStepUp = stepUp;
             NegPolyHit = true;
-            NegCollisionNormal = -NegCollisionNormal;
+            NegCollisionNormal = -collisionNormal;
         }
 
         public void SetWalkable(Sphere sphere, Polygon poly, Vector3 zAxis, Position localPos, float scale)
@@ -310,7 +314,6 @@ namespace ACE.Server.Physics.Animation
             collisions.ContactPlaneIsWater = false;
 
             return GlobalSphere[0].SlideSphere(transition, ref StepUpNormal, GlobalCurrCenter[0].Center);
-            //return GlobalCurrCenter[0].SlideSphere(transition, ref StepUpNormal, GlobalCurrCenter[0].Center);
         }
     }
 }

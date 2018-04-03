@@ -19,6 +19,11 @@ namespace ACE.Server.Physics.Extensions
             return new Vector2(v.X, v.Y).Length();
         }
 
+        public static double LengthSquared2D(this Vector3 v)
+        {
+            return new Vector2(v.X, v.Y).LengthSquared();
+        }
+
         public static Vector3 Normalize(this Vector3 v)
         {
             return v / v.Length();
