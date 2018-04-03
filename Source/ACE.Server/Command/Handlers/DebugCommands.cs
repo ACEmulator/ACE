@@ -836,7 +836,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("food", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some food items in your inventory for testing.")]
         public static void HandleFood(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260, 377,  378,  379 };
 
             AddWeeniesToInventory(session, weenieIds);
         }

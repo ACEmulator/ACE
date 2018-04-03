@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects
                         case Door.UnlockDoorResults.UnlockSuccess:
                             Structure--;
                             if (Structure < 1)
-                                player.RemoveItemFromInventory(Guid.Full, player.Guid.Full, 1);
+                                player.TryRemoveItemFromInventoryWithNetworking(Guid, 1);
 
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
                             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));

@@ -88,6 +88,32 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        /// <summary>
+        /// This method is used to remove X number of items from a stack.<para />
+        /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
+        /// </summary>
+        public bool TryRemoveItemFromInventoryWithNetworking(ObjectGuid objectGuid, ushort amount, bool sendUpdateEncumbranceValMessage = true)
+        {
+            var item = GetInventoryItem(objectGuid);
+
+            if (item == null)
+                return false;
+
+            if (amount >= (item.StackSize ?? 1))
+                return TryDestroyFromInventoryWithNetworking(item, sendUpdateEncumbranceValMessage);
+
+            item.StackSize -= amount;
+
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+
+            EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
+
+            if (sendUpdateEncumbranceValMessage)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            return true;
+        }
+
         public bool TryDestroyFromInventoryWithNetworking(WorldObject worldObject, bool sendUpdateEncumbranceValMessage = true)
         {
             if (TryRemoveFromInventory(worldObject.Guid))
@@ -893,63 +919,6 @@ namespace ACE.Server.WorldObjects
             AddToInventory(wo);
             TrackObject(wo);
             return wo;
-        }
-
-        /// <summary>
-        /// This method is used to remove X number of items from a stack, including
-        /// If amount to remove is greater or equal to the current stacksize, item will be removed.
-        /// </summary>
-        /// <param name="stackId">Guid.Full of the stacked item</param>
-        /// <param name="containerId">Guid.Full of the container that contains the item</param>
-        /// <param name="amount">Amount taken out of the stack</param>
-        [Obsolete("This needs to be refactored into the new system")]
-        public void RemoveItemFromInventory(uint stackId, uint containerId, ushort amount)
-        {
-            // FIXME: This method has been morphed into doing a few things we either need to rename it or something. This may or may not remove item from inventory.
-            new ActionChain(this, () =>
-            {
-                Container container;
-                if (containerId == Guid.Full)
-                    container = this;
-                else
-                    container = (Container)GetInventoryItem(new ObjectGuid(containerId));
-
-                if (container == null)
-                {
-                    log.InfoFormat("Asked to remove an item {0} in container {1} - the container was not found", stackId, containerId);
-                    return;
-                }
-
-                WorldObject item = container.GetInventoryItem(new ObjectGuid(stackId));
-                if (item == null)
-                {
-                    log.InfoFormat("Asked to remove an item {0} in container {1} - the item was not found",
-                        stackId,
-                        containerId);
-                    return;
-                }
-
-                if (amount >= item.StackSize)
-                    amount = (ushort)item.StackSize;
-
-                ushort oldStackSize = (ushort)item.StackSize;
-                ushort newStackSize = (ushort)(oldStackSize - amount);
-
-                if (newStackSize < 1)
-                    newStackSize = 0;
-
-                item.StackSize = newStackSize;
-
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-
-                if (newStackSize < 1)
-                {
-                    // Remove item from inventory
-                    TryDestroyFromInventoryWithNetworking(item);
-                }
-                else
-                    EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
-            }).EnqueueChain();
         }
 
         /// <summary>
