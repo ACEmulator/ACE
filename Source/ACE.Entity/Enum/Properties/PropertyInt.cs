@@ -125,7 +125,6 @@ namespace ACE.Entity.Enum.Properties
         MinLevel                                 = 86,
         MaxLevel                                 = 87,
         LockpickMod                              = 88,
-        [ServerOnly]
         BoosterEnum                              = 89,
         BoostValue                               = 90,
         MaxStructure                             = 91,

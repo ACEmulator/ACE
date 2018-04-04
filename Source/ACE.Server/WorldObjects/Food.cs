@@ -34,7 +34,6 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Food;
 
             StackSize = StackSize ?? 1;
-            StackSize = StackSize ?? 1;
             Boost = Boost ?? 0;
             BoostEnum = BoostEnum ?? 0;
         }

@@ -86,6 +86,12 @@ namespace ACE.Server.Factories
                     return new AdvocateFane(weenie, guid);
                 case WeenieType.AdvocateItem:
                     return new AdvocateItem(weenie, guid);
+                case WeenieType.Healer:
+                    return new Healer(weenie, guid);
+                case WeenieType.Lockpick:
+                    return new Lockpick(weenie, guid);
+                case WeenieType.Caster:
+                    return new Caster(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -161,6 +167,12 @@ namespace ACE.Server.Factories
                     return new AdvocateFane(biota);
                 case WeenieType.AdvocateItem:
                     return new AdvocateItem(biota);
+                case WeenieType.Healer:
+                    return new Healer(biota);
+                case WeenieType.Lockpick:
+                    return new Lockpick(biota);
+                case WeenieType.Caster:
+                    return new Caster(biota);
                 default:
                     return new GenericObject(biota);
             }
