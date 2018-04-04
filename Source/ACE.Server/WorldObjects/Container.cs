@@ -239,7 +239,6 @@ namespace ACE.Server.WorldObjects
                             {
                                 EncumbranceVal += worldObject.EncumbranceVal;
                                 Value += worldObject.Value;
-                                // todo CoinValue
 
                                 return true;
                             }
@@ -264,7 +263,6 @@ namespace ACE.Server.WorldObjects
 
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
-            // todo CoinValue
 
             container = this;
             return true;
@@ -301,9 +299,6 @@ namespace ACE.Server.WorldObjects
 
                 EncumbranceVal -= item.EncumbranceVal;
                 Value -= item.Value;
-                // todo CoinValue
-                //if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
-                //    UpdateCurrencyClientCalculations(WeenieType.Coin);
 
                 return true;
             }
@@ -316,7 +311,6 @@ namespace ACE.Server.WorldObjects
                 {
                     EncumbranceVal -= item.EncumbranceVal;
                     Value -= item.Value;
-                    // todo CoinValue
 
                     return true;
                 }

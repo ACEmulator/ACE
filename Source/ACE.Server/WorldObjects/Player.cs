@@ -110,6 +110,8 @@ namespace ACE.Server.WorldObjects
             if (Mana.Current != Mana.MaxValue)
                 VitalTickInternal(Mana);
 
+            UpdateCoinValue();
+
             IsOnline = true;
 
             return; // todo

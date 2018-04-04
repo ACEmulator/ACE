@@ -30,7 +30,7 @@ namespace ACE.Server.Network.GameAction.Actions
             uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.BuyFromVendor(vendorId, items);
+            session.Player.HandleActionBuyItem(vendorId, items);
         }
     }
 }

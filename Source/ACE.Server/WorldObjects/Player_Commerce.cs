@@ -14,117 +14,36 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        /// <summary>
-        /// Sends updated network packets to client / vendor item list.
-        /// </summary>
-        public void ApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
+        private void UpdateCoinValue()
         {
-            Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
-            SendUseDoneEvent();
-        }
+            int coins = 0;
 
-        /// <summary>
-        /// Fired from the client / client is sending us a Buy transaction to vendor
-        /// </summary>
-        /// <param name="vendorId"></param>
-        /// <param name="items"></param>
-        public void BuyFromVendor(ObjectGuid vendorId, List<ItemProfile> items)
-        {
-            Vendor vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
-            vendor.BuyValidateTransaction(vendorId, items, this);
-        }
-
-        /// <summary>
-        /// Vendor has validated the transactions and sent a list of items for processing.
-        /// </summary>
-        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
-        {
-            // todo research packets more for both buy and sell. ripley thinks buy is update..
-            // vendor accepted the transaction
-            if (valid)
+            foreach (var possession in GetAllPossessions())
             {
-                if (SpendCurrency(goldcost, WeenieType.Coin))
-                {
-                    foreach (WorldObject wo in uqlist)
-                    {
-                        wo.ContainerId = Guid.Full;
-                        wo.PlacementPosition = 0;
-                        AddToInventory(wo);
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, wo, this));
-                        Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, Guid));
-                    }
-
-                    foreach (var gen in genlist)
-                        AddNewWorldObjectToInventory(gen);
-                }
-                else // not enough cash.
-                {
-                    valid = false;
-                }
+                if (possession.WeenieType == WeenieType.Coin)
+                    coins += possession.Value ?? 0;
             }
 
-            vendor.BuyItemsFinalTransaction(this, uqlist, valid);
+            CoinValue = coins;
         }
 
-        /// <summary>
-        /// Client Calls this when Sell is clicked.
-        /// </summary>
-        public void SellToVendor(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
+        // todo re-think how this works..
+        private void UpdateCurrencyClientCalculations(WeenieType type)
         {
-            List<WorldObject> purchaselist = new List<WorldObject>();
-            foreach (ItemProfile profile in itemprofiles)
+            int coins = 0;
+            List<WorldObject> currency = new List<WorldObject>();
+            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
+            foreach (WorldObject wo in currency)
             {
-                // check packs of item.
-                WorldObject item = GetInventoryItem(profile.Guid);
-                if (item == null)
-                {
-                    // check to see if this item is wielded
-                    item = GetWieldedItem(profile.Guid);
-                    if (item != null)
-                    {
-                        TryDequipObject(item.Guid);
-                        Session.Network.EnqueueSend(
-                           new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                           new GameMessageObjDescEvent(this),
-                           new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder,new ObjectGuid(0)),
-                           new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
-                    }
-                }
-                else
-                {
-                    // remove item from inventory.
-                    TryRemoveFromInventory(profile.Guid);
-                }
-
-                //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));
-
-                item.SetPropertiesForVendor();
-
-                // clean up the shard database.
-                throw new NotImplementedException();
-                // todo fix for EF
-                //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-
-                Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
-                purchaselist.Add(item);
+                if (wo.WeenieType == WeenieType.Coin)
+                    coins += wo.StackSize.Value;
             }
-
-            Vendor vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
-            vendor.SellItemsValidateTransaction(this, purchaselist);
-        }
-
-        public void FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
-        {
-            // pay player in voinds
-            if (valid)
-            {
-                CreateCurrency(WeenieType.Coin, payout);
-            }
+            // send packet to client letthing them know
+            CoinValue = coins;
         }
 
 
-        public bool CreateCurrency(WeenieType type, uint amount)
+        private bool CreateCurrency(WeenieType type, uint amount)
         {
             // todo: we need to look up this object to understand it by its weenie id.
             // todo: support more then hard coded coin.
@@ -160,21 +79,6 @@ namespace ACE.Server.WorldObjects
             }
             UpdateCurrencyClientCalculations(WeenieType.Coin);
             return true;
-        }
-
-        // todo re-think how this works..
-        private void UpdateCurrencyClientCalculations(WeenieType type)
-        {
-            int coins = 0;
-            List<WorldObject> currency = new List<WorldObject>();
-            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
-            foreach (WorldObject wo in currency)
-            {
-                if (wo.WeenieType == WeenieType.Coin)
-                    coins += wo.StackSize.Value;
-            }
-            // send packet to client letthing them know
-            CoinValue = coins;
         }
 
         private bool SpendCurrency(uint amount, WeenieType type)
@@ -242,6 +146,130 @@ namespace ACE.Server.WorldObjects
             }
 
             return false;
+        }
+
+
+        /// <summary>
+        /// Sends updated network packets to client / vendor item list.
+        /// </summary>
+        public void ApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
+        {
+            Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
+
+            SendUseDoneEvent();
+        }
+
+        /// <summary>
+        /// Vendor has validated the transactions and sent a list of items for processing.
+        /// </summary>
+        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
+        {
+            // todo research packets more for both buy and sell. ripley thinks buy is update..
+            // vendor accepted the transaction
+            if (valid)
+            {
+                if (SpendCurrency(goldcost, WeenieType.Coin))
+                {
+                    foreach (WorldObject wo in uqlist)
+                    {
+                        wo.ContainerId = Guid.Full;
+                        wo.PlacementPosition = 0;
+                        AddToInventory(wo);
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
+                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, wo, this));
+                        Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, Guid));
+                    }
+
+                    foreach (var gen in genlist)
+                        AddNewWorldObjectToInventory(gen);
+                }
+                else // not enough cash.
+                {
+                    valid = false;
+                }
+            }
+
+            vendor.BuyItemsFinalTransaction(this, uqlist, valid);
+        }
+
+        public void FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
+        {
+            // pay player in voinds
+            if (valid)
+            {
+                CreateCurrency(WeenieType.Coin, payout);
+            }
+        }
+
+
+        // =========================================
+        // Game Action Handlers
+        // =========================================
+
+        /// <summary>
+        /// Fired from the client / client is sending us a Buy transaction to vendor
+        /// </summary>
+        /// <param name="vendorId"></param>
+        /// <param name="items"></param>
+        public void HandleActionBuyItem(ObjectGuid vendorId, List<ItemProfile> items)
+        {
+            var vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
+
+            if (vendor != null)
+                vendor.BuyValidateTransaction(vendorId, items, this);
+        }
+
+        /// <summary>
+        /// Client Calls this when Sell is clicked.
+        /// </summary>
+        public void HandleActionSellItem(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
+        {
+            var purchaselist = new List<WorldObject>();
+
+            foreach (ItemProfile profile in itemprofiles)
+            {
+                // check packs of item.
+                WorldObject item = GetInventoryItem(profile.Guid);
+
+                if (item == null)
+                {
+                    // check to see if this item is wielded
+                    item = GetWieldedItem(profile.Guid);
+
+                    if (item != null)
+                    {
+                        TryDequipObject(item.Guid);
+
+                        Session.Network.EnqueueSend(
+                           new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
+                           new GameMessageObjDescEvent(this),
+                           new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
+                           new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
+                    }
+                }
+                else
+                {
+                    // remove item from inventory.
+                    TryRemoveFromInventory(profile.Guid);
+                }
+
+                //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));
+
+                item.SetPropertiesForVendor();
+
+                // clean up the shard database.
+                throw new NotImplementedException();
+                // todo fix for EF
+                //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
+
+                Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
+                purchaselist.Add(item);
+            }
+
+            var vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
+
+            if (vendor != null)
+                vendor.SellItemsValidateTransaction(this, purchaselist);
         }
     }
 }

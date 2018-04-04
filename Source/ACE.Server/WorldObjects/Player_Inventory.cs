@@ -85,6 +85,12 @@ namespace ACE.Server.WorldObjects
                 new GameEventItemServerSaysContainId(Session, worldObject, container),
                 new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
+            if (worldObject.WeenieType == WeenieType.Coin)
+            {
+                UpdateCoinValue();
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+            }
+
             return true;
         }
 
@@ -92,31 +98,50 @@ namespace ACE.Server.WorldObjects
         /// This method is used to remove X number of items from a stack.<para />
         /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
         /// </summary>
-        public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount, bool sendUpdateEncumbranceValMessage = true)
+        public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount)
         {
             if (amount >= (worldObject.StackSize ?? 1))
-                return TryDestroyFromInventoryWithNetworking(worldObject, sendUpdateEncumbranceValMessage);
+                return TryDestroyFromInventoryWithNetworking(worldObject);
 
             worldObject.StackSize -= amount;
 
             Session.Network.EnqueueSend(new GameMessageSetStackSize(worldObject));
 
             EncumbranceVal = (EncumbranceVal - (worldObject.StackUnitEncumbrance * amount));
+            Value = (Value - (worldObject.StackUnitValue * amount));
 
-            if (sendUpdateEncumbranceValMessage)
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (worldObject.WeenieType == WeenieType.Coin)
+            {
+                UpdateCoinValue();
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+            }
 
             return true;
         }
 
-        public bool TryDestroyFromInventoryWithNetworking(WorldObject worldObject, bool sendUpdateEncumbranceValMessage = true)
+        /// <summary>
+        /// If isFromMergeEvent is false, update messages will be sent for EncumbranceVal and if WeenieType is Coin, CoinValue will be updated and update messages will be sent for CoinValue.
+        /// </summary>
+        /// <returns></returns>
+        public bool TryDestroyFromInventoryWithNetworking(WorldObject worldObject, bool isFromMergeEvent = false)
         {
             if (TryRemoveFromInventory(worldObject.Guid))
             {
                 Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
 
-                if (sendUpdateEncumbranceValMessage)
+                if (!isFromMergeEvent)
+                { 
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                    if (worldObject.WeenieType == WeenieType.Coin)
+                    {
+                        UpdateCoinValue();
+
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+                    }
+                }
 
                 worldObject.RemoveBiotaFromDatabase();
 
@@ -237,7 +262,6 @@ namespace ACE.Server.WorldObjects
                     {
                         EncumbranceVal += item.EncumbranceVal;
                         Value += item.Value;
-                        // todo CoinValue
                     }
 
                     if (item is Container itemAsContainer)
@@ -273,10 +297,16 @@ namespace ACE.Server.WorldObjects
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, container.Guid),
                         new GameEventWieldItem(Session, itemGuid.Full, placementPosition),
                         new GameMessageCreateObject(item),
-                        new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)item.CurrentWieldedLocation));
+                        new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)(item.CurrentWieldedLocation ?? 0)));
                 }
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                if (item.WeenieType == WeenieType.Coin)
+                {
+                    UpdateCoinValue();
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+                }
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
@@ -532,6 +562,12 @@ namespace ACE.Server.WorldObjects
                         new GameEventItemServerSaysMoveItem(Session, item),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
                         new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                    if (item.WeenieType == WeenieType.Coin)
+                    {
+                        UpdateCoinValue();
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+                    }
 
                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                     item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -817,13 +853,13 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                /* todo this needs to be fixed. There are many scenarios here, to/from main pack, to/from side pack, to/from landscape container??? maybe, test that.
+                /* todo this needs to be fixed. There are many scenarios here, to/from main pack, to/from side pack, to/from landscape container.
                 if (container.Guid.Full == stack.ContainerId)
                 {
                     // We subtract the new stack from our main values because TryAddToInventory will end up readding them.
                     EncumbranceVal -= newStack.EncumbranceVal;
                     Value -= newStack.Value;
-                    // todo CoinValue
+                    // todo CoinValue .. would only apply if we're going to/from landscape container
                 }*/
 
                 CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
@@ -869,7 +905,7 @@ namespace ACE.Server.WorldObjects
 
                     // Ok did we merge it all? If so, let's destroy the from item.
                     if (fromItem.StackSize == amount)
-                        TryDestroyFromInventoryWithNetworking(fromItem, false);
+                        TryDestroyFromInventoryWithNetworking(fromItem, true);
                     else
                         UpdateFromStack(fromItem, amount);
                 }
