@@ -92,21 +92,16 @@ namespace ACE.Server.WorldObjects
         /// This method is used to remove X number of items from a stack.<para />
         /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
         /// </summary>
-        public bool TryRemoveItemFromInventoryWithNetworking(ObjectGuid objectGuid, ushort amount, bool sendUpdateEncumbranceValMessage = true)
+        public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount, bool sendUpdateEncumbranceValMessage = true)
         {
-            var item = GetInventoryItem(objectGuid);
+            if (amount >= (worldObject.StackSize ?? 1))
+                return TryDestroyFromInventoryWithNetworking(worldObject, sendUpdateEncumbranceValMessage);
 
-            if (item == null)
-                return false;
+            worldObject.StackSize -= amount;
 
-            if (amount >= (item.StackSize ?? 1))
-                return TryDestroyFromInventoryWithNetworking(item, sendUpdateEncumbranceValMessage);
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(worldObject));
 
-            item.StackSize -= amount;
-
-            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-
-            EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
+            EncumbranceVal = (EncumbranceVal - (worldObject.StackUnitEncumbrance * amount));
 
             if (sendUpdateEncumbranceValMessage)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));

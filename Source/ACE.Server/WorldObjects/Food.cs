@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
 
             player.ApplyComsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
 
-            player.TryRemoveItemFromInventoryWithNetworking(Guid, 1);
+            player.TryRemoveItemFromInventoryWithNetworking(this, 1);
 
             var sendUseDoneEvent = new GameEventUseDone(player.Session);
             player.Session.Network.EnqueueSend(sendUseDoneEvent);
