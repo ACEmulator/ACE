@@ -10,7 +10,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.Motion;
 
@@ -1910,7 +1909,7 @@ namespace ACE.Server.WorldObjects
         public int? Boost
         {
             get => GetProperty(PropertyInt.BoostValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, (int)value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, value.Value); }
         }
 
         public uint? SpellDID
@@ -1922,7 +1921,7 @@ namespace ACE.Server.WorldObjects
         public int? BoostEnum
         {
             get => GetProperty(PropertyInt.BoosterEnum);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, value.Value); }
         }
 
         public double? HealkitMod
@@ -1934,7 +1933,7 @@ namespace ACE.Server.WorldObjects
         public virtual int? CoinValue
         {
             get => GetProperty(PropertyInt.CoinValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, (int)value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, value.Value); }
         }
 
         public int? ChessGamesLost
