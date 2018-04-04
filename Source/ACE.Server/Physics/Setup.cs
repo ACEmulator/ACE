@@ -115,7 +115,7 @@ namespace ACE.Server.Physics
             setup.NumParts = 1;
             setup.Parts = new List<PhysicsPart>(1);
 
-            var gfxObj = (Collision.GfxObj)DBObj.Get(new QualifiedDataID(6, gfxObjID));
+            var gfxObj = new Collision.GfxObj((GfxObj)DBObj.Get(new QualifiedDataID(6, gfxObjID)));
             if (gfxObj != null)
             {
                 if (gfxObj.PhysicsSphere != null)

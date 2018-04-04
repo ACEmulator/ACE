@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
@@ -68,7 +64,7 @@ namespace ACE.Server.Physics.Common
 
         public new void Init()
         {
-            Building = new BuildingObj();
+            //Building = new BuildingObj();
         }
     }
 }

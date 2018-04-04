@@ -23,7 +23,7 @@ namespace ACE.Server.Physics.Common
         public LandblockInfo Info;
         public List<PhysicsObj> StaticObjects;
         public List<BuildingObj> Buildings;
-        public List<uint> StabList;
+        public List<ushort> StabList;
         public List<LandCell> DrawArray;
 
         public static bool UseSceneFiles = true;
@@ -173,7 +173,7 @@ namespace ACE.Server.Physics.Common
         {
             if (Info == null || SideCellCount != 8) return;
 
-            int maxSize = 0, stabNum = 0;
+            uint maxSize = 0, stabNum = 0;
             foreach (var info in Info.Buildings)
             {
                 var building = BuildingObj.makeBuilding(info.ModelId, info.Portals, info.NumLeaves);
@@ -184,7 +184,7 @@ namespace ACE.Server.Physics.Common
                 building.set_initial_frame(position.Frame);
                 building.add_to_cell(cell); // SortCell?
                 Buildings.Add(building);
-                building.add_to_stablist(StabList, ref maxSize, ref stabNum);
+                building.add_to_stablist(ref StabList, ref maxSize, ref stabNum);
             }
         }
 
