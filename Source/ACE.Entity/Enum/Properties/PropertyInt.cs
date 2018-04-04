@@ -18,9 +18,9 @@ namespace ACE.Entity.Enum.Properties
         ClothingPriority                         = 4,
         [Ephemeral]
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
-        [LoginOnly]
+        [SendOnLogin]
         ItemsCapacity                            = 6,
-        [LoginOnly]
+        [SendOnLogin]
         ContainersCapacity                       = 7,
         [ServerOnly]
         Mass                                     = 8,
@@ -45,7 +45,7 @@ namespace ACE.Entity.Enum.Properties
         UiEffects                                = 18,
         [Ephemeral]
         Value                                    = 19,
-        [Ephemeral][ServerOnly][LoginOnly]
+        [Ephemeral][ServerOnly][SendOnLogin]
         CoinValue                                = 20,
         TotalExperience                          = 21,
         AvailableCharacter                       = 22,

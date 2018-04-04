@@ -43,9 +43,9 @@ namespace ACE.Entity.Enum.Properties
         Customer                         = 21,
         Bonded                           = 22,
         Wounder                          = 23,
-        [LoginOnly]
+        [SendOnLogin]
         Allegiance                       = 24,
-        [LoginOnly]
+        [SendOnLogin]
         Patron                           = 25,
         Monarch                          = 26,
         [Ephemeral]

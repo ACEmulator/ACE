@@ -13,11 +13,11 @@ namespace ACE.Entity.Enum.Properties
         Undef                      = 0,
         [ServerOnly]
         Setup                      = 1,
-        [LoginOnly]
+        [SendOnLogin]
         MotionTable                = 2,
         [ServerOnly]
         SoundTable                 = 3,
-        [LoginOnly]
+        [SendOnLogin]
         CombatTable                = 4,
         [ServerOnly]
         QualityFilter              = 5,
