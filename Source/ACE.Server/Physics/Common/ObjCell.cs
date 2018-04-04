@@ -112,7 +112,7 @@ namespace ACE.Server.Physics.Common
             {
                 var obj = shadowObj.PhysicsObj;
 
-                if (obj.Parent != null || obj == transition.ObjectInfo.Object)
+                if (obj.Parent != null || obj.Equals(transition.ObjectInfo.Object))
                     continue;
 
                 var state = obj.FindObjCollisions(transition);

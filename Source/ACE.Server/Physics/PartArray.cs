@@ -346,7 +346,6 @@ namespace ACE.Server.Physics
                     Parts[i].PhysObjIndex = i;
                 }
                 
-                // can defaultscale count be less than numparts?
                 if (Setup.DefaultScale != null && Setup.DefaultScale.Count == NumParts)
                 {
                     for (var i = 0; i < NumParts; i++)
@@ -526,15 +525,17 @@ namespace ACE.Server.Physics
 
         public bool SetScaleInternal(Vector3 newScale)
         {
+            Scale = newScale;
+
             for (var i = 0; i < NumParts; i++)
             {
                 var part = Parts[i];
                 if (part != null)
                 {
-                    if (Setup.DefaultScale != null)
+                    if (Setup.DefaultScale.Count > i)
                         part.GfxObjScale = Setup.DefaultScale[i] * newScale;
                     else
-                        part.GfxObjScale = Scale;
+                        part.GfxObjScale = newScale;
                 }
             }
             return true;

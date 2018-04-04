@@ -45,17 +45,16 @@ namespace ACE.Server.Physics.Collision
             PhysicsPolygons = new Dictionary<ushort, Polygon>();
             foreach (var kvp in gfxObj.PhysicsPolygons)
                 PhysicsPolygons.Add(kvp.Key, new Polygon(kvp.Value, gfxObj.VertexArray));
-            // usebuiltmesh
-            // physicssphere
             PhysicsBSP = new BSP.BSPTree(gfxObj.PhysicsBSP, gfxObj.PhysicsPolygons, gfxObj.VertexArray);
+            PhysicsSphere = PhysicsBSP.GetSphere();
             SortCenter = gfxObj.SortCenter;
             NumPolygons = gfxObj.Polygons.Count;
             Polygons = new Dictionary<ushort, Polygon>();
             foreach (var kvp in gfxObj.Polygons)
                 Polygons.Add(kvp.Key, new Polygon(kvp.Value, gfxObj.VertexArray));
-            // drawing sphere
+            // usebuiltmesh
             DrawingBSP = new BSP.BSPTree(gfxObj.DrawingBSP, gfxObj.Polygons, gfxObj.VertexArray);
-            
+            DrawingSphere = DrawingBSP.GetSphere();
         }
 
         public TransitionState FindObjCollisions(GfxObj gfxObj, Transition transition, float scaleZ)

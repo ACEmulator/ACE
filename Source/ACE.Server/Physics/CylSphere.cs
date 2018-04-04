@@ -3,6 +3,7 @@ using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics
 {
@@ -102,9 +103,9 @@ namespace ACE.Server.Physics
             radsum += PhysicsGlobals.EPSILON;
 
             // this is similar to ray/sphere intersection, could be inlined...
-            var xyMoveLenSq = movement.X * movement.X + movement.Y * movement.Y;
-            var xyDiff = -(movement.X * old_disp.X + movement.Y * old_disp.Y);   // negative 2D dot product
-            var diffSq = xyDiff * xyDiff - (old_disp.X * old_disp.X + old_disp.Y * old_disp.Y - radsum * radsum) * xyMoveLenSq;
+            var xyMoveLenSq = movement.LengthSquared2D();
+            var xyDiff = -movement.Dot2D(old_disp);
+            var diffSq = xyDiff * xyDiff - (old_disp.LengthSquared2D() - radsum * radsum) * xyMoveLenSq;
             var diff = (float)Math.Sqrt(diffSq);
             Vector3 scaledMovement, offset;
             float time;     // calculated below, refactor
@@ -125,8 +126,8 @@ namespace ACE.Server.Physics
                 }
 
                 scaledMovement = movement * time;
-                if ((scaledMovement.X + old_disp.X) * (scaledMovement.X + old_disp.X) +
-                    (scaledMovement.Y + old_disp.Y) * (scaledMovement.Y + old_disp.Y) >= radsum * radsum)
+                var scaledLenSq = (scaledMovement + old_disp).LengthSquared2D();
+                if (scaledLenSq >= radsum * radsum)
                 {
                     if (Math.Abs(xyMoveLenSq) < PhysicsGlobals.EPSILON)
                         return TransitionState.Collided;
@@ -134,9 +135,9 @@ namespace ACE.Server.Physics
                     if (diffSq >= 0.0f && xyMoveLenSq > PhysicsGlobals.EPSILON)
                     {
                         if (xyDiff - diff < 0.0f)
-                            time = (diff - (movement.X * old_disp.X + movement.Y * old_disp.Y)) / xyMoveLenSq;
+                            time = (float)((diff - movement.Dot2D(old_disp)) / xyMoveLenSq);
                         else
-                            time = (xyDiff - diff) / xyMoveLenSq;
+                            time = (float)((xyDiff - diff) / xyMoveLenSq);
 
                         scaledMovement = movement * time;
                     }
@@ -181,9 +182,9 @@ namespace ACE.Server.Physics
                 return TransitionState.Collided;
 
             if (xyDiff - diff < 0.0f)
-                time = (diff - (movement.X * old_disp.X + movement.Y * old_disp.Y)) / xyMoveLenSq;
+                time = (float)((diff - movement.Dot2D(old_disp)) / xyMoveLenSq);
             else
-                time = (xyDiff - diff) / xyMoveLenSq;
+                time = (float)((xyDiff - diff) / xyMoveLenSq);
 
             scaledMovement = movement * time;
             if (time < 0.0f || time > 1.0f)
@@ -203,13 +204,14 @@ namespace ACE.Server.Physics
         /// </summary>
         public bool CollidesWithSphere(Sphere checkPos, Vector3 disp, float radsum)
         {
-            if (disp.X * disp.X + disp.Y * disp.Y < radsum * radsum)
-                return true;
+            var result = false;
 
-            if (checkPos.Radius - PhysicsGlobals.EPSILON + Height * 0.5f < Math.Abs(Height * 0.5f - disp.Z))
-                return true;
-
-            return false;
+            if (disp.X * disp.X + disp.Y * disp.Y <= radsum * radsum)
+            {
+                if (checkPos.Radius - PhysicsGlobals.EPSILON + Height * 0.5f >= Math.Abs(Height * 0.5f - disp.Z))
+                    result = true;
+            }
+            return result;
         }
 
         /// <summary>
@@ -241,13 +243,10 @@ namespace ACE.Server.Physics
                 if (CollidesWithSphere(globSphere, disp, radsum))
                     return TransitionState.Collided;
 
-                if (path.NumSphere > 1)
-                {
-                    if (CollidesWithSphere(globSphere_, disp_, radsum))
-                        return TransitionState.Collided;    // backwards in original??
+                if (path.NumSphere > 1 && CollidesWithSphere(globSphere_, disp_, radsum))
+                    return TransitionState.Collided;
 
-                    return TransitionState.OK;
-                }
+                return TransitionState.OK;
             }
             else
             {
@@ -306,7 +305,8 @@ namespace ACE.Server.Physics
 
                     // what is v39 pointing to before this?
                     var distSq = movement.LengthSquared();
-                    var diff = -Vector3.Dot(movement, disp);
+                    //var diff = -Vector3.Dot(movement, disp);
+                    var diff = movement.Z * disp.Z - movement.Dot2D(disp);
 
                     if (Math.Abs(distSq) < PhysicsGlobals.EPSILON)
                         return TransitionState.Collided;
@@ -317,7 +317,7 @@ namespace ACE.Server.Physics
                         t = diff * 2 - diff;
                     var time = diff / distSq;
                     var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
-                    if (timecheck < transition.SpherePath.WalkableAllowance && timecheck < -0.1f)
+                    if (timecheck >= transition.SpherePath.WalkInterp || timecheck < -0.1f)
                         return TransitionState.Collided;
 
                     movement *= time;
@@ -326,7 +326,8 @@ namespace ACE.Server.Physics
                     if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
                         return TransitionState.OK;
 
-                    var contactPlane = new Plane(disp, (globSphere.Center - disp * globSphere.Radius).Length());    // add plane
+                    var pDist = -Vector3.Dot(disp, globSphere.Center - disp * globSphere.Radius);
+                    var contactPlane = new Plane(disp, pDist);
                     transition.CollisionInfo.SetContactPlane(contactPlane, true);
                     transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
                     transition.SpherePath.WalkInterp = timecheck;
@@ -411,9 +412,9 @@ namespace ACE.Server.Physics
                 if (interp >= path.WalkInterp || interp < -0.1f)
                     return TransitionState.Collided;
 
-                var contactPoint = new Vector3(checkPos.Center.X, checkPos.Center.Y, deltaz - checkPos.Radius);
-                var normal = new Vector3(0, 0, 1.0f);
-                var contactPlane = new Plane(normal, contactPoint.Length());   // add plane
+                var normal = Vector3.UnitZ;
+                var contactPoint = new Vector3(checkPos.Center.X, checkPos.Center.Y, checkPos.Center.Z + (deltaz - checkPos.Radius));
+                var contactPlane = new Plane(normal, -Vector3.Dot(normal, contactPoint));
 
                 var collisions = transition.CollisionInfo;
                 collisions.SetContactPlane(contactPlane, true);     // is water?
@@ -451,16 +452,16 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Returns the collision normal for this CylSphere transition
         /// </summary>
-        public bool CollisionNormal(Transition transition, Sphere checkPos, Vector3 disp, float radsum, int sphereNum, out Vector3 normal)
+        public bool CollisionNormal(Transition transition, Sphere checkPos, Vector3 _disp, float radsum, int sphereNum, out Vector3 normal)
         {
-            var globCurCenter = transition.SpherePath.GlobalCurrCenter[sphereNum].Center - LowPoint;
-            if (radsum * radsum < globCurCenter.X * globCurCenter.X + globCurCenter.Y * globCurCenter.Y)
+            var disp = transition.SpherePath.GlobalCurrCenter[sphereNum].Center - LowPoint;
+            if (radsum * radsum < disp.LengthSquared2D())
             {
-                normal = new Vector3(globCurCenter.X, globCurCenter.Y, 0);
-                return (checkPos.Radius - PhysicsGlobals.EPSILON + Height * 0.5f >= Math.Abs(Height * 0.5f - globCurCenter.Z)
-                    || Math.Abs(globCurCenter.Z - disp.Z) <= PhysicsGlobals.EPSILON);
+                normal = new Vector3(disp.X, disp.Y, 0);
+                return (checkPos.Radius - PhysicsGlobals.EPSILON + Height * 0.5f >= Math.Abs(Height * 0.5f - disp.Z)
+                    || Math.Abs(disp.Z - _disp.Z) <= PhysicsGlobals.EPSILON);
             }
-            var normZ = (disp.Z - globCurCenter.Z <= 0.0f) ? 1 : -1;    // -1082130432 == -1 || 4?
+            var normZ = (_disp.Z - disp.Z <= 0.0f) ? 1 : -1;
             normal = new Vector3(0, 0, normZ);
             return true;
         }
