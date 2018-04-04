@@ -16,7 +16,7 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
-        [Ephemeral]
+        [Ephemeral][SendOnLogin]
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
         [SendOnLogin]
         ItemsCapacity                            = 6,
@@ -45,17 +45,20 @@ namespace ACE.Entity.Enum.Properties
         UiEffects                                = 18,
         [Ephemeral]
         Value                                    = 19,
-        [Ephemeral][ServerOnly][SendOnLogin]
+        [Ephemeral][SendOnLogin]
         CoinValue                                = 20,
         TotalExperience                          = 21,
         AvailableCharacter                       = 22,
         TotalSkillCredits                        = 23,
+        [SendOnLogin]
         AvailableSkillCredits                    = 24,
+        [SendOnLogin]
         Level                                    = 25,
         AccountRequirements                      = 26,
         ArmorType                                = 27,
         ArmorLevel                               = 28,
         AllegianceCpPool                         = 29,
+        [SendOnLogin]
         AllegianceRank                           = 30,
         ChannelsAllowed                          = 31,
         ChannelsActive                           = 32,
@@ -66,14 +69,17 @@ namespace ACE.Entity.Enum.Properties
         ResistItemAppraisal                      = 37,
         ResistLockpick                           = 38,
         DeprecatedResistRepair                   = 39,
+        [SendOnLogin]
         CombatMode                               = 40,
         CurrentAttackHeight                      = 41,
         CombatCollisions                         = 42,
+        [SendOnLogin]
         NumDeaths                                = 43,
         Damage                                   = 44,
         DamageType                               = 45,
         [ServerOnly]
         DefaultCombatStyle                       = 46,
+        [SendOnLogin]
         AttackType                               = 47,
         WeaponSkill                              = 48,
         WeaponTime                               = 49,
@@ -132,6 +138,7 @@ namespace ACE.Entity.Enum.Properties
         RadarBlipColor                           = 95,
         EncumbranceCapacity                      = 96,
         LoginTimestamp                           = 97,
+        [SendOnLogin]
         CreationTimestamp                        = 98,
         PkLevelModifier                          = 99,
         GeneratorType                            = 100,
@@ -147,6 +154,7 @@ namespace ACE.Entity.Enum.Properties
         ItemAllegianceRankLimit                  = 110,
         PortalBitmask                            = 111,
         AdvocateLevel                            = 112,
+        [SendOnLogin]
         Gender                                   = 113,
         Attuned                                  = 114,
         ItemSkillLevelLimit                      = 115,
@@ -159,21 +167,26 @@ namespace ACE.Entity.Enum.Properties
         AiCpThreshold                            = 122,
         AiAdvancementStrategy                    = 123,
         Version                                  = 124,
+        [SendOnLogin]
         Age                                      = 125,
         VendorHappyMean                          = 126,
         VendorHappyVariance                      = 127,
         CloakStatus                              = 128,
+        [SendOnLogin]
         VitaeCpPool                              = 129,
         NumServicesSold                          = 130,
         MaterialType                             = 131,
+        [SendOnLogin]
         NumAllegianceBreaks                      = 132,
         [Ephemeral]
         ShowableOnRadar                          = 133,
+        [SendOnLogin]
         PlayerKillerStatus                       = 134,
         VendorHappyMaxItems                      = 135,
         ScorePageNum                             = 136,
         ScoreConfigNum                           = 137,
         ScoreNumScores                           = 138,
+        [SendOnLogin]
         DeathLevel                               = 139,
         AiOptions                                = 140,
         OpenToEveryone                           = 141,
@@ -228,10 +241,12 @@ namespace ACE.Entity.Enum.Properties
         TypeOfAlteration                         = 185,
         SkillToBeAltered                         = 186,
         SkillAlterationCount                     = 187,
+        [SendOnLogin]
         HeritageGroup                            = 188,
         TransferFromAttribute                    = 189,
         TransferToAttribute                      = 190,
         AttributeTransferCount                   = 191,
+        [SendOnLogin]
         FakeFishingSkill                         = 192,
         NumKeys                                  = 193,
         DeathTimestamp                           = 194,
@@ -239,6 +254,7 @@ namespace ACE.Entity.Enum.Properties
         VictimTimestamp                          = 196,
         HookGroup                                = 197,
         AllegianceSwearTimestamp                 = 198,
+        [SendOnLogin]
         HousePurchaseTimestamp                   = 199,
         RedirectableEquippedArmorCount           = 200,
         MeleedefenseImbuedEffectTypeCache        = 201,
@@ -271,18 +287,23 @@ namespace ACE.Entity.Enum.Properties
         AugmentationSpecializeWeaponTinkering    = 228,
         AugmentationExtraPackSlot                = 229,
         AugmentationIncreasedCarryingCapacity    = 230,
+        [SendOnLogin]
         AugmentationLessDeathItemLoss            = 231,
         AugmentationSpellsRemainPastDeath        = 232,
+        [SendOnLogin]
         AugmentationCriticalDefense              = 233,
         AugmentationBonusXp                      = 234,
+        [SendOnLogin]
         AugmentationBonusSalvage                 = 235,
         AugmentationBonusImbueChance             = 236,
         AugmentationFasterRegen                  = 237,
+        [SendOnLogin]
         AugmentationIncreasedSpellDuration       = 238,
         AugmentationResistanceFamily             = 239,
         AugmentationResistanceSlash              = 240,
         AugmentationResistancePierce             = 241,
         AugmentationResistanceBlunt              = 242,
+        [SendOnLogin]
         AugmentationResistanceAcid               = 243,
         AugmentationResistanceFire               = 244,
         AugmentationResistanceFrost              = 245,
@@ -338,8 +359,11 @@ namespace ACE.Entity.Enum.Properties
         AugmentationInfusedItemMagic             = 295,
         AugmentationInfusedLifeMagic             = 296,
         AugmentationInfusedWarMagic              = 297,
+        [SendOnLogin]
         AugmentationCriticalExpertise            = 298,
+        [SendOnLogin]
         AugmentationCriticalPower                = 299,
+        [SendOnLogin]
         AugmentationSkilledMelee                 = 300,
         AugmentationSkilledMissile               = 301,
         AugmentationSkilledMagic                 = 302,
@@ -347,98 +371,151 @@ namespace ACE.Entity.Enum.Properties
         ImbuedEffect3                            = 304,
         ImbuedEffect4                            = 305,
         ImbuedEffect5                            = 306,
+        [SendOnLogin]
         DamageRating                             = 307,
+        [SendOnLogin]
         DamageResistRating                       = 308,
+        [SendOnLogin]
         AugmentationDamageBonus                  = 309,
+        [SendOnLogin]
         AugmentationDamageReduction              = 310,
         ImbueStackingBits                        = 311,
+        [SendOnLogin]
         HealOverTime                             = 312,
+        [SendOnLogin]
         CritRating                               = 313,
+        [SendOnLogin]
         CritDamageRating                         = 314,
+        [SendOnLogin]
         CritResistRating                         = 315,
+        [SendOnLogin]
         CritDamageResistRating                   = 316,
+        [SendOnLogin]
         HealingResistRating                      = 317,
+        [SendOnLogin]
         DamageOverTime                           = 318,
         ItemMaxLevel                             = 319,
         ItemXpStyle                              = 320,
         EquipmentSetExtra                        = 321,
+        [SendOnLogin]
         AetheriaBitfield                         = 322,
+        [SendOnLogin]
         HealingBoostRating                       = 323,
         HeritageSpecificArmor                    = 324,
         AlternateRacialSkills                    = 325,
         /// <summary>
         /// why was this defaulted to 1?  leaving comment
         /// </summary>
+        [SendOnLogin]
         AugmentationJackOfAllTrades              = 326,
         AugmentationResistanceNether             = 327,
         AugmentationInfusedVoidMagic             = 328,
+        [SendOnLogin]
         WeaknessRating                           = 329,
+        [SendOnLogin]
         NetherOverTime                           = 330,
+        [SendOnLogin]
         NetherResistRating                       = 331,
         LuminanceAward                           = 332,
+        [SendOnLogin]
         LumAugDamageRating                       = 333,
+        [SendOnLogin]
         LumAugDamageReductionRating              = 334,
+        [SendOnLogin]
         LumAugCritDamageRating                   = 335,
+        [SendOnLogin]
         LumAugCritReductionRating                = 336,
         LumAugSurgeEffectRating                  = 337,
+        [SendOnLogin]
         LumAugSurgeChanceRating                  = 338,
+        [SendOnLogin]
         LumAugItemManaUsage                      = 339,
+        [SendOnLogin]
         LumAugItemManaGain                       = 340,
         LumAugVitality                           = 341,
+        [SendOnLogin]
         LumAugHealingRating                      = 342,
+        [SendOnLogin]
         LumAugSkilledCraft                       = 343,
+        [SendOnLogin]
         LumAugSkilledSpec                        = 344,
         LumAugNoDestroyCraft                     = 345,
         RestrictInteraction                      = 346,
         OlthoiLootTimestamp                      = 347,
         OlthoiLootStep                           = 348,
         UseCreatesContractId                     = 349,
+        [SendOnLogin]
         DotResistRating                          = 350,
+        [SendOnLogin]
         LifeResistRating                         = 351,
         CloakWeaveProc                           = 352,
         WeaponType                               = 353,
+        [SendOnLogin]
         MeleeMastery                             = 354,
+        [SendOnLogin]
         RangedMastery                            = 355,
         SneakAttackRating                        = 356,
         RecklessnessRating                       = 357,
         DeceptionRating                          = 358,
         CombatPetRange                           = 359,
+        [SendOnLogin]
         WeaponAuraDamage                         = 360,
+        [SendOnLogin]
         WeaponAuraSpeed                          = 361,
         SummoningMastery                         = 362,
         HeartbeatLifespan                        = 363,
         UseLevelRequirement                      = 364,
+        [SendOnLogin]
         LumAugAllSkills                          = 365,
         UseRequiresSkill                         = 366,
         UseRequiresSkillLevel                    = 367,
         UseRequiresSkillSpec                     = 368,
         UseRequiresLevel                         = 369,
+        [SendOnLogin]
         GearDamage                               = 370,
+        [SendOnLogin]
         GearDamageResist                         = 371,
+        [SendOnLogin]
         GearCrit                                 = 372,
+        [SendOnLogin]
         GearCritResist                           = 373,
+        [SendOnLogin]
         GearCritDamage                           = 374,
+        [SendOnLogin]
         GearCritDamageResist                     = 375,
+        [SendOnLogin]
         GearHealingBoost                         = 376,
+        [SendOnLogin]
         GearNetherResist                         = 377,
+        [SendOnLogin]
         GearLifeResist                           = 378,
+        [SendOnLogin]
         GearMaxHealth                            = 379,
         Unknown380                               = 380,
+        [SendOnLogin]
         PKDamageRating                           = 381,
+        [SendOnLogin]
         PKDamageResistRating                     = 382,
+        [SendOnLogin]
         GearPKDamageRating                       = 383,
+        [SendOnLogin]
         GearPKDamageResistRating                 = 384,
         Unknown385                               = 385,
         /// <summary>
         /// Overpower chance % for endgame creatures.
         /// </summary>
+        [SendOnLogin]
         Overpower                                = 386,
+        [SendOnLogin]
         OverpowerResist                          = 387,
         // Client does not display accurately
+        [SendOnLogin]
         GearOverpower                            = 388,
         // Client does not display accurately
+        [SendOnLogin]
         GearOverpowerResist                      = 389,
         // Number of times a character has enlightened
+        [SendOnLogin]
         Enlightenment                            = 390,
 
         [ServerOnly]

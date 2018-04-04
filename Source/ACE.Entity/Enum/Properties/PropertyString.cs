@@ -8,7 +8,7 @@ namespace ACE.Entity.Enum.Properties
         // source: @OptimShi
         // description attributes are used by the weenie editor for a cleaner display name
         Undef                           = 0,
-        [ServerOnly]
+        [SendOnLogin]
         Name                            = 1,
         /// <summary>
         /// default "Adventurer"

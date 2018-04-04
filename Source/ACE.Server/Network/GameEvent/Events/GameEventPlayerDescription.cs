@@ -45,7 +45,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write(0x0Au);
 
-            var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
+            var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => SendOnLoginProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
 
             if (propertiesInt.Count != 0)
             {
@@ -77,7 +77,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesBool = Session.Player.GetAllPropertyBools().Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
+            var propertiesBool = Session.Player.GetAllPropertyBools().Where(x => SendOnLoginProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
 
             if (propertiesBool.Count != 0)
             {
@@ -93,7 +93,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
+            var propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => SendOnLoginProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
 
             if (propertiesDouble.Count != 0)
             {
@@ -109,7 +109,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesString = Session.Player.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
+            var propertiesString = Session.Player.GetAllPropertyString().Where(x => SendOnLoginProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
 
             if (propertiesString != null && propertiesString.Count != 0)
             {
@@ -125,7 +125,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
+            var propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => SendOnLoginProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
 
             if (propertiesDid != null && propertiesDid.Count != 0)
             {
@@ -141,7 +141,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToList();
+            var propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => SendOnLoginProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToList();
 
             if (propertiesIid != null && propertiesIid.Count != 0)
             {

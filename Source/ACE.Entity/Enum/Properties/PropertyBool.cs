@@ -63,12 +63,13 @@ namespace ACE.Entity.Enum.Properties
         ReportCollisionsAsEnvironment    = 41,
         AllowEdgeSlide                   = 42,
         AdvocateQuest                    = 43,
-        [Ephemeral]
+        [Ephemeral][SendOnLogin]
         IsAdmin                          = 44,
-        [Ephemeral]
+        [Ephemeral][SendOnLogin]
         IsArch                           = 45,
-        [Ephemeral]
+        [Ephemeral][SendOnLogin]
         IsSentinel                       = 46,
+        [SendOnLogin]
         IsAdvocate                       = 47,
         CurrentlyPoweringUp              = 48,
         GeneratorEnteredWorld            = 49,
@@ -119,7 +120,7 @@ namespace ACE.Entity.Enum.Properties
         AppraisalHasAllowedActivator     = 94,
         ExistedBeforeAllegianceXpChanges = 95,
         IsDeaf                           = 96,
-        [Ephemeral]
+        [Ephemeral][SendOnLogin]
         IsPsr                            = 97,
         Invincible                       = 98,
         Ivoryable                        = 99,
@@ -127,6 +128,7 @@ namespace ACE.Entity.Enum.Properties
         CanGenerateRare                  = 101,
         CorpseGeneratedRare              = 102,
         NonProjectileMagicImmune         = 103,
+        [SendOnLogin]
         ActdReceivedItems                = 104,
         Unknown105                       = 105,
         FirstEnterWorldDone              = 106,
@@ -150,6 +152,7 @@ namespace ACE.Entity.Enum.Properties
         NoHeldItemShown                  = 124,
         LoginAtLifestone                 = 125,
         OlthoiPk                         = 126,
+        [SendOnLogin]
         Account15Days                    = 127,
         HadNoVitae                       = 128,
         NoOlthoiTalk                     = 129,

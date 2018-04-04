@@ -138,6 +138,7 @@ namespace ACE.Entity.Enum.Properties
         /// <summary>
         /// this had a default of "1" - leaving comment to investigate potential options for defaulting these things (125)
         /// </summary>
+        [SendOnLogin]
         ResistHealthDrain              = 125,
         LifestoneProtectionTimestamp   = 126,
         AiCounteractEnchantment        = 127,
@@ -176,14 +177,19 @@ namespace ACE.Entity.Enum.Properties
         CachedMaxAbsorbMagicDamage     = 160,
         GagDuration                    = 161,
         AllegianceGagDuration          = 162,
+        [SendOnLogin]
         GlobalXpMod                    = 163,
         HealingModifier                = 164,
         ArmorModVsNether               = 165,
         ResistNether                   = 166,
         CooldownDuration               = 167,
+        [SendOnLogin]
         WeaponAuraOffense              = 168,
+        [SendOnLogin]
         WeaponAuraDefense              = 169,
+        [SendOnLogin]
         WeaponAuraElemental            = 170,
+        [SendOnLogin]
         WeaponAuraManaConv             = 171
     }
 

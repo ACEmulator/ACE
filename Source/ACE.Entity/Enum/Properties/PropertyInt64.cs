@@ -9,12 +9,16 @@ namespace ACE.Entity.Enum.Properties
     public enum PropertyInt64 : ushort
     {
         Undef               = 0,
+        [SendOnLogin]
         TotalExperience     = 1,
+        [SendOnLogin]
         AvailableExperience = 2,
         AugmentationCost    = 3,
         ItemTotalXp         = 4,
         ItemBaseXp          = 5,
+        [SendOnLogin]
         AvailableLuminance  = 6,
+        [SendOnLogin]
         MaximumLuminance    = 7,
         InteractionReqs     = 8,
 
