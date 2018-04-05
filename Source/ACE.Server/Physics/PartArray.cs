@@ -532,7 +532,7 @@ namespace ACE.Server.Physics
                 var part = Parts[i];
                 if (part != null)
                 {
-                    if (Setup.DefaultScale.Count > i)
+                    if (Setup != null && Setup.DefaultScale != null && Setup.DefaultScale.Count > i)
                         part.GfxObjScale = Setup.DefaultScale[i] * newScale;
                     else
                         part.GfxObjScale = newScale;

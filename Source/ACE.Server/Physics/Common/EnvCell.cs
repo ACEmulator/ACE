@@ -107,6 +107,69 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public void check_building_transit(ushort portalId, Position pos, int numSphere, List<Sphere> spheres, CellArray cellArray, SpherePath path)
+        {
+            if (portalId == 0) return;
+            foreach (var sphere in spheres)
+            {
+                var globSphere = new Sphere(Pos.Frame.GlobalToLocal(sphere.Center), sphere.Radius);
+                if (CellStructure.sphere_intersects_cell(globSphere) == BoundingType.Outside)
+                    continue;
+
+                if (path != null)
+                    path.HitsInteriorCell = true;
+
+                cellArray.add_cell(ID, this);
+            }
+        }
+
+        public void check_building_transit(int portalId, int numParts, List<PhysicsPart> parts, CellArray cellArray)
+        {
+            if (portalId == 0) return;
+
+            var portal = Portals[portalId];
+            var portalPoly = CellStructure.Portals[portalId];
+
+            foreach (var part in parts)
+            {
+                if (part == null) continue;
+
+                Sphere boundingSphere = null;
+                if (part.GfxObj[0].PhysicsSphere != null)
+                    boundingSphere = part.GfxObj[0].PhysicsSphere;
+                else
+                    boundingSphere = part.GfxObj[0].DrawingSphere;
+
+                if (boundingSphere == null) continue;
+
+                var center = Pos.LocalToLocal(part.Pos, boundingSphere.Center);
+                var rad = boundingSphere.Radius + PhysicsGlobals.EPSILON;
+
+                var diff = Vector3.Dot(center, portalPoly.Plane.Normal) + portalPoly.Plane.D;
+                if (portal.PortalSide)
+                {
+                    if (diff > rad) continue;
+                }
+                else
+                {
+                    if (diff < -rad) continue;
+                }
+
+                var box = new BBox();
+                box.LocalToLocal(part.GetBoundingBox(), part.Pos, Pos);
+                var intersect = portalPoly.Plane.intersect_box(box);
+                if (intersect == Sidedness.Crossing || intersect == Sidedness.Positive && portal.PortalSide || intersect == Sidedness.Negative && !portal.PortalSide)
+                {
+                    if (!CellStructure.box_intersects_cell(box))
+                        continue;
+
+                    cellArray.add_cell(ID, this);
+                    find_transit_cells(numParts, parts, cellArray);
+                    return;
+                }
+            }
+        }
+
         public ObjCell find_visible_child_cell(Vector3 origin, bool searchCells)
         {
             if (point_in_cell(origin))
@@ -203,6 +266,7 @@ namespace ACE.Server.Physics.Common
                         break;
                     }
 
+                    // LoadCells
                     var otherCell = GetVisible(portal.OtherCellId);
                     if (otherCell == null)
                     {
@@ -256,6 +320,7 @@ namespace ACE.Server.Physics.Common
                         {
                             var center = otherCell.Pos.Frame.GlobalToLocal(sphere.Center);
                             var _sphere = new Sphere(center, sphere.Radius);
+
                             var boundingType = otherCell.CellStructure.sphere_intersects_cell(_sphere);
                             if (boundingType != BoundingType.Outside)
                             {

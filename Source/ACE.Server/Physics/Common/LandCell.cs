@@ -183,6 +183,18 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
+        public override void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
+        {
+            add_all_outside_cells(numParts, parts, cellArray);
+            base.find_transit_cells(numParts, parts, cellArray);
+        }
+
+        public override void find_transit_cells(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, SpherePath path)
+        {
+            add_all_outside_cells(position, numSphere, sphere, cellArray);
+            base.find_transit_cells(position, numSphere, sphere, cellArray, path);
+        }
+
         public override bool point_in_cell(Vector3 point)
         {
             Polygon poly = null;

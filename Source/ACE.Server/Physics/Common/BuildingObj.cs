@@ -1,19 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ACE.DatLoader.Entity;
-using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
     public class BuildingObj: PhysicsObj
     {
-        public List<CBldPortal> Portals;
+        public List<BldPortal> Portals;
         public List<PartCell> LeafCells;
         public List<ShadowPart> ShadowList;
+        public uint NumLeaves;
 
         public BuildingObj() : base()
         {
-            Portals = new List<CBldPortal>();
+            Portals = new List<BldPortal>();
             LeafCells = new List<PartCell>();
             ShadowList = new List<ShadowPart>();
         }
@@ -25,10 +25,10 @@ namespace ACE.Server.Physics.Common
             CurCell = newCell;
         }
 
-        public void add_to_stablist(List<uint> blockStabList, ref int maxSize, ref int stabNum)
+        public void add_to_stablist(ref List<ushort> blockStabList, ref uint maxSize, ref uint stabNum)
         {
-            //foreach (var portal in Portals)
-                //portal.add_to_stablist(blockStabList, maxSize, stabNum);
+            foreach (var portal in Portals)
+                portal.add_to_stablist(ref blockStabList, ref maxSize, ref stabNum);
         }
 
         public TransitionState find_building_collisions(Transition transition)
@@ -46,24 +46,24 @@ namespace ACE.Server.Physics.Common
             return transitionState;
         }
 
-        public void find_building_transit_cells(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, SpherePath path)
+        public void find_building_transit_cells(Position pos, int numSphere, List<Sphere> sphere, CellArray cellArray, SpherePath path)
         {
-            /*foreach (var portal in Portals)
+            foreach (var portal in Portals)
             {
-                var otherCell = portal.GetOtherCell();
+                var otherCell = portal.GetOtherCell(CurCell.ID);
                 if (otherCell != null)
-                    otherCell.check_building_transit(portal.OtherPortalID, numSphere, sphere, cellArray, path);
-            }*/
+                    otherCell.check_building_transit(portal.OtherPortalId, pos, numSphere, sphere, cellArray, path);
+            }
         }
 
         public void find_building_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
         {
-            /*foreach (var portal in Portals)
+            foreach (var portal in Portals)
             {
-                var otherCell = portal.GetOtherCell();
+                var otherCell = portal.GetOtherCell(CurCell.ID);
                 if (otherCell != null)
-                    otherCell.check_building_transit(portal.OtherPortalID, numParts, parts, cellArray);
-            }*/
+                    otherCell.check_building_transit(portal.OtherPortalId, numParts, parts, cellArray);
+            }
         }
 
         public PhysicsObj get_object(int objectID)
@@ -74,12 +74,26 @@ namespace ACE.Server.Physics.Common
 
         public static BuildingObj makeBuilding(uint buildingID, List<CBldPortal> portals, uint numLeaves)
         {
-            // todo: initobj begin/end
-            var buildingObj = new BuildingObj();
-            buildingObj.ID = buildingID;
-            buildingObj.Portals = portals;
-            //buildingObj.NumLeaves = numLeaves;
-            return buildingObj;
+            var building = new BuildingObj();
+
+            if (!building.InitObjectBegin(0, false) || !building.InitPartArrayObject(buildingID, true))
+                return null;
+
+            building.ID = buildingID;
+
+            building.NumLeaves = numLeaves;
+            building.LeafCells = new List<PartCell>();
+            for (var i = 0; i < numLeaves; i++)
+                building.LeafCells.Add(null);
+
+            building.Portals = new List<BldPortal>();
+            foreach (var portal in portals)
+                building.Portals.Add(new BldPortal(portal));
+
+            if (!building.InitObjectEnd())
+                return null;
+
+            return building;
         }
 
         public void remove()

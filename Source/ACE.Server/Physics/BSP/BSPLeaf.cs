@@ -81,7 +81,7 @@ namespace ACE.Server.Physics.BSP
         {
             if (NumPolys == 0) return false;
             if (checkCenter && Solid) return true;
-            if (Sphere.Intersects(checkPos)) return false;
+            if (!Sphere.Intersects(checkPos)) return false;
 
             foreach (var polygon in Polygons)
                 if (polygon.hits_sphere(checkPos))
