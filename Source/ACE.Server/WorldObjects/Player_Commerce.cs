@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        private void UpdateCoinValue()
+        private void UpdateCoinValue(bool sendUpdateMessageIfChanged = true)
         {
             int coins = 0;
 
@@ -24,7 +24,13 @@ namespace ACE.Server.WorldObjects
                     coins += possession.Value ?? 0;
             }
 
+            if (sendUpdateMessageIfChanged && CoinValue == coins)
+                sendUpdateMessageIfChanged = false;
+
             CoinValue = coins;
+
+            if (sendUpdateMessageIfChanged)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
         }
 
         // todo re-think how this works..

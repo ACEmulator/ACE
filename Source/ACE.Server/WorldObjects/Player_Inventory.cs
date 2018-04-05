@@ -86,10 +86,7 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
             if (worldObject.WeenieType == WeenieType.Coin)
-            {
                 UpdateCoinValue();
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-            }
 
             return true;
         }
@@ -113,10 +110,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
             if (worldObject.WeenieType == WeenieType.Coin)
-            {
                 UpdateCoinValue();
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-            }
 
             return true;
         }
@@ -136,11 +130,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                     if (worldObject.WeenieType == WeenieType.Coin)
-                    {
                         UpdateCoinValue();
-
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-                    }
                 }
 
                 worldObject.RemoveBiotaFromDatabase();
@@ -303,10 +293,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 if (item.WeenieType == WeenieType.Coin)
-                {
                     UpdateCoinValue();
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-                }
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
@@ -498,9 +485,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
-            // Goody Goody -- lets build  drop chain
-            // First start drop animation
-            new ActionChain(this, () =>
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(this, () =>
             {
                 // check packs of item.
                 WorldObject item;
@@ -544,16 +531,16 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
 
                 // Now wait for Drop Motion to finish -- use ActionChain
-                var chain = new ActionChain();
+                var dropChain = new ActionChain();
 
                 // Wait for drop animation
                 var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
                 var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
-                chain.AddDelaySeconds(pickupAnimationLength);
+                dropChain.AddDelaySeconds(pickupAnimationLength);
 
                 // Play drop sound
                 // Put item on landblock
-                chain.AddAction(this, () =>
+                dropChain.AddAction(this, () =>
                 {
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock.EnqueueBroadcastMotion(this, motion);
@@ -564,10 +551,7 @@ namespace ACE.Server.WorldObjects
                         new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                     if (item.WeenieType == WeenieType.Coin)
-                    {
                         UpdateCoinValue();
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-                    }
 
                     // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                     item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
@@ -579,8 +563,10 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock.EnqueueBroadcast(Location, new GameMessageUpdatePosition(item));
                 });
 
-                chain.EnqueueChain();
-            }).EnqueueChain();
+                actionChain.AddChain(dropChain);
+            });
+
+            actionChain.EnqueueChain();
         }
 
         public void HandleActionGetAndWieldItem(uint itemId, int wieldLocation)
@@ -862,11 +848,107 @@ namespace ACE.Server.WorldObjects
                     // todo CoinValue .. would only apply if we're going to/from landscape container
                 }*/
 
+                // todo i'm not sure if this is right? Should it be a landblock broadcast if we're splitting items on our own person?
+                // todo Probably only landblock if the container exists on the landscape, but even then... i don't think so
                 CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                     new GameEventItemServerSaysContainId(Session, newStack, container),
                     new GameMessageSetStackSize(stack),
                     new GameMessageCreateObject(newStack));
             }).EnqueueChain();
+        }
+
+        /// <summary>
+        /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
+        /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting item.
+        /// </summary>
+        /// <param name="stackId">This is the guild of the item we are spliting</param>
+        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
+        public void HandleActionStackableSplitTo3D(uint stackId, uint amount)
+        {
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(this, () =>
+            {
+                var stack = GetInventoryItem(new ObjectGuid(stackId), out var container);
+
+                if (stack == null)
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not found");
+                    return;
+                }
+
+                if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
+                {
+                    log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not large enough for amount");
+                    return;
+                }
+
+                // Ok we are in business
+                stack.StackSize -= (ushort)amount;
+                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
+
+                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+                newStack.StackSize = (ushort)amount;
+                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
+                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
+
+                newStack.SetPropertiesForWorld(this);
+
+                container.EncumbranceVal -= newStack.EncumbranceVal;
+                container.Value -= newStack.Value;
+
+                if (container != this)
+                {
+                    EncumbranceVal -= newStack.EncumbranceVal;
+                    Value -= newStack.Value;
+                }
+
+                var motion = new UniversalMotion(MotionStance.Standing);
+                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+
+                // Set drop motion
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+
+                // Now wait for Drop Motion to finish -- use ActionChain
+                var dropChain = new ActionChain();
+
+                // Wait for drop animation
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+                dropChain.AddDelaySeconds(pickupAnimationLength);
+
+                // Play drop sound
+                // Put item on landblock
+                dropChain.AddAction(this, () =>
+                {
+                    if (container != this)
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                    motion = new UniversalMotion(MotionStance.Standing);
+                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+                    if (newStack.WeenieType == WeenieType.Coin)
+                        UpdateCoinValue();
+
+                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                    newStack.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                    newStack.Sequences.GetNextSequence(SequenceType.ObjectVector);
+
+                    CurrentLandblock.AddWorldObject(newStack);
+
+                    //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageUpdatePosition(newStack));
+                });
+
+                actionChain.AddChain(dropChain);
+            });
+
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
