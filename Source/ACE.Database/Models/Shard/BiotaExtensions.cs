@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -73,6 +74,11 @@ namespace ACE.Database.Models.Shard
         public static BiotaPropertiesEmote GetEmote(this Biota biota, uint category)
         {
             return biota.BiotaPropertiesEmote.FirstOrDefault(x => x.Category == category);
+        }
+
+        public static IEnumerable<BiotaPropertiesEmote> GetEmotes(this Biota biota, uint category)
+        {
+            return biota.BiotaPropertiesEmote.Where(x => x.Category == category);
         }
 
         // BiotaPropertiesEmoteAction

@@ -3105,7 +3105,7 @@ namespace ACE.Server.Physics
         public void set_object_guid(ObjectGuid guid)
         {
             ObjID = guid;
-            ID = guid.Low;
+            ID = guid.Full;
         }
 
         /// <summary>

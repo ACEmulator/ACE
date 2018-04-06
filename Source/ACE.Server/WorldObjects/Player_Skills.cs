@@ -5,6 +5,7 @@ using System.Diagnostics;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
@@ -23,7 +24,6 @@ namespace ACE.Server.WorldObjects
         //    get => GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
         //    set => SetProperty(PropertyInt.AvailableSkillCredits, value);
         //}
-
 
         /// <summary>
         /// Sets the skill to trained status for a character
@@ -136,21 +136,44 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        /// <summary>
+        /// Increases a skill by some amount of points
+        /// </summary>
+        public void AwardSkillPoints(Skill skill, uint amount, bool usage = false)
+        {
+            var creatureSkill = GetCreatureSkill(skill);
+
+            for (var i = 0; i < amount; i++)
+            {
+                if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.Status))
+                    return;
+
+                // get skill xp required for next rank
+                var xpToRank = GetXpToNextRank(creatureSkill);
+                if (xpToRank == uint.MaxValue)
+                    return;
+
+                RaiseSkillGameAction(skill, xpToRank, usage);
+            }
+        }
 
         /// <summary>
-        /// Spend xp Skill ranks
+        /// Increases a skill from the 'Raise skill' buttons, or through natural usage
         /// </summary>
-        public void RaiseSkillGameAction(Skill skill, uint amount)
+        public void RaiseSkillGameAction(Skill skill, uint amount, bool usage = false)
         {
             uint baseValue = 0;
 
             var creatureSkill = GetCreatureSkill(skill);
 
-            uint result = SpendSkillXp(creatureSkill, amount);
+            var prevRank = creatureSkill.Ranks;
+            var prevXP = creatureSkill.ExperienceSpent;
+
+            uint result = SpendSkillXp(creatureSkill, amount, usage);
 
             string messageText;
 
-            if (result > 0u)
+            if (prevRank != creatureSkill.Ranks)
             {
                 // if the skill ranks out at the top of our xp chart
                 // then we will start fireworks effects and have special text!
@@ -164,46 +187,44 @@ namespace ACE.Server.WorldObjects
                 {
                     messageText = $"Your base {skill} is now {creatureSkill.Base}!";
                 }
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result));
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
+                Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
+            }
+            else if (prevXP != creatureSkill.ExperienceSpent)
+            {
+                // skill usage
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result));
             }
             else
             {
                 messageText = $"Your attempt to raise {skill} has failed!";
+                Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
-
-            var skillUpdate = new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result);
-            var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
-            var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
-            Session.Network.EnqueueSend(skillUpdate, soundEvent, message);
         }
 
         /// <summary>
-        /// spends the xp on this skill.
+        /// Adds experience points to a skill
         /// </summary>
         /// <remarks>
         ///     Known Issues:
-        ///         1. Not checking and accounting for XP gained from skill usage.
+        ///         1. Earned XP usage in ranks besides 1 or 10 need to be accounted for.
         /// </remarks>
-        /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendSkillXp(CreatureSkill skill, uint amount)
+        /// <returns>0 if it failed, total skill experience if successful</returns>
+        private uint SpendSkillXp(CreatureSkill skill, uint amount, bool usage = false)
         {
             uint result = 0u;
 
-            List<uint> xpList;
-            var xpTable = DatManager.PortalDat.XpTable;
-
-            if (skill.Status == SkillStatus.Trained)
-                xpList = xpTable.TrainedSkillXpList;
-            else if (skill.Status == SkillStatus.Specialized)
-                xpList = xpTable.SpecializedSkillXpList;
-            else
-                return result;
+            List<uint> xpList = GetXPTable(skill.Status);
+            if (xpList == null) return result;
 
             // do not advance if we cannot spend xp to rank up our skill by 1 point
             if (skill.Ranks >= (xpList.Count - 1))
                 return result;
 
             ushort rankUps = 0;
-            uint currentRankXp = xpList[Convert.ToInt32(skill.Ranks)];
+            //uint currentRankXp = xpList[Convert.ToInt32(skill.Ranks)];
+            uint currentRankXp = skill.ExperienceSpent;
             uint rank1 = xpList[Convert.ToInt32(skill.Ranks) + 1] - currentRankXp;
             uint rank10;
             ushort rank10Offset = 0;
@@ -218,9 +239,9 @@ namespace ACE.Server.WorldObjects
                 rank10 = xpList[skill.Ranks + 10] - currentRankXp;
             }
 
-            if (amount == rank1)
+            if (amount >= rank1)
                 rankUps = 1;
-            else if (amount == rank10)
+            else if (amount >= rank10)
             {
                 if (rank10Offset > 0)
                     rankUps = rank10Offset;
@@ -229,14 +250,66 @@ namespace ACE.Server.WorldObjects
             }
 
             if (rankUps > 0)
-            {
                 skill.Ranks += rankUps;
-                skill.ExperienceSpent += amount;
+
+            if (!usage)
                 SpendXp(amount);
-                result = skill.ExperienceSpent;
-            }
+
+            skill.ExperienceSpent += amount;
+            result = skill.ExperienceSpent;
 
             return result;
+        }
+
+        /// <summary>
+        /// Grants skill XP proportional to the player's skill level
+        /// </summary>
+        public void GrantLevelProportionalSkillXP(Skill skill, double percent, ulong max)
+        {
+            var creatureSkill = GetCreatureSkill(skill);
+            if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.Status))
+                return;
+
+            var nextLevelXP = GetXPBetweenSkillLevels(creatureSkill.Status, creatureSkill.Ranks, creatureSkill.Ranks + 1).Value;
+            var amount = (uint)Math.Min(nextLevelXP * percent, max);
+
+            RaiseSkillGameAction(skill, amount, true);
+        }
+
+        /// <summary>
+        /// Returns the remaining XP required to the next skill level
+        /// </summary>
+        public uint GetXpToNextRank(CreatureSkill skill)
+        {
+            var xpList = GetXPTable(skill.Status);
+            if (xpList != null)
+                return xpList[Convert.ToInt32(skill.Ranks) + 1] - skill.ExperienceSpent;
+            else
+                return uint.MaxValue;
+        }
+
+        /// <summary>
+        /// Returns the XP curve table based on trained or specialized skill
+        /// </summary>
+        public List<uint> GetXPTable(SkillStatus status)
+        {
+            var xpTable = DatManager.PortalDat.XpTable;
+            if (status == SkillStatus.Trained)
+                return xpTable.TrainedSkillXpList;
+            else if (status == SkillStatus.Specialized)
+                return xpTable.SpecializedSkillXpList;
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Returns the XP required to go between skill level A and skill level B
+        /// </summary>
+        public ulong? GetXPBetweenSkillLevels(SkillStatus status, int levelA, int levelB)
+        {
+            var xpTable = GetXPTable(status);
+            if (xpTable == null) return null;
+            return xpTable[levelB + 1] - xpTable[levelA + 1];
         }
 
         /// <summary>
@@ -245,22 +318,15 @@ namespace ACE.Server.WorldObjects
         /// <returns>Returns true if skill is max rank; false if skill is below max rank</returns>
         private bool IsSkillMaxRank(uint rank, SkillStatus status)
         {
-            List<uint> xpList;
-            var xpTable = DatManager.PortalDat.XpTable;
-
-            if (status == SkillStatus.Trained)
-                xpList = xpTable.TrainedSkillXpList;
-            else if (status == SkillStatus.Specialized)
-                xpList = xpTable.SpecializedSkillXpList;
-            else
-                throw new Exception();
+            var xpList = GetXPTable(status);
+            if (xpList == null)
+                throw new Exception();  // return false?
 
             if (rank == (xpList.Count - 1))
                 return true;
 
             return false;
         }
-
 
         private const uint magicSkillCheckMargin = 50;
 
@@ -296,6 +362,21 @@ namespace ACE.Server.WorldObjects
                 ret = true;
 
             return ret;
+        }
+
+        public void AddSkillCredits(int amount, bool showText)
+        {
+            TotalSkillCredits += amount;
+            AvailableSkillCredits += amount;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0));
+
+            if (showText)
+            {
+                var message = string.Format("You have earned {0} skill credit{1}!", amount, amount == 1 ? "" : "s");
+                Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement));
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
+            }
         }
     }
 }

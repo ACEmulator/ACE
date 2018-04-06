@@ -149,6 +149,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt64.TotalExperience); else SetProperty(PropertyInt64.TotalExperience, value.Value); }
         }
 
+        public long? AvailableLuminance
+        {
+            get => GetProperty(PropertyInt64.AvailableLuminance);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.AvailableLuminance); else SetProperty(PropertyInt64.AvailableLuminance, value.Value); }
+        }
+
+        public long? MaximumLuminance
+        {
+            get => GetProperty(PropertyInt64.MaximumLuminance);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt64.MaximumLuminance); else SetProperty(PropertyInt64.MaximumLuminance, value.Value); }
+        }
+
         public int? AvailableSkillCredits
         {
             get => GetProperty(PropertyInt.AvailableSkillCredits);
