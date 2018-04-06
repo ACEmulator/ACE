@@ -171,19 +171,19 @@ namespace ACE.Server.WorldObjects
             Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject target = CurrentLandblock.GetObject(guidTarget);
 
-            if (player.BusyState == true)
+            if (player.IsBusy == true)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
                 return;
             }
             else
-                player.BusyState = true;
+                player.IsBusy = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
-                player.BusyState = false;
+                player.IsBusy = false;
                 return;
             }
 
@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
             if (guidTarget == null)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YourSpellTargetIsMissing));
-                player.BusyState = false;
+                player.IsBusy = false;
                 return;
             }
 
@@ -217,7 +217,7 @@ namespace ACE.Server.WorldObjects
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
                             new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
-                        player.BusyState = false;
+                        player.IsBusy = false;
                         return;
                     }
                 }
@@ -227,7 +227,7 @@ namespace ACE.Server.WorldObjects
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
                     new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                player.BusyState = false;
+                player.IsBusy = false;
                 return;
             }
 
@@ -360,7 +360,7 @@ namespace ACE.Server.WorldObjects
             spellChain.AddAction(this, () =>
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
-                player.BusyState = false;
+                player.IsBusy = false;
             });
 
             spellChain.EnqueueChain();
@@ -375,19 +375,19 @@ namespace ACE.Server.WorldObjects
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
-            if (player.BusyState == true)
+            if (player.IsBusy == true)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
                 return;
             }
             else
-                player.BusyState = true;
+                player.IsBusy = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YourSpellTargetIsMissing));
-                player.BusyState = false;
+                player.IsBusy = false;
                 return;
             }
 
@@ -397,7 +397,7 @@ namespace ACE.Server.WorldObjects
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
-            player.BusyState = false;
+            player.IsBusy = false;
 
             return;
         }
@@ -409,15 +409,15 @@ namespace ACE.Server.WorldObjects
         {
             Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
 
-            if (creature.BusyState == true)
+            if (creature.IsBusy == true)
                 return;
             else
-                creature.BusyState = true;
+                creature.IsBusy = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                creature.BusyState = false;
+                creature.IsBusy = false;
                 return;
             }
 
@@ -425,7 +425,7 @@ namespace ACE.Server.WorldObjects
 
             float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
-            creature.BusyState = false;
+            creature.IsBusy = false;
             return;
         }
 
@@ -436,15 +436,15 @@ namespace ACE.Server.WorldObjects
         {
             Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
 
-            if (creature.BusyState == true)
+            if (creature.IsBusy == true)
                 return;
             else
-                creature.BusyState = true;
+                creature.IsBusy = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                creature.BusyState = false;
+                creature.IsBusy = false;
                 return;
             }
 
@@ -452,7 +452,7 @@ namespace ACE.Server.WorldObjects
 
             float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
-            creature.BusyState = false;
+            creature.IsBusy = false;
             return;
         }
     }

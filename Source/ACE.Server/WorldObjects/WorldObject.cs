@@ -55,8 +55,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
-        public bool IsBusy;
-        public bool IsMovingTo;
+        private bool busyState;
+        private bool movingState;
+
+        public bool IsBusy { get => busyState; set => busyState = value; }
+        public bool IsMovingTo { get => movingState; set => movingState = value; }
 
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
