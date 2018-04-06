@@ -10,6 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint newLeaderID = message.Payload.ReadUInt32();
             Player newLeader = WorldManager.GetPlayerByGuidId(newLeaderID);
+
             session.Player.FellowshipNewLeader(newLeader);
         }
     }

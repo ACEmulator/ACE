@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects
         /// <remarks>
         ///  The client will throw up more then one train skill dialog and the user has the chance to spend twice.
         /// </remarks>
-        public void TrainSkillGameAction(Skill skill, int creditsSpent)
+        public void HandleActionTrainSkill(Skill skill, int creditsSpent)
         {
             if (AvailableSkillCredits >= creditsSpent)
             {

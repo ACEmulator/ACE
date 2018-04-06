@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles player untargeted casting message
         /// </summary>
-        public void HandleActionCastUntargetedSpell(uint spellId)
+        public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
             CreatePlayerSpell(spellId);
         }

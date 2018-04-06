@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -14,6 +14,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint objectId = message.Payload.ReadUInt32();
             string inscriptionText = message.Payload.ReadString16L();
+
             session.Player.HandleActionSetInscription(new ObjectGuid(objectId), inscriptionText);
         }
     }

@@ -1,5 +1,3 @@
-using ACE.Entity;
-
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionMagicCastUnTargetedSpell
@@ -9,7 +7,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var spellId = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionCastUntargetedSpell(spellId);
+            session.Player.HandleActionMagicCastUnTargetedSpell(spellId);
         }
     }
 }

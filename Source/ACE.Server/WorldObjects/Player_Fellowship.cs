@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
             Fellowship = new Fellowship(this, fellowshipName, shareXP);
         }
 
-        public void FellowshipSetOpen(bool openness)
+        public void HandleActionFellowshipChangeOpenness(bool openness)
         {
             if (Fellowship != null)
                 Fellowship.UpdateOpenness(openness);

@@ -52,7 +52,7 @@ namespace ACE.Server.Command.Handlers
                 // playerSession will be null when the character is not found
                 if (playerSession != null)
                 {
-                    playerSession.Player.HandleActionKill(playerSession.Player.Guid);
+                    playerSession.Player.HandleActionDie();
                     return;
                 }
             }

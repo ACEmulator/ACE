@@ -7,6 +7,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint itemGuid = message.Payload.ReadUInt32();
             int location = message.Payload.ReadInt32();
+
             session.Player.HandleActionGetAndWieldItem(itemGuid, location);
         }
     }

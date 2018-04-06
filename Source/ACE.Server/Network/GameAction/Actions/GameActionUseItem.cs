@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -8,6 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint fullId = message.Payload.ReadUInt32();
+
             session.Player.HandleActionUseItem(new ObjectGuid(fullId));
         }
     }

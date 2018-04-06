@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(fullId);
 
-            session.Player.QueryItemMana(guid);
+            session.Player.HandleActionQueryItemMana(guid);
         }
     }
 }

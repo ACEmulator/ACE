@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             ObjectGuid guid = new ObjectGuid(fullId);
 
-            session.Player.QueryHealth(guid);
+            session.Player.HandleActionQueryHealth(guid);
         }
     }
 }

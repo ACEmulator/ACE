@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+namespace ACE.Server.Network.GameAction.Actions
 {
     /// <summary>
     /// This method handles the Game Action F7B1 - 0x0055 Stackable Split to Container.   This is sent to the server when the player
@@ -16,6 +16,7 @@
             uint containerId = message.Payload.ReadUInt32();
             int place = message.Payload.ReadInt32();
             ushort amount = (ushort)message.Payload.ReadUInt32();
+
             session.Player.HandleActionStackableSplitToContainer(stackId, containerId, place, amount);
         }
     }

@@ -29,7 +29,7 @@ namespace ACE.Server.Network.GameAction.Actions
             //        return;
             //}
 
-            session.Player.RaiseVitalGameAction(vital, xpSpent);
+            session.Player.HandleActionRaiseVital(vital, xpSpent);
         }
     }
 }

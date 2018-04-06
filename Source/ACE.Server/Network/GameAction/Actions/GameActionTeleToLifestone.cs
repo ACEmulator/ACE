@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToLifestone)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Player.TeleToLifestone();
+            session.Player.HandleActionTeleToLifestone();
         }
     }
 }

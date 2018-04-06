@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -8,6 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var emote = message.Payload.ReadString16L();
+
             session.Player.HandleActionSoulEmote(emote);
         }
     }

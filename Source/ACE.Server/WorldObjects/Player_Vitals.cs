@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void RaiseVitalGameAction(PropertyAttribute2nd attribute, uint amount)
+        public void HandleActionRaiseVital(PropertyAttribute2nd attribute, uint amount)
         {
             var creatureVital = new CreatureVital(this, attribute);
 

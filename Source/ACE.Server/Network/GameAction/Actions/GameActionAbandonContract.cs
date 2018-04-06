@@ -12,7 +12,8 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             // Read in the applicable data.
             uint contractId = message.Payload.ReadUInt32();
-            session.Player.AbandonContract(contractId);
+
+            session.Player.HandleActionAbandonContract(contractId);
         }
     }
 }

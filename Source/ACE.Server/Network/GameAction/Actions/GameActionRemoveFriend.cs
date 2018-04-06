@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -9,7 +9,8 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint id = message.Payload.ReadUInt32(); // & 0xFFFFFF;
             var friendId = new ObjectGuid(id);
-            session.Player.RemoveFriend(friendId);
+
+            session.Player.HandleActionRemoveFriend(friendId);
         }
     }
 }

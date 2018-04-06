@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles teleporting a player to the lifestone (/ls or /lifestone command)
         /// </summary>
-        public void TeleToLifestone()
+        public void HandleActionTeleToLifestone()
         {
             if (Sanctuary != null)
             {
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
 
         private static readonly UniversalMotion motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
 
-        public void TeleToMarketplace()
+        public void HandleActionTeleToMarketPlace()
         {
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 

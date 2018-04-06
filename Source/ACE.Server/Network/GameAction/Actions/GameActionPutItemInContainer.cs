@@ -1,4 +1,4 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -10,6 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var itemGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var containerGuid = new ObjectGuid(message.Payload.ReadUInt32());
             var placement = message.Payload.ReadInt32();
+
             session.Player.HandleActionPutItemInContainer(itemGuid, containerGuid, placement);
         }
     }

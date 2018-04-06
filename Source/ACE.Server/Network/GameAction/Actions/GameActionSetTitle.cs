@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionSetTitle
     {
@@ -6,7 +6,8 @@
         public static void Handle(ClientMessage message, Session session)
         {
             var title = message.Payload.ReadUInt32();
-            session.Player.SetTitle(title);
+
+            session.Player.HandleActionSetTitle(title);
         }
     }
 }

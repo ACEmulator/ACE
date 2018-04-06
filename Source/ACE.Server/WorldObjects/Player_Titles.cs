@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
             AddTitle((uint)title, setAsDisplayTitle);
         }
 
-        public void SetTitle(uint title)
+        public void HandleActionSetTitle(uint title)
         {
             AddTitle(title, true);
         }

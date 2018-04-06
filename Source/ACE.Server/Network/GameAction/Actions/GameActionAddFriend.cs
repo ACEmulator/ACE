@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -8,7 +8,8 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var friendName = message.Payload.ReadString16L().Trim();
-            session.Player.AddFriend(friendName);
+
+            session.Player.HandleActionAddFriend(friendName);
         }
     }
 }

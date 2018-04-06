@@ -5,7 +5,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.TeleToMarketPlace)]
         public static void Handle(ClientMessage clientMessage, Session session)
         {
-            session.Player.TeleToMarketplace();
+            session.Player.HandleActionTeleToMarketPlace();
         }
     }
 }

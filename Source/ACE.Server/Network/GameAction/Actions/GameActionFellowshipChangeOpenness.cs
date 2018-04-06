@@ -7,7 +7,8 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var isOpen = message.Payload.ReadUInt32() != 0;
-            session.Player.FellowshipSetOpen(isOpen);
+
+            session.Player.HandleActionFellowshipChangeOpenness(isOpen);
         }
     }
 }

@@ -375,7 +375,7 @@ namespace ACE.Server.WorldObjects
             CurrentAppraisalTarget = examinationId.Full;
         }
 
-        public void QueryHealth(ObjectGuid queryId)
+        public void HandleActionQueryHealth(ObjectGuid queryId)
         {
             if (queryId.Full == 0)
             {
@@ -391,7 +391,7 @@ namespace ACE.Server.WorldObjects
             CurrentLandblock.GetObject(queryId).QueryHealth(Session);
         }
 
-        public void QueryItemMana(ObjectGuid queryId)
+        public void HandleActionQueryItemMana(ObjectGuid queryId)
         {
             if (queryId.Full == 0)
             {
@@ -462,7 +462,7 @@ namespace ACE.Server.WorldObjects
         /// Adds a friend and updates the database.
         /// </summary>
         /// <param name="friendName">The name of the friend that is being added.</param>
-        public void AddFriend(string friendName)
+        public void HandleActionAddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
@@ -503,7 +503,7 @@ namespace ACE.Server.WorldObjects
         /// Remove a single friend and update the database.
         /// </summary>
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public void RemoveFriend(ObjectGuid friendId)
+        public void HandleActionRemoveFriend(ObjectGuid friendId)
         {
             Friend friendToRemove = Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
 
@@ -518,7 +518,7 @@ namespace ACE.Server.WorldObjects
             DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low, (() =>
             {
                 // Remove from character object
-                RemoveFriend(friendId);
+                HandleActionRemoveFriend(friendId);
 
                 // Send packet
                 Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
@@ -528,13 +528,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Delete all friends and update the database.
         /// </summary>
-        public void RemoveAllFriends()
+        public void HandleActionRemoveAllFriends()
         {
             // Remove all from DB
             DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
 
             // Remove from character object
-            RemoveAllFriends();
+            HandleActionRemoveAllFriends();
         }
 
         /// <summary>
@@ -814,7 +814,7 @@ namespace ACE.Server.WorldObjects
         /// response to the client to remove the item from the quest panel. Og II
         /// </summary>
         /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
-        public void AbandonContract(uint contractId)
+        public void HandleActionAbandonContract(uint contractId)
         {
             ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
             {
@@ -998,16 +998,12 @@ namespace ACE.Server.WorldObjects
             }).EnqueueChain();
         }
 
-        public void HandleActionKill(ObjectGuid toSmite)
+        public void HandleActionDie()
         {
             // Create smite action chain... then send it
             new ActionChain(this, () =>
             {
-                Creature c = CurrentLandblock.GetObject(toSmite) as Creature;
-                if (c != null)
-                {
-                    c.DoOnKill(Session);
-                }
+                DoOnKill(Session);
             }).EnqueueChain();
         }
 
