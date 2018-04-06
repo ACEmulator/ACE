@@ -55,6 +55,9 @@ namespace ACE.Server.WorldObjects
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
+        public bool IsBusy;
+        public bool IsMovingTo;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
@@ -653,6 +656,21 @@ namespace ACE.Server.WorldObjects
 
             if (cellID != null)
                 pos.Cell = cellID.Value;
+        }
+
+        public virtual void Activate(WorldObject activator)
+        {
+            // empty base, override in child objects
+        }
+
+        public virtual void Open(WorldObject opener)
+        {
+            // empty base, override in child obejcts
+        }
+
+        public virtual void Close(WorldObject closer)
+        {
+            // empty base, override in child obejcts
         }
     }
 }

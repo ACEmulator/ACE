@@ -16,6 +16,11 @@ namespace ACE.Server.WorldObjects
         public CreatureVital Stamina => Vitals[PropertyAttribute2nd.MaxStamina];
         public CreatureVital Mana => Vitals[PropertyAttribute2nd.MaxMana];
 
+        public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
+        {
+            Vitals.TryGetValue(vital, out var value);
+            return value;
+        }
 
         public void DeltaVital(CreatureVital vital, long delta)
         {

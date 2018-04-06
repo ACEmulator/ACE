@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -19,6 +21,35 @@ namespace ACE.Server.WorldObjects
 
             var message = new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement);
             Session.Network.EnqueueSend(message);
+        }
+
+        /// <summary>
+        /// Raise the available XP by a percentage of the current level XP
+        /// or a maximum
+        /// </summary>
+        public void GrantLevelProportionalXp(double percent, ulong max)
+        {
+            var maxLevel = GetMaxLevel();
+            if (Level >= maxLevel) return;
+
+            var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
+            var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
+            GrantXp(scaledXP);
+        }
+
+        /// <summary>
+        /// Raise the available luminance by a specified amount
+        /// </summary>
+        public void GrantLuminance(long amount)
+        {
+            if (AvailableLuminance + amount > MaximumLuminance)
+                amount = MaximumLuminance.Value - AvailableLuminance.Value;
+
+            AvailableLuminance += amount;
+
+            var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
+            var message = new GameMessageSystemChat($"{amount} luminance granted.", ChatMessageType.Advancement);
+            Session.Network.EnqueueSend(luminance, message);
         }
 
         public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
@@ -39,7 +70,7 @@ namespace ACE.Server.WorldObjects
             // until we are max level we must make sure that we send
             var xpTable = DatManager.PortalDat.XpTable;
 
-            var maxLevel = xpTable.CharacterLevelXPList.Count - 1; // The count is 276 but 275 is the maxLevel
+            var maxLevel = GetMaxLevel();
             var maxLevelXp = xpTable.CharacterLevelXPList.Last();
 
             if (Level != maxLevel)
@@ -59,13 +90,58 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the maximum possible character level
+        /// </summary>
+        /// <returns></returns>
+        public uint GetMaxLevel()
+        {
+            return (uint)DatManager.PortalDat.XpTable.CharacterLevelXPList.Count - 1; 
+        }
+
+        /// <summary>
+        /// Returns the total XP required to reach a level
+        /// </summary>
+        public ulong GetTotalXP(int level)
+        {
+            var maxLevel = GetMaxLevel();
+            if (level >= maxLevel)
+                return 0;
+
+            return DatManager.PortalDat.XpTable.CharacterLevelXPList[level + 1];
+        }
+
+        /// <summary>
+        /// Returns the remaining XP required to the next level
+        /// </summary>
+        public ulong GetRemainingXP()
+        {
+            var maxLevel = GetMaxLevel();
+            if (Level >= maxLevel)
+                return 0;
+
+            var nextLevelTotalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[Level.Value + 2];
+            return nextLevelTotalXP - (ulong)TotalExperience.Value;
+        }
+
+        /// <summary>
+        /// Returns the XP required to go from level A to level B
+        /// </summary>
+        public ulong GetXPBetweenLevels(int levelA, int levelB)
+        {
+            var levelA_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelA + 1];
+            var levelB_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelB + 1];
+
+            return levelB_totalXP - levelA_totalXP;
+        }
+
+        /// <summary>
         /// Determines if the player has advanced a level
         /// </summary>
         private void CheckForLevelup()
         {
             var xpTable = DatManager.PortalDat.XpTable;
 
-            var maxLevel = xpTable.CharacterLevelXPList.Count - 1; // The count is 276 but 275 is the maxLevel
+            var maxLevel = GetMaxLevel();
 
             if (Level == maxLevel) return;
 

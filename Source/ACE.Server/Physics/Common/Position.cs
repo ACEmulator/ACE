@@ -33,6 +33,11 @@ namespace ACE.Server.Physics.Common
             Frame = new AFrame(p.Frame);
         }
 
+        public Position(ACE.Entity.Position p)
+        {
+            Frame = new AFrame(p.Pos, p.Rotation);
+        }
+
         public void Init()
         {
             Frame = new AFrame();

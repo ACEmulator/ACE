@@ -27,6 +27,10 @@ namespace ACE.Server.WorldObjects.Entity
             set => biotaPropertiesSkill.SAC = (uint)value;
         }
 
+        /// <summary>
+        /// Total experience for this skill,
+        /// both spent and earned
+        /// </summary>
         public uint ExperienceSpent
         {
             get => biotaPropertiesSkill.PP;
