@@ -415,7 +415,7 @@ namespace ACE.Server.Managers
                 case EmoteType.LockFellow:
 
                     if (player != null && player.Fellowship != null)
-                        player.FellowshipSetOpen(false);
+                        player.HandleActionFellowshipChangeOpenness(false);
                     break;
 
                 case EmoteType.Motion:
@@ -473,7 +473,7 @@ namespace ACE.Server.Managers
                 case EmoteType.RemoveContract:
 
                     if (player != null)
-                        player.AbandonContract(emote.Stat);
+                        player.HandleActionAbandonContract(emote.Stat);
                     break;
 
                 case EmoteType.RemoveVitaePenalty:
