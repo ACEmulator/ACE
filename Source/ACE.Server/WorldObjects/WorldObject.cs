@@ -25,6 +25,7 @@ using ACE.Server.Physics.Util;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -639,6 +640,7 @@ namespace ACE.Server.WorldObjects
 
         public virtual void HeartBeat()
         {
+            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
             // Do Stuff
             EmoteManager.HeartBeat();
 

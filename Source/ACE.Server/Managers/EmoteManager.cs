@@ -1,3 +1,4 @@
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -791,9 +792,12 @@ namespace ACE.Server.Managers
 
         public void HeartBeat()
         {
+            // System.Console.WriteLine($"WorldObject {WorldObject.Name} (0x{WorldObject.Guid.Full:X}) - Heartbeat timestamp: {WorldObject.GetProperty(PropertyFloat.HeartbeatTimestamp) ?? 0}");
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
             foreach (var emote in WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.HeartBeat))
-            {
-                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            {                
                 if (rng <= emote.Probability)
                 {
                     var emoteChain = new ActionChain();
@@ -802,6 +806,15 @@ namespace ACE.Server.Managers
                     {
                         switch ((EmoteType)action.Type)
                         {
+                            case EmoteType.Say:
+
+                                emoteChain.AddDelaySeconds(action.Delay);
+                                emoteChain.AddAction(WorldObject, () =>
+                                {
+                                    WorldObject.CurrentLandblock.EnqueueBroadcastLocalChat(WorldObject, action.Message);
+                                });
+                                break;
+
                             case EmoteType.Motion:
 
                                 var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
@@ -848,7 +861,10 @@ namespace ACE.Server.Managers
                     }
 
                     if (emoteChain != null && emoteChain.FirstElement != null)
+                    {
                         emoteChain.EnqueueChain();
+                        break;
+                    }
                 }
             }
         }
