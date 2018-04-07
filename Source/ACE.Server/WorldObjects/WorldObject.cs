@@ -72,10 +72,6 @@ namespace ACE.Server.WorldObjects
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
             SetEphemeralValues();
-
-            EmoteManager = new EmoteManager(this);
-
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -90,10 +86,6 @@ namespace ACE.Server.WorldObjects
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
             SetEphemeralValues();
-
-            EmoteManager = new EmoteManager(this);
-
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -259,6 +251,10 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
+
+            EmoteManager = new EmoteManager(this);
+
+            InitPhysics = true;
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
