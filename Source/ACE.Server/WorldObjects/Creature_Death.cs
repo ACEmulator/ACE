@@ -99,13 +99,23 @@ namespace ACE.Server.WorldObjects
 
                 corpse.Name = $"Corpse of {Name}";
 
-                var killerName = CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0)).Name; // this might need to be rethought....
+                string killerName = null;
 
-                if (killerName == "")
+                if (Killer.HasValue && Killer != 0)
+                {
+                    var killer = CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0));
+
+                    if (killer != null)
+                        killerName = killer.Name;
+                }
+
+                if (String.IsNullOrEmpty(killerName))
                     killerName = "misadventure";
 
                 corpse.LongDesc = $"Killed by {killerName}";
-                corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
+
+                if (Killer.HasValue)
+                    corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
 
                 // Transfer of generated treasure from creature to corpse here
 

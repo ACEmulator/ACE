@@ -853,47 +853,6 @@ namespace ACE.Server.WorldObjects
             new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
         }
 
-        public void HandleActionSmiteAllNearby()
-        {
-            // Create smite action chain... then send it
-            new ActionChain(this, () =>
-            {
-                if (CurrentLandblock == null)
-                {
-                    return;
-                }
-
-                foreach (ObjectGuid toSmite in GetKnownCreatures())
-                {
-                    Creature smitee = CurrentLandblock.GetObject(toSmite) as Creature;
-                    if (smitee != null)
-                    {
-                        smitee.DoOnKill(Session);
-                    }
-                }
-            }).EnqueueChain();
-        }
-
-        public void HandleActionSmiteSelected()
-        {
-            new ActionChain(this, () =>
-            {
-                if (selectedTarget != ObjectGuid.Invalid)
-                {
-                    var target = selectedTarget;
-                    throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
-                    /*if (target.IsCreature() || target.IsPlayer())
-                    {
-                        HandleActionKill(target);
-                    }*/
-                }
-                else
-                {
-                    ChatPacket.SendServerMessage(Session, "No target selected, use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
-                }
-            }).EnqueueChain();
-        }
-
         //public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
         //{
         //    // ClothingTable item = ClothingTable.ReadFromDat(0x1000002C); // Olthoi Helm
@@ -983,13 +942,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (selectedTarget != ObjectGuid.Invalid)
                 {
-                    // FIXME(ddevec): This is wrong
-                    var target = selectedTarget;
-                    throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
-                    /*if (target.IsCreature())
+                    var wo = CurrentLandblock.GetObject(selectedTarget);
+
+                    if (wo is Creature creature)
                     {
-                        HandleActionKill(target);
-                    }*/
+                        creature.Killer = Guid.Full;
+                        creature.Die();
+                    }
                 }
                 else
                 {
