@@ -1,5 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -810,6 +811,7 @@ namespace ACE.Server.Managers
                                 {
                                     if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
                                     {
+                                        emoteChain.AddDelaySeconds(action.Delay);
                                         emoteChain.AddAction(WorldObject, () =>
                                         {
                                             WorldObject.DoMotion(startingMotion);
@@ -821,12 +823,24 @@ namespace ACE.Server.Managers
                                 {
                                     if (WorldObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
                                     {
+                                        emoteChain.AddDelaySeconds(action.Delay);
                                         emoteChain.AddAction(WorldObject, () =>
                                         {
                                             WorldObject.DoMotion(motion);
                                             WorldObject.CurrentMotionState = motion;
                                         });
+                                        emoteChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(WorldObject.MotionTableId).GetAnimationLength((MotionCommand)action.Motion));
+                                        if (motion.Commands[0].Motion != MotionCommand.Sleeping) // this feels like it can be handled better, somehow?
+                                        {
+                                            emoteChain.AddAction(WorldObject, () =>
+                                            {
+                                                WorldObject.DoMotion(startingMotion);
+                                                WorldObject.CurrentMotionState = startingMotion;
+                                            });
+                                        }
                                     }
+                                    else if (WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sleeping) // this feels like it can be handled better
+                                        continue;
                                 }
 
                                 break;
