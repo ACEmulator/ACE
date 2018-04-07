@@ -262,6 +262,7 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
+            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
 
             SelectGeneratorProfiles();
             UpdateGeneratorInts();

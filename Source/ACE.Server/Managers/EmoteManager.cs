@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
@@ -12,6 +13,7 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Server.Managers
 {
@@ -21,14 +23,9 @@ namespace ACE.Server.Managers
         public double EndTime;
         public Queue<QueuedEmote> EmoteQueue;
 
-        public List<WeeniePropertiesEmote> Emotes;
-        public List<WeeniePropertiesEmoteAction> Actions;
-
         public EmoteManager(WorldObject worldObject)
         {
             WorldObject = worldObject;
-            Emotes = EmoteCache.GetEmotes(worldObject.WeenieClassId);
-            Actions = EmoteCache.GetActions(worldObject.WeenieClassId);
         }
 
         public void Cancel()
@@ -793,37 +790,53 @@ namespace ACE.Server.Managers
 
         public void HeartBeat()
         {
-            foreach (var emote in Emotes)
+            foreach (var emote in WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.HeartBeat))
             {
                 var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
                 if (rng <= emote.Probability)
                 {
-                    var action = GetAction(emote);
-                    if (emote.Style != null && action != null && action.Motion != null)
+                    var emoteChain = new ActionChain();
+
+                    foreach (var action in WorldObject.Biota.BiotaPropertiesEmoteAction.Where(y => y.EmoteCategory == emote.Category && y.EmoteSetId == emote.EmoteSetId))
                     {
-                        PerformMotion(emote.Style.Value, (uint)action.Motion.Value);
-                        break;
+                        switch ((EmoteType)action.Type)
+                        {
+                            case EmoteType.Motion:
+
+                                var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
+                                var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)action.Motion, action.Extent));
+
+                                if (WorldObject.CurrentMotionState.Stance != startingMotion.Stance)
+                                {
+                                    if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
+                                    {
+                                        emoteChain.AddAction(WorldObject, () =>
+                                        {
+                                            WorldObject.DoMotion(startingMotion);
+                                            WorldObject.CurrentMotionState = startingMotion;
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    if (WorldObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
+                                    {
+                                        emoteChain.AddAction(WorldObject, () =>
+                                        {
+                                            WorldObject.DoMotion(motion);
+                                            WorldObject.CurrentMotionState = motion;
+                                        });
+                                    }
+                                }
+
+                                break;
+                        }
                     }
+
+                    if (emoteChain != null && emoteChain.FirstElement != null)
+                        emoteChain.EnqueueChain();
                 }
             }
-        }
-
-        public WeeniePropertiesEmoteAction GetAction(WeeniePropertiesEmote emote)
-        {
-            foreach (var action in Actions)
-            {
-                if (emote.EmoteSetId.Equals(action.EmoteSetId))
-                    return action;
-            }
-            return null;
-        }
-
-        public void PerformMotion(uint style, uint motion)
-        {
-            var newMotion = new UniversalMotion((MotionStance)style, new MovementData());
-            newMotion.IsAutonomous = true;
-            newMotion.Commands.Add(new MotionItem((MotionCommand)motion));
-            WorldObject.CurrentLandblock.EnqueueBroadcastMotion(WorldObject, newMotion);
         }
 
         /// <summary>

@@ -393,7 +393,7 @@ namespace ACE.Server.WorldObjects
         // ======== Physics Desc Properties =======
         // ========================================
         // used in CalculatedPhysicsDescriptionFlag()
-        public MotionState CurrentMotionState { get; set; }
+        public UniversalMotion CurrentMotionState { get; set; }
 
         public Placement? Placement // Sometimes known as AnimationFrame
         {

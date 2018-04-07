@@ -585,7 +585,7 @@ namespace ACE.Server.WorldObjects
             combatModeChain.EnqueueChain();
         }
 
-        public void SetMotionState(WorldObject obj, MotionState motionState)
+        public void SetMotionState(WorldObject obj, UniversalMotion motionState)
         {
             CurrentMotionState = motionState;
             motionState.IsAutonomous = false;
