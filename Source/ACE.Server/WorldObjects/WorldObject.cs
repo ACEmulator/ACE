@@ -61,6 +61,8 @@ namespace ACE.Server.WorldObjects
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
 
+        public EmoteManager EmoteManager;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
@@ -69,6 +71,8 @@ namespace ACE.Server.WorldObjects
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
             SetEphemeralValues();
+
+            EmoteManager = new EmoteManager(this);
 
             InitPhysics = true;
         }
@@ -85,6 +89,8 @@ namespace ACE.Server.WorldObjects
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
             SetEphemeralValues();
+
+            EmoteManager = new EmoteManager(this);
 
             InitPhysics = true;
         }
@@ -633,6 +639,7 @@ namespace ACE.Server.WorldObjects
         public virtual void HeartBeat()
         {
             // Do Stuff
+            EmoteManager.HeartBeat();
 
             if (GeneratorQueue.Count > 0)
                 ProcessGeneratorQueue();

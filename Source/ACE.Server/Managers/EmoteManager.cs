@@ -1,4 +1,5 @@
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -6,8 +7,10 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Entity;
 using System.Collections.Generic;
 
 namespace ACE.Server.Managers
@@ -18,9 +21,14 @@ namespace ACE.Server.Managers
         public double EndTime;
         public Queue<QueuedEmote> EmoteQueue;
 
+        public List<WeeniePropertiesEmote> Emotes;
+        public List<WeeniePropertiesEmoteAction> Actions;
+
         public EmoteManager(WorldObject worldObject)
         {
             WorldObject = worldObject;
+            Emotes = EmoteCache.GetEmotes(worldObject.WeenieClassId);
+            Actions = EmoteCache.GetActions(worldObject.WeenieClassId);
         }
 
         public void Cancel()
@@ -781,6 +789,41 @@ namespace ACE.Server.Managers
                 //ExecuteSet(entry, target);
                 break;
             }
+        }
+
+        public void HeartBeat()
+        {
+            foreach (var emote in Emotes)
+            {
+                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                if (rng <= emote.Probability)
+                {
+                    var action = GetAction(emote);
+                    if (emote.Style != null && action != null && action.Motion != null)
+                    {
+                        PerformMotion(emote.Style.Value, (uint)action.Motion.Value);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public WeeniePropertiesEmoteAction GetAction(WeeniePropertiesEmote emote)
+        {
+            foreach (var action in Actions)
+            {
+                if (emote.EmoteSetId.Equals(action.EmoteSetId))
+                    return action;
+            }
+            return null;
+        }
+
+        public void PerformMotion(uint style, uint motion)
+        {
+            var newMotion = new UniversalMotion((MotionStance)style, new MovementData());
+            newMotion.IsAutonomous = true;
+            newMotion.Commands.Add(new MotionItem((MotionCommand)motion));
+            WorldObject.CurrentLandblock.EnqueueBroadcastMotion(WorldObject, newMotion);
         }
 
         /// <summary>
