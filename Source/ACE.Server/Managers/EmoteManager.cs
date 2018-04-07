@@ -811,7 +811,8 @@ namespace ACE.Server.Managers
                                 emoteChain.AddDelaySeconds(action.Delay);
                                 emoteChain.AddAction(WorldObject, () =>
                                 {
-                                    WorldObject.CurrentLandblock.EnqueueBroadcastLocalChat(WorldObject, action.Message);
+                                    //WorldObject.CurrentLandblock.EnqueueBroadcastLocalChat(WorldObject, action.Message);
+                                    WorldObject.CurrentLandblock.EnqueueBroadcast(WorldObject.Location, new GameMessageCreatureMessage(action.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote));
                                 });
                                 break;
 
@@ -843,7 +844,7 @@ namespace ACE.Server.Managers
                                             WorldObject.CurrentMotionState = motion;
                                         });
                                         emoteChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(WorldObject.MotionTableId).GetAnimationLength((MotionCommand)action.Motion));
-                                        if (motion.Commands[0].Motion != MotionCommand.Sleeping) // this feels like it can be handled better, somehow?
+                                        if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
                                         {
                                             emoteChain.AddAction(WorldObject, () =>
                                             {
@@ -852,7 +853,7 @@ namespace ACE.Server.Managers
                                             });
                                         }
                                     }
-                                    else if (WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sleeping) // this feels like it can be handled better
+                                    else if (WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sleeping && WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sitting) // this feels like it can be handled better
                                         continue;
                                 }
 
