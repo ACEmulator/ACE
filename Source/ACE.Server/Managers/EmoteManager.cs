@@ -796,8 +796,64 @@ namespace ACE.Server.Managers
 
             var emoteChain = new ActionChain();
 
-            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
-            {                
+            //if (!(WorldObject is Vendor))
+            //{
+                foreach (var emote in Emotes(EmoteCategory.HeartBeat))
+                {
+                    if (rng < emote.Probability)
+                    {
+                        foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                        {
+                            ExecuteEmote(emote, action, emoteChain, WorldObject);
+                        }
+
+                        break;
+                    }
+                }
+            //}
+            //else
+            //{
+            //    foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)VendorType.Heartbeat))
+            //    {
+            //        if (rng < emote.Probability)
+            //        {
+            //            foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+            //            {
+            //                ExecuteEmote(emote, action, emoteChain, WorldObject);
+            //            }
+
+            //            break;
+            //        }
+            //    }
+            //}
+
+            if (emoteChain != null && emoteChain.FirstElement != null)
+            {
+                emoteChain.EnqueueChain();
+            }
+        }
+
+        public void DoVendorEmote(VendorType vendorType, WorldObject targetObject)
+        {
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
+            var emoteChain = new ActionChain();
+
+            foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)vendorType))
+            {
+                if (rng < emote.Probability)
+                {
+                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    {
+                        ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
+                    }
+
+                    break;
+                }
+            }
+
+            foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)VendorType.Heartbeat))
+            {
                 if (rng < emote.Probability)
                 {
                     foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
@@ -830,34 +886,16 @@ namespace ACE.Server.Managers
 
                 case EmoteType.Motion:
 
-                    var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
-                    var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
+                    if (emote.Category != (uint)EmoteCategory.Vendor)
+                    {
+                        var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
+                        var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
 
-                    if (sourceObject.CurrentMotionState.Stance != startingMotion.Stance)
-                    {
-                        if (sourceObject.CurrentMotionState.Stance == MotionStance.Invalid)
+                        if (sourceObject.CurrentMotionState.Stance != startingMotion.Stance)
                         {
-                            actionChain.AddDelaySeconds(emoteAction.Delay);
-                            actionChain.AddAction(sourceObject, () =>
+                            if (sourceObject.CurrentMotionState.Stance == MotionStance.Invalid)
                             {
-                                sourceObject.DoMotion(startingMotion);
-                                sourceObject.CurrentMotionState = startingMotion;
-                            });
-                        }
-                    }
-                    else
-                    {
-                        if (sourceObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
-                        {
-                            actionChain.AddDelaySeconds(emoteAction.Delay);
-                            actionChain.AddAction(sourceObject, () =>
-                            {
-                                sourceObject.DoMotion(motion);
-                                sourceObject.CurrentMotionState = motion;
-                            });
-                            actionChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(sourceObject.MotionTableId).GetAnimationLength((MotionCommand)emoteAction.Motion));
-                            if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
-                            {
+                                actionChain.AddDelaySeconds(emoteAction.Delay);
                                 actionChain.AddAction(sourceObject, () =>
                                 {
                                     sourceObject.DoMotion(startingMotion);
@@ -865,8 +903,50 @@ namespace ACE.Server.Managers
                                 });
                             }
                         }
+                        else
+                        {
+                            if (sourceObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
+                            {
+                                actionChain.AddDelaySeconds(emoteAction.Delay);
+                                actionChain.AddAction(sourceObject, () =>
+                                {
+                                    sourceObject.DoMotion(motion);
+                                    sourceObject.CurrentMotionState = motion;
+                                });
+                                actionChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(sourceObject.MotionTableId).GetAnimationLength((MotionCommand)emoteAction.Motion));
+                                if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
+                                {
+                                    actionChain.AddAction(sourceObject, () =>
+                                    {
+                                        sourceObject.DoMotion(startingMotion);
+                                        sourceObject.CurrentMotionState = startingMotion;
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
+
+                        actionChain.AddDelaySeconds(emoteAction.Delay);
+                        actionChain.AddAction(sourceObject, () =>
+                        {
+                            sourceObject.DoMotion(motion);
+                            sourceObject.CurrentMotionState = motion;
+                        });
                     }
 
+                    break;
+
+                case EmoteType.Tell:
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        //sourceObject.CurrentLandblock.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
+                        var player = targetObject as Player;
+                        player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.OutgoingTell));
+                    });
                     break;
 
                 default:

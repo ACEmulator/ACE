@@ -6,7 +6,10 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Network.Motion;
+using log4net;
 
 namespace ACE.Server.WorldObjects
 {
@@ -20,6 +23,8 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class Vendor : Creature
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
         private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
@@ -56,8 +61,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(Player player)
         {
-            LoadInventory();
-            ApproachVendor(player);
+            //LoadInventory();
+
+            var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+            turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+
+            ActionChain turnToTimer = new ActionChain();
+            turnToTimer.AddAction(this, () => LoadInventory());
+            turnToTimer.AddAction(player, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+            turnToTimer.AddDelaySeconds(1);
+            turnToTimer.AddAction(this, () => ApproachVendor(player));
+
+            turnToTimer.EnqueueChain();
+
+            //ApproachVendor(player);
         }
 
         /// <summary>
@@ -146,6 +163,8 @@ namespace ACE.Server.WorldObjects
 
             player.TrackInteractiveObjects(vendorlist);
             player.ApproachVendor(this, vendorlist);
+            OnAutonomousMove(player.Location, Sequences, MovementTypes.TurnToObject, player.Guid);
+            DoVendorEmote(VendorType.Open, player);
         }
 
 
@@ -259,6 +278,20 @@ namespace ACE.Server.WorldObjects
 
             ApproachVendor(player);
             player.FinalizeSellTransaction(this, true, accepted, payout);
+        }
+
+        public void DoVendorEmote(VendorType vendorType, WorldObject player)
+        {
+            switch (vendorType)
+            {
+                case VendorType.Open:
+                    EmoteManager.DoVendorEmote(vendorType, player);
+                    break;
+
+                default:
+                    log.Warn($"Vendor.DoVendorEmote - Encountered Unhandled VendorType {vendorType} for {Name} ({WeenieClassId})");
+                    break;
+            }
         }
     }
 }
