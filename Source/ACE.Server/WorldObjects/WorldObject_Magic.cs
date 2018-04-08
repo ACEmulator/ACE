@@ -1,4 +1,5 @@
 using System;
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
@@ -13,9 +14,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        // TODO: Used to pass the scale of a spell to CalcuateDamage; to be removed once the StatMod properties are added
-        private float spellScaling;
-
         private enum SpellLevel
         {
             One     = 1,
@@ -48,118 +46,102 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Method used for handling player targeted spell casts
-        /// </summary>
-        private uint CalculateDamage(uint spellId)
-        {
-            Random rng = new Random();
-            // TODO: Replace with damage values obtained from the StatMod properties, when added to the World DB
-            uint damage = (uint)rng.Next((int)(50 * spellScaling), (int)(100 * spellScaling));
-
-            return damage;
-        }
-
-        /// <summary>
         /// Method used for the scaling, windup motion, and spell gestures for spell casts
         /// </summary>
-        private float SpellAttributes(uint spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture)
+        private float SpellAttributes(string account, uint spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture)
         {
             float scale;
+
+            SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
                 windUpMotion = MotionCommand.Invalid;
                 spellGesture = MotionCommand.Invalid;
+                castingDelay = 0.0f;
                 return -1.0f;
             }
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            switch(spell.Bitfield)
-            {
-                case 0x00000006:
-                    // Enchant Other Helpful
-                    spellGesture = MotionCommand.MagicSelfHeart;
-                    break;
-                case 0x0000400c:
-                case 0x0000408e:
-                    // Enchant Self Helpful
-                    spellGesture = MotionCommand.MagicSelfHead;
-                    break;
-                case 0x00000018:
-                    // Enchant Self Harmful
-                    spellGesture = MotionCommand.MagicHarm;
-                    break;
-                case 0x00000004:
-                    if (spell.School == (MagicSchool)0x00000002)
-                    {
-                        // Life heal other
-                        spellGesture = MotionCommand.MagicHeal;
-                    }
-                    else
-                    {
-                        // item spell self armor
-                        spellGesture = MotionCommand.MagicEnchantItem;
-                    }
-                    break;
-                case 0x00000013:
-                    // life harm other
-                    spellGesture = MotionCommand.MagicHarm;
-                    break;
-                case 0x0000000c:
-                    // Life heal self
-                    spellGesture = MotionCommand.MagicHeal;
-                    break;
-                default:
-                    if (spell.MetaSpellType == SpellType.Projectile)
-                    {
-                        // War and Void projectile cast animation
-                        spellGesture = MotionCommand.MagicThrowMissile;
-                    }
-                    else
-                    {
-                        // Default cast gesture
-                        spellGesture = MotionCommand.MagicSelfHead;
-                    }
-                    break;
-            }
-
             ////Determine scale of the spell effects and windup animation
             SpellLevel spellLevel = CalculateSpellLevel(spell.Power);
+            if (account == null)
+            {
+                switch (spellLevel)
+                {
+                    case SpellLevel.One:
+                        scale = 0.1f;
+                        break;
+                    case SpellLevel.Two:
+                        scale = 0.2f;
+                        break;
+                    case SpellLevel.Three:
+                        scale = 0.4f;
+                        break;
+                    case SpellLevel.Four:
+                        scale = 0.5f;
+                        break;
+                    case SpellLevel.Five:
+                        scale = 0.6f;
+                        break;
+                    case SpellLevel.Six:
+                        scale = 1.0f;
+                        break;
+                    default:
+                        scale = 1.0f;
+                        break;
+                }
+
+                spellGesture = MotionCommand.Magic;
+                windUpMotion = 0;
+                castingDelay = 0.0f;
+                return scale;
+            }
+
             switch (spellLevel)
             {
                 case SpellLevel.One:
                     scale = 0.1f;
+                    castingDelay = 1.3f;
                     windUpMotion = MotionCommand.MagicPowerUp01;
                     break;
                 case SpellLevel.Two:
                     scale = 0.2f;
+                    castingDelay = 1.4f;
                     windUpMotion = MotionCommand.MagicPowerUp02;
                     break;
                 case SpellLevel.Three:
                     scale = 0.4f;
+                    castingDelay = 1.5f;
                     windUpMotion = MotionCommand.MagicPowerUp03;
                     break;
                 case SpellLevel.Four:
                     scale = 0.5f;
+                    castingDelay = 1.7f;
                     windUpMotion = MotionCommand.MagicPowerUp04;
                     break;
                 case SpellLevel.Five:
                     scale = 0.6f;
+                    castingDelay = 1.9f;
                     windUpMotion = MotionCommand.MagicPowerUp05;
                     break;
                 case SpellLevel.Six:
                     scale = 1.0f;
+                    castingDelay = 2.0f;
                     windUpMotion = MotionCommand.MagicPowerUp06;
                     break;
                 default:
                     scale = 1.0f;
-                    windUpMotion = MotionCommand.MagicPowerUp10Purple;
+                    castingDelay = 2.0f;
+                    windUpMotion = MotionCommand.MagicPowerUp07Purple;
                     break;
             }
 
-            spellScaling = scale;
+            var formula = SpellTable.GetSpellFormula(spellTable, spellId, account);
+            spellGesture = (MotionCommand)comps.SpellComponents[formula[formula.Count - 1]].Gesture;
+
             return scale;
         }
 
@@ -189,20 +171,32 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            uint targetEffect = spell.TargetEffect;
+            Database.Models.World.Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
-#if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell bitfield is 0x{spell.Bitfield.ToString("X")}", ChatMessageType.System));
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell power is {spell.Power}", ChatMessageType.System));
-            player.Session.Network.EnqueueSend(
-                new GameMessageSystemChat($"{spell.Name} spell range is {spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)} yards", ChatMessageType.System));
-#endif
+            uint targetEffect = spell.TargetEffect;
 
             if (guidTarget == null)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YourSpellTargetIsMissing));
                 player.IsBusy = false;
                 return;
+            }
+
+            if (spell.BaseRangeConstant == 0 && target.WeenieClassId != 1)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.IncorrectTargetType));
+                player.IsBusy = false;
+                return;
+            }
+
+            if (spell.School == MagicSchool.LifeMagic && spell.MetaSpellType != SpellType.Transfer)
+            {
+                if (spellStatMod.Boost > 0 && target.WeenieClassId != 1 && WeenieClassId == 1)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.IncorrectTargetType));
+                    player.IsBusy = false;
+                    return;
+                }
             }
 
             if (target == null)
@@ -231,7 +225,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
+
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Starting spell casting action chain", ChatMessageType.System));
+#endif
 
             ActionChain spellChain = new ActionChain();
 
@@ -246,7 +245,6 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
                 CurrentLandblock.EnqueueBroadcast(Location, new GameMessageCreatureMessage(SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable,
                     formula), Name, Guid.Full, ChatMessageType.Magic));
             });
@@ -260,90 +258,44 @@ namespace ACE.Server.WorldObjects
                 DoMotion(motionCastSpell);
             });
 
-            spellChain.AddDelaySeconds(1.7422216f);
+            spellChain.AddDelaySeconds(castingDelay);
 
             spellChain.AddAction(this, () =>
             {
-                if (guidTarget == Guid)
-                {
-                    if (spell.Name.Contains("Portal") || spell.Name.Contains("Lifestone"))
-                    {
-                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                bool targetDeath;
+                string message;
 
-                        switch(spellId)
-                        {
-                            case 2645: // Portal Recall
-                                if (!player.TeleToPosition(PositionType.LastPortal))
-                                {
-                                    // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
-                                }
-                                break;
-                            case 1635: // Lifestone Recall
-                                if (!player.TeleToPosition(PositionType.LinkedLifestone))
-                                {
-                                    // You must link to a lifestone to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
-                                }
-                                break;
-                            case 48: // Primary Portal Recall
-                                if (!player.TeleToPosition(PositionType.LinkedPortalOne))
-                                {
-                                    // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
-                                }
-                                break;
-                            case 2647: // Secondary Portal Recall
-                                if (!player.TeleToPosition(PositionType.LinkedPortalTwo))
-                                {
-                                    // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    else
-                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.TargetEffect, scale));
-                }
-                else
+                switch(spell.School)
                 {
-                    switch(spell.School)
-                    {
-                        case MagicSchool.WarMagic:
-                            // TODO
-                            break;
-                        case MagicSchool.VoidMagic:
-                            // TODO
-                            break;
-                        default:
+                    case MagicSchool.WarMagic:
+                        WarMagic(target, spell, spellStatMod);
+                        break;
+                    case MagicSchool.VoidMagic:
+                        VoidMagic(target, spell, spellStatMod);
+                        break;
+                    case MagicSchool.CreatureEnchantment:
+                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                        CreatureMagic(target, spell, spellStatMod);
+                        break;
+                    case MagicSchool.LifeMagic:
+                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                        targetDeath = LifeMagic(target, spell, spellStatMod, out message);
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
+                        if (targetDeath == true)
+                        {
+                            Creature creatureTarget = (Creature)target;
+                            creatureTarget.DoOnKill(player.Session);
+                        }
+                        break;
+                    case MagicSchool.ItemEnchantment:
+                        if (guidTarget == Guid)
+                            CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                        else
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                            if (spell.Bitfield == 0x00000013)
-                            {
-                                // TODO: To be changed with the implementation of StatMod
-								if (spell.Name.Contains("Harm Other") || spell.Name.Contains("Drain Health Other"))
-                                {
-                                    uint dmg;
-                                    int newMonsterHealth;
-                                    Creature monster = (Creature)target;
-                                    if (spell.Name.Contains("Harm Other"))
-                                        dmg = CalculateDamage(spellId);
-                                    else
-                                        dmg = (uint)(monster.Health.Current * 0.25);
-                                    newMonsterHealth = (int)(monster.Health.Current - dmg);
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You drain {dmg} of health from {monster.Name}", ChatMessageType.Magic));
-                                    if (newMonsterHealth <= 0)
-                                    {
-                                        monster.Health.Current = 0;
-                                        monster.DoOnKill(player.Session);
-                                    }
-                                    else
-                                        monster.Health.Current = (uint)newMonsterHealth;
-                                }
-                            }
-                            break;
-                    }
+                        ItemMagic(target, spell, spellStatMod);
+                        break;
+                    default:
+                        break;
                 }
             });
 
@@ -365,6 +317,9 @@ namespace ACE.Server.WorldObjects
 
             spellChain.EnqueueChain();
 
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Spell casting action chain enqueued", ChatMessageType.System));
+#endif
             return;
         }
 
@@ -393,7 +348,7 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
@@ -423,7 +378,7 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(null, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
             creature.IsBusy = false;
             return;
@@ -450,11 +405,229 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            float scale = SpellAttributes(spellId, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            float scale = SpellAttributes(null, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
             creature.IsBusy = false;
             return;
         }
+
+        private bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message)
+        {
+            Player player = null;
+            if (WeenieClassId == 1)
+                player = (Player)this;
+
+            Creature spellTarget;
+            if (spell.BaseRangeConstant == 0)
+                spellTarget = (Creature)this;
+            else
+                spellTarget = (Creature)target;
+            Random rng = new Random();
+
+
+            int newSpellTargetVital;
+            switch (spell.MetaSpellType)
+            {
+                case SpellType.Boost:
+                    string vital, action;
+                    int minBoostValue, maxBoostValue;
+                    if (spellStatMod.BoostVariance < spellStatMod.Boost)
+                    {
+                        minBoostValue = (int)spellStatMod.BoostVariance;
+                        maxBoostValue = (int)spellStatMod.Boost;
+                    }
+                    else
+                    {
+                        minBoostValue = (int)spellStatMod.Boost;
+                        maxBoostValue = (int)spellStatMod.BoostVariance;
+                    }
+                    int boost = rng.Next(minBoostValue, maxBoostValue);
+                    if (boost < 0)
+                        action = "drain";
+                    else
+                        action = "restore";
+                    switch (spellStatMod.DamageType)
+                    {
+                        case 512:   // Mana
+                            newSpellTargetVital = (int)(spellTarget.Mana.Current + boost);
+                            vital = "mana";
+                            if (newSpellTargetVital < spellTarget.Mana.Current)
+                            {
+                                if (newSpellTargetVital <= 0)
+                                    spellTarget.Mana.Current = 0;
+                                else
+                                    spellTarget.Mana.Current = (uint)newSpellTargetVital;
+                            }
+                            else
+                                boost = 0;
+                            break;
+                        case 256:   // Stamina
+                            newSpellTargetVital = (int)(spellTarget.Stamina.Current + boost);
+                            vital = "stamina";
+                            if (newSpellTargetVital < spellTarget.Stamina.Current)
+                            {
+                                if (newSpellTargetVital <= 0)
+                                    spellTarget.Stamina.Current = 0;
+                                else
+                                    spellTarget.Stamina.Current = (uint)newSpellTargetVital;
+                            }
+                            else
+                                boost = 0;
+                            break;
+                        default:   // Health
+                            newSpellTargetVital = (int)(spellTarget.Health.Current + boost);
+                            vital = "health";
+                            if (newSpellTargetVital < spellTarget.Health.Current)
+                            {
+                                if (newSpellTargetVital <= 0)
+                                    spellTarget.Health.Current = 0;
+                                else
+                                    spellTarget.Health.Current = (uint)newSpellTargetVital;
+                            }
+                            else
+                                boost = 0;
+                            break;
+                    }
+                    if (WeenieClassId == 1)
+                    {
+                        if (spell.BaseRangeConstant == 0)
+                            message = $"You {action} {Math.Abs(boost).ToString()} {vital}";
+                        else
+                            message = $"You {action} {Math.Abs(boost).ToString()} of {vital} from {spellTarget.Name}";
+                    }
+                    else
+                        message = null;
+                    break;
+                case SpellType.Transfer:
+                    // Calculate the change in vitals of the target
+                    float vitalChangeDelta = (float)(spellStatMod.Proportion * spellStatMod.LossPercent);
+                    uint vitalChange = (uint)(spellTarget.Health.Current * Math.Abs(vitalChangeDelta));
+
+                    // Apply the change in vitals to the target
+                    switch (spellStatMod.Source)
+                    {
+                        case 6:   // Mana
+                            newSpellTargetVital = (int)(spellTarget.Mana.Current - vitalChange);
+                            vital = "mana";
+                            if (newSpellTargetVital <= 0)
+                                spellTarget.Mana.Current = 0;
+                            else
+                                spellTarget.Mana.Current = (uint)newSpellTargetVital;
+                            break;
+                        case 4:   // Stamina
+                            newSpellTargetVital = (int)(spellTarget.Stamina.Current - vitalChange);
+                            vital = "stamina";
+                            if (newSpellTargetVital <= 0)
+                                spellTarget.Stamina.Current = 0;
+                            else
+                                spellTarget.Stamina.Current = (uint)newSpellTargetVital;
+                            break;
+                        default:   // Health
+                            newSpellTargetVital = (int)(spellTarget.Health.Current - vitalChange);
+                            vital = "health";
+                            if (newSpellTargetVital <= 0)
+                                spellTarget.Health.Current = 0;
+                            else
+                                spellTarget.Health.Current = (uint)newSpellTargetVital;
+                            break;
+                    }
+
+                    // Apply the scaled change in vitals to the caster
+                    switch (spellStatMod.Destination)
+                    {
+                        case 6:   // Mana
+
+                            break;
+                        case 4:   // Stamina
+
+                            break;
+                        default:   // Health
+
+                            break;
+                    }
+
+                    if (WeenieClassId == 1)
+                        message = $"You drain {vitalChange.ToString()} of {vital} from {spellTarget.Name} and apply {vitalChange.ToString()} to yourself";
+                    else
+                        message = null;
+                    break;
+                case SpellType.LifeProjectile:
+                    message = "Spell not implemented, yet!";
+                    break;
+                case SpellType.Dispel:
+                    message = "Spell not implemented, yet!";
+                    break;
+                case SpellType.Enchantment:
+                    message = "Spell not implemented, yet!";
+                    break;
+                default:
+                    message = "Spell not implemented, yet!";
+                    break;
+            }
+
+            if (spellTarget.Health.Current == 0)
+                return true;
+            else
+                return false;
+        }
+
+        private void CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        {
+            // TODO
+        }
+
+        private void ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        {
+            Player player = CurrentLandblock.GetObject(Guid) as Player;
+
+            if (spell.Name.Contains("Portal") || spell.Name.Contains("Lifestone"))
+            {
+                switch (spell.MetaSpellId)
+                {
+                    case 2645: // Portal Recall
+                        if (!player.TeleToPosition(PositionType.LastPortal))
+                        {
+                            // You must link to a portal to recall it!
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                        }
+                        break;
+                    case 1635: // Lifestone Recall
+                        if (!player.TeleToPosition(PositionType.LinkedLifestone))
+                        {
+                            // You must link to a lifestone to recall it!
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                        }
+                        break;
+                    case 48: // Primary Portal Recall
+                        if (!player.TeleToPosition(PositionType.LinkedPortalOne))
+                        {
+                            // You must link to a portal to recall it!
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                        }
+                        break;
+                    case 2647: // Secondary Portal Recall
+                        if (!player.TeleToPosition(PositionType.LinkedPortalTwo))
+                        {
+                            // You must link to a portal to recall it!
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void WarMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        {
+            // TODO
+        }
+
+        private void VoidMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        {
+            // TODO
+        }
+
     }
 }
 
