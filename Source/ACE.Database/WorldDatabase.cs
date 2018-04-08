@@ -304,7 +304,7 @@ namespace ACE.Database
             {
                 var result = context.Spell
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.Id == spellId);
+                    .FirstOrDefault(r => r.SpellId == spellId);
 
                 if (result != null)
                 {
