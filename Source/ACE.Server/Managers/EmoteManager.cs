@@ -1,6 +1,4 @@
-using ACE.Common;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -13,7 +11,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects;
-using ACE.Server.WorldObjects.Entity;
+using log4net;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,6 +19,8 @@ namespace ACE.Server.Managers
 {
     public class EmoteManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public WorldObject WorldObject;
         public double EndTime;
         public Queue<QueuedEmote> EmoteQueue;
@@ -792,83 +792,97 @@ namespace ACE.Server.Managers
 
         public void HeartBeat()
         {
-            // System.Console.WriteLine($"WorldObject {WorldObject.Name} (0x{WorldObject.Guid.Full:X}) - Heartbeat timestamp: {WorldObject.GetProperty(PropertyFloat.HeartbeatTimestamp) ?? 0}");
-
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
 
-            foreach (var emote in WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.HeartBeat))
+            var emoteChain = new ActionChain();
+
+            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
             {                
                 if (rng < emote.Probability)
                 {
-                    var emoteChain = new ActionChain();
-
-                    foreach (var action in WorldObject.Biota.BiotaPropertiesEmoteAction.Where(y => y.EmoteCategory == emote.Category && y.EmoteSetId == emote.EmoteSetId))
+                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
                     {
-                        switch ((EmoteType)action.Type)
-                        {
-                            case EmoteType.Say:
-
-                                emoteChain.AddDelaySeconds(action.Delay);
-                                emoteChain.AddAction(WorldObject, () =>
-                                {
-                                    //WorldObject.CurrentLandblock.EnqueueBroadcastLocalChat(WorldObject, action.Message);
-                                    WorldObject.CurrentLandblock.EnqueueBroadcast(WorldObject.Location, new GameMessageCreatureMessage(action.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote));
-                                });
-                                break;
-
-                            case EmoteType.Motion:
-
-                                var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
-                                var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)action.Motion, action.Extent));
-
-                                if (WorldObject.CurrentMotionState.Stance != startingMotion.Stance)
-                                {
-                                    if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
-                                    {
-                                        emoteChain.AddDelaySeconds(action.Delay);
-                                        emoteChain.AddAction(WorldObject, () =>
-                                        {
-                                            WorldObject.DoMotion(startingMotion);
-                                            WorldObject.CurrentMotionState = startingMotion;
-                                        });
-                                    }
-                                }
-                                else
-                                {
-                                    if (WorldObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
-                                    {
-                                        emoteChain.AddDelaySeconds(action.Delay);
-                                        emoteChain.AddAction(WorldObject, () =>
-                                        {
-                                            WorldObject.DoMotion(motion);
-                                            WorldObject.CurrentMotionState = motion;
-                                        });
-                                        emoteChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(WorldObject.MotionTableId).GetAnimationLength((MotionCommand)action.Motion));
-                                        if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
-                                        {
-                                            emoteChain.AddAction(WorldObject, () =>
-                                            {
-                                                WorldObject.DoMotion(startingMotion);
-                                                WorldObject.CurrentMotionState = startingMotion;
-                                            });
-                                        }
-                                    }
-                                    else if (WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sleeping && WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sitting) // this feels like it can be handled better
-                                        continue;
-                                }
-
-                                break;
-                        }
-                    }
-
-                    if (emoteChain != null && emoteChain.FirstElement != null)
-                    {
-                        emoteChain.EnqueueChain();
+                        ExecuteEmote(emote, action, emoteChain, WorldObject);
                     }
 
                     break;
                 }
             }
+
+            if (emoteChain != null && emoteChain.FirstElement != null)
+            {
+                emoteChain.EnqueueChain();
+            }
+        }
+
+        public void ExecuteEmote(BiotaPropertiesEmote emote, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject = null, WorldObject targetObject = null)
+        {
+            switch ((EmoteType)emoteAction.Type)
+            {
+                case EmoteType.Say:
+
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        sourceObject.CurrentLandblock.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
+                    });
+                    break;
+
+                case EmoteType.Motion:
+
+                    var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
+                    var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
+
+                    if (sourceObject.CurrentMotionState.Stance != startingMotion.Stance)
+                    {
+                        if (sourceObject.CurrentMotionState.Stance == MotionStance.Invalid)
+                        {
+                            actionChain.AddDelaySeconds(emoteAction.Delay);
+                            actionChain.AddAction(sourceObject, () =>
+                            {
+                                sourceObject.DoMotion(startingMotion);
+                                sourceObject.CurrentMotionState = startingMotion;
+                            });
+                        }
+                    }
+                    else
+                    {
+                        if (sourceObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
+                        {
+                            actionChain.AddDelaySeconds(emoteAction.Delay);
+                            actionChain.AddAction(sourceObject, () =>
+                            {
+                                sourceObject.DoMotion(motion);
+                                sourceObject.CurrentMotionState = motion;
+                            });
+                            actionChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(sourceObject.MotionTableId).GetAnimationLength((MotionCommand)emoteAction.Motion));
+                            if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
+                            {
+                                actionChain.AddAction(sourceObject, () =>
+                                {
+                                    sourceObject.DoMotion(startingMotion);
+                                    sourceObject.CurrentMotionState = startingMotion;
+                                });
+                            }
+                        }
+                    }
+
+                    break;
+
+                default:
+                    log.Warn($"EmoteManager.Execute - Encountered Unhandled EmoteType {(EmoteType)emoteAction.Type} for {sourceObject.Name} ({sourceObject.WeenieClassId})");
+                    break;
+            }
+        }
+
+        public IEnumerable<BiotaPropertiesEmoteAction> EmoteSet(uint emoteCategory, uint emoteSetId)
+        {
+            return WorldObject.Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == emoteCategory && x.EmoteSetId == emoteSetId);
+        }
+
+        public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)
+        {
+            return WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)emoteCategory);
         }
 
         /// <summary>

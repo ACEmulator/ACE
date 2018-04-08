@@ -635,8 +635,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual void HeartBeat()
-        {
-            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
+        {            
             // Do Stuff
             EmoteManager.HeartBeat();
 
@@ -644,6 +643,8 @@ namespace ACE.Server.WorldObjects
                 ProcessGeneratorQueue();
 
             QueueNextHeartBeat();
+
+            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
         }
 
         public void QueueNextHeartBeat()

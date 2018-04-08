@@ -91,7 +91,7 @@ namespace ACE.Database
                     .Include(r => r.WeeniePropertiesCreateList)
                     .Include(r => r.WeeniePropertiesDID)
                     .Include(r => r.WeeniePropertiesEmote).ThenInclude(emote => emote.WeeniePropertiesEmoteAction)
-                    .Include(r => r.WeeniePropertiesEmoteAction)
+                    //.Include(r => r.WeeniePropertiesEmoteAction)
                     .Include(r => r.WeeniePropertiesEventFilter)
                     .Include(r => r.WeeniePropertiesFloat)
                     .Include(r => r.WeeniePropertiesGenerator)
