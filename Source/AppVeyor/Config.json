@@ -1,7 +1,7 @@
 ﻿{
   "Server": {
     "WorldName": "ACEmulator",
-    "Welcome": "Welcome to this ACE server!\nFor more information visit http://www.acemulator.org.",
+    "Welcome": "Welcome to this ACE server!\nFor more information visit https://emulator.ac",
     "Network": {
       "Host": "127.0.0.1",
       "Port": 9000
