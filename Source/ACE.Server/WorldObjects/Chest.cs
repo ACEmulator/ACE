@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
             ContainerCapacity = 10;
             ItemCapacity = 120;
 
-            CurrentMotionState = motionStateClosed; // What chest defaults to open?
+            CurrentMotionState = motionClosed; // What chest defaults to open?
 
             if (UseRadius < 2)
                 UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
@@ -54,8 +54,8 @@ namespace ACE.Server.WorldObjects
         private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
-        private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
-        private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
+        //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
+        //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
@@ -105,13 +105,13 @@ namespace ACE.Server.WorldObjects
         protected override void DoOnOpenMotionChanges()
         {
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            CurrentMotionState = motionStateOpen;
+            CurrentMotionState = motionOpen;
         }
 
         protected override void DoOnCloseMotionChanges()
         {
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
-            CurrentMotionState = motionStateClosed;
+            CurrentMotionState = motionClosed;
         }
     }
 }

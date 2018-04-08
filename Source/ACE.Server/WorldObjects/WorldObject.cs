@@ -25,6 +25,7 @@ using ACE.Server.Physics.Util;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -61,6 +62,8 @@ namespace ACE.Server.WorldObjects
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
 
+        public EmoteManager EmoteManager;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
@@ -69,8 +72,6 @@ namespace ACE.Server.WorldObjects
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
             SetEphemeralValues();
-
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -85,8 +86,6 @@ namespace ACE.Server.WorldObjects
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
             SetEphemeralValues();
-
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -253,9 +252,14 @@ namespace ACE.Server.WorldObjects
 
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
+            EmoteManager = new EmoteManager(this);
+
+            InitPhysics = true;
+
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
+            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
 
             SelectGeneratorProfiles();
             UpdateGeneratorInts();
@@ -632,7 +636,9 @@ namespace ACE.Server.WorldObjects
 
         public virtual void HeartBeat()
         {
+            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
             // Do Stuff
+            EmoteManager.HeartBeat();
 
             if (GeneratorQueue.Count > 0)
                 ProcessGeneratorQueue();

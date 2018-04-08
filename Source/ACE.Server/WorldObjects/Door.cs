@@ -28,11 +28,11 @@ namespace ACE.Server.WorldObjects
             DoorOpen        = 5
         }
 
-        private static readonly MovementData movementOpen = new MovementData();
-        private static readonly MovementData movementClosed = new MovementData();
+        //private static readonly MovementData movementOpen = new MovementData();
+        //private static readonly MovementData movementClosed = new MovementData();
 
-        private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, movementOpen);
-        private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, movementClosed);
+        //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, movementOpen);
+        //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, movementClosed);
 
         private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
@@ -61,13 +61,13 @@ namespace ACE.Server.WorldObjects
 
             if (!DefaultOpen)
             {
-                CurrentMotionState = motionStateClosed;
+                CurrentMotionState = motionClosed;
                 IsOpen = false;
                 //Ethereal = false;
             }
             else
             {
-                CurrentMotionState = motionStateOpen;
+                CurrentMotionState = motionOpen;
                 IsOpen = true;
                 //Ethereal = true;
             }
@@ -87,8 +87,8 @@ namespace ACE.Server.WorldObjects
             if (IsLocked ?? false)
                 DefaultLocked = true;
 
-            movementOpen.ForwardCommand = (uint)MotionCommand.On;
-            movementClosed.ForwardCommand = (uint)MotionCommand.Off;
+            //movementOpen.ForwardCommand = (uint)MotionCommand.On;
+            //movementClosed.ForwardCommand = (uint)MotionCommand.Off;
 
             if (UseRadius < 2)
                 UseRadius = 2;
@@ -221,11 +221,11 @@ namespace ACE.Server.WorldObjects
 
         private void Open(ObjectGuid opener = new ObjectGuid())
         {
-            if (CurrentMotionState == motionStateOpen)
+            if (CurrentMotionState == motionOpen)
                 return;
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
-            CurrentMotionState = motionStateOpen;
+            CurrentMotionState = motionOpen;
             Ethereal = true;
             IsOpen = true;
             //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
@@ -236,11 +236,11 @@ namespace ACE.Server.WorldObjects
 
         private void Close(ObjectGuid closer = new ObjectGuid())
         {
-            if (CurrentMotionState == motionStateClosed)
+            if (CurrentMotionState == motionClosed)
                 return;
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
-            CurrentMotionState = motionStateClosed;
+            CurrentMotionState = motionClosed;
             Ethereal = false;
             IsOpen = false;
             //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));

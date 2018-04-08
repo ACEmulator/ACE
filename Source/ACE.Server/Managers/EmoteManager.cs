@@ -1,14 +1,21 @@
+using ACE.Common;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Entity;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Server.Managers
 {
@@ -780,6 +787,86 @@ namespace ACE.Server.Managers
                     continue;
                 //ExecuteSet(entry, target);
                 break;
+            }
+        }
+
+        public void HeartBeat()
+        {
+            // System.Console.WriteLine($"WorldObject {WorldObject.Name} (0x{WorldObject.Guid.Full:X}) - Heartbeat timestamp: {WorldObject.GetProperty(PropertyFloat.HeartbeatTimestamp) ?? 0}");
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
+            foreach (var emote in WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.HeartBeat))
+            {                
+                if (rng <= emote.Probability)
+                {
+                    var emoteChain = new ActionChain();
+
+                    foreach (var action in WorldObject.Biota.BiotaPropertiesEmoteAction.Where(y => y.EmoteCategory == emote.Category && y.EmoteSetId == emote.EmoteSetId))
+                    {
+                        switch ((EmoteType)action.Type)
+                        {
+                            case EmoteType.Say:
+
+                                emoteChain.AddDelaySeconds(action.Delay);
+                                emoteChain.AddAction(WorldObject, () =>
+                                {
+                                    //WorldObject.CurrentLandblock.EnqueueBroadcastLocalChat(WorldObject, action.Message);
+                                    WorldObject.CurrentLandblock.EnqueueBroadcast(WorldObject.Location, new GameMessageCreatureMessage(action.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote));
+                                });
+                                break;
+
+                            case EmoteType.Motion:
+
+                                var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
+                                var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)action.Motion, action.Extent));
+
+                                if (WorldObject.CurrentMotionState.Stance != startingMotion.Stance)
+                                {
+                                    if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
+                                    {
+                                        emoteChain.AddDelaySeconds(action.Delay);
+                                        emoteChain.AddAction(WorldObject, () =>
+                                        {
+                                            WorldObject.DoMotion(startingMotion);
+                                            WorldObject.CurrentMotionState = startingMotion;
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    if (WorldObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
+                                    {
+                                        emoteChain.AddDelaySeconds(action.Delay);
+                                        emoteChain.AddAction(WorldObject, () =>
+                                        {
+                                            WorldObject.DoMotion(motion);
+                                            WorldObject.CurrentMotionState = motion;
+                                        });
+                                        emoteChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(WorldObject.MotionTableId).GetAnimationLength((MotionCommand)action.Motion));
+                                        if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
+                                        {
+                                            emoteChain.AddAction(WorldObject, () =>
+                                            {
+                                                WorldObject.DoMotion(startingMotion);
+                                                WorldObject.CurrentMotionState = startingMotion;
+                                            });
+                                        }
+                                    }
+                                    else if (WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sleeping && WorldObject.CurrentMotionState.Commands[0].Motion == MotionCommand.Sitting) // this feels like it can be handled better
+                                        continue;
+                                }
+
+                                break;
+                        }
+                    }
+
+                    if (emoteChain != null && emoteChain.FirstElement != null)
+                    {
+                        emoteChain.EnqueueChain();
+                        break;
+                    }
+                }
             }
         }
 
