@@ -798,7 +798,7 @@ namespace ACE.Server.Managers
 
             foreach (var emote in WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.HeartBeat))
             {                
-                if (rng <= emote.Probability)
+                if (rng < emote.Probability)
                 {
                     var emoteChain = new ActionChain();
 
@@ -864,8 +864,9 @@ namespace ACE.Server.Managers
                     if (emoteChain != null && emoteChain.FirstElement != null)
                     {
                         emoteChain.EnqueueChain();
-                        break;
                     }
+
+                    break;
                 }
             }
         }
