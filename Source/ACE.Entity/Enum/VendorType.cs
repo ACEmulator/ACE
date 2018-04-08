@@ -1,5 +1,6 @@
 namespace ACE.Entity.Enum
 {
+    // Verified against GDL, much <3 to you P.
     public enum VendorType
     {
         Undef       = 0,
