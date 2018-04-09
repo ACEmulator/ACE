@@ -30,6 +30,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesInt64> BiotaPropertiesInt64 { get; set; }
         public virtual DbSet<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; }
         public virtual DbSet<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; }
+        public virtual DbSet<BiotaPropertiesQuestRegistry> BiotaPropertiesQuestRegistry { get; set; }
         public virtual DbSet<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBar { get; set; }
         public virtual DbSet<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; }
         public virtual DbSet<BiotaPropertiesSpellBar> BiotaPropertiesSpellBar { get; set; }
@@ -1237,6 +1238,43 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesPosition)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_position");
+            });
+
+            modelBuilder.Entity<BiotaPropertiesQuestRegistry>(entity =>
+            {
+                entity.ToTable("biota_properties_quest_registry");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_questbook_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.QuestName })
+                    .HasName("wcid_questbook_name_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.LastTimeCompleted)
+                    .HasColumnName("last_Time_Completed")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.NumTimesCompleted)
+                    .HasColumnName("num_Times_Completed")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.QuestName)
+                    .IsRequired()
+                    .HasColumnName("quest_Name")
+                    .HasMaxLength(255);
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.BiotaPropertiesQuestRegistry)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_questbook");
             });
 
             modelBuilder.Entity<BiotaPropertiesShortcutBar>(entity =>

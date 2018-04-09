@@ -30,6 +30,7 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesInt64 = new HashSet<BiotaPropertiesInt64>();
             BiotaPropertiesPalette = new HashSet<BiotaPropertiesPalette>();
             BiotaPropertiesPosition = new HashSet<BiotaPropertiesPosition>();
+            BiotaPropertiesQuestRegistry = new HashSet<BiotaPropertiesQuestRegistry>();
             BiotaPropertiesShortcutBarObject = new HashSet<BiotaPropertiesShortcutBar>();
             BiotaPropertiesShortcutBarShortcutObject = new HashSet<BiotaPropertiesShortcutBar>();
             BiotaPropertiesSkill = new HashSet<BiotaPropertiesSkill>();
@@ -69,6 +70,7 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesInt64> BiotaPropertiesInt64 { get; set; }
         public ICollection<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; }
         public ICollection<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; }
+        public ICollection<BiotaPropertiesQuestRegistry> BiotaPropertiesQuestRegistry { get; set; }
         public ICollection<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBarObject { get; set; }
         public ICollection<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBarShortcutObject { get; set; }
         public ICollection<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; }
