@@ -6,6 +6,8 @@ namespace ACE.Server.Physics.Common
     // important class, ensure unit tests pass for this
     public class Random
     {
+        // multithread support
+        [ThreadStatic]
         public static System.Random RNG;
 
         static Random()
@@ -21,6 +23,16 @@ namespace ACE.Server.Physics.Common
             // todo: implement exactly the way AC handles it
             // inclusive/exclusive?
             return (float)(RNG.NextDouble() * (max - min) + min);
+        }
+
+        /// <summary>
+        /// Returns a random integer between min and max, inclusive
+        /// </summary>
+        /// <param name="min">The minimum possible value to return</param>
+        /// <param name="max">The maximum possible value to return</param>
+        public static int RollDice(int min, int max)
+        {
+            return RNG.Next(min, max + 1);
         }
     }
 }
