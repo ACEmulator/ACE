@@ -675,12 +675,38 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Open(WorldObject opener)
         {
-            // empty base, override in child obejcts
+            // empty base, override in child objects
         }
 
         public virtual void Close(WorldObject closer)
         {
-            // empty base, override in child obejcts
+            // empty base, override in child objects
+        }
+
+        public virtual void TakeDamage(WorldObject source, float _amount)
+        {
+            // currently only handles creature types
+            if (!(this is Creature)) return;
+            var monster = this as Creature;
+
+            var player = source is Player ? source as Player : null;
+
+            var amount = (uint)Math.Round(_amount);
+            var newMonsterHealth = (int)(monster.Health.Current - amount);
+
+            if (player != null)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You hit {monster.Name} for {amount} points of damage!", ChatMessageType.CombatSelf));
+
+            if (newMonsterHealth > 0)
+                monster.Health.Current = (uint)newMonsterHealth;
+            else
+            {
+                monster.Health.Current = 0;
+                monster.Die();
+
+                if (player != null)
+                    player.GrantXp((long)monster.XpOverride, false);
+            }
         }
     }
 }

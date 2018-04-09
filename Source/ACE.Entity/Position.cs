@@ -88,6 +88,24 @@ namespace ACE.Entity
             return false;
         }
 
+        /// <summary>
+        /// Returns the rotation as a normalized direction
+        /// </summary>
+        public Vector3 GetCurrentDir()
+        {
+            return Vector3.Normalize(Vector3.Transform(Vector3.UnitY, Rotation));
+        }
+
+        /// <summary>
+        /// Returns this vector as a unit vector
+        /// with a length of 1
+        /// </summary>
+        public Vector3 Normalize(Vector3 v)
+        {
+            var invLen = 1.0f / v.Length();
+            return v * invLen;
+        }
+
         public Position InFrontOf(double distanceInFront = 3.0f, bool rotate180 = false)
         {
             float qw = RotationW; // north
@@ -287,7 +305,7 @@ namespace ACE.Entity
         /// <summary>
         /// Returns the 2D distance between 2 objects
         /// </summary>
-        public float DistanceTo(Position p)
+        public float Distance2D(Position p)
         {
             // originally this returned the offset instead of distance...
             if (p.LandblockId == this.LandblockId)
@@ -303,6 +321,31 @@ namespace ACE.Entity
                 var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
                 var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
                 return (float)Math.Sqrt(dx * dx + dy * dy);
+            }
+        }
+
+        /// <summary>
+        /// Returns the 3D distance between 2 objects
+        /// </summary>
+        public float DistanceTo(Position p)
+        {
+            // originally this returned the offset instead of distance...
+            if (p.LandblockId == this.LandblockId)
+            {
+                var dx = this.PositionX - p.PositionX;
+                var dy = this.PositionY - p.PositionY;
+                var dz = this.PositionZ - p.PositionZ;
+                return (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
+            }
+            //if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            else
+            {
+                // verify this is working correctly if one of these is indoors
+                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
+                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                var dz = this.PositionZ - p.PositionZ;
+
+                return (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
             }
         }
 
