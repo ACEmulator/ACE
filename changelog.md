@@ -1,5 +1,19 @@
 # ACEmulator Change Log
 
+### 2018-04-09
+
+**ACE-World-16PY world db release v0.0.9+ required with this update**
+
+**You will need to update both shard and world databases with scripts in the respective update folders**
+
+[Ripley]
+* Added Quest Table to World Database.
+* Added Quest Registry Table to Shard Database.
+* Added House Portal Table to World Database.
+* Added Event Table to World Database.
+* Added Encounter Table to World Database.
+* Scaffolded the new tables.
+
 ### 2018-04-02
 
 **ACE-World-16PY world db release v0.0.8+ required with this update**
