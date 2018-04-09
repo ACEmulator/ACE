@@ -234,7 +234,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (guidTarget != Guid)
                 {
-                    float distanceTo = Location.DistanceTo(target.Location);
+                    float distanceTo = Location.Distance2D(target.Location);
 
                     if (distanceTo > (spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)))
                     {
