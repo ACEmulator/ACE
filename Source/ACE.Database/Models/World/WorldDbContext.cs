@@ -7,8 +7,12 @@ namespace ACE.Database.Models.World
     public partial class WorldDbContext : DbContext
     {
         public virtual DbSet<AceRecipe> AceRecipe { get; set; }
+        public virtual DbSet<Encounter> Encounter { get; set; }
+        public virtual DbSet<Event> Event { get; set; }
+        public virtual DbSet<HousePortal> HousePortal { get; set; }
         public virtual DbSet<LandblockInstances> LandblockInstances { get; set; }
         public virtual DbSet<PointsOfInterest> PointsOfInterest { get; set; }
+        public virtual DbSet<Quest> Quest { get; set; }
         public virtual DbSet<Spell> Spell { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
@@ -96,6 +100,88 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
             });
 
+            modelBuilder.Entity<Encounter>(entity =>
+            {
+                entity.ToTable("encounter");
+
+                entity.HasIndex(e => e.Index)
+                    .HasName("encounter_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.EncounterMap)
+                    .HasColumnName("encounter_Map")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.WeenieClassId)
+                    .HasColumnName("weenie_Class_Id")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<Event>(entity =>
+            {
+                entity.ToTable("event");
+
+                entity.HasIndex(e => e.Name)
+                    .HasName("name_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.EndTime)
+                    .HasColumnName("end_Time")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'-1'");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.StartTime)
+                    .HasColumnName("start_Time")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'-1'");
+
+                entity.Property(e => e.State)
+                    .HasColumnName("state")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<HousePortal>(entity =>
+            {
+                entity.ToTable("house_portal");
+
+                entity.HasIndex(e => new { e.HouseId, e.ObjCellId })
+                    .HasName("house_Id_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.AnglesW).HasColumnName("angles_W");
+
+                entity.Property(e => e.AnglesX).HasColumnName("angles_X");
+
+                entity.Property(e => e.AnglesY).HasColumnName("angles_Y");
+
+                entity.Property(e => e.AnglesZ).HasColumnName("angles_Z");
+
+                entity.Property(e => e.HouseId).HasColumnName("house_Id");
+
+                entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
+
+                entity.Property(e => e.OriginX).HasColumnName("origin_X");
+
+                entity.Property(e => e.OriginY).HasColumnName("origin_Y");
+
+                entity.Property(e => e.OriginZ).HasColumnName("origin_Z");
+            });
+
             modelBuilder.Entity<LandblockInstances>(entity =>
             {
                 entity.ToTable("landblock_instances");
@@ -176,6 +262,36 @@ namespace ACE.Database.Models.World
                     .WithMany(p => p.PointsOfInterest)
                     .HasForeignKey(d => d.WeenieClassId)
                     .HasConstraintName("wcid_poi");
+            });
+
+            modelBuilder.Entity<Quest>(entity =>
+            {
+                entity.ToTable("quest");
+
+                entity.HasIndex(e => e.Name)
+                    .HasName("name_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.MaxSolves)
+                    .HasColumnName("max_Solves")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.MinDelta)
+                    .HasColumnName("min_Delta")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasMaxLength(255);
             });
 
             modelBuilder.Entity<Spell>(entity =>
