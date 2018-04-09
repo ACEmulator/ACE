@@ -10,6 +10,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -683,6 +684,11 @@ namespace ACE.Server.WorldObjects
             // empty base, override in child objects
         }
 
+        /// <summary>
+        /// Applies some amount of damage to this world object from source
+        /// </summary>
+        /// <param name="source">The attacker / source of damage</param>
+        /// <param name="_amount">The amount of damage rounded</param>
         public virtual void TakeDamage(WorldObject source, float _amount)
         {
             // currently only handles creature types
@@ -694,19 +700,79 @@ namespace ACE.Server.WorldObjects
             var amount = (uint)Math.Round(_amount);
             var newMonsterHealth = (int)(monster.Health.Current - amount);
 
-            if (player != null)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You hit {monster.Name} for {amount} points of damage!", ChatMessageType.CombatSelf));
-
+            // apply damage
             if (newMonsterHealth > 0)
+            {
+                if (player != null)
+                {
+                    //var hitMessage = $"You hit {monster.Name} for {amount} points of damage!";
+                    var hitMessage = GetAttackMessage(monster, source.GetDamageType(), amount);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(hitMessage, ChatMessageType.CombatSelf));
+                }
                 monster.Health.Current = (uint)newMonsterHealth;
+            }
             else
             {
                 monster.Health.Current = 0;
                 monster.Die();
 
                 if (player != null)
+                {
+                    var deathMessage = monster.GetDeathMessage(source);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, monster.Name), ChatMessageType.Broadcast));
                     player.GrantXp((long)monster.XpOverride, false);
+                }
             }
+        }
+
+        /// <summary>
+        /// Returns a strike message based on damage type and severity
+        /// </summary>
+        public virtual string GetAttackMessage(Creature creature, DamageType damageType, uint amount)
+        {
+            var percent = (float)amount / creature.Health.Base;
+            string verb = null, plural = null;
+            Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
+            var type = damageType.GetName().ToLower();
+            return $"You {verb} {creature.Name} for {amount} points of {type} damage!";
+        }
+
+        /// <summary>
+        /// Returns a randomized death message based on damage type
+        /// </summary>
+        public virtual string GetDeathMessage(WorldObject killer)
+        {
+            var damageType = killer.GetDamageType();
+            Strings.DeathMessages.TryGetValue(damageType, out var messages);
+            var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
+            return messages[idx];
+        }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public virtual DamageType GetDamageType(bool multiple = false)
+        {
+            var player = this as Player;
+
+            // get the damage types for currently equipped weapon
+            var weapon = player.EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon).FirstOrDefault();
+            if (weapon == null)
+                return DamageType.Undef;
+
+            var damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
+
+            // returning multiple damage types
+            if (multiple) return damageTypes;
+
+            // get single damage type
+            foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
+            {
+                if ((damageTypes & damageType) != 0)
+                    return damageType;
+            }
+            return damageTypes;
         }
     }
 }
