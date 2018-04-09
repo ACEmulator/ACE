@@ -944,7 +944,7 @@ namespace ACE.Server.Managers
                     actionChain.AddAction(sourceObject, () =>
                     {
                         var player = targetObject as Player;
-                        player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.OutgoingTell));
+                        player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.Tell));
                     });
                     break;
 
