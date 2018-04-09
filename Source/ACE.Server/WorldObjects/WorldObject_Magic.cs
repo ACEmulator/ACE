@@ -5,6 +5,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -145,6 +146,34 @@ namespace ACE.Server.WorldObjects
             return scale;
         }
 
+        private static uint x = 548787455, y = 842502087, z = 3579807591, w = 273326509;
+
+        const double REAL_UNIT_INT = 1.0 / ((double)int.MaxValue + 1.0);
+        const double REAL_UNIT_UINT = 1.0 / ((double)uint.MaxValue + 1.0);
+
+        public static int FastRandom(int lowerBound, int upperBound)
+        {
+            if (lowerBound > upperBound)
+                throw new ArgumentOutOfRangeException("upperBound", upperBound, "upperBound must be >=lowerBound");
+
+            uint t = (x ^ (x << 11));
+            x = y; y = z; z = w;
+
+            // The explicit int cast before the first multiplication gives better performance.
+            // See comments in NextDouble.
+            int range = upperBound - lowerBound;
+            if (range < 0)
+            {   // If range is <0 then an overflow has occured and must resort to using long integer arithmetic instead (slower).
+                // We also must use all 32 bits of precision, instead of the normal 31, which again is slower.	
+                return lowerBound + (int)((REAL_UNIT_UINT * (double)(w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)))) * (double)((long)upperBound - (long)lowerBound));
+            }
+
+            // 31 bits of precision will suffice if range<=int.MaxValue. This allows us to cast to an int and gain
+            // a little more performance.
+            int output = lowerBound + (int)((REAL_UNIT_INT * (double)(int)(0x7FFFFFFF & (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8))))) * (double)range);
+            return output;
+        }
+
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
@@ -205,7 +234,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (guidTarget != Guid)
                 {
-                    float distanceTo = Location.Distance2D(target.Location);
+                    float distanceTo = Location.DistanceTo(target.Location);
 
                     if (distanceTo > (spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)))
                     {
@@ -284,7 +313,7 @@ namespace ACE.Server.WorldObjects
                         if (targetDeath == true)
                         {
                             Creature creatureTarget = (Creature)target;
-                            creatureTarget.DoOnKill(player.Session);
+                            creatureTarget.Die();
                         }
                         break;
                     case MagicSchool.ItemEnchantment:
@@ -413,6 +442,8 @@ namespace ACE.Server.WorldObjects
 
         private bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message)
         {
+            string srcVital, destVital, action;
+
             Player player = null;
             if (WeenieClassId == 1)
                 player = (Player)this;
@@ -422,26 +453,23 @@ namespace ACE.Server.WorldObjects
                 spellTarget = (Creature)this;
             else
                 spellTarget = (Creature)target;
-            Random rng = new Random();
-
 
             int newSpellTargetVital;
             switch (spell.MetaSpellType)
             {
                 case SpellType.Boost:
-                    string vital, action;
                     int minBoostValue, maxBoostValue;
-                    if (spellStatMod.BoostVariance < spellStatMod.Boost)
+                    if ((spellStatMod.BoostVariance + spellStatMod.Boost) < spellStatMod.Boost)
                     {
-                        minBoostValue = (int)spellStatMod.BoostVariance;
+                        minBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                         maxBoostValue = (int)spellStatMod.Boost;
                     }
                     else
                     {
                         minBoostValue = (int)spellStatMod.Boost;
-                        maxBoostValue = (int)spellStatMod.BoostVariance;
+                        maxBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                     }
-                    int boost = rng.Next(minBoostValue, maxBoostValue);
+                    int boost = FastRandom(minBoostValue, maxBoostValue);
                     if (boost < 0)
                         action = "drain";
                     else
@@ -450,8 +478,8 @@ namespace ACE.Server.WorldObjects
                     {
                         case 512:   // Mana
                             newSpellTargetVital = (int)(spellTarget.Mana.Current + boost);
-                            vital = "mana";
-                            if (newSpellTargetVital < spellTarget.Mana.Current)
+                            srcVital = "mana";
+                            if (newSpellTargetVital < spellTarget.Mana.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
                                     spellTarget.Mana.Current = 0;
@@ -459,12 +487,12 @@ namespace ACE.Server.WorldObjects
                                     spellTarget.Mana.Current = (uint)newSpellTargetVital;
                             }
                             else
-                                boost = 0;
+                                spellTarget.Mana.Current = spellTarget.Mana.MaxValue;
                             break;
                         case 256:   // Stamina
                             newSpellTargetVital = (int)(spellTarget.Stamina.Current + boost);
-                            vital = "stamina";
-                            if (newSpellTargetVital < spellTarget.Stamina.Current)
+                            srcVital = "stamina";
+                            if (newSpellTargetVital < spellTarget.Stamina.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
                                     spellTarget.Stamina.Current = 0;
@@ -472,12 +500,12 @@ namespace ACE.Server.WorldObjects
                                     spellTarget.Stamina.Current = (uint)newSpellTargetVital;
                             }
                             else
-                                boost = 0;
+                                spellTarget.Stamina.Current = spellTarget.Stamina.MaxValue;
                             break;
                         default:   // Health
                             newSpellTargetVital = (int)(spellTarget.Health.Current + boost);
-                            vital = "health";
-                            if (newSpellTargetVital < spellTarget.Health.Current)
+                            srcVital = "health";
+                            if (newSpellTargetVital < spellTarget.Health.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
                                     spellTarget.Health.Current = 0;
@@ -485,46 +513,53 @@ namespace ACE.Server.WorldObjects
                                     spellTarget.Health.Current = (uint)newSpellTargetVital;
                             }
                             else
-                                boost = 0;
+                                spellTarget.Health.Current = spellTarget.Health.MaxValue;
                             break;
                     }
                     if (WeenieClassId == 1)
                     {
                         if (spell.BaseRangeConstant == 0)
-                            message = $"You {action} {Math.Abs(boost).ToString()} {vital}";
+                            message = $"You {action} {Math.Abs(boost).ToString()} {srcVital}";
                         else
-                            message = $"You {action} {Math.Abs(boost).ToString()} of {vital} from {spellTarget.Name}";
+                            message = $"You {action} {Math.Abs(boost).ToString()} of {srcVital} from {spellTarget.Name}";
                     }
                     else
                         message = null;
                     break;
                 case SpellType.Transfer:
                     // Calculate the change in vitals of the target
-                    float vitalChangeDelta = (float)(spellStatMod.Proportion * spellStatMod.LossPercent);
-                    uint vitalChange = (uint)(spellTarget.Health.Current * Math.Abs(vitalChangeDelta));
+                    Creature caster;
+                    if (spell.BaseRangeConstant == 0 && spell.BaseRangeMod == 1)
+                        caster = spellTarget;
+                    else
+                        caster = (Creature)this;
+                    uint vitalChange, casterVitalChange;
+                    vitalChange = (uint)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion);
+                    if (vitalChange > spellStatMod.TransferCap)
+                        vitalChange = (uint)spellStatMod.TransferCap;
+                    casterVitalChange = (uint)(vitalChange * (1.0f - spellStatMod.LossPercent));
+                    vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
+                    newSpellTargetVital = (int)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) - vitalChange);
 
                     // Apply the change in vitals to the target
                     switch (spellStatMod.Source)
                     {
-                        case 6:   // Mana
-                            newSpellTargetVital = (int)(spellTarget.Mana.Current - vitalChange);
-                            vital = "mana";
+                        case (int)PropertyAttribute2nd.Mana:
+                            srcVital = "mana";
                             if (newSpellTargetVital <= 0)
                                 spellTarget.Mana.Current = 0;
                             else
                                 spellTarget.Mana.Current = (uint)newSpellTargetVital;
                             break;
-                        case 4:   // Stamina
-                            newSpellTargetVital = (int)(spellTarget.Stamina.Current - vitalChange);
-                            vital = "stamina";
+                        case (int)PropertyAttribute2nd.Stamina:
+                            srcVital = "stamina";
                             if (newSpellTargetVital <= 0)
                                 spellTarget.Stamina.Current = 0;
                             else
                                 spellTarget.Stamina.Current = (uint)newSpellTargetVital;
                             break;
                         default:   // Health
-                            newSpellTargetVital = (int)(spellTarget.Health.Current - vitalChange);
-                            vital = "health";
+                            srcVital = "health";
                             if (newSpellTargetVital <= 0)
                                 spellTarget.Health.Current = 0;
                             else
@@ -533,21 +568,41 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // Apply the scaled change in vitals to the caster
+                    uint newCasterVital;
                     switch (spellStatMod.Destination)
                     {
-                        case 6:   // Mana
-
+                        case (int)PropertyAttribute2nd.Mana:
+                            destVital = "mana";
+                            newCasterVital = caster.Mana.Current + casterVitalChange;
+                            caster.Mana.Current = newCasterVital;
+                            if (caster.Mana.Current >= caster.Mana.MaxValue)
+                                caster.Mana.Current = caster.Mana.MaxValue;
                             break;
-                        case 4:   // Stamina
-
+                        case (int)PropertyAttribute2nd.Stamina:
+                            destVital = "stamina";
+                            newCasterVital = caster.Stamina.Current + casterVitalChange;
+                            caster.Stamina.Current = newCasterVital;
+                            if (caster.Stamina.Current >= caster.Stamina.MaxValue)
+                                caster.Stamina.Current = caster.Stamina.MaxValue;
                             break;
                         default:   // Health
-
+                            destVital = "health";
+                            newCasterVital = caster.Mana.Current + casterVitalChange;
+                            caster.Health.Current = newCasterVital;
+                            if (caster.Health.Current >= caster.Health.MaxValue)
+                                caster.Health.Current = caster.Health.MaxValue;
                             break;
                     }
 
                     if (WeenieClassId == 1)
-                        message = $"You drain {vitalChange.ToString()} of {vital} from {spellTarget.Name} and apply {vitalChange.ToString()} to yourself";
+                    {
+                        if (target.Guid == Guid)
+                        {
+                            message = $"You drain {vitalChange.ToString()} of {srcVital} and apply {casterVitalChange.ToString()} of {destVital} to yourself";
+                        }
+                        else
+                            message = $"You drain {vitalChange.ToString()} of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself";
+                    }
                     else
                         message = null;
                     break;
