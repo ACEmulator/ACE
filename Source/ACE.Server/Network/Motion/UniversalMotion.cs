@@ -99,8 +99,6 @@ namespace ACE.Server.Network.Motion
                         writer.Write((uint)generalFlags);
 
                         MovementData.Serialize(writer);
-                        // Must be aligned for correct alignment. - sigh Og II
-                        writer.Align();
 
                         foreach (var item in Commands)
                         {
@@ -108,6 +106,13 @@ namespace ACE.Server.Network.Motion
                             writer.Write(sequence.GetNextSequence(SequenceType.Motion));
                             writer.Write(item.Speed);
                         }
+
+                        // Must be aligned for correct alignment. - sigh Og II
+                        writer.Align();
+
+                        if (HasTarget)
+                            writer.Write(TargetGuid.Full);
+
                         break;
                     }
                 case MovementTypes.MoveToPosition:

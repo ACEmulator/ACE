@@ -2339,5 +2339,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.Invincible);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.Invincible); else SetProperty(PropertyBool.Invincible, value.Value); }
         }
+
+        public int? XpOverride
+        {
+            get => GetProperty(PropertyInt.XpOverride);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.XpOverride); else SetProperty(PropertyInt.XpOverride, value.Value); }
+        }
     }
 }
