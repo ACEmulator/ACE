@@ -362,7 +362,8 @@ namespace ACE.Server.WorldObjects
             HeldItem mEquipedShieldSlot = Children.Find(s => s.EquipMask == EquipMask.Shield);
             if (mEquipedShieldSlot != null)
             {
-                WorldObject itemInShieldSlot = GetInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
+                //WorldObject itemInShieldSlot = GetInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
+                var itemInShieldSlot = GetEquippedShield();
                 if (itemInShieldSlot != null)
                 {
                     if (itemInShieldSlot.ItemType == ItemType.Armor)
@@ -410,7 +411,8 @@ namespace ACE.Server.WorldObjects
             // Let's see if we are melee single handed / two handed with our without shield as appropriate.
             if (mEquipedMelee?.Guid != null && ms != MotionStance.DualWieldAttack)
             {
-                WorldObject meleeWeapon = GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+                //WorldObject meleeWeapon = GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+                WorldObject meleeWeapon = GetEquippedWeapon();
 
                 if (meleeWeapon == null)
                 {
@@ -553,6 +555,23 @@ namespace ACE.Server.WorldObjects
             //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
             //player.Session.Network.EnqueueSend(sendUseDoneEvent);
             player.SendUseDoneEvent();
+        }
+
+        /// <summary>
+        /// Returns the currently equipped weapon
+        /// </summary>
+        public virtual WorldObject GetEquippedWeapon()
+        {
+            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns the currently equipped shield
+        /// </summary>
+        /// <returns></returns>
+        public virtual WorldObject GetEquippedShield()
+        {
+            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.Shield).FirstOrDefault();
         }
     }
 }

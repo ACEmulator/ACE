@@ -64,6 +64,7 @@ namespace ACE.Server.WorldObjects
         public bool IsMovingTo { get => movingState; set => movingState = value; }
 
         public EmoteManager EmoteManager;
+        public List<AttackDamage> AttackList = new List<AttackDamage>();
 
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
@@ -689,7 +690,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="source">The attacker / source of damage</param>
         /// <param name="_amount">The amount of damage rounded</param>
-        public virtual void TakeDamage(WorldObject source, float _amount)
+        public virtual void TakeDamage(WorldObject source, float _amount, bool crit = false)
         {
             // currently only handles creature types
             if (!(this is Creature)) return;
@@ -699,6 +700,8 @@ namespace ACE.Server.WorldObjects
 
             var amount = (uint)Math.Round(_amount);
             var newMonsterHealth = (int)(monster.Health.Current - amount);
+
+            AttackList.Add(new AttackDamage(source, amount, crit));
 
             // apply damage
             if (newMonsterHealth > 0)
@@ -718,7 +721,7 @@ namespace ACE.Server.WorldObjects
 
                 if (player != null)
                 {
-                    var deathMessage = monster.GetDeathMessage(source);
+                    var deathMessage = monster.GetDeathMessage(source, crit);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, monster.Name), ChatMessageType.Broadcast));
                     player.GrantXp((long)monster.XpOverride, false);
                 }
@@ -740,12 +743,21 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a randomized death message based on damage type
         /// </summary>
-        public virtual string GetDeathMessage(WorldObject killer)
+        public virtual string GetDeathMessage(WorldObject killer, bool criticalHit = false)
         {
-            var damageType = killer.GetDamageType();
-            Strings.DeathMessages.TryGetValue(damageType, out var messages);
-            var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
-            return messages[idx];
+            if (!criticalHit)
+            {
+                var damageType = killer.GetDamageType();
+                Strings.DeathMessages.TryGetValue(damageType, out var messages);
+                var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
+                return messages[idx];
+            }
+            else
+            {
+                var messages = Strings.Critical;
+                var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
+                return messages[idx];
+            }
         }
 
         /// <summary>
@@ -756,10 +768,9 @@ namespace ACE.Server.WorldObjects
         {
             var player = this as Player;
 
-            // get the damage types for currently equipped weapon
-            var weapon = player.EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon).FirstOrDefault();
+            var weapon = player.GetEquippedWeapon();
             if (weapon == null)
-                return DamageType.Undef;
+                return DamageType.Bludgeon;
 
             var damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
 
@@ -770,7 +781,13 @@ namespace ACE.Server.WorldObjects
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
                 if ((damageTypes & damageType) != 0)
+                {
+                    // handle multiple damage types
+                    if (damageType == DamageType.Slash && player.CurrentMotionState.Commands[0].Motion.ToString().Contains("Thrust"))
+                        continue;
+
                     return damageType;
+                }
             }
             return damageTypes;
         }

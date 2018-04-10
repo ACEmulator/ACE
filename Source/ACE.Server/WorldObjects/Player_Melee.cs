@@ -1,19 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using ACE.Entity;
-using System.Numerics;
-using ACE.Server.Physics.Extensions;
-using ACE.Server.Network.Motion;
 using ACE.Entity.Enum;
-using ACE.Server.Physics.Common;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
+using ACE.Server.Network.Motion;
+using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Extensions;
+using System;
+using System.Numerics;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public uint AttackHeight;
+        public float PowerLevel;
+
+        public WorldObject MeleeTarget;
+
         public void HandleActionTargetedMeleeAttack(ObjectGuid guid, uint attackHeight, float powerLevel)
         {
             /*Console.WriteLine("HandleActionTargetedMeleeAttack");
@@ -24,6 +28,9 @@ namespace ACE.Server.WorldObjects
             // sanity check
             powerLevel = Math.Clamp(powerLevel, 0.0f, 1.0f);
 
+            AttackHeight = attackHeight;
+            PowerLevel = powerLevel;
+
             // get world object of target guid
             var target = CurrentLandblock.GetObject(guid);
             if (target == null)
@@ -31,6 +38,10 @@ namespace ACE.Server.WorldObjects
                 log.Warn("Unknown target guid " + guid);
                 return;
             }
+            if (MeleeTarget == null)
+                MeleeTarget = target;
+            else
+                return;
 
             // get distance from target
             var dist = GetDistance(target);
@@ -47,6 +58,11 @@ namespace ACE.Server.WorldObjects
 
             // do melee attack
             Attack(target);
+        }
+
+        public void HandleActionCancelAttack()
+        {
+            MeleeTarget = null;
         }
 
         public float GetDistance(WorldObject target)
@@ -96,27 +112,103 @@ namespace ACE.Server.WorldObjects
 
         public void Attack(WorldObject target)
         {
-            DoSwingMotion(target);
-
-            if (!(target is Creature))
+            if (MeleeTarget == null)
                 return;
+
+            var actionChain = DoSwingMotion(target);
 
             var damage = CalculateDamage(target);
             if (damage > 0.0f)
                 target.TakeDamage(this, damage);
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatEnemy));
+
+            var creature = target as Creature;
+            if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+            {
+                // powerbar refill timing
+                actionChain.AddDelaySeconds(PowerLevel);
+                actionChain.AddAction(this, () => Attack(target));
+            }
+            else
+                MeleeTarget = null;
+                
+            actionChain.EnqueueChain();
         }
 
-        public void DoSwingMotion(WorldObject target)
+        public ActionChain DoSwingMotion(WorldObject target)
         {
-            var motion = new UniversalMotion(MotionStance.UaNoShieldAttack, new MotionItem(MotionCommand.AttackLow2, 1.0f));
+            var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+
+            var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
             motion.MovementData.TurnSpeed = 2.25f;
             motion.HasTarget = true;
             motion.TargetGuid = target.Guid;
-            DoMotion(motion);
             CurrentMotionState = motion;
+
+            var actionChain = new ActionChain();
+            actionChain.AddAction(this, () => DoMotion(motion));
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
+            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session)));
+            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
+            return actionChain;
+        }
+
+        public MotionCommand GetSwingAnimation()
+        {
+            MotionCommand motion = new MotionCommand();
+
+            switch (CurrentMotionState.Stance)
+            {
+                case MotionStance.DualWieldAttack:
+                case MotionStance.MeleeNoShieldAttack:
+                case MotionStance.MeleeShieldAttack:
+                case MotionStance.ThrownShieldCombat:
+                case MotionStance.ThrownWeaponAttack:
+                case MotionStance.TwoHandedStaffAttack:
+                case MotionStance.TwoHandedSwordAttack:
+                    {
+                        var action = PowerLevel < 0.5f ? "Thrust" : "Slash";
+                        Enum.TryParse(action + GetAttackHeight(), out motion);
+                        return motion;
+                    }
+                case MotionStance.UaNoShieldAttack:
+                default:
+                    {
+                        // is the player holding a weapon?
+                        var weapon = GetEquippedWeapon();
+
+                        // no weapon: power range 1-3
+                        // unarmed weapon: power range 1-2
+                        if (weapon == null)
+                            Enum.TryParse("Attack" + GetAttackHeight() + GetPowerRange(), out motion);
+                        else
+                            Enum.TryParse("Attack" + GetAttackHeight() + Math.Min(GetPowerRange(), 2), out motion);
+
+                        return motion;
+                    }
+                    
+            }
+        }
+
+        public string GetAttackHeight()
+        {
+            if (AttackHeight == 1) return "High";
+            else if (AttackHeight == 2) return "Med";
+            else return "Low";
+        }
+
+        public int GetPowerRange()
+        {
+            if (PowerLevel < 0.33f)
+                return 1;
+            else if (PowerLevel < 0.66f)
+                return 2;
+            else
+                return 3;
         }
 
         public float CalculateDamage(WorldObject target)
