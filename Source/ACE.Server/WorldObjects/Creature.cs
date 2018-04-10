@@ -556,22 +556,5 @@ namespace ACE.Server.WorldObjects
             //player.Session.Network.EnqueueSend(sendUseDoneEvent);
             player.SendUseDoneEvent();
         }
-
-        /// <summary>
-        /// Returns the currently equipped weapon
-        /// </summary>
-        public virtual WorldObject GetEquippedWeapon()
-        {
-            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon).FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Returns the currently equipped shield
-        /// </summary>
-        /// <returns></returns>
-        public virtual WorldObject GetEquippedShield()
-        {
-            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.Shield).FirstOrDefault();
-        }
     }
 }
