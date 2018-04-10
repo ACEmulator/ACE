@@ -74,9 +74,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-                 /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
-                 /// It will also increase the EncumbranceVal and Value.
-                 /// </summary>
+        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
+        /// It will also increase the EncumbranceVal and Value.
+        /// </summary>
         public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
         {
             if (!WieldedLocationIsAvailable(wieldedLocation))
