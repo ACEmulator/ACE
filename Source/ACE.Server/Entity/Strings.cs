@@ -13,13 +13,11 @@ namespace ACE.Server.Entity
             "You cleave {0} in twain!",
             "{0} is torn to ribbons by your assault!",
             "Your killing blow nearly turns {0} inside-out!",
-            "You slay {0} viciously enough to impart death several times over!"
         };
 
         public static List<string> Piercing = new List<string>()
         {
             "You run {0} through!",
-            "{0} catches your attack, with dire consequences!",
             "{0}'s death is preceded by a sharp, stabbing pain!",
             "{0} is fatally punctured!",
             "{0}'s perforated corpse falls before you!"
@@ -28,11 +26,9 @@ namespace ACE.Server.Entity
         public static List<string> Bludgeoning = new List<string>()
         {
             "You beat {0} to a lifeless pulp!",
+            "{0} is shattered by your assault!",
             "You flatten {0}'s body with the force of your assault!",
-            "{0} is utterly destroyed by your attack!",
             "The thunder of crushing {0} is followed by the deafening silence of death!",
-            "You knock {0} into next Morningthaw!",
-            "The deadly force of your attack is so strong that {0}'s ancestors feel it!"
         };
 
         public static List<string> Fire = new List<string>()
@@ -71,17 +67,25 @@ namespace ACE.Server.Entity
             "You reduce {0} to a drained, twisted corpse!"
         };
 
-        public static List<string> Crystal = new List<string>()
+        public static List<string> Critical = new List<string>()
         {
-            "{0} is shattered by your assault!"
+            "{0} catches your attack, with dire consequences!",
+            "You obliterate {0}!",
+            "{0} is utterly destroyed by your attack!",
+            "You knock {0} into next Morningthaw!",
+            "You slay {0} viciously enough to impart death several times over!",
+            "The deadly force of your attack is so strong that {0}'s ancestors feel it!",
+            "You smite {0} mightily!",
+        };
+
+        public static List<string> PKCritical = new List<string>()
+        {
+            "You send {0} to death so violently that even the lifestone flinches!"
         };
 
         public static List<string> General = new List<string>()
         {
             "You killed {0}!",
-            "You smite {0} mightily!",
-            "You obliterate {0}!",
-            "You send {0} to death so violently that even the lifestone flinches!"
         };
 
         static Strings()

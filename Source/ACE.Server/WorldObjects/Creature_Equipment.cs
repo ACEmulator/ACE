@@ -57,6 +57,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the currently equipped weapon
+        /// </summary>
+        public WorldObject GetEquippedWeapon()
+        {
+            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns the currently equipped shield
+        /// </summary>
+        /// <returns></returns>
+        public WorldObject GetEquippedShield()
+        {
+            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.Shield).FirstOrDefault();
+        }
+
+        /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>

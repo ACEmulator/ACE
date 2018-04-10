@@ -362,7 +362,8 @@ namespace ACE.Server.WorldObjects
             HeldItem mEquipedShieldSlot = Children.Find(s => s.EquipMask == EquipMask.Shield);
             if (mEquipedShieldSlot != null)
             {
-                WorldObject itemInShieldSlot = GetInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
+                //WorldObject itemInShieldSlot = GetInventoryItem(new ObjectGuid(mEquipedShieldSlot.Guid));
+                var itemInShieldSlot = GetEquippedShield();
                 if (itemInShieldSlot != null)
                 {
                     if (itemInShieldSlot.ItemType == ItemType.Armor)
@@ -410,7 +411,8 @@ namespace ACE.Server.WorldObjects
             // Let's see if we are melee single handed / two handed with our without shield as appropriate.
             if (mEquipedMelee?.Guid != null && ms != MotionStance.DualWieldAttack)
             {
-                WorldObject meleeWeapon = GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+                //WorldObject meleeWeapon = GetInventoryItem(new ObjectGuid(mEquipedMelee.Guid));
+                WorldObject meleeWeapon = GetEquippedWeapon();
 
                 if (meleeWeapon == null)
                 {

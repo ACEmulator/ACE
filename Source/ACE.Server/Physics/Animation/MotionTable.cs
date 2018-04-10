@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
+using ACE.Server.Network.Motion;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -413,6 +415,12 @@ namespace ACE.Server.Physics.Animation
                 state.remove_modifier(modifier);
                 GetObjectSequence(modifier.ID, state, sequence, modifier.SpeedMod, ref numAnims, false);
             }
+        }
+
+        public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionItem motionItem)
+        {
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
+            return motionTable.GetAnimationLength(stance, motionItem.Motion) / motionItem.Speed;
         }
     }
 }
