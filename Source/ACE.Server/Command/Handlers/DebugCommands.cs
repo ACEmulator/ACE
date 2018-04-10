@@ -959,19 +959,5 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(contractMsg);
             ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
-
-
-        // ==================================
-        // Combat
-        // ==================================
-
-        /// <summary>
-        /// Debug command to kill a targeted creature so it drops a corpse.
-        /// </summary>
-        [CommandHandler("testcorpsedrop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void TestCorpse(Session session, params string[] parameters)
-        {
-            session.Player.HandleActionTestCorpseDrop();
-        }
     }
 }

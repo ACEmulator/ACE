@@ -12,8 +12,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Database.Models.Shard;
-using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
@@ -219,82 +217,6 @@ namespace ACE.Server.WorldObjects
         public bool IsAlive { get; set; }
 
         public double RespawnTime { get; set; }
-
-        public virtual void DoOnKill(Session killerSession)
-        {
-            OnKillInternal(killerSession).EnqueueChain();
-        }
-
-        protected ActionChain OnKillInternal(Session killerSession)
-        {
-            // Will start death animation
-            OnKill(killerSession);
-
-            // Wait, then run kill animation
-            ActionChain onKillChain = new ActionChain();
-            onKillChain.AddDelaySeconds(2);
-            onKillChain.AddChain(GetCreateCorpseChain());
-
-            return onKillChain;
-        }
-
-        protected virtual float GetCorpseSpawnTime()
-        {
-            return 60;
-        }
-
-        public ActionChain GetCreateCorpseChain()
-        {
-            ActionChain createCorpseChain = new ActionChain(this, () =>
-            {
-                ////// Create Corspe and set a location on the ground
-                ////// TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-                ////var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                ////// FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
-                ////corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
-                ////corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
-
-                ////// Corpses stay on the ground for 5 * player level but minimum 1 hour
-                ////// corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-                ////// corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-                ////float despawnTime = GetCorpseSpawnTime();
-
-                ////// Create corpse
-                ////CurrentLandblock.AddWorldObject(corpse);
-                ////// Create corpse decay
-                ////ActionChain despawnChain = new ActionChain();
-                ////despawnChain.AddDelaySeconds(despawnTime);
-                ////despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
-                ////despawnChain.EnqueueChain();
-            });
-            return createCorpseChain;
-        }
-
-        private void OnKill(Session session)
-        {
-            IsAlive = false;
-            // This will determine if the derived type is a player
-            var isDerivedPlayer = Guid.IsPlayer();
-
-            if (!isDerivedPlayer)
-            {
-                // Create and send the death notice
-                string killMessage = $"{session.Player.Name} has killed {Name}.";
-                var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
-                session.Network.EnqueueSend(creatureDeathEvent);
-            }
-
-            // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
-            // TODO: Check if the duration of the motion can somehow be computed
-            UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            CurrentLandblock.EnqueueBroadcastMotion(this, motionDeath);
-
-            // If the object is a creature, Remove it from from Landblock
-            if (!isDerivedPlayer)
-            {
-                CurrentLandblock.RemoveWorldObject(Guid, false);
-            }
-        }
 
         /// <summary>
         /// This method checks to make sure we have a casting device equipped and if so, it sets
