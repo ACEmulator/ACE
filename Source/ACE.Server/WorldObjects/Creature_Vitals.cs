@@ -22,6 +22,19 @@ namespace ACE.Server.WorldObjects
             return value;
         }
 
+        public uint GetCurrentCreatureVital(PropertyAttribute2nd vital)
+        {
+            switch (vital)
+            {
+                case PropertyAttribute2nd.Mana:
+                    return Mana.Current;
+                case PropertyAttribute2nd.Stamina:
+                    return Stamina.Current;
+                default:
+                    return Health.Current;
+            }
+        }
+
         public void DeltaVital(CreatureVital vital, long delta)
         {
             EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
