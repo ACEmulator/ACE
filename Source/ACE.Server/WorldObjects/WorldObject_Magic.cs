@@ -10,6 +10,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -146,34 +147,6 @@ namespace ACE.Server.WorldObjects
             return scale;
         }
 
-        private static uint x = 548787455, y = 842502087, z = 3579807591, w = 273326509;
-
-        const double REAL_UNIT_INT = 1.0 / ((double)int.MaxValue + 1.0);
-        const double REAL_UNIT_UINT = 1.0 / ((double)uint.MaxValue + 1.0);
-
-        public static int FastRandom(int lowerBound, int upperBound)
-        {
-            if (lowerBound > upperBound)
-                throw new ArgumentOutOfRangeException("upperBound", upperBound, "upperBound must be >=lowerBound");
-
-            uint t = (x ^ (x << 11));
-            x = y; y = z; z = w;
-
-            // The explicit int cast before the first multiplication gives better performance.
-            // See comments in NextDouble.
-            int range = upperBound - lowerBound;
-            if (range < 0)
-            {   // If range is <0 then an overflow has occured and must resort to using long integer arithmetic instead (slower).
-                // We also must use all 32 bits of precision, instead of the normal 31, which again is slower.	
-                return lowerBound + (int)((REAL_UNIT_UINT * (double)(w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)))) * (double)((long)upperBound - (long)lowerBound));
-            }
-
-            // 31 bits of precision will suffice if range<=int.MaxValue. This allows us to cast to an int and gain
-            // a little more performance.
-            int output = lowerBound + (int)((REAL_UNIT_INT * (double)(int)(0x7FFFFFFF & (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8))))) * (double)range);
-            return output;
-        }
-
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
@@ -256,6 +229,109 @@ namespace ACE.Server.WorldObjects
 
             float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
             var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
+
+            CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
+            double z = mc.Current;
+            double baseManaPercent = 1;
+            if (z > spell.Power)
+            {
+                baseManaPercent = spell.Power / z;
+            }
+            Random rnd = new Random();
+            double preCost;
+            uint manaUsed;
+            if (baseManaPercent == 1)
+            {
+                preCost = spell.BaseMana;
+                manaUsed = (uint)preCost;
+            }
+            else
+            {
+                preCost = spell.BaseMana * baseManaPercent;
+                if (preCost < 1)
+                    preCost = 1;
+                manaUsed = (uint)rnd.Next(1, (int)preCost);
+            }
+            if (spell.MetaSpellType == SpellType.Transfer)
+            {
+                uint vitalChange, casterVitalChange;
+                vitalChange = (uint)(player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion);
+                if (spellStatMod.TransferCap != 0)
+                {
+                    if (vitalChange > spellStatMod.TransferCap)
+                        vitalChange = (uint)spellStatMod.TransferCap;
+                }
+                casterVitalChange = (uint)(vitalChange * (1.0f - spellStatMod.LossPercent));
+                vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
+
+                if (spellStatMod.Source == (int)PropertyAttribute2nd.Mana && (vitalChange + 10 + manaUsed) > player.Mana.Current)
+                {
+                    ActionChain resourceCheckChain = new ActionChain();
+
+                    resourceCheckChain.AddAction(this, () =>
+                    {
+                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                    });
+
+                    resourceCheckChain.AddDelaySeconds(2.0f);
+
+                    resourceCheckChain.AddAction(this, () =>
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
+                        player.IsBusy = false;
+                    });
+
+                    resourceCheckChain.EnqueueChain();
+
+                    return;
+                }
+                else if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
+                {
+                    ActionChain resourceCheckChain = new ActionChain();
+
+                    resourceCheckChain.AddAction(this, () =>
+                    {
+                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                    });
+
+                    resourceCheckChain.AddDelaySeconds(2.0f);
+
+                    resourceCheckChain.AddAction(this, () =>
+                    {
+                        player.IsBusy = false;
+                    });
+
+                    resourceCheckChain.EnqueueChain();
+
+                    return;
+                }
+            }
+            else if (manaUsed > player.Mana.Current)
+            {
+                ActionChain resourceCheckChain = new ActionChain();
+
+                resourceCheckChain.AddAction(this, () =>
+                {
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                });
+
+                resourceCheckChain.AddDelaySeconds(2.0f);
+
+                resourceCheckChain.AddAction(this, () =>
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
+                    player.IsBusy = false;
+                });
+
+                resourceCheckChain.EnqueueChain();
+
+                return;
+            }
+            else
+            {
+            rnd = null;
+            player.Mana.Current = player.Mana.Current - manaUsed;
+            }
 
 #if DEBUG
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("Starting spell casting action chain", ChatMessageType.System));
@@ -444,9 +520,14 @@ namespace ACE.Server.WorldObjects
         {
             string srcVital, destVital, action;
 
+            Random rng = new Random();
+
             Player player = null;
+            Creature creature = null;
             if (WeenieClassId == 1)
                 player = (Player)this;
+            else if (WeenieType == WeenieType.Creature)
+                creature = (Creature)this;
 
             Creature spellTarget;
             if (spell.BaseRangeConstant == 0)
@@ -469,7 +550,7 @@ namespace ACE.Server.WorldObjects
                         minBoostValue = (int)spellStatMod.Boost;
                         maxBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                     }
-                    int boost = FastRandom(minBoostValue, maxBoostValue);
+                    int boost = rng.Next(minBoostValue, maxBoostValue);
                     if (boost < 0)
                         action = "drain";
                     else
@@ -535,8 +616,11 @@ namespace ACE.Server.WorldObjects
                         caster = (Creature)this;
                     uint vitalChange, casterVitalChange;
                     vitalChange = (uint)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion);
-                    if (vitalChange > spellStatMod.TransferCap)
-                        vitalChange = (uint)spellStatMod.TransferCap;
+                    if (spellStatMod.TransferCap != 0)
+                    {
+                        if (vitalChange > spellStatMod.TransferCap)
+                            vitalChange = (uint)spellStatMod.TransferCap;
+                    }
                     casterVitalChange = (uint)(vitalChange * (1.0f - spellStatMod.LossPercent));
                     vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
                     newSpellTargetVital = (int)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) - vitalChange);
