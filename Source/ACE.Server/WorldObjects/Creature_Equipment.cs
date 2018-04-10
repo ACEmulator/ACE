@@ -61,7 +61,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject GetEquippedWeapon()
         {
-            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon).FirstOrDefault();
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public WorldObject GetEquippedShield()
         {
-            return EquippedObjects.Values.Where(e => e.CurrentWieldedLocation == EquipMask.Shield).FirstOrDefault();
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Shield);
         }
 
         /// <summary>
