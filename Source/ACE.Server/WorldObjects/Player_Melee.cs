@@ -1,6 +1,8 @@
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameAction.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -115,17 +117,29 @@ namespace ACE.Server.WorldObjects
             if (MeleeTarget == null)
                 return;
 
+            var creature = target as Creature;
             var actionChain = DoSwingMotion(target);
 
-            var damage = CalculateDamage(target);
+            var critical = false;
+            var damage = CalculateDamage(target, ref critical);
             if (damage > 0.0f)
-                target.TakeDamage(this, damage);
+                target.TakeDamage(this, damage, critical);
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatEnemy));
 
-            var creature = target as Creature;
-            if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+            if (damage > 0.0f && creature.Health.Current > 0)
             {
+                // notify attacker
+                var intDamage = (uint)Math.Round(damage);
+                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
+
+                // splatter effects
+                var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
+                Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
+                Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
+            }
+            if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+            { 
                 // powerbar refill timing
                 actionChain.AddDelaySeconds(PowerLevel);
                 actionChain.AddAction(this, () => Attack(target));
@@ -171,7 +185,7 @@ namespace ACE.Server.WorldObjects
                 case MotionStance.TwoHandedStaffAttack:
                 case MotionStance.TwoHandedSwordAttack:
                     {
-                        var action = PowerLevel < 0.5f ? "Thrust" : "Slash";
+                        var action = PowerLevel < 0.33f ? "Thrust" : "Slash";
                         Enum.TryParse(action + GetAttackHeight(), out motion);
                         return motion;
                     }
@@ -190,7 +204,6 @@ namespace ACE.Server.WorldObjects
 
                         return motion;
                     }
-                    
             }
         }
 
@@ -199,6 +212,13 @@ namespace ACE.Server.WorldObjects
             if (AttackHeight == 1) return "High";
             else if (AttackHeight == 2) return "Med";
             else return "Low";
+        }
+
+        public string GetSplatterHeight()
+        {
+            if (AttackHeight == 3) return "Low";
+            else if (AttackHeight == 2) return "Mid";
+            else return "Up";
         }
 
         public int GetPowerRange()
@@ -211,7 +231,7 @@ namespace ACE.Server.WorldObjects
                 return 3;
         }
 
-        public float CalculateDamage(WorldObject target)
+        public float CalculateDamage(WorldObject target, ref bool criticalHit)
         {
             var critical = 0.1f;
             var variance = 0.2f;
@@ -231,9 +251,31 @@ namespace ACE.Server.WorldObjects
 
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
             if (rng < critical)
+            {
                 damage *= 2.5f;
-
+                criticalHit = true;
+            }
             return damage;
+        }
+
+        public string GetSplatterDir(WorldObject target)
+        {
+            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
+            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
+            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+
+            targetDir.Z = 0;
+            targetDir = targetDir.Normalize();
+
+            var sourceToTarget = (sourcePos - targetPos).Normalize();
+
+            var dir = Vector3.Dot(sourceToTarget, targetDir);
+            var angle = Vector3.Cross(sourceToTarget, targetDir);
+
+            var frontBack = dir >= 0 ? "Front" : "Back";
+            var leftRight = angle.Z <= 0 ? "Left" : "Right";
+
+            return leftRight + frontBack;
         }
     }
 }
