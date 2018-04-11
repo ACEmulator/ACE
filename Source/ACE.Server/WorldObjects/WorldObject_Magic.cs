@@ -6,6 +6,7 @@ using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -390,6 +391,9 @@ namespace ACE.Server.WorldObjects
                         {
                             Creature creatureTarget = (Creature)target;
                             creatureTarget.Die();
+                            Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
+                            player.GrantXp((long)target.XpOverride, true);
                         }
                         break;
                     case MagicSchool.ItemEnchantment:
