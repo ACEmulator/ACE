@@ -39,25 +39,10 @@ namespace ACE.Server.WorldObjects
             dieChain.EnqueueChain();
         }
 
-        public uint? Killer
+        public virtual void Smite(ObjectGuid smiter)
         {
-            get => GetProperty(PropertyInstanceId.Killer);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
-        }
-
-        public void Smite(ObjectGuid smiter)
-        {
-            //SetProperty(PropertyInstanceId.CurrentAttacker, smiter.Full);
-            //SetProperty(PropertyInstanceId.CurrentDamager, smiter.Full);
-            //Health.Current = 0;
             Killer = smiter.Full;
             Die();
-        }
-
-        public bool? NoCorpse
-        {
-            get => GetProperty(PropertyBool.NoCorpse);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.NoCorpse); else SetProperty(PropertyBool.NoCorpse, value.Value); }
         }
 
         public void CreateCorpse()

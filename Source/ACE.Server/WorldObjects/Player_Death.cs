@@ -45,8 +45,8 @@ namespace ACE.Server.WorldObjects
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths.Value);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel.Value);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
@@ -106,6 +106,11 @@ namespace ACE.Server.WorldObjects
             {
                 DoOnKill(Session);
             }).EnqueueChain();
+        }
+
+        public override void Smite(ObjectGuid smiter)
+        {
+            HandleActionDie();
         }
     }
 }

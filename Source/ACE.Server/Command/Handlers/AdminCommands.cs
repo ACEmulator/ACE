@@ -643,10 +643,7 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        // smite [all]
-        [CommandHandler("smite", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
-            "Kills the selected target or all monsters in radar range if \"all\" is specified.",
-            "[all]")]
+        [CommandHandler("smite", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Kills the selected target or all monsters in radar range if \"all\" is specified.", "[all, Player's Name]")]
         public static void HandleSmite(Session session, params string[] parameters)
         {
             // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
@@ -668,21 +665,44 @@ namespace ACE.Server.Command.Handlers
                 }
                 else
                 {
-                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
+                    string characterName = "";
+
+                    // if parameters are greater then 1, we may have a space in a character name
+                    if (parameters.Length > 1)
+                    {
+                        foreach (string name in parameters)
+                        {
+                            // adds a space back inbetween each parameter
+                            if (characterName.Length > 0)
+                                characterName += " " + name;
+                            else
+                                characterName = name;
+                        }
+                    }
+                    // if there are no spaces, just set the characterName to the first paramter
+                    else
+                        characterName = parameters[0];
+
+                    // look up session
+                    var playerSession = WorldManager.FindByPlayerName(characterName, true);
+
+                    // playerSession will be null when the character is not found
+                    if (playerSession != null)
+                    {
+                        playerSession.Player.Smite(session.Player.Guid);
+                        return;
+                    }
+
+                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or @smite [players' name].", ChatMessageType.Broadcast);
                 }
             }
             else
             {
-                var objectId = new ObjectGuid();
-
                 if (session.Player.HealthQueryTarget.HasValue) // Only Creatures will trigger this.. Excludes vendors automatically as a result (Can change design to mimic @delete command)
                 {
-                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                    var objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
 
                     var wo = session.Player.CurrentLandblock.GetObject(objectId) as Creature;
-
-                    //if (objectId.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
-                    //    return;
 
                     if (objectId == session.Player.Guid) // don't kill yourself
                         return;
@@ -692,7 +712,7 @@ namespace ACE.Server.Command.Handlers
                 }
                 else
                 {
-                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range.", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or @smite [players' name].", ChatMessageType.Broadcast);
                 }
             }
         }
