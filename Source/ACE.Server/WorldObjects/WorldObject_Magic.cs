@@ -390,6 +390,8 @@ namespace ACE.Server.WorldObjects
                         {
                             Creature creatureTarget = (Creature)target;
                             creatureTarget.Die();
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(target.GetDeathMessage(player, false), target.Name), ChatMessageType.Broadcast));
+                            player.GrantXp((long)target.XpOverride, true);
                         }
                         break;
                     case MagicSchool.ItemEnchantment:
