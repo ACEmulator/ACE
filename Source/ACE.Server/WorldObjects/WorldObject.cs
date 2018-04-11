@@ -705,15 +705,7 @@ namespace ACE.Server.WorldObjects
 
             // apply damage
             if (newMonsterHealth > 0)
-            {
                 monster.Health.Current = (uint)newMonsterHealth;
-
-                if (amount > monster.Health.MaxValue * 0.25f)
-                {
-                    var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
-                    player.Session.Network.EnqueueSend(new GameMessageSound(Guid, painSound, 1.0f));
-                }
-            }
             else
             {
                 monster.Health.Current = 0;
