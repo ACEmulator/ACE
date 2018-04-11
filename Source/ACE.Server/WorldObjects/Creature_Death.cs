@@ -18,146 +18,116 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private static readonly UniversalMotion dead = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+        private static readonly UniversalMotion deadMotion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
 
-        public void Die()
+        private void CreateCorpse()
         {
-            ActionChain dieChain = new ActionChain();
-            dieChain.AddAction(this, () =>
-            {
-                CurrentLandblock.EnqueueBroadcastMotion(this, dead);
-            });
-            dieChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead));
-            dieChain.AddAction(this, () =>
-            {
-                NotifyOfEvent(RegenerationType.Destruction);
-                LandblockManager.RemoveObject(this);
-                PhysicsObj.leave_cell(false);
-                PhysicsObj.remove_shadows_from_cells();
-                CreateCorpse();
-            });
-            dieChain.EnqueueChain();
-        }
+            if (NoCorpse ?? false)
+                return;
 
-        public virtual void Smite(ObjectGuid smiter)
-        {
-            Killer = smiter.Full;
-            Die();
-        }
-
-        public void CreateCorpse()
-        {
-            if (!(NoCorpse ?? false))
-            {
-                var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
+            var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
                 
-                corpse.SetupTableId = SetupTableId;
-                corpse.MotionTableId = MotionTableId;
-                corpse.SoundTableId = SoundTableId;
-                corpse.PaletteBaseDID = PaletteBaseDID;
-                corpse.ClothingBase = ClothingBase;
-                corpse.PhysicsTableId = PhysicsTableId;
+            corpse.SetupTableId = SetupTableId;
+            corpse.MotionTableId = MotionTableId;
+            corpse.SoundTableId = SoundTableId;
+            corpse.PaletteBaseDID = PaletteBaseDID;
+            corpse.ClothingBase = ClothingBase;
+            corpse.PhysicsTableId = PhysicsTableId;
 
-                if (ObjScale.HasValue)
-                    corpse.ObjScale = ObjScale;
-                if (PaletteTemplate.HasValue)
-                    corpse.PaletteTemplate = PaletteTemplate;
-                if (Shade.HasValue)
-                    corpse.Shade = Shade;
-                //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
-                //    corpse.Translucency = Translucency;
+            if (ObjScale.HasValue)
+                corpse.ObjScale = ObjScale;
+            if (PaletteTemplate.HasValue)
+                corpse.PaletteTemplate = PaletteTemplate;
+            if (Shade.HasValue)
+                corpse.Shade = Shade;
+            //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
+            //    corpse.Translucency = Translucency;
 
-                if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
+            if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
+            {
+                var objDesc = CalculateObjDesc();
+
+                foreach (var animPartChange in objDesc.AnimPartChanges)
+                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex });
+
+                foreach (var subPalette in objDesc.SubPalettes)
+                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+
+                foreach (var textureChange in objDesc.TextureChanges)
+                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture });
+            }
+
+            //corpse.Location = Location;
+            corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
+            //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
+
+            corpse.Name = $"Corpse of {Name}";
+
+            string killerName = null;
+
+            if (Killer.HasValue && Killer != 0)
+            {
+                var killer = CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0));
+
+                if (killer != null)
+                    killerName = killer.Name;
+            }
+
+            if (String.IsNullOrEmpty(killerName))
+                killerName = "misadventure";
+
+            corpse.LongDesc = $"Killed by {killerName}";
+
+            if (Killer.HasValue)
+                corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
+
+            // Transfer of generated treasure from creature to corpse here
+
+            var random = new Random((int)DateTime.UtcNow.Ticks);
+
+            foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
+            {
+                if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
+                    // Should there be rolls for each item or one roll to rule them all?
                 {
-                    var objDesc = CalculateObjDesc();
-
-                    foreach (var animPartChange in objDesc.AnimPartChanges)
-                        corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex });
-
-                    foreach (var subPalette in objDesc.SubPalettes)
-                        corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
-
-                    foreach (var textureChange in objDesc.TextureChanges)
-                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture });
-                }
-
-                //corpse.Location = Location;
-                corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
-                //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
-
-                corpse.Name = $"Corpse of {Name}";
-
-                string killerName = null;
-
-                if (Killer.HasValue && Killer != 0)
-                {
-                    var killer = CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0));
-
-                    if (killer != null)
-                        killerName = killer.Name;
-                }
-
-                if (String.IsNullOrEmpty(killerName))
-                    killerName = "misadventure";
-
-                corpse.LongDesc = $"Killed by {killerName}";
-
-                if (Killer.HasValue)
-                    corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
-
-                // Transfer of generated treasure from creature to corpse here
-
-                var random = new Random((int)DateTime.UtcNow.Ticks);
-
-                foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
-                {
-                    if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
-                                                                                                      // Should there be rolls for each item or one roll to rule them all?
+                    if (trophy.WeenieClassId == 0) // Randomized Loot
                     {
-                        if (trophy.WeenieClassId == 0) // Randomized Loot
-                        {
-                            //var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
+                        //var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
 
-                            //corpse.TryAddToInventory(wo);
+                        //corpse.TryAddToInventory(wo);
 
-                            var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
+                        var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
 
-                            if (book == null)
-                                continue;
+                        if (book == null)
+                            continue;
 
-                            book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
-                            book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
+                        book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
+                        book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
 
-                            corpse.TryAddToInventory(book);
-                        }
-                        else // Trophy Loot
-                        {
-                            var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
+                        corpse.TryAddToInventory(book);
+                    }
+                    else // Trophy Loot
+                    {
+                        var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
 
-                            if (wo == null)
-                                continue;
+                        if (wo == null)
+                            continue;
 
-                            if (trophy.StackSize > 1)
-                                wo.StackSize = (ushort)trophy.StackSize;
+                        if (trophy.StackSize > 1)
+                            wo.StackSize = (ushort)trophy.StackSize;
 
-                            if (trophy.Palette > 0)
-                                wo.PaletteTemplate = trophy.Palette;
+                        if (trophy.Palette > 0)
+                            wo.PaletteTemplate = trophy.Palette;
 
-                            corpse.TryAddToInventory(wo);
-                        }
+                        corpse.TryAddToInventory(wo);
                     }
                 }
-
-                LandblockManager.AddObject(corpse);
             }
+
+            LandblockManager.AddObject(corpse);
         }
 
-        protected virtual float GetCorpseSpawnTime()
-        {
-            return 60;
-        }
-
-        public ActionChain GetCreateCorpseChain()
+        private ActionChain GetCreateCorpseChain()
         {
             ActionChain createCorpseChain = new ActionChain(this, () =>
             {
@@ -210,11 +180,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public virtual void DoOnKill(Session killerSession)
-        {
-            OnKillInternal(killerSession).EnqueueChain();
-        }
-
         protected ActionChain OnKillInternal(Session killerSession)
         {
             // Will start death animation
@@ -226,6 +191,36 @@ namespace ACE.Server.WorldObjects
             onKillChain.AddChain(GetCreateCorpseChain());
 
             return onKillChain;
+        }
+
+        protected virtual void DoOnKill(Session killerSession)
+        {
+            OnKillInternal(killerSession).EnqueueChain();
+        }
+
+        public void Die()
+        {
+            ActionChain dieChain = new ActionChain();
+            dieChain.AddAction(this, () =>
+            {
+                CurrentLandblock.EnqueueBroadcastMotion(this, deadMotion);
+            });
+            dieChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead));
+            dieChain.AddAction(this, () =>
+            {
+                NotifyOfEvent(RegenerationType.Destruction);
+                LandblockManager.RemoveObject(this);
+                PhysicsObj.leave_cell(false);
+                PhysicsObj.remove_shadows_from_cells();
+                CreateCorpse();
+            });
+            dieChain.EnqueueChain();
+        }
+
+        public virtual void Smite(ObjectGuid smiter)
+        {
+            Killer = smiter.Full;
+            Die();
         }
     }
 }

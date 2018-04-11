@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -58,10 +55,11 @@ namespace ACE.Server.WorldObjects
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
         }
 
-        public override void DoOnKill(Session killerSession)
+        protected override void DoOnKill(Session killerSession)
         {
             // First do on-kill
             OnKill(killerSession);
+
             // Then get onKill from our parent
             ActionChain killChain = base.OnKillInternal(killerSession);
 
@@ -101,7 +99,6 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionDie()
         {
-            // Create smite action chain... then send it
             new ActionChain(this, () =>
             {
                 DoOnKill(Session);
