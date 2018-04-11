@@ -190,5 +190,22 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.VitaeCpPool);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.VitaeCpPool); else SetProperty(PropertyInt.VitaeCpPool, value.Value); }
         }
+
+
+        // ========================================
+        // ===== Player Properties - Titles========
+        // ========================================
+
+        public int? CharacterTitleId
+        {
+            get => GetProperty(PropertyInt.CharacterTitleId);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CharacterTitleId); else SetProperty(PropertyInt.CharacterTitleId, value.Value); }
+        }
+
+        public int? NumCharacterTitles
+        {
+            get => GetProperty(PropertyInt.NumCharacterTitles);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumCharacterTitles); else SetProperty(PropertyInt.NumCharacterTitles, value.Value); }
+        }
     }
 }

@@ -3,46 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        //public string Title
-        //{
-        //    get { return GetProperty(PropertyString.Title); }
-        //    set { SetProperty(PropertyString.Title, value); }
-        //}
-
-        //public int? CharacterTitleId
-        //{
-        //    get { return GetProperty(PropertyInt.CharacterTitleId); }
-        //    set { SetProperty(PropertyInt.CharacterTitleId, value); }
-        //}
-
-
-        //public int? NumCharacterTitles
-        //{
-        //    get { return GetProperty(PropertyInt.NumCharacterTitles); }
-        //    set { SetProperty(PropertyInt.NumCharacterTitles, value); }
-        //}
-
-        public int? CharacterTitleId
-        {
-            get => GetProperty(PropertyInt.CharacterTitleId);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CharacterTitleId); else SetProperty(PropertyInt.CharacterTitleId, value.Value); }
-        }
-
-        //public int NumCharacterTitles => Biota.BiotaPropertiesTitleBook.Count();
-
-        public int? NumCharacterTitles
-        {
-            get => GetProperty(PropertyInt.NumCharacterTitles);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumCharacterTitles); else SetProperty(PropertyInt.NumCharacterTitles, value.Value); }
-        }
-
         /// <summary>
         /// Add Title to Title Registry
         /// </summary>
