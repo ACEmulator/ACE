@@ -134,9 +134,14 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
 
                 // splatter effects
+                Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
+                if (damage >= creature.Health.MaxValue * 0.25f)
+                {
+                    var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
+                    Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
+                }
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
-                Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
             }
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             { 
