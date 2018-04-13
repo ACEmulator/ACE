@@ -1,4 +1,6 @@
 using System;
+using System.Numerics;
+
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -12,6 +14,8 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects.Entity;
+using ACE.Server.Managers;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -19,14 +23,14 @@ namespace ACE.Server.WorldObjects
     {
         private enum SpellLevel
         {
-            One     = 1,
-            Two     = 50,
-            Three   = 100,
-            Four    = 150,
-            Five    = 200,
-            Six     = 250,
-            Seven   = 300,
-            Eight   = 350
+            One = 1,
+            Two = 50,
+            Three = 100,
+            Four = 150,
+            Five = 200,
+            Six = 250,
+            Seven = 300,
+            Eight = 350
         }
 
         private SpellLevel CalculateSpellLevel(uint spellPower)
@@ -220,14 +224,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (spell.School == MagicSchool.WarMagic || spell.School == MagicSchool.VoidMagic)
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
-                    new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                player.IsBusy = false;
-                return;
-            }
-
             float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
             var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
 
@@ -330,8 +326,8 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-            rnd = null;
-            player.Mana.Current = player.Mana.Current - manaUsed;
+                rnd = null;
+                player.Mana.Current = player.Mana.Current - manaUsed;
             }
 
 #if DEBUG
@@ -371,7 +367,7 @@ namespace ACE.Server.WorldObjects
                 bool targetDeath;
                 string message;
 
-                switch(spell.School)
+                switch (spell.School)
                 {
                     case MagicSchool.WarMagic:
                         WarMagic(target, spell, spellStatMod);
@@ -386,7 +382,8 @@ namespace ACE.Server.WorldObjects
                     case MagicSchool.LifeMagic:
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                         targetDeath = LifeMagic(target, spell, spellStatMod, out message);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
+                        if (message != null)
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         if (targetDeath == true)
                         {
                             Creature creatureTarget = (Creature)target;
@@ -619,13 +616,26 @@ namespace ACE.Server.WorldObjects
                     else
                         caster = (Creature)this;
                     uint vitalChange, casterVitalChange;
-                    vitalChange = (uint)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion);
+                    Resistance resistanceDrain, resistanceBoost;
+                    if (spellStatMod.Source == (int)PropertyAttribute2nd.Mana)
+                        resistanceDrain = Resistance.ManaDrain;
+                    else if (spellStatMod.Source == (int)PropertyAttribute2nd.Stamina)
+                        resistanceDrain = Resistance.StaminaDrain;
+                    else
+                        resistanceDrain = Resistance.HealthDrain;
+                    vitalChange = (uint)((spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion) * spellTarget.GetResistence(resistanceDrain));
                     if (spellStatMod.TransferCap != 0)
                     {
                         if (vitalChange > spellStatMod.TransferCap)
                             vitalChange = (uint)spellStatMod.TransferCap;
                     }
-                    casterVitalChange = (uint)(vitalChange * (1.0f - spellStatMod.LossPercent));
+                    if (spellStatMod.Destination == (int)PropertyAttribute2nd.Mana)
+                        resistanceBoost = Resistance.ManaDrain;
+                    else if (spellStatMod.Source == (int)PropertyAttribute2nd.Stamina)
+                        resistanceBoost = Resistance.StaminaDrain;
+                    else
+                        resistanceBoost = Resistance.HealthDrain;
+                    casterVitalChange = (uint)((vitalChange * (1.0f - spellStatMod.LossPercent)) * spellTarget.GetResistence(resistanceBoost));
                     vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
                     newSpellTargetVital = (int)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) - vitalChange);
 
@@ -695,7 +705,8 @@ namespace ACE.Server.WorldObjects
                         message = null;
                     break;
                 case SpellType.LifeProjectile:
-                    message = "Spell not implemented, yet!";
+                    CreateProjectile(target, spell, spellStatMod);
+                    message = null;
                     break;
                 case SpellType.Dispel:
                     message = "Spell not implemented, yet!";
@@ -763,14 +774,76 @@ namespace ACE.Server.WorldObjects
 
         private void WarMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
-            // TODO
+            if (spellStatMod.NumProjectiles == 1)
+            {
+                CreateProjectile(target, spell, spellStatMod);
+            }
+            else
+            {
+                if (WeenieClassId == 1)
+                {
+                    Player player = (Player)this;
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                        new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
+            }
         }
 
         private void VoidMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
-            // TODO
+            if (WeenieClassId == 1)
+            {
+                Player player = (Player)this;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                    new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+            }
         }
 
+        private void CreateProjectile(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        {
+            ProjectileSpell wo = WorldObjectFactory.CreateNewWorldObject((uint)spellStatMod.Wcid) as ProjectileSpell;
+
+            double targetX = target.Location.PositionX;
+            double targetY = target.Location.PositionY;
+            double targetZ = target.Location.PositionZ;
+            double originX = Location.InFrontOf(2.0f).PositionX;
+            double originY = Location.InFrontOf(2.0f).PositionY;
+            double originZ = Location.InFrontOf(2.0f).PositionZ;
+
+            PhysicsObj.GetHeight();
+
+            int number = 15;
+
+            double distance = Location.DistanceTo(target.Location);
+            double vx = (number / distance) * (targetX - originX);
+            double vy = (number / distance) * (targetY - originY);
+            double vz = (number / distance) * (targetZ - originZ);
+            double time = distance / number;
+            double ax = (distance * vx) / (distance * time);
+            double ay = (distance * vy) / (distance * time);
+            double az = (distance * vz) / (distance * time);
+
+            AceVector3 velocity = new AceVector3((float)vx, (float)vy, (float)vz);
+            wo.Velocity = velocity;
+
+            uint landblockId = Location.InFrontOf(2.0f).LandblockId.Raw;
+            float positionX = Location.InFrontOf(2.0f).PositionX;
+            float positionY = Location.InFrontOf(2.0f).PositionY;
+            float positionZ = Location.InFrontOf(2.0f).PositionZ + 1;
+            float rotationX = Location.InFrontOf(2.0f).RotationX;
+            float rotationY = Location.InFrontOf(2.0f).RotationY;
+            float rotationZ = Location.InFrontOf(2.0f).RotationZ;
+            float rotationW = Location.InFrontOf(2.0f).RotationW;
+
+            wo.Location = new ACE.Entity.Position(landblockId, positionX, positionY, positionZ, rotationX, rotationY, rotationZ, rotationW);
+
+            wo.ParentWorldObject = this;
+            wo.TargetWorldObject = target;
+            wo.ProjectileElement = (DamageType)spellStatMod.EType;
+            wo.SpellPower = spell.Power;
+
+            LandblockManager.AddObject(wo);
+            CurrentLandblock.EnqueueBroadcast(wo.Location, new GameMessageScript(wo.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
+        }
     }
 }
-

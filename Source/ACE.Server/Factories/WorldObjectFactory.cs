@@ -92,6 +92,8 @@ namespace ACE.Server.Factories
                     return new Lockpick(weenie, guid);
                 case WeenieType.Caster:
                     return new Caster(weenie, guid);
+                case WeenieType.ProjectileSpell:
+                    return new ProjectileSpell(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
