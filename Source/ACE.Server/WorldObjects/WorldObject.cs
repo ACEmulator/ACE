@@ -752,6 +752,30 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public Dictionary<PropertyInt, int?> GetProperties(WorldObject wo)
+        {
+            var props = new Dictionary<PropertyInt, int?>();
+
+            var fields = Enum.GetValues(typeof(PropertyInt)).Cast<PropertyInt>();
+            foreach (var field in fields)
+            {
+                var prop = wo.GetProperty(field);
+                props.Add(field, prop);
+            }
+            return props;
+        }
+
+        /// <summary>
+        /// Returns the base damage for a weapon
+        /// </summary>
+        public Range GetBaseDamage()
+        {
+            var maxDamage = GetProperty(PropertyInt.Damage).Value;
+            var variance = GetProperty(PropertyFloat.DamageVariance).Value;
+            var minDamage = maxDamage * variance;
+            return new Range((float)minDamage, (float)maxDamage);
+        }
+
         /// <summary>
         /// Returns the damage type for the currently equipped weapon
         /// </summary>
