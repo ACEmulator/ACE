@@ -1,21 +1,24 @@
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
-using ACE.Server.Network.GameAction.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 using System;
+using System.Linq;
 using System.Numerics;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public uint AttackHeight;
+        public AttackHeight AttackHeight;
         public float PowerLevel;
 
         public WorldObject MeleeTarget;
@@ -30,7 +33,7 @@ namespace ACE.Server.WorldObjects
             // sanity check
             powerLevel = Math.Clamp(powerLevel, 0.0f, 1.0f);
 
-            AttackHeight = attackHeight;
+            AttackHeight = (AttackHeight)attackHeight;
             PowerLevel = powerLevel;
 
             // get world object of target guid
@@ -120,6 +123,9 @@ namespace ACE.Server.WorldObjects
             var creature = target as Creature;
             var actionChain = DoSwingMotion(target);
 
+            if (creature.Health.Current <= 0)
+                return;
+
             var critical = false;
             var damage = CalculateDamage(target, ref critical);
             if (damage > 0.0f)
@@ -203,7 +209,7 @@ namespace ACE.Server.WorldObjects
                         // no weapon: power range 1-3
                         // unarmed weapon: power range 1-2
                         if (weapon == null)
-                            Enum.TryParse("Attack" + GetAttackHeight() + GetPowerRange(), out motion);
+                            Enum.TryParse("Attack" + GetAttackHeight(), out motion);
                         else
                             Enum.TryParse("Attack" + GetAttackHeight() + Math.Min(GetPowerRange(), 2), out motion);
 
@@ -214,16 +220,17 @@ namespace ACE.Server.WorldObjects
 
         public string GetAttackHeight()
         {
-            if (AttackHeight == 1) return "High";
-            else if (AttackHeight == 2) return "Med";
-            else return "Low";
+            return AttackHeight.GetString();
         }
 
         public string GetSplatterHeight()
         {
-            if (AttackHeight == 3) return "Low";
-            else if (AttackHeight == 2) return "Mid";
-            else return "Up";
+            switch (AttackHeight)
+            {
+                case AttackHeight.Low: return "Low";
+                case AttackHeight.Medium: return "Mid";
+                case AttackHeight.High: default:  return "Up";
+            }
         }
 
         public int GetPowerRange()
@@ -236,31 +243,138 @@ namespace ACE.Server.WorldObjects
                 return 3;
         }
 
+        public Skill GetCurrentWeaponSkill()
+        {
+            // hack for converting pre-MoA skills
+            var unarmed = GetCreatureSkill(Skill.UnarmedCombat);
+            var light = GetCreatureSkill(Skill.LightWeapons);
+            var heavy = GetCreatureSkill(Skill.HeavyWeapons);
+
+            var maxMelee = unarmed;
+            if (light.Current > maxMelee.Current)
+                maxMelee = light;
+            if (heavy.Current > maxMelee.Current)
+                maxMelee = heavy;
+
+            return maxMelee.Skill;
+        }
+
+        public float GetEvadeChance(WorldObject target)
+        {
+            // get player attack skill
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+
+            // get target defense skill
+            var creature = target as Creature;
+            var defenseSkill = creature.GetCreatureSkill(Skill.MeleeDefense);
+
+            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill.Current, (int)defenseSkill.Current);
+            return (float)evadeChance;
+        }
+
         public float CalculateDamage(WorldObject target, ref bool criticalHit)
         {
-            var critical = 0.1f;
-            var variance = 0.2f;
-            var evade = 0.25f;
-
             // evasion chance
-            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < evade)
+            var evadeChance = GetEvadeChance(target);
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < evadeChance)
                 return 0.0f;
 
-            // test: 1/5 of monster total health
-            var creature = target as Creature;
+            // get weapon base damage
+            var weapon = GetEquippedWeapon();
+            var baseDamageRange = weapon.GetBaseDamage();
+            var baseDamage = Physics.Common.Random.RollDice(baseDamageRange.Min, baseDamageRange.Max);
 
-            var baseDamage = creature.Health.MaxValue / 5.0f;
+            // get damage mods
+            var player = this as Player;
+            var powerBarMod = PowerLevel + 0.5f;
+            var attributeMod = SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)player.Strength.Current);
+            var damage = baseDamage * attributeMod * powerBarMod;
 
-            var thisVar = Physics.Common.Random.RollDice(-variance * baseDamage, variance * baseDamage);
-            var damage = baseDamage + thisVar;
-
-            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-            if (rng < critical)
+            // critical hit
+            var critical = 0.1f;
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage *= 2.5f;
+                damage = baseDamageRange.Max * attributeMod * powerBarMod * 2.0f;
                 criticalHit = true;
             }
+
+            // get random body part @ attack height
+            var bodyPart = BodyParts.GetBodyPart(AttackHeight);
+
+            // get target armor
+            var armor = GetArmor(target, bodyPart);
+
+            // get target resistance
+            var resistance = GetResistance(target, bodyPart, GetDamageType());
+
+            // scale damage for armor
+            damage *= SkillFormula.CalcArmorMod(resistance);
+
             return damage;
+        }
+
+        public BiotaPropertiesBodyPart GetBodyPart(WorldObject target, BodyPart bodyPart)
+        {
+            var creature = target as Creature;
+
+            BiotaPropertiesBodyPart part = null;
+            var idx = BodyParts.Indices[bodyPart];
+            if (creature.Biota.BiotaPropertiesBodyPart.Count > idx)
+                part = creature.Biota.BiotaPropertiesBodyPart.ElementAt(idx);
+            else
+                part = creature.Biota.BiotaPropertiesBodyPart.FirstOrDefault();
+
+            return part;
+        }
+
+        public float GetArmor(WorldObject target, BodyPart bodyPart)
+        {
+            var part = GetBodyPart(target, bodyPart);
+
+            return part.BaseArmor;
+        }
+
+        public float GetResistance(WorldObject target, BodyPart bodyPart, DamageType damageType)
+        {
+            var part = GetBodyPart(target, bodyPart);
+
+            var resistance = 1.0f;
+
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    resistance = part.ArmorVsSlash;
+                    break;
+
+                case DamageType.Pierce:
+                    resistance = part.ArmorVsPierce;
+                    break;
+
+                case DamageType.Bludgeon:
+                    resistance = part.ArmorVsBludgeon;
+                    break;
+
+                case DamageType.Fire:
+                    resistance = part.ArmorVsFire;
+                    break;
+
+                case DamageType.Cold:
+                    resistance = part.ArmorVsCold;
+                    break;
+
+                case DamageType.Acid:
+                    resistance = part.ArmorVsAcid;
+                    break;
+
+                case DamageType.Electric:
+                    resistance = part.ArmorVsElectric;
+                    break;
+
+                case DamageType.Nether:
+                    resistance = part.ArmorVsNether;
+                    break;
+            }
+            return resistance;
         }
 
         public string GetSplatterDir(WorldObject target)
