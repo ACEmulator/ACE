@@ -101,37 +101,37 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistNether); else SetProperty(PropertyFloat.ResistNether, value.Value); }
         }
 
-        public double GetResistence(Resistance resistance)
+        public double GetNaturalResistence(ResistanceType resistance)
         {
             switch (resistance)
             {
-                case Resistance.Slash:
+                case ResistanceType.Slash:
                     return ResistSlash ?? 1.0;
-                case Resistance.Pierce:
+                case ResistanceType.Pierce:
                     return ResistPierce ?? 1.0;
-                case Resistance.Bludgeon:
+                case ResistanceType.Bludgeon:
                     return ResistBludgeon ?? 1.0;
-                case Resistance.Fire:
+                case ResistanceType.Fire:
                     return ResistFire ?? 1.0;
-                case Resistance.Cold:
+                case ResistanceType.Cold:
                     return ResistCold ?? 1.0;
-                case Resistance.Acid:
+                case ResistanceType.Acid:
                     return ResistAcid ?? 1.0;
-                case Resistance.Electric:
+                case ResistanceType.Electric:
                     return ResistElectric ?? 1.0;
-                case Resistance.Nether:
+                case ResistanceType.Nether:
                     return ResistNether ?? 1.0;
-                case Resistance.HealthBoost:
+                case ResistanceType.HealthBoost:
                     return ResistHealthBoost ?? 1.0;
-                case Resistance.HealthDrain:
+                case ResistanceType.HealthDrain:
                     return ResistHealthDrain ?? 1.0;
-                case Resistance.StaminaBoost:
+                case ResistanceType.StaminaBoost:
                     return ResistStaminaBoost ?? 1.0;
-                case Resistance.StaminaDrain:
+                case ResistanceType.StaminaDrain:
                     return ResistStaminaDrain ?? 1.0;
-                case Resistance.ManaBoost:
+                case ResistanceType.ManaBoost:
                     return ResistManaBoost ?? 1.0;
-                case Resistance.ManaDrain:
+                case ResistanceType.ManaDrain:
                     return ResistManaDrain ?? 1.0;
                 default:
                     return 1.0;

@@ -1,6 +1,6 @@
 namespace ACE.Entity.Enum
 {
-    public enum Resistance
+    public enum ResistanceType
     {
         Undef,
         Slash,
