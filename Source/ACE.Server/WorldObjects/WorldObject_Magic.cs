@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 
 using ACE.Database;
 using ACE.DatLoader;
@@ -33,7 +32,7 @@ namespace ACE.Server.WorldObjects
             Eight = 350
         }
 
-        private SpellLevel CalculateSpellLevel(uint spellPower)
+        private static SpellLevel CalculateSpellLevel(uint spellPower)
         {
             if (spellPower < 50)
                 return SpellLevel.One;
@@ -55,7 +54,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for the scaling, windup motion, and spell gestures for spell casts
         /// </summary>
-        private float SpellAttributes(string account, uint spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture)
+        private static float SpellAttributes(string account, uint spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture)
         {
             float scale;
 
@@ -705,7 +704,48 @@ namespace ACE.Server.WorldObjects
                         message = null;
                     break;
                 case SpellType.LifeProjectile:
-                    CreateProjectile(target, spell, spellStatMod);
+                    caster = (Creature)this;
+                    uint damage;
+                    if (spell.Name.Contains("Blight"))
+                    {
+                        damage = (uint)(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetResistence(Resistance.ManaDrain));
+                        newCasterVital = caster.Mana.Current - damage;
+                        if (newCasterVital <= 0)
+                            caster.Mana.Current = 0;
+                        else
+                            caster.Mana.Current = (uint)newCasterVital;
+                    }
+                    else if (spell.Name.Contains("Tenacity"))
+                    {
+                        damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetResistence(Resistance.StaminaDrain));
+                        newCasterVital = caster.Stamina.Current - damage;
+                        if (newCasterVital <= 0)
+                            caster.Stamina.Current = 0;
+                        else
+                            caster.Stamina.Current = (uint)newCasterVital;
+                    }
+                    else
+                    {
+                        damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetResistence(Resistance.HealthDrain));
+                        newCasterVital = caster.Health.Current - damage;
+                        if (newCasterVital <= 0)
+                            caster.Health.Current = 0;
+                        else
+                            caster.Health.Current = (uint)newCasterVital;
+                    }
+
+                    CreateProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
+
+                    if (caster.Health.Current <= 0)
+                    {
+                        caster.Die();
+
+                        if (caster.WeenieClassId == 1)
+                        {
+                            Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have killed yourself", ChatMessageType.Broadcast));
+                        }
+                    }
                     message = null;
                     break;
                 case SpellType.Dispel:
@@ -727,7 +767,12 @@ namespace ACE.Server.WorldObjects
 
         private void CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
-            // TODO
+            if (WeenieClassId == 1)
+            {
+                Player player = (Player)this;
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                    new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+            }
         }
 
         private void ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
@@ -776,7 +821,7 @@ namespace ACE.Server.WorldObjects
         {
             if (spellStatMod.NumProjectiles == 1)
             {
-                CreateProjectile(target, spell, spellStatMod);
+                CreateProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid);
             }
             else
             {
@@ -799,9 +844,9 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void CreateProjectile(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        private void CreateProjectile(WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
         {
-            ProjectileSpell wo = WorldObjectFactory.CreateNewWorldObject((uint)spellStatMod.Wcid) as ProjectileSpell;
+            ProjectileSpell wo = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as ProjectileSpell;
 
             double targetX = target.Location.PositionX;
             double targetY = target.Location.PositionY;
@@ -839,8 +884,8 @@ namespace ACE.Server.WorldObjects
 
             wo.ParentWorldObject = this;
             wo.TargetWorldObject = target;
-            wo.ProjectileElement = (DamageType)spellStatMod.EType;
-            wo.SpellPower = spell.Power;
+            wo.SpellId = spellId;
+            wo.LifeProjectileDamage = lifeProjectileDamage;
 
             LandblockManager.AddObject(wo);
             CurrentLandblock.EnqueueBroadcast(wo.Location, new GameMessageScript(wo.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
