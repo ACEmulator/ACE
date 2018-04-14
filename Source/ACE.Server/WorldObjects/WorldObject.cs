@@ -770,8 +770,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetBaseDamage()
         {
-            var maxDamage = GetProperty(PropertyInt.Damage).Value;
-            var variance = GetProperty(PropertyFloat.DamageVariance).Value;
+            var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
+            var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
             var minDamage = maxDamage * variance;
             return new Range((float)minDamage, (float)maxDamage);
         }

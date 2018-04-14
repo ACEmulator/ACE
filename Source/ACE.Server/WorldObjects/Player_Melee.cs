@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
                         // no weapon: power range 1-3
                         // unarmed weapon: power range 1-2
                         if (weapon == null)
-                            Enum.TryParse("Attack" + GetAttackHeight(), out motion);
+                            Enum.TryParse("Attack" + GetAttackHeight() + GetPowerRange(), out motion);
                         else
                             Enum.TryParse("Attack" + GetAttackHeight() + Math.Min(GetPowerRange(), 2), out motion);
 
@@ -281,7 +281,7 @@ namespace ACE.Server.WorldObjects
 
             // get weapon base damage
             var weapon = GetEquippedWeapon();
-            var baseDamageRange = weapon.GetBaseDamage();
+            var baseDamageRange = weapon != null ? weapon.GetBaseDamage() : new Range(1, 5);
             var baseDamage = Physics.Common.Random.RollDice(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
