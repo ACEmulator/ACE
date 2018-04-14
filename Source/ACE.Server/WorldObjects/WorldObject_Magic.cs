@@ -159,6 +159,10 @@ namespace ACE.Server.WorldObjects
             Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject target = CurrentLandblock.GetObject(guidTarget);
 
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Beginning spell cast.", ChatMessageType.System));
+#endif
+
             if (player.IsBusy == true)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
@@ -330,7 +334,7 @@ namespace ACE.Server.WorldObjects
             }
 
 #if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Starting spell casting action chain", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Building the spell cast action chain", ChatMessageType.System));
 #endif
 
             ActionChain spellChain = new ActionChain();
@@ -423,7 +427,7 @@ namespace ACE.Server.WorldObjects
             spellChain.EnqueueChain();
 
 #if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Spell casting action chain enqueued", ChatMessageType.System));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Spell cast action chain enqueued", ChatMessageType.System));
 #endif
             return;
         }
@@ -615,26 +619,26 @@ namespace ACE.Server.WorldObjects
                     else
                         caster = (Creature)this;
                     uint vitalChange, casterVitalChange;
-                    Resistance resistanceDrain, resistanceBoost;
+                    ResistanceType resistanceDrain, resistanceBoost;
                     if (spellStatMod.Source == (int)PropertyAttribute2nd.Mana)
-                        resistanceDrain = Resistance.ManaDrain;
+                        resistanceDrain = ResistanceType.ManaDrain;
                     else if (spellStatMod.Source == (int)PropertyAttribute2nd.Stamina)
-                        resistanceDrain = Resistance.StaminaDrain;
+                        resistanceDrain = ResistanceType.StaminaDrain;
                     else
-                        resistanceDrain = Resistance.HealthDrain;
-                    vitalChange = (uint)((spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion) * spellTarget.GetResistence(resistanceDrain));
+                        resistanceDrain = ResistanceType.HealthDrain;
+                    vitalChange = (uint)((spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion) * spellTarget.GetNaturalResistence(resistanceDrain));
                     if (spellStatMod.TransferCap != 0)
                     {
                         if (vitalChange > spellStatMod.TransferCap)
                             vitalChange = (uint)spellStatMod.TransferCap;
                     }
                     if (spellStatMod.Destination == (int)PropertyAttribute2nd.Mana)
-                        resistanceBoost = Resistance.ManaDrain;
+                        resistanceBoost = ResistanceType.ManaDrain;
                     else if (spellStatMod.Source == (int)PropertyAttribute2nd.Stamina)
-                        resistanceBoost = Resistance.StaminaDrain;
+                        resistanceBoost = ResistanceType.StaminaDrain;
                     else
-                        resistanceBoost = Resistance.HealthDrain;
-                    casterVitalChange = (uint)((vitalChange * (1.0f - spellStatMod.LossPercent)) * spellTarget.GetResistence(resistanceBoost));
+                        resistanceBoost = ResistanceType.HealthDrain;
+                    casterVitalChange = (uint)((vitalChange * (1.0f - spellStatMod.LossPercent)) * spellTarget.GetNaturalResistence(resistanceBoost));
                     vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
                     newSpellTargetVital = (int)(spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) - vitalChange);
 
@@ -708,7 +712,7 @@ namespace ACE.Server.WorldObjects
                     uint damage;
                     if (spell.Name.Contains("Blight"))
                     {
-                        damage = (uint)(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetResistence(Resistance.ManaDrain));
+                        damage = (uint)(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetNaturalResistence(ResistanceType.ManaDrain));
                         newCasterVital = caster.Mana.Current - damage;
                         if (newCasterVital <= 0)
                             caster.Mana.Current = 0;
@@ -717,7 +721,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
-                        damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetResistence(Resistance.StaminaDrain));
+                        damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetNaturalResistence(ResistanceType.StaminaDrain));
                         newCasterVital = caster.Stamina.Current - damage;
                         if (newCasterVital <= 0)
                             caster.Stamina.Current = 0;
@@ -726,7 +730,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetResistence(Resistance.HealthDrain));
+                        damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetNaturalResistence(ResistanceType.HealthDrain));
                         newCasterVital = caster.Health.Current - damage;
                         if (newCasterVital <= 0)
                             caster.Health.Current = 0;
