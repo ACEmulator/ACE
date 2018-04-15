@@ -34,7 +34,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
 * Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release](https://github.com/ACEmulator/ACE-World-16PY/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE-World-16PY minimum required version - 0.0.9+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
+  - [ACE-World-16PY minimum required version - 0.0.12+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
 * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Open ACE.sln with Visual Studio and build the solution.
