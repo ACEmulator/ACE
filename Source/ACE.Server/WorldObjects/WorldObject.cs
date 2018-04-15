@@ -64,6 +64,8 @@ namespace ACE.Server.WorldObjects
         public bool IsMovingTo { get => movingState; set => movingState = value; }
 
         public EmoteManager EmoteManager;
+        public EnchantmentManager EnchantmentManager;
+
         public List<AttackDamage> AttackList = new List<AttackDamage>();
 
         /// <summary>
@@ -255,6 +257,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
+            EnchantmentManager = new EnchantmentManager(this);
 
             InitPhysics = true;
 

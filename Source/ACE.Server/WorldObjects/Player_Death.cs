@@ -1,9 +1,11 @@
-
+using ACE.Database;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
+using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -30,10 +32,8 @@ namespace ACE.Server.WorldObjects
             IsAlive = false;
             Health.Current = 0; // Set the health to zero
             NumDeaths++; // Increase the NumDeaths counter
-            DeathLevel++; // Increase the DeathLevel
-
-            // TODO: Find correct vitae formula/value
-            VitaeCpPool = 0; // Set vitae
+            DeathLevel = Level; // For calculating vitae XP
+            VitaeCpPool = 0; // Set vitae XP
 
             // TODO: Generate a death message based on the damage type to pass in to each death message:
             string currentDeathMessage = $"died to {killerSession.Player.Name}.";
@@ -48,8 +48,17 @@ namespace ACE.Server.WorldObjects
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
+            // handle vitae
+            var vitae = EnchantmentManager.UpdateVitae();
+
+            var spellID = (uint)Network.Enum.Spell.Vitae;
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
+            var spell = DatabaseManager.World.GetCachedSpell(spellID);
+            var vitaeEnchantment = new Enchantment(this, spellBase, 0, spell.StatModType, vitae);
+            var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
+
             // Send first death message group
-            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
 
             // Broadcast the 019E: Player Killed GameMessage
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
@@ -67,7 +76,7 @@ namespace ACE.Server.WorldObjects
             killChain.AddAction(this, () =>
             {
                 // teleport to sanctuary or best location
-                Position newPosition = PositionSanctuary ?? PositionLastPortal ?? Location;
+                var newPosition = Sanctuary ?? LastPortal ?? Location;
 
                 // Enqueue a teleport action, followed by Stand-up
                 // Queue the teleport to lifestone

@@ -191,6 +191,25 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.VitaeCpPool); else SetProperty(PropertyInt.VitaeCpPool, value.Value); }
         }
 
+        public bool HasVitae
+        {
+            get
+            {
+                return EnchantmentManager.HasVitae;
+            }
+        }
+
+        public float Vitae
+        {
+            get
+            {
+                if (!HasVitae)
+                    return 1.0f;
+
+                var vitae = EnchantmentManager.GetVitae();
+                return vitae.StatModValue;
+            }
+        }
 
         // ========================================
         // ===== Player Properties - Titles========

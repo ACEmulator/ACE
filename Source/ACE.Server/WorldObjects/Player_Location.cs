@@ -134,31 +134,5 @@ namespace ACE.Server.WorldObjects
             lock (clientObjectList)
                 clientObjectList.Clear();
         }
-
-        private Position PositionSanctuary
-        {
-            get
-            {
-                if (Positions.ContainsKey(PositionType.Sanctuary))
-                {
-                    return Positions[PositionType.Sanctuary];
-                }
-                return null;
-            }
-            set => Positions[PositionType.Sanctuary] = value;
-        }
-
-        private Position PositionLastPortal
-        {
-            get
-            {
-                if (Positions.ContainsKey(PositionType.LastPortal))
-                {
-                    return Positions[PositionType.LastPortal];
-                }
-                return null;
-            }
-            set => Positions[PositionType.LastPortal] = value;
-        }
     }
 }

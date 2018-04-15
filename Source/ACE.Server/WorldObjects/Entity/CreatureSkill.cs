@@ -81,8 +81,13 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += Ranks;
 
-                // TODO: augs + buffs
-
+                // TODO: include all buffs + augs
+                if (creature is Player)
+                {
+                    var player = creature as Player;
+                    if (player.HasVitae)
+                        total = (uint)Math.Round(total * player.Vitae);
+                }
                 return total;
             }
         }

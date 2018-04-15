@@ -112,8 +112,13 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 uint total = Base;
 
-                // todo calculate max value. Include buffs
-
+                // TODO: include all buffs
+                if (creature is Player)
+                {
+                    var player = creature as Player;
+                    if (player.HasVitae)
+                        total = (uint)Math.Round(total * player.Vitae);
+                }
                 return total;
             }
         }

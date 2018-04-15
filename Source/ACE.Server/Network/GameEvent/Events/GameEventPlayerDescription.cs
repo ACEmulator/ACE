@@ -175,6 +175,8 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if (Session.Player.Biota.BiotaPropertiesSpellBook.Count > 0)
                 vectorFlags |= DescriptionVectorFlag.Spell;
+            if (Session.Player.Biota.BiotaPropertiesEnchantmentRegistry.Count > 0)
+                vectorFlags |= DescriptionVectorFlag.Enchantment;
 
             Writer.Write((uint)vectorFlags);
             Writer.Write(1u);
@@ -285,9 +287,8 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            /*if ((vectorFlags & DescriptionVectorFlag.Enchantment) != 0)
-            {
-            }*/
+            if ((vectorFlags & DescriptionVectorFlag.Enchantment) != 0)
+                Session.Player.EnchantmentManager.SendRegistry(Writer);
 
             // TODO: Refactor this to set all of these flags based on data. Og II
             CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
