@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+### 2018-04-15
+
+**ACE-World-16PY world db release v0.0.12+ required with this update**
+
+**You will need to update world database with scripts in the respective update folders**
+
+[Ripley]
+* Added New Encounter Table to World Database.
+* Scaffolded the new tables.
+
 ### 2018-04-09
 
 **ACE-World-16PY world db release v0.0.9+ required with this update**
