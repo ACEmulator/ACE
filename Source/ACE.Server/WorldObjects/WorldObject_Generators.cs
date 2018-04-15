@@ -1,7 +1,9 @@
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories;
+using ACE.Server.Physics.Common;
 using System;
 using System.Collections.Generic;
 
@@ -23,7 +25,7 @@ namespace ACE.Server.WorldObjects
         {
             GeneratorProfilesActive.Clear();
 
-            var random = new Random((int)DateTime.UtcNow.Ticks);
+            var random = new System.Random((int)DateTime.UtcNow.Ticks);
 
             if (GeneratorProfiles.Count > 0)
             {
@@ -131,19 +133,46 @@ namespace ACE.Server.WorldObjects
 
                     if (wo != null)
                     {
-                        switch (profile.WhereCreate)
+                        switch ((RegenLocationType)profile.WhereCreate)
                         {
-                            case 4:
+                            case RegenLocationType.SpecificTreasure:
+                            case RegenLocationType.Specific:
                                 if ((profile.ObjCellId ?? 0) > 0)
-                                    wo.Location = new Position(profile.ObjCellId ?? 0,
+                                    wo.Location = new ACE.Entity.Position(profile.ObjCellId ?? 0,
                                         profile.OriginX ?? 0, profile.OriginY ?? 0, profile.OriginZ ?? 0,
                                         profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
                                 else
-                                    wo.Location = new Position(Location.Cell,
+                                    wo.Location = new ACE.Entity.Position(Location.Cell,
                                         Location.PositionX + profile.OriginX ?? 0, Location.PositionY + profile.OriginY ?? 0, Location.PositionZ + profile.OriginZ ?? 0,
                                         profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
                                         //Location.RotationX + profile.AnglesX ?? 0, Location.RotationY + profile.AnglesY ?? 0, Location.RotationZ + profile.AnglesZ ?? 0, Location.RotationW + profile.AnglesW ?? 0);
                                 break;
+                            case RegenLocationType.ScatterTreasure:
+                            case RegenLocationType.Scatter:
+                                float genRadius = (float)(wo.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
+                                var random_x = Physics.Common.Random.RollDice(genRadius * -1, genRadius);
+                                var random_y = Physics.Common.Random.RollDice(genRadius * -1, genRadius);
+                                var pos = new Physics.Common.Position(Location);
+
+                                if ((pos.ObjCellID & 0xFFFF) < 0x100) // Based on GDL scatter
+                                {
+                                    pos.Frame.Origin += new System.Numerics.Vector3(random_x, random_y, 0.0f);
+                                    pos.Frame.Origin.Z = LScape.get_landblock(pos.ObjCellID).GetZ(pos.Frame.Origin);
+
+                                    if (pos.Frame.Origin.X < 0.5f)
+                                        pos.Frame.Origin.X = 0.5f;
+                                    if (pos.Frame.Origin.Y < 0.5f)
+                                        pos.Frame.Origin.Y = 0.5f;
+
+                                    wo.Location = new ACE.Entity.Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+                                }
+                                else
+                                {
+                                    pos.Frame.Origin += new System.Numerics.Vector3(random_x, random_y, 0.0f);
+
+                                    wo.Location = new ACE.Entity.Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+                                }
+                                    break;
                             default:
                                 wo.Location = Location;
                                 break;
