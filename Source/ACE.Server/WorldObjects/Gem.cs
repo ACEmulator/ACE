@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
+using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -81,7 +82,8 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
                 player.PlayParticleEffect((PlayScript)spell.TargetEffect, player.Guid);
                 const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, player, spell, layer, 1, 0x2009010)); ////The values that are hardcoded are not directly available from spell table, but will be available soon.
+                var gem = new Enchantment(player, spell, layer, 1, 0x2009010);  // The values that are hardcoded are not directly available from spell table, but will be available soon.
+                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem)); 
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
                 player.SendUseDoneEvent();
                 return;
@@ -136,7 +138,9 @@ namespace ACE.Server.WorldObjects
                 const uint layer = 0x10000; // FIXME: we need to track how many layers of the exact same spell we have in effect.
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, player, spellBase, layer, CooldownId.Value, (uint)EnchantmentTypeFlags.Cooldown));
+                // cooldown not being used in network packet?
+                var gem = new Enchantment(player, spellBase, layer, /*CooldownId.Value,*/ (uint)EnchantmentTypeFlags.Cooldown);
+                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.

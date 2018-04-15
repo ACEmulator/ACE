@@ -349,6 +349,18 @@ namespace ACE.Entity
             }
         }
 
+        /// <summary>
+        /// Returns the offset from current position to input position
+        /// </summary>
+        public Vector3 GetOffset(Position p)
+        {
+            var dx = (p.LandblockId.LandblockX - LandblockId.LandblockX) * 192 + p.PositionX - PositionX;
+            var dy = (p.LandblockId.LandblockY - LandblockId.LandblockY) * 192 + p.PositionY - PositionY;
+            var dz = p.PositionZ - PositionZ;
+
+            return new Vector3(dx, dy, dz);
+        }
+
         public override string ToString()
         {
             return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";

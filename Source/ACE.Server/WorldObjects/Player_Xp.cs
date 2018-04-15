@@ -86,6 +86,34 @@ namespace ACE.Server.WorldObjects
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
+            if (HasVitae) UpdateXpVitae(amount);
+        }
+
+        private void UpdateXpVitae(long amount)
+        {
+            var vitaePenalty = EnchantmentManager.GetVitae().StatModValue;
+            var startPenalty = vitaePenalty;
+
+            var maxPool = (int)VitaeCPPoolThreshold(vitaePenalty, DeathLevel.Value);
+            var curPool = VitaeCpPool + amount;
+            while (curPool >= maxPool)
+            {
+                curPool -= maxPool;
+                vitaePenalty = EnchantmentManager.ReduceVitae();
+                if (vitaePenalty == 1.0f)
+                    break;
+                maxPool = (int)VitaeCPPoolThreshold(vitaePenalty, DeathLevel.Value);
+            }
+            VitaeCpPool = (int)curPool;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value));
+            if (vitaePenalty != startPenalty)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your experience has reduced your Vitae penalty!", ChatMessageType.Magic));
+                EnchantmentManager.SendUpdateVitae();
+            }
+            if (vitaePenalty == 1.0f)
+                EnchantmentManager.RemoveVitae();
         }
 
         /// <summary>
@@ -233,6 +261,16 @@ namespace ACE.Server.WorldObjects
 
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
             Session.Network.EnqueueSend(xpUpdate);
+        }
+
+        /// <summary>
+        /// Returns the total amount of XP required to go from vitae to vitae + 0.01
+        /// </summary>
+        /// <param name="vitae">The current player life force, ie. 0.95f vitae = 5% penalty</param>
+        /// <param name="level">The player DeathLevel, their level on last death</param>
+        private double VitaeCPPoolThreshold(float vitae, int level)
+        {
+            return (Math.Pow(level, 2.5) * 2.5 + 20.0) * Math.Pow(vitae, 5.0) + 0.5;
         }
     }
 }
