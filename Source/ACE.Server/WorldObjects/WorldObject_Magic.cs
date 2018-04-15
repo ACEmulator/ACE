@@ -339,14 +339,18 @@ namespace ACE.Server.WorldObjects
 
             ActionChain spellChain = new ActionChain();
 
-            spellChain.AddAction(this, () =>
+            uint fastCast = (spell.Bitfield >> 14) & 0x1u;
+            if (fastCast != 1)
             {
-                var motionWindUp = new UniversalMotion(MotionStance.Spellcasting);
-                motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
-                motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
-                motionWindUp.MovementData.ForwardSpeed = 2;
-                DoMotion(motionWindUp);
-            });
+                spellChain.AddAction(this, () =>
+                {
+                    var motionWindUp = new UniversalMotion(MotionStance.Spellcasting);
+                    motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                    motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
+                    motionWindUp.MovementData.ForwardSpeed = 2;
+                    DoMotion(motionWindUp);
+                });
+            }
 
             spellChain.AddAction(this, () =>
             {
@@ -363,7 +367,12 @@ namespace ACE.Server.WorldObjects
                 DoMotion(motionCastSpell);
             });
 
-            spellChain.AddDelaySeconds(castingDelay);
+            if (fastCast == 1)
+            {
+                spellChain.AddDelaySeconds(castingDelay * 0.26f);
+            }
+            else
+                spellChain.AddDelaySeconds(castingDelay);
 
             spellChain.AddAction(this, () =>
             {
@@ -859,18 +868,16 @@ namespace ACE.Server.WorldObjects
             double originY = Location.InFrontOf(2.0f).PositionY;
             double originZ = Location.InFrontOf(2.0f).PositionZ;
 
-            PhysicsObj.GetHeight();
-
-            int number = 15;
+            float speedFactor = 1.0f;
+            if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Streak"))
+            {
+                speedFactor = 5.0f;
+            }
 
             double distance = Location.DistanceTo(target.Location);
-            double vx = (number / distance) * (targetX - originX);
-            double vy = (number / distance) * (targetY - originY);
-            double vz = (number / distance) * (targetZ - originZ);
-            double time = distance / number;
-            double ax = (distance * vx) / (distance * time);
-            double ay = (distance * vy) / (distance * time);
-            double az = (distance * vz) / (distance * time);
+            double vx = (15 / distance) * (targetX - originX) * speedFactor;
+            double vy = (15 / distance) * (targetY - originY) * speedFactor;
+            double vz = (15 / distance) * (targetZ - originZ) * speedFactor;
 
             AceVector3 velocity = new AceVector3((float)vx, (float)vy, (float)vz);
             wo.Velocity = velocity;
