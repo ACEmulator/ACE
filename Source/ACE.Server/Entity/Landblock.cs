@@ -93,7 +93,7 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
-            this.Id = id;
+            Id = id;
 
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
@@ -124,6 +124,33 @@ namespace ACE.Server.Entity
             });
 
             _landblock = LScape.get_landblock(Id.Raw);
+
+            // Many thanks for GDL cache and GDL coding for loading into landblock and gmriggs assistance with taking the byte arrays and turning them in to more easy to follow (for me) data structures
+            var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(Id.Landblock);
+            encounters.ForEach(encounter =>
+            {
+                var wo = WorldObjectFactory.CreateNewWorldObject(encounter.WeenieClassId);
+
+                float x_shift = 24.0f * encounter.CellX;
+                float y_shift = 24.0f * encounter.CellY;
+
+                var pos = new Physics.Common.Position();
+                pos.ObjCellID = (uint)(id.Landblock << 16) | 1;
+                pos.Frame = new Physics.Animation.AFrame(new System.Numerics.Vector3(x_shift, y_shift, 0), new System.Numerics.Quaternion(0, 0, 0, 1));
+                pos.adjust_to_outside();
+
+                pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
+
+                wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+
+                if (!worldObjects.ContainsKey(wo.Guid))
+                {
+                    worldObjects.Add(wo.Guid, wo);
+                    wo.SetParent(this);
+                }
+            });
+
+            
             //LoadMeshes(objects);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);

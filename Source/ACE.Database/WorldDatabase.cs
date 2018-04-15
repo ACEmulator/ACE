@@ -315,5 +315,24 @@ namespace ACE.Database
 
             return null;
         }
+
+        private readonly ConcurrentDictionary<ushort, List<Encounter>> cachedEncounters = new ConcurrentDictionary<ushort, List<Encounter>>();
+
+        public List<Encounter> GetCachedEncountersByLandblock(ushort landblock)
+        {
+            if (cachedEncounters.TryGetValue(landblock, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var results = context.Encounter
+                    .AsNoTracking()
+                    .Where(r => r.Landblock == landblock);
+
+                cachedEncounters.TryAdd(landblock, results.ToList());
+            }
+
+            return cachedEncounters[landblock];
+        }
     }
 }

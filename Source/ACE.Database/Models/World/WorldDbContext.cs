@@ -104,18 +104,29 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("encounter");
 
-                entity.HasIndex(e => e.Index)
-                    .HasName("encounter_idx");
+                entity.HasIndex(e => e.Landblock)
+                    .HasName("landblock_idx");
+
+                entity.HasIndex(e => new { e.Landblock, e.CellX, e.CellY })
+                    .HasName("landblock_cellx_celly_uidx")
+                    .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.EncounterMap)
-                    .HasColumnName("encounter_Map")
-                    .HasColumnType("text");
+                entity.Property(e => e.CellX)
+                    .HasColumnName("cell_X")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Index)
-                    .HasColumnName("index")
-                    .HasColumnType("int(10)");
+                entity.Property(e => e.CellY)
+                    .HasColumnName("cell_Y")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Landblock)
+                    .HasColumnName("landblock")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.WeenieClassId)
                     .HasColumnName("weenie_Class_Id")
