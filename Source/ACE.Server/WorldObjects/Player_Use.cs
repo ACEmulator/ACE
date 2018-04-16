@@ -176,6 +176,15 @@ namespace ACE.Server.WorldObjects
                     // inventory on inventory, we can do this now
                     RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
                 }
+                else if (invSource.WeenieType == WeenieType.Healer)
+                {
+                    var target = CurrentLandblock.GetObject(targetObjectId);
+                    if (!(target is Player))
+                        return;
+
+                    var healer = invSource as Healer;
+                    healer.HandleActionUseOnTarget(this, target as Player);
+                }
                 else if (invSource.WeenieType == WeenieType.Key)
                 {
                     var theTarget = CurrentLandblock.GetObject(targetObjectId);
