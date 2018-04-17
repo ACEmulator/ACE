@@ -80,6 +80,7 @@ namespace ACE.Server.Entity
 
         public CellLandblock CellLandblock;
         public LandblockInfo LandblockInfo;
+        public bool AdjacenciesLoaded;
 
         /// <summary>
         /// The landblock static meshes for

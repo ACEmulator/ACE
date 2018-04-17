@@ -74,7 +74,7 @@ namespace ACE.Server.Managers
 
         public static void AddObject(WorldObject worldObject)
         {
-            var block = GetLandblock(worldObject.Location.LandblockId, true);
+            var block = GetLandblock(worldObject.Location.LandblockId, false);
             block.AddWorldObject(worldObject);
         }
 
@@ -82,7 +82,7 @@ namespace ACE.Server.Managers
 
         public static void RemoveObject(WorldObject worldObject)
         {
-            var block = GetLandblock(worldObject.Location.LandblockId, true);
+            var block = GetLandblock(worldObject.Location.LandblockId, false);
             block.RemoveWorldObject(worldObject.Guid, false);
         }
 
@@ -96,7 +96,7 @@ namespace ACE.Server.Managers
             // Remove from the old landblock -- force
             if (oldBlock != null)
             {
-                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, true);
+                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, false);
             }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);
@@ -108,58 +108,72 @@ namespace ACE.Server.Managers
         /// </summary>
         private static Landblock GetLandblock(LandblockId landblockId, bool propagate)
         {
-            int x = landblockId.LandblockX;
-            int y = landblockId.LandblockY;
+            var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
+            var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
 
             // standard check/lock/recheck pattern
-            if (landblocks[x, y] == null)
+            if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
             {
                 lock (landblockMutex)
                 {
-                    if (landblocks[x, y] == null)
+                    landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
+                    if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
                     {
-                        // load up this landblock
-                        var block = new Landblock(landblockId);
-
-                        landblocks[x, y] = block;
-                        var autoLoad = propagate && landblockId.MapScope == global::ACE.Entity.Enum.MapScope.Outdoors;
-
-                        if (x > 0)
+                        if (landblock == null)
                         {
-                            SetAdjacency(landblockId, landblockId.West, Adjacency.West, autoLoad);
+                            // load up this landblock
+                            landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
 
-                            if (y > 0)
-                                SetAdjacency(landblockId, landblockId.SouthWest, Adjacency.SouthWest, autoLoad);
-
-                            if (y < 255)
-                                SetAdjacency(landblockId, landblockId.NorthWest, Adjacency.NorthWest, autoLoad);
+                            // kick off the landblock use time thread
+                            // block.StartUseTime();
+                            ActiveLandblocks.Add(landblock);
                         }
-
-                        if (x < 255)
-                        {
-                            SetAdjacency(landblockId, landblockId.East, Adjacency.East, autoLoad);
-
-                            if (y > 0)
-                                SetAdjacency(landblockId, landblockId.SouthEast, Adjacency.SouthEast, autoLoad);
-
-                            if (y < 255)
-                                SetAdjacency(landblockId, landblockId.NorthEast, Adjacency.NorthEast, autoLoad);
-                        }
-
-                        if (y > 0)
-                            SetAdjacency(landblockId, landblockId.South, Adjacency.South, autoLoad);
-
-                        if (y < 255)
-                            SetAdjacency(landblockId, landblockId.North, Adjacency.North, autoLoad);
-
-                        // kick off the landblock use time thread
-                        // block.StartUseTime();
-                        ActiveLandblocks.Add(landblocks[x, y]);
+                        SetAdjacencies(landblockId, autoLoad);
+                        if (autoLoad)
+                            landblock.AdjacenciesLoaded = true;
                     }
                 }
             }
+            return landblock;
+        }
 
-            return landblocks[x, y];
+        /// <summary>
+        /// Sets the adjacencies for a landblock
+        /// </summary>
+        /// <param name="landblockId">The landblock to set the adjacencies for</param>
+        /// <param name="autoLoad">Flag indicates if unloaded adjacencies should be instantiated</param>
+        private static void SetAdjacencies(LandblockId landblockId, bool autoLoad)
+        {
+            int x = landblockId.LandblockX;
+            int y = landblockId.LandblockY;
+
+            if (x > 0)
+            {
+                SetAdjacency(landblockId, landblockId.West, Adjacency.West, autoLoad);
+
+                if (y > 0)
+                    SetAdjacency(landblockId, landblockId.SouthWest, Adjacency.SouthWest, autoLoad);
+
+                if (y < 255)
+                    SetAdjacency(landblockId, landblockId.NorthWest, Adjacency.NorthWest, autoLoad);
+            }
+
+            if (x < 255)
+            {
+                SetAdjacency(landblockId, landblockId.East, Adjacency.East, autoLoad);
+
+                if (y > 0)
+                    SetAdjacency(landblockId, landblockId.SouthEast, Adjacency.SouthEast, autoLoad);
+
+                if (y < 255)
+                    SetAdjacency(landblockId, landblockId.NorthEast, Adjacency.NorthEast, autoLoad);
+            }
+
+            if (y > 0)
+                SetAdjacency(landblockId, landblockId.South, Adjacency.South, autoLoad);
+
+            if (y < 255)
+                SetAdjacency(landblockId, landblockId.North, Adjacency.North, autoLoad);
         }
 
         /// <summary>
@@ -176,7 +190,7 @@ namespace ACE.Server.Managers
         private static void SetAdjacency(LandblockId landblock1, LandblockId landblock2, Adjacency adjacency, bool autoLoad = false)
         {
             // suppress adjacency logic for indoor areas
-            if (landblock1.MapScope != global::ACE.Entity.Enum.MapScope.Outdoors || landblock2.MapScope != global::ACE.Entity.Enum.MapScope.Outdoors)
+            if (landblock1.MapScope != MapScope.Outdoors || landblock2.MapScope != MapScope.Outdoors)
                 return;
 
             var lb1 = landblocks[landblock1.LandblockX, landblock1.LandblockY];
