@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Text;
 
 using log4net;
 
@@ -8,6 +10,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -1586,6 +1589,43 @@ namespace ACE.Server.Command.Handlers
             // @stormthresh - Sets how many character can be in a landblock before we do a portal storm.
 
             // TODO: output
+        }
+
+        // serverstatus
+        [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0)]
+        public static void Handleserverstatus(Session session, params string[] parameters)
+        {
+            // This is formatted very similarly to GDL.
+
+            var sb = new StringBuilder();
+
+            var proc = Process.GetCurrentProcess();
+
+            sb.Append($"Server Status:{'\n'}");
+
+            var runTime = DateTime.Now - proc.StartTime;
+            sb.Append($"Server Runtime: {runTime.Hours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
+
+            sb.Append($"Total CPU Time: {proc.TotalProcessorTime.TotalSeconds:N1} sec, Threads: {proc.Threads.Count}{'\n'}");
+
+            // todo, add actual system memory used/avail
+            sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
+
+            sb.Append($"{WorldManager.GetAll(false).Count} connections, {WorldManager.GetAll().Count} players online{'\n'}");
+
+            // 330 active objects, 1931 total objects(16777216 buckets.)
+
+            // todo, expand this
+            sb.Append($"{LandblockManager.ActiveLandblocks.Count} total blocks loaded.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+
+            sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Recipies: {DatabaseManager.World.GetRecipeCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}{'\n'}");
+
+            sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
+            sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{sb}", ChatMessageType.System));
         }
     }
 }

@@ -135,6 +135,14 @@ namespace ACE.Database
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
 
         /// <summary>
+        /// Returns the number of weenies currently cached.
+        /// </summary>
+        public int GetWeenieCacheCount()
+        {
+            return weenieCache.Count;
+        }
+
+        /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
         public Weenie GetCachedWeenie(uint weenieClassId)
@@ -212,6 +220,14 @@ namespace ACE.Database
         private readonly ConcurrentDictionary<ushort, List<LandblockInstances>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstances>>();
 
         /// <summary>
+        /// Returns the number of LandblockInstances currently cached.
+        /// </summary>
+        public int GetLandblockInstancesCacheCount()
+        {
+            return cachedLandblockInstances.Count;
+        }
+
+        /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
         public List<LandblockInstances> GetCachedInstancesByLandblock(ushort landblock)
@@ -233,6 +249,14 @@ namespace ACE.Database
 
 
         private readonly ConcurrentDictionary<string, PointsOfInterest> cachedPointsOfInterest = new ConcurrentDictionary<string, PointsOfInterest>();
+
+        /// <summary>
+        /// Returns the number of PointsOfInterest currently cached.
+        /// </summary>
+        public int GetPointsOfInterestCacheCount()
+        {
+            return cachedPointsOfInterest.Count;
+        }
 
         public PointsOfInterest GetCachedPointOfInterest(string name)
         {
@@ -257,6 +281,15 @@ namespace ACE.Database
 
 
         private readonly Dictionary<uint, Dictionary<uint, AceRecipe>> recipeCache = new Dictionary<uint, Dictionary<uint, AceRecipe>>();
+
+        /// <summary>
+        /// Returns the number of Recipies currently cached.
+        /// </summary>
+        public int GetRecipeCacheCount()
+        {
+            lock (recipeCache)
+                return recipeCache.Count;
+        }
 
         public AceRecipe GetCachedRecipe(uint sourceWeenieClassid, uint targetWeenieClassId)
         {
@@ -295,6 +328,14 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
+        /// <summary>
+        /// Returns the number of Spells currently cached.
+        /// </summary>
+        public int GetSpellCacheCount()
+        {
+            return spellCache.Count;
+        }
+
         public Spell GetCachedSpell(uint spellId)
         {
             if (spellCache.TryGetValue(spellId, out var spell))
@@ -316,7 +357,16 @@ namespace ACE.Database
             return null;
         }
 
+
         private readonly ConcurrentDictionary<ushort, List<Encounter>> cachedEncounters = new ConcurrentDictionary<ushort, List<Encounter>>();
+
+        /// <summary>
+        /// Returns the number of Encounters currently cached.
+        /// </summary>
+        public int GetEncounterCacheCount()
+        {
+            return cachedEncounters.Count;
+        }
 
         public List<Encounter> GetCachedEncountersByLandblock(ushort landblock)
         {
