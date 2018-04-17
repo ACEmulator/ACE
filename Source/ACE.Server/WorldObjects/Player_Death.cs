@@ -1,3 +1,4 @@
+using System;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -41,7 +42,6 @@ namespace ACE.Server.WorldObjects
             // Send Vicitim Notification, or "Your Death" event to the client:
             // create and send the client death event, GameEventYourDeath
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
-            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
@@ -57,8 +57,12 @@ namespace ACE.Server.WorldObjects
             var vitaeEnchantment = new Enchantment(this, spellID, 0, spell.StatModType, vitae);
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, (uint)Math.Round(Health.MaxValue * 0.75f));
+            var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, (uint)Math.Round(Stamina.MaxValue * 0.75f));
+            var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, (uint)Math.Round(Mana.MaxValue * 0.75f));
+
             // Send first death message group
-            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
 
             // Broadcast the 019E: Player Killed GameMessage
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);

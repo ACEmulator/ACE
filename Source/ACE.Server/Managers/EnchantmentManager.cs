@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Server.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Server.Network.Enum;
@@ -63,6 +63,26 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Adds an enchantment to this object's registry
+        /// </summary>
+        public void Add(Enchantment enchantment)
+        {
+            // check for existing record
+            // if none, add new record
+            // if exists, updating existing record: ++layer, StartTime=0
+            var spell = GetSpell(enchantment.Spell.SpellId);
+            if (spell != null)
+            {
+                spell.LayerId++;
+                spell.StartTime = 0;
+                return;
+            }
+            var entry = BuildEntry(enchantment.Spell.SpellId);
+            entry.LayerId = enchantment.Layer;
+            WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+        }
+
+        /// <summary>
         /// Writes the EnchantmentRegistry to the network stream
         /// </summary>
         public void SendRegistry(BinaryWriter writer)
@@ -92,15 +112,7 @@ namespace ACE.Server.Managers
             if (!HasVitae)
             {
                 // add entry for new vitae
-                vitae = new BiotaPropertiesEnchantmentRegistry();
-
-                var spell = DatabaseManager.World.GetCachedSpell((uint)Spell.Vitae);
-                BuildSpell(vitae, spell);
-
-                vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
-                vitae.ObjectId = WorldObject.Guid.Full;
-                vitae.Object = WorldObject.Biota;
-                vitae.SpellId = (int)Spell.Vitae;
+                vitae = BuildEntry((uint)Spell.Vitae);
                 vitae.LayerId = 0;
                 vitae.StatModValue = 1.0f - VitaePenalty;
 
@@ -151,7 +163,7 @@ namespace ACE.Server.Managers
             actionChain.AddDelaySeconds(2.0f);
             actionChain.AddAction(player, () =>
             {
-                player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(player.Session, (uint)Spell.Vitae, 0));
+                player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(player.Session, (ushort)Spell.Vitae, 0));
                 player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f));
             });
             actionChain.EnqueueChain();
@@ -165,12 +177,14 @@ namespace ACE.Server.Managers
             return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId == spellId).Count() > 0;
         }
 
-        /// <summary>
-        /// Returns the player vitae from enchantment registry
-        /// </summary>
+        public BiotaPropertiesEnchantmentRegistry GetSpell(uint spellID)
+        {
+            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellID);
+        }
+
         public BiotaPropertiesEnchantmentRegistry GetVitae()
         {
-            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == (uint)Spell.Vitae);
+            return GetSpell((uint)Spell.Vitae);
         }
 
         /// <summary>
@@ -184,21 +198,68 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Builds an enchantment registry entry from a spell
+        /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        public void BuildSpell(BiotaPropertiesEnchantmentRegistry entry, Database.Models.World.Spell spell)
+        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID)
         {
-            entry.SpellId = (int)spell.Id;
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
+            var spell = DatabaseManager.World.GetCachedSpell(spellID);
+
+            var entry = new BiotaPropertiesEnchantmentRegistry();
+
+            entry.EnchantmentCategory = (uint)spell.MetaSpellType;
+            var enchantmentType = (EnchantmentTypeFlags)entry.EnchantmentCategory;
+            entry.ObjectId = WorldObject.Guid.Full;
+            entry.Object = WorldObject.Biota;
+            entry.SpellId = (int)spell.SpellId;
             entry.SpellCategory = (ushort)spell.Category;
             entry.PowerLevel = spell.Power;
             entry.Duration = spell.Duration ?? 0.0;
-            // CasterObjectId?
+            entry.CasterObjectId = WorldObject.Guid.Full;   // only works for self?
             entry.DegradeModifier = spell.DegradeModifier ?? 0.0f;
             entry.DegradeLimit = spell.DegradeLimit ?? 0.0f;
-            // LastTimeDegraded?
             entry.StatModType = spell.StatModType ?? 0;
             entry.StatModKey = spell.StatModKey ?? 0;
             entry.StatModValue = spell.StatModVal ?? 0.0f;
+
+            return entry;
+        }
+
+        /// <summary>
+        /// Called every ~5 seconds for active object
+        /// </summary>
+        public void HeartBeat()
+        {
+            var expired = new List<BiotaPropertiesEnchantmentRegistry>();
+
+            foreach (var enchantment in Enchantments)
+            {
+                enchantment.StartTime -= 5;
+
+                // StartTime ticks backwards to -Duration
+                if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
+                    expired.Add(enchantment);
+            }
+
+            foreach (var enchantment in expired)
+                Remove(enchantment);
+        }
+
+        /// <summary>
+        /// Removes a spell from the enchantment registry, and
+        /// sends the relevant network messages for spell removal
+        /// </summary>
+        public void Remove(BiotaPropertiesEnchantmentRegistry entry)
+        {
+            var spellID = entry.SpellId;
+            var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
+            WorldObject.RemoveEnchantment(spellID);
+
+            var player = WorldObject as Player;
+            var remove = new GameEventMagicRemoveEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId);
+            var sound = new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f);
+
+            player.Session.Network.EnqueueSend(remove, sound);
         }
 
         /// <summary>
