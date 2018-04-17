@@ -130,14 +130,16 @@ namespace ACE.Server.WorldObjects
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    TryRemoveFromInventory(wo.Guid);
+                    TryDestroyFromInventoryWithNetworking(wo);
+
+                    /*TryRemoveFromInventory(wo.Guid);
                     ObjectGuid clearContainer = new ObjectGuid(0);
                     Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, clearContainer));
 
                     // clean up the shard database.
                     throw new NotImplementedException();
                     // todo fix for EF
-                    //DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);
+                    //DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);*/
                     Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
                 }
 
