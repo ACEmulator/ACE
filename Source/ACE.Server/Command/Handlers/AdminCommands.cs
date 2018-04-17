@@ -1593,7 +1593,7 @@ namespace ACE.Server.Command.Handlers
 
         // serverstatus
         [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0)]
-        public static void Handleserverstatus(Session session, params string[] parameters)
+        public static void HandleServerStatus(Session session, params string[] parameters)
         {
             // This is formatted very similarly to GDL.
 

@@ -800,6 +800,21 @@ namespace ACE.Server.Command.Handlers
             AddWeeniesToInventory(session, weenieIds);
         }
 
+        [CommandHandler("currency", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some currency items in your inventory for testing.")]
+        public static void HandleCurrency(Session session, params string[] parameters)
+        {
+            var loot = WorldObjectFactory.CreateNewWorldObject(273); // Pyreals
+
+            if (loot != null)
+            {
+                loot.StackSize = loot.MaxStackSize;
+                // todo fix burden?
+                session.Player.TryCreateInInventoryWithNetworking(loot);
+            }
+
+            // todo add trade notes
+        }
+
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
         {
