@@ -15,21 +15,22 @@ namespace ACE.Server.Network.Structure
         public WorldObject Target;
         public SpellBase SpellBase;
         public Spell Spell;
-        public uint Layer;
+        public ushort Layer;
         public EnchantmentMask EnchantmentMask;
+        public double StartTime;
         public float? StatMod;
 
-        public Enchantment(WorldObject target, uint spellId, uint layer, uint? enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, uint spellId, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
             SpellBase = DatManager.PortalDat.SpellTable.Spells[spellId];
             Spell = DatabaseManager.World.GetCachedSpell(spellId);
             Layer = layer;
             EnchantmentMask = (EnchantmentMask)(enchantmentMask ?? 0);
-            StatMod = statMod;
+            StatMod = statMod ?? Spell.StatModVal;
         }
 
-        public Enchantment(WorldObject target, SpellBase spellBase, uint layer, uint? enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, SpellBase spellBase, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
             SpellBase = spellBase;
@@ -44,6 +45,7 @@ namespace ACE.Server.Network.Structure
             SpellBase = DatManager.PortalDat.SpellTable.Spells[(uint)entry.SpellId];
             Spell = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
             Layer = entry.LayerId;
+            StartTime = entry.StartTime;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;
             StatMod = entry.StatModValue;
         }
@@ -51,7 +53,6 @@ namespace ACE.Server.Network.Structure
 
     public static class EnchantmentExtentions
     {
-        public static readonly double StartTime = 0;
         public static readonly double LastTimeDegraded = 0;
         public static readonly float DefaultStatMod = 35.0f;
 
@@ -72,16 +73,16 @@ namespace ACE.Server.Network.Structure
             var statModKey = spell != null ? spell.StatModKey ?? 0 : 0;
 
             writer.Write((ushort)enchantment.SpellBase.MetaSpellId);
-            writer.Write((ushort)enchantment.Layer);
+            writer.Write(enchantment.Layer);
             writer.Write((ushort)enchantment.SpellBase.Category);
             writer.Write(HasSpellSetId);
             writer.Write(enchantment.SpellBase.Power);
-            writer.Write(StartTime);            // FIXME: this needs to be passed in
+            writer.Write(enchantment.StartTime);
             writer.Write(enchantment.SpellBase.Duration);
             writer.Write(enchantment.Target.Guid.Full);
             writer.Write(enchantment.SpellBase.DegradeModifier);
             writer.Write(enchantment.SpellBase.DegradeLimit);
-            writer.Write(LastTimeDegraded);     // This needs timer updates to work correctly
+            writer.Write(LastTimeDegraded);     // always 0 / spell economy?
             writer.Write(statModType);
             writer.Write(statModKey);
             writer.Write(enchantment.StatMod ?? DefaultStatMod);

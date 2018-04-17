@@ -163,8 +163,7 @@ namespace ACE.Server.WorldObjects
         public override void HeartBeat()
         {
             // Do Stuff
-
-            
+            EnchantmentManager.HeartBeat();
 
             QueueNextHeartBeat();
         }
