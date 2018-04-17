@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
                 player.PlayParticleEffect((PlayScript)spell.TargetEffect, player.Guid);
                 const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
-                var gem = new Enchantment(player, spell, layer, 1, 0x2009010);  // The values that are hardcoded are not directly available from spell table, but will be available soon.
+                var gem = new Enchantment(player, SpellDID.Value, layer, 1, 0x2009010);  // The values that are hardcoded are not directly available from spell table, but will be available soon.
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem)); 
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
                 player.SendUseDoneEvent();
