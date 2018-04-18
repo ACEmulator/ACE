@@ -764,6 +764,13 @@ namespace ACE.Server.Command.Handlers
                 if (loot == null) // weenie doesn't exist
                     continue;
 
+                if (loot.MaxStackSize > 1)
+                {
+                    loot.StackSize = loot.MaxStackSize;
+                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (loot.StackSize ?? 1);
+                    loot.Value = (loot.StackUnitValue ?? 0) * (loot.StackSize ?? 1);
+                }
+
                 session.Player.TryCreateInInventoryWithNetworking(loot);
             }
         }
@@ -803,16 +810,9 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("currency", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some currency items in your inventory for testing.")]
         public static void HandleCurrency(Session session, params string[] parameters)
         {
-            var loot = WorldObjectFactory.CreateNewWorldObject(273); // Pyreals
+            HashSet<uint> weenieIds = new HashSet<uint> { 273, 20630 };
 
-            if (loot != null)
-            {
-                loot.StackSize = loot.MaxStackSize;
-                // todo fix burden?
-                session.Player.TryCreateInInventoryWithNetworking(loot);
-            }
-
-            // todo add trade notes
+            AddWeeniesToInventory(session, weenieIds);
         }
 
         [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted max 50")]
