@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -385,21 +385,27 @@ namespace ACE.Server.Command.Handlers
         /// This is a VERY crude test. It should never be used on a live server.
         /// There isn't really much point to this command other than making sure landblocks can load and are semi-efficient.
         /// </summary>
-        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!!")]
+        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... Prepare to be disconnected.", ChatMessageType.System));
+            session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... This will likely crash the server...", ChatMessageType.System));
 
-            for (int x = 0; x <= 0xFF; x++)
+            //Task.Run(() => // Using Task.Run() seems to halt around the 0x01E# block range.
             {
-                var x1 = x;
-                Parallel.For(0, 0xFF, y =>
+                for (int x = 0; x <= 0xFE; x++)
                 {
-                    LandblockManager.ForceLoadLandBlock(new LandblockId((byte)x1, (byte)y));
-                });
-            }
+                    for (int y = 0; y <= 0xFE; y++)
+                        LandblockManager.ForceLoadLandBlock(new LandblockId((byte)x, (byte)y));
+                }
+            }//);
+        }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat("All Landblocks loaded.", ChatMessageType.System));
+        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]
+        public static void HandleCacheAllWeenies(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageSystemChat("Caching Weenies... This may take more than 10 minutes...", ChatMessageType.System));
+
+            Task.Run(() => DatabaseManager.World.CacheAllWeenies());
         }
 
 

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using log4net;
 
 using ACE.Database.Models.World;
+using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
@@ -71,45 +72,81 @@ namespace ACE.Database
 
 
         /// <summary>
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction<para />
+        /// If the weenie doesn't exist in the cache, it will be added.
+        /// </summary>
+        private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
+        {
+            // Base properties for every weenie (ACBaseQualities)
+            var weenie = context.Weenie
+                .Include(r => r.WeeniePropertiesBool)
+                .Include(r => r.WeeniePropertiesDID)
+                .Include(r => r.WeeniePropertiesFloat)
+                .Include(r => r.WeeniePropertiesIID)
+                .Include(r => r.WeeniePropertiesInt)
+                .Include(r => r.WeeniePropertiesInt64)
+                .Include(r => r.WeeniePropertiesPosition)
+                .Include(r => r.WeeniePropertiesString)
+                .FirstOrDefault(r => r.ClassId == weenieClassId);
+
+            if (weenie == null)
+                return null;
+
+            var weenieType = (WeenieType)weenie.Type;
+
+            bool isCreature = weenieType == WeenieType.Creature || weenieType == WeenieType.Cow ||
+                              weenieType == WeenieType.Sentinel || weenieType == WeenieType.Admin ||
+                              weenieType == WeenieType.Vendor;
+
+            //.Include(r => r.LandblockInstances)   // When we grab a weenie, we don't need to also know everywhere it exists in the world
+            //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
+
+            weenie.WeeniePropertiesAnimPart = context.WeeniePropertiesAnimPart.Where(r => r.ObjectId == weenie.ClassId).ToList();
+
+            if (isCreature)
+            {
+                weenie.WeeniePropertiesAttribute = context.WeeniePropertiesAttribute.Where(r => r.ObjectId == weenie.ClassId).ToList();
+                weenie.WeeniePropertiesAttribute2nd = context.WeeniePropertiesAttribute2nd.Where(r => r.ObjectId == weenie.ClassId).ToList();
+
+                weenie.WeeniePropertiesBodyPart = context.WeeniePropertiesBodyPart.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            }
+
+            if (weenieType == WeenieType.Book)
+            {
+                weenie.WeeniePropertiesBook = context.WeeniePropertiesBook.FirstOrDefault(r => r.ObjectId == weenie.ClassId);
+                weenie.WeeniePropertiesBookPageData = context.WeeniePropertiesBookPageData.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            }
+
+            weenie.WeeniePropertiesCreateList = context.WeeniePropertiesCreateList.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Include(r => r.WeeniePropertiesEmoteAction).Where(r => r.ObjectId == weenie.ClassId).ToList();
+            //weenie.WeeniePropertiesEmoteAction = context.WeeniePropertiesEmoteAction.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesEventFilter = context.WeeniePropertiesEventFilter.Where(r => r.ObjectId == weenie.ClassId).ToList();
+
+            weenie.WeeniePropertiesGenerator = context.WeeniePropertiesGenerator.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesPalette = context.WeeniePropertiesPalette.Where(r => r.ObjectId == weenie.ClassId).ToList();
+
+            if (isCreature)
+            {
+                weenie.WeeniePropertiesSkill = context.WeeniePropertiesSkill.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            }
+
+            weenie.WeeniePropertiesSpellBook = context.WeeniePropertiesSpellBook.Where(r => r.ObjectId == weenie.ClassId).ToList();
+
+            weenie.WeeniePropertiesTextureMap = context.WeeniePropertiesTextureMap.Where(r => r.ObjectId == weenie.ClassId).ToList();
+
+            // If the weenie doesn't exist in the cache, we'll add it.
+            weenieCache.TryAdd(weenieClassId, weenie);
+
+            return weenie;
+        }
+
+        /// <summary>
         /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
         public Weenie GetWeenie(uint weenieClassId)
         {
             using (var context = new WorldDbContext())
-            {
-                var result = context.Weenie
-                    .AsNoTracking()
-                    .Include(r => r.WeeniePropertiesBook)
-                    //.Include(r => r.LandblockInstances)   / When we grab a weenie, we don't need to also know everywhere it exists in the world
-                    //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
-                    .Include(r => r.WeeniePropertiesAnimPart)
-                    .Include(r => r.WeeniePropertiesAttribute)
-                    .Include(r => r.WeeniePropertiesAttribute2nd)
-                    .Include(r => r.WeeniePropertiesBodyPart)
-                    .Include(r => r.WeeniePropertiesBookPageData)
-                    .Include(r => r.WeeniePropertiesBool)
-                    .Include(r => r.WeeniePropertiesCreateList)
-                    .Include(r => r.WeeniePropertiesDID)
-                    .Include(r => r.WeeniePropertiesEmote).ThenInclude(emote => emote.WeeniePropertiesEmoteAction)
-                    //.Include(r => r.WeeniePropertiesEmoteAction)
-                    .Include(r => r.WeeniePropertiesEventFilter)
-                    .Include(r => r.WeeniePropertiesFloat)
-                    .Include(r => r.WeeniePropertiesGenerator)
-                    .Include(r => r.WeeniePropertiesIID)
-                    .Include(r => r.WeeniePropertiesInt)
-                    .Include(r => r.WeeniePropertiesInt64)
-                    .Include(r => r.WeeniePropertiesPalette)
-                    .Include(r => r.WeeniePropertiesPosition)
-                    .Include(r => r.WeeniePropertiesSkill)
-                    .Include(r => r.WeeniePropertiesSpellBook)
-                    .Include(r => r.WeeniePropertiesString)
-                    .Include(r => r.WeeniePropertiesTextureMap)
-                    .FirstOrDefault(r => r.ClassId == weenieClassId);
-
-                weenieCache.TryAdd(weenieClassId, result);
-
-                return result;
-            }
+                return GetWeenie(context, weenieClassId);
         }
 
         public uint GetWeenieClassId(string weenieClassName)
@@ -150,9 +187,7 @@ namespace ACE.Database
             if (weenieCache.TryGetValue(weenieClassId, out var value))
                 return value;
 
-            var result = GetWeenie(weenieClassId);
-
-            weenieCache.TryAdd(weenieClassId, result);
+            var result = GetWeenie(weenieClassId); // This will add the result into the weenieCache
 
             return result;
         }
@@ -160,6 +195,28 @@ namespace ACE.Database
         public Weenie GetCachedWeenie(string weenieClassName)
         {
             return GetCachedWeenie(GetWeenieClassId(weenieClassName));
+        }
+
+        /// <summary>
+        /// This will make sure every weenie in the database has been read and cached.<para />
+        /// This function may take 10+ minutes to complete.
+        /// </summary>
+        public void CacheAllWeenies()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.Weenie
+                    .AsNoTracking()
+                    .ToList();
+
+                foreach (var result in results)
+                {
+                    if (weenieCache.ContainsKey(result.ClassId))
+                        continue;
+
+                    GetWeenie(context, result.ClassId);
+                }
+            }
         }
 
         public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
