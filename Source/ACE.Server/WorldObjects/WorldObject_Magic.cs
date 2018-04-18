@@ -12,6 +12,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Factories;
@@ -476,7 +477,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Method used for handling creature untargeted spell casts
+        /// Method used for handling creature targeted spell casts
         /// </summary>
         public void CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
         {
@@ -782,9 +783,41 @@ namespace ACE.Server.WorldObjects
         {
             if (WeenieClassId == 1)
             {
-                Player player = (Player)this;
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
-                    new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                // create enchantment
+                var enchantment = new Enchantment(target, spellStatMod.SpellId, 1, (uint)EnchantmentMask.CreatureSpells);
+                var stackType = target.EnchantmentManager.Add(enchantment);
+
+                var player = this as Player;
+                var playerTarget = target as Player;
+
+                // build message
+                var suffix = "";
+                switch (stackType)
+                {
+                    case StackType.Refresh:
+                        suffix = $", refreshing {spell.Name}";
+                        break;
+                    case StackType.Surpass:
+                        suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
+                        break;
+                    case StackType.Surpassed:
+                        suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
+                        break;
+                }
+
+                var targetName = player == playerTarget ? "yourself" : playerTarget.Name;
+
+                // send network
+                var text = new GameMessageSystemChat($"You cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic);
+                var useDone = new GameEventUseDone(player.Session, WeenieError.None);
+
+                if (stackType != StackType.Surpassed)
+                    playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+
+                if (player != playerTarget)
+                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+
+                player.Session.Network.EnqueueSend(text, useDone);
             }
         }
 

@@ -81,10 +81,14 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += Ranks;
 
-                // TODO: include all buffs + augs
+                // TODO: include augs + any other modifiers
                 if (creature is Player)
                 {
                     var player = creature as Player;
+
+                    var skillMod = player.EnchantmentManager.GetSkillMod(Skill);
+                    total += (uint)skillMod;    // can be negative?
+
                     if (player.HasVitae)
                         total = (uint)Math.Round(total * player.Vitae);
                 }
