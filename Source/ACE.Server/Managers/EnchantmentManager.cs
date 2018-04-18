@@ -7,6 +7,7 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Server.Entity.Actions;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
@@ -16,6 +17,15 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
+    public enum StackType
+    {
+        None,
+        Initial,
+        Refresh,
+        Surpassed,
+        Surpass
+    };
+
     public class EnchantmentManager
     {
         public WorldObject WorldObject;
@@ -62,24 +72,48 @@ namespace ACE.Server.Managers
             Enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry;
         }
 
+        public Database.Models.World.Spell Surpass; // retval
+
         /// <summary>
-        /// Adds an enchantment to this object's registry
+        /// Add/update an enchantment in this object's registry
         /// </summary>
-        public void Add(Enchantment enchantment)
+        public StackType Add(Enchantment enchantment)
         {
-            // check for existing record
+            // check for existing spell in this category
+            var entry = GetCategory(enchantment.Spell.Category);
+
             // if none, add new record
-            // if exists, updating existing record: ++layer, StartTime=0
-            var spell = GetSpell(enchantment.Spell.SpellId);
-            if (spell != null)
+            if (entry == null)
             {
-                spell.LayerId++;
-                spell.StartTime = 0;
-                return;
+                entry = BuildEntry(enchantment.Spell.SpellId);
+                entry.LayerId = enchantment.Layer;
+                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+
+                return StackType.Initial;
             }
-            var entry = BuildEntry(enchantment.Spell.SpellId);
-            entry.LayerId = enchantment.Layer;
-            WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+            if (enchantment.Spell.Power > entry.PowerLevel)
+            {
+                // surpass existing spell
+                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                Remove(entry, false);
+                entry = BuildEntry(enchantment.Spell.SpellId);
+                entry.LayerId = enchantment.Layer;
+                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+                return StackType.Surpass;
+            }
+            else if (enchantment.Spell.Power == entry.PowerLevel)
+            {
+                // refresh existing spell
+                entry.LayerId++;
+                entry.StartTime = 0;
+                return StackType.Refresh;
+            }
+            else
+            {
+                // superior existing spell
+                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                return StackType.Surpassed;
+            }
         }
 
         /// <summary>
@@ -177,6 +211,11 @@ namespace ACE.Server.Managers
             return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId == spellId).Count() > 0;
         }
 
+        public BiotaPropertiesEnchantmentRegistry GetCategory(uint categoryID)
+        {
+            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellCategory == categoryID);
+        }
+
         public BiotaPropertiesEnchantmentRegistry GetSpell(uint spellID)
         {
             return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellID);
@@ -249,17 +288,16 @@ namespace ACE.Server.Managers
         /// Removes a spell from the enchantment registry, and
         /// sends the relevant network messages for spell removal
         /// </summary>
-        public void Remove(BiotaPropertiesEnchantmentRegistry entry)
+        public void Remove(BiotaPropertiesEnchantmentRegistry entry, bool sound = true)
         {
             var spellID = entry.SpellId;
             var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
             WorldObject.RemoveEnchantment(spellID);
-
             var player = WorldObject as Player;
-            var remove = new GameEventMagicRemoveEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId);
-            var sound = new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f);
+            player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId));
 
-            player.Session.Network.EnqueueSend(remove, sound);
+            if (sound)
+                player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f));
         }
 
         /// <summary>
@@ -279,6 +317,38 @@ namespace ACE.Server.Managers
                 minVitae = MinVitae;
 
             return minVitae;
+        }
+
+        /// <summary>
+        /// Returns the bonus to a skill from enchantments
+        /// </summary>
+        public int GetSkillMod(Skill skill)
+        {
+            var typeFlags = EnchantmentTypeFlags.Skill;
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (uint)skill);
+            if (enchantments == null) return 0;
+
+            var skillMod = 0;
+            foreach (var enchantment in enchantments)
+                skillMod += (int)enchantment.StatModValue;
+
+            return skillMod;
+        }
+
+        /// <summary>
+        /// Returns the bonus to an attribute from enchantments
+        /// </summary>
+        public int GetAttributeMod(PropertyAttribute attribute)
+        {
+            var typeFlags = EnchantmentTypeFlags.Attribute;
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (uint)attribute);
+            if (enchantments == null) return 0;
+
+            var attributeMod = 0;
+            foreach (var enchantment in enchantments)
+                attributeMod += (int)enchantment.StatModValue;
+
+            return attributeMod;
         }
     }
 }
