@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -378,6 +379,27 @@ namespace ACE.Server.Command.Handlers
         public static void HandleSaveNow(Session session, params string[] parameters)
         {
             session.SaveSessionPlayer();
+        }
+
+        /// <summary>
+        /// This is a VERY crude test. It should never be used on a live server.
+        /// There isn't really much point to this command other than making sure landblocks can load and are semi-efficient.
+        /// </summary>
+        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!!")]
+        public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... Prepare to be disconnected.", ChatMessageType.System));
+
+            for (int x = 0; x <= 0xFF; x++)
+            {
+                var x1 = x;
+                Parallel.For(0, 0xFF, y =>
+                {
+                    LandblockManager.ForceLoadLandBlock(new LandblockId((byte)x1, (byte)y));
+                });
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("All Landblocks loaded.", ChatMessageType.System));
         }
 
 
