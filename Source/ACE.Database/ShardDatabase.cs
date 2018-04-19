@@ -583,6 +583,26 @@ namespace ACE.Database
             }
         }
 
+        public bool RemoveEntity(BiotaPropertiesEnchantmentRegistry entity)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.BiotaPropertiesEnchantmentRegistry.Remove(entity);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"RemoveEntity failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
         public bool RemoveEntity(BiotaPropertiesFloat entity)
         {
             using (var context = new ShardDbContext())
@@ -668,6 +688,66 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
             {
                 context.BiotaPropertiesPosition.Remove(entity);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"RemoveEntity failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool RemoveEntity(BiotaPropertiesShortcutBar entity)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.BiotaPropertiesShortcutBar.Remove(entity);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"RemoveEntity failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool RemoveEntity(BiotaPropertiesSpellBar entity)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.BiotaPropertiesSpellBar.Remove(entity);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"RemoveEntity failed with exception: {ex}");
+                    return false;
+                }
+            }
+        }
+
+        public bool RemoveEntity(BiotaPropertiesSpellBook entity)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.BiotaPropertiesSpellBook.Remove(entity);
 
                 try
                 {

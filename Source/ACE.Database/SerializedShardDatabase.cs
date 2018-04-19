@@ -226,6 +226,15 @@ namespace ACE.Database
             }));
         }
 
+        public void RemoveEntity(BiotaPropertiesEnchantmentRegistry entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void RemoveEntity(BiotaPropertiesFloat entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -263,6 +272,33 @@ namespace ACE.Database
         }
 
         public void RemoveEntity(BiotaPropertiesPosition entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesShortcutBar entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesSpellBar entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(BiotaPropertiesSpellBook entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
