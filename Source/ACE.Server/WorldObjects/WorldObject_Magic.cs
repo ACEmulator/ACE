@@ -789,6 +789,7 @@ namespace ACE.Server.WorldObjects
 
                 var player = this as Player;
                 var playerTarget = target as Player;
+                var creatureTarget = target as Creature;
 
                 // build message
                 var suffix = "";
@@ -805,17 +806,20 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
 
-                var targetName = player == playerTarget ? "yourself" : playerTarget.Name;
+                var targetName = this == target ? "yourself" : target.Name;
 
                 // send network
                 var text = new GameMessageSystemChat($"You cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic);
                 var useDone = new GameEventUseDone(player.Session, WeenieError.None);
 
-                if (stackType != StackType.Surpassed)
-                    playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+                if (target is Player)
+                {
+                    if (stackType != StackType.Surpassed)
+                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
 
-                if (player != playerTarget)
-                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                    if (player != playerTarget)
+                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                }
 
                 player.Session.Network.EnqueueSend(text, useDone);
             }

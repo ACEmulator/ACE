@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -13,6 +14,7 @@ using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
@@ -711,6 +713,24 @@ namespace ACE.Server.WorldObjects
                     ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
                 }
             }).EnqueueChain();
+        }
+
+        /// <summary>
+        /// Handles the adding of items to 1-9 shortcut bar
+        /// in lower-right corner
+        /// </summary>
+        public void HandleActionAddShortcut(Shortcut shortcut)
+        {
+            ShortcutManager.AddItem(shortcut);
+        }
+
+        /// <summary>
+        /// Handles the removing of items from 1-9 shortcut bar
+        /// in lower-right corner
+        /// </summary>
+        public void HandleActionRemoveShortcut(uint index)
+        {
+            ShortcutManager.RemoveItem(index);
         }
 
 

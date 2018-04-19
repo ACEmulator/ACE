@@ -15,6 +15,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -34,12 +35,30 @@ namespace ACE.Server.WorldObjects
 
         public Session Session { get; }
 
+        public ShortcutManager ShortcutManager;
+
+        public bool HasShortcuts
+        {
+            get
+            {
+                return ShortcutManager.HasShortcuts;
+            }
+        }
+
+        public int NumShortcuts
+        {
+            get
+            {
+                return ShortcutManager.NumShortcuts;
+            }
+        }
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Player(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid)
         {
             Session = session;
+            ShortcutManager = new ShortcutManager(this);
 
             // Make sure properties this WorldObject requires are not null.
             AvailableExperience = AvailableExperience ?? 0;
@@ -57,6 +76,7 @@ namespace ACE.Server.WorldObjects
             AddBiotasToEquippedObjects(wieldedItems);
 
             Session = session;
+            ShortcutManager = new ShortcutManager(this);
 
             SetEphemeralValues();
         }

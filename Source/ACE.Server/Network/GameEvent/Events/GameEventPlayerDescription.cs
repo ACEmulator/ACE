@@ -295,12 +295,14 @@ namespace ACE.Server.Network.GameEvent.Events
 
             optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
+            if (Session.Player.HasShortcuts)
+                optionFlags |= CharacterOptionDataFlag.Shortcut;
+
             Writer.Write((uint)optionFlags);
             Writer.Write((int)(Session.Player.GetProperty(PropertyInt.CharacterOptions1) ?? 0));
 
-            /*if ((optionFlags & DescriptionOptionFlag.Shortcut) != 0)
-            {
-            }*/
+            if (Session.Player.HasShortcuts)
+                Session.Player.ShortcutManager.SendShortcuts(Writer);
 
             if ((optionFlags & CharacterOptionDataFlag.SpellLists8) != 0)
             {
