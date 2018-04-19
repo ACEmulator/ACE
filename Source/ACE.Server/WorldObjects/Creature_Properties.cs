@@ -106,33 +106,33 @@ namespace ACE.Server.WorldObjects
             switch (resistance)
             {
                 case ResistanceType.Slash:
-                    return ResistSlash ?? 1.0;
+                    return ResistSlashMod;
                 case ResistanceType.Pierce:
-                    return ResistPierce ?? 1.0;
+                    return ResistPierceMod;
                 case ResistanceType.Bludgeon:
-                    return ResistBludgeon ?? 1.0;
+                    return ResistBludgeonMod;
                 case ResistanceType.Fire:
-                    return ResistFire ?? 1.0;
+                    return ResistFireMod;
                 case ResistanceType.Cold:
-                    return ResistCold ?? 1.0;
+                    return ResistColdMod;
                 case ResistanceType.Acid:
-                    return ResistAcid ?? 1.0;
+                    return ResistAcidMod;
                 case ResistanceType.Electric:
-                    return ResistElectric ?? 1.0;
+                    return ResistElectricMod;
                 case ResistanceType.Nether:
-                    return ResistNether ?? 1.0;
+                    return ResistNetherMod;
                 case ResistanceType.HealthBoost:
-                    return ResistHealthBoost ?? 1.0;
+                    return ResistHealthBoostMod;
                 case ResistanceType.HealthDrain:
-                    return ResistHealthDrain ?? 1.0;
+                    return ResistHealthDrainMod;
                 case ResistanceType.StaminaBoost:
-                    return ResistStaminaBoost ?? 1.0;
+                    return ResistStaminaBoostMod;
                 case ResistanceType.StaminaDrain:
-                    return ResistStaminaDrain ?? 1.0;
+                    return ResistStaminaDrainMod;
                 case ResistanceType.ManaBoost:
-                    return ResistManaBoost ?? 1.0;
+                    return ResistManaBoostMod;
                 case ResistanceType.ManaDrain:
-                    return ResistManaDrain ?? 1.0;
+                    return ResistManaDrainMod;
                 default:
                     return 1.0;
             }
@@ -209,5 +209,22 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.ArmorLevel);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ArmorLevel); else SetProperty(PropertyInt.ArmorLevel, value.Value); }
         }
+
+        public int ArmorLevelMod => (ArmorLevel ?? 0) + EnchantmentManager.GetBodyArmorMod();
+        public double ResistSlashMod => (ResistSlash ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Slash);
+        public double ResistPierceMod => (ResistPierce ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Pierce);
+        public double ResistBludgeonMod => (ResistBludgeon ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
+        public double ResistFireMod => (ResistFire ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Fire);
+        public double ResistColdMod => (ResistCold ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Cold);
+        public double ResistAcidMod => (ResistAcid ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Acid);
+        public double ResistElectricMod => (ResistElectric ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Electric);
+        public double ResistNetherMod => (ResistNether ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Nether);
+        public double ResistHealthDrainMod => (ResistHealthDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Health);
+        public double ResistHealthBoostMod => (ResistHealthBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Health);
+        public double ResistStaminaDrainMod => (ResistStaminaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Stamina);
+        public double ResistStaminaBoostMod => (ResistStaminaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Stamina);
+        public double ResistManaDrainMod => (ResistManaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
+        public double ResistManaBoostMod => (ResistManaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
+
     }
 }

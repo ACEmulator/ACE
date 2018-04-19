@@ -249,7 +249,9 @@ namespace ACE.Server.WorldObjects
                 {
                     // Player as the target
                     Player targetPlayer = (Player)TargetWorldObject;
-                    newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - (damage * targetPlayer.GetNaturalResistence(resistanceType)));
+                    damage = (int)Math.Round(damage * targetPlayer.GetNaturalResistence(resistanceType));
+
+                    newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
                     if (newSpellTargetVital <= 0)
                         targetPlayer.Health.Current = 0;
                     else
@@ -283,7 +285,9 @@ namespace ACE.Server.WorldObjects
                     string verb = null, plural = null;
 
                     Creature targetCreature = (Creature)TargetWorldObject;
-                    newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - (damage * targetCreature.GetNaturalResistence(resistanceType)));
+                    damage = (int)Math.Round(damage * targetCreature.GetNaturalResistence(resistanceType));
+
+                    newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
                     if (newSpellTargetVital <= 0)
                         targetCreature.Health.Current = 0;
                     else

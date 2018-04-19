@@ -218,7 +218,9 @@ namespace ACE.Server.WorldObjects
                 {
                     float distanceTo = Location.Distance2D(target.Location);
 
-                    if (distanceTo > (spell.BaseRangeConstant + (spell.BaseRangeConstant * spell.BaseRangeMod)))
+                    var magicSkill = player.GetCreatureSkill(spell.School);
+
+                    if (distanceTo > spell.BaseRangeConstant + magicSkill.Current * spell.BaseRangeMod)
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
                             new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
@@ -766,7 +768,7 @@ namespace ACE.Server.WorldObjects
                     message = "Spell not implemented, yet!";
                     break;
                 case SpellType.Enchantment:
-                    message = "Spell not implemented, yet!";
+                    message = CreatureMagic(target, spell, spellStatMod, false);
                     break;
                 default:
                     message = "Spell not implemented, yet!";
@@ -779,7 +781,7 @@ namespace ACE.Server.WorldObjects
                 return false;
         }
 
-        private void CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
+        private string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool showMsg = true)
         {
             if (WeenieClassId == 1)
             {
@@ -809,7 +811,8 @@ namespace ACE.Server.WorldObjects
                 var targetName = this == target ? "yourself" : target.Name;
 
                 // send network
-                var text = new GameMessageSystemChat($"You cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic);
+                var message = $"You cast {spell.Name} on {targetName}{suffix}";
+                var text = new GameMessageSystemChat(message, ChatMessageType.Magic);
                 var useDone = new GameEventUseDone(player.Session, WeenieError.None);
 
                 if (target is Player)
@@ -821,8 +824,14 @@ namespace ACE.Server.WorldObjects
                         playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
                 }
 
-                player.Session.Network.EnqueueSend(text, useDone);
+                if (showMsg)
+                    player.Session.Network.EnqueueSend(text);
+
+                player.Session.Network.EnqueueSend(useDone);
+                return message;
             }
+
+            return "";
         }
 
         private void ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)

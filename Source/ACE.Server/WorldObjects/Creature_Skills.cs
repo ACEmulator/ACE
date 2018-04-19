@@ -45,5 +45,23 @@ namespace ACE.Server.WorldObjects
 
             return Skills[skill];
         }
+
+        public CreatureSkill GetCreatureSkill(MagicSchool skill)
+        {
+            switch (skill)
+            {
+                case MagicSchool.CreatureEnchantment:
+                    return GetCreatureSkill(Skill.CreatureEnchantment);
+                case MagicSchool.ItemEnchantment:
+                    return GetCreatureSkill(Skill.ItemEnchantment);
+                case MagicSchool.LifeMagic:
+                    return GetCreatureSkill(Skill.LifeMagic);
+                case MagicSchool.VoidMagic:
+                    return GetCreatureSkill(Skill.VoidMagic);
+                case MagicSchool.WarMagic:
+                    return GetCreatureSkill(Skill.WarMagic);
+            }
+            return null;
+        }
     }
 }
