@@ -2,11 +2,17 @@ using System;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        // =====================================
+        // Character Options
+        // =====================================
+
         public bool GetCharacterOption(CharacterOption option)
         {
             if (option.GetCharacterOptions1Attribute() != null)
@@ -65,6 +71,35 @@ namespace ACE.Server.WorldObjects
         public void SetCharacterOptions2(int value)
         {
             SetProperty(PropertyInt.CharacterOptions2, value);
+        }
+
+
+        // =====================================
+        // 1-9 Shortcuts
+        // =====================================
+
+        public ShortcutManager ShortcutManager;
+
+        public bool HasShortcuts => ShortcutManager.HasShortcuts;
+
+        public int NumShortcuts => ShortcutManager.NumShortcuts;
+
+        /// <summary>
+        /// Handles the adding of items to 1-9 shortcut bar
+        /// in lower-right corner
+        /// </summary>
+        public void HandleActionAddShortcut(Shortcut shortcut)
+        {
+            ShortcutManager.AddItem(shortcut);
+        }
+
+        /// <summary>
+        /// Handles the removing of items from 1-9 shortcut bar
+        /// in lower-right corner
+        /// </summary>
+        public void HandleActionRemoveShortcut(uint index)
+        {
+            ShortcutManager.RemoveItem(index);
         }
     }
 }

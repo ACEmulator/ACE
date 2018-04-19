@@ -35,23 +35,6 @@ namespace ACE.Server.WorldObjects
 
         public Session Session { get; }
 
-        public ShortcutManager ShortcutManager;
-
-        public bool HasShortcuts
-        {
-            get
-            {
-                return ShortcutManager.HasShortcuts;
-            }
-        }
-
-        public int NumShortcuts
-        {
-            get
-            {
-                return ShortcutManager.NumShortcuts;
-            }
-        }
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
