@@ -78,13 +78,12 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 uint total = Base;
 
-                // TODO: add buffs
+                var attrMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
+                total += (uint)attrMod;    // can be negative?
+
                 if (creature is Player)
                 {
                     var player = creature as Player;
-
-                    var attrMod = player.EnchantmentManager.GetAttributeMod(Attribute);
-                    total += (uint)attrMod;    // can be negative?
 
                     if (player.HasVitae)
                         total = (uint)Math.Round(total * player.Vitae);
