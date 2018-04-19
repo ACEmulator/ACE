@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -28,8 +29,8 @@ namespace ACE.Server.Managers
 
     public class EnchantmentManager
     {
-        public WorldObject WorldObject;
-        public ICollection<BiotaPropertiesEnchantmentRegistry> Enchantments;
+        public WorldObject WorldObject { get; }
+        public ICollection<BiotaPropertiesEnchantmentRegistry> Enchantments { get; }
 
         /// <summary>
         /// The amount of vitae reduced on player death
@@ -44,24 +45,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
         /// </summary>
-        public bool HasEnchantments
-        {
-            get
-            {
-                return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Count() > 0;
-            }
-        }
+        public bool HasEnchantments => WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any();
 
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
         /// </summary>
-        public bool HasVitae
-        {
-            get
-            {
-                return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId == (uint)Spell.Vitae).Count() > 0;
-            }
-        }
+        public bool HasVitae => WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == (uint)Spell.Vitae);
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -91,6 +80,7 @@ namespace ACE.Server.Managers
 
                 return StackType.Initial;
             }
+
             if (enchantment.Spell.Power > entry.PowerLevel)
             {
                 // surpass existing spell
@@ -101,19 +91,18 @@ namespace ACE.Server.Managers
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
                 return StackType.Surpass;
             }
-            else if (enchantment.Spell.Power == entry.PowerLevel)
+
+            if (enchantment.Spell.Power == entry.PowerLevel)
             {
                 // refresh existing spell
                 entry.LayerId++;
                 entry.StartTime = 0;
                 return StackType.Refresh;
             }
-            else
-            {
-                // superior existing spell
-                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
-                return StackType.Surpassed;
-            }
+
+            // superior existing spell
+            Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+            return StackType.Surpassed;
         }
 
         /// <summary>
@@ -182,8 +171,8 @@ namespace ACE.Server.Managers
 
             if (Math.Abs(vitae.StatModValue - 1.0f) < PhysicsGlobals.EPSILON)
                 return 1.0f;
-            else
-                return vitae.StatModValue;
+
+            return vitae.StatModValue;
         }
 
         /// <summary>
@@ -208,7 +197,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public bool HasSpell(uint spellId)
         {
-            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId == spellId).Count() > 0;
+            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == spellId);
         }
 
         public BiotaPropertiesEnchantmentRegistry GetCategory(uint categoryID)

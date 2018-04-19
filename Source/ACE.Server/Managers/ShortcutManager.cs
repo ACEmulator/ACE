@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
@@ -12,29 +13,17 @@ namespace ACE.Server.Managers
     /// </summary>
     public class ShortcutManager
     {
-        public Player Player;
+        public Player Player { get; }
 
         /// <summary>
         /// Returns TRUE if player has any saved shortcuts
         /// </summary>
-        public bool HasShortcuts
-        {
-            get
-            {
-                return NumShortcuts > 0;
-            }
-        }
+        public bool HasShortcuts => NumShortcuts > 0;
 
         /// <summary>
         /// Returns the total number of player saved shortcuts
         /// </summary>
-        public int NumShortcuts
-        {
-            get
-            {
-                return Player.Biota.BiotaPropertiesShortcutBarObject.Count;
-            }
-        }
+        public int NumShortcuts => Player.Biota.BiotaPropertiesShortcutBarObject.Count;
 
         /// <summary>
         /// Constructs a new shortcut manager for a player

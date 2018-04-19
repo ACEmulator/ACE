@@ -41,7 +41,6 @@ namespace ACE.Server.WorldObjects
         private readonly ReaderWriterLockSlim biotaPropertiesIntLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesInt64Lock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesPositionLock = new ReaderWriterLockSlim();
-        private readonly ReaderWriterLockSlim biotaPropertiesShortcutLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesStringLock = new ReaderWriterLockSlim();
         #endregion
 
@@ -286,7 +285,7 @@ namespace ACE.Server.WorldObjects
         // this is just temp so code compiles, remove it later
         // maybe this is a temp.. I haven't reviewed all of our position code yet. I don't know if we create a wrapper around the biota position table, or cache into a dictionary here
         // maybe we also need ephemeral positions..
-        // What i want to avoid is duplicating data. If the biota is the authority, we can create a rapper class like WorldObjectPosition that takes in the biota position record as a ctor (similar to CreatureAttribute, CreatureSkill, etc..)
+        // What i want to avoid is duplicating data. If the biota is the authority, we can create a wrapper class like WorldObjectPosition that takes in the biota position record as a ctor (similar to CreatureAttribute, CreatureSkill, etc..)
         public Dictionary<PositionType, Position> Positions = new Dictionary<PositionType, Position>();
 
         public Position GetPosition(PositionType positionType) // { return Biota.GetPosition(positionType); }
@@ -334,15 +333,10 @@ namespace ACE.Server.WorldObjects
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
 
+
         public void RemoveEnchantment(int spellId)
         {
             if (Biota.TryRemoveEnchantment(spellId, out var entity, biotaPropertiesEnchantmentLock) && ExistsInDatabase && entity.Id != 0)
-                DatabaseManager.Shard.RemoveEntity(entity, null);
-        }
-
-        public void RemoveShortcut(uint index)
-        {
-            if (Biota.TryRemoveShortcut(index, out var entity, biotaPropertiesShortcutLock) && ExistsInDatabase && entity.Id != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
 

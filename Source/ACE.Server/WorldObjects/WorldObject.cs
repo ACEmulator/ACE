@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -26,7 +28,6 @@ using ACE.Server.Physics.Util;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
-using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
