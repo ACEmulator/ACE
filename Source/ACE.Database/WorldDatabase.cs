@@ -72,7 +72,7 @@ namespace ACE.Database
 
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction<para />
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
         /// If the weenie doesn't exist in the cache, it will be added.
         /// </summary>
         private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
@@ -118,8 +118,9 @@ namespace ACE.Database
             }
 
             weenie.WeeniePropertiesCreateList = context.WeeniePropertiesCreateList.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Include(r => r.WeeniePropertiesEmoteAction).Where(r => r.ObjectId == weenie.ClassId).ToList();
-            //weenie.WeeniePropertiesEmoteAction = context.WeeniePropertiesEmoteAction.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            if (weenie.WeeniePropertiesEmote.Count > 0)
+                weenie.WeeniePropertiesEmoteAction = context.WeeniePropertiesEmoteAction.Where(r => r.ObjectId == weenie.ClassId).ToList();
             weenie.WeeniePropertiesEventFilter = context.WeeniePropertiesEventFilter.Where(r => r.ObjectId == weenie.ClassId).ToList();
 
             weenie.WeeniePropertiesGenerator = context.WeeniePropertiesGenerator.Where(r => r.ObjectId == weenie.ClassId).ToList();

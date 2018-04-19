@@ -299,8 +299,8 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesContract)
                 .Include(r => r.BiotaPropertiesCreateList)
                 .Include(r => r.BiotaPropertiesDID)                
-                .Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
-                // .Include(r => r.BiotaPropertiesEmoteAction)
+                .Include(r => r.BiotaPropertiesEmote)
+                .Include(r => r.BiotaPropertiesEmoteAction)
                 .Include(r => r.BiotaPropertiesEnchantmentRegistry)
                 .Include(r => r.BiotaPropertiesEventFilter)
                 .Include(r => r.BiotaPropertiesFillCompBook)
@@ -408,7 +408,8 @@ namespace ACE.Database
 
             biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesEmoteAction = context.BiotaPropertiesEmoteAction.Where(r => r.ObjectId == biota.Id).ToList();
+            if (biota.BiotaPropertiesEmote.Count > 0)
+                biota.BiotaPropertiesEmoteAction = context.BiotaPropertiesEmoteAction.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
 
             // Player only
