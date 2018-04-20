@@ -76,6 +76,7 @@ namespace ACE.Server.Managers
             {
                 entry = BuildEntry(enchantment.Spell.SpellId);
                 entry.LayerId = enchantment.Layer;
+                var type = (EnchantmentTypeFlags)entry.StatModType;
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
 
                 return StackType.Initial;
@@ -200,16 +201,25 @@ namespace ACE.Server.Managers
             return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == spellId);
         }
 
+        /// <summary>
+        /// Returns all of the enchantments for a category
+        /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetCategory(uint categoryID)
         {
             return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellCategory == categoryID);
         }
 
+        /// <summary>
+        /// Returns the enchantments for a specific spell
+        /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetSpell(uint spellID)
         {
             return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellID);
         }
 
+        /// <summary>
+        /// Returns the vitae enchantment
+        /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetVitae()
         {
             return GetSpell((uint)Spell.Vitae);
@@ -338,6 +348,75 @@ namespace ACE.Server.Managers
                 attributeMod += (int)enchantment.StatModValue;
 
             return attributeMod;
+        }
+
+        /// <summary>
+        /// Returns the base armor modifier from enchantments
+        /// </summary>
+        /// <returns></returns>
+        public int GetBodyArmorMod()
+        {
+            return GetModifier(EnchantmentTypeFlags.BodyArmorValue);
+        }
+
+        /// <summary>
+        /// Returns the sum of the StatModValues for an EnchantmentTypeFlag
+        /// </summary>
+        public int GetModifier(EnchantmentTypeFlags type)
+        {
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(type));
+            if (enchantments == null) return 0;
+
+            var modifier = 0;
+            foreach (var enchantment in enchantments)
+                modifier += (int)enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public float GetResistanceMod(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var resistance = GetResistanceKey(damageType);
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (int)resistance);
+            if (enchantments == null) return 1.0f;
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+                modifier *= enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Gets the resistance PropertyFloat for a DamageType
+        /// </summary>
+        public PropertyFloat GetResistanceKey(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return PropertyFloat.ResistSlash;
+                case DamageType.Pierce:
+                    return PropertyFloat.ResistPierce;
+                case DamageType.Bludgeon:
+                    return PropertyFloat.ResistBludgeon;
+                case DamageType.Fire:
+                    return PropertyFloat.ResistFire;
+                case DamageType.Cold:
+                    return PropertyFloat.ResistCold;
+                case DamageType.Acid:
+                    return PropertyFloat.ResistAcid;
+                case DamageType.Electric:
+                    return PropertyFloat.ResistElectric;
+                case DamageType.Nether:
+                    return PropertyFloat.ResistNether;
+            }
+            return 0;
         }
     }
 }

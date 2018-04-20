@@ -260,7 +260,8 @@ namespace ACE.Server.WorldObjects
             var armor = GetArmor(target, bodyPart);
 
             // get target resistance
-            var resistance = GetResistance(target, bodyPart, GetDamageType());
+            var damageType = GetDamageType();
+            var resistance = GetResistance(target, bodyPart, damageType);
 
             // scale damage for armor
             damage *= SkillFormula.CalcArmorMod(resistance);
@@ -268,7 +269,7 @@ namespace ACE.Server.WorldObjects
             return damage;
         }
 
-        public BiotaPropertiesBodyPart GetBodyPart(WorldObject target, BodyPart bodyPart)
+        public Creature_BodyPart GetBodyPart(WorldObject target, BodyPart bodyPart)
         {
             var creature = target as Creature;
 
@@ -279,14 +280,14 @@ namespace ACE.Server.WorldObjects
             else
                 part = creature.Biota.BiotaPropertiesBodyPart.FirstOrDefault();
 
-            return part;
+            return new Creature_BodyPart(creature, part);
         }
 
         public float GetArmor(WorldObject target, BodyPart bodyPart)
         {
             var part = GetBodyPart(target, bodyPart);
 
-            return part.BaseArmor;
+            return part.BaseArmorMod;
         }
 
         public float GetResistance(WorldObject target, BodyPart bodyPart, DamageType damageType)
@@ -329,6 +330,7 @@ namespace ACE.Server.WorldObjects
                     resistance = part.ArmorVsNether;
                     break;
             }
+
             return resistance;
         }
 
