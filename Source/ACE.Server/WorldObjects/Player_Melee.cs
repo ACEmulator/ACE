@@ -235,12 +235,12 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             // get weapon base damage
+            var player = this as Player;
             var weapon = GetEquippedWeapon();
-            var baseDamageRange = weapon != null ? weapon.GetBaseDamage() : new Range(1, 5);
+            var baseDamageRange = weapon != null ? weapon.GetDamageMod(player) : new Range(1, 5);
             var baseDamage = Physics.Common.Random.RollDice(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
-            var player = this as Player;
             var powerBarMod = PowerLevel + 0.5f;
             var attributeMod = SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)player.Strength.Current);
             var damage = baseDamage * attributeMod * powerBarMod;
