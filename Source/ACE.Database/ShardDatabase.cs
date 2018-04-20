@@ -345,7 +345,7 @@ namespace ACE.Database
                     //.Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
                     //.Include(r => r.BiotaPropertiesEmoteAction)
                     //.Include(r => r.BiotaPropertiesEventFilter)
-                    .Include(r => r.BiotaPropertiesEnchantmentRegistry)     // Player Only
+                    .Include(r => r.BiotaPropertiesEnchantmentRegistry)
                     .Include(r => r.BiotaPropertiesFillCompBook)            // Player Only
                     .Include(r => r.BiotaPropertiesFloat)
                     //.Include(r => r.BiotaPropertiesFriendListFriend)
@@ -411,9 +411,9 @@ namespace ACE.Database
             if (biota.BiotaPropertiesEmote.Count > 0)
                 biota.BiotaPropertiesEmoteAction = context.BiotaPropertiesEmoteAction.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
 
             // Player only
-            //biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
             //biota.BiotaPropertiesFillCompBook = context.BiotaPropertiesFillCompBook.Where(r => r.ObjectId == biota.Id).ToList();
             //biota.BiotaPropertiesFriendListFriend = context.BiotaPropertiesFriendList.Where(r => r.FriendId == biota.Id).ToList();
             //biota.BiotaPropertiesFriendListObject = context.BiotaPropertiesFriendList.Where(r => r.ObjectId == biota.Id).ToList();
