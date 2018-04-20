@@ -600,7 +600,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PositionType positionType, out BiotaPropertiesPosition entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemovePosition(this Biota biota, PositionType positionType, out BiotaPropertiesPosition entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
             try

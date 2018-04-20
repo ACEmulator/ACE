@@ -329,7 +329,7 @@ namespace ACE.Server.WorldObjects
         {
             Positions.Remove(positionType);
 
-            if (Biota.TryRemoveProperty(positionType, out var entity, biotaPropertiesPositionLock) && ExistsInDatabase && entity.Id != 0)
+            if (Biota.TryRemovePosition(positionType, out var entity, biotaPropertiesPositionLock) && ExistsInDatabase && entity.Id != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
 
