@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+
 using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Network.Structure
@@ -40,18 +41,18 @@ namespace ACE.Server.Network.Structure
             return shortcut;
         }
 
-        public static void Write(this BinaryWriter writer, List<Shortcut> shortcuts)
-        {
-            writer.Write(shortcuts.Count);
-            foreach (var shortcut in shortcuts)
-                writer.Write(shortcut);
-        }
-
         public static void Write(this BinaryWriter writer, Shortcut shortcut)
         {
             writer.Write(shortcut.Index);
             writer.Write(shortcut.ObjectId);
             writer.Write(shortcut.Spell);
+        }
+
+        public static void Write(this BinaryWriter writer, ICollection<Shortcut> shortcuts)
+        {
+            writer.Write(shortcuts.Count);
+            foreach (var shortcut in shortcuts)
+                writer.Write(shortcut);
         }
     }
 }

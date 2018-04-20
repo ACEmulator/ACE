@@ -683,33 +683,5 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
-
-        public static bool TryRemoveShortcut(this Biota biota, uint index, out BiotaPropertiesShortcutBar entity, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                entity = biota.BiotaPropertiesShortcutBarObject.FirstOrDefault(x => x.ShortcutBarIndex == index);
-                if (entity != null)
-                {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
-                        biota.BiotaPropertiesShortcutBarObject.Remove(entity);
-                        entity.Object = null;
-                        return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-                return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
     }
 }

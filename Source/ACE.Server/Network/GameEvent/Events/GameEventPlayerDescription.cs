@@ -3,6 +3,7 @@ using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
@@ -295,14 +296,15 @@ namespace ACE.Server.Network.GameEvent.Events
 
             optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
-            if (Session.Player.HasShortcuts)
+            var shortcuts = Session.Player.GetShortcuts();
+            if (shortcuts.Count > 0)
                 optionFlags |= CharacterOptionDataFlag.Shortcut;
 
             Writer.Write((uint)optionFlags);
             Writer.Write((int)(Session.Player.GetProperty(PropertyInt.CharacterOptions1) ?? 0));
 
-            if (Session.Player.HasShortcuts)
-                Session.Player.ShortcutManager.SendShortcuts(Writer);
+            if (shortcuts.Count > 0)
+                Writer.Write(shortcuts);
 
             if ((optionFlags & CharacterOptionDataFlag.SpellLists8) != 0)
             {

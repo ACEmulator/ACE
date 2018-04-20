@@ -1,7 +1,4 @@
-using System.Threading;
 
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -9,15 +6,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        private readonly ReaderWriterLockSlim biotaPropertiesShortcutLock = new ReaderWriterLockSlim();
-
-        public void RemoveShortcut(uint index)
-        {
-            if (Biota.TryRemoveShortcut(index, out var entity, biotaPropertiesShortcutLock) && ExistsInDatabase && entity.Id != 0)
-                DatabaseManager.Shard.RemoveEntity(entity, null);
-        }
-
-
         // ========================================
         // ========= Admin Tier Properties ========
         // ========================================
