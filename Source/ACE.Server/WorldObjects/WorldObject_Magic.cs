@@ -768,7 +768,7 @@ namespace ACE.Server.WorldObjects
                     message = "Spell not implemented, yet!";
                     break;
                 case SpellType.Enchantment:
-                    message = CreatureMagic(target, spell, spellStatMod, false);
+                    message = CreateEnchantment(target, spell, spellStatMod, false);
                     break;
                 default:
                     message = "Spell not implemented, yet!";
@@ -782,6 +782,11 @@ namespace ACE.Server.WorldObjects
         }
 
         private string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool showMsg = true)
+        {
+            return CreateEnchantment(target, spell, spellStatMod, showMsg);
+        }
+
+        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool showMsg = true)
         {
             if (WeenieClassId == 1)
             {
@@ -873,6 +878,10 @@ namespace ACE.Server.WorldObjects
                     default:
                         break;
                 }
+            }
+            else if (spell.MetaSpellType == SpellType.Enchantment)
+            {
+                CreateEnchantment(target, spell, spellStatMod);
             }
         }
 

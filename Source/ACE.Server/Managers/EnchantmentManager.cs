@@ -375,6 +375,40 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the sum of the modifiers for a StatModKey
+        /// </summary>
+        public int GetAdditiveMod(PropertyInt statModKey)
+        {
+            var type = EnchantmentTypeFlags.Additive;
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(type) && e.StatModKey == (int)statModKey);
+            if (enchantments == null) return 0;
+
+            // additive
+            var modifier = 0;
+            foreach (var enchantment in enchantments)
+                modifier += (int)enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Returns the product of the modifiers for a StatModKey
+        /// </summary>
+        public float GetMultiplicativeMod(PropertyFloat statModKey)
+        {
+            var type = EnchantmentTypeFlags.Multiplicative;
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(type) && e.StatModKey == (int)statModKey);
+            if (enchantments == null) return 1.0f;
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+                modifier *= enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
         /// Gets the resistance modifier for a damage type
         /// </summary>
         public float GetResistanceMod(DamageType damageType)
@@ -417,6 +451,47 @@ namespace ACE.Server.Managers
                     return PropertyFloat.ResistNether;
             }
             return 0;
+        }
+
+        /// <summary>
+        /// Returns the weapon damage modifier, ie. Blood Drinker
+        /// </summary>
+        public int GetDamageMod()
+        {
+            return GetAdditiveMod(PropertyInt.Damage);
+        }
+
+        /// <summary>
+        /// Returns the attack skill modifier, ie. Heart Seeker
+        /// </summary>
+        public float GetAttackMod()
+        {
+            return GetMultiplicativeMod(PropertyFloat.WeaponOffense);
+        }
+
+        /// <summary>
+        /// Returns the weapon speed modifier, ie. Swift Killer
+        /// </summary>
+        public int GetWeaponSpeedMod()
+        {
+            return GetAdditiveMod(PropertyInt.WeaponTime);
+        }
+
+        /// <summary>
+        /// Returns the defense skill modifier, ie. Defender
+        /// </summary>
+        public float GetDefenseMod()
+        {
+            return GetMultiplicativeMod(PropertyFloat.WeaponDefense);
+        }
+
+        /// <summary>
+        /// Returns the weapon damage variance modifier
+        /// </summary>
+        /// <returns></returns>
+        public float GetVarianceMod()
+        {
+            return GetMultiplicativeMod(PropertyFloat.DamageVariance);
         }
     }
 }

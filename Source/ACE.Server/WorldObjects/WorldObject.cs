@@ -781,6 +781,24 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the modified damage for a weapon,
+        /// with the wielder enchantments taken into account
+        /// </summary>
+        public Range GetDamageMod(Creature wielder)
+        {
+            var baseDamage = GetBaseDamage();
+            var damageMod = wielder.EnchantmentManager.GetDamageMod();
+            var varianceMod = wielder.EnchantmentManager.GetVarianceMod();
+
+            var baseVariance = baseDamage.Min / baseDamage.Max;
+
+            var maxDamageMod = baseDamage.Max + damageMod;
+            var minDamageMod = maxDamageMod * (baseVariance * varianceMod);
+
+            return new Range(minDamageMod, maxDamageMod);
+        }
+
+        /// <summary>
         /// Returns the damage type for the currently equipped weapon
         /// </summary>
         /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
