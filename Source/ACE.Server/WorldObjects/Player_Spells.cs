@@ -120,25 +120,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionAddSpellFavorite(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
-            new ActionChain(this, () =>
+            var spells = GetSpellsInSpellBar((int)spellBarId);
+
+            if (spellBarPositionId > spells.Count + 1)
+                spellBarPositionId = (uint)(spells.Count + 1);
+
+            // We must increment the position of existing spells in the bar that exist on or after this position
+            foreach (var property in Biota.BiotaPropertiesSpellBar)
             {
-                var spells = GetSpellsInSpellBar((int)spellBarId);
+                if (property.SpellBarNumber == spellBarId && property.SpellBarIndex >= spellBarPositionId)
+                    property.SpellBarIndex++;
+            }
 
-                if (spellBarPositionId > spells.Count + 1)
-                    spellBarPositionId = (uint)(spells.Count + 1);
+            var entity = new BiotaPropertiesSpellBar { ObjectId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId, Object = Biota };
 
-                // We must increment the position of existing spells in the bar that exist on or after this position
-                foreach (var property in Biota.BiotaPropertiesSpellBar)
-                {
-                    if (property.SpellBarNumber == spellBarId && property.SpellBarIndex >= spellBarPositionId)
-                        property.SpellBarIndex++;
-                }
-
-                var entity = new BiotaPropertiesSpellBar { ObjectId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId, Object = Biota };
-
-                Biota.BiotaPropertiesSpellBar.Add(entity);
-                ChangesDetected = true;
-            }).EnqueueChain();
+            Biota.BiotaPropertiesSpellBar.Add(entity);
+            ChangesDetected = true;
         }
 
         /// <summary>
@@ -146,29 +143,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionRemoveSpellFavorite(uint spellId, uint spellBarId)
         {
-            new ActionChain(this, () =>
+            var entity = Biota.BiotaPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == spellBarId && x.SpellId == spellId);
+
+            if (entity != null)
             {
-                var entity = Biota.BiotaPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == spellBarId && x.SpellId == spellId);
-
-                if (entity != null)
+                // We must decrement the position of existing spells in the bar that exist after this position
+                foreach (var property in Biota.BiotaPropertiesSpellBar)
                 {
-                    // We must decrement the position of existing spells in the bar that exist after this position
-                    foreach (var property in Biota.BiotaPropertiesSpellBar)
+                    if (property.SpellBarNumber == spellBarId && property.SpellBarIndex > entity.SpellBarIndex)
                     {
-                        if (property.SpellBarNumber == spellBarId && property.SpellBarIndex > entity.SpellBarIndex)
-                        {
-                            property.SpellBarIndex--;
-                            ChangesDetected = true;
-                        }
+                        property.SpellBarIndex--;
+                        ChangesDetected = true;
                     }
-
-                    Biota.BiotaPropertiesSpellBar.Remove(entity);
-                    entity.Object = null;
-
-                    if (ExistsInDatabase && entity.Id != 0)
-                        DatabaseManager.Shard.RemoveEntity(entity, null);
                 }
-            }).EnqueueChain();
+
+                Biota.BiotaPropertiesSpellBar.Remove(entity);
+                entity.Object = null;
+
+                if (ExistsInDatabase && entity.Id != 0)
+                    DatabaseManager.Shard.RemoveEntity(entity, null);
+            }
         }
     }
 }
