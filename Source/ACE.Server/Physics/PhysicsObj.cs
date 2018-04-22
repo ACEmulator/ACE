@@ -1178,7 +1178,7 @@ namespace ACE.Server.Physics
             return SetPosition(setPos);
         }
 
-        public void SetScale(float scale, double delta)
+        public void SetScale(float scale, double delta = 0.0)
         {
             if (delta < PhysicsGlobals.EPSILON)
             {

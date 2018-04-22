@@ -61,7 +61,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject GetEquippedWeapon()
         {
-            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon);
+            var meleeWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon);
+            var missileWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
+
+            return meleeWeapon != null ? meleeWeapon : missileWeapon;
         }
 
         /// <summary>
@@ -71,6 +74,15 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedShield()
         {
             return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Shield);
+        }
+
+        /// <summary>
+        /// Returns the currently equipped missle ammo
+        /// </summary>
+        /// <returns></returns>
+        public WorldObject GetEquippedAmmo()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileAmmo);
         }
 
         /// <summary>

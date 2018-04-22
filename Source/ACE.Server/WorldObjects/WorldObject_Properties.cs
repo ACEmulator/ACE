@@ -425,6 +425,8 @@ namespace ACE.Server.WorldObjects
             //}
         }
 
+        public float Height => PhysicsObj != null ? PhysicsObj.GetHeight() : 0.0f;
+
         //public double LastUpdatedTicks { get; set; }
 
         /// <summary>

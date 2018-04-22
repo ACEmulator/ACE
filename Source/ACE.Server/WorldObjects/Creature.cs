@@ -289,14 +289,14 @@ namespace ACE.Server.WorldObjects
             HeldItem mEquipedMissile = Children.Find(s => s.EquipMask == EquipMask.MissileWeapon);
             if (mEquipedMissile?.Guid != null)
             {
-                WorldObject missileWeapon = GetInventoryItem(new ObjectGuid(mEquipedMissile.Guid));
+                WorldObject missileWeapon = GetWieldedItem(new ObjectGuid(mEquipedMissile.Guid));
                 if (missileWeapon == null)
                 {
                     log.InfoFormat("Changing combat mode for {0} - could not locate wielded weapon {1}", Guid, mEquipedMissile.Guid);
                     return;
                 }
 
-                var mEquipedAmmo = EquippedObjects.First(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
+                var mEquipedAmmo = GetEquippedAmmo();
 
                 MotionStance ms;
                 CombatStyle cs;
