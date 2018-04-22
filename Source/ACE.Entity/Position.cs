@@ -89,7 +89,7 @@ namespace ACE.Entity
         }
 
         /// <summary>
-        /// Returns the rotation as a normalized direction
+        /// Returns the normalized 2D heading direction
         /// </summary>
         public Vector3 GetCurrentDir()
         {

@@ -110,6 +110,8 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.makeAnimObject(SetupTableId, true);
             PhysicsObj.SetMotionTableID(MotionTableId);
 
+            PhysicsObj.SetScale(ObjScale ?? 1.0f);
+
             AdjustDungeonCells(Location);
 
             var cell = LScape.get_landcell(Location.Cell);
@@ -772,7 +774,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the base damage for a weapon
         /// </summary>
-        public Range GetBaseDamage()
+        public virtual Range GetBaseDamage()
         {
             var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
             var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
@@ -799,7 +801,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the damage type for the currently equipped weapon
+        /// Returns the damage type for the currently equipped weapon / ammo
         /// </summary>
         /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
         public virtual DamageType GetDamageType(bool multiple = false)
@@ -810,7 +812,15 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return DamageType.Bludgeon;
 
-            var damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
+            DamageType damageTypes;
+            var attackType = player.GetAttackType();
+            if (attackType == AttackType.Melee)
+                damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
+            else
+            {
+                var ammo = player.GetEquippedAmmo();
+                damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
+            }
 
             // returning multiple damage types
             if (multiple) return damageTypes;
