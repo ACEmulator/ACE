@@ -102,9 +102,6 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.set_object_guid(Guid);
             PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
 
-            //PhysicsObj.Position.Frame.Origin = new Vector3(Location.PositionX, Location.PositionY, Location.PositionZ);
-            //PhysicsObj.Position.Frame.Orientation = new Quaternion(Location.RotationX, Location.RotationY, Location.RotationZ, Location.RotationW);
-
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
 
@@ -112,15 +109,6 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScale(ObjScale ?? 1.0f);
-
-            AdjustDungeonCells(Location);
-
-            //var cell = LScape.get_landcell(Location.Cell);
-            //if (cell != null)
-            //{
-            //    PhysicsObj.enter_cell(cell);
-            //    PhysicsObj.add_shadows_to_cell(cell);
-            //}
         }
 
         private void SetEphemeralValues()
@@ -265,16 +253,10 @@ namespace ACE.Server.WorldObjects
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManager(this);
 
-            //InitPhysics = true;
-
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
-
-            //SelectGeneratorProfiles();
-            //UpdateGeneratorInts();
-            //QueueGenerator();
 
             QueueNextHeartBeat();
         }

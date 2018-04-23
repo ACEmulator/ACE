@@ -107,9 +107,6 @@ namespace ACE.Server.WorldObjects
 
                 // System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
                 GeneratorQueue.Add(queue);
-
-                //if (GeneratorQueue.Count >= InitGeneratedObjects)
-                //    GeneratorEnteredWorld = true;
             }
         }
 
@@ -153,7 +150,6 @@ namespace ACE.Server.WorldObjects
                                     wo.Location = new ACE.Entity.Position(Location.Cell,
                                         Location.PositionX + profile.OriginX ?? 0, Location.PositionY + profile.OriginY ?? 0, Location.PositionZ + profile.OriginZ ?? 0,
                                         profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
-                                        //Location.RotationX + profile.AnglesX ?? 0, Location.RotationY + profile.AnglesY ?? 0, Location.RotationZ + profile.AnglesZ ?? 0, Location.RotationW + profile.AnglesW ?? 0);
                                 break;
                             case RegenLocationType.ScatterTreasure:
                             case RegenLocationType.Scatter:
@@ -304,7 +300,6 @@ namespace ACE.Server.WorldObjects
             if (!EventManager.IsEventAvailable(GeneratorEvent))
                 return;
 
-            //GeneratorDisabled = EventManager.Events[GeneratorEvent.ToLower()].State == (int)GameEventState.Disabled || EventManager.Events[GeneratorEvent.ToLower()].State == (int)GameEventState.Off;
             var enabled = EventManager.IsEventEnabled(GeneratorEvent);
             var started = EventManager.IsEventStarted(GeneratorEvent);
 
@@ -407,9 +402,6 @@ namespace ACE.Server.WorldObjects
 
         public void CheckRealTimeStatus()
         {
-            //if (!GeneratorStartTime.HasValue || !GeneratorEndTime.HasValue)
-            //    return;
-
             var currentState = GeneratorDisabled ?? false;
 
             var now = (int)Time.GetTimestamp();

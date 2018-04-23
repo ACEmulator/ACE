@@ -28,7 +28,6 @@ namespace ACE.Server.WorldObjects
                     profile.AnglesX = link.AnglesX;
                     profile.AnglesY = link.AnglesY;
                     profile.AnglesZ = link.AnglesZ;
-                    //profile.Probability = Math.Abs(profileTemplate.Probability);
                     profile.Probability = profileTemplate.Probability;
                     profile.InitCreate = profileTemplate.InitCreate;
                     profile.MaxCreate = profileTemplate.MaxCreate;
@@ -37,10 +36,6 @@ namespace ACE.Server.WorldObjects
 
                     GeneratorProfiles.Add(profile);
                 }
-
-                //SelectGeneratorProfiles();
-                //UpdateGeneratorInts();
-                //QueueGenerator();
             }
         }
     }
