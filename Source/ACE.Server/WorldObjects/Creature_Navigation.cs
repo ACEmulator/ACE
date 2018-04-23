@@ -1,6 +1,9 @@
 using System;
 using System.Numerics;
-
+using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Network.Motion;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -42,12 +45,26 @@ namespace ACE.Server.WorldObjects
             return offset;
         }
 
-        public void Rotate()
+        public float Rotate(WorldObject target)
         {
+            // get inner angle between current heading and target
+            var angle = GetAngle(target);
 
+            if (angle < PhysicsGlobals.EPSILON) return 0.0f;
+
+            // execute the TurnToObject motion
+            var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
+            turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+            CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion);
+
+            // calculate time to complete the rotation
+            var rotateTime = Math.PI / (360.0f / angle);
+
+            var waitTime = 0.25f;
+            return (float)rotateTime + waitTime;
         }
 
-        public void MoveTo()
+        public void MoveTo(WorldObject target)
         {
 
         }

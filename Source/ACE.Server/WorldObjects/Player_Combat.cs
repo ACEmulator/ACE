@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
             // get target defense skill
             var creature = target as Creature;
             var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
-            var difficulty = creature.GetCreatureSkill(Skill.MeleeDefense).Current;
+            var difficulty = creature.GetCreatureSkill(defenseSkill).Current;
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill.Current, (int)difficulty);
             return (float)evadeChance;
