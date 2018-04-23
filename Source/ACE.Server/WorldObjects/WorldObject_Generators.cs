@@ -305,44 +305,7 @@ namespace ACE.Server.WorldObjects
 
             GeneratorDisabled = !enabled || !started;
 
-            if (currentState != (GeneratorDisabled ?? false))
-            {
-                if (currentState == false)
-                {
-                    // generator has been disabled, de-spawn everything in registry and reset back to defaults
-                    switch (GeneratorEndDestructionType ?? GeneratorDestruct.Undef)
-                    {
-                        case GeneratorDestruct.Kill:
-                            //foreach (var wo in GeneratorCache.Values)
-                            //    wo.Kill();
-                        case GeneratorDestruct.Nothing:
-                            break;
-                        case GeneratorDestruct.Destroy:
-                        default:
-                            foreach (var wo in GeneratorCache.Values)
-                                wo.Destory();
-                            break;
-                    }
-
-                    GeneratorRegistry.Clear();
-                    GeneratorCache.Clear();
-                    GeneratorQueue.Clear();
-                    GeneratorProfilesActive.Clear();
-
-                    InitGeneratedObjects = Biota.GetProperty(PropertyInt.InitGeneratedObjects, biotaPropertiesIntLock);
-                    MaxGeneratedObjects = Biota.GetProperty(PropertyInt.MaxGeneratedObjects, biotaPropertiesIntLock);
-                }
-                else
-                {
-                    // generator has been enabled, execute generator initalization.
-
-                    CurrentlyPoweringUp = true;
-                    SelectGeneratorProfiles();
-                    UpdateGeneratorInts();
-                    QueueGenerator();
-                    CurrentlyPoweringUp = false;
-                }
-            }
+            ProcessGeneratorStatus(currentState);
         }
 
         public void CheckGeneratorStatus()
@@ -408,6 +371,11 @@ namespace ACE.Server.WorldObjects
 
             GeneratorDisabled = !(now >= (GeneratorStartTime ?? 0) && (GeneratorEndTime ?? 0) >= now);
 
+            ProcessGeneratorStatus(currentState);
+        }
+
+        public void ProcessGeneratorStatus(bool currentState)
+        {
             if (currentState != (GeneratorDisabled ?? false))
             {
                 if (currentState == false)
