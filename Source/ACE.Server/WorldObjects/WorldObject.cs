@@ -102,7 +102,8 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.set_object_guid(Guid);
             PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
 
-            PhysicsObj.Position.Frame.Origin = new Vector3(Location.PositionX, Location.PositionY, Location.PositionZ);
+            //PhysicsObj.Position.Frame.Origin = new Vector3(Location.PositionX, Location.PositionY, Location.PositionZ);
+            //PhysicsObj.Position.Frame.Orientation = new Quaternion(Location.RotationX, Location.RotationY, Location.RotationZ, Location.RotationW);
 
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
@@ -114,12 +115,12 @@ namespace ACE.Server.WorldObjects
 
             AdjustDungeonCells(Location);
 
-            var cell = LScape.get_landcell(Location.Cell);
-            if (cell != null)
-            {
-                PhysicsObj.enter_cell(cell);
-                PhysicsObj.add_shadows_to_cell(cell);
-            }
+            //var cell = LScape.get_landcell(Location.Cell);
+            //if (cell != null)
+            //{
+            //    PhysicsObj.enter_cell(cell);
+            //    PhysicsObj.add_shadows_to_cell(cell);
+            //}
         }
 
         private void SetEphemeralValues()
@@ -257,21 +258,23 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
+            InitPhysicsObj();
+
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManager(this);
 
-            InitPhysics = true;
+            //InitPhysics = true;
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
 
-            SelectGeneratorProfiles();
-            UpdateGeneratorInts();
-            QueueGenerator();
+            //SelectGeneratorProfiles();
+            //UpdateGeneratorInts();
+            //QueueGenerator();
 
             QueueNextHeartBeat();
         }
@@ -636,19 +639,49 @@ namespace ACE.Server.WorldObjects
                 LandblockManager.AddObject(this);
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
-
-                if (InitPhysics && PhysicsObj == null)
-                    InitPhysicsObj();
             }
         }
 
         public virtual void HeartBeat()
         {            
             // Do Stuff
+            if (!(FirstEnterWorldDone ?? false))
+            {
+                FirstEnterWorldDone = true;
+            }
+
+            CheckGeneratorStatus();
+
+            if (!(GeneratorEnteredWorld ?? false))
+            {
+                if (FirstEnterWorldDone ?? false)
+                {
+                    if (!(GeneratorDisabled ?? false))
+                    {
+                        CurrentlyPoweringUp = true;
+                        SelectGeneratorProfiles();
+                        UpdateGeneratorInts();
+                        QueueGenerator();
+                        CurrentlyPoweringUp = false;
+                    }
+
+                    GeneratorEnteredWorld = true;
+                }
+            }
+
             EmoteManager.HeartBeat();
 
-            if (GeneratorQueue.Count > 0)
-                ProcessGeneratorQueue();
+            if (!(GeneratorDisabled ?? false))
+            {
+                if (GeneratorRegistry.Count < InitGeneratedObjects)
+                {
+                    SelectMoreGeneratorProfiles();
+                    QueueGenerator();
+                }
+
+                if (GeneratorQueue.Count > 0)
+                    ProcessGeneratorQueue();
+            }
 
             QueueNextHeartBeat();
 
@@ -838,6 +871,25 @@ namespace ACE.Server.WorldObjects
                 }
             }
             return damageTypes;
+        }
+
+        public virtual void Destory()
+        {
+            if (Location != null)
+            {
+                ActionChain destroyChain = new ActionChain();
+                destroyChain.AddAction(this, () =>
+                {
+                    ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Destroy);
+                });
+                destroyChain.AddDelaySeconds(3);
+                destroyChain.AddAction(this, () =>
+                {
+                    NotifyOfEvent(RegenerationType.Destruction);
+                    LandblockManager.RemoveObject(this);
+                });
+                destroyChain.EnqueueChain();
+            }
         }
     }
 }

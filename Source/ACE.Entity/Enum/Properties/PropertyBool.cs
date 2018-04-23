@@ -51,7 +51,9 @@ namespace ACE.Entity.Enum.Properties
         NoCorpse                         = 29,
         UnderLifestoneProtection         = 30,
         ItemManaUpdatePending            = 31,
+        [Ephemeral]
         GeneratorStatus                  = 32,
+        [Ephemeral]
         ResetMessagePending              = 33,
         DefaultOpen                      = 34,
         DefaultLocked                    = 35,
@@ -72,6 +74,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         IsAdvocate                       = 47,
         CurrentlyPoweringUp              = 48,
+        [Ephemeral]
         GeneratorEnteredWorld            = 49,
         NeverFailCasting                 = 50,
         VendorService                    = 51,
@@ -82,6 +85,7 @@ namespace ACE.Entity.Enum.Properties
         IsAffecting                      = 56,
         AffectsAis                       = 57,
         SpellQueueActive                 = 58,
+        [Ephemeral]
         GeneratorDisabled                = 59,
         IsAcceptingTells                 = 60,
         LoggingChannel                   = 61,
@@ -97,6 +101,7 @@ namespace ACE.Entity.Enum.Properties
         NoDraw                           = 71,
         ActivationUntargeted             = 72,
         HouseHasGottenPriorityBootPos    = 73,
+        [Ephemeral]
         GeneratorAutomaticDestruction    = 74,
         HouseHooksVisible                = 75,
         HouseRequiresMonarch             = 76,

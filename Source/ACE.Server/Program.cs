@@ -58,6 +58,9 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
+            log.Info("Initializing EventManager...");
+            EventManager.Initialize();
+
 
             // This should be last
             log.Info("Initializing CommandManager...");

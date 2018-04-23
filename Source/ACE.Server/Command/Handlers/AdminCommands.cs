@@ -1110,7 +1110,11 @@ namespace ACE.Server.Command.Handlers
         }
 
         // event
-        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2,
+            "Maniuplates the state of an event",
+            "[ start | stop | disable | enable | clear | status ] (name)\n"
+            + "@event clear < name > - clears event with name <name> or all events if you put in 'all' (All clears registered generators, <name> does not)\n"
+            + "@event status <eventSubstring> - get the status of all registered events or get all of the registered events that have <eventSubstring> in the name.")]
         public static void HandleEvent(Session session, params string[] parameters)
         {
             // usage: @event start| stop | disable | enable name
@@ -1119,6 +1123,41 @@ namespace ACE.Server.Command.Handlers
             // @event - Maniuplates the state of an event.
 
             // TODO: output
+
+            var eventCmd = parameters?[0].ToLower();
+
+            var eventName = parameters?[1];
+
+            switch (eventCmd)
+            {
+                case "start":
+                    if (EventManager.StartEvent(eventName))
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} started successfully.", ChatMessageType.Broadcast));
+                    else
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to start event named {eventName} .", ChatMessageType.Broadcast));
+                    break;
+                case "stop":
+                    if (EventManager.StopEvent(eventName))
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} stopped successfully.", ChatMessageType.Broadcast));
+                    else
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to stop event named {eventName} .", ChatMessageType.Broadcast));
+                    break;
+                case "disable":
+                    break;
+                case "enable":
+                    break;
+                case "clear":
+                    break;
+                case "status":
+                    if (eventName != "all" && eventName != "")
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} - GameEventState.{EventManager.GetEventStatus(eventName)}", ChatMessageType.Broadcast));
+                    }
+                    break;
+                default:
+                    session.Network.EnqueueSend(new GameMessageSystemChat("That is not a valid event command", ChatMessageType.Broadcast));
+                    break;
+            }
         }
 
         // fumble
