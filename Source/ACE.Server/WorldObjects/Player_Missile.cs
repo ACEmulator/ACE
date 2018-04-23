@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics;
@@ -29,6 +30,8 @@ namespace ACE.Server.WorldObjects
             // sanity check
             accuracyLevel = Math.Clamp(accuracyLevel, 0.0f, 1.0f);
 
+            if (GetEquippedAmmo() == null) return;
+
             AttackHeight = (AttackHeight)attackHeight;
             AccuracyLevel = accuracyLevel;
 
@@ -39,16 +42,19 @@ namespace ACE.Server.WorldObjects
                 log.Warn("Unknown target guid " + guid);
                 return;
             }
-            //if (MissileTarget == null)
+            if (MissileTarget == null)
                 MissileTarget = target;
-            //else
-                //return;
+            else
+                return;
 
             // turn if required
-            Rotate();
+            var rotateTime = Rotate(target);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(rotateTime);
 
             // do missile attack
-            LaunchMissile(target);
+            actionChain.AddAction(this, () => LaunchMissile(target));
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
@@ -56,31 +62,42 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void LaunchMissile(WorldObject target)
         {
-            if (MissileTarget == null)
+            var creature = target as Creature;
+            if (MissileTarget == null || creature.Health.Current <= 0)
+            {
+                MissileTarget = null;
                 return;
+            }
+
+            var weapon = GetEquippedWeapon();
+            var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, sound, 1.0f));
+
+            float targetTime = 0.0f;
+            targetTime = LaunchProjectile(target);
+            var animLength = ReloadMotion();
 
             var actionChain = new ActionChain();
-            float targetTime = 0.0f;
-            actionChain.AddAction(this, () =>
+            actionChain.AddDelaySeconds(targetTime);
+            actionChain.AddAction(this, () => DamageTarget(target));
+            if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             {
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.BowRelease, 1.0f));
-                targetTime = LaunchProjectile(target);
-                ReloadMotion(actionChain);
-                actionChain.AddDelaySeconds(targetTime);
-                actionChain.AddAction(this, () => DamageTarget(target));
-            });
-            //actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
-            //actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session)));
-            //actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
+                // reload animation, accuracy bar refill
+                actionChain.AddDelaySeconds(animLength + AccuracyLevel);
+                actionChain.AddAction(this, () => { LaunchMissile(target); });
+            }
+            else
+                MissileTarget = null;
+
             actionChain.EnqueueChain();
         }
 
         /// <summary>
-        /// Appends the reload animation to an action chain
+        /// Executes the weapon reload animation for the player
         /// </summary>
-        public void ReloadMotion(ActionChain actionChain)
+        public float ReloadMotion()
         {
-            var reloadAnimation = new MotionItem(GetReloadAnimation(), 1.25f);
+            var reloadAnimation = new MotionItem(GetReloadAnimation(), 1.0f);
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, reloadAnimation);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance);
@@ -91,14 +108,24 @@ namespace ACE.Server.WorldObjects
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
+            var actionChain = new ActionChain();
             actionChain.AddAction(this, () => DoMotion(motion));
-            actionChain.AddDelaySeconds(0.25f);
+            actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
                 DoMotion(motion);
                 CurrentMotionState = motion;
             });
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
+            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session)));
+            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
+            actionChain.EnqueueChain();
+
+            var weapon = GetEquippedWeapon();
+            var reloadTime = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? 3.2f : 1.6f;
+            return animLength * reloadTime;
         }
 
         /// <summary>
@@ -146,6 +173,11 @@ namespace ACE.Server.WorldObjects
             LandblockManager.AddObject(arrow);
             CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
 
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(time);
+            actionChain.AddAction(arrow, () => CurrentLandblock.RemoveWorldObject(arrow.Guid, false));
+            actionChain.EnqueueChain();
+
             return time;
         }
 
@@ -165,7 +197,7 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("t0: " + t0);
             Console.WriteLine("t1: " + t1);*/
 
-            time = t0 - target.PhysicsObj.GetRadius() / speed;
+            time = t0 + target.PhysicsObj.GetRadius() / speed;
             return new AceVector3(s0.X, s0.Y, s0.Z);
         }
 

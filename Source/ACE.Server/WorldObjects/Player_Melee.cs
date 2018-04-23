@@ -65,8 +65,8 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Angle: " + angle);
 
             // turn / moveto if required
-            Rotate();
-            MoveTo();
+            Rotate(target);
+            MoveTo(target);
 
             // do melee attack
             Attack(target);
@@ -75,6 +75,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionCancelAttack()
         {
             MeleeTarget = null;
+            MissileTarget = null;
         }
 
         public void Attack(WorldObject target)
