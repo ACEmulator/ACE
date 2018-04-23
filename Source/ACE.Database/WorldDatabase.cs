@@ -442,5 +442,57 @@ namespace ACE.Database
 
             return cachedEncounters[landblock];
         }
+
+        private readonly ConcurrentDictionary<string, Event> cachedEvents = new ConcurrentDictionary<string, Event>();
+
+        /// <summary>
+        /// Returns the number of Events currently cached.
+        /// </summary>
+        public int GetEventsCacheCount()
+        {
+            return cachedEvents.Count;
+        }
+
+        public Event GetCachedEvent(string name)
+        {
+            if (cachedEvents.TryGetValue(name.ToLower(), out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var result = context.Event
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.Name.ToLower() == name.ToLower());
+
+                if (result != null)
+                {
+                    cachedEvents[name.ToLower()] = result;
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        public List<Event> GetAllEvents()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.Event
+                    .AsNoTracking();
+
+                if (results != null)
+                {
+                    foreach(var result in results)
+                    {
+                        cachedEvents[result.Name.ToLower()] = result;
+                    }
+
+                    return results.ToList();
+                }
+            }
+
+            return null;
+        }
     }
 }

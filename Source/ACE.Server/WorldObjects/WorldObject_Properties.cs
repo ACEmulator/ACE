@@ -619,6 +619,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public uint WeenieClassId => Biota.WeenieClassId;
 
+        public string WeenieClassName => DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName;
+
         public WeenieType WeenieType => (WeenieType)Biota.WeenieType;
 
         public uint IconId
@@ -2354,6 +2356,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.XpOverride);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.XpOverride); else SetProperty(PropertyInt.XpOverride, value.Value); }
+        }
+
+        public bool? FirstEnterWorldDone
+        {
+            get => GetProperty(PropertyBool.FirstEnterWorldDone);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value.Value); }
         }
     }
 }

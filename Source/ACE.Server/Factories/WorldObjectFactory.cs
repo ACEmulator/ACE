@@ -10,6 +10,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using System.Linq;
 
 namespace ACE.Server.Factories
 {
@@ -187,36 +188,17 @@ namespace ACE.Server.Factories
         {
             var results = new List<WorldObject>();
 
-            var linkSourceResults = new List<LandblockInstances>();
-            var linkResults = new Dictionary<int, List<LandblockInstances>>();
-
-            foreach (var aceO in sourceObjects)
+            foreach (var instance in sourceObjects.Where(x => x.LinkSlot is null))
             {
-                if (aceO.LinkSlot > 0)
-                {
-                    if (aceO.LinkController ?? false)
-                    {
-                        linkSourceResults.Add(aceO);
-                        continue;
-                    }
-
-                    if (!linkResults.ContainsKey((int)aceO.LinkSlot))
-                        linkResults.Add((int)aceO.LinkSlot, new List<LandblockInstances>());
-
-                    linkResults[(int)aceO.LinkSlot].Add(aceO);
-
-                    continue;
-                }
-
-                var weenie = DatabaseManager.World.GetCachedWeenie(aceO.WeenieClassId);
+                var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
 
                 if (weenie == null)
                     continue;
 
                 ObjectGuid guid;
 
-                if (aceO.Guid != 0)
-                    guid = new ObjectGuid(aceO.Guid);
+                if (instance.Guid != 0)
+                    guid = new ObjectGuid(instance.Guid);
                 else
                     guid = GuidManager.NewDynamicGuid();
 
@@ -224,71 +206,37 @@ namespace ACE.Server.Factories
 
                 if (worldObject != null)
                 {
-                    worldObject.SetPosition(PositionType.Location, new Position(aceO.ObjCellId, aceO.OriginX, aceO.OriginY, aceO.OriginZ, aceO.AnglesX, aceO.AnglesY, aceO.AnglesZ, aceO.AnglesW));
-
-                    if (worldObject.InitPhysics && worldObject.PhysicsObj == null)
-                        worldObject.InitPhysicsObj();
+                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
 
                     results.Add(worldObject);
                 }
             }
 
-            foreach (var aceO in linkSourceResults)
+            foreach (var instance in sourceObjects.Where(x => !(x.LinkController is null)))
             {
-                int linkSlot = (int)aceO.LinkSlot;
-
-                var weenie = DatabaseManager.World.GetCachedWeenie(aceO.WeenieClassId);
+                var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
 
                 if (weenie == null)
                     continue;
 
                 ObjectGuid guid;
 
-                if (aceO.Guid != 0)
-                    guid = new ObjectGuid(aceO.Guid);
+                if (instance.Guid != 0)
+                    guid = new ObjectGuid(instance.Guid);
                 else
                     guid = GuidManager.NewDynamicGuid();
 
                 var worldObject = CreateWorldObject(weenie, guid);
 
-                if (worldObject == null)
-                    continue;
-
-                worldObject.SetPosition(PositionType.Location, new Position(aceO.ObjCellId, aceO.OriginX, aceO.OriginY, aceO.OriginZ, aceO.AnglesX, aceO.AnglesY, aceO.AnglesZ, aceO.AnglesW));
-
-                if (linkResults.ContainsKey(linkSlot) && worldObject.GeneratorProfiles.Count > 0)
+                if (worldObject != null)
                 {
-                    var profileTemplate = worldObject.GeneratorProfiles[0];
+                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
 
-                    foreach (var link in linkResults[linkSlot])
-                    {
-                        var profile = new BiotaPropertiesGenerator();
-                        profile.WeenieClassId = link.WeenieClassId;
-                        profile.ObjCellId = link.ObjCellId;
-                        profile.OriginX = link.OriginX;
-                        profile.OriginY = link.OriginY;
-                        profile.OriginZ = link.OriginZ;
-                        profile.AnglesW = link.AnglesW;
-                        profile.AnglesX = link.AnglesX;
-                        profile.AnglesY = link.AnglesY;
-                        profile.AnglesZ = link.AnglesZ;
-                        profile.Probability = Math.Abs(profileTemplate.Probability);
-                        profile.InitCreate = profileTemplate.InitCreate;
-                        profile.MaxCreate = profileTemplate.MaxCreate;
-                        profile.WhenCreate = profileTemplate.WhenCreate;
-                        profile.WhereCreate = profileTemplate.WhereCreate;
-                        worldObject.GeneratorProfiles.Add(profile);
-                    }
+                    foreach (var link in sourceObjects.Where(x => x.LinkSlot == instance.LinkSlot))
+                        worldObject.LinkedInstances.Add(link);
 
-                    worldObject.SelectGeneratorProfiles();
-                    worldObject.UpdateGeneratorInts();
-                    worldObject.QueueGenerator();
+                    results.Add(worldObject);
                 }
-
-                if (linkResults.ContainsKey(linkSlot) && worldObject.GeneratorProfiles.Count == 0)
-                    log.Error($"Encountered an Instance ({aceO.Id}) Linked to a Weenie ({aceO.WeenieClassId}) with no GeneratorProfiles to template from.");
-
-                results.Add(worldObject);
             }
 
             return results;

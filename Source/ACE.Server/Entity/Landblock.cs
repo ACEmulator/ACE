@@ -24,6 +24,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Common;
 using Position = ACE.Entity.Position;
+using System.Numerics;
 
 namespace ACE.Server.Entity
 {
@@ -117,11 +118,8 @@ namespace ACE.Server.Entity
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
             factoryObjects.ForEach(fo =>
             {
-                if (!worldObjects.ContainsKey(fo.Guid))
-                {
-                    worldObjects.Add(fo.Guid, fo);
-                    fo.SetParent(this);
-                }
+                AddWorldObject(fo);
+                fo.ActivateLinks();
             });
 
             _landblock = LScape.get_landblock(Id.Raw);
@@ -132,26 +130,28 @@ namespace ACE.Server.Entity
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(encounter.WeenieClassId);
 
-                float x_shift = 24.0f * encounter.CellX;
-                float y_shift = 24.0f * encounter.CellY;
-
-                var pos = new Physics.Common.Position();
-                pos.ObjCellID = (uint)(id.Landblock << 16) | 1;
-                pos.Frame = new Physics.Animation.AFrame(new System.Numerics.Vector3(x_shift, y_shift, 0), new System.Numerics.Quaternion(0, 0, 0, 1));
-                pos.adjust_to_outside();
-
-                pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
-
-                wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
-
-                if (!worldObjects.ContainsKey(wo.Guid))
+                if (wo != null)
                 {
-                    worldObjects.Add(wo.Guid, wo);
-                    wo.SetParent(this);
+                    float x_shift = 24.0f * encounter.CellX;
+                    float y_shift = 24.0f * encounter.CellY;
+
+                    var pos = new Physics.Common.Position();
+                    pos.ObjCellID = (uint)(id.Landblock << 16) | 1;
+                    pos.Frame = new Physics.Animation.AFrame(new Vector3(x_shift, y_shift, 0), new Quaternion(0, 0, 0, 1));
+                    pos.adjust_to_outside();
+
+                    pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
+
+                    wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+
+                    if (!worldObjects.ContainsKey(wo.Guid))
+                    {
+                        AddWorldObject(wo);
+                    }
                 }
             });
 
-            
+
             //LoadMeshes(objects);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
@@ -320,6 +320,18 @@ namespace ACE.Server.Entity
 
             wo.SetParent(this);
 
+            wo.PhysicsObj.Position.Frame.Origin = wo.Location.Pos;
+            wo.PhysicsObj.Position.Frame.Orientation = wo.Location.Rotation;
+
+            //wo.AdjustDungeonCells(wo.Location);
+
+            var cell = LScape.get_landcell(wo.Location.Cell);
+            if (cell != null)
+            {
+                wo.PhysicsObj.enter_cell(cell);
+                wo.PhysicsObj.add_shadows_to_cell(cell);
+            }
+
             // var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
             // Broadcast(args, true, Quadrant.All);
             // Alert all nearby players of the object
@@ -331,12 +343,7 @@ namespace ACE.Server.Entity
                 List<WorldObject> wolist = null;
                 wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
                 AddPlayerTracking(wolist, ((Player)wo));
-                //if (wo.InitPhysics && wo.PhysicsObj == null)
-                //    wo.InitPhysicsObj();
             }
-
-            if (wo.InitPhysics && wo.PhysicsObj == null)
-                wo.InitPhysicsObj();
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
@@ -395,6 +402,9 @@ namespace ACE.Server.Entity
                 }
                 else
                     EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
+
+                wo.PhysicsObj.leave_cell(false);
+                wo.PhysicsObj.remove_shadows_from_cells();
             }
         }
 

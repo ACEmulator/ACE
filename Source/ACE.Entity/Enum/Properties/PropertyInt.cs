@@ -117,7 +117,9 @@ namespace ACE.Entity.Enum.Properties
         NumItemsBought                           = 78,
         MoneyIncome                              = 79,
         MoneyOutflow                             = 80,
+        [Ephemeral]
         MaxGeneratedObjects                      = 81,
+        [Ephemeral]
         InitGeneratedObjects                     = 82,
         ActivationResponse                       = 83,
         OriginalValue                            = 84,
