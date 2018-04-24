@@ -57,12 +57,10 @@ namespace ACE.Server.WorldObjects
             var vitaeEnchantment = new Enchantment(this, spellID, 0, spell.StatModType, vitae);
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
-            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, (uint)Math.Round(Health.MaxValue * 0.75f));
-            var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, (uint)Math.Round(Stamina.MaxValue * 0.75f));
-            var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, (uint)Math.Round(Mana.MaxValue * 0.75f));
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, 0);
 
             // Send first death message group
-            Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
 
             // Broadcast the 019E: Player Killed GameMessage
             ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
@@ -88,8 +86,19 @@ namespace ACE.Server.WorldObjects
 
                 teleportChain.AddAction(this, () =>
                 {
-                    // Regenerate/ressurect?
-                    UpdateVitalInternal(Health, 5);
+                    var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
+                    var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
+                    var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
+
+                    var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
+                    var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
+                    var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
+
+                    UpdateVitalInternal(Health, newHealth);
+                    UpdateVitalInternal(Stamina, newStamina);
+                    UpdateVitalInternal(Mana, newMana);
+
+                    killerSession.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
                     // Stand back up
                     DoMotion(new UniversalMotion(MotionStance.Standing));

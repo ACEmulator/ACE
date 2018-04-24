@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         public float GetAngle(WorldObject target)
         {
             var currentDir = Location.GetCurrentDir();
-            var targetDir = GetDirection(Location.Pos, target.Location.Pos);
+            var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
 
             // get the 2D angle between these vectors
             return GetAngle(currentDir, targetDir);
