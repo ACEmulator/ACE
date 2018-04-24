@@ -17,7 +17,7 @@ using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
-    public class ProjectileSpell : WorldObject
+    public class SpellProjectile : WorldObject
     {
         private WorldObject projectileCaster;
         private WorldObject projectileTarget;
@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public ProjectileSpell(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public SpellProjectile(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public ProjectileSpell(Biota biota) : base(biota)
+        public SpellProjectile(Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

@@ -451,6 +451,51 @@ namespace ACE.Server.Physics
             return numSolutions;
         }
 
+        /// <summary>
+        /// Solve for a firing arc with a fixed gravity. Method was adapted for use by ACE by gmriggs from the original
+        /// </summary>
+        /// <param name="projectilePosition"></param>
+        /// <param name="lateralSpeed"></param>
+        /// <param name="targetPosition"></param>
+        /// <param name="velocityVector"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static bool SolveBallisticArc(Vector3 projectilePosition, float lateralSpeed, Vector3 targetPosition, out Vector3 velocityVector, out float time)
+        {
+
+            // Handling these cases is up to your project's coding standards
+            Debug.Assert(projectilePosition != targetPosition && lateralSpeed > 0, "fts.solve_ballistic_arc called with invalid data");
+
+            velocityVector = Vector3.Zero;
+            time = float.NaN;
+
+            Vector3 diff = targetPosition - projectilePosition;
+            Vector3 diffXY = new Vector3(diff.X, diff.Y, 0f);
+            float lateralDist = diffXY.Length();
+
+            if (lateralDist == 0)
+                return false;
+
+            time = lateralDist / lateralSpeed;
+
+            velocityVector = diffXY.Normalize() * lateralSpeed;
+
+            // System of equations. Hit max_height at t=.5*time. Hit target at t=time.
+            //
+            // peak = z0 + vertical_speed*halfTime + .5*gravity*halfTime^2
+            // end = z0 + vertical_speed*time + .5*gravity*time^s
+            // Wolfram Alpha: solve b = a + .5*v*t + .5*g*(.5*t)^2, c = a + vt + .5*g*t^2 for g, v
+            float a = projectilePosition.Z; // initial
+            float c = targetPosition.Z;     // final
+
+            // Gravity value pulled from ACE property
+            var g = PhysicsGlobals.Gravity;
+            var b = (4 * a + 4 * c - g * time * time) / 8;
+
+            velocityVector.Z = (2 * a - 2 * c + g * time * time) / (time * 2) * -1;
+
+            return true;
+        }
 
         // Solve the firing arc with a fixed lateral speed. Vertical speed and gravity varies. 
         // This enables a visually pleasing arc.

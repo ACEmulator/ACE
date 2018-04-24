@@ -21,27 +21,13 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                // get angle to target
-                var angle = GetAngle(target);
+                // turn if required
+                var rotateTime = Rotate(target);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
 
-                float delay = 0;
-                if (angle < 10.0f)
-                {
-                    CreatePlayerSpell(guidTarget, spellId);
-                    return;
-                }
-
-                if (angle < 120.0f) delay = 1.0f;
-                else delay = 1.5f;
-
-                var turnToMotion = new UniversalMotion(MotionStance.Spellcasting, Location, guidTarget);
-                turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-
-                ActionChain turnToTimer = new ActionChain();
-                turnToTimer.AddAction(this, () => CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion));
-                turnToTimer.AddDelaySeconds(delay);
-                turnToTimer.AddAction(this, () => CreatePlayerSpell(guidTarget, spellId));
-                turnToTimer.EnqueueChain();
+                actionChain.AddAction(this, () => CreatePlayerSpell(guidTarget, spellId));
+                actionChain.EnqueueChain();
             }
         }
 
