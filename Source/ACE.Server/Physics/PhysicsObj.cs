@@ -2656,6 +2656,11 @@ namespace ACE.Server.Physics
             }
         }
 
+        public void remove_visible_cells()
+        {
+            ObjMaint.RemoveObject(this);
+        }
+
         public bool remove_voyeur(int objectID)
         {
             if (TargetManager == null) return false;

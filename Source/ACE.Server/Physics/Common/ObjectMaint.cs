@@ -211,6 +211,14 @@ namespace ACE.Server.Physics.Common
             objCell.NumObjects = objCell.ObjectList.Count;
         }
 
+        public void RemoveObject(PhysicsObj obj)
+        {
+            ObjectTable.Remove(obj.ID);
+            WeenieObjectTable.Remove(obj.ID);
+            VisibleObjectTable.Remove(obj.ID);
+            DestructionObjectTable.Remove(obj);
+        }
+
         public void RemoveFromLostCell(PhysicsObj obj)
         {
             if (obj.CurCell != null || obj.Parent != null) return;
