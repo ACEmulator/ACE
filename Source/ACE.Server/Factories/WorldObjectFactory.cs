@@ -94,7 +94,7 @@ namespace ACE.Server.Factories
                 case WeenieType.Caster:
                     return new Caster(weenie, guid);
                 case WeenieType.ProjectileSpell:
-                    return new ProjectileSpell(weenie, guid);
+                    return new SpellProjectile(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }

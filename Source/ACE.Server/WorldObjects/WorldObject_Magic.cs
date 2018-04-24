@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 using ACE.Database;
 using ACE.DatLoader;
@@ -16,6 +17,8 @@ using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Factories;
+using ACE.Server.Physics;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
 {
@@ -750,7 +753,7 @@ namespace ACE.Server.WorldObjects
                             caster.Health.Current = (uint)newCasterVital;
                     }
 
-                    CreateProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
+                    CreateSpellProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -889,7 +892,7 @@ namespace ACE.Server.WorldObjects
         {
             if (spellStatMod.NumProjectiles == 1)
             {
-                CreateProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid);
+                CreateSpellProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid);
             }
             else
             {
@@ -912,49 +915,71 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void CreateProjectile(WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
+        private void CreateSpellProjectile(WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
         {
-            ProjectileSpell wo = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as ProjectileSpell;
+            SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as SpellProjectile;
 
-            double targetX = target.Location.PositionX;
-            double targetY = target.Location.PositionY;
-            double targetZ = target.Location.PositionZ;
-            double originX = Location.InFrontOf(2.0f).PositionX;
-            double originY = Location.InFrontOf(2.0f).PositionY;
-            double originZ = Location.InFrontOf(2.0f).PositionZ;
+            var origin = Location.ToGlobal();
+            origin.Z += Height / 2.0f;
 
-            float speedFactor = 1.0f;
+            var dest = target.Location.ToGlobal();
+            dest.Z += target.Height / 2.0f;
+
+            float speed = 35.0f;
             if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Streak"))
+                speed = 40.0f;
+
+            var dir = Vector3.Normalize(dest - origin);
+
+            origin += dir * 2.0f;
+
+            var velocity = dir * speed;
+            if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Arc"))
             {
-                speedFactor = 5.0f;
+                var dist = (dest - origin).Length();
+                speed = dist / 1.66f;
+                spellProjectile.Velocity = GetSpellProjectileVelocity(origin, dest, speed);
             }
+            else
+                spellProjectile.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
-            double distance = Location.DistanceTo(target.Location);
-            double vx = (15 / distance) * (targetX - originX) * speedFactor;
-            double vy = (15 / distance) * (targetY - originY) * speedFactor;
-            double vz = (15 / distance) * (targetZ - originZ) * speedFactor;
+            var loc = Location;
+            origin = ACE.Entity.Position.FromGlobal(origin).Pos;
+            spellProjectile.Location = new ACE.Entity.Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
+            SetSpellProjectilePhysicsState(spellProjectile);
 
-            AceVector3 velocity = new AceVector3((float)vx, (float)vy, (float)vz);
-            wo.Velocity = velocity;
+            spellProjectile.ParentWorldObject = this;
+            spellProjectile.TargetWorldObject = target;
+            spellProjectile.SpellId = spellId;
+            spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
 
-            uint landblockId = Location.InFrontOf(2.0f).LandblockId.Raw;
-            float positionX = Location.InFrontOf(2.0f).PositionX;
-            float positionY = Location.InFrontOf(2.0f).PositionY;
-            float positionZ = Location.InFrontOf(2.0f).PositionZ + 1;
-            float rotationX = Location.InFrontOf(2.0f).RotationX;
-            float rotationY = Location.InFrontOf(2.0f).RotationY;
-            float rotationZ = Location.InFrontOf(2.0f).RotationZ;
-            float rotationW = Location.InFrontOf(2.0f).RotationW;
+            LandblockManager.AddObject(spellProjectile);
+            CurrentLandblock.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
+        }
 
-            wo.Location = new ACE.Entity.Position(landblockId, positionX, positionY, positionZ, rotationX, rotationY, rotationZ, rotationW);
+        /// <summary>
+        /// Sets the physics state for a launched projectile
+        /// </summary>
+        public void SetSpellProjectilePhysicsState(WorldObject obj)
+        {
+            obj.ReportCollisions = true;
+            obj.Missile = true;
+            obj.AlignPath = true;
+            obj.PathClipped = true;
+            obj.Ethereal = false;
+            obj.IgnoreCollisions = false;
+        }
 
-            wo.ParentWorldObject = this;
-            wo.TargetWorldObject = target;
-            wo.SpellId = spellId;
-            wo.LifeProjectileDamage = lifeProjectileDamage;
+        /// <summary>
+        /// Calculates the velocity to launch the projectile from origin to dest
+        /// </summary>
+        public AceVector3 GetSpellProjectileVelocity(Vector3 origin, Vector3 dest, float speed)
+        {
+            Vector3 velocity;
+            float time;
+            Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, out velocity, out time);
 
-            LandblockManager.AddObject(wo);
-            CurrentLandblock.EnqueueBroadcast(wo.Location, new GameMessageScript(wo.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
+            return new AceVector3(velocity.X, velocity.Y, velocity.Z);
         }
     }
 }
