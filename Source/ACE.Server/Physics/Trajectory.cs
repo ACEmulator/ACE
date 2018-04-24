@@ -451,6 +451,15 @@ namespace ACE.Server.Physics
             return numSolutions;
         }
 
+        /// <summary>
+        /// Solve for a firing arc with a fixed gravity. Method was adapted for use by ACE by gmriggs from the original
+        /// </summary>
+        /// <param name="proj_pos"></param>
+        /// <param name="lateral_speed"></param>
+        /// <param name="target_pos"></param>
+        /// <param name="fire_velocity"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
         public static bool solve_ballistic_arc_lateral(Vector3 proj_pos, float lateral_speed, Vector3 target_pos, out Vector3 fire_velocity, out float time)
         {
 
