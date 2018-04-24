@@ -168,6 +168,7 @@ namespace ACE.Server.WorldObjects
             arrow.Velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out var time);
 
             var loc = Location;
+            origin = Position.FromGlobal(origin).Pos;
             arrow.Location = new Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
             SetProjectilePhysicsState(arrow);
 
