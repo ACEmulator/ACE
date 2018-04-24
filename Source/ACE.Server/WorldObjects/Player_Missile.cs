@@ -154,19 +154,21 @@ namespace ACE.Server.WorldObjects
             var ammo = GetEquippedAmmo();
             var arrow = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
 
-            var origin = Location.InFrontOf().Pos;
-            origin.Z += Height / 2.0f;
+            var origin = Location.ToGlobal();
+            origin.Z += Height;
 
-            var dest = target.Location.Pos;
-            dest.Z += target.Height / 2.0f;
+            var dest = target.Location.ToGlobal();
+            dest.Z += target.Height / GetAimHeight(target);
 
             var speed = 35.0f;
-            //var dir = GetAngle(target);
-            var dir = Location.GetCurrentDir();
+            var dir = Vector3.Normalize(target.Location.Pos - Location.Pos);
+
+            origin += dir * 2.0f;
 
             arrow.Velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out var time);
 
             var loc = Location;
+            origin = Position.FromGlobal(origin).Pos;
             arrow.Location = new Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
             SetProjectilePhysicsState(arrow);
 
@@ -175,6 +177,7 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(time);
+            actionChain.AddAction(arrow, () => Session.Network.EnqueueSend(new GameMessageSound(arrow.Guid, Sound.Collision, 1.0f)));
             actionChain.AddAction(arrow, () => CurrentLandblock.RemoveWorldObject(arrow.Guid, false));
             actionChain.EnqueueChain();
 
@@ -212,6 +215,17 @@ namespace ACE.Server.WorldObjects
             obj.PathClipped = true;
             obj.Ethereal = false;
             obj.IgnoreCollisions = false;
+        }
+
+        public float GetAimHeight(WorldObject target)
+        {
+            switch (AttackHeight)
+            {
+                case AttackHeight.High: return 1.0f;
+                case AttackHeight.Medium: return 2.0f;
+                case AttackHeight.Low: return target.Height;
+            }
+            return 2.0f;
         }
     }
 }

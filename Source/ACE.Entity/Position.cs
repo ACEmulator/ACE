@@ -425,5 +425,34 @@ namespace ACE.Entity
             LandblockId = new LandblockId(Cell);
             // System.Diagnostics.Debug.WriteLine($"Cell came in as {newCell.ToString("X8")}, should be {Cell.ToString("X8")} ");
         }
+
+        public static readonly int BlockLength = 192;
+
+        public Vector3 ToGlobal()
+        {
+            var x = LandblockId.LandblockX * BlockLength + PositionX;
+            var y = LandblockId.LandblockY * BlockLength + PositionY;
+            var z = PositionZ;
+
+            return new Vector3(x, y, z);
+        }
+
+        public static Position FromGlobal(Vector3 pos)
+        {
+            var blockX = (uint)pos.X / BlockLength;
+            var blockY = (uint)pos.Y / BlockLength;
+
+            var localX = pos.X % BlockLength;
+            var localY = pos.Y % BlockLength;
+
+            var landblockID = blockX << 24 | blockY << 16 | 0xFFFF;
+
+            var position = new Position();
+            position.LandblockId = new LandblockId((byte)blockX, (byte)blockY);
+            position.PositionX = localX;
+            position.PositionY = localY;
+            position.PositionZ = pos.Z;
+            return position;
+        }
     }
 }

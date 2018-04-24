@@ -405,6 +405,7 @@ namespace ACE.Server.Entity
 
                 wo.PhysicsObj.leave_cell(false);
                 wo.PhysicsObj.remove_shadows_from_cells();
+                wo.PhysicsObj.remove_visible_cells();
             }
         }
 
