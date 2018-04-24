@@ -137,6 +137,7 @@ namespace ACE.Server.Managers
             {
                 // add entry for new vitae
                 vitae = BuildEntry((uint)Spell.Vitae);
+                vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
                 vitae.LayerId = 0;
                 vitae.StatModValue = 1.0f - VitaePenalty;
 

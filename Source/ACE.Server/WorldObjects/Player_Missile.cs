@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
             dest.Z += target.Height / GetAimHeight(target);
 
             var speed = 35.0f;
-            var dir = Vector3.Normalize(target.Location.Pos - Location.Pos);
+            var dir = Vector3.Normalize(dest - origin);
 
             origin += dir * 2.0f;
 
