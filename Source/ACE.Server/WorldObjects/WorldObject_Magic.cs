@@ -937,7 +937,6 @@ namespace ACE.Server.WorldObjects
             if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Arc"))
             {
                 var dist = (dest - origin).Length();
-                speed = dist / 1.66f;
                 spellProjectile.Velocity = GetSpellProjectileVelocity(origin, dest, speed);
             }
             else
