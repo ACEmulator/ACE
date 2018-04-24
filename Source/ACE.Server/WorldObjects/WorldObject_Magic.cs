@@ -975,9 +975,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public AceVector3 GetSpellProjectileVelocity(Vector3 origin, Vector3 dest, float speed)
         {
-            Vector3 velocity;
-            float time;
-            Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, out velocity, out time);
+            Trajectory.SolveBallisticArc(origin, speed, dest, out Vector3 velocity, out float time);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);
         }
