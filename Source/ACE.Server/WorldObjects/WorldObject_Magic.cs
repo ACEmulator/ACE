@@ -236,85 +236,41 @@ namespace ACE.Server.WorldObjects
 
             // Calculating mana usage
             #region
-            if (spellCastSuccess == true)
+            CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
+            double z = mc.Current;
+            double baseManaPercent = 1;
+            if (z > spell.Power)
             {
-                CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
-                double z = mc.Current;
-                double baseManaPercent = 1;
-                if (z > spell.Power)
+                baseManaPercent = spell.Power / z;
+            }
+            Random rnd = new Random();
+            double preCost;
+            uint manaUsed;
+            if (baseManaPercent == 1)
+            {
+                preCost = spell.BaseMana;
+                manaUsed = (uint)preCost;
+            }
+            else
+            {
+                preCost = spell.BaseMana * baseManaPercent;
+                if (preCost < 1)
+                    preCost = 1;
+                manaUsed = (uint)rnd.Next(1, (int)preCost);
+            }
+            if (spell.MetaSpellType == SpellType.Transfer)
+            {
+                uint vitalChange, casterVitalChange;
+                vitalChange = (uint)(player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion);
+                if (spellStatMod.TransferCap != 0)
                 {
-                    baseManaPercent = spell.Power / z;
+                    if (vitalChange > spellStatMod.TransferCap)
+                        vitalChange = (uint)spellStatMod.TransferCap;
                 }
-                Random rnd = new Random();
-                double preCost;
-                uint manaUsed;
-                if (baseManaPercent == 1)
-                {
-                    preCost = spell.BaseMana;
-                    manaUsed = (uint)preCost;
-                }
-                else
-                {
-                    preCost = spell.BaseMana * baseManaPercent;
-                    if (preCost < 1)
-                        preCost = 1;
-                    manaUsed = (uint)rnd.Next(1, (int)preCost);
-                }
-                if (spell.MetaSpellType == SpellType.Transfer)
-                {
-                    uint vitalChange, casterVitalChange;
-                    vitalChange = (uint)(player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion);
-                    if (spellStatMod.TransferCap != 0)
-                    {
-                        if (vitalChange > spellStatMod.TransferCap)
-                            vitalChange = (uint)spellStatMod.TransferCap;
-                    }
-                    casterVitalChange = (uint)(vitalChange * (1.0f - spellStatMod.LossPercent));
-                    vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
+                casterVitalChange = (uint)(vitalChange * (1.0f - spellStatMod.LossPercent));
+                vitalChange = (uint)(casterVitalChange / (1.0f - spellStatMod.LossPercent));
 
-                    if (spellStatMod.Source == (int)PropertyAttribute2nd.Mana && (vitalChange + 10 + manaUsed) > player.Mana.Current)
-                    {
-                        ActionChain resourceCheckChain = new ActionChain();
-
-                        resourceCheckChain.AddAction(this, () =>
-                        {
-                            CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
-                        });
-
-                        resourceCheckChain.AddDelaySeconds(2.0f);
-
-                        resourceCheckChain.AddAction(this, () =>
-                        {
-                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
-                            player.IsBusy = false;
-                        });
-
-                        resourceCheckChain.EnqueueChain();
-
-                        return;
-                    }
-                    else if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
-                    {
-                        ActionChain resourceCheckChain = new ActionChain();
-
-                        resourceCheckChain.AddAction(this, () =>
-                        {
-                            CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
-                        });
-
-                        resourceCheckChain.AddDelaySeconds(2.0f);
-
-                        resourceCheckChain.AddAction(this, () =>
-                        {
-                            player.IsBusy = false;
-                        });
-
-                        resourceCheckChain.EnqueueChain();
-
-                        return;
-                    }
-                }
-                else if (manaUsed > player.Mana.Current)
+                if (spellStatMod.Source == (int)PropertyAttribute2nd.Mana && (vitalChange + 10 + manaUsed) > player.Mana.Current)
                 {
                     ActionChain resourceCheckChain = new ActionChain();
 
@@ -335,11 +291,52 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
-                else
+                else if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
                 {
-                    rnd = null;
-                    player.Mana.Current = player.Mana.Current - manaUsed;
+                    ActionChain resourceCheckChain = new ActionChain();
+
+                    resourceCheckChain.AddAction(this, () =>
+                    {
+                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                    });
+
+                    resourceCheckChain.AddDelaySeconds(2.0f);
+
+                    resourceCheckChain.AddAction(this, () =>
+                    {
+                        player.IsBusy = false;
+                    });
+
+                    resourceCheckChain.EnqueueChain();
+
+                    return;
                 }
+            }
+            else if (manaUsed > player.Mana.Current)
+            {
+                ActionChain resourceCheckChain = new ActionChain();
+
+                resourceCheckChain.AddAction(this, () =>
+                {
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                });
+
+                resourceCheckChain.AddDelaySeconds(2.0f);
+
+                resourceCheckChain.AddAction(this, () =>
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
+                    player.IsBusy = false;
+                });
+
+                resourceCheckChain.EnqueueChain();
+
+                return;
+            }
+            else
+            {
+                rnd = null;
+                player.Mana.Current = player.Mana.Current - manaUsed;
             }
             #endregion
 
