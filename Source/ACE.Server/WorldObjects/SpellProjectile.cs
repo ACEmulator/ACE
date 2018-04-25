@@ -74,6 +74,18 @@ namespace ACE.Server.WorldObjects
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddAction(this, () =>
             {
+                Inelastic = true;
+                ScriptedCollision = true;
+                Missile = true;
+                PathClipped = true;
+                AlignPath = true;
+                Ethereal = true;
+                IgnoreCollisions = true;
+                NoDraw = true;
+                Cloaked = true;
+
+                EnqueueBroadcastPhysicsState();
+
                 float effect = Math.Max(0.0f, Math.Min(1.0f, ((spell.Power - 1.0f) / 7.0f)));
                 CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, effect));
             });
