@@ -232,10 +232,13 @@ namespace ACE.Server.WorldObjects
             float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
             var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
 
-            bool spellCastSuccess = false || magicSkill.Current >= spell.Power;
+            bool spellCastSuccess = false;
+            double castChanceSuccess = 1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill.Current, (int)spell.Power);
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < castChanceSuccess)
+                spellCastSuccess = true;
 
             // Calculating mana usage
-            #region
+                #region
             CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
             double z = mc.Current;
             double baseManaPercent = 1;
