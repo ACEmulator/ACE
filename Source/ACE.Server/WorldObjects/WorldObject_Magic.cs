@@ -238,7 +238,7 @@ namespace ACE.Server.WorldObjects
                 spellCastSuccess = true;
 
             // Calculating mana usage
-                #region
+            #region
             CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
             double z = mc.Current;
             double baseManaPercent = 1;
