@@ -97,9 +97,10 @@ namespace ACE.Server.WorldObjects
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
-            ProjectileImpact();
             if (target != TargetWorldObject.Guid)
                 return;
+
+            ProjectileImpact();
 
             int newSpellTargetVital;
 
