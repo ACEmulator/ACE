@@ -155,6 +155,22 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Determine is the spell being case is harmful or beneficial
+        /// </summary>
+        /// <param name="spell"></param>
+        /// <returns></returns>
+        private bool IsSpellHarmful(SpellBase spell)
+        {
+            if (spell.School == MagicSchool.WarMagic || spell.School == MagicSchool.VoidMagic)
+                return true;
+
+            if (spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.LifeMagic && (spell.Bitfield & 0x4) == 0)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
         public void CreatePlayerSpell(ObjectGuid guidTarget, uint spellId)
@@ -226,6 +242,18 @@ namespace ACE.Server.WorldObjects
                         player.IsBusy = false;
                         return;
                     }
+                }
+            }
+
+            // Ensure that a harmful spell isn't being cast on a player target that doesn't have the same PK status
+            if (target.WeenieClassId == 1)
+            {
+                bool isSpellHarmful = IsSpellHarmful(spell);
+                if (player.PlayerKillerStatus != target.PlayerKillerStatus && isSpellHarmful)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
+                    player.IsBusy = false;
+                    return;
                 }
             }
 
@@ -396,10 +424,23 @@ namespace ACE.Server.WorldObjects
                             VoidMagic(target, spell, spellStatMod);
                             break;
                         case MagicSchool.CreatureEnchantment:
+                            if (IsSpellHarmful(spell))
+                            {
+                                if (MagicDefenseCheck((Creature)this, (Creature)target, spell.School))
+                                    break;
+                            }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             CreatureMagic(target, spell, spellStatMod);
                             break;
                         case MagicSchool.LifeMagic:
+                            if (spell.MetaSpellType != SpellType.LifeProjectile)
+                            {
+                                if (IsSpellHarmful(spell))
+                                {
+                                    if (MagicDefenseCheck((Creature)this, (Creature)target, spell.School))
+                                        break;
+                                }
+                            }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             targetDeath = LifeMagic(target, spell, spellStatMod, out message);
                             if (message != null)
@@ -710,6 +751,21 @@ namespace ACE.Server.WorldObjects
 
             creature.IsBusy = false;
             return;
+        }
+
+        public static bool MagicDefenseCheck(Creature caster, Creature target, MagicSchool magicSchool)
+        {
+            // Retrieve caster's skill level in the Magic School
+            var casterMagicSkill = caster.GetCreatureSkill(magicSchool).Current;
+
+            // Retrieve target's Magic Defense Skill
+            var targetMagicDefenseSkill = target.GetCreatureSkill(Skill.MagicDefense).Current;
+
+            // TODO :: Still a WIP
+            if (casterMagicSkill < ((int)targetMagicDefenseSkill - 10))
+                return true;
+
+            return false;
         }
 
         private bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message)
