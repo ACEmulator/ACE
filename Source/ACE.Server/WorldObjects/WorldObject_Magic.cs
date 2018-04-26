@@ -155,6 +155,22 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Determine is the spell being case is harmful or beneficial
+        /// </summary>
+        /// <param name="spell"></param>
+        /// <returns></returns>
+        private bool IsSpellHarmful(SpellBase spell)
+        {
+            if (spell.School == MagicSchool.WarMagic || spell.School == MagicSchool.VoidMagic)
+                return true;
+
+            if (spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.LifeMagic && (spell.Bitfield & 0x4) == 0)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
         public void CreatePlayerSpell(ObjectGuid guidTarget, uint spellId)
@@ -209,7 +225,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Grab player's skill level in the spell's Magic School
-            var magicSkill = player.GetCreatureSkill(spell.School);
+            var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
             if (target == null)
                 target = player.GetWieldedItem(guidTarget);
@@ -219,7 +235,7 @@ namespace ACE.Server.WorldObjects
                 {
                     float distanceTo = Location.Distance2D(target.Location);
 
-                    if (distanceTo > spell.BaseRangeConstant + magicSkill.Current * spell.BaseRangeMod)
+                    if (distanceTo > spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod)
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
                             new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
@@ -229,11 +245,23 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            // Ensure that a harmful spell isn't being cast on a player target that doesn't have the same PK status
+            if (target.WeenieClassId == 1 && player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK)
+            {
+                bool isSpellHarmful = IsSpellHarmful(spell);
+                if (player.PlayerKillerStatus != target.PlayerKillerStatus && isSpellHarmful)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
+                    player.IsBusy = false;
+                    return;
+                }
+            }
+
             float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
             var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
 
-            bool spellCastSuccess = false || ((Physics.Common.Random.RollDice(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill.Current, (int)spell.Power)))
-                && (magicSkill.Current >= (int)spell.Power - 50) && (magicSkill.Current > 0));
+            bool spellCastSuccess = false || ((Physics.Common.Random.RollDice(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)spell.Power)))
+                && (magicSkill >= (int)spell.Power - 50) && (magicSkill > 0));
 
             // Calculating mana usage
             #region
@@ -396,10 +424,45 @@ namespace ACE.Server.WorldObjects
                             VoidMagic(target, spell, spellStatMod);
                             break;
                         case MagicSchool.CreatureEnchantment:
+                            if (IsSpellHarmful(spell))
+                            {
+                                // Retrieve player's skill level in the Magic School
+                                var playerMagicSkill = player.GetCreatureSkill(spell.School).Current;
+
+                                // Retrieve target's Magic Defense Skill
+                                Creature creature = (Creature)target;
+                                var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
+
+                                if (MagicDefenseCheck(playerMagicSkill, targetMagicDefenseSkill))
+                                {
+                                    CurrentLandblock.EnqueueBroadcastSound(player, Sound.ResistSpell);
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
+                                    break;
+                                }
+                            }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             CreatureMagic(target, spell, spellStatMod);
                             break;
                         case MagicSchool.LifeMagic:
+                            if (spell.MetaSpellType != SpellType.LifeProjectile)
+                            {
+                                if (IsSpellHarmful(spell))
+                                {
+                                    // Retrieve player's skill level in the Magic School
+                                    var playerMagicSkill = player.GetCreatureSkill(spell.School).Current;
+
+                                    // Retrieve target's Magic Defense Skill
+                                    Creature creature = (Creature)target;
+                                    var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
+
+                                    if (MagicDefenseCheck(playerMagicSkill, targetMagicDefenseSkill))
+                                    {
+                                        CurrentLandblock.EnqueueBroadcastSound(player, Sound.ResistSpell);
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
+                                        break;
+                                    }
+                                }
+                            }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             targetDeath = LifeMagic(target, spell, spellStatMod, out message);
                             if (message != null)
@@ -710,6 +773,11 @@ namespace ACE.Server.WorldObjects
 
             creature.IsBusy = false;
             return;
+        }
+
+        public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
+        {
+            return Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetMagicSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill));
         }
 
         private bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message)
@@ -1125,8 +1193,8 @@ namespace ACE.Server.WorldObjects
             spellProjectile.Location = new ACE.Entity.Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
             SetSpellProjectilePhysicsState(spellProjectile);
 
-            spellProjectile.ParentWorldObject = this;
-            spellProjectile.TargetWorldObject = target;
+            spellProjectile.ParentWorldObject = (Creature)this;
+            spellProjectile.TargetWorldObject = (Creature)target;
             spellProjectile.SpellId = spellId;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
 
