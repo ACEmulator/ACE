@@ -777,10 +777,7 @@ namespace ACE.Server.WorldObjects
 
         public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
         {
-            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetMagicSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill)))
-                return true;
-
-            return false;
+            return Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetMagicSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill));
         }
 
         private bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message)
@@ -1196,8 +1193,8 @@ namespace ACE.Server.WorldObjects
             spellProjectile.Location = new ACE.Entity.Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
             SetSpellProjectilePhysicsState(spellProjectile);
 
-            spellProjectile.ParentWorldObject = this;
-            spellProjectile.TargetWorldObject = target;
+            spellProjectile.ParentWorldObject = (Creature)this;
+            spellProjectile.TargetWorldObject = (Creature)target;
             spellProjectile.SpellId = spellId;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
 

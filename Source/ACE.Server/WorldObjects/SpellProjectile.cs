@@ -19,13 +19,13 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        private WorldObject projectileCaster;
-        private WorldObject projectileTarget;
+        private Creature projectileCaster;
+        private Creature projectileTarget;
         private uint spellId;
         private uint lifeProjectileDamage;
 
-        public WorldObject ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
-        public WorldObject TargetWorldObject { get => projectileTarget; set => projectileTarget = value; }
+        public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
+        public Creature TargetWorldObject { get => projectileTarget; set => projectileTarget = value; }
         public uint SpellId { get => spellId; set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
 
@@ -111,208 +111,231 @@ namespace ACE.Server.WorldObjects
 
             ProjectileImpact();
 
-            int newSpellTargetVital;
+            // Retrieve caster's skill level in the Magic School
+            var casterMagicSkill = ParentWorldObject.GetCreatureSkill(spell.School).Current;
 
-            if (spell.School == MagicSchool.LifeMagic)
+            // Retrieve target's Magic Defense Skill
+            var targetMagicDefenseSkill = TargetWorldObject.GetCreatureSkill(Skill.MagicDefense).Current;
+
+            if (MagicDefenseCheck(casterMagicSkill, targetMagicDefenseSkill))
             {
+                CurrentLandblock.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
+                if (ParentWorldObject.WeenieClassId == 1)
+                {
+                    Player player = (Player)ParentWorldObject;
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{TargetWorldObject.Name} resists {spell.Name}", ChatMessageType.Magic));
+                }
                 if (TargetWorldObject.WeenieClassId == 1)
                 {
-                    // Player as the target
                     Player targetPlayer = (Player)TargetWorldObject;
-                    if (spell.Name.Contains("Blight"))
-                    {
-                        newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - (LifeProjectileDamage * spellStatMod.DamageRatio));
-                        if (newSpellTargetVital <= 0)
-                            targetPlayer.Mana.Current = 0;
-                        else
-                            targetPlayer.Mana.Current = (uint)newSpellTargetVital;
-                    }
-                    else if (spell.Name.Contains("Tenacity"))
-                    {
-                        newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - (LifeProjectileDamage * spellStatMod.DamageRatio));
-                        if (newSpellTargetVital <= 0)
-                            targetPlayer.Stamina.Current = 0;
-                        else
-                            targetPlayer.Stamina.Current = (uint)newSpellTargetVital;
-                    }
-                    else
-                    {
-                        newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - (LifeProjectileDamage * spellStatMod.DamageRatio));
-                        if (newSpellTargetVital <= 0)
-                            targetPlayer.Health.Current = 0;
-                        else
-                            targetPlayer.Health.Current = (uint)newSpellTargetVital;
-                    }
-
-                    if (projectileCaster.WeenieClassId == 1)
-                    {
-                        Player player = (Player)projectileCaster;
-                        string verb = null, plural = null;
-                        Strings.GetAttackVerb(DamageType.Base, 0.30f, ref verb, ref plural);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {(LifeProjectileDamage * spellStatMod.DamageRatio)} points of damage!", ChatMessageType.Broadcast));
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} {plural} you for {(LifeProjectileDamage * spellStatMod.DamageRatio)} points of damage!", ChatMessageType.Broadcast));
-                    }
-
-                    if (targetPlayer.Health.Current <= 0)
-                    {
-                        targetPlayer.Die();
-                        if (projectileCaster.WeenieClassId == 1)
-                        {
-                            Player player = (Player)projectileCaster;
-                            Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
-                        }
-                        // TODO: death message to the player target
-                    }
-                }
-                else
-                {
-                    // Creature as the target
-                    Player player = (Player)projectileCaster;
-                    string verb = null, plural = null;
-
-                    Creature targetCreature = (Creature)TargetWorldObject;
-                    if (spell.Name.Contains("Blight"))
-                    {
-                        newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - (LifeProjectileDamage * spellStatMod.DamageRatio));
-                        if (newSpellTargetVital <= 0)
-                            targetCreature.Mana.Current = 0;
-                        else
-                            targetCreature.Mana.Current = (uint)newSpellTargetVital;
-                    }
-                    else if (spell.Name.Contains("Blight"))
-                    {
-                        newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - (LifeProjectileDamage * spellStatMod.DamageRatio));
-                        if (newSpellTargetVital <= 0)
-                            targetCreature.Stamina.Current = 0;
-                        else
-                            targetCreature.Stamina.Current = (uint)newSpellTargetVital;
-                    }
-                    else
-                    {
-                        newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - (LifeProjectileDamage * spellStatMod.DamageRatio));
-                        if (newSpellTargetVital <= 0)
-                            targetCreature.Health.Current = 0;
-                        else
-                            targetCreature.Health.Current = (uint)newSpellTargetVital;
-                    }
-
-                    Strings.GetAttackVerb(DamageType.Base, 0.30f, ref verb, ref plural);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetCreature.Name} for {(LifeProjectileDamage * spellStatMod.DamageRatio)} points of damage!", ChatMessageType.Broadcast));
-
-                    if (targetCreature.Health.Current <= 0)
-                    {
-                        targetCreature.Die();
-
-                        Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
-                        player.GrantXp((long)targetCreature.XpOverride, true);
-                    }
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
                 }
             }
             else
             {
-                Random rng = new Random();
+                int newSpellTargetVital;
 
-                int damage = rng.Next((int)spellStatMod.BaseIntensity, (int)(spellStatMod.Variance + spellStatMod.BaseIntensity));
-
-                DamageType damageType;
-                ResistanceType resistanceType;
-                switch (spellStatMod.EType)
+                if (spell.School == MagicSchool.LifeMagic)
                 {
-                    case (uint)DamageType.Acid:
-                        damageType = DamageType.Acid;
-                        resistanceType = ResistanceType.Acid;
-                        break;
-                    case (uint)DamageType.Fire:
-                        damageType = DamageType.Fire;
-                        resistanceType = ResistanceType.Fire;
-                        break;
-                    case (uint)DamageType.Cold:
-                        damageType = DamageType.Cold;
-                        resistanceType = ResistanceType.Cold;
-                        break;
-                    case (uint)DamageType.Electric:
-                        damageType = DamageType.Electric;
-                        resistanceType = ResistanceType.Electric;
-                        break;
-                    case (uint)DamageType.Nether:
-                        damageType = DamageType.Nether;
-                        resistanceType = ResistanceType.Nether;
-                        break;
-                    case (uint)DamageType.Bludgeon:
-                        damageType = DamageType.Bludgeon;
-                        resistanceType = ResistanceType.Bludgeon;
-                        break;
-                    case (uint)DamageType.Pierce:
-                        damageType = DamageType.Pierce;
-                        resistanceType = ResistanceType.Pierce;
-                        break;
-                    default:
-                        damageType = DamageType.Slash;
-                        resistanceType = ResistanceType.Slash;
-                        break;
-                }
-                Strings.DeathMessages.TryGetValue(damageType, out var messages);
-
-                if (TargetWorldObject.WeenieClassId == 1)
-                {
-                    // Player as the target
-                    Player targetPlayer = (Player)TargetWorldObject;
-                    damage = (int)Math.Round(damage * targetPlayer.GetNaturalResistence(resistanceType));
-
-                    newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
-                    if (newSpellTargetVital <= 0)
-                        targetPlayer.Health.Current = 0;
-                    else
-                        targetPlayer.Health.Current = (uint)newSpellTargetVital;
-
-                    if (projectileCaster.WeenieClassId == 1)
+                    if (TargetWorldObject.WeenieClassId == 1)
                     {
-                        Player player = (Player)projectileCaster;
-                        string verb = null, plural = null;
-                        Strings.GetAttackVerb(damageType, 0.30f, ref verb, ref plural);
-                        var type = damageType.GetName().ToLower();
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of {type} damage!", ChatMessageType.Broadcast));
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} {plural} you for {damage} points of {type} damage!", ChatMessageType.Broadcast));
-                    }
+                        // Player as the target
+                        Player targetPlayer = (Player)TargetWorldObject;
+                        if (spell.Name.Contains("Blight"))
+                        {
+                            newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - (LifeProjectileDamage * spellStatMod.DamageRatio));
+                            if (newSpellTargetVital <= 0)
+                                targetPlayer.Mana.Current = 0;
+                            else
+                                targetPlayer.Mana.Current = (uint)newSpellTargetVital;
+                        }
+                        else if (spell.Name.Contains("Tenacity"))
+                        {
+                            newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - (LifeProjectileDamage * spellStatMod.DamageRatio));
+                            if (newSpellTargetVital <= 0)
+                                targetPlayer.Stamina.Current = 0;
+                            else
+                                targetPlayer.Stamina.Current = (uint)newSpellTargetVital;
+                        }
+                        else
+                        {
+                            newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - (LifeProjectileDamage * spellStatMod.DamageRatio));
+                            if (newSpellTargetVital <= 0)
+                                targetPlayer.Health.Current = 0;
+                            else
+                                targetPlayer.Health.Current = (uint)newSpellTargetVital;
+                        }
 
-                    if (targetPlayer.Health.Current <= 0)
-                    {
-                        targetPlayer.Die();
                         if (projectileCaster.WeenieClassId == 1)
                         {
                             Player player = (Player)projectileCaster;
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
+                            string verb = null, plural = null;
+                            Strings.GetAttackVerb(DamageType.Base, 0.30f, ref verb, ref plural);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {(LifeProjectileDamage * spellStatMod.DamageRatio)} points of damage!", ChatMessageType.Broadcast));
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} {plural} you for {(LifeProjectileDamage * spellStatMod.DamageRatio)} points of damage!", ChatMessageType.Broadcast));
                         }
-                        // TODO: death message to the player target
+
+                        if (targetPlayer.Health.Current <= 0)
+                        {
+                            targetPlayer.Die();
+                            if (projectileCaster.WeenieClassId == 1)
+                            {
+                                Player player = (Player)projectileCaster;
+                                Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
+                            }
+                            // TODO: death message to the player target
+                        }
+                    }
+                    else
+                    {
+                        // Creature as the target
+                        Player player = (Player)projectileCaster;
+                        string verb = null, plural = null;
+
+                        Creature targetCreature = (Creature)TargetWorldObject;
+                        if (spell.Name.Contains("Blight"))
+                        {
+                            newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - (LifeProjectileDamage * spellStatMod.DamageRatio));
+                            if (newSpellTargetVital <= 0)
+                                targetCreature.Mana.Current = 0;
+                            else
+                                targetCreature.Mana.Current = (uint)newSpellTargetVital;
+                        }
+                        else if (spell.Name.Contains("Blight"))
+                        {
+                            newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - (LifeProjectileDamage * spellStatMod.DamageRatio));
+                            if (newSpellTargetVital <= 0)
+                                targetCreature.Stamina.Current = 0;
+                            else
+                                targetCreature.Stamina.Current = (uint)newSpellTargetVital;
+                        }
+                        else
+                        {
+                            newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - (LifeProjectileDamage * spellStatMod.DamageRatio));
+                            if (newSpellTargetVital <= 0)
+                                targetCreature.Health.Current = 0;
+                            else
+                                targetCreature.Health.Current = (uint)newSpellTargetVital;
+                        }
+
+                        Strings.GetAttackVerb(DamageType.Base, 0.30f, ref verb, ref plural);
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetCreature.Name} for {(LifeProjectileDamage * spellStatMod.DamageRatio)} points of damage!", ChatMessageType.Broadcast));
+
+                        if (targetCreature.Health.Current <= 0)
+                        {
+                            targetCreature.Die();
+
+                            Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
+                            player.GrantXp((long)targetCreature.XpOverride, true);
+                        }
                     }
                 }
                 else
                 {
-                    // Creature as the target
-                    Player player = (Player)projectileCaster;
-                    string verb = null, plural = null;
+                    Random rng = new Random();
 
-                    Creature targetCreature = (Creature)TargetWorldObject;
-                    damage = (int)Math.Round(damage * targetCreature.GetNaturalResistence(resistanceType));
+                    int damage = rng.Next((int)spellStatMod.BaseIntensity, (int)(spellStatMod.Variance + spellStatMod.BaseIntensity));
 
-                    newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
-                    if (newSpellTargetVital <= 0)
-                        targetCreature.Health.Current = 0;
-                    else
-                        targetCreature.Health.Current = (uint)newSpellTargetVital;
-
-                    Strings.GetAttackVerb(damageType, 0.30f, ref verb, ref plural);
-                    var type = damageType.GetName().ToLower();
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetCreature.Name} for {damage} points of {type} damage!", ChatMessageType.Broadcast));
-
-                    if (targetCreature.Health.Current <= 0)
+                    DamageType damageType;
+                    ResistanceType resistanceType;
+                    switch (spellStatMod.EType)
                     {
-                        targetCreature.Die();
+                        case (uint)DamageType.Acid:
+                            damageType = DamageType.Acid;
+                            resistanceType = ResistanceType.Acid;
+                            break;
+                        case (uint)DamageType.Fire:
+                            damageType = DamageType.Fire;
+                            resistanceType = ResistanceType.Fire;
+                            break;
+                        case (uint)DamageType.Cold:
+                            damageType = DamageType.Cold;
+                            resistanceType = ResistanceType.Cold;
+                            break;
+                        case (uint)DamageType.Electric:
+                            damageType = DamageType.Electric;
+                            resistanceType = ResistanceType.Electric;
+                            break;
+                        case (uint)DamageType.Nether:
+                            damageType = DamageType.Nether;
+                            resistanceType = ResistanceType.Nether;
+                            break;
+                        case (uint)DamageType.Bludgeon:
+                            damageType = DamageType.Bludgeon;
+                            resistanceType = ResistanceType.Bludgeon;
+                            break;
+                        case (uint)DamageType.Pierce:
+                            damageType = DamageType.Pierce;
+                            resistanceType = ResistanceType.Pierce;
+                            break;
+                        default:
+                            damageType = DamageType.Slash;
+                            resistanceType = ResistanceType.Slash;
+                            break;
+                    }
+                    Strings.DeathMessages.TryGetValue(damageType, out var messages);
 
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
-                        player.GrantXp((long)targetCreature.XpOverride, true);
+                    if (TargetWorldObject.WeenieClassId == 1)
+                    {
+                        // Player as the target
+                        Player targetPlayer = (Player)TargetWorldObject;
+                        damage = (int)Math.Round(damage * targetPlayer.GetNaturalResistence(resistanceType));
+
+                        newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
+                        if (newSpellTargetVital <= 0)
+                            targetPlayer.Health.Current = 0;
+                        else
+                            targetPlayer.Health.Current = (uint)newSpellTargetVital;
+
+                        if (projectileCaster.WeenieClassId == 1)
+                        {
+                            Player player = (Player)projectileCaster;
+                            string verb = null, plural = null;
+                            Strings.GetAttackVerb(damageType, 0.30f, ref verb, ref plural);
+                            var type = damageType.GetName().ToLower();
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of {type} damage!", ChatMessageType.Broadcast));
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} {plural} you for {damage} points of {type} damage!", ChatMessageType.Broadcast));
+                        }
+
+                        if (targetPlayer.Health.Current <= 0)
+                        {
+                            targetPlayer.Die();
+                            if (projectileCaster.WeenieClassId == 1)
+                            {
+                                Player player = (Player)projectileCaster;
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
+                            }
+                            // TODO: death message to the player target
+                        }
+                    }
+                    else
+                    {
+                        // Creature as the target
+                        Player player = (Player)projectileCaster;
+                        string verb = null, plural = null;
+
+                        Creature targetCreature = (Creature)TargetWorldObject;
+                        damage = (int)Math.Round(damage * targetCreature.GetNaturalResistence(resistanceType));
+
+                        newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
+                        if (newSpellTargetVital <= 0)
+                            targetCreature.Health.Current = 0;
+                        else
+                            targetCreature.Health.Current = (uint)newSpellTargetVital;
+
+                        Strings.GetAttackVerb(damageType, 0.30f, ref verb, ref plural);
+                        var type = damageType.GetName().ToLower();
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetCreature.Name} for {damage} points of {type} damage!", ChatMessageType.Broadcast));
+
+                        if (targetCreature.Health.Current <= 0)
+                        {
+                            targetCreature.Die();
+
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
+                            player.GrantXp((long)targetCreature.XpOverride, true);
+                        }
                     }
                 }
             }
