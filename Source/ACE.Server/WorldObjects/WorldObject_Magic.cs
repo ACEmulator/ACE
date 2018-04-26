@@ -225,7 +225,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Grab player's skill level in the spell's Magic School
-            var magicSkill = player.GetCreatureSkill(spell.School);
+            var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
             if (target == null)
                 target = player.GetWieldedItem(guidTarget);
@@ -235,7 +235,7 @@ namespace ACE.Server.WorldObjects
                 {
                     float distanceTo = Location.Distance2D(target.Location);
 
-                    if (distanceTo > spell.BaseRangeConstant + magicSkill.Current * spell.BaseRangeMod)
+                    if (distanceTo > spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod)
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
                             new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
@@ -246,7 +246,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Ensure that a harmful spell isn't being cast on a player target that doesn't have the same PK status
-            if (target.WeenieClassId == 1)
+            if (target.WeenieClassId == 1 && player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK)
             {
                 bool isSpellHarmful = IsSpellHarmful(spell);
                 if (player.PlayerKillerStatus != target.PlayerKillerStatus && isSpellHarmful)
@@ -260,8 +260,8 @@ namespace ACE.Server.WorldObjects
             float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
             var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
 
-            bool spellCastSuccess = false || ((Physics.Common.Random.RollDice(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill.Current, (int)spell.Power)))
-                && (magicSkill.Current >= (int)spell.Power - 50) && (magicSkill.Current > 0));
+            bool spellCastSuccess = false || ((Physics.Common.Random.RollDice(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)spell.Power)))
+                && (magicSkill >= (int)spell.Power - 50) && (magicSkill > 0));
 
             // Calculating mana usage
             #region
@@ -426,8 +426,19 @@ namespace ACE.Server.WorldObjects
                         case MagicSchool.CreatureEnchantment:
                             if (IsSpellHarmful(spell))
                             {
-                                if (MagicDefenseCheck((Creature)this, (Creature)target, spell.School))
+                                // Retrieve player's skill level in the Magic School
+                                var playerMagicSkill = player.GetCreatureSkill(spell.School).Current;
+
+                                // Retrieve target's Magic Defense Skill
+                                Creature creature = (Creature)target;
+                                var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
+
+                                if (MagicDefenseCheck(playerMagicSkill, targetMagicDefenseSkill))
+                                {
+                                    CurrentLandblock.EnqueueBroadcastSound(player, Sound.ResistSpell);
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
                                     break;
+                                }
                             }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             CreatureMagic(target, spell, spellStatMod);
@@ -437,8 +448,19 @@ namespace ACE.Server.WorldObjects
                             {
                                 if (IsSpellHarmful(spell))
                                 {
-                                    if (MagicDefenseCheck((Creature)this, (Creature)target, spell.School))
+                                    // Retrieve player's skill level in the Magic School
+                                    var playerMagicSkill = player.GetCreatureSkill(spell.School).Current;
+
+                                    // Retrieve target's Magic Defense Skill
+                                    Creature creature = (Creature)target;
+                                    var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
+
+                                    if (MagicDefenseCheck(playerMagicSkill, targetMagicDefenseSkill))
+                                    {
+                                        CurrentLandblock.EnqueueBroadcastSound(player, Sound.ResistSpell);
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
                                         break;
+                                    }
                                 }
                             }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
@@ -753,16 +775,9 @@ namespace ACE.Server.WorldObjects
             return;
         }
 
-        public static bool MagicDefenseCheck(Creature caster, Creature target, MagicSchool magicSchool)
+        public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
         {
-            // Retrieve caster's skill level in the Magic School
-            var casterMagicSkill = caster.GetCreatureSkill(magicSchool).Current;
-
-            // Retrieve target's Magic Defense Skill
-            var targetMagicDefenseSkill = target.GetCreatureSkill(Skill.MagicDefense).Current;
-
-            // TODO :: Still a WIP
-            if (casterMagicSkill < ((int)targetMagicDefenseSkill - 10))
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetMagicSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill)))
                 return true;
 
             return false;
