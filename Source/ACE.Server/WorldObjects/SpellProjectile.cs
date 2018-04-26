@@ -74,6 +74,15 @@ namespace ACE.Server.WorldObjects
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddAction(this, () =>
             {
+                ReportCollisions = false;
+                Ethereal = true;
+                IgnoreCollisions = true;
+                NoDraw = true;
+                Cloaked = true;
+                LightsStatus = false;
+
+                EnqueueBroadcastPhysicsState();
+
                 float effect = Math.Max(0.0f, Math.Min(1.0f, ((spell.Power - 1.0f) / 7.0f)));
                 CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, effect));
             });
@@ -97,9 +106,10 @@ namespace ACE.Server.WorldObjects
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
-            ProjectileImpact();
             if (target != TargetWorldObject.Guid)
                 return;
+
+            ProjectileImpact();
 
             int newSpellTargetVital;
 
