@@ -74,11 +74,7 @@ namespace ACE.Server.WorldObjects
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddAction(this, () =>
             {
-                Inelastic = true;
-                ScriptedCollision = true;
-                Missile = true;
-                PathClipped = true;
-                AlignPath = true;
+                ReportCollisions = false;
                 Ethereal = true;
                 IgnoreCollisions = true;
                 NoDraw = true;
