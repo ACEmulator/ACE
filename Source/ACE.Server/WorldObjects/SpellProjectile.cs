@@ -79,6 +79,7 @@ namespace ACE.Server.WorldObjects
                 IgnoreCollisions = true;
                 NoDraw = true;
                 Cloaked = true;
+                LightsStatus = false;
 
                 EnqueueBroadcastPhysicsState();
 
