@@ -224,7 +224,8 @@ namespace ACE.Server.WorldObjects
 
             if (IsInvalidTarget(spell, target))
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.IncorrectTargetType));
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{spell.Name} cannot be cast on {target.Name}."));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
                 return;
             }
 
