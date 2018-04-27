@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-
+            corpse.RemoveProperty(PropertyInt.Value);
             LandblockManager.AddObject(corpse);
         }
 
