@@ -284,7 +284,11 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // examine item on land block
-                CurrentLandblock.GetObject(examinationId).Examine(Session);
+                wo = CurrentLandblock.GetObject(examinationId);
+                if(wo != null)
+                {
+                    CurrentLandblock.GetObject(examinationId).Examine(Session);
+                }
             }
 
             RequestedAppraisalTarget = examinationId.Full;
