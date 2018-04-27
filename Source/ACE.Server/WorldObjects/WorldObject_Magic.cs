@@ -161,10 +161,45 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         private bool IsSpellHarmful(SpellBase spell)
         {
+            // All War and Void Magic spells are harmful
             if (spell.School == MagicSchool.WarMagic || spell.School == MagicSchool.VoidMagic)
                 return true;
 
-            if (spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.LifeMagic && (spell.Bitfield & 0x4) == 0)
+            // Life Magic spells that don't have bit three of their bitfield property set are harmful
+            if (spell.School == MagicSchool.LifeMagic && (spell.Bitfield & 0x4) == 0)
+                return true;
+
+            // Creature Magic spells that don't have bit three of their bitfield property set are harmful
+            if (spell.School == MagicSchool.CreatureEnchantment && (spell.Bitfield & 0x4) == 0)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the target for the spell being cast is invalid
+        /// </summary>
+        /// <param name="spell"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        private bool IsInvalidTarget(SpellBase spell, WorldObject target)
+        {
+            // Self targeted spells should have a target of self
+            if ((int)Math.Floor(spell.BaseRangeConstant) == 0 && target.WeenieClassId != 1)
+                return true;
+
+            // Invalidate non Item Enchantment spells cast against non Creatures or Players
+            if (spell.School != MagicSchool.ItemEnchantment)
+            {
+                if (target.WeenieType != WeenieType.Creature)
+                {
+                    if (target.WeenieClassId != 1)
+                        return true;
+                }
+            }
+
+            // Invalidate beneficial spells against Creature/Non-player targets
+            if (target.WeenieType == WeenieType.Creature && IsSpellHarmful(spell) == false)
                 return true;
 
             return false;
@@ -178,6 +213,21 @@ namespace ACE.Server.WorldObjects
             Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject target = CurrentLandblock.GetObject(guidTarget);
 
+            SpellTable spellTable = DatManager.PortalDat.SpellTable;
+            if (!spellTable.Spells.ContainsKey(spellId))
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
+                return;
+            }
+
+            SpellBase spell = spellTable.Spells[spellId];
+
+            if (IsInvalidTarget(spell, target))
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.IncorrectTargetType));
+                return;
+            }
+
             if (player.IsBusy == true)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
@@ -186,43 +236,9 @@ namespace ACE.Server.WorldObjects
             else
                 player.IsBusy = true;
 
-            SpellTable spellTable = DatManager.PortalDat.SpellTable;
-            if (!spellTable.Spells.ContainsKey(spellId))
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
-                player.IsBusy = false;
-                return;
-            }
-
-            SpellBase spell = spellTable.Spells[spellId];
-
             Database.Models.World.Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
             uint targetEffect = spell.TargetEffect;
-
-            if (guidTarget == null)
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YourSpellTargetIsMissing));
-                player.IsBusy = false;
-                return;
-            }
-
-            if (spell.BaseRangeConstant == 0 && target.WeenieClassId != 1)
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.IncorrectTargetType));
-                player.IsBusy = false;
-                return;
-            }
-
-            if (spell.School == MagicSchool.LifeMagic && spell.MetaSpellType != SpellType.Transfer)
-            {
-                if (spellStatMod.Boost > 0 && target.WeenieClassId != 1 && WeenieClassId == 1)
-                {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.IncorrectTargetType));
-                    player.IsBusy = false;
-                    return;
-                }
-            }
 
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
@@ -272,10 +288,9 @@ namespace ACE.Server.WorldObjects
             {
                 baseManaPercent = spell.Power / z;
             }
-            Random rnd = new Random();
             double preCost;
             uint manaUsed;
-            if (baseManaPercent == 1)
+            if ((int)Math.Floor(baseManaPercent) == 1)
             {
                 preCost = spell.BaseMana;
                 manaUsed = (uint)preCost;
@@ -285,7 +300,7 @@ namespace ACE.Server.WorldObjects
                 preCost = spell.BaseMana * baseManaPercent;
                 if (preCost < 1)
                     preCost = 1;
-                manaUsed = (uint)rnd.Next(1, (int)preCost);
+                manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
             }
             if (spell.MetaSpellType == SpellType.Transfer)
             {
@@ -309,7 +324,6 @@ namespace ACE.Server.WorldObjects
                     });
 
                     resourceCheckChain.AddDelaySeconds(2.0f);
-
                     resourceCheckChain.AddAction(this, () =>
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -330,12 +344,7 @@ namespace ACE.Server.WorldObjects
                     });
 
                     resourceCheckChain.AddDelaySeconds(2.0f);
-
-                    resourceCheckChain.AddAction(this, () =>
-                    {
-                        player.IsBusy = false;
-                    });
-
+                    resourceCheckChain.AddAction(this, () => player.IsBusy = false);
                     resourceCheckChain.EnqueueChain();
 
                     return;
@@ -351,7 +360,6 @@ namespace ACE.Server.WorldObjects
                 });
 
                 resourceCheckChain.AddDelaySeconds(2.0f);
-
                 resourceCheckChain.AddAction(this, () =>
                 {
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -363,10 +371,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
             else
-            {
-                rnd = null;
                 player.Mana.Current = player.Mana.Current - manaUsed;
-            }
             #endregion
 
             ActionChain spellChain = new ActionChain();
@@ -557,10 +562,9 @@ namespace ACE.Server.WorldObjects
                 {
                     baseManaPercent = spell.Power / z;
                 }
-                Random rnd = new Random();
                 double preCost;
                 uint manaUsed;
-                if (baseManaPercent == 1)
+                if ((int)Math.Floor(baseManaPercent) == 1)
                 {
                     preCost = spell.BaseMana;
                     manaUsed = (uint)preCost;
@@ -570,7 +574,7 @@ namespace ACE.Server.WorldObjects
                     preCost = spell.BaseMana * baseManaPercent;
                     if (preCost < 1)
                         preCost = 1;
-                    manaUsed = (uint)rnd.Next(1, (int)preCost);
+                    manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
                 }
                 if (spell.MetaSpellType == SpellType.Transfer)
                 {
@@ -594,7 +598,6 @@ namespace ACE.Server.WorldObjects
                         });
 
                         resourceCheckChain.AddDelaySeconds(2.0f);
-
                         resourceCheckChain.AddAction(this, () =>
                         {
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -605,7 +608,8 @@ namespace ACE.Server.WorldObjects
 
                         return;
                     }
-                    else if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
+
+                    if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
                     {
                         ActionChain resourceCheckChain = new ActionChain();
 
@@ -615,12 +619,7 @@ namespace ACE.Server.WorldObjects
                         });
 
                         resourceCheckChain.AddDelaySeconds(2.0f);
-
-                        resourceCheckChain.AddAction(this, () =>
-                        {
-                            player.IsBusy = false;
-                        });
-
+                        resourceCheckChain.AddAction(this, () => player.IsBusy = false);
                         resourceCheckChain.EnqueueChain();
 
                         return;
@@ -636,7 +635,6 @@ namespace ACE.Server.WorldObjects
                     });
 
                     resourceCheckChain.AddDelaySeconds(2.0f);
-
                     resourceCheckChain.AddAction(this, () =>
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -648,10 +646,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
                 else
-                {
-                    rnd = null;
                     player.Mana.Current = player.Mana.Current - manaUsed;
-                }
             }
             #endregion
 
@@ -784,8 +779,6 @@ namespace ACE.Server.WorldObjects
         {
             string srcVital, destVital, action;
 
-            Random rng = new Random();
-
             Player player = null;
             Creature creature = null;
             if (WeenieClassId == 1)
@@ -814,7 +807,7 @@ namespace ACE.Server.WorldObjects
                         minBoostValue = (int)spellStatMod.Boost;
                         maxBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                     }
-                    int boost = rng.Next(minBoostValue, maxBoostValue);
+                    int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
                     if (boost < 0)
                         action = "drain";
                     else
@@ -1016,7 +1009,7 @@ namespace ACE.Server.WorldObjects
                     message = "Spell not implemented, yet!";
                     break;
                 case SpellType.Enchantment:
-                    message = CreateEnchantment(target, spell, spellStatMod, false);
+                    message = CreateEnchantment(target, spell, spellStatMod);
                     break;
                 default:
                     message = "Spell not implemented, yet!";
@@ -1029,12 +1022,12 @@ namespace ACE.Server.WorldObjects
                 return false;
         }
 
-        private string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool showMsg = true)
+        private string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
-            return CreateEnchantment(target, spell, spellStatMod, showMsg);
+            return CreateEnchantment(target, spell, spellStatMod);
         }
 
-        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool showMsg = true)
+        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
             if (WeenieClassId == 1)
             {
@@ -1063,10 +1056,7 @@ namespace ACE.Server.WorldObjects
 
                 var targetName = this == target ? "yourself" : target.Name;
 
-                // send network
                 var message = $"You cast {spell.Name} on {targetName}{suffix}";
-                var text = new GameMessageSystemChat(message, ChatMessageType.Magic);
-                var useDone = new GameEventUseDone(player.Session, WeenieError.None);
 
                 if (target is Player)
                 {
@@ -1077,10 +1067,6 @@ namespace ACE.Server.WorldObjects
                         playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
                 }
 
-                if (showMsg)
-                    player.Session.Network.EnqueueSend(text);
-
-                player.Session.Network.EnqueueSend(useDone);
                 return message;
             }
 
@@ -1189,7 +1175,10 @@ namespace ACE.Server.WorldObjects
                 spellProjectile.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
             var loc = Location;
-            origin = ACE.Entity.Position.FromGlobal(origin).Pos;
+            origin = loc.Pos;
+            origin.Z += Height / 2.0f;
+            origin += dir * 2.0f;
+
             spellProjectile.Location = new ACE.Entity.Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
             SetSpellProjectilePhysicsState(spellProjectile);
 
