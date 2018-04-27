@@ -84,7 +84,37 @@ namespace ACE.Server.WorldObjects
             // Transfer of generated treasure from creature to corpse here
 
             var random = new Random((int)DateTime.UtcNow.Ticks);
-
+            int level = (int)this.Level;
+            int tier;
+            if (level < 16)
+            {
+                tier = 1;
+            }
+            else if (level < 31)
+            {
+                tier = 2;
+            }
+            else if (level < 60)
+            {
+                tier = 3;
+            }
+            else if (level < 80)
+            {
+                tier = 4;
+            }
+            else if (level < 115)
+            {
+                tier = 5;
+            }
+            else if (level < 160)
+            {
+                tier = 6;
+            }
+            else
+            {
+                tier = 7;
+            }
+            ////Tier 8 is reserved for special creatures, usually based on which landblock they were on...Not level based. to be added later
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
                 if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
@@ -92,19 +122,19 @@ namespace ACE.Server.WorldObjects
                 {
                     if (trophy.WeenieClassId == 0) // Randomized Loot
                     {
-                        //var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
+                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier);
 
-                        //corpse.TryAddToInventory(wo);
+                        corpse.TryAddToInventory(wo);
 
-                        var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
+                        //var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
 
-                        if (book == null)
-                            continue;
+                        //if (book == null)
+                        //    continue;
 
-                        book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
-                        book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
+                        //book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
+                        //book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
 
-                        corpse.TryAddToInventory(book);
+                        //corpse.TryAddToInventory(book);
                     }
                     else // Trophy Loot
                     {
