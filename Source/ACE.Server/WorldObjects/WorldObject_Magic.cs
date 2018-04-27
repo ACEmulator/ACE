@@ -288,10 +288,9 @@ namespace ACE.Server.WorldObjects
             {
                 baseManaPercent = spell.Power / z;
             }
-            Random rnd = new Random();
             double preCost;
             uint manaUsed;
-            if (baseManaPercent == 1)
+            if ((int)Math.Floor(baseManaPercent) == 1)
             {
                 preCost = spell.BaseMana;
                 manaUsed = (uint)preCost;
@@ -301,7 +300,7 @@ namespace ACE.Server.WorldObjects
                 preCost = spell.BaseMana * baseManaPercent;
                 if (preCost < 1)
                     preCost = 1;
-                manaUsed = (uint)rnd.Next(1, (int)preCost);
+                manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
             }
             if (spell.MetaSpellType == SpellType.Transfer)
             {
@@ -325,7 +324,6 @@ namespace ACE.Server.WorldObjects
                     });
 
                     resourceCheckChain.AddDelaySeconds(2.0f);
-
                     resourceCheckChain.AddAction(this, () =>
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -346,12 +344,7 @@ namespace ACE.Server.WorldObjects
                     });
 
                     resourceCheckChain.AddDelaySeconds(2.0f);
-
-                    resourceCheckChain.AddAction(this, () =>
-                    {
-                        player.IsBusy = false;
-                    });
-
+                    resourceCheckChain.AddAction(this, () => player.IsBusy = false);
                     resourceCheckChain.EnqueueChain();
 
                     return;
@@ -367,7 +360,6 @@ namespace ACE.Server.WorldObjects
                 });
 
                 resourceCheckChain.AddDelaySeconds(2.0f);
-
                 resourceCheckChain.AddAction(this, () =>
                 {
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -379,10 +371,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
             else
-            {
-                rnd = null;
                 player.Mana.Current = player.Mana.Current - manaUsed;
-            }
             #endregion
 
             ActionChain spellChain = new ActionChain();
@@ -573,10 +562,9 @@ namespace ACE.Server.WorldObjects
                 {
                     baseManaPercent = spell.Power / z;
                 }
-                Random rnd = new Random();
                 double preCost;
                 uint manaUsed;
-                if (baseManaPercent == 1)
+                if ((int)Math.Floor(baseManaPercent) == 1)
                 {
                     preCost = spell.BaseMana;
                     manaUsed = (uint)preCost;
@@ -586,7 +574,7 @@ namespace ACE.Server.WorldObjects
                     preCost = spell.BaseMana * baseManaPercent;
                     if (preCost < 1)
                         preCost = 1;
-                    manaUsed = (uint)rnd.Next(1, (int)preCost);
+                    manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
                 }
                 if (spell.MetaSpellType == SpellType.Transfer)
                 {
@@ -610,7 +598,6 @@ namespace ACE.Server.WorldObjects
                         });
 
                         resourceCheckChain.AddDelaySeconds(2.0f);
-
                         resourceCheckChain.AddAction(this, () =>
                         {
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -621,7 +608,8 @@ namespace ACE.Server.WorldObjects
 
                         return;
                     }
-                    else if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
+
+                    if ((vitalChange + 10) > player.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source))
                     {
                         ActionChain resourceCheckChain = new ActionChain();
 
@@ -631,12 +619,7 @@ namespace ACE.Server.WorldObjects
                         });
 
                         resourceCheckChain.AddDelaySeconds(2.0f);
-
-                        resourceCheckChain.AddAction(this, () =>
-                        {
-                            player.IsBusy = false;
-                        });
-
+                        resourceCheckChain.AddAction(this, () => player.IsBusy = false);
                         resourceCheckChain.EnqueueChain();
 
                         return;
@@ -652,7 +635,6 @@ namespace ACE.Server.WorldObjects
                     });
 
                     resourceCheckChain.AddDelaySeconds(2.0f);
-
                     resourceCheckChain.AddAction(this, () =>
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
@@ -664,10 +646,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
                 else
-                {
-                    rnd = null;
                     player.Mana.Current = player.Mana.Current - manaUsed;
-                }
             }
             #endregion
 
@@ -800,8 +779,6 @@ namespace ACE.Server.WorldObjects
         {
             string srcVital, destVital, action;
 
-            Random rng = new Random();
-
             Player player = null;
             Creature creature = null;
             if (WeenieClassId == 1)
@@ -830,7 +807,7 @@ namespace ACE.Server.WorldObjects
                         minBoostValue = (int)spellStatMod.Boost;
                         maxBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                     }
-                    int boost = rng.Next(minBoostValue, maxBoostValue);
+                    int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
                     if (boost < 0)
                         action = "drain";
                     else

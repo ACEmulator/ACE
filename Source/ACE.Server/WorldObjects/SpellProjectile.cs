@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -234,9 +235,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    Random rng = new Random();
-
-                    int damage = rng.Next((int)spellStatMod.BaseIntensity, (int)(spellStatMod.Variance + spellStatMod.BaseIntensity));
+                    int damage = Physics.Common.Random.RollDice((int)spellStatMod.BaseIntensity, (int)(spellStatMod.Variance + spellStatMod.BaseIntensity));
 
                     DamageType damageType;
                     ResistanceType resistanceType;
