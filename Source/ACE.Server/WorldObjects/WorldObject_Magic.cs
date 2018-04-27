@@ -1165,15 +1165,20 @@ namespace ACE.Server.WorldObjects
 
             origin += dir * 2.0f;
 
+            float time;
             var velocity = dir * speed;
+            var dist = (dest - origin).Length();
             if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Arc"))
             {
-                var dist = (dest - origin).Length();
                 speed = 20.0f;
-                spellProjectile.Velocity = GetSpellProjectileVelocity(origin, dest, speed);
+                spellProjectile.Velocity = GetSpellProjectileVelocity(origin, dest, speed, out time);
             }
             else
+            {
                 spellProjectile.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
+                var velocityLength = spellProjectile.Velocity.Get().Length();
+                time = dist / velocityLength;
+            }
 
             var loc = Location;
             origin = loc.Pos;
@@ -1190,6 +1195,12 @@ namespace ACE.Server.WorldObjects
 
             LandblockManager.AddObject(spellProjectile);
             CurrentLandblock.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
+
+            // TODO : removed when real server projectile tracking and collisions are implemented
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(time);
+            actionChain.AddAction(spellProjectile, () => spellProjectile.HandleOnCollide(spellProjectile.TargetGuid));
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
@@ -1208,9 +1219,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the velocity to launch the projectile from origin to dest
         /// </summary>
-        public AceVector3 GetSpellProjectileVelocity(Vector3 origin, Vector3 dest, float speed)
+        public AceVector3 GetSpellProjectileVelocity(Vector3 origin, Vector3 dest, float speed, out float time)
         {
-            Trajectory.SolveBallisticArc(origin, speed, dest, out Vector3 velocity, out float time);
+            Trajectory.SolveBallisticArc(origin, speed, dest, out Vector3 velocity, out time);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);
         }
