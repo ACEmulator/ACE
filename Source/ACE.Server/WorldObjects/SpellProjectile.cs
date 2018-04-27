@@ -20,12 +20,12 @@ namespace ACE.Server.WorldObjects
     public class SpellProjectile : WorldObject
     {
         private Creature projectileCaster;
-        private Creature projectileTarget;
+        private ObjectGuid targetGuid;
         private uint spellId;
         private uint lifeProjectileDamage;
 
         public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
-        public Creature TargetWorldObject { get => projectileTarget; set => projectileTarget = value; }
+        public ObjectGuid TargetGuid { get => targetGuid; set => targetGuid = value; }
         public uint SpellId { get => spellId; set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
 
@@ -63,7 +63,7 @@ namespace ACE.Server.WorldObjects
             // First heartbeat always appears to happen after spell has already traveled its maximum range, already
             // ProjectileImpact();
             // TODO: Following line should be removed and previous line uncommented, once projectile movement and collision is server controlled
-            HandleOnCollide(projectileTarget.Guid);
+            HandleOnCollide(targetGuid);
         }
 
         private void ProjectileImpact()
@@ -92,21 +92,38 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Handles collision with not the target
+        /// Handles collision with scenery or other static objects that would block a projectile from reaching its target,
+        /// in which case the projectile should be removed with no further processing.
         /// </summary>
         public void HandleOnCollide()
         {
             ProjectileImpact();
         }
 
-        public void HandleOnCollide(ObjectGuid target)
+        public void HandleOnCollide(ObjectGuid guidTarget)
         {
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             SpellBase spell = spellTable.Spells[spellId];
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
-            if (target != TargetWorldObject.Guid)
+            // Ensure target still exist before proceeding to handle collision
+            Creature target = CurrentLandblock.GetObject(guidTarget) as Creature;
+            if (target == null)
+                return;
+
+            // Projectile struck some target that isn't a player or creature
+            if (target.WeenieType != WeenieType.Creature)
+            {
+                if (target.WeenieClassId != 1)
+                {
+                    ProjectileImpact();
+                    return;
+                }
+            }
+
+            // Collision registered against a valid target that was not the intended target
+            if (guidTarget != targetGuid)
                 return;
 
             ProjectileImpact();
@@ -115,7 +132,7 @@ namespace ACE.Server.WorldObjects
             var casterMagicSkill = ParentWorldObject.GetCreatureSkill(spell.School).Current;
 
             // Retrieve target's Magic Defense Skill
-            var targetMagicDefenseSkill = TargetWorldObject.GetCreatureSkill(Skill.MagicDefense).Current;
+            var targetMagicDefenseSkill = target.GetCreatureSkill(Skill.MagicDefense).Current;
 
             if (MagicDefenseCheck(casterMagicSkill, targetMagicDefenseSkill))
             {
@@ -123,11 +140,11 @@ namespace ACE.Server.WorldObjects
                 if (ParentWorldObject.WeenieClassId == 1)
                 {
                     Player player = (Player)ParentWorldObject;
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{TargetWorldObject.Name} resists {spell.Name}", ChatMessageType.Magic));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));
                 }
-                if (TargetWorldObject.WeenieClassId == 1)
+                if (target.WeenieClassId == 1)
                 {
-                    Player targetPlayer = (Player)TargetWorldObject;
+                    Player targetPlayer = (Player)target;
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
                 }
             }
@@ -137,10 +154,10 @@ namespace ACE.Server.WorldObjects
 
                 if (spell.School == MagicSchool.LifeMagic)
                 {
-                    if (TargetWorldObject.WeenieClassId == 1)
+                    if (target.WeenieClassId == 1)
                     {
                         // Player as the target
-                        Player targetPlayer = (Player)TargetWorldObject;
+                        Player targetPlayer = (Player)target;
                         if (spell.Name.Contains("Blight"))
                         {
                             newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - (LifeProjectileDamage * spellStatMod.DamageRatio));
@@ -193,7 +210,7 @@ namespace ACE.Server.WorldObjects
                         Player player = (Player)projectileCaster;
                         string verb = null, plural = null;
 
-                        Creature targetCreature = (Creature)TargetWorldObject;
+                        Creature targetCreature = (Creature)target;
                         if (spell.Name.Contains("Blight"))
                         {
                             newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - (LifeProjectileDamage * spellStatMod.DamageRatio));
@@ -275,10 +292,10 @@ namespace ACE.Server.WorldObjects
                     }
                     Strings.DeathMessages.TryGetValue(damageType, out var messages);
 
-                    if (TargetWorldObject.WeenieClassId == 1)
+                    if (target.WeenieClassId == 1)
                     {
                         // Player as the target
-                        Player targetPlayer = (Player)TargetWorldObject;
+                        Player targetPlayer = (Player)target;
                         damage = (int)Math.Round(damage * targetPlayer.GetNaturalResistence(resistanceType));
 
                         newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;
@@ -314,7 +331,7 @@ namespace ACE.Server.WorldObjects
                         Player player = (Player)projectileCaster;
                         string verb = null, plural = null;
 
-                        Creature targetCreature = (Creature)TargetWorldObject;
+                        Creature targetCreature = (Creature)target;
                         damage = (int)Math.Round(damage * targetCreature.GetNaturalResistence(resistanceType));
 
                         newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health)) - damage;

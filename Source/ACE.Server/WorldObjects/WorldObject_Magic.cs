@@ -1184,7 +1184,7 @@ namespace ACE.Server.WorldObjects
             SetSpellProjectilePhysicsState(spellProjectile);
 
             spellProjectile.ParentWorldObject = (Creature)this;
-            spellProjectile.TargetWorldObject = (Creature)target;
+            spellProjectile.TargetGuid = target.Guid;
             spellProjectile.SpellId = spellId;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
 
