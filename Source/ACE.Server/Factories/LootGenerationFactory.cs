@@ -3208,6 +3208,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.Damage, damage);
+            wo.SetProperty(PropertyInt.WeaponSkill, wieldSkillType);
             int lowSpellTier = GetLowSpellTier(tier);
             int highSpellTier = GetHighSpellTier(tier);
             int minorCantrips = GetNumMinorCantrips(tier);
@@ -12270,7 +12271,6 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        palette = LootHelper.amuliColors[r.Next(0, LootHelper.amuliColors.Length)];
                         int armorPiece = r.Next(0, 2);
                         if (armorPiece == 0)
                         {

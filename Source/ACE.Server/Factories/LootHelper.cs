@@ -9,8 +9,6 @@ namespace ACE.Factories
     public static class LootHelper
     {
 
-        public static int[] amuliColors = { 0xF00001B, 0xF000022, 0xF00001D, 0xF00001E, 0xF00001C, 0xF00001F, 0xF000020, 0xF00028A, 0xF00028B, 0xF00028C, 0xF0000AE, 0xF00011B, 0xF00011C, 0xF00011D, 0xF00011E, 0xF00016F, 0xF000170, 0xF000171, 0xF0001E2, 0xF0001E3, 0xF0001E4};
-
         public static int[][] HeadSpells =
 {
 ////Focus
