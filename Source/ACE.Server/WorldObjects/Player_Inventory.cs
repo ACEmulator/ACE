@@ -480,11 +480,38 @@ namespace ACE.Server.WorldObjects
             }).EnqueueChain();
         }
 
+        private bool IsAttuned(ObjectGuid itemGuid, out bool isAttuned)
+        {
+            WorldObject item = GetInventoryItem(itemGuid);
+            if (item == null)
+            {
+                isAttuned = false;
+                return false;
+            }
+
+            int attunedProperty = (int)item.GetProperty(PropertyInt.Attuned);
+            if (attunedProperty == 1)
+            {
+                isAttuned = true;
+                return true;
+            }
+
+            isAttuned = false;
+            return true;
+        }
+
         /// <summary>
         /// This is raised when we drop an item. It can be a wielded item, or an item in our inventory.
         /// </summary>
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
+            IsAttuned(itemGuid, out bool isAttuned);
+            if (isAttuned == true)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
+                return;
+            }
+
             var actionChain = new ActionChain();
 
             actionChain.AddAction(this, () =>
@@ -648,6 +675,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetID, uint objectID, uint amount)
         {
+            // TODO : IsAttuned() should be checked first, as is performed in HandleActionDropItem()
+
             log.Error("Player_Inventory HandleActionGiveObjectRequest not implemented");
             ////ObjectGuid target = new ObjectGuid(targetID);
             ////ObjectGuid item = new ObjectGuid(objectID);
