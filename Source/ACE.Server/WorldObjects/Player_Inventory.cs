@@ -483,12 +483,11 @@ namespace ACE.Server.WorldObjects
         private bool IsAttuned(ObjectGuid itemGuid, out bool isAttuned)
         {
             WorldObject item = GetInventoryItem(itemGuid);
-            if (item == null)
+            if (item.GetProperty(PropertyInt.Attuned) == null)
             {
                 isAttuned = false;
                 return false;
             }
-
             int attunedProperty = (int)item.GetProperty(PropertyInt.Attuned);
             if (attunedProperty == 1)
             {
