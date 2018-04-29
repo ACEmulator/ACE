@@ -6,13 +6,28 @@ namespace ACE.Database.Models.World
 {
     public partial class WorldDbContext : DbContext
     {
-        public virtual DbSet<AceRecipe> AceRecipe { get; set; }
+        public virtual DbSet<CookBook> CookBook { get; set; }
         public virtual DbSet<Encounter> Encounter { get; set; }
         public virtual DbSet<Event> Event { get; set; }
         public virtual DbSet<HousePortal> HousePortal { get; set; }
         public virtual DbSet<LandblockInstances> LandblockInstances { get; set; }
         public virtual DbSet<PointsOfInterest> PointsOfInterest { get; set; }
         public virtual DbSet<Quest> Quest { get; set; }
+        public virtual DbSet<Recipe> Recipe { get; set; }
+        public virtual DbSet<RecipeComponent> RecipeComponent { get; set; }
+        public virtual DbSet<RecipeMod> RecipeMod { get; set; }
+        public virtual DbSet<RecipeModsBool> RecipeModsBool { get; set; }
+        public virtual DbSet<RecipeModsDID> RecipeModsDID { get; set; }
+        public virtual DbSet<RecipeModsFloat> RecipeModsFloat { get; set; }
+        public virtual DbSet<RecipeModsIID> RecipeModsIID { get; set; }
+        public virtual DbSet<RecipeModsInt> RecipeModsInt { get; set; }
+        public virtual DbSet<RecipeModsString> RecipeModsString { get; set; }
+        public virtual DbSet<RecipeRequirementsBool> RecipeRequirementsBool { get; set; }
+        public virtual DbSet<RecipeRequirementsDID> RecipeRequirementsDID { get; set; }
+        public virtual DbSet<RecipeRequirementsFloat> RecipeRequirementsFloat { get; set; }
+        public virtual DbSet<RecipeRequirementsIID> RecipeRequirementsIID { get; set; }
+        public virtual DbSet<RecipeRequirementsInt> RecipeRequirementsInt { get; set; }
+        public virtual DbSet<RecipeRequirementsString> RecipeRequirementsString { get; set; }
         public virtual DbSet<Spell> Spell { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
@@ -48,56 +63,39 @@ namespace ACE.Database.Models.World
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<AceRecipe>(entity =>
+            modelBuilder.Entity<CookBook>(entity =>
             {
-                entity.HasKey(e => e.RecipeGuid);
+                entity.ToTable("cook_book");
 
-                entity.ToTable("ace_recipe");
+                entity.HasIndex(e => e.SourceWCID)
+                    .HasName("source_idx");
 
-                entity.Property(e => e.RecipeGuid)
-                    .HasColumnName("recipeGuid")
-                    .HasColumnType("binary(16)");
+                entity.HasIndex(e => e.TargetWCID)
+                    .HasName("target_idx");
 
-                entity.Property(e => e.AlternateMessage)
-                    .HasColumnName("alternateMessage")
-                    .HasColumnType("text");
+                entity.HasIndex(e => new { e.RecipeId, e.TargetWCID, e.SourceWCID })
+                    .HasName("recipe_target_source_uidx")
+                    .IsUnique();
 
-                entity.Property(e => e.FailMessage)
-                    .HasColumnName("failMessage")
-                    .HasColumnType("text");
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.FailureItem1Wcid).HasColumnName("failureItem1Wcid");
-
-                entity.Property(e => e.FailureItem2Wcid).HasColumnName("failureItem2Wcid");
-
-                entity.Property(e => e.HealingAttribute).HasColumnName("healingAttribute");
-
-                entity.Property(e => e.PartialFailDifficulty).HasColumnName("partialFailDifficulty");
-
-                entity.Property(e => e.RecipeType).HasColumnName("recipeType");
-
-                entity.Property(e => e.ResultFlags).HasColumnName("resultFlags");
-
-                entity.Property(e => e.SkillDifficulty).HasColumnName("skillDifficulty");
-
-                entity.Property(e => e.SkillId).HasColumnName("skillId");
-
-                entity.Property(e => e.SourceWcid).HasColumnName("sourceWcid");
-
-                entity.Property(e => e.SuccessItem1Wcid).HasColumnName("successItem1Wcid");
-
-                entity.Property(e => e.SuccessItem2Wcid).HasColumnName("successItem2Wcid");
-
-                entity.Property(e => e.SuccessMessage)
-                    .HasColumnName("successMessage")
-                    .HasColumnType("text");
-
-                entity.Property(e => e.TargetWcid).HasColumnName("targetWcid");
-
-                entity.Property(e => e.UserModified)
-                    .HasColumnName("userModified")
-                    .HasColumnType("tinyint(1)")
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SourceWCID)
+                    .HasColumnName("source_W_C_I_D")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TargetWCID)
+                    .HasColumnName("target_W_C_I_D")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.CookBook)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("cookbook_recipe");
             });
 
             modelBuilder.Entity<Encounter>(entity =>
@@ -303,6 +301,680 @@ namespace ACE.Database.Models.World
                     .IsRequired()
                     .HasColumnName("name")
                     .HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<Recipe>(entity =>
+            {
+                entity.ToTable("recipe");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.DataId)
+                    .HasColumnName("data_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Difficulty)
+                    .HasColumnName("difficulty")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FailAmount)
+                    .HasColumnName("fail_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FailMessage)
+                    .IsRequired()
+                    .HasColumnName("fail_Message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.FailWCID)
+                    .HasColumnName("fail_W_C_I_D")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SalvageType)
+                    .HasColumnName("salvage_Type")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Skill)
+                    .HasColumnName("skill")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SuccessAmount)
+                    .HasColumnName("success_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SuccessMessage)
+                    .IsRequired()
+                    .HasColumnName("success_Message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.SuccessWCID)
+                    .HasColumnName("success_W_C_I_D")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<RecipeComponent>(entity =>
+            {
+                entity.ToTable("recipe_component");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.DestroyAmount)
+                    .HasColumnName("destroy_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DestroyChance)
+                    .HasColumnName("destroy_Chance")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DestroyMessage)
+                    .IsRequired()
+                    .HasColumnName("destroy_Message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeComponent)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_component");
+            });
+
+            modelBuilder.Entity<RecipeMod>(entity =>
+            {
+                entity.ToTable("recipe_mod");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.HasIndex(e => new { e.RecipeId, e.ModSetId })
+                    .HasName("recipe_modset_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.DataId)
+                    .HasColumnName("data_Id")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Health)
+                    .HasColumnName("health")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.InstanceId)
+                    .HasColumnName("instance_Id")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Mana)
+                    .HasColumnName("mana")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown2)
+                    .HasColumnName("unknown_2")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown4)
+                    .HasColumnName("unknown_4")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown5)
+                    .HasColumnName("unknown_5")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown6)
+                    .HasColumnName("unknown_6")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown7)
+                    .HasColumnName("unknown_7")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Unknown9)
+                    .HasColumnName("unknown_9")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeMod)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_Mod");
+            });
+
+            modelBuilder.Entity<RecipeModsBool>(entity =>
+            {
+                entity.ToTable("recipe_mods_bool");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasColumnType("bit(1)");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeModsBool)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_mod_bool");
+            });
+
+            modelBuilder.Entity<RecipeModsDID>(entity =>
+            {
+                entity.ToTable("recipe_mods_d_i_d");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeModsDID)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_mod_did");
+            });
+
+            modelBuilder.Entity<RecipeModsFloat>(entity =>
+            {
+                entity.ToTable("recipe_mods_float");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeModsFloat)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_mod_float");
+            });
+
+            modelBuilder.Entity<RecipeModsIID>(entity =>
+            {
+                entity.ToTable("recipe_mods_i_i_d");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeModsIID)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_mod_iid");
+            });
+
+            modelBuilder.Entity<RecipeModsInt>(entity =>
+            {
+                entity.ToTable("recipe_mods_int");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeModsInt)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_mod_int");
+            });
+
+            modelBuilder.Entity<RecipeModsString>(entity =>
+            {
+                entity.ToTable("recipe_mods_string");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ModSetId)
+                    .HasColumnName("mod_Set_Id")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Unknown1)
+                    .HasColumnName("unknown_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .IsRequired()
+                    .HasColumnName("value")
+                    .HasColumnType("text");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeModsString)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_mod_string");
+            });
+
+            modelBuilder.Entity<RecipeRequirementsBool>(entity =>
+            {
+                entity.ToTable("recipe_requirements_bool");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasColumnType("bit(1)");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeRequirementsBool)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_req_bool");
+            });
+
+            modelBuilder.Entity<RecipeRequirementsDID>(entity =>
+            {
+                entity.ToTable("recipe_requirements_d_i_d");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeRequirementsDID)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_req_did");
+            });
+
+            modelBuilder.Entity<RecipeRequirementsFloat>(entity =>
+            {
+                entity.ToTable("recipe_requirements_float");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeRequirementsFloat)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_req_float");
+            });
+
+            modelBuilder.Entity<RecipeRequirementsIID>(entity =>
+            {
+                entity.ToTable("recipe_requirements_i_i_d");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeRequirementsIID)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_req_iid");
+            });
+
+            modelBuilder.Entity<RecipeRequirementsInt>(entity =>
+            {
+                entity.ToTable("recipe_requirements_int");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeRequirementsInt)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_req_int");
+            });
+
+            modelBuilder.Entity<RecipeRequirementsString>(entity =>
+            {
+                entity.ToTable("recipe_requirements_string");
+
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Enum)
+                    .HasColumnName("enum")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasColumnName("message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Value)
+                    .IsRequired()
+                    .HasColumnName("value")
+                    .HasColumnType("text");
+
+                entity.HasOne(d => d.Recipe)
+                    .WithMany(p => p.RecipeRequirementsString)
+                    .HasPrincipalKey(p => p.RecipeId)
+                    .HasForeignKey(d => d.RecipeId)
+                    .HasConstraintName("recipeId_req_string");
             });
 
             modelBuilder.Entity<Spell>(entity =>

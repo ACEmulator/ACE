@@ -151,9 +151,9 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public void SendUseDoneEvent()
+        public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
         {
-            Session.Network.EnqueueSend(new GameEventUseDone(Session));
+            Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
         }
 
 

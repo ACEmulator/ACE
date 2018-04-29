@@ -337,23 +337,22 @@ namespace ACE.Database
             return null;
         }
 
-
-        private readonly Dictionary<uint, Dictionary<uint, AceRecipe>> recipeCache = new Dictionary<uint, Dictionary<uint, AceRecipe>>();
+        private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
         /// <summary>
         /// Returns the number of Recipies currently cached.
         /// </summary>
-        public int GetRecipeCacheCount()
+        public int GetCookbookCacheCount()
         {
-            lock (recipeCache)
-                return recipeCache.Count;
+            lock (cookbookCache)
+                return cookbookCache.Count;
         }
 
-        public AceRecipe GetCachedRecipe(uint sourceWeenieClassid, uint targetWeenieClassId)
+        public CookBook GetCachedCookbook(uint sourceWeenieClassid, uint targetWeenieClassId)
         {
-            lock (recipeCache)
+            lock (cookbookCache)
             {
-                if (recipeCache.TryGetValue(sourceWeenieClassid, out var recipiesForSource))
+                if (cookbookCache.TryGetValue(sourceWeenieClassid, out var recipiesForSource))
                 {
                     if (recipiesForSource.TryGetValue(targetWeenieClassId, out var value))
                         return value;
@@ -362,27 +361,41 @@ namespace ACE.Database
 
             using (var context = new WorldDbContext())
             {
-                var result = context.AceRecipe
+                var result = context.CookBook
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.SourceWcid == sourceWeenieClassid && r.TargetWcid == targetWeenieClassId);
+                    .Include(r => r.Recipe)
+                    .Include(r => r.Recipe.RecipeComponent)
+                    .Include(r => r.Recipe.RecipeMod)
+                    .Include(r => r.Recipe.RecipeModsBool)
+                    .Include(r => r.Recipe.RecipeModsDID)
+                    .Include(r => r.Recipe.RecipeModsFloat)
+                    .Include(r => r.Recipe.RecipeModsIID)
+                    .Include(r => r.Recipe.RecipeModsInt)
+                    .Include(r => r.Recipe.RecipeModsString)
+                    .Include(r => r.Recipe.RecipeRequirementsBool)
+                    .Include(r => r.Recipe.RecipeRequirementsDID)
+                    .Include(r => r.Recipe.RecipeRequirementsFloat)
+                    .Include(r => r.Recipe.RecipeRequirementsIID)
+                    .Include(r => r.Recipe.RecipeRequirementsInt)
+                    .Include(r => r.Recipe.RecipeRequirementsString)
+                    .FirstOrDefault(r => r.SourceWCID == sourceWeenieClassid && r.TargetWCID == targetWeenieClassId);
 
-                lock (recipeCache)
+                lock (cookbookCache)
                 {
                     // We double check before commiting the recipe.
                     // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
-                    if (recipeCache.TryGetValue(sourceWeenieClassid, out var sourceRecipies))
+                    if (cookbookCache.TryGetValue(sourceWeenieClassid, out var sourceRecipies))
                     {
                         if (!sourceRecipies.ContainsKey(targetWeenieClassId))
                             sourceRecipies.Add(targetWeenieClassId, result);
                     }
                     else
-                        recipeCache.Add(sourceWeenieClassid, new Dictionary<uint, AceRecipe>() { { targetWeenieClassId, result } });
+                        cookbookCache.Add(sourceWeenieClassid, new Dictionary<uint, CookBook>() { { targetWeenieClassId, result } });
                 }
 
                 return result;
             }
         }
-
 
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
