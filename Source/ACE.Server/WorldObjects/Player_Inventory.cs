@@ -489,7 +489,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            int attunedProperty = (int)item.GetProperty(PropertyInt.Attuned);
+            int attunedProperty = (item.GetProperty(PropertyInt.Attuned) ?? 0);
             if (attunedProperty == 1)
             {
                 isAttuned = true;
