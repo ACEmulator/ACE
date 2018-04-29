@@ -17,6 +17,7 @@ using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
+using System.Linq;
 
 namespace ACE.Server.Managers
 {
@@ -110,6 +111,8 @@ namespace ACE.Server.Managers
                 //    }
                 //}
 
+                var components = recipe.Recipe.RecipeComponent.ToList();
+
                 if (skillSuccess)
                 {
                     //WorldObject newObject1 = null;
@@ -120,6 +123,39 @@ namespace ACE.Server.Managers
 
                     //if ((recipe.ResultFlags & (uint)RecipeResult.SuccessItem2) > 0 && recipe.SuccessItem2Wcid != null)
                     //    newObject2 = player.AddNewItemToInventory(recipe.SuccessItem2Wcid.Value);
+
+                    //bool destroySource = _random.NextDouble() < recipe.Recipe.RecipeComponent
+
+                    var targetSuccess = components[0];
+                    var sourceSuccess = components[1];
+
+                    //var targetFail = components[2];
+                    //var sourceFail = components[3];
+
+                    bool destroyTarget = _random.NextDouble() < targetSuccess.DestroyChance;
+                    bool destroySource = _random.NextDouble() < sourceSuccess.DestroyChance;
+
+                    if (destroyTarget)
+                    {
+                        player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetSuccess.DestroyAmount);
+
+                        if (targetSuccess.DestroyMessage != "")
+                        {
+                            var message = new GameMessageSystemChat(targetSuccess.DestroyMessage, ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(message);
+                        }
+                    }
+
+                    if (destroySource)
+                    {
+                        player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceSuccess.DestroyAmount);
+
+                        if (sourceSuccess.DestroyMessage != "")
+                        {
+                            var message = new GameMessageSystemChat(sourceSuccess.DestroyMessage, ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(message);
+                        }
+                    }
 
                     var wo = WorldObjectFactory.CreateNewWorldObject(recipe.Recipe.SuccessWCID);
 
