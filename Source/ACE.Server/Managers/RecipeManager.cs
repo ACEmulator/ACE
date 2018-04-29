@@ -70,14 +70,13 @@ namespace ACE.Server.Managers
                     percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty); //FIXME: Pretty certain this is broken
                 }
 
-                //FIXME: commented out to avoid skillstatus check for testing
-                //if (skill.Status == SkillStatus.Untrained)
-                //{
-                //    var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
-                //    player.Session.Network.EnqueueSend(message);
-                //    player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
-                //    return;
-                //}
+                if (skill.Status == SkillStatus.Untrained)
+                    {
+                        var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
+                        player.Session.Network.EnqueueSend(message);
+                        player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
+                        return;
+                    }
 
                 // straight skill check, if applciable
                 if (skill != null)
