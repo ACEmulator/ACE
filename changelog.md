@@ -8,6 +8,9 @@
 * Added New Crafting Tables to World Database.
 * Removed old ace_recipe table.
 * Scaffolded the new tables.
+* Rewired RecipeManager to new data. 
+  - Basic X + Y = Z crafting done. 
+  - Dyeing and other object modifications via crafting are not handled properly yet.
 
 [Jyrus]
 * Fix for Attuned Item Property, which was missing a null check.
