@@ -239,15 +239,16 @@ namespace ACE.Server.WorldObjects
                 rank10 = xpList[skill.Ranks + 10] - currentRankXp;
             }
 
-            if (amount >= rank1)
-                rankUps = 1;
-            else if (amount >= rank10)
+            if (amount >= rank10)
             {
                 if (rank10Offset > 0)
                     rankUps = rank10Offset;
                 else
                     rankUps = 10;
             }
+            else if (amount >= rank1)
+                rankUps = 1;
+            
 
             if (rankUps > 0)
                 skill.Ranks += rankUps;
