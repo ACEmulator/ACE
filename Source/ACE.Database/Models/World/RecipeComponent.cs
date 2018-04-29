@@ -7,9 +7,9 @@ namespace ACE.Database.Models.World
     {
         public uint Id { get; set; }
         public uint RecipeId { get; set; }
-        public double Percent { get; set; }
-        public uint Unknown2 { get; set; }
-        public string Message { get; set; }
+        public double DestroyChance { get; set; }
+        public uint DestroyAmount { get; set; }
+        public string DestroyMessage { get; set; }
 
         public Recipe Recipe { get; set; }
     }

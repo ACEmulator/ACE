@@ -373,21 +373,21 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.Message)
-                    .IsRequired()
-                    .HasColumnName("message")
-                    .HasColumnType("text");
-
-                entity.Property(e => e.Percent)
-                    .HasColumnName("percent")
+                entity.Property(e => e.DestroyAmount)
+                    .HasColumnName("destroy_Amount")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DestroyChance)
+                    .HasColumnName("destroy_Chance")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DestroyMessage)
+                    .IsRequired()
+                    .HasColumnName("destroy_Message")
+                    .HasColumnType("text");
 
                 entity.Property(e => e.RecipeId)
                     .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Unknown2)
-                    .HasColumnName("unknown_2")
                     .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.Recipe)
