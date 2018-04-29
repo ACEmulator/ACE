@@ -1,4 +1,104 @@
 # ACEmulator Change Log
+### 2018-04-29
+
+[Jyrus]
+* Fix for Attuned Item Property, which was missing a null check.
+
+### 2018-04-28
+
+[dgatewood]
+* Loot: Updated Loot-generated Weapon Skill Types to match retail: Light, Heavy and Finesse.
+* Fixed Skill Max Limit discontinuity between server and client.
+
+[Jyrus]
+* Added Attuned functionality to items, preventing items with that property from being dropped or traded.
+
+### 2018-04-27
+
+[dgatewood]
+* Added Loot functionality:
+  - Added Loot Generation Factory, generating Armor sets, Weapons, Jewelry, Gems, and Mundane Items across all tiers.
+  - Added Loot Helper, which applies Value, Stats, Spells, Cantrips, Colors and Usage Restrictions to Loot Items.
+  - Random Loot now generates in corpses, alongside generic items such as Food and Potions.
+
+[Jyrus]
+* Magic: Added Target Validation for Harmful Spells to prevent exploitation.
+* Magic: Added Workaround for Projectile Spells Collisions in dungeons.
+* Various additional Fixes for Spell Interactions and Collisions.
+
+### 2018-04-26
+
+[dgatewood]
+* Fix for Player.cs, where examining a creature as it dies would crash the server.
+* Removed Pyreal Value Property from Corpses.
+
+[Jyrus]
+* Magic: Magic Defense Skill functionality added.
+* Magic: Player Killer Checks added. Harmful spells no longer affect friendly players.
+
+### 2018-04-25
+
+[Jyrus]
+* Magic: Skill Checks Implemented. Spells now have a chance to fizzle if caster's skill is too low.
+
+### 2018-04-24
+
+[gmriggs]
+* Combat: Missiles no longer cause delay when travelling between landblocks.
+* Removed Vitae from Life Spells category.
+* Adjusted Player Vitals on death.
+
+[Jyrus]
+* Magic: Arc War Spells added.
+
+### 2018-04-23
+
+[gmriggs]
+* Combat: Bow/Crossbow Combat tweaks. Adjusted Missile Trajectory and Behaviors, Fixed Ghost Projectiles.
+
+[Ripley]
+* ACE-World: [ci-skip] Added Epoch Comments.
+
+### 2018-04-22
+
+[gmriggs]
+* Combat: Added Bow/Crossbow Combat, Ammo Usage and Damage calculation.
+
+[Ripley]
+* ACE-World: Updates to Links and Generators, plus miscellaneous changes and cleanup.
+
+### 2018-04-21
+
+[Ripley]
+* ACE-World: [ci-skip] Improved Comments in SQL Scripts.
+
+### 2018-04-20
+
+[gmriggs]
+* Magic: Added support for Item Magic Buffs/Debuffs, including Weapon and Armor buffs/banes.
+
+### 2018-04-19
+
+[gmriggs]
+* UI: Added Shortcut Bar functionality, allowing items to be bound to the hotkeys 1-9.
+* Magic: Added support for Life Magic Buffs/Debuffs, including Armor, Imperil, Vulns and Prots.
+
+### 2018-04-18
+
+[gmriggs]
+* Magic: Added support for Creature Magic Buffs/Debuffs.
+
+### 2018-04-16
+
+[gmriggs]
+* Added Healing Kits, Healing Usage, Animation and Skill Checks.
+* Fixed Landblock Adjacency Loading for improved performance.
+* Fixed Vitae Display Bug
+
+[gmriggs + Slushnas]
+* Magic: Enchantment Manager now supports Adding/Updating/Removal of all Spells.
+* Magic: Enchantment Manager now tracks Spell Durations.
+* Player Health/Stamina/Mana now updates on Death.
 
 ### 2018-04-15
 
@@ -9,6 +109,14 @@
 [Ripley]
 * Added New Encounter Table to World Database.
 * Scaffolded the new tables.
+
+[Jyrus]
+* Portals: Limited teleportation spamming from repeated collisions.
+* Magic: Added Fast Casting, increased projectile velocity for Streak War Spells.
+
+[gmriggs + Slushnas]
+* Added Enchantment Registry.
+* Added Vitae (Death Penalty).
 
 ### 2018-04-09
 
