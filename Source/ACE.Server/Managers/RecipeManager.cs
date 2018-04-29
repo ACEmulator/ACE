@@ -91,9 +91,6 @@ namespace ACE.Server.Managers
                     var targetSuccess = components[0];
                     var sourceSuccess = components[1];
 
-                    //var targetFail = components[2];
-                    //var sourceFail = components[3];
-
                     bool destroyTarget = _random.NextDouble() < targetSuccess.DestroyChance;
                     bool destroySource = _random.NextDouble() < sourceSuccess.DestroyChance;
 
@@ -103,8 +100,8 @@ namespace ACE.Server.Managers
 
                         if (targetSuccess.DestroyMessage != "")
                         {
-                            var message = new GameMessageSystemChat(targetSuccess.DestroyMessage, ChatMessageType.Craft);
-                            player.Session.Network.EnqueueSend(message);
+                            var destroyMessage = new GameMessageSystemChat(targetSuccess.DestroyMessage, ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(destroyMessage);
                         }
                     }
 
@@ -114,36 +111,70 @@ namespace ACE.Server.Managers
 
                         if (sourceSuccess.DestroyMessage != "")
                         {
-                            var message = new GameMessageSystemChat(sourceSuccess.DestroyMessage, ChatMessageType.Craft);
-                            player.Session.Network.EnqueueSend(message);
+                            var destroyMessage = new GameMessageSystemChat(sourceSuccess.DestroyMessage, ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(destroyMessage);
                         }
                     }
 
-                    var wo = WorldObjectFactory.CreateNewWorldObject(recipe.Recipe.SuccessWCID);
-
-                    if (wo != null)
+                    if (recipe.Recipe.SuccessWCID > 0)
                     {
-                        if (recipe.Recipe.SuccessAmount > 1)
-                            wo.StackSize = (ushort)recipe.Recipe.SuccessAmount;
+                        var wo = WorldObjectFactory.CreateNewWorldObject(recipe.Recipe.SuccessWCID);
 
-                        player.TryCreateInInventoryWithNetworking(wo);
+                        if (wo != null)
+                        {
+                            if (recipe.Recipe.SuccessAmount > 1)
+                                wo.StackSize = (ushort)recipe.Recipe.SuccessAmount;
 
-                        var message = new GameMessageSystemChat(recipe.Recipe.SuccessMessage, ChatMessageType.Craft);
-                        player.Session.Network.EnqueueSend(message);
+                            player.TryCreateInInventoryWithNetworking(wo);
+                        }
                     }
+
+                    var message = new GameMessageSystemChat(recipe.Recipe.SuccessMessage, ChatMessageType.Craft);
+                    player.Session.Network.EnqueueSend(message);
                 }
                 else
                 {
-                    //WorldObject newObject1 = null;
-                    //WorldObject newObject2 = null;
+                    var targetFail = components[2];
+                    var sourceFail = components[3];
 
-                    //if ((recipe.ResultFlags & (uint)RecipeResult.FailureItem1) > 0 && recipe.FailureItem1Wcid != null)
-                    //    newObject1 = player.AddNewItemToInventory(recipe.FailureItem1Wcid.Value);
+                    bool destroyTarget = _random.NextDouble() < targetFail.DestroyChance;
+                    bool destroySource = _random.NextDouble() < sourceFail.DestroyChance;
 
-                    //if ((recipe.ResultFlags & (uint)RecipeResult.FailureItem2) > 0 && recipe.FailureItem2Wcid != null)
-                    //    newObject2 = player.AddNewItemToInventory(recipe.FailureItem2Wcid.Value);
+                    if (destroyTarget)
+                    {
+                        player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetFail.DestroyAmount);
 
-                    //var text = string.Format(recipe.Recipe.FailMessage, source.Name, target.Name, newObject1?.Name, newObject2?.Name);
+                        if (targetFail.DestroyMessage != "")
+                        {
+                            var destroyMessage = new GameMessageSystemChat(targetFail.DestroyMessage, ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(destroyMessage);
+                        }
+                    }
+
+                    if (destroySource)
+                    {
+                        player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceFail.DestroyAmount);
+
+                        if (sourceFail.DestroyMessage != "")
+                        {
+                            var destroyMessage = new GameMessageSystemChat(sourceFail.DestroyMessage, ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(destroyMessage);
+                        }
+                    }
+
+                    if (recipe.Recipe.FailWCID > 0)
+                    {
+                        var wo = WorldObjectFactory.CreateNewWorldObject(recipe.Recipe.FailWCID);
+
+                        if (wo != null)
+                        {
+                            if (recipe.Recipe.FailAmount > 1)
+                                wo.StackSize = (ushort)recipe.Recipe.FailAmount;
+
+                            player.TryCreateInInventoryWithNetworking(wo);
+                        }
+                    }
+
                     var message = new GameMessageSystemChat(recipe.Recipe.FailMessage, ChatMessageType.Craft);
                     player.Session.Network.EnqueueSend(message);
                 }
