@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS `recipe` (
 CREATE TABLE IF NOT EXISTS `recipe_component` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Component instance',
   `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `percent` double NOT NULL DEFAULT '0',
-  `unknown_2` int(10) unsigned NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `destroy_Chance` double NOT NULL DEFAULT '0',
+  `destroy_Amount` int(10) unsigned NOT NULL DEFAULT '0',
+  `destroy_Message` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_component` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
