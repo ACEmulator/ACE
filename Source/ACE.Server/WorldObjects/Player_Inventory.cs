@@ -488,8 +488,6 @@ namespace ACE.Server.WorldObjects
                 isAttuned = false;
                 return false;
             }
-            Console.WriteLine("Item is not null");
-            Console.WriteLine("Item name: " + item.Name);
             int attunedProperty = (int)item.GetProperty(PropertyInt.Attuned);
             if (attunedProperty == 1)
             {
