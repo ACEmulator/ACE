@@ -337,53 +337,6 @@ namespace ACE.Database
             return null;
         }
 
-
-        ////private readonly Dictionary<uint, Dictionary<uint, AceRecipe>> recipeCache = new Dictionary<uint, Dictionary<uint, AceRecipe>>();
-
-        /////// <summary>
-        /////// Returns the number of Recipies currently cached.
-        /////// </summary>
-        ////public int GetRecipeCacheCount()
-        ////{
-        ////    lock (recipeCache)
-        ////        return recipeCache.Count;
-        ////}
-
-        ////public AceRecipe GetCachedRecipe(uint sourceWeenieClassid, uint targetWeenieClassId)
-        ////{
-        ////    lock (recipeCache)
-        ////    {
-        ////        if (recipeCache.TryGetValue(sourceWeenieClassid, out var recipiesForSource))
-        ////        {
-        ////            if (recipiesForSource.TryGetValue(targetWeenieClassId, out var value))
-        ////                return value;
-        ////        }
-        ////    }
-
-        ////    using (var context = new WorldDbContext())
-        ////    {
-        ////        var result = context.AceRecipe
-        ////            .AsNoTracking()
-        ////            .FirstOrDefault(r => r.SourceWcid == sourceWeenieClassid && r.TargetWcid == targetWeenieClassId);
-
-        ////        lock (recipeCache)
-        ////        {
-        ////            // We double check before commiting the recipe.
-        ////            // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
-        ////            if (recipeCache.TryGetValue(sourceWeenieClassid, out var sourceRecipies))
-        ////            {
-        ////                if (!sourceRecipies.ContainsKey(targetWeenieClassId))
-        ////                    sourceRecipies.Add(targetWeenieClassId, result);
-        ////            }
-        ////            else
-        ////                recipeCache.Add(sourceWeenieClassid, new Dictionary<uint, AceRecipe>() { { targetWeenieClassId, result } });
-        ////        }
-
-        ////        return result;
-        ////    }
-        ////}
-
-
         private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
         /// <summary>

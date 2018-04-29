@@ -26,11 +26,8 @@ namespace ACE.Server.Managers
 
         private static readonly Random _random = new Random();
 
-        //private static readonly List<GenericPropertyId> _updateStructure = new List<GenericPropertyId>() { new GenericPropertyId((uint)PropertyInt.Structure, PropertyType.PropertyInt) };
-
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
-            //var recipe = DatabaseManager.World.GetCachedRecipe(source.WeenieClassId, target.WeenieClassId);
             var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
@@ -40,26 +37,6 @@ namespace ACE.Server.Managers
                 player.SendUseDoneEvent();
                 return;
             }
-
-            //switch ((RecipeType)recipe.RecipeType)
-            //{
-            //    case RecipeType.CreateItem:
-            //        //HandleCreateItemRecipe(player, source, target, recipe);
-            //        break;
-            //    case RecipeType.Dyeing:
-            //        break;
-            //    case RecipeType.Healing:
-            //        //HandleHealingRecipe(player, source, target, recipe);
-            //        break;
-            //    case RecipeType.ManaStone:
-            //        break;
-            //    case RecipeType.Tinkering:
-            //        break;
-            //    case RecipeType.Unlocking:
-            //        break;
-            //    case RecipeType.None:
-            //        return;
-            //}
 
             ActionChain craftChain = new ActionChain();
             CreatureSkill skill = null;
@@ -89,9 +66,10 @@ namespace ACE.Server.Managers
                         return;
                     }
 
-                    percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty);
+                    percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty); //FIXME: Pretty certain this is broken
                 }
 
+                //FIXME: commented out to avoid skillstatus check for testing
                 //if (skill.Status == SkillStatus.Untrained)
                 //{
                 //    var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
