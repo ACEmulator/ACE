@@ -364,6 +364,20 @@ namespace ACE.Database
                 var result = context.CookBook
                     .AsNoTracking()
                     .Include(r => r.Recipe)
+                    .Include(r => r.Recipe.RecipeComponent)
+                    .Include(r => r.Recipe.RecipeMod)
+                    .Include(r => r.Recipe.RecipeModsBool)
+                    .Include(r => r.Recipe.RecipeModsDID)
+                    .Include(r => r.Recipe.RecipeModsFloat)
+                    .Include(r => r.Recipe.RecipeModsIID)
+                    .Include(r => r.Recipe.RecipeModsInt)
+                    .Include(r => r.Recipe.RecipeModsString)
+                    .Include(r => r.Recipe.RecipeRequirementsBool)
+                    .Include(r => r.Recipe.RecipeRequirementsDID)
+                    .Include(r => r.Recipe.RecipeRequirementsFloat)
+                    .Include(r => r.Recipe.RecipeRequirementsIID)
+                    .Include(r => r.Recipe.RecipeRequirementsInt)
+                    .Include(r => r.Recipe.RecipeRequirementsString)
                     .FirstOrDefault(r => r.SourceWCID == sourceWeenieClassid && r.TargetWCID == targetWeenieClassId);
 
                 lock (cookbookCache)
