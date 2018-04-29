@@ -7,6 +7,7 @@
 [Ripley]
 * Added New Crafting Tables to World Database.
 * Removed old ace_recipe table.
+* Scaffolded the new tables.
 
 [Jyrus]
 * Fix for Attuned Item Property, which was missing a null check.
