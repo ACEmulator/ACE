@@ -512,18 +512,7 @@ namespace ACE.Server.Command.Handlers
             // LOL
 
             // TODO: output
-        }
-
-        // run < on | off | toggle | check >
-        [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleRun(Session session, params string[] parameters)
-        {
-            // usage: @run on| off | toggle | check
-            // Boosts the run skill of the PSR so they can pursue the "bad folks".The enchantment will wear off after a while.This command defualts to toggle.
-            // @run - Temporarily boosts your run skill.
-
-            // TODO: output
-        }
+        }        
 
         /// <summary>
         /// Command for saving the Admin's current location as the sanctuary position. If a uint between 1-9 is provided as a parameter, the corresponding named recall is saved.

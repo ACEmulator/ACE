@@ -1,11 +1,10 @@
+using ACE.Database;
 using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
-using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.WorldObjects;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -157,6 +156,55 @@ namespace ACE.Server.Command.Handlers
                 case false:
                     session.Player.IgnorePortalRestrictions = true;
                     session.Network.EnqueueSend(new GameMessageSystemChat("You are no longer bound by portal restrictions.", ChatMessageType.Broadcast));
+                    break;
+            }
+        }
+
+        // run < on | off | toggle | check >
+        [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Temporarily boosts your run skill.",
+            "( on | off | toggle | check )\n"
+            + "Boosts the run skill of the PSR so they can pursue the \"bad folks\".The enchantment will wear off after a while. This command defaults to toggle.")]
+        public static void HandleRun(Session session, params string[] parameters)
+        {
+            // usage: @run on| off | toggle | check
+            // Boosts the run skill of the PSR so they can pursue the "bad folks".The enchantment will wear off after a while.This command defualts to toggle.
+            // @run - Temporarily boosts your run skill.
+
+            string param;
+
+            if (parameters.Length > 0)
+                param = parameters[0];
+            else
+                param = "toggle";
+
+            var spellID = (uint)Network.Enum.Spell.SentinelRun;
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
+            var spell = DatabaseManager.World.GetCachedSpell(spellID);
+            
+            switch (param)
+            {
+                case "toggle":
+                    if (session.Player.EnchantmentManager.HasSpell(spellID))
+                        goto case "off";
+                    else
+                        goto case "on";
+                case "check":
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Run speed boost is currently {(session.Player.EnchantmentManager.HasSpell(spellID) ? "ACTIVE" : "INACTIVE")}", ChatMessageType.Broadcast));
+                    break;
+                case "off":
+                    var runBoost = session.Player.EnchantmentManager.GetSpell(spellID);
+                    if (runBoost != null)
+                        session.Player.EnchantmentManager.Remove(runBoost);
+                    else
+                        session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
+                    break;
+                case "on":
+                    var runEnchantment = new Enchantment(session.Player, spellID, 0, spell.StatModType, spell.StatModVal);
+                    var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
+                    session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
+                    session.Player.EnchantmentManager.Add(runEnchantment);
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
                     break;
             }
         }
