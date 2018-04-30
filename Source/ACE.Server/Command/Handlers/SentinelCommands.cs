@@ -164,7 +164,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Temporarily boosts your run skill.",
             "( on | off | toggle | check )\n"
-            + "Boosts the run skill of the PSR so they can pursue the \"bad folks\".The enchantment will wear off after a while. This command defaults to toggle.")]
+            + "Boosts the run skill of the PSR so they can pursue the \"bad folks\". The enchantment will wear off after a while. This command defaults to toggle.")]
         public static void HandleRun(Session session, params string[] parameters)
         {
             // usage: @run on| off | toggle | check
