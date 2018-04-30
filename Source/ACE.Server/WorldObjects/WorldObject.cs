@@ -855,7 +855,7 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
-        public virtual void Destory()
+        public virtual void Destroy()
         {
             if (Location != null)
             {

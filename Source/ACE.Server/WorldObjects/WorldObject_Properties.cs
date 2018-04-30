@@ -2363,5 +2363,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.FirstEnterWorldDone);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value.Value); }
         }
+
+        public uint? OwnerId
+        {
+            get => GetProperty(PropertyInstanceId.Owner);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Owner); else SetProperty(PropertyInstanceId.Owner, value.Value); }
+        }
     }
 }

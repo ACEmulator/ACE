@@ -250,6 +250,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
@@ -288,6 +289,7 @@ namespace ACE.Server.WorldObjects
             {
                 int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
 
+                item.OwnerId = null;
                 item.ContainerId = null;
                 item.PlacementPosition = null;
 

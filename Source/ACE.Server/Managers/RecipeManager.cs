@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
-using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
@@ -17,6 +11,8 @@ using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
+
+using System;
 using System.Linq;
 
 namespace ACE.Server.Managers
@@ -98,7 +94,14 @@ namespace ACE.Server.Managers
 
                     if (destroyTarget)
                     {
-                        player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetSuccess.DestroyAmount);
+                        if (target.OwnerId == player.Guid.Full)
+                        {
+                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetSuccess.DestroyAmount);
+                        }
+                        else
+                        {
+                            target.Destroy();
+                        }
 
                         if (targetSuccess.DestroyMessage != "")
                         {
@@ -109,7 +112,14 @@ namespace ACE.Server.Managers
 
                     if (destroySource)
                     {
-                        player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceSuccess.DestroyAmount);
+                        if (source.OwnerId == player.Guid.Full)
+                        {
+                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceSuccess.DestroyAmount);
+                        }
+                        else
+                        {
+                            source.Destroy();
+                        }
 
                         if (sourceSuccess.DestroyMessage != "")
                         {
@@ -144,7 +154,14 @@ namespace ACE.Server.Managers
 
                     if (destroyTarget)
                     {
-                        player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetFail.DestroyAmount);
+                        if (target.OwnerId == player.Guid.Full)
+                        {
+                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetFail.DestroyAmount);
+                        }
+                        else
+                        {
+                            target.Destroy();
+                        }
 
                         if (targetFail.DestroyMessage != "")
                         {
@@ -155,7 +172,14 @@ namespace ACE.Server.Managers
 
                     if (destroySource)
                     {
-                        player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceFail.DestroyAmount);
+                        if (source.OwnerId == player.Guid.Full)
+                        {
+                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceFail.DestroyAmount);
+                        }
+                        else
+                        {
+                            source.Destroy();
+                        }
 
                         if (sourceFail.DestroyMessage != "")
                         {

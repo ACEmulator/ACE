@@ -391,7 +391,7 @@ namespace ACE.Server.WorldObjects
                         case GeneratorDestruct.Destroy:
                         default:
                             foreach (var wo in GeneratorCache.Values)
-                                wo.Destory();
+                                wo.Destroy();
                             break;
                     }
 
