@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics;
@@ -66,7 +67,16 @@ namespace ACE.Server.WorldObjects
 
         public void MoveTo(WorldObject target)
         {
+            if (this is Player)
+                return;
 
+            var motion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
+            motion.MovementTypes = MovementTypes.MoveToObject;
+            motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
+            motion.WalkRunThreshold = 1.0f;
+            
+            CurrentMotionState = motion;
+            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
     }
 }

@@ -51,7 +51,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private readonly Physics.Common.Landblock _landblock;
 
-        private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
+        public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Gets all landblocks in range of a position.  (for indoors positions that is just this landblock)
         /// </summary>
-        private List<Landblock> GetLandblocksInRange(Position pos, float distance)
+        public List<Landblock> GetLandblocksInRange(Position pos, float distance)
         {
             List<Landblock> inRange = new List<Landblock>();
 

@@ -81,6 +81,8 @@ namespace ACE.Server.WorldObjects
                 GenerateWieldList();
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
+
+            QueueNextTick();
         }
 
 
@@ -555,6 +557,21 @@ namespace ACE.Server.WorldObjects
             //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
             //player.Session.Network.EnqueueSend(sendUseDoneEvent);
             player.SendUseDoneEvent();
+        }
+
+        public override void HeartBeat()
+        {
+            base.HeartBeat();
+        }
+
+        public static readonly float TickInterval = 1.0f;
+
+        public void QueueNextTick()
+        {
+            var nextTick = new ActionChain();
+            nextTick.AddDelaySeconds(TickInterval);
+            nextTick.AddAction(this, () => DoTick());
+            nextTick.EnqueueChain();
         }
     }
 }

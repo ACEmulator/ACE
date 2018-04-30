@@ -32,6 +32,12 @@ namespace ACE.Entity
             {
                 return new Vector3(PositionX, PositionY, PositionZ);
             }
+            set
+            {
+                PositionX = value.X;
+                PositionY = value.Y;
+                PositionZ = value.Z;
+            }
         }
 
         public Quaternion Rotation
@@ -40,6 +46,26 @@ namespace ACE.Entity
             {
                 return new Quaternion(RotationX, RotationY, RotationZ, RotationW);
             }
+            set
+            {
+                RotationW = value.W;
+                RotationX = value.X;
+                RotationY = value.Y;
+                RotationZ = value.Z;
+            }
+        }
+
+        public Vector3 GlobalPos
+        {
+            get
+            {
+                return ToGlobal();
+            }
+        }
+
+        public void Rotate(Vector3 dir)
+        {
+            Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.Atan2(dir.Y, dir.X));
         }
 
         [JsonProperty("positionX")]

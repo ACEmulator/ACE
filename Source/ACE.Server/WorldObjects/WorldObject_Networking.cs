@@ -1240,12 +1240,22 @@ namespace ACE.Server.WorldObjects
         /// <param name="newPosition"></param>
         public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
         {
+            var player = this as Player;
+
+            // currently only processes players
+            if (player == null) return;
+
             //var previousLocation = Location;
             if (PhysicsObj != null)
             {
                 var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
                 if (dist > Physics.PhysicsGlobals.EPSILON)
                 {
+                    /*var dir = newPosition.GetCurrentDir();
+                    var rads = Math.Atan2(dir.Y, dir.X);
+                    var angle = rads * 57.2958f;
+                    Console.WriteLine("Angle: " + angle);*/
+
                     var curCell = Physics.Common.LScape.get_landcell(Location.Cell);
                     if (curCell != null)
                     {
@@ -1254,6 +1264,8 @@ namespace ACE.Server.WorldObjects
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
+
+                        player.CheckMonsters();
                     }
                 }
             }
