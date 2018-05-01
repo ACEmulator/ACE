@@ -65,7 +65,7 @@ namespace ACE.Entity
 
         public void Rotate(Vector3 dir)
         {
-            Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.Atan2(dir.Y, dir.X));
+            Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.Atan2(dir.Y, dir.X)) * Quaternion.CreateFromYawPitchRoll(0, 0, -(float)Math.PI / 2.0f);
         }
 
         [JsonProperty("positionX")]
