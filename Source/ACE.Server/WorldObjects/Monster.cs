@@ -5,6 +5,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using System.Numerics;
 using ACE.Server.Physics;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -224,7 +225,9 @@ namespace ACE.Server.WorldObjects
             var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
             var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
             var movement = dir * deltaTime * RunSpeed;
-            Location.Pos += movement;
+            if (Location.SetPosition(Location.Pos + movement))
+                UpdateLandblock();
+
             Location.Rotate(dir);
             SendUpdatePosition();
         }
@@ -236,6 +239,12 @@ namespace ACE.Server.WorldObjects
             var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
             Location.Rotate(dir);
             SendUpdatePosition();
+        }
+
+        public void UpdateLandblock()
+        {
+            Console.WriteLine("Updating landblock for " + Name);
+            LandblockManager.RelocateObjectForPhysics(this);
         }
     }
 }

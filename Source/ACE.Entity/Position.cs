@@ -34,10 +34,17 @@ namespace ACE.Entity
             }
             set
             {
-                PositionX = value.X;
-                PositionY = value.Y;
-                PositionZ = value.Z;
+                SetPosition(value);
             }
+        }
+
+        public bool SetPosition(Vector3 pos)
+        {
+            PositionX = pos.X;
+            PositionY = pos.Y;
+            PositionZ = pos.Z;
+
+            return SetLandblock();
         }
 
         public Quaternion Rotation
@@ -154,9 +161,64 @@ namespace ACE.Entity
                 return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
         }
 
-        public Position()
+        /// <summary>
+        /// Handles the Position crossing over landblock boundaries
+        /// </summary>
+        public bool SetLandblock()
         {
+            var changedBlock = false;
+
+            if (PositionX < 0)
+            {
+                var blockOffset = (int)PositionX / BlockLength - 1;
+                if (LandblockId.TransitionX(blockOffset))
+                {
+                    PositionX += BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionX = 0;
+            }
+
+            if (PositionX > BlockLength)
+            {
+                var blockOffset = (int)PositionX / BlockLength;
+                if (LandblockId.TransitionX(blockOffset))
+                {
+                    PositionX -= BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionX = BlockLength;
+            }
+
+            if (PositionY < 0)
+            {
+                var blockOffset = (int)PositionY / BlockLength - 1;
+                if (LandblockId.TransitionY(blockOffset))
+                {
+                    PositionY += BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionY = 0;
+            }
+
+            if (PositionY > BlockLength)
+            {
+                var blockOffset = (int)PositionY / BlockLength;
+                if (LandblockId.TransitionY(blockOffset))
+                {
+                    PositionY -= BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionY = BlockLength;
+            }
+            return changedBlock;
         }
+
+        public Position() { }
 
         public Position(uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
