@@ -81,7 +81,7 @@ namespace ACE.Entity
             if (newY < 0 || newY > 254)
                 return false;
 
-            Raw = (uint)LandblockX << 24 | (uint)LandblockY << 16;
+            Raw = (uint)LandblockX << 24 | (uint)newY << 16;
             return true;
         }
 
