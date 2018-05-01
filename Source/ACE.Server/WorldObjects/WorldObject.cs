@@ -729,6 +729,9 @@ namespace ACE.Server.WorldObjects
                 monster.Health.Current = (uint)newMonsterHealth;
             else
             {
+                if (player != null && player.MeleeTarget != null)
+                    monster.SetFinalPosition();
+
                 monster.Health.Current = 0;
                 monster.Die();
 

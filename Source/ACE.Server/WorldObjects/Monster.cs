@@ -34,6 +34,14 @@ namespace ACE.Server.WorldObjects
         public bool IsMoving = false;
         public bool IsTurning = false;
 
+        public bool IsDead
+        {
+            get
+            {
+                return Health.Current <= 0;
+            }
+        }
+
         public double LastMoveTime;
 
         public WorldObject AttackTarget;
@@ -57,8 +65,12 @@ namespace ACE.Server.WorldObjects
 
         public void Think()
         {
-            if (!IsMoving) return;
-            Movement();
+            if (!IsAwake || IsDead) return;
+
+            if (!IsMoving && !IsMeleeRange())
+                StartTurn();
+            else
+                Movement();
         }
 
         /// <summary>
@@ -78,9 +90,6 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
             DoAttackStance();
-
-            // start turning and moving towards target
-            StartTurn();
         }
 
         public void DoAttackStance()
@@ -174,24 +183,32 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Gets the distance to target, with radius excluded
+        /// </summary>
+        public float GetDistanceToTarget()
+        {
+            var dist = (AttackTarget.Location.GlobalPos - Location.GlobalPos).Length();
+            dist -= AttackTarget.PhysicsObj.GetRadius() - PhysicsObj.GetRadius();
+            return dist;
+        }
+
+        /// <summary>
         /// Estimates the time it will take the monster to move towards target
         /// </summary>
         /// <returns></returns>
         public float EstimateMoveTo()
         {
-            var dist = (AttackTarget.Location.GlobalPos - Location.GlobalPos).Length();
-            return dist / RunSpeed;
+            return GetDistanceToTarget() / RunSpeed;
         }
 
-        public static readonly float MaxMeleeRange = 3.0f;
+        public static readonly float MaxMeleeRange = 1.0f;
 
         /// <summary>
         /// Returns TRUE if monster is within target melee range
         /// </summary>
         public bool IsMeleeRange()
         {
-            var dist = (AttackTarget.Location.GlobalPos - Location.GlobalPos).Length();
-            return dist <= MaxMeleeRange;
+            return GetDistanceToTarget() <= MaxMeleeRange;
         }
 
         public void Movement()
@@ -208,6 +225,15 @@ namespace ACE.Server.WorldObjects
             var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
             var movement = dir * deltaTime * RunSpeed;
             Location.Pos += movement;
+            Location.Rotate(dir);
+            SendUpdatePosition();
+        }
+
+        public void SetFinalPosition()
+        {
+            var playerDir = AttackTarget.Location.GetCurrentDir();
+            Location.Pos = AttackTarget.Location.Pos + playerDir * (AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius());
+            var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
             Location.Rotate(dir);
             SendUpdatePosition();
         }
