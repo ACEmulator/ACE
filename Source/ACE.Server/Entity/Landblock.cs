@@ -371,8 +371,8 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Should only be called by physics/relocation engines -- not from player
         /// </summary>
-        /// <param name="objectId"></param>
-        /// <param name="adjacencyMove"></param>
+        /// <param name="objectId">The object ID to be removed from the current landblock</param>
+        /// <param name="adjacencyMove">Flag indicates if object is moving to an adjacent landblock</param>
         public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);

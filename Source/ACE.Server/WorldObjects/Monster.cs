@@ -244,6 +244,7 @@ namespace ACE.Server.WorldObjects
         public void UpdateLandblock()
         {
             Console.WriteLine("Updating landblock for " + Name);
+            PreviousLocation = Location;
             LandblockManager.RelocateObjectForPhysics(this);
         }
     }

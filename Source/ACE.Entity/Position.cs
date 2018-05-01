@@ -173,8 +173,9 @@ namespace ACE.Entity
             if (PositionX < 0)
             {
                 var blockOffset = (int)PositionX / BlockLength - 1;
-                if (LandblockId.TransitionX(blockOffset))
+                if (LandblockId.TransitionX(blockOffset, out var newBlockId))
                 {
+                    LandblockId = newBlockId;
                     PositionX -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
@@ -185,8 +186,9 @@ namespace ACE.Entity
             if (PositionX > BlockLength)
             {
                 var blockOffset = (int)PositionX / BlockLength;
-                if (LandblockId.TransitionX(blockOffset))
+                if (LandblockId.TransitionX(blockOffset, out var newBlockId))
                 {
+                    LandblockId = newBlockId;
                     PositionX -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
@@ -197,8 +199,9 @@ namespace ACE.Entity
             if (PositionY < 0)
             {
                 var blockOffset = (int)PositionY / BlockLength - 1;
-                if (LandblockId.TransitionY(blockOffset))
+                if (LandblockId.TransitionY(blockOffset, out var newBlockId))
                 {
+                    LandblockId = newBlockId;
                     PositionY -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
@@ -209,8 +212,9 @@ namespace ACE.Entity
             if (PositionY > BlockLength)
             {
                 var blockOffset = (int)PositionY / BlockLength;
-                if (LandblockId.TransitionY(blockOffset))
+                if (LandblockId.TransitionY(blockOffset, out var newBlockId))
                 {
+                    LandblockId = newBlockId;
                     PositionY -= BlockLength * blockOffset;
                     changedBlock = true;
                 }

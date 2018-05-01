@@ -5,7 +5,7 @@ namespace ACE.Entity
 {
     public struct LandblockId
     {
-        public uint Raw { get; set; }
+        public uint Raw { get; }
 
         public LandblockId(uint raw)
         {
@@ -65,23 +65,29 @@ namespace ACE.Entity
             return (Math.Abs(this.LandblockX - block.LandblockX) <= 1 && Math.Abs(this.LandblockY - block.LandblockY) <= 1);
         }
 
-        public bool TransitionX(int blockOffset)
+        public bool TransitionX(int blockOffset, out LandblockId landblockId)
         {
             var newX = LandblockX + blockOffset;
             if (newX < 0 || newX > 254)
+            {
+                landblockId = this;
                 return false;
+            }
 
-            Raw = (uint)newX << 24 | (uint)LandblockY << 16;
+            landblockId = new LandblockId((uint)newX << 24 | (uint)LandblockY << 16);
             return true;
         }
 
-        public bool TransitionY(int blockOffset)
+        public bool TransitionY(int blockOffset, out LandblockId landblockId)
         {
             var newY = LandblockY + blockOffset;
             if (newY < 0 || newY > 254)
+            {
+                landblockId = this;
                 return false;
+            }
 
-            Raw = (uint)LandblockX << 24 | (uint)newY << 16;
+            landblockId = new LandblockId((uint)LandblockX << 24 | (uint)newY << 16);
             return true;
         }
 
