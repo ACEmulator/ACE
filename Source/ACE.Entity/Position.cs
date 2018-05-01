@@ -173,7 +173,7 @@ namespace ACE.Entity
                 var blockOffset = (int)PositionX / BlockLength - 1;
                 if (LandblockId.TransitionX(blockOffset))
                 {
-                    PositionX += BlockLength * blockOffset;
+                    PositionX -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
                 else
@@ -197,7 +197,7 @@ namespace ACE.Entity
                 var blockOffset = (int)PositionY / BlockLength - 1;
                 if (LandblockId.TransitionY(blockOffset))
                 {
-                    PositionY += BlockLength * blockOffset;
+                    PositionY -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
                 else
