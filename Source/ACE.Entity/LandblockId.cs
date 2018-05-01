@@ -74,7 +74,7 @@ namespace ACE.Entity
                 return false;
             }
 
-            landblockId = new LandblockId((uint)newX << 24 | (uint)LandblockY << 16);
+            landblockId = new LandblockId((uint)newX << 24 | (uint)LandblockY << 16 | Raw & 0xFFFF);
             return true;
         }
 
@@ -87,7 +87,7 @@ namespace ACE.Entity
                 return false;
             }
 
-            landblockId = new LandblockId((uint)LandblockX << 24 | (uint)newY << 16);
+            landblockId = new LandblockId((uint)LandblockX << 24 | (uint)newY << 16 | Raw & 0xFFFF);
             return true;
         }
 

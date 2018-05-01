@@ -44,7 +44,10 @@ namespace ACE.Entity
             PositionY = pos.Y;
             PositionZ = pos.Z;
 
-            return SetLandblock();
+            var blockUpdate = SetLandblock();
+            SetLandCell();
+
+            return blockUpdate;
         }
 
         public Quaternion Rotation
@@ -222,6 +225,22 @@ namespace ACE.Entity
                     PositionY = BlockLength;
             }
             return changedBlock;
+        }
+
+        public bool SetLandCell()
+        {
+            var cellX = (uint)PositionX / CellLength;
+            var cellY = (uint)PositionY / CellLength;
+
+            var cellID = cellX * CellSide + cellY + 1;
+
+            var curCellID = LandblockId.Raw & 0xFFFF;
+
+            if (cellID == curCellID)
+                return false;
+
+            LandblockId = new LandblockId((uint)((LandblockId.Raw & 0xFFFF0000) | cellID));
+            return true;
         }
 
         public Position() { }
@@ -521,6 +540,8 @@ namespace ACE.Entity
         }
 
         public static readonly int BlockLength = 192;
+        public static readonly int CellSide = 8;
+        public static readonly int CellLength = 24;
 
         public Vector3 ToGlobal()
         {
