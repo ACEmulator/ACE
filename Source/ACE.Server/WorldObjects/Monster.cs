@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsAwake || IsDead) return;
 
-            if (!IsMoving && !IsMeleeRange())
+            if (!IsTurning && !IsMoving && !IsMeleeRange())
                 StartTurn();
             else
                 Movement();
