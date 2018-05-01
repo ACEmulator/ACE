@@ -166,6 +166,8 @@ namespace ACE.Entity
         /// </summary>
         public bool SetLandblock()
         {
+            if (Indoors) return false;
+
             var changedBlock = false;
 
             if (PositionX < 0)
