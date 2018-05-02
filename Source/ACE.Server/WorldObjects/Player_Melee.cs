@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
             var target = CurrentLandblock.GetObject(guid);
             if (target == null)
             {
-                log.Warn("Unknown target guid " + guid);
+                log.Warn("Unknown target guid " + guid.Full.ToString("X8"));
                 return;
             }
             if (MeleeTarget == null)

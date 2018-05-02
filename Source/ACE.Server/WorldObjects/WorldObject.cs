@@ -733,6 +733,7 @@ namespace ACE.Server.WorldObjects
                     monster.SetFinalPosition();
 
                 monster.Health.Current = 0;
+                monster.OnDeath();
                 monster.Die();
 
                 if (player != null)

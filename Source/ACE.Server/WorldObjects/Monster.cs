@@ -223,6 +223,7 @@ namespace ACE.Server.WorldObjects
         public void UpdatePosition()
         {
             var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
+            if (deltaTime > 2.0f) return;   // ...
             var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
             var movement = dir * deltaTime * RunSpeed;
             if (Location.SetPosition(Location.Pos + movement))
@@ -243,9 +244,15 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateLandblock()
         {
-            Console.WriteLine("Updating landblock for " + Name);
+            //Console.WriteLine("Updating landblock for " + Name);
             PreviousLocation = Location;
             LandblockManager.RelocateObjectForPhysics(this);
+        }
+
+        public void OnDeath()
+        {
+            IsTurning = false;
+            IsMoving = false;
         }
     }
 }
