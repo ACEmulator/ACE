@@ -222,6 +222,8 @@ namespace ACE.Entity
 
         public bool SetLandCell()
         {
+            if (Indoors) return false;
+
             var cellX = (uint)PositionX / CellLength;
             var cellY = (uint)PositionY / CellLength;
 
