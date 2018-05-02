@@ -191,6 +191,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public static readonly float MaxMeleeRange = 1.0f;
+        public static readonly float MaxChaseRange = 192.0f;
 
         /// <summary>
         /// Returns TRUE if monster is within target melee range
@@ -209,6 +210,9 @@ namespace ACE.Server.WorldObjects
             LastMoveTime = Timer.CurrentTime;
             if (IsMeleeRange())
                 OnMoveComplete();
+
+            if (GetDistanceToTarget() >= MaxChaseRange)
+                Sleep();
         }
 
         /// <summary>
@@ -255,6 +259,16 @@ namespace ACE.Server.WorldObjects
         public void OnDeath()
         {
             IsTurning = false;
+            IsMoving = false;
+        }
+
+        /// <summary>
+        /// Returns a monster to idle state
+        /// </summary>
+        public void Sleep()
+        {
+            MonsterState = State.Idle;
+            IsAwake = false;
             IsMoving = false;
         }
     }
