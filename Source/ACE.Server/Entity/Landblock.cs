@@ -51,7 +51,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private readonly Physics.Common.Landblock _landblock;
 
-        private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
+        public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
         /// <summary>
@@ -371,8 +371,8 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Should only be called by physics/relocation engines -- not from player
         /// </summary>
-        /// <param name="objectId"></param>
-        /// <param name="adjacencyMove"></param>
+        /// <param name="objectId">The object ID to be removed from the current landblock</param>
+        /// <param name="adjacencyMove">Flag indicates if object is moving to an adjacent landblock</param>
         public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
@@ -487,7 +487,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Gets all landblocks in range of a position.  (for indoors positions that is just this landblock)
         /// </summary>
-        private List<Landblock> GetLandblocksInRange(Position pos, float distance)
+        public List<Landblock> GetLandblocksInRange(Position pos, float distance)
         {
             List<Landblock> inRange = new List<Landblock>();
 

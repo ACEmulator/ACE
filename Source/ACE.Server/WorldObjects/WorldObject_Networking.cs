@@ -1240,6 +1240,11 @@ namespace ACE.Server.WorldObjects
         /// <param name="newPosition"></param>
         public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
         {
+            var player = this as Player;
+
+            // currently only processes players
+            if (player == null) return;
+
             //var previousLocation = Location;
             if (PhysicsObj != null)
             {
@@ -1254,6 +1259,8 @@ namespace ACE.Server.WorldObjects
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
+
+                        player.CheckMonsters();
                     }
                 }
             }

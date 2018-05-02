@@ -905,7 +905,7 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            if (sourceObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
+                            if (sourceObject.CurrentMotionState.Commands.Count > 0 && sourceObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
                             {
                                 actionChain.AddDelaySeconds(emoteAction.Delay);
                                 actionChain.AddAction(sourceObject, () =>

@@ -154,25 +154,25 @@ namespace ACE.Server.Managers
                 if (y > 0)
                     SetAdjacency(landblockId, landblockId.SouthWest, Adjacency.SouthWest, autoLoad);
 
-                if (y < 255)
+                if (y < 254)
                     SetAdjacency(landblockId, landblockId.NorthWest, Adjacency.NorthWest, autoLoad);
             }
 
-            if (x < 255)
+            if (x < 254)
             {
                 SetAdjacency(landblockId, landblockId.East, Adjacency.East, autoLoad);
 
                 if (y > 0)
                     SetAdjacency(landblockId, landblockId.SouthEast, Adjacency.SouthEast, autoLoad);
 
-                if (y < 255)
+                if (y < 254)
                     SetAdjacency(landblockId, landblockId.NorthEast, Adjacency.NorthEast, autoLoad);
             }
 
             if (y > 0)
                 SetAdjacency(landblockId, landblockId.South, Adjacency.South, autoLoad);
 
-            if (y < 255)
+            if (y < 254)
                 SetAdjacency(landblockId, landblockId.North, Adjacency.North, autoLoad);
         }
 

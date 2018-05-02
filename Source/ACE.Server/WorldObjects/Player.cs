@@ -308,7 +308,9 @@ namespace ACE.Server.WorldObjects
             // Remember the selected Target
             selectedTarget = queryId;
             HealthQueryTarget = queryId.Full;
-            CurrentLandblock.GetObject(queryId).QueryHealth(Session);
+            var obj = CurrentLandblock.GetObject(queryId);
+            if (obj != null)
+                obj.QueryHealth(Session);
         }
 
         public void HandleActionQueryItemMana(ObjectGuid queryId)

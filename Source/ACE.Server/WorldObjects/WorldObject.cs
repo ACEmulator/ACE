@@ -305,7 +305,7 @@ namespace ACE.Server.WorldObjects
 
         public Position RequestedLocation { get; private set; }
 
-        public Position PreviousLocation { get; private set; }
+        public Position PreviousLocation { get; protected set; }
 
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
@@ -729,7 +729,11 @@ namespace ACE.Server.WorldObjects
                 monster.Health.Current = (uint)newMonsterHealth;
             else
             {
+                if (player != null && player.MeleeTarget != null)
+                    monster.SetFinalPosition();
+
                 monster.Health.Current = 0;
+                monster.OnDeath();
                 monster.Die();
 
                 if (player != null)

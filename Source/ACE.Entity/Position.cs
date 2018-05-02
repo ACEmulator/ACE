@@ -16,10 +16,7 @@ namespace ACE.Entity
         public LandblockId LandblockId
         {
             get => landblockId.Raw != 0 ? landblockId : new LandblockId(Cell);
-            set
-            {
-                landblockId = value;
-            }
+            set => landblockId = value;
         }
 
         // TODO: This is just named wrong needs to be fixed.
@@ -28,18 +25,45 @@ namespace ACE.Entity
 
         public Vector3 Pos
         {
+            get => new Vector3(PositionX, PositionY, PositionZ);
+            set => SetPosition(value);
+        }
+
+        public Vector3 GlobalPos
+        {
             get
             {
-                return new Vector3(PositionX, PositionY, PositionZ);
+                return ToGlobal();
             }
+        }
+
+        public bool SetPosition(Vector3 pos)
+        {
+            PositionX = pos.X;
+            PositionY = pos.Y;
+            PositionZ = pos.Z;
+
+            var blockUpdate = SetLandblock();
+            SetLandCell();
+
+            return blockUpdate;
         }
 
         public Quaternion Rotation
         {
-            get
+            get => new Quaternion(RotationX, RotationY, RotationZ, RotationW);
+            set
             {
-                return new Quaternion(RotationX, RotationY, RotationZ, RotationW);
+                RotationW = value.W;
+                RotationX = value.X;
+                RotationY = value.Y;
+                RotationZ = value.Z;
             }
+        }
+
+        public void Rotate(Vector3 dir)
+        {
+            Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.Atan2(dir.Y, dir.X)) * Quaternion.CreateFromYawPitchRoll(0, 0, -(float)Math.PI / 2.0f);
         }
 
         [JsonProperty("positionX")]
@@ -128,9 +152,93 @@ namespace ACE.Entity
                 return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
         }
 
-        public Position()
+        /// <summary>
+        /// Handles the Position crossing over landblock boundaries
+        /// </summary>
+        public bool SetLandblock()
         {
+            if (Indoors) return false;
+
+            var changedBlock = false;
+
+            if (PositionX < 0)
+            {
+                var blockOffset = (int)PositionX / BlockLength - 1;
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
+                {
+                    LandblockId = landblock.Value;
+                    PositionX -= BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionX = 0;
+            }
+
+            if (PositionX > BlockLength)
+            {
+                var blockOffset = (int)PositionX / BlockLength;
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
+                {
+                    LandblockId = landblock.Value;
+                    PositionX -= BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionX = BlockLength;
+            }
+
+            if (PositionY < 0)
+            {
+                var blockOffset = (int)PositionY / BlockLength - 1;
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
+                {
+                    LandblockId = landblock.Value;
+                    PositionY -= BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionY = 0;
+            }
+
+            if (PositionY > BlockLength)
+            {
+                var blockOffset = (int)PositionY / BlockLength;
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
+                {
+                    LandblockId = landblock.Value;
+                    PositionY -= BlockLength * blockOffset;
+                    changedBlock = true;
+                }
+                else
+                    PositionY = BlockLength;
+            }
+
+            return changedBlock;
         }
+
+        public bool SetLandCell()
+        {
+            if (Indoors) return false;
+
+            var cellX = (uint)PositionX / CellLength;
+            var cellY = (uint)PositionY / CellLength;
+
+            var cellID = cellX * CellSide + cellY + 1;
+
+            var curCellID = LandblockId.Raw & 0xFFFF;
+
+            if (cellID == curCellID)
+                return false;
+
+            LandblockId = new LandblockId((uint)((LandblockId.Raw & 0xFFFF0000) | cellID));
+            return true;
+        }
+
+        public Position() { }
 
         public Position(uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
@@ -427,6 +535,8 @@ namespace ACE.Entity
         }
 
         public static readonly int BlockLength = 192;
+        public static readonly int CellSide = 8;
+        public static readonly int CellLength = 24;
 
         public Vector3 ToGlobal()
         {

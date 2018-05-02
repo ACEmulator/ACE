@@ -64,6 +64,25 @@ namespace ACE.Entity
         {
             return (Math.Abs(this.LandblockX - block.LandblockX) <= 1 && Math.Abs(this.LandblockY - block.LandblockY) <= 1);
         }
+
+        public LandblockId? TransitionX(int blockOffset)
+        {
+            var newX = LandblockX + blockOffset;
+            if (newX < 0 || newX > 254)
+                return null;
+            else
+                return new LandblockId((uint)newX << 24 | (uint)LandblockY << 16 | Raw & 0xFFFF);
+        }
+
+        public LandblockId? TransitionY(int blockOffset)
+        {
+            var newY = LandblockY + blockOffset;
+            if (newY < 0 || newY > 254)
+                return null;
+            else
+                return new LandblockId((uint)LandblockX << 24 | (uint)newY << 16 | Raw & 0xFFFF);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is LandblockId)

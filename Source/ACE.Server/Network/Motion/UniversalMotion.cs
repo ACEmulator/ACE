@@ -10,7 +10,7 @@ namespace ACE.Server.Network.Motion
 {
     public class UniversalMotion : MotionState
     {
-        public uint Flag { get; set; } = 0x0041EE0F;
+        public MovementParams Flag { get; set; } = (MovementParams)0x0041EE0F;
 
         public float MinimumDistance { get; set; } = 0.00f;
 
@@ -43,7 +43,7 @@ namespace ACE.Server.Network.Motion
         /// </summary>
         public MotionStance Stance { get; }
 
-        public MovementData MovementData { get; }
+        public MovementData MovementData { get; set; }
 
         public List<MotionItem> Commands { get; } = new List<MotionItem>();
 
@@ -124,7 +124,7 @@ namespace ACE.Server.Network.Motion
                                 writer.Write(TargetGuid.Full);
 
                             Position.Serialize(writer, false);
-                            writer.Write(Flag);
+                            writer.Write((uint)Flag);
                             writer.Write(DistanceFrom);
                             writer.Write(MinimumDistance);
                             writer.Write(FailDistance);
@@ -146,14 +146,14 @@ namespace ACE.Server.Network.Motion
                         // movement type yet - coded it up but had not used or tested.
                         writer.Write(TargetGuid.Full);
                         writer.Write(Heading);
-                        writer.Write(Flag);
+                        writer.Write((uint)Flag);
                         writer.Write(Speed);
                         writer.Write(DesiredHeading); // always 0.0 in every pcap of this type.
                         break;
                     }
                 case MovementTypes.TurnToHeading:
                     {
-                        writer.Write(Flag);
+                        writer.Write((uint)Flag);
                         writer.Write(Speed);
                         writer.Write(Heading);
                         break;
