@@ -559,11 +559,6 @@ namespace ACE.Server.WorldObjects
             player.SendUseDoneEvent();
         }
 
-        public override void HeartBeat()
-        {
-            base.HeartBeat();
-        }
-
         public static readonly float TickInterval = 1.0f;
 
         public void QueueNextTick()

@@ -1251,11 +1251,6 @@ namespace ACE.Server.WorldObjects
                 var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
                 if (dist > Physics.PhysicsGlobals.EPSILON)
                 {
-                    /*var dir = newPosition.GetCurrentDir();
-                    var rads = Math.Atan2(dir.Y, dir.X);
-                    var angle = rads * 57.2958f;
-                    Console.WriteLine("Angle: " + angle);*/
-
                     var curCell = Physics.Common.LScape.get_landcell(Location.Cell);
                     if (curCell != null)
                     {

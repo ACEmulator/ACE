@@ -16,10 +16,7 @@ namespace ACE.Entity
         public LandblockId LandblockId
         {
             get => landblockId.Raw != 0 ? landblockId : new LandblockId(Cell);
-            set
-            {
-                landblockId = value;
-            }
+            set => landblockId = value;
         }
 
         // TODO: This is just named wrong needs to be fixed.
@@ -28,13 +25,15 @@ namespace ACE.Entity
 
         public Vector3 Pos
         {
+            get => new Vector3(PositionX, PositionY, PositionZ);
+            set => SetPosition(value);
+        }
+
+        public Vector3 GlobalPos
+        {
             get
             {
-                return new Vector3(PositionX, PositionY, PositionZ);
-            }
-            set
-            {
-                SetPosition(value);
+                return ToGlobal();
             }
         }
 
@@ -52,24 +51,13 @@ namespace ACE.Entity
 
         public Quaternion Rotation
         {
-            get
-            {
-                return new Quaternion(RotationX, RotationY, RotationZ, RotationW);
-            }
+            get => new Quaternion(RotationX, RotationY, RotationZ, RotationW);
             set
             {
                 RotationW = value.W;
                 RotationX = value.X;
                 RotationY = value.Y;
                 RotationZ = value.Z;
-            }
-        }
-
-        public Vector3 GlobalPos
-        {
-            get
-            {
-                return ToGlobal();
             }
         }
 
@@ -176,9 +164,10 @@ namespace ACE.Entity
             if (PositionX < 0)
             {
                 var blockOffset = (int)PositionX / BlockLength - 1;
-                if (LandblockId.TransitionX(blockOffset, out var newBlockId))
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
                 {
-                    LandblockId = newBlockId;
+                    LandblockId = landblock.Value;
                     PositionX -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
@@ -189,9 +178,10 @@ namespace ACE.Entity
             if (PositionX > BlockLength)
             {
                 var blockOffset = (int)PositionX / BlockLength;
-                if (LandblockId.TransitionX(blockOffset, out var newBlockId))
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
                 {
-                    LandblockId = newBlockId;
+                    LandblockId = landblock.Value;
                     PositionX -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
@@ -202,9 +192,10 @@ namespace ACE.Entity
             if (PositionY < 0)
             {
                 var blockOffset = (int)PositionY / BlockLength - 1;
-                if (LandblockId.TransitionY(blockOffset, out var newBlockId))
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
                 {
-                    LandblockId = newBlockId;
+                    LandblockId = landblock.Value;
                     PositionY -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
@@ -215,15 +206,17 @@ namespace ACE.Entity
             if (PositionY > BlockLength)
             {
                 var blockOffset = (int)PositionY / BlockLength;
-                if (LandblockId.TransitionY(blockOffset, out var newBlockId))
+                var landblock = LandblockId.TransitionX(blockOffset);
+                if (landblock != null)
                 {
-                    LandblockId = newBlockId;
+                    LandblockId = landblock.Value;
                     PositionY -= BlockLength * blockOffset;
                     changedBlock = true;
                 }
                 else
                     PositionY = BlockLength;
             }
+
             return changedBlock;
         }
 

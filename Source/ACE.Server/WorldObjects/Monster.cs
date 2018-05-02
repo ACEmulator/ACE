@@ -1,22 +1,31 @@
 using System;
+using System.Numerics;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.Motion;
-using System.Numerics;
-using ACE.Server.Physics;
 using ACE.Server.Managers;
+using ACE.Server.Network.Motion;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
+    /// <summary>
+    /// Monster AI functions
+    /// </summary>
     partial class Creature
     {
+        /// <summary>
+        /// The exclusive states the monster can be in
+        /// </summary>
         public enum State
         {
             Idle,
             Awake
         };
 
+        /// <summary>
+        /// Determines when a monster will attack
+        /// </summary>
         [Flags]
         public enum Tolerance
         {
@@ -35,13 +44,7 @@ namespace ACE.Server.WorldObjects
         public bool IsMoving = false;
         public bool IsTurning = false;
 
-        public bool IsDead
-        {
-            get
-            {
-                return Health.Current <= 0;
-            }
-        }
+        public bool IsDead => Health.Current <= 0;
 
         public double LastMoveTime;
 
@@ -51,19 +54,17 @@ namespace ACE.Server.WorldObjects
         public static readonly float RunSpeed = 2.5f;
 
         /// <summary>
-        /// Construct a new monster from a weenie and a guid
+        /// Called every ~1 second
         /// </summary>
-        /*public Monster(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public void DoTick()
         {
-        }*/
+            Think();
+            QueueNextTick();
+        }
 
         /// <summary>
-        /// Construct a new monster from a Biota
+        /// Primary dispatch for monster think
         /// </summary>
-        /*public Monster(Biota biota) : base(biota)
-        {
-        }*/
-
         public void Think()
         {
             if (!IsAwake || IsDead) return;
@@ -72,15 +73,6 @@ namespace ACE.Server.WorldObjects
                 StartTurn();
             else
                 Movement();
-        }
-
-        /// <summary>
-        /// Called every ~1 second
-        /// </summary>
-        public void DoTick()
-        {
-            Think();
-            QueueNextTick();
         }
 
         /// <summary>
@@ -93,6 +85,9 @@ namespace ACE.Server.WorldObjects
             DoAttackStance();
         }
 
+        /// <summary>
+        /// Switch to attack stance
+        /// </summary>
         public void DoAttackStance()
         {
             // TODO: get attack stance based on weapon type
@@ -138,13 +133,6 @@ namespace ACE.Server.WorldObjects
         {
             LastMoveTime = Timer.CurrentTime;
             IsMoving = true;
-
-            /*var time = EstimateMoveTo();
-
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(time);
-            actionChain.AddAction(this, () => OnMoveComplete());
-            actionChain.EnqueueChain();*/
         }
 
         /// <summary>
@@ -212,6 +200,9 @@ namespace ACE.Server.WorldObjects
             return GetDistanceToTarget() <= MaxMeleeRange;
         }
 
+        /// <summary>
+        /// Primary movement handler, determines if target in range
+        /// </summary>
         public void Movement()
         {
             UpdatePosition();
@@ -220,10 +211,13 @@ namespace ACE.Server.WorldObjects
                 OnMoveComplete();
         }
 
+        /// <summary>
+        /// Updates monster position and rotation
+        /// </summary>
         public void UpdatePosition()
         {
             var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
-            if (deltaTime > 2.0f) return;   // ...
+            if (deltaTime > 2.0f) return;   // FIXME: state persist?
             var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
             var movement = dir * deltaTime * RunSpeed;
             if (Location.SetPosition(Location.Pos + movement))
@@ -233,6 +227,9 @@ namespace ACE.Server.WorldObjects
             SendUpdatePosition();
         }
 
+        /// <summary>
+        /// Sets the corpse to the final position
+        /// </summary>
         public void SetFinalPosition()
         {
             var playerDir = AttackTarget.Location.GetCurrentDir();
@@ -242,6 +239,9 @@ namespace ACE.Server.WorldObjects
             SendUpdatePosition();
         }
 
+        /// <summary>
+        /// Called when a monster changes landblocks
+        /// </summary>
         public void UpdateLandblock()
         {
             //Console.WriteLine("Updating landblock for " + Name);
@@ -249,6 +249,9 @@ namespace ACE.Server.WorldObjects
             LandblockManager.RelocateObjectForPhysics(this);
         }
 
+        /// <summary>
+        /// Cleans up state on monster death
+        /// </summary>
         public void OnDeath()
         {
             IsTurning = false;
