@@ -521,7 +521,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 1)
             {
                 // create enchantment
-                var enchantment = new Enchantment(target, spellStatMod.SpellId, 1, (uint)EnchantmentMask.CreatureSpells);
+                var enchantment = new Enchantment(target, spellStatMod.SpellId, 1, (uint)EnchantmentMask.CreatureSpells, null, castByItem);
                 var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
 
                 var player = this as Player;
