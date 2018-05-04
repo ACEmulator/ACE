@@ -18,6 +18,7 @@ namespace ACE.Server.Network.Structure
         public ushort Layer;
         public EnchantmentMask EnchantmentMask;
         public double StartTime;
+        public double Duration;
         public float? StatMod;
 
         public Enchantment(WorldObject target, uint spellId, ushort layer, uint? enchantmentMask, float? statMod = null)
@@ -46,6 +47,7 @@ namespace ACE.Server.Network.Structure
             Spell = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
             Layer = entry.LayerId;
             StartTime = entry.StartTime;
+            Duration = entry.Duration;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;
             StatMod = entry.StatModValue;
         }
@@ -78,7 +80,7 @@ namespace ACE.Server.Network.Structure
             writer.Write(HasSpellSetId);
             writer.Write(enchantment.SpellBase.Power);
             writer.Write(enchantment.StartTime);
-            writer.Write(enchantment.SpellBase.Duration);
+            writer.Write(enchantment.Duration);
             writer.Write(enchantment.Target.Guid.Full);
             writer.Write(enchantment.SpellBase.DegradeModifier);
             writer.Write(enchantment.SpellBase.DegradeLimit);

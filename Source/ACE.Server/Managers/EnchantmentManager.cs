@@ -74,13 +74,49 @@ namespace ACE.Server.Managers
             // Enchantment applied by an item
             if (castByItem == true)
             {
-                entry = BuildEntry(enchantment.Spell.SpellId);
-                entry.LayerId = enchantment.Layer;
-                entry.Duration = 0.0;               // TODO: Doesn't appear to be working, to remove the countdown timer
-                var type = (EnchantmentTypeFlags)entry.StatModType;
-                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+                // if none, add new record
+                if (entry == null)
+                {
+                    entry = BuildEntry(enchantment.Spell.SpellId);
+                    entry.Duration = -1;
+                    entry.StartTime = 0;
+                    entry.LayerId = enchantment.Layer;
+                    var type = (EnchantmentTypeFlags)entry.StatModType;
+                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
 
-                return StackType.Initial;
+                    return StackType.Initial;
+                }
+
+                if (enchantment.Spell.Power > entry.PowerLevel)
+                {
+                    // surpass existing spell
+                    Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                    Remove(entry, false);
+                    entry = BuildEntry(enchantment.Spell.SpellId);
+                    entry.Duration = -1;
+                    entry.StartTime = 0;
+                    entry.LayerId = enchantment.Layer;
+                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+                    return StackType.Surpass;
+                }
+
+                if (enchantment.Spell.Power == entry.PowerLevel)
+                {
+                    if (entry.Duration != -1)
+                    {
+                        // refresh existing spell with a no countdown timer
+                        entry.LayerId++;
+                        entry.Duration = -1;
+                        entry.StartTime = 0;
+                        return StackType.Refresh;
+                    }
+                    
+                    return StackType.None;
+                }
+
+                // superior existing spell
+                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                return StackType.Surpassed;
             }
 
             // if none, add new record
@@ -107,10 +143,15 @@ namespace ACE.Server.Managers
 
             if (enchantment.Spell.Power == entry.PowerLevel)
             {
-                // refresh existing spell
-                entry.LayerId++;
-                entry.StartTime = 0;
-                return StackType.Refresh;
+                if (entry.Duration != -1)
+                {
+                    // refresh existing spell
+                    entry.LayerId++;
+                    entry.StartTime = 0;
+                    return StackType.Refresh;
+                }
+
+                return StackType.None;
             }
 
             // superior existing spell
