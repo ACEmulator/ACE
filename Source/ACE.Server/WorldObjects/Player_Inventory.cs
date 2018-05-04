@@ -623,7 +623,7 @@ namespace ACE.Server.WorldObjects
                     if (item.Biota.BiotaPropertiesSpellBook != null)
                     {
                         // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
-                        if (item.ItemCurMana < 1 || item.ItemCurMana == null)
+                        if (item.ItemCurMana > 1 || item.ItemCurMana == null)
                         {
                             for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
                             {

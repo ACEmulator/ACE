@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             CreatureSkill missileDefense = player.GetCreatureSkill(Skill.MissileDefense);
             CreatureSkill magicDefense = player.GetCreatureSkill(Skill.MagicDefense);
 
-            if (item.ItemDifficulty >= arcaneLore.Current || item.ItemDifficulty == null)
+            if (arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
             {
                 if (item.AppraisalItemSkill != 0 || item.AppraisalItemSkill != null)
                 {
