@@ -100,6 +100,7 @@ namespace ACE.Server.Managers
                     return StackType.Surpass;
                 }
 
+                // TODO: the refresh spell case may need some additional functionality to get working correctly
                 if (enchantment.Spell.Power == entry.PowerLevel)
                 {
                     if (entry.Duration != -1)
@@ -141,6 +142,7 @@ namespace ACE.Server.Managers
                 return StackType.Surpass;
             }
 
+            // TODO: the refresh spell case may need some additional functionality to get working correctly
             if (enchantment.Spell.Power == entry.PowerLevel)
             {
                 if (entry.Duration != -1)
