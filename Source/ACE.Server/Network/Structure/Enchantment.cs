@@ -21,44 +21,35 @@ namespace ACE.Server.Network.Structure
         public double Duration;
         public float? StatMod;
 
-        public Enchantment(WorldObject target, uint spellId, ushort layer, uint? enchantmentMask, float? statMod = null, bool castByItem = false)
+        public Enchantment(WorldObject target, uint spellId, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
             SpellBase = DatManager.PortalDat.SpellTable.Spells[spellId];
             Spell = DatabaseManager.World.GetCachedSpell(spellId);
             Layer = layer;
-            if (castByItem == true)
-                Duration = -1;
-            else
-                Duration = (double)Spell.Duration;
+            Duration = duration;
             EnchantmentMask = (EnchantmentMask)(enchantmentMask ?? 0);
             StatMod = statMod ?? Spell.StatModVal;
         }
 
-        public Enchantment(WorldObject target, SpellBase spellBase, ushort layer, uint? enchantmentMask, float? statMod = null, bool castByItem = false)
+        public Enchantment(WorldObject target, SpellBase spellBase, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
             SpellBase = spellBase;
             Layer = layer;
-            if (castByItem == true)
-                Duration = -1;
-            else
-                Duration = spellBase.Duration;
+            Duration = duration;
             EnchantmentMask = (EnchantmentMask)(enchantmentMask ?? 0);
             StatMod = statMod;
         }
 
-        public Enchantment(WorldObject target, BiotaPropertiesEnchantmentRegistry entry, bool castByItem = false)
+        public Enchantment(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
         {
             Target = target;
             SpellBase = DatManager.PortalDat.SpellTable.Spells[(uint)entry.SpellId];
             Spell = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
             Layer = entry.LayerId;
             StartTime = entry.StartTime;
-            if (castByItem == true)
-                Duration = -1;
-            else
-                Duration = entry.Duration;
+            Duration = entry.Duration;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;
             StatMod = entry.StatModValue;
         }

@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
             var spellID = (uint)Network.Enum.Spell.Vitae;
             var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
             var spell = DatabaseManager.World.GetCachedSpell(spellID);
-            var vitaeEnchantment = new Enchantment(this, spellID, 0, spell.StatModType, vitae);
+            var vitaeEnchantment = new Enchantment(this, spellID, (double)spell.Duration, 0, spell.StatModType, vitae);
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, 0);

@@ -520,8 +520,13 @@ namespace ACE.Server.WorldObjects
         {
             if (WeenieClassId == 1)
             {
+                double duration;
+                if (castByItem)
+                    duration = -1;
+                else
+                    duration = spell.Duration;
                 // create enchantment
-                var enchantment = new Enchantment(target, spellStatMod.SpellId, 1, (uint)EnchantmentMask.CreatureSpells, null, castByItem);
+                var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
                 var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
 
                 var player = this as Player;
