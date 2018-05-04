@@ -66,10 +66,22 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public StackType Add(Enchantment enchantment)
+        public StackType Add(Enchantment enchantment, bool castByItem)
         {
             // check for existing spell in this category
             var entry = GetCategory(enchantment.Spell.Category);
+
+            // Enchantment applied by an item
+            if (castByItem == true)
+            {
+                entry = BuildEntry(enchantment.Spell.SpellId);
+                entry.LayerId = enchantment.Layer;
+                entry.Duration = 0.0;               // TODO: Doesn't appear to be working, to remove the countdown timer
+                var type = (EnchantmentTypeFlags)entry.StatModType;
+                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+
+                return StackType.Initial;
+            }
 
             // if none, add new record
             if (entry == null)
@@ -298,6 +310,20 @@ namespace ACE.Server.Managers
 
             if (sound)
                 player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f));
+        }
+
+        /// <summary>
+        /// Removes a spell from the enchantment registry, and
+        /// sends the relevant network messages for spell removal
+        /// </summary>
+        public void Dispel(BiotaPropertiesEnchantmentRegistry entry)
+        {
+            var spellID = entry.SpellId;
+            var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
+            WorldObject.RemoveEnchantment(spellID);
+            var player = WorldObject as Player;
+            player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId));
+
         }
 
         /// <summary>

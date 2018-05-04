@@ -203,7 +203,7 @@ namespace ACE.Server.Command.Handlers
                     var runEnchantment = new Enchantment(session.Player, spellID, 0, spell.StatModType, spell.StatModVal);
                     var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
                     session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
-                    session.Player.EnchantmentManager.Add(runEnchantment);
+                    session.Player.EnchantmentManager.Add(runEnchantment, false);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
                     break;
             }

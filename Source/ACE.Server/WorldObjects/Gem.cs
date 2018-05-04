@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // add to enchantment registry
-                player.EnchantmentManager.Add(gem);
+                player.EnchantmentManager.Add(gem, false);
 
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
                 player.SendUseDoneEvent();
