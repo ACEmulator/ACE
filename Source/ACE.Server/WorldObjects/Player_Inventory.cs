@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 
 using ACE.DatLoader;
@@ -471,6 +472,15 @@ namespace ACE.Server.WorldObjects
                 // Was I equiped? If so, lets take care of that and unequip
                 if (item.WielderId != null)
                 {
+                    // If item has any spells, remove them from the registry on unequip
+                    if (item.Biota.BiotaPropertiesSpellBook != null)
+                    {
+                        for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                        {
+                            RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                        }
+                    }
+
                     UnwieldItemWithNetworking(container, item, placement);
                     return;
                 }
@@ -608,6 +618,18 @@ namespace ACE.Server.WorldObjects
                     {
                         log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
                         return;
+                    }
+
+                    if (item.Biota.BiotaPropertiesSpellBook != null)
+                    {
+                        // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
+                        if (item.ItemCurMana > 1 || item.ItemCurMana == null)
+                        {
+                            for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                            {
+                                CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                            }
+                        }
                     }
 
                     if ((EquipMask)wieldLocation == EquipMask.MissileAmmo)

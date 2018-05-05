@@ -18,23 +18,26 @@ namespace ACE.Server.Network.Structure
         public ushort Layer;
         public EnchantmentMask EnchantmentMask;
         public double StartTime;
+        public double Duration;
         public float? StatMod;
 
-        public Enchantment(WorldObject target, uint spellId, ushort layer, uint? enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, uint spellId, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
             SpellBase = DatManager.PortalDat.SpellTable.Spells[spellId];
             Spell = DatabaseManager.World.GetCachedSpell(spellId);
             Layer = layer;
+            Duration = duration;
             EnchantmentMask = (EnchantmentMask)(enchantmentMask ?? 0);
             StatMod = statMod ?? Spell.StatModVal;
         }
 
-        public Enchantment(WorldObject target, SpellBase spellBase, ushort layer, uint? enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, SpellBase spellBase, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
             SpellBase = spellBase;
             Layer = layer;
+            Duration = duration;
             EnchantmentMask = (EnchantmentMask)(enchantmentMask ?? 0);
             StatMod = statMod;
         }
@@ -46,6 +49,7 @@ namespace ACE.Server.Network.Structure
             Spell = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
             Layer = entry.LayerId;
             StartTime = entry.StartTime;
+            Duration = entry.Duration;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;
             StatMod = entry.StatModValue;
         }
@@ -78,7 +82,7 @@ namespace ACE.Server.Network.Structure
             writer.Write(HasSpellSetId);
             writer.Write(enchantment.SpellBase.Power);
             writer.Write(enchantment.StartTime);
-            writer.Write(enchantment.SpellBase.Duration);
+            writer.Write(enchantment.Duration);
             writer.Write(enchantment.Target.Guid.Full);
             writer.Write(enchantment.SpellBase.DegradeModifier);
             writer.Write(enchantment.SpellBase.DegradeLimit);

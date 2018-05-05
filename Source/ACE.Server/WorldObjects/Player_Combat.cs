@@ -25,6 +25,9 @@ namespace ACE.Server.WorldObjects
         {
             var weapon = GetEquippedWeapon();
 
+            if (weapon == null)
+                return GetCreatureSkill(Skill.FinesseWeapons).Skill;    // Not sure what skill should be used for bare knuckle melee :: Change if incorrect
+
             // missile weapon
             if (weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
@@ -45,7 +48,15 @@ namespace ACE.Server.WorldObjects
 
         public AttackType GetAttackType()
         {
-            return GetEquippedWeapon().CurrentWieldedLocation == EquipMask.MeleeWeapon ? AttackType.Melee : AttackType.Missile;
+            AttackType attackType;
+            if (GetEquippedWeapon() == null)
+            {
+                attackType = AttackType.Melee;
+            }
+            else
+                attackType = GetEquippedWeapon().CurrentWieldedLocation == EquipMask.MeleeWeapon ? AttackType.Melee : AttackType.Missile;
+
+            return attackType;
         }
 
         public void DamageTarget(WorldObject target)

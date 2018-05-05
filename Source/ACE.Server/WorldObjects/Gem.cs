@@ -84,11 +84,11 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
                 player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
                 const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
-                var gem = new Enchantment(player, SpellDID.Value, layer, spell.Category);
+                var gem = new Enchantment(player, SpellDID.Value, (double)spell.Duration, layer, spell.Category);
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // add to enchantment registry
-                player.EnchantmentManager.Add(gem);
+                player.EnchantmentManager.Add(gem, false);
 
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
                 player.SendUseDoneEvent();
@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 // cooldown not being used in network packet?
-                var gem = new Enchantment(player, spellBase, layer, /*CooldownId.Value,*/ (uint)EnchantmentTypeFlags.Cooldown);
+                var gem = new Enchantment(player, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ (uint)EnchantmentTypeFlags.Cooldown);
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.

@@ -1888,6 +1888,30 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemMaxMana); else SetProperty(PropertyInt.ItemMaxMana, value.Value); }
         }
 
+        public double? ManaRate
+        {
+            get => GetProperty(PropertyFloat.ManaRate);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaRate); else SetProperty(PropertyFloat.ManaRate, value.Value); }
+        }
+
+        public int? ItemDifficulty
+        {
+            get => GetProperty(PropertyInt.ItemDifficulty);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemDifficulty); else SetProperty(PropertyInt.ItemDifficulty, value.Value); }
+        }
+
+        public int? AppraisalItemSkill
+        {
+            get => GetProperty(PropertyInt.AppraisalItemSkill);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalItemSkill); else SetProperty(PropertyInt.AppraisalItemSkill, value.Value); }
+        }
+
+        public int? ItemSkillLevelLimit
+        {
+            get => GetProperty(PropertyInt.ItemSkillLevelLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemSkillLevelLimit); else SetProperty(PropertyInt.ItemSkillLevelLimit, value.Value); }
+        }
+
         public bool? NpcLooksLikeObject
         {
             get => GetProperty(PropertyBool.NpcLooksLikeObject);

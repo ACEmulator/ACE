@@ -66,15 +66,49 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public StackType Add(Enchantment enchantment)
+        public StackType Add(Enchantment enchantment, bool castByItem)
         {
             // check for existing spell in this category
             var entry = GetCategory(enchantment.Spell.Category);
 
+/*
+                if (enchantment.Spell.Power > entry.PowerLevel)
+                {
+                    // surpass existing spell
+                    Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                    Remove(entry, false);
+                    entry = BuildEntry(enchantment.Spell.SpellId);
+                    entry.Duration = -1;
+                    entry.StartTime = 0;
+                    entry.LayerId = enchantment.Layer;
+                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+                    return StackType.Surpass;
+                }
+
+                // TODO: the refresh spell case may need some additional functionality to get working correctly
+                if (enchantment.Spell.Power == entry.PowerLevel)
+                {
+                    if (entry.Duration != -1)
+                    {
+                        // refresh existing spell with a no countdown timer
+                        entry.LayerId++;
+                        entry.Duration = -1;
+                        entry.StartTime = 0;
+                        return StackType.Refresh;
+                    }
+                    
+                    return StackType.None;
+                }
+
+                // superior existing spell
+                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                return StackType.Surpassed;
+            }
+            */
             // if none, add new record
             if (entry == null)
             {
-                entry = BuildEntry(enchantment.Spell.SpellId);
+                entry = BuildEntry(enchantment.Spell.SpellId, castByItem);
                 entry.LayerId = enchantment.Layer;
                 var type = (EnchantmentTypeFlags)entry.StatModType;
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
@@ -87,7 +121,7 @@ namespace ACE.Server.Managers
                 // surpass existing spell
                 Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
                 Remove(entry, false);
-                entry = BuildEntry(enchantment.Spell.SpellId);
+                entry = BuildEntry(enchantment.Spell.SpellId, castByItem);
                 entry.LayerId = enchantment.Layer;
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
                 return StackType.Surpass;
@@ -95,10 +129,15 @@ namespace ACE.Server.Managers
 
             if (enchantment.Spell.Power == entry.PowerLevel)
             {
-                // refresh existing spell
-                entry.LayerId++;
-                entry.StartTime = 0;
-                return StackType.Refresh;
+                if (entry.Duration != -1)
+                {
+                    // refresh existing spell
+                    entry.LayerId++;
+                    entry.StartTime = 0;
+                    return StackType.Refresh;
+                }
+
+                return StackType.None;
             }
 
             // superior existing spell
@@ -239,7 +278,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID)
+        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, bool castByItem = false)
         {
             var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
             var spell = DatabaseManager.World.GetCachedSpell(spellID);
@@ -253,7 +292,15 @@ namespace ACE.Server.Managers
             entry.SpellId = (int)spell.SpellId;
             entry.SpellCategory = (ushort)spell.Category;
             entry.PowerLevel = spell.Power;
-            entry.Duration = spell.Duration ?? 0.0;
+
+            if (castByItem)
+            {
+                entry.Duration = -1.0;
+                entry.StartTime = 0;
+            }
+            else
+                entry.Duration = spell.Duration ?? 0.0;
+
             entry.CasterObjectId = WorldObject.Guid.Full;   // only works for self?
             entry.DegradeModifier = spell.DegradeModifier ?? 0.0f;
             entry.DegradeLimit = spell.DegradeLimit ?? 0.0f;
@@ -298,6 +345,20 @@ namespace ACE.Server.Managers
 
             if (sound)
                 player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f));
+        }
+
+        /// <summary>
+        /// Removes a spell from the enchantment registry, and
+        /// sends the relevant network messages for spell removal
+        /// </summary>
+        public void Dispel(BiotaPropertiesEnchantmentRegistry entry)
+        {
+            var spellID = entry.SpellId;
+            var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
+            WorldObject.RemoveEnchantment(spellID);
+            var player = WorldObject as Player;
+            player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId));
+
         }
 
         /// <summary>
