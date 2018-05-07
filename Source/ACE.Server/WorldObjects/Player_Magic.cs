@@ -18,6 +18,14 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        private enum TargetCategory
+        {
+            UnDef = 0,
+            WorldObject = 1,
+            Wielded = 2,
+            Inventory = 3
+        }
+
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
@@ -168,6 +176,24 @@ namespace ACE.Server.WorldObjects
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject target = CurrentLandblock.GetObject(guidTarget);
+            TargetCategory targetCategory = TargetCategory.WorldObject;
+
+            if (target == null)
+            {
+                target = GetWieldedItem(guidTarget);
+                targetCategory = TargetCategory.Wielded;
+            }
+            if (target == null)
+            {
+                target = GetInventoryItem(guidTarget);
+                targetCategory = TargetCategory.Inventory;
+            }
+            if (target == null)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.TargetNotAcquired));
+                targetCategory = TargetCategory.UnDef;
+                return;
+            }
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
@@ -206,9 +232,7 @@ namespace ACE.Server.WorldObjects
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
-            if (target == null)
-                target = player.GetWieldedItem(guidTarget);
-            else
+            if (targetCategory == TargetCategory.WorldObject)
             {
                 if (guidTarget != Guid)
                 {

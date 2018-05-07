@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
@@ -12,9 +11,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
-using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Factories;
 using ACE.Server.Physics;
@@ -202,68 +199,51 @@ namespace ACE.Server.WorldObjects
             if (target.WeenieType == WeenieType.Creature && IsSpellHarmful(spell) == false)
                 return true;
 
+            // Cannot cast Weapon Aura spells on targets that are not players or creatures
+            if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))
+            {
+                if ((target.WeenieClassId != 1) || (target.WeenieType != WeenieType.Creature))
+                    return true;
+            }
+
+            // Cannot cast Weapon Aura spells on targets that are not players or creatures
+            if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
+            {
+                if ((target.WeenieClassId != 1)
+                    || (target.WeenieType != WeenieType.Creature)
+                    || (target.WeenieType != WeenieType.Clothing)
+                    || (target.WeenieType != WeenieType.Caster)
+                    || (target.WeenieType != WeenieType.MeleeWeapon)
+                    || (target.WeenieType != WeenieType.MissileLauncher)
+                    || (target.WeenieType != WeenieType.Missile)
+                    || (target.WeenieType != WeenieType.Door)
+                    || (target.WeenieType != WeenieType.Chest))
+                    return true;
+            }
+
             return false;
         }
 
         /// <summary>
-        /// Method used for handling creature targeted spell casts
+        /// Determines whether a spell will be evaded, based upon the caster's magic skill vs target's magic defense skill
         /// </summary>
-        public void CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
-        {
-            Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
-
-            if (creature.IsBusy == true)
-                return;
-            else
-                creature.IsBusy = true;
-
-            SpellTable spellTable = DatManager.PortalDat.SpellTable;
-            if (!spellTable.Spells.ContainsKey(spellId))
-            {
-                creature.IsBusy = false;
-                return;
-            }
-
-            SpellBase spell = spellTable.Spells[spellId];
-
-            float scale = SpellAttributes(null, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
-
-            creature.IsBusy = false;
-            return;
-        }
-
-        /// <summary>
-        /// Method used for handling creature untargeted spell casts
-        /// </summary>
-        public void CreateCreatureSpell(uint spellId)
-        {
-            Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
-
-            if (creature.IsBusy == true)
-                return;
-            else
-                creature.IsBusy = true;
-
-            SpellTable spellTable = DatManager.PortalDat.SpellTable;
-            if (!spellTable.Spells.ContainsKey(spellId))
-            {
-                creature.IsBusy = false;
-                return;
-            }
-
-            SpellBase spell = spellTable.Spells[spellId];
-
-            float scale = SpellAttributes(null, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
-
-            creature.IsBusy = false;
-            return;
-        }
-
+        /// <param name="casterMagicSkill"></param>
+        /// <param name="targetMagicDefenseSkill"></param>
+        /// <returns></returns>
         public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
         {
             return Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetMagicSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill));
         }
 
+        /// <summary>
+        /// Creates the Life Magic spell
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
+        /// <param name="message"></param>
+        /// <param name="castByItem"></param>
+        /// <returns></returns>
         protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false)
         {
             string srcVital, destVital, action;
@@ -511,62 +491,26 @@ namespace ACE.Server.WorldObjects
                 return false;
         }
 
+        /// <summary>
+        /// Wrapper around CreateEnchantment for Creature Magic
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
+        /// <param name="castByItem"></param>
+        /// <returns></returns>
         protected string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem = false)
         {
             return CreateEnchantment(target, spell, spellStatMod, castByItem);
         }
 
-        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem)
-        {
-            if (WeenieClassId == 1)
-            {
-                double duration;
-                if (castByItem)
-                    duration = -1;
-                else
-                    duration = spell.Duration;
-                // create enchantment
-                var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
-                var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
-
-                var player = this as Player;
-                var playerTarget = target as Player;
-                var creatureTarget = target as Creature;
-
-                // build message
-                var suffix = "";
-                switch (stackType)
-                {
-                    case StackType.Refresh:
-                        suffix = $", refreshing {spell.Name}";
-                        break;
-                    case StackType.Surpass:
-                        suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
-                        break;
-                    case StackType.Surpassed:
-                        suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
-                        break;
-                }
-
-                var targetName = this == target ? "yourself" : target.Name;
-
-                var message = $"You cast {spell.Name} on {targetName}{suffix}";
-
-                if (target is Player)
-                {
-                    if (stackType != StackType.Surpassed)
-                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
-
-                    if (player != playerTarget)
-                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-                }
-
-                return message;
-            }
-
-            return "";
-        }
-
+        /// <summary>
+        /// Item Magic
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
+        /// <param name="castByItem"></param>
         protected void ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem = false)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
@@ -613,6 +557,12 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// War Magic
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
         protected void WarMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
             if (spellStatMod.NumProjectiles == 1)
@@ -630,6 +580,12 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Void Magic
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
         protected void VoidMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
             if (WeenieClassId == 1)
@@ -640,6 +596,73 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Creates an enchantment and interacts with the Enchantment registry.
+        /// Used by Life, Creature, Item, and Void magic
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
+        /// <param name="castByItem"></param>
+        /// <returns></returns>
+        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem)
+        {
+            double duration;
+            if (castByItem)
+                duration = -1;
+            else
+                duration = spell.Duration;
+            // create enchantment
+            var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
+            var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
+
+            if (WeenieClassId == 1)
+            {
+                var player = this as Player;
+                var playerTarget = target as Player;
+                var creatureTarget = target as Creature;
+
+                // build message
+                var suffix = "";
+                switch (stackType)
+                {
+                    case StackType.Refresh:
+                        suffix = $", refreshing {spell.Name}";
+                        break;
+                    case StackType.Surpass:
+                        suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
+                        break;
+                    case StackType.Surpassed:
+                        suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
+                        break;
+                }
+
+                var targetName = this == target ? "yourself" : target.Name;
+
+                var message = $"You cast {spell.Name} on {targetName}{suffix}";
+
+                if (target is Player)
+                {
+                    if (stackType != StackType.Surpassed)
+                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+
+                    if (player != playerTarget)
+                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                }
+
+                return message;
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// Creates the Magic projectile spells for Life, War, and Void Magic
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spellId"></param>
+        /// <param name="projectileWcid"></param>
+        /// <param name="lifeProjectileDamage"></param>
         private void CreateSpellProjectile(WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
         {
             SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as SpellProjectile;
