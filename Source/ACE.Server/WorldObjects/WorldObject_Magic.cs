@@ -202,22 +202,27 @@ namespace ACE.Server.WorldObjects
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))
             {
-                if ((target.WeenieClassId != 1) || (target.WeenieType != WeenieType.Creature))
-                    return true;
+                if (target.WeenieClassId != 1)
+                {
+                    if (target.WeenieType != WeenieType.Creature)
+                        return true;
+                }
             }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
             {
-                if ((target.WeenieClassId != 1)
-                    || (target.WeenieType != WeenieType.Creature)
-                    || (target.WeenieType != WeenieType.Clothing)
-                    || (target.WeenieType != WeenieType.Caster)
-                    || (target.WeenieType != WeenieType.MeleeWeapon)
-                    || (target.WeenieType != WeenieType.MissileLauncher)
-                    || (target.WeenieType != WeenieType.Missile)
-                    || (target.WeenieType != WeenieType.Door)
-                    || (target.WeenieType != WeenieType.Chest))
+                if ((target.WeenieClassId == 1)
+                    || (target.WeenieType == WeenieType.Creature)
+                    || (target.WeenieType == WeenieType.Clothing)
+                    || (target.WeenieType == WeenieType.Caster)
+                    || (target.WeenieType == WeenieType.MeleeWeapon)
+                    || (target.WeenieType == WeenieType.MissileLauncher)
+                    || (target.WeenieType == WeenieType.Missile)
+                    || (target.WeenieType == WeenieType.Door)
+                    || (target.WeenieType == WeenieType.Chest))
+                    return false;
+                else
                     return true;
             }
 

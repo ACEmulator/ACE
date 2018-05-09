@@ -20,10 +20,11 @@ namespace ACE.Server.WorldObjects
     {
         private enum TargetCategory
         {
-            UnDef = 0,
-            WorldObject = 1,
-            Wielded = 2,
-            Inventory = 3
+            UnDef,
+            WorldObject,
+            Wielded,
+            Inventory,
+            Self
         }
 
         /// <summary>
@@ -31,9 +32,30 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)
         {
+            Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject target = CurrentLandblock.GetObject(guidTarget) as WorldObject;
+            TargetCategory targetCategory = TargetCategory.WorldObject;
 
-            if (Guid == guidTarget)
+            if (guidTarget == Guid)
+                targetCategory = TargetCategory.Self;
+            if (target == null)
+            {
+                target = GetWieldedItem(guidTarget);
+                targetCategory = TargetCategory.Wielded;
+            }
+            if (target == null)
+            {
+                target = GetInventoryItem(guidTarget);
+                targetCategory = TargetCategory.Inventory;
+            }
+            if (target == null)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.TargetNotAcquired));
+                targetCategory = TargetCategory.UnDef;
+                return;
+            }
+
+            if (targetCategory != TargetCategory.WorldObject)
             {
                 CreatePlayerSpell(guidTarget, spellId);
             }
