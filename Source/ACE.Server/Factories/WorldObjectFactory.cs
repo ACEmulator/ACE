@@ -21,7 +21,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public static WorldObject CreateWorldObject(Weenie weenie, ObjectGuid guid)
+        public static WorldObject CreateWorldObject(Weenie weenie, ObjectGuid guid, uint spellId = 0)
         {
             var objWeenieType = (WeenieType)weenie.Type;
 
@@ -94,7 +94,7 @@ namespace ACE.Server.Factories
                 case WeenieType.Caster:
                     return new Caster(weenie, guid);
                 case WeenieType.ProjectileSpell:
-                    return new SpellProjectile(weenie, guid);
+                    return new SpellProjectile(weenie, guid, spellId);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -278,6 +278,29 @@ namespace ACE.Server.Factories
                 return null;
 
             return CreateNewWorldObject(classId);
+        }
+
+        /// <summary>
+        /// This will create a new SpellProjectile WorldObject with a new GUID.
+        /// It will return null if weenieClassId was not found.
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(uint weenieClassId, uint spellId)
+        {
+            var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+
+            if (weenie == null)
+                return null;
+
+            return CreateNewWorldObject(weenie, spellId);
+        }
+
+        /// <summary>
+        /// This will create a new SpellProjectile WorldObject with a new GUID.
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(Weenie weenie, uint spellId)
+        {
+            var worldObject = CreateWorldObject(weenie, GuidManager.NewDynamicGuid(), spellId);
+            return worldObject;
         }
     }
 }
