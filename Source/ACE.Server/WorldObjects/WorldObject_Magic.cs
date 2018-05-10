@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private enum SpellLevel
+        protected enum SpellLevel
         {
             One = 1,
             Two = 50,
@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
             Eight = 350
         }
 
-        private static SpellLevel CalculateSpellLevel(uint spellPower)
+        protected static SpellLevel CalculateSpellLevel(uint spellPower)
         {
             if (spellPower < 50)
                 return SpellLevel.One;
@@ -465,7 +465,7 @@ namespace ACE.Server.WorldObjects
                             caster.Health.Current = (uint)newCasterVital;
                     }
 
-                    CreateSpellProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
+                    CreateSpellProjectile(this, target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -572,7 +572,7 @@ namespace ACE.Server.WorldObjects
         {
             if (spellStatMod.NumProjectiles == 1)
             {
-                CreateSpellProjectile(target, spell.MetaSpellId, (uint)spellStatMod.Wcid);
+                CreateSpellProjectile(this, target, spell.MetaSpellId, (uint)spellStatMod.Wcid);
             }
             else
             {
@@ -664,34 +664,52 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates the Magic projectile spells for Life, War, and Void Magic
         /// </summary>
+        /// <param name="caster"></param>
         /// <param name="target"></param>
         /// <param name="spellId"></param>
         /// <param name="projectileWcid"></param>
         /// <param name="lifeProjectileDamage"></param>
-        private void CreateSpellProjectile(WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
+        private void CreateSpellProjectile(WorldObject caster, WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
         {
-            SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as SpellProjectile;
+            SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid, spellId) as SpellProjectile;
 
-            var origin = Location.ToGlobal();
-            origin.Z += Height / 2.0f;
-
+            var origin = caster.Location.ToGlobal();
+            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
+                origin.Z += caster.Height;
+            else
+                origin.Z += caster.Height * 2.0f / 3.0f;
+                
             var dest = target.Location.ToGlobal();
             dest.Z += target.Height / 2.0f;
 
-            float speed = 35.0f;
-            if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Streak"))
-                speed = 40.0f;
-
-            var dir = Vector3.Normalize(dest - origin);
-
-            origin += dir * 2.0f;
+            var direction = Vector3.Normalize(dest - origin);
+            // This is not perfect but is close to values that retail used. TODO: revisit this later.
+            origin += direction * (caster.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius());
 
             float time;
-            var velocity = dir * speed;
             var dist = (dest - origin).Length();
-            if (DatManager.PortalDat.SpellTable.Spells[spellId].Name.Contains("Arc"))
+            float speed = 15f;
+            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Bolt)
             {
-                speed = 20.0f;
+                speed = GetStationaryVelocity(15f, dist);
+            }
+            else if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Streak)
+            {
+                speed = GetStationaryVelocity(45f, dist);
+            }
+            else if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
+            {
+                speed = GetStationaryVelocity(40f, dist);
+            }
+
+            // TODO: Implement target leading for non arc spells
+            // Also: velocity seems to increase when target is moving away from the caster and decrease when
+            // the target is moving toward the caster. This still needs more research.
+
+            var velocity = direction * speed;
+            
+            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
+            {
                 spellProjectile.Velocity = GetSpellProjectileVelocity(origin, dest, speed, out time);
             }
             else
@@ -700,41 +718,48 @@ namespace ACE.Server.WorldObjects
                 var velocityLength = spellProjectile.Velocity.Get().Length();
                 time = dist / velocityLength;
             }
+            spellProjectile.FlightTime = time;
 
-            var loc = Location;
+            var loc = caster.Location;
             origin = loc.Pos;
-            origin.Z += Height / 2.0f;
-            origin += dir * 2.0f;
+            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
+                origin.Z += caster.Height;
+            else
+                origin.Z += caster.Height * 2.0f / 3.0f;
+            origin += direction * (caster.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius());
 
             spellProjectile.Location = new ACE.Entity.Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
-            SetSpellProjectilePhysicsState(spellProjectile);
-
             spellProjectile.ParentWorldObject = (Creature)this;
             spellProjectile.TargetGuid = target.Guid;
-            spellProjectile.SpellId = spellId;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
 
             LandblockManager.AddObject(spellProjectile);
-            CurrentLandblock.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
+            CurrentLandblock.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, spellProjectile.PlayscriptIntensity));
 
             // TODO : removed when real server projectile tracking and collisions are implemented
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(time);
+            actionChain.AddDelaySeconds(spellProjectile.FlightTime);
             actionChain.AddAction(spellProjectile, () => spellProjectile.HandleOnCollide(spellProjectile.TargetGuid));
             actionChain.EnqueueChain();
         }
 
         /// <summary>
-        /// Sets the physics state for a launched projectile
+        /// Calculates the velocity of a spell projectile based on distance to the target (assuming it is stationary)
         /// </summary>
-        private void SetSpellProjectilePhysicsState(WorldObject obj)
+        /// <param name="defaultVelocity"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
+        private float GetStationaryVelocity(float defaultVelocity, float distance)
         {
-            obj.ReportCollisions = true;
-            obj.Missile = true;
-            obj.AlignPath = true;
-            obj.PathClipped = true;
-            obj.Ethereal = false;
-            obj.IgnoreCollisions = false;
+            var velocity = (float)((defaultVelocity * .9998363f) - (defaultVelocity * .62034f) / distance +
+                                   (defaultVelocity * .44868f) / Math.Pow(distance, 2f) - (defaultVelocity * .25256f)
+                                   / Math.Pow(distance, 3f));
+
+            if (velocity <= 0)
+                velocity = 0.1f;
+            else if (velocity > 50)
+                velocity = 50f;
+            return velocity;
         }
 
         /// <summary>
