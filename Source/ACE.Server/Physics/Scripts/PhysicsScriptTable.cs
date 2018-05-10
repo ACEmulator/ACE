@@ -12,7 +12,7 @@ namespace ACE.Server.Physics
 
         }
 
-        public uint GetScript(PlayScript type, float mod)
+        public uint GetScript(PlayScript? type, float? mod)
         {
             return 0;
         }

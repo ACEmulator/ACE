@@ -33,8 +33,10 @@ namespace ACE.Server.Physics
         public bool ExaminationObject;
         public ScriptManager ScriptManager;
         public PhysicsScriptTable PhysicsScriptTable;
-        public PlayScript DefaultScript;
-        public float DefaultScriptIntensity;
+        public PlayScript? DefaultScript;
+        public float? DefaultScriptIntensity;
+        public bool HasDefaultAnimation;
+        public bool HasDefaultScript;
         public PhysicsObj Parent;
         public ChildList Children;
         public Position Position;
