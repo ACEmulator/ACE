@@ -9,6 +9,7 @@ namespace ACE.Server.Network.GameEvent
         FriendsListUpdate                      = 0x0021,
         InventoryPutObjInContainer             = 0x0022,
         WieldObject                            = 0x0023,
+        InventoryRemoveObject                  = 0x0024,
         CharacterTitle                         = 0x0029,
         UpdateTitle                            = 0x002B,
         CloseGroundContainer                   = 0x0052,

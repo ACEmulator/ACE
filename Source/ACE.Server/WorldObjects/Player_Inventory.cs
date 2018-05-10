@@ -695,18 +695,30 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This code handle objects between players and other world objects
         /// </summary>
-        public void HandleActionGiveObjectRequest(uint targetID, uint objectID, uint amount)
+        public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
-            // TODO : IsAttuned() should be checked first, as is performed in HandleActionDropItem()
 
-            log.Error("Player_Inventory HandleActionGiveObjectRequest not implemented");
-            ////ObjectGuid target = new ObjectGuid(targetID);
-            ////ObjectGuid item = new ObjectGuid(objectID);
-            ////WorldObject targetObject = CurrentLandblock.GetObject(target) as WorldObject;
-            ////WorldObject itemObject = GetInventoryItem(item);
-            ////////WorldObject itemObject = CurrentLandblock.GetObject(item) as WorldObject;
-            ////Session.Network.EnqueueSend(new GameMessagePutObjectInContainer(Session, (ObjectGuid)targetObject.Guid, itemObject, 0));
-            ////SendUseDoneEvent();
+            WorldObject target = CurrentLandblock.GetObject(targetID) as WorldObject;
+            WorldObject item = GetInventoryItem(itemGuid) as WorldObject;
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(Rotate(target));
+            actionChain.AddAction(this, () =>
+            {
+                if (target.GetProperty(PropertyBool.AllowGive) == true)
+                {
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name +".", ChatMessageType.System));
+                    WorldObject player = this;
+                    //if (target.handleReceive(item, amount, target, player))
+                    //{
+                    //    Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
+                    //}
+                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+                    Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+                }
+            });
+            actionChain.EnqueueChain();
+
         }
 
 
