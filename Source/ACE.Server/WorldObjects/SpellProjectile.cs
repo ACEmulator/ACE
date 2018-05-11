@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
 
         public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
         public ObjectGuid TargetGuid { get => targetGuid; set => targetGuid = value; }
-        public uint SpellId { get => spellId; set => spellId = value; }
+        public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
         public float FlightTime { get; set; }
         public float PlayscriptIntensity { get; set; }
