@@ -26,8 +26,11 @@ namespace ACE.Server.WorldObjects
 
         public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
         public ObjectGuid TargetGuid { get => targetGuid; set => targetGuid = value; }
-        public uint SpellId { get => spellId; set => spellId = value; }
+        public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
+        public float FlightTime { get; set; }
+        public float PlayscriptIntensity { get; set; }
+        public ProjectileSpellType SpellType { get; set; }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -47,6 +50,51 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            // Override weenie description defaults
+            ValidLocations = null;
+            DefaultScriptId = null;
+
+            // Override physics state defaults
+            ReportCollisions = true;
+            Missile = true;
+            AlignPath = true;
+            PathClipped = true;
+            Ethereal = false;
+            IgnoreCollisions = false;
+            CurrentMotionState = null;
+            Placement = null;
+
+            // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
+
+        }
+
+        /// <summary>
+        /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
+        /// </summary>
+        /// <param name="spellId"></param>
+        public void Setup(uint spellId)
+        {
+            SpellId = spellId;
+
+            SpellType = GetProjectileSpellType(spellId);
+            var spellPower = DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
+
+            if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
+                                                      || SpellType == ProjectileSpellType.Arc)
+            {
+                PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
+                PhysicsObj.DefaultScriptIntensity = 1.0f;
+                var spellLevel = CalculateSpellLevel(spellPower);
+                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
+            }
+
+            // Whirling Blade spells get omega values and "align path" turned off which
+            // creates the nice swirling animation
+            if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
+            {
+                AlignPath = false;
+                Omega = new AceVector3(12.56637f, 0f, 0f);
+            }
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
@@ -63,7 +111,93 @@ namespace ACE.Server.WorldObjects
             // First heartbeat always appears to happen after spell has already traveled its maximum range, already
             // ProjectileImpact();
             // TODO: Following line should be removed and previous line uncommented, once projectile movement and collision is server controlled
-            HandleOnCollide(targetGuid);
+            // This is handled in CreateSpellProjectile() for now. Commenting it out since it causes double hits.
+            //HandleOnCollide(targetGuid);
+        }
+
+        public enum ProjectileSpellType
+        {
+            Undef,
+            Bolt,
+            Blast,
+            Volley,
+            Streak,
+            Arc,
+            Ring,
+            Wall
+        }
+
+        public ProjectileSpellType GetProjectileSpellType(uint SpellId)
+        {
+            var WeenieClassId = DatabaseManager.World.GetCachedSpell(SpellId).Wcid;
+            if (WeenieClassId == null)
+                return ProjectileSpellType.Undef;
+
+            if (WeenieClassId >= 7262 && WeenieClassId <= 7268)
+            {
+                return ProjectileSpellType.Streak;
+            }
+            else if (WeenieClassId >= 7269 && WeenieClassId <= 2725)
+            {
+                return ProjectileSpellType.Ring;
+            }
+            else if (WeenieClassId >= 7276 && WeenieClassId <= 7282 || WeenieClassId == 23144)
+            {
+                return ProjectileSpellType.Wall;
+            }
+            else if (WeenieClassId >= 20973 && WeenieClassId <= 20979)
+            {
+                return ProjectileSpellType.Arc;
+            }
+            else if (WeenieClassId == 1499 || WeenieClassId == 1503 || (WeenieClassId >= 1633 && WeenieClassId <= 1667))
+            {
+                var spreadAngle = DatabaseManager.World.GetCachedSpell(SpellId).SpreadAngle;
+                var dimsOriginX = DatabaseManager.World.GetCachedSpell(SpellId).DimsOriginX;
+                if (spreadAngle > 0)
+                {
+                    return ProjectileSpellType.Blast;
+                }
+                else if (dimsOriginX > 1)
+                {
+                    return ProjectileSpellType.Volley;
+                }
+                else
+                {
+                    return ProjectileSpellType.Bolt;
+                }
+            }
+
+            return ProjectileSpellType.Undef;
+        }
+
+        private float GetProjectileScriptIntensity(ProjectileSpellType spellType, SpellLevel spellLevel)
+        {
+            if (spellType == ProjectileSpellType.Ring || spellType == ProjectileSpellType.Wall)
+            {
+                return 0.4f;
+                // TODO: higher level ring spells use 1.0f intensity
+            }
+
+            // Bolt, Blast, Volley, Streak and Arc all seem to use this scale
+            switch (spellLevel)
+            {
+                case SpellLevel.One:
+                    return 0f;
+                case SpellLevel.Two:
+                    return 0.2f;
+                case SpellLevel.Three:
+                    return 0.4f;
+                case SpellLevel.Four:
+                    return 0.6f;
+                case SpellLevel.Five:
+                    return 0.8f;
+                case SpellLevel.Six:
+                case SpellLevel.Seven:
+                case SpellLevel.Eight:
+                    return 1.0f;
+                default:
+                    return 0f;
+            }
         }
 
         private void ProjectileImpact()
@@ -83,8 +217,12 @@ namespace ACE.Server.WorldObjects
 
                 EnqueueBroadcastPhysicsState();
 
-                float effect = Math.Max(0.0f, Math.Min(1.0f, ((spell.Power - 1.0f) / 7.0f)));
-                CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, effect));
+                SpellType = GetProjectileSpellType(spellId);
+                var spellPower = spell.Power;
+                var spellLevel = CalculateSpellLevel(spellPower);
+                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
+
+                CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
             });
             selfDestructChain.AddDelaySeconds(5.0);
             selfDestructChain.AddAction(this, () => LandblockManager.RemoveObject(this));

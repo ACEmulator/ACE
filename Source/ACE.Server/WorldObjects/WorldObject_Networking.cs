@@ -318,10 +318,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write(DefaultScriptId ?? 0u);
+                writer.Write((uint)(PhysicsObj.DefaultScript ?? 0u));
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(DefaultScriptIntensity ?? 0u);
+                writer.Write(PhysicsObj.DefaultScriptIntensity ?? 0u);
 
             // timestamps
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));        // 0
@@ -561,10 +561,10 @@ namespace ACE.Server.WorldObjects
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (CSetup.DefaultScript != 0)
+            if (PhysicsObj.DefaultScript != null && PhysicsObj.DefaultScript != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (DefaultScriptIntensity != null)
+            if (PhysicsObj.DefaultScriptIntensity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
@@ -724,12 +724,12 @@ namespace ACE.Server.WorldObjects
             else
                 physicsState &= ~PhysicsState.Inelastic;
             ////HasDefaultAnim              = 0x00040000,
-            if (CSetup.DefaultAnimation > 0)
+            if (PhysicsObj.HasDefaultAnimation && CSetup.DefaultAnimation > 0)
                 physicsState |= PhysicsState.HasDefaultAnim;
             else
                 physicsState &= ~PhysicsState.HasDefaultAnim;
             ////HasDefaultScript            = 0x00080000,
-            if (CSetup.DefaultScript > 0)
+            if (PhysicsObj.HasDefaultScript && CSetup.DefaultScript > 0)
                 physicsState |= PhysicsState.HasDefaultScript;
             else
                 physicsState &= ~PhysicsState.HasDefaultScript;
