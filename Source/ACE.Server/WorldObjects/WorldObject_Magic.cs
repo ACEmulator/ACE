@@ -671,7 +671,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="lifeProjectileDamage"></param>
         private void CreateSpellProjectile(WorldObject caster, WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0)
         {
-            SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid, spellId) as SpellProjectile;
+            SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as SpellProjectile;
+            spellProjectile.Setup(spellId);
 
             var origin = caster.Location.ToGlobal();
             if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)

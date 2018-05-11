@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
 
         public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
         public ObjectGuid TargetGuid { get => targetGuid; set => targetGuid = value; }
-        public uint SpellId { get => spellId; set => spellId = value; }
+        public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
         public float FlightTime { get; set; }
         public float PlayscriptIntensity { get; set; }
@@ -35,9 +35,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public SpellProjectile(Weenie weenie, ObjectGuid guid, uint spellId) : base(weenie, guid)
+        public SpellProjectile(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            SpellId = spellId;
             SetEphemeralValues();
         }
 
@@ -65,12 +64,23 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = null;
             Placement = null;
 
-            // TODO: timestamps (sequence numbers) don't seem to be getting updated
+            // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
+
+        }
+
+        /// <summary>
+        /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
+        /// </summary>
+        /// <param name="spellId"></param>
+        public void Setup(uint spellId)
+        {
+            SpellId = spellId;
 
             SpellType = GetProjectileSpellType(spellId);
-            var spellPower =  DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
+            var spellPower = DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
 
-            if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak || SpellType == ProjectileSpellType.Arc)
+            if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
+                                                      || SpellType == ProjectileSpellType.Arc)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
@@ -85,7 +95,6 @@ namespace ACE.Server.WorldObjects
                 AlignPath = false;
                 Omega = new AceVector3(12.56637f, 0f, 0f);
             }
-
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
