@@ -51,23 +51,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void SetChildren()
         {
-            // WE SHOULDNT SET THE CHILDEREN HERE
-            // THIS SHOULD PROBABLY GO IN PlayerEnterWorld()
-            // ALTERNATIVELY, WE CAN PULL THE EQUIPPED INVENTORY FROM THE DB IN THE CTOR
-
             Children.Clear();
 
-            /* todo fix for new not use aceobj
-            foreach (WorldObject wieldedObject in WieldedObjects.Values)
+            foreach (var item in EquippedObjects.Values)
             {
-                WorldObject wo = wieldedObject;
-                int placementId;
-                int childLocation;
-                if ((wo.CurrentWieldedLocation != null) && (((EquipMask)wo.CurrentWieldedLocation & EquipMask.Selectable) != 0))
-                    SetChild(this, wo, (int)wo.CurrentWieldedLocation, out placementId, out childLocation);
-                else
-                    log.Debug($"Error - item set as child that should not be set - no currentWieldedLocation {wo.Name} - {wo.Guid.Full:X}");
-            }*/
+                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
+                {
+                    int placementId;
+                    int parentLocation;
+                    Session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
+                }
+            }
         }
 
         private void SendSelf()
@@ -79,7 +73,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(player, title, friends);
 
             SetChildren();
-
+            // Player objects don't get a placement
+            Placement = null;
             Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
 
             SendInventoryAndWieldedItems(Session);
@@ -114,9 +109,13 @@ namespace ACE.Server.WorldObjects
                 if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
                 {
                     int placementId;
-                    int childLocation;
-                    session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out childLocation);
+                    int parentLocation;
+                    session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
+                    item.CurrentMotionState = null;
+                    item.Placement = (Placement)placementId;
+                    item.ParentLocation = (ParentLocation)parentLocation;
                 }
+
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
         }
