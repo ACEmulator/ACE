@@ -561,7 +561,7 @@ namespace ACE.Server.WorldObjects
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (PhysicsObj.DefaultScript != 0)
+            if (PhysicsObj.DefaultScript != null && PhysicsObj.DefaultScript != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
             if (PhysicsObj.DefaultScriptIntensity != null)
