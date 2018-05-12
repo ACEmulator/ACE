@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        private string LockCode
+        public string LockCode
         {
             get => GetProperty(PropertyString.LockCode);
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
@@ -163,7 +163,7 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        private int? ResistLockpick
+        public int? ResistLockpick
         {
             get => GetProperty(PropertyInt.ResistLockpick);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects
             checkDoorChain.EnqueueChain();
         }
 
-        private void Open(ObjectGuid opener = new ObjectGuid())
+        public void Open(ObjectGuid opener = new ObjectGuid())
         {
             if (CurrentMotionState == motionOpen)
                 return;

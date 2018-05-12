@@ -73,6 +73,24 @@ namespace ACE.Server.Command.Handlers
         }
         */
 
+        [CommandHandler("nudge", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Correct player position cell ID after teleporting into black space.")]
+        public static void HandleNudge(Session session, params string[] parameters)
+        {
+            var pos = session.Player.GetPosition(PositionType.Location);
+            if (session.Player.AdjustDungeonCells(pos))
+            {
+                pos.PositionZ += 0.005000f;
+                var posReadable = PostionAsLandblocksGoogleSpreadsheetFormat(pos);
+                AdminCommands.HandleTeleportLOC(session, posReadable.Split(' '));
+                var positionMessage = new GameMessageSystemChat($"Nudge player to {posReadable}", ChatMessageType.Broadcast);
+                session.Network.EnqueueSend(positionMessage);
+            }
+        }
+        static string PostionAsLandblocksGoogleSpreadsheetFormat(Position pos)
+        {
+            return $"0x{pos.Cell.ToString("X")} {pos.Pos.X} {pos.Pos.Y} {pos.Pos.Z} {pos.Rotation.W} {pos.Rotation.X} {pos.Rotation.Y} {pos.Rotation.Z}";
+        }
+
         /// <summary>
         /// Debug command to test the ObjDescEvent message.
         /// </summary>

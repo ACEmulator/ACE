@@ -678,17 +678,21 @@ namespace ACE.Server.WorldObjects
             nextHeartBeat.EnqueueChain();
         }
 
-        private void AdjustDungeonCells(Position pos)
+        public bool AdjustDungeonCells(Position pos)
         {
             var dungeonID = pos.Cell >> 16;
-            if (!AdjustCell.AdjustDungeons.Contains(dungeonID))
-                return;
+            //if (!AdjustCell.AdjustDungeons.Contains(dungeonID))
+            //    return;
 
             var adjustCell = AdjustCell.Get(dungeonID);
             var cellID = adjustCell.GetCell(pos.Pos);
 
-            if (cellID != null)
+            if (cellID != null && pos.Cell != cellID.Value)
+            {
                 pos.Cell = cellID.Value;
+                return true;
+            }
+            return false;
         }
 
         public virtual void Activate(WorldObject activator)

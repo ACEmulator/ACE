@@ -1006,6 +1006,52 @@ namespace ACE.Server.Command.Handlers
             session.Player.TryCreateInInventoryWithNetworking(loot);
         }
 
+        [CommandHandler("crack", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Cracks the most recently appraised locked target.", "[. open it too]")]
+        public static void HandleCrack(Session session, params string[] parameters)
+        {
+            bool openIt = (parameters?.Length > 0 && parameters[0] == ".");
+            if (session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                var objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+                if (wo is Door woDoor)
+                {
+                    var opening = openIt ? " Opening door." : "";
+                    Door.UnlockDoorResults res;
+                    if (!string.IsNullOrWhiteSpace(woDoor.LockCode))
+                    {
+                        res = woDoor.UnlockDoor(woDoor.LockCode);
+                        ChatPacket.SendServerMessage(session, $"Crack via {woDoor.LockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
+                    }
+                    else if (woDoor.ResistLockpick.HasValue)
+                    {
+                        res = woDoor.UnlockDoor((uint)woDoor.ResistLockpick);
+                        ChatPacket.SendServerMessage(session, $"Crack with skill {woDoor.ResistLockpick} result: {res}.{opening}", ChatMessageType.Broadcast);
+                    }
+                    else
+                        ChatPacket.SendServerMessage(session, $"The door has no key code or lockpick difficulty.  Unable to crack it.{opening}", ChatMessageType.Broadcast);
+                    if (openIt) woDoor.Open(session.Player.Guid);
+                }
+                else if (wo is Chest woChest)
+                {
+                    var opening = openIt ? " Opening chest." : "";
+                    Chest.UnlockChestResults res;
+                    if (!string.IsNullOrWhiteSpace(woChest.LockCode))
+                    {
+                        res = woChest.UnlockChest(woChest.LockCode);
+                        ChatPacket.SendServerMessage(session, $"Crack via {woChest.LockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
+                    }
+                    else
+                        ChatPacket.SendServerMessage(session, $"The chest has no key code.  Unable to crack it.{opening}", ChatMessageType.Broadcast);
+                    if (openIt) woChest.Open(session.Player);
+                }
+            }
+            else
+            {
+                ChatPacket.SendServerMessage(session, "Appraise a locked target before using @crack", ChatMessageType.Broadcast);
+            }
+        }
+
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
         public static void HandleCM(Session session, params string[] parameters)
