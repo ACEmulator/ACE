@@ -2,7 +2,10 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
@@ -112,6 +115,44 @@ namespace ACE.Server.WorldObjects
         {
             CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionClosed;
+        }
+
+        public enum UnlockChestResults : ushort
+        {
+            UnlockSuccess = 0,
+            //PickLockFailed = 1,
+            IncorrectKey = 2,
+            AlreadyUnlocked = 3,
+            //CannotBePicked = 4,
+            ChestOpen = 5
+        }
+
+        public string LockCode
+        {
+            get => GetProperty(PropertyString.LockCode);
+            set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
+        }
+
+        /// <summary>
+        /// Used for unlocking a chest via a key
+        /// </summary>
+        public UnlockChestResults UnlockChest(string keyCode)
+        {
+            if (IsOpen ?? false)
+                return UnlockChestResults.ChestOpen;
+
+            if (keyCode == LockCode)
+            {
+                if (!IsLocked ?? false)
+                    return UnlockChestResults.AlreadyUnlocked;
+
+                IsLocked = false;
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
+                return UnlockChestResults.UnlockSuccess;
+            }
+
+            return UnlockChestResults.IncorrectKey;
         }
     }
 }
