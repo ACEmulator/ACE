@@ -83,10 +83,11 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 var critical = false;
-                var damage = CalculateDamage(bodyPart, ref critical);
+                var damageType = DamageType.Undef;
+                var damage = CalculateDamage(ref damageType, bodyPart, ref critical);
 
                 if (damage > 0.0f)
-                    player.TakeDamage(this, damage, bodyPart, critical);
+                    player.TakeDamage(this, damageType, damage, bodyPart, critical);
                 else
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {Name}!", ChatMessageType.CombatEnemy));
             });
@@ -181,7 +182,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="bodyPart">The player body part the monster is targeting</param>
         /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
-        public float CalculateDamage(BodyPart bodyPart, ref bool criticalHit)
+        public float CalculateDamage(ref DamageType damageType, BodyPart bodyPart, ref bool criticalHit)
         {
             // evasion chance
             var evadeChance = GetEvadeChance();
@@ -190,7 +191,7 @@ namespace ACE.Server.WorldObjects
 
             // get base damage
             var attackPart = GetAttackPart();
-            var damageType = (DamageType)attackPart.DType;
+            damageType = (DamageType)attackPart.DType;
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
 

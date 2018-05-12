@@ -579,7 +579,8 @@ namespace ACE.Server.WorldObjects
 
         public void DoMotion(UniversalMotion motion)
         {
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            if (CurrentLandblock != null)
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
 
         public void ApplyVisualEffects(PlayScript effect)

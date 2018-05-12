@@ -251,7 +251,7 @@ namespace ACE.Server.WorldObjects
             return Sound.HitFlesh1;
         }
 
-        public void TakeDamage(WorldObject source, float _amount, BodyPart bodyPart, bool crit = false)
+        public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
@@ -273,7 +273,7 @@ namespace ACE.Server.WorldObjects
             var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + creature.GetSplatterDir(this)));
 
             var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
-            var text = new GameEventDefenderNotification(Session, creature.Name, DamageType.Bludgeon, percent, amount, damageLocation, crit, AttackConditions.None);
+            var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
 
             Session.Network.EnqueueSend(text, msgHealth, hitSound, splatter);
 

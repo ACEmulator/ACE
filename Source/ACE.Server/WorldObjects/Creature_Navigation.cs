@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             return (float)rotateTime + waitTime;
         }
 
-        public void MoveTo(WorldObject target, float speed = 1.0f)
+        public void MoveTo(WorldObject target, float runRate = 1.0f)
         {
             if (this is Player)
                 return;
@@ -81,10 +81,12 @@ namespace ACE.Server.WorldObjects
             motion.MovementTypes = MovementTypes.MoveToObject;
             motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.WalkRunThreshold = 1.0f;
-            motion.Speed = speed;
+            motion.RunRate = runRate;
             
             CurrentMotionState = motion;
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+
+            if (CurrentLandblock != null)
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
     }
 }
