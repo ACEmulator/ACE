@@ -19,7 +19,7 @@ namespace ACE.Server.Network.GameEvent
             Writer.WriteGuid(session.Player.Guid);
             var debugMessage = $"GameEventSequence Update - {eventType} - GameEventSequence was {session.GameEventSequence}";
             Writer.Write(session.GameEventSequence++);
-            Console.WriteLine(debugMessage + $" and is now {session.GameEventSequence}");
+            //Console.WriteLine(debugMessage + $" and is now {session.GameEventSequence}");
             Writer.Write((uint)EventType);
         }
     }

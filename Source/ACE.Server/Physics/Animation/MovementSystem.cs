@@ -25,7 +25,7 @@ namespace ACE.Server.Physics.Animation
             if (runSkill == 800.0f)     // max run speed?
                 return 18.0f / 4.0f;
             else
-                return ((loadMod * (runSkill / (runSkill + 200) * 11) + 4) / scaling) / 4.0f;
+                return ((loadMod * ((float)runSkill / (runSkill + 200) * 11) + 4) / scaling) / 4.0f;
         }
 
         public static int JumpStaminaCost(float power, float load, bool pk)

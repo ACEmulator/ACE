@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends alerts to monsters within 2D distance for outdoor areas
         /// </summary>
-        private void GetMonstersInRange(float range = Monster.RadiusAwareness)
+        private void GetMonstersInRange(float range = RadiusAwareness)
         {
             var distSq = range * range;
 
@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends alerts to monsters within PVS range for indoor areas
         /// </summary>
-        private void GetMonstersInPVS(float range = Monster.RadiusAwareness)
+        private void GetMonstersInPVS(float range = RadiusAwareness)
         {
             var distSq = range * range;
 

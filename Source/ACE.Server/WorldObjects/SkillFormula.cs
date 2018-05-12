@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             else if (armorLevel < 0)
                 return 1.0f - armorLevel / ArmorMod;
             else
-                return 0.0f;
+                return 1.0f;
         }
     }
 }

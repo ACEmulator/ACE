@@ -9,10 +9,20 @@ namespace ACE.Entity.Enum
     public enum Skill
     {
         None,
+
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         Axe,                 /* Retired */
+
+        [AttributeFormula(AttributeCache.Coordination, 2)]
         Bow,                 /* Retired */
+
+        [AttributeFormula(AttributeCache.Coordination, 2)]
         Crossbow,            /* Retired */
+
+        [AttributeFormula(AttributeCache.Quickness | AttributeCache.Coordination, 3)]
         Dagger,              /* Retired */
+
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         Mace,                /* Retired */
 
         [AttributeFormula(AttributeCache.Quickness | AttributeCache.Coordination, 3)]
@@ -26,10 +36,20 @@ namespace ACE.Entity.Enum
         MissileDefense,
 
         Sling,               /* Retired */
+
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         Spear,               /* Retired */
+
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         Staff,               /* Retired */
+
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         Sword,               /* Retired */
+
+        [AttributeFormula(AttributeCache.Coordination, 2)]
         ThrownWeapon,        /* Retired */
+
+        [AttributeFormula(AttributeCache.Strength | AttributeCache.Coordination, 3)]
         UnarmedCombat,       /* Retired */
 
         [AttributeFormula(AttributeCache.Focus, 3)]

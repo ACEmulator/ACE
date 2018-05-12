@@ -35,72 +35,52 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void DeltaVital(CreatureVital vital, long delta)
+        /// <summary>
+        /// Sets the current vital to a new value
+        /// </summary>
+        public virtual void UpdateVital(CreatureVital vital, uint newVal)
         {
-            EnqueueAction(new ActionEventDelegate(() => DeltaVitalInternal(vital, delta)));
-        }
-
-        private void DeltaVitalInternal(CreatureVital vital, long delta)
-        {
-            uint absVal;
-
-            if (delta < 0 && Math.Abs(delta) > vital.Current)
-                absVal = (uint)(-1 * vital.Current);
-            else if (delta + vital.Current > vital.MaxValue)
-                absVal = vital.MaxValue - vital.Current;
-            else
-                absVal = (uint)(vital.Current + delta);
-
-            UpdateVitalInternal(vital, absVal);
+            vital.Current = Math.Clamp(newVal, 0, vital.MaxValue);
         }
 
         /// <summary>
-        /// Updates a vital, returns true if vital is now &lt; max
+        /// Updates a vital relative to current value
         /// </summary>
-        public void UpdateVital(CreatureVital vital, uint newVal)
+        public void UpdateVitalDelta(CreatureVital vital, long delta)
         {
-            EnqueueAction(new ActionEventDelegate(() => UpdateVitalInternal(vital, newVal)));
+            var newVital = vital.Current + delta;
+            newVital = Math.Clamp(newVital, 0, vital.MaxValue);
+
+            UpdateVital(vital, (uint)newVital);
         }
 
-        protected virtual void UpdateVitalInternal(CreatureVital vital, uint newVal)
+        /// <summary>
+        /// Called every ~5 secs to regenerate vitals
+        /// </summary>
+        public void VitalTick()
         {
-            uint old = vital.Current;
+            if (Health.Current < Health.MaxValue)
+                VitalTick(Health);
 
-            if (newVal > vital.MaxValue)
-                newVal = (vital.MaxValue - vital.Current);
+            if (Stamina.Current < Stamina.MaxValue)
+                VitalTick(Stamina);
 
-            vital.Current = newVal;
-
-            // Check for amount
-            if (vital.Current != vital.MaxValue)
-            {
-                // Start up a vital ticker
-                new ActionChain(this, () => VitalTickInternal(vital)).EnqueueChain();
-            }
+            if (Mana.Current < Mana.MaxValue)
+                VitalTick(Mana);
         }
 
-        private void VitalTick(CreatureVital vital)
+        /// <summary>
+        /// Updates a particular vital according to regeneration rate
+        /// </summary>
+        /// <param name="vital">The vital stat to update (health/stamina/mana)</param>
+        public void VitalTick(CreatureVital vital)
         {
-            double tickTime = vital.NextTickTime;
+            if (vital.Current >= vital.MaxValue)
+                return;
 
-            if (double.IsNegativeInfinity(tickTime))
-                tickTime = vital.RegenRate;
-            else
-                tickTime -= WorldManager.PortalYearTicks;
+            var amount = (uint)Math.Ceiling(vital.RegenRate * 0.01f * vital.MaxValue);
 
-            // Set up our next tick
-            ActionChain tickChain = new ActionChain();
-            tickChain.AddDelayTicks(tickTime);
-            tickChain.AddAction(this, () => VitalTickInternal(vital));
-            tickChain.EnqueueChain();
-        }
-
-        protected virtual void VitalTickInternal(CreatureVital vital)
-        {
-            vital.Tick(WorldManager.PortalYearTicks);
-
-            if (vital.Current != vital.MaxValue)
-                VitalTick(vital);
+            UpdateVitalDelta(vital, amount);
         }
     }
 }

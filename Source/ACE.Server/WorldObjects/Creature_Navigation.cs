@@ -25,6 +25,13 @@ namespace ACE.Server.WorldObjects
             return GetAngle(currentDir, targetDir);
         }
 
+        public static float GetAngle(Vector3 dir)
+        {
+            var rads = Math.Atan2(dir.Y, dir.X);
+            var angle = rads * 57.2958f;
+            return (float)angle;
+        }
+
         /// <summary>
         /// Returns the 2D angle between 2 vectors
         /// </summary>
@@ -65,7 +72,7 @@ namespace ACE.Server.WorldObjects
             return (float)rotateTime + waitTime;
         }
 
-        public void MoveTo(WorldObject target)
+        public void MoveTo(WorldObject target, float speed = 1.0f)
         {
             if (this is Player)
                 return;
@@ -74,6 +81,7 @@ namespace ACE.Server.WorldObjects
             motion.MovementTypes = MovementTypes.MoveToObject;
             motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.WalkRunThreshold = 1.0f;
+            motion.Speed = speed;
             
             CurrentMotionState = motion;
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);

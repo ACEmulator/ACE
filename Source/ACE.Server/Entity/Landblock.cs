@@ -438,16 +438,22 @@ namespace ACE.Server.Entity
         public void UseTime(double tickTime)
         {
             // here we'd move server objects in motion (subject to landscape) and do physics collision detection
+            try
+            {
+                List<Player> allplayers = null;
 
-            List<Player> allplayers = null;
+                var allworldobj = worldObjects.Values;
+                allplayers = allworldobj.OfType<Player>().ToList();
 
-            var allworldobj = worldObjects.Values;
-            allplayers = allworldobj.OfType<Player>().ToList();
+                UpdateStatus(allplayers.Count);
 
-            UpdateStatus(allplayers.Count);
-
-            // Handle broadcasts
-            SendBroadcasts();
+                // Handle broadcasts
+                SendBroadcasts();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);   // FIXME: multithread
+            }
         }
 
         /// <summary>

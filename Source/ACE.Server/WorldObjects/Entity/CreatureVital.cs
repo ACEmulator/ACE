@@ -173,5 +173,16 @@ namespace ACE.Server.WorldObjects.Entity
                     lastTick = double.NegativeInfinity;
             }
         }
+
+        public Vital ToEnum()
+        {
+            switch (Vital)
+            {
+                case PropertyAttribute2nd.MaxHealth:    return ACE.Entity.Enum.Vital.Health;
+                case PropertyAttribute2nd.MaxStamina:   return ACE.Entity.Enum.Vital.Stamina;
+                case PropertyAttribute2nd.MaxMana:      return ACE.Entity.Enum.Vital.Mana;
+            }
+            return ACE.Entity.Enum.Vital.Undefined;
+        }
     }
 }

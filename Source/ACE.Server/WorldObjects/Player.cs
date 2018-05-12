@@ -100,16 +100,6 @@ namespace ACE.Server.WorldObjects
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
 
-            // Start vital ticking, if they need it
-            if (Health.Current != Health.MaxValue)
-                VitalTickInternal(Health);
-
-            if (Stamina.Current != Stamina.MaxValue)
-                VitalTickInternal(Stamina);
-
-            if (Mana.Current != Mana.MaxValue)
-                VitalTickInternal(Mana);
-
             UpdateCoinValue(false);
 
             IsOnline = true;
@@ -160,10 +150,13 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        /// <summary>
+        /// Called every ~5 seconds for Players
+        /// </summary>
         public override void HeartBeat()
         {
-            // Do Stuff
             EnchantmentManager.HeartBeat();
+            VitalTick();
 
             QueueNextHeartBeat();
         }
