@@ -516,11 +516,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
-        protected void ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem = false)
+        protected string ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem = false)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
-            if (spell.Name.Contains("Portal") || spell.Name.Contains("Lifestone"))
+            if ((spell.MetaSpellType == SpellType.PortalLink)
+                || (spell.MetaSpellType == SpellType.PortalRecall)
+                || (spell.MetaSpellType == SpellType.PortalSending)
+                || (spell.MetaSpellType == SpellType.PortalSummon))
             {
                 switch (spell.MetaSpellId)
                 {
@@ -558,8 +561,10 @@ namespace ACE.Server.WorldObjects
             }
             else if (spell.MetaSpellType == SpellType.Enchantment)
             {
-                CreateEnchantment(target, spell, spellStatMod, castByItem);
+                return CreateEnchantment(target, spell, spellStatMod, castByItem);
             }
+
+            return "";
         }
 
         /// <summary>
@@ -644,7 +649,12 @@ namespace ACE.Server.WorldObjects
 
                 var targetName = this == target ? "yourself" : target.Name;
 
-                var message = $"You cast {spell.Name} on {targetName}{suffix}";
+                string message;
+                if (castByItem == true)
+                    message = $"An item casts {spell.Name} on you";
+                else
+                    message = $"You cast {spell.Name} on {targetName}{suffix}";
+
 
                 if (target is Player)
                 {
