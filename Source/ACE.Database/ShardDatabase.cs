@@ -824,7 +824,6 @@ namespace ACE.Database
             foreach (var result in results)
             {
                 var biota = GetBiota(context, result.ObjectId, false);
-                if (biota.BiotaPropertiesString.Any(k => k.Value == "Pyreal")) continue;
 
                 if (biota != null)
                 {
