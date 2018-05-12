@@ -136,13 +136,16 @@ namespace ACE.Server.WorldObjects
 
                 float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
+                string message;
                 switch (spell.School)
                 {
                     case MagicSchool.CreatureEnchantment:
                         if (IsSpellHarmful(spell))
                             break;
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                        CreatureMagic(player, spell, spellStatMod, true);
+                        message = CreatureMagic(player, spell, spellStatMod, true);
+                        if (message != "")
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;
                     case MagicSchool.LifeMagic:
                         if (spell.MetaSpellType != SpellType.LifeProjectile)
@@ -151,13 +154,15 @@ namespace ACE.Server.WorldObjects
                                 break;
                         }
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                        LifeMagic(player, spell, spellStatMod, out string message, true);
+                        LifeMagic(player, spell, spellStatMod, out message, true);
                         if (message != null)
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;
                     case MagicSchool.ItemEnchantment:
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(item.Guid, (PlayScript)spell.TargetEffect, scale));
-                        ItemMagic(item, spell, spellStatMod, true);
+                        message = ItemMagic(item, spell, spellStatMod, true);
+                        if (message != "")
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;
                     default:
                         break;
@@ -455,7 +460,9 @@ namespace ACE.Server.WorldObjects
                                 }
                             }
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                            CreatureMagic(target, spell, spellStatMod);
+                            message = CreatureMagic(target, spell, spellStatMod);
+                            if (message != "")
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                             break;
                         case MagicSchool.LifeMagic:
                             if (spell.MetaSpellType != SpellType.LifeProjectile)
@@ -495,7 +502,9 @@ namespace ACE.Server.WorldObjects
                                 CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                             else
                                 CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                            ItemMagic(target, spell, spellStatMod);
+                            message = ItemMagic(target, spell, spellStatMod);
+                            if (message != "")
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                             break;
                         default:
                             break;
