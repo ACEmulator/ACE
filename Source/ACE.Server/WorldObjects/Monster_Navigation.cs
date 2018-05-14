@@ -53,7 +53,10 @@ namespace ACE.Server.WorldObjects
             IsTurning = true;
             var time = EstimateTurnTo();
 
-            MoveTo(AttackTarget);
+            if (MoveSpeed == 0.0f)
+                GetMovementSpeed();
+
+            MoveTo(AttackTarget, RunRate);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(time);
@@ -75,12 +78,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            if (MoveSpeed == 0.0f)
-                GetMovementSpeed();
-
             LastMoveTime = Timer.CurrentTime;
             IsMoving = true;
-            MoveTo(AttackTarget, RunRate);
         }
 
         /// <summary>
