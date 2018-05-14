@@ -47,6 +47,7 @@ namespace ACE.Server.WorldObjects
                     if (player.Skills[Skill.Lockpick].Status != SkillStatus.Trained && player.Skills[Skill.Lockpick].Status != SkillStatus.Specialized)
                     {
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
+                        return;
                     }
 
                     void consume(Player plr, Lockpick lp)
