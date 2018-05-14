@@ -57,12 +57,7 @@ namespace ACE.Server.WorldObjects
                             plr.TryRemoveItemFromInventoryWithNetworking(this, 1);
                         plr.Session.Network.EnqueueSend(new GameEventUseDone(plr.Session));
                         plr.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(lp, PropertyInt.Structure, (int)lp.Structure));
-                    }
-
-                    void uses()
-                    {
-                        var message = new GameMessageSystemChat($"Uses reamaining: {Structure}", ChatMessageType.System);
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session), message);
+                        plr.Session.Network.EnqueueSend(new GameMessageSystemChat($"Uses reamaining: {Structure}", ChatMessageType.System));
                     }
 
                     Door.UnlockDoorResults results = door.UnlockDoor(player.Skills[Skill.Lockpick].Current);
@@ -70,7 +65,6 @@ namespace ACE.Server.WorldObjects
                     {
                         case Door.UnlockDoorResults.UnlockSuccess:
                             consume(player, this);
-                            uses();
                             break;
                         case Door.UnlockDoorResults.DoorOpen:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
@@ -80,7 +74,6 @@ namespace ACE.Server.WorldObjects
                             break;
                         case Door.UnlockDoorResults.PickLockFailed:
                             consume(player, this);
-                            uses();
                             break;
                         default:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.KeyDoesntFitThisLock));
