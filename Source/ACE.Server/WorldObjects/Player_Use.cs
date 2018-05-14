@@ -171,6 +171,8 @@ namespace ACE.Server.WorldObjects
                 var invSource = GetInventoryItem(sourceObjectId);
                 var invTarget = GetInventoryItem(targetObjectId);
 
+                var worldTarget = (invTarget == null) ? CurrentLandblock.GetObject(targetObjectId) : null;
+
                 if (invTarget != null)
                 {
                     // inventory on inventory, we can do this now
@@ -178,18 +180,21 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (invSource.WeenieType == WeenieType.Healer)
                 {
-                    var target = CurrentLandblock.GetObject(targetObjectId);
-                    if (!(target is Player))
+                    if (!(worldTarget is Player))
                         return;
 
                     var healer = invSource as Healer;
-                    healer.HandleActionUseOnTarget(this, target as Player);
+                    healer.HandleActionUseOnTarget(this, worldTarget as Player);
                 }
                 else if (invSource.WeenieType == WeenieType.Key)
                 {
-                    var theTarget = CurrentLandblock.GetObject(targetObjectId);
                     var key = invSource as Key;
-                    key.HandleActionUseOnTarget(this, theTarget);
+                    key.HandleActionUseOnTarget(this, worldTarget);
+                }
+                else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Door)
+                {
+                    var lp = invSource as Lockpick;
+                    lp.HandleActionUseOnTarget(this, worldTarget);
                 }
                 else if (targetObjectId == Guid)
                 {
@@ -198,8 +203,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    var theTarget = CurrentLandblock.GetObject(targetObjectId);
-                    RecipeManager.UseObjectOnTarget(this, invSource, theTarget);
+                    RecipeManager.UseObjectOnTarget(this, invSource, worldTarget);
                 }
             }).EnqueueChain();
         }

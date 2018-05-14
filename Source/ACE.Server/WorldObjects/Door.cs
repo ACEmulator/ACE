@@ -276,21 +276,21 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public UnlockDoorResults UnlockDoor(uint playerLockpickSkillLvl)
         {
-            if (ResistLockpick == 0)
+            if (!ResistLockpick.HasValue || ResistLockpick < 1)
                 return UnlockDoorResults.CannotBePicked;
 
-            if (playerLockpickSkillLvl >= ResistLockpick)
-            {
-                if (!IsLocked ?? false)
-                    return UnlockDoorResults.AlreadyUnlocked;
+            if (!IsLocked ?? false)
+                return UnlockDoorResults.AlreadyUnlocked;
 
-                IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
-                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
-                return UnlockDoorResults.UnlockSuccess;
-            }
+            var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, (int)ResistLockpick);
+            var dice = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            if (dice > pickChance)
+                return UnlockDoorResults.PickLockFailed;
 
-            return UnlockDoorResults.PickLockFailed;
+            IsLocked = false;
+            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
+            CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
+            return UnlockDoorResults.UnlockSuccess;
         }
 
         /// <summary>
