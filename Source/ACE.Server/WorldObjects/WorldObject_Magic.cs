@@ -626,49 +626,44 @@ namespace ACE.Server.WorldObjects
             var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
             var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
 
-            if (WeenieClassId == 1)
+            var player = this as Player;
+            var playerTarget = target as Player;
+            var creatureTarget = target as Creature;
+
+            // build message
+            var suffix = "";
+            switch (stackType)
             {
-                var player = this as Player;
-                var playerTarget = target as Player;
-                var creatureTarget = target as Creature;
-
-                // build message
-                var suffix = "";
-                switch (stackType)
-                {
-                    case StackType.Refresh:
-                        suffix = $", refreshing {spell.Name}";
-                        break;
-                    case StackType.Surpass:
-                        suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
-                        break;
-                    case StackType.Surpassed:
-                        suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
-                        break;
-                }
-
-                var targetName = this == target ? "yourself" : target.Name;
-
-                string message;
-                if (castByItem == true)
-                    message = $"An item casts {spell.Name} on you";
-                else
-                    message = $"You cast {spell.Name} on {targetName}{suffix}";
-
-
-                if (target is Player)
-                {
-                    if (stackType != StackType.Surpassed)
-                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
-
-                    if (player != playerTarget)
-                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-                }
-
-                return message;
+                case StackType.Refresh:
+                    suffix = $", refreshing {spell.Name}";
+                    break;
+                case StackType.Surpass:
+                    suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
+                    break;
+                case StackType.Surpassed:
+                    suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
+                    break;
             }
 
-            return "";
+            var targetName = this == target ? "yourself" : target.Name;
+
+            string message;
+            if (castByItem == true)
+                message = $"An item casts {spell.Name} on you";
+            else
+                message = $"You cast {spell.Name} on {targetName}{suffix}";
+
+
+            if (target is Player)
+            {
+                if (stackType != StackType.Surpassed)
+                    playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+
+                if (playerTarget != this)
+                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+            }
+
+            return message;
         }
 
         /// <summary>

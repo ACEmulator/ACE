@@ -35,12 +35,41 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsAwake || IsDead) return;
 
-            if (!IsTurning && !IsMoving && !IsMeleeRange())
-                StartTurn();
-            else if (MeleeReady())
-                MeleeAttack();
+            // decide current type of attack
+            if (CurrentAttack == null)
+            {
+                CurrentAttack = GetAttackType();
+                GetMaxRange();
+                MaxRange = MaxMeleeRange;
+            }
+
+            // get distance to target
+            var targetDist = GetDistanceToTarget();
+
+            if (targetDist > MaxRange)
+            {
+                // move towards
+                if (!IsTurning && !IsMoving)
+                    StartTurn();
+                else
+                    Movement();
+            }
             else
-                Movement();
+            {
+                // perform attack
+                if (AttackReady()) Attack();
+            }
+        }
+
+        /// <summary>
+        /// Cleans up state on monster death
+        /// </summary>
+        public void OnDeath()
+        {
+            IsTurning = false;
+            IsMoving = false;
+
+            SetFinalPosition();
         }
     }
 }

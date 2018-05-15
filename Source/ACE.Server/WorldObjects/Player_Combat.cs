@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -14,7 +13,8 @@ namespace ACE.Server.WorldObjects
     public enum AttackType
     {
         Melee,
-        Missile
+        Missile,
+        Magic
     };
 
     partial class Player
