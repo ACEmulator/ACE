@@ -15111,6 +15111,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
             wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
             wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana );
+            wo.SetProperty(PropertyInt.ItemCurMana, itemMaxMana);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, appraisalDesc);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
             wo.SetProperty(PropertyInt.DamageType, damageType);
