@@ -11,10 +11,17 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
+        /// Flag indicates if player is attackable
+        /// </summary>
+        public bool IsAttackable { get => GetProperty(PropertyBool.Attackable) ?? false == true; }
+
+        /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
         public void CheckMonsters()
         {
+            if (!IsAttackable) return;
+
             if (CurrentLandblock.Id.MapScope == MapScope.Outdoors)
                 GetMonstersInRange();
             else
