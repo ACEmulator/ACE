@@ -952,12 +952,6 @@ namespace ACE.Server.Managers
                 case EmoteType.TurnToTarget:
                     var creature = sourceObject is Creature ? (Creature)sourceObject : null;
                     actionChain.AddDelaySeconds(creature.Rotate(player));
-                    actionChain.AddAction(sourceObject, () =>
-                    {
-                        creature.Rotate(player);
-                        //WorldObject.PhysicsObj.TurnToObject(player.Guid.Full, new MovementParameters());
-                        //player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.Tell));
-                    });
                     break;
 
                 case EmoteType.AwardXP:
