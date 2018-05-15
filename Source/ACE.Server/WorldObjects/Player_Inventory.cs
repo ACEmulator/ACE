@@ -709,10 +709,10 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name +".", ChatMessageType.System));
                     WorldObject player = this;
-                    //if (target.handleReceive(item, amount, target, player))
-                    //{
-                    //    Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
-                    //}
+                    if (target.handleReceive(item, amount, target, player))
+                    {
+                        Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
+                    }
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
                     Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                 }
