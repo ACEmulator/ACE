@@ -56,7 +56,7 @@ namespace ACE.Server.WorldObjects
             IsTurning = true;
             var time = EstimateTurnTo();
 
-            MoveTo(AttackTarget, 0.6f, RunRate);
+            MoveTo(AttackTarget, RunRate);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(time);
@@ -160,7 +160,7 @@ namespace ACE.Server.WorldObjects
             UpdatePosition();
             LastMoveTime = Timer.CurrentTime;
 
-            if (IsMeleeRange())
+            if (IsAttackRange())
                 OnMoveComplete();
 
             if (GetDistanceToTarget() >= MaxChaseRange)

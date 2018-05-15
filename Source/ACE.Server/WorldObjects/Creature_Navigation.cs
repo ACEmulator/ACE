@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             return (float)rotateTime + waitTime;
         }
 
-        public void MoveTo(WorldObject target, float maxRange = 0.6f, float runRate = 1.0f)
+        public void MoveTo(WorldObject target, float runRate = 1.0f)
         {
             if (this is Player)
                 return;
@@ -82,13 +82,6 @@ namespace ACE.Server.WorldObjects
             motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.WalkRunThreshold = 1.0f;
             motion.RunRate = runRate;
-            motion.DistanceFrom = maxRange;
-
-            /*if (maxRange > 1.0f)
-            {
-                Console.WriteLine("MaxRange: " + maxRange);
-                motion.Flag &= ~(MovementParams.Sticky | MovementParams.CanCharge);
-            }*/
 
             CurrentMotionState = motion;
 

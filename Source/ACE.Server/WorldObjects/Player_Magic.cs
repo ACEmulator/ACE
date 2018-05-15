@@ -385,7 +385,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
             else
-                player.Mana.Current = player.Mana.Current - manaUsed;
+                player.UpdateVital(player.Mana, player.Mana.Current - manaUsed);
             #endregion
 
             ActionChain spellChain = new ActionChain();
@@ -669,7 +669,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
                 else
-                    Mana.Current = Mana.Current - manaUsed;
+                    UpdateVital(Mana, Mana.Current - manaUsed);
             }
             #endregion
 

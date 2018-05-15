@@ -36,9 +36,8 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the monster's current magic skill
-        /// the school containing the current spell
+        /// for the school containing the current spell
         /// </summary>
-        /// <returns></returns>
         public uint GetMagicSkill()
         {
             var currentSpell = GetCurrentSpell();
@@ -82,8 +81,8 @@ namespace ACE.Server.WorldObjects
             var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
             motion.MovementData.TurnSpeed = 2.25f;
-            motion.HasTarget = true;
-            motion.TargetGuid = target.Guid;
+            //motion.HasTarget = true;
+            //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);
@@ -198,8 +197,9 @@ namespace ACE.Server.WorldObjects
             var skill = GetMagicSkill();
 
             var maxRange = spell.BaseRangeConstant + skill * spell.BaseRangeMod;
-            //if (maxRange == 0.0f)
-                //Console.WriteLine("Warning: spell max range == 0 for " + (MagicSchool)spell.School);
+            if (maxRange == 0.0f)
+                maxRange = float.PositiveInfinity;
+
             return maxRange;
         }
 

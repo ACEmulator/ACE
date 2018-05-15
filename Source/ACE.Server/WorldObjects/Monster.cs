@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentAttack == null)
             {
                 CurrentAttack = GetAttackType();
-                GetMaxRange();
+                MaxRange = GetMaxRange();   // FIXME: server position sync
                 MaxRange = MaxMeleeRange;
             }
 
