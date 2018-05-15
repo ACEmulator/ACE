@@ -410,31 +410,38 @@ namespace ACE.Server.Managers
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
             // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
             // This crashes sometimes with the following exception: System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-            Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+            try
             {
-                foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+                Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
                 {
-                    Position newPosition = wo.Location;
-
-                    if (wo.ForcedLocation != null)
+                    foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                     {
-                        newPosition = wo.ForcedLocation;
-                        movedObjects.Enqueue(wo);
-                    }
-                    else if (wo.RequestedLocation != null)
-                    {
-                        newPosition = wo.RequestedLocation;
-                        movedObjects.Enqueue(wo);
-                    }
+                        Position newPosition = wo.Location;
 
-                    if (newPosition != wo.Location)
-                    {
-                        wo.PhysicsUpdatePosition(newPosition);
-                    }
+                        if (wo.ForcedLocation != null)
+                        {
+                            newPosition = wo.ForcedLocation;
+                            movedObjects.Enqueue(wo);
+                        }
+                        else if (wo.RequestedLocation != null)
+                        {
+                            newPosition = wo.RequestedLocation;
+                            movedObjects.Enqueue(wo);
+                        }
 
-                    wo.ClearRequestedPositions();
-                }
-            });
+                        if (newPosition != wo.Location)
+                        {
+                            wo.PhysicsUpdatePosition(newPosition);
+                        }
+
+                        wo.ClearRequestedPositions();
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);   // FIXME: concurrency
+            }
 
             return movedObjects;
         }

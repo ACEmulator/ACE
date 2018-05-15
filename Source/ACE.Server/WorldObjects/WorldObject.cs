@@ -579,7 +579,8 @@ namespace ACE.Server.WorldObjects
 
         public void DoMotion(UniversalMotion motion)
         {
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            if (CurrentLandblock != null)
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
 
         public void ApplyVisualEffects(PlayScript effect)
@@ -733,9 +734,6 @@ namespace ACE.Server.WorldObjects
                 monster.Health.Current = (uint)newMonsterHealth;
             else
             {
-                if (player != null && player.MeleeTarget != null)
-                    monster.SetFinalPosition();
-
                 monster.Health.Current = 0;
                 monster.OnDeath();
                 monster.Die();

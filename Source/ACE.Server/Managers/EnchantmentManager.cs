@@ -489,6 +489,51 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Gets the multiplicative armor level modifier, ie. banes
+        /// </summary>
+        public float GetArmorModVsType(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var key = GetImpenBaneKey(damageType);
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (int)key);
+            if (enchantments == null) return 0.0f;
+
+            // additive
+            var modifier = 0.0f;
+            foreach (var enchantment in enchantments)
+                modifier += enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Gets the ArmorModVsType key for a DamageType
+        /// </summary>
+        public PropertyFloat GetImpenBaneKey(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return PropertyFloat.ArmorModVsSlash;
+                case DamageType.Pierce:
+                    return PropertyFloat.ArmorModVsPierce;
+                case DamageType.Bludgeon:
+                    return PropertyFloat.ArmorModVsBludgeon;
+                case DamageType.Fire:
+                    return PropertyFloat.ArmorModVsFire;
+                case DamageType.Cold:
+                    return PropertyFloat.ArmorModVsCold;
+                case DamageType.Acid:
+                    return PropertyFloat.ArmorModVsAcid;
+                case DamageType.Electric:
+                    return PropertyFloat.ArmorModVsElectric;
+                case DamageType.Nether:
+                    return PropertyFloat.ArmorModVsNether;
+            }
+            return 0;
+        }
+
+        /// <summary>
         /// Gets the resistance PropertyFloat for a DamageType
         /// </summary>
         public PropertyFloat GetResistanceKey(DamageType damageType)
@@ -554,6 +599,14 @@ namespace ACE.Server.Managers
         public float GetVarianceMod()
         {
             return GetMultiplicativeMod(PropertyFloat.DamageVariance);
+        }
+
+        /// <summary>
+        /// Returns the additive armor level modifier, ie. Impenetrability
+        /// </summary>
+        public int GetArmorMod()
+        {
+            return GetAdditiveMod(PropertyInt.ArmorLevel);
         }
     }
 }

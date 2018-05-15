@@ -11,10 +11,17 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
+        /// Flag indicates if player is attackable
+        /// </summary>
+        public bool IsAttackable { get => GetProperty(PropertyBool.Attackable) ?? false == true; }
+
+        /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
         public void CheckMonsters()
         {
+            if (!IsAttackable) return;
+
             if (CurrentLandblock.Id.MapScope == MapScope.Outdoors)
                 GetMonstersInRange();
             else
@@ -24,7 +31,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends alerts to monsters within 2D distance for outdoor areas
         /// </summary>
-        private void GetMonstersInRange(float range = Monster.RadiusAwareness)
+        private void GetMonstersInRange(float range = RadiusAwareness)
         {
             var distSq = range * range;
 
@@ -46,7 +53,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends alerts to monsters within PVS range for indoor areas
         /// </summary>
-        private void GetMonstersInPVS(float range = Monster.RadiusAwareness)
+        private void GetMonstersInPVS(float range = RadiusAwareness)
         {
             var distSq = range * range;
 

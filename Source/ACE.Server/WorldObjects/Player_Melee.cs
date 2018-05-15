@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects
         public AttackHeight AttackHeight;
         public float PowerLevel;
 
-        public int GetPowerRange()
+        public override int GetPowerRange()
         {
             if (PowerLevel < 0.33f)
                 return 1;
@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
                 return 3;
         }
 
-        public string GetAttackHeight()
+        public override string GetAttackHeight()
         {
             return AttackHeight.GetString();
         }
@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var creature = target as Creature;
-            var actionChain = DoSwingMotion(target);
+            var actionChain = DoSwingMotion(target, out float animLength);
 
             DamageTarget(target);
 
@@ -100,10 +100,10 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public ActionChain DoSwingMotion(WorldObject target)
+        public override ActionChain DoSwingMotion(WorldObject target, out float animLength)
         {
             var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f);
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -121,7 +121,7 @@ namespace ACE.Server.WorldObjects
             return actionChain;
         }
 
-        public MotionCommand GetSwingAnimation()
+        public override MotionCommand GetSwingAnimation()
         {
             MotionCommand motion = new MotionCommand();
 

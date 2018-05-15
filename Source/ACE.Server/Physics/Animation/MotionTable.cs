@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -16,6 +17,15 @@ namespace ACE.Server.Physics.Animation
         public Dictionary<uint, MotionData> Modifiers;
         public Dictionary<uint, Dictionary<uint, MotionData>> Links;
         public uint DefaultStyle;
+
+        public static Dictionary<uint, float> WalkSpeed;
+        public static Dictionary<uint, float> RunSpeed;
+
+        static MotionTable()
+        {
+            WalkSpeed = new Dictionary<uint, float>();
+            RunSpeed = new Dictionary<uint, float>();
+        }
 
         public MotionTable()
         {
@@ -421,6 +431,63 @@ namespace ACE.Server.Physics.Animation
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
             return motionTable.GetAnimationLength(stance, motionItem.Motion) / motionItem.Speed;
+        }
+
+        /// <summary>
+        /// Returns the distance per second for a running animation
+        /// </summary>
+        public static float GetRunSpeed(uint motionTableID)
+        {
+            if (RunSpeed.TryGetValue(motionTableID, out float runSpeed))
+                return runSpeed;
+
+            uint runMotion = 0x44000007;
+            var motionData = GetMotionData(motionTableID, runMotion);
+            if (motionData == null)
+                return 0.0f;
+
+            var speed = GetAnimDist(motionData);
+            RunSpeed.Add(motionTableID, speed);
+            return speed;
+        }
+
+        /// <summary>
+        /// Returns the MotionData for a motionTable and motion ID
+        /// </summary>
+        public static MotionData GetMotionData(uint motionTableID, uint motion)
+        {
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
+            var defaultStyle = motionTable.DefaultStyle;
+            uint styleDefault;
+            motionTable.StyleDefaults.TryGetValue(defaultStyle, out styleDefault);
+            var motionID = styleDefault & 0xFFFFFF;
+            var key = defaultStyle << 16 | motionID;
+            motionTable.Links.TryGetValue(key, out var links);
+            if (links == null) return null;
+            links.TryGetValue(motion, out var motionData);
+            return motionData;
+        }
+
+        /// <summary>
+        /// Returns the movement distance per second from an animation
+        /// </summary>
+        public static float GetAnimDist(MotionData motionData)
+        {
+            var offset = Vector3.Zero;
+            var totalFrames = 0;
+            foreach (var anim in motionData.Anims)
+            {
+                var animation = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(anim.AnimId);
+                foreach (var frame in animation.PosFrames)
+                {
+                    // orientation?
+                    offset += frame.Origin;
+                    totalFrames++;
+                }
+            }
+            var dist = offset.Length();
+            if (dist == 0.0f) return 0.0f;
+            return dist / totalFrames * 30;
         }
     }
 }

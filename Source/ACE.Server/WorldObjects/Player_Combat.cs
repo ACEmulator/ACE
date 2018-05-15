@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -8,8 +8,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -71,7 +69,7 @@ namespace ACE.Server.WorldObjects
             if (damage > 0.0f)
                 target.TakeDamage(this, damage, critical);
             else
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatEnemy));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
 
             if (damage > 0.0f && creature.Health.Current > 0)
             {
@@ -240,24 +238,50 @@ namespace ACE.Server.WorldObjects
             return resistance;
         }
 
-        public string GetSplatterDir(WorldObject target)
+        public Sound GetHitSound(WorldObject source, BodyPart bodyPart)
         {
-            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
-            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
-            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+            var creature = source as Creature;
+            var armors = creature.GetArmor(bodyPart);
 
-            targetDir.Z = 0;
-            targetDir = targetDir.Normalize();
+            foreach (var armor in armors)
+            {
+                var material = armor.GetProperty(PropertyInt.MaterialType) ?? 0;
+                //Console.WriteLine("Name: " + armor.Name + " | Material: " + material);
+            }
+            return Sound.HitFlesh1;
+        }
 
-            var sourceToTarget = (sourcePos - targetPos).Normalize();
+        public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
+        {
+            var amount = (uint)Math.Round(_amount);
+            var percent = (float)amount / Health.MaxValue;
 
-            var dir = Vector3.Dot(sourceToTarget, targetDir);
-            var angle = Vector3.Cross(sourceToTarget, targetDir);
+            // update health
+            Health.Current = (uint)Math.Max(0, (int)Health.Current - amount);
+            if (Health.Current == 0)
+            {
+                HandleActionDie();
+                return;
+            }
 
-            var frontBack = dir >= 0 ? "Front" : "Back";
-            var leftRight = angle.Z <= 0 ? "Left" : "Right";
+            // send network messages
+            var msgHealth = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
 
-            return leftRight + frontBack;
+            var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
+
+            var creature = source as Creature;
+            var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + creature.GetSplatterDir(this)));
+
+            var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
+            var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
+
+            Session.Network.EnqueueSend(text, msgHealth, hitSound, splatter);
+
+            if (percent >= 0.1f)
+            {
+                var wound = new GameMessageSound(Guid, Sound.Wound1, 1.0f);
+                Session.Network.EnqueueSend(wound);
+            }
         }
 
         public string GetSplatterHeight()
@@ -268,6 +292,13 @@ namespace ACE.Server.WorldObjects
                 case AttackHeight.Medium: return "Mid";
                 case AttackHeight.High: default: return "Up";
             }
+        }
+
+        public string GetArmorType(BodyPart bodyPart)
+        {
+            // Flesh, Leather, Chain, Plate
+            // for hit sounds
+            return null;
         }
     }
 }

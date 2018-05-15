@@ -46,7 +46,7 @@ namespace ACE.Server.Entity
         public static BodyPart GetBodyPart(BodyPart bodyParts)
         {
             // get individual parts in bodyParts
-            var parts = Enum.GetValues(typeof(BodyPart)).Cast<BodyPart>().Where(p => bodyParts.HasFlag(p));
+            var parts = GetFlags(bodyParts);
 
             // return a random part within list
             return parts.ToList()[Physics.Common.Random.RollDice(0, parts.Count() - 1)];
@@ -61,6 +61,54 @@ namespace ACE.Server.Entity
                 case AttackHeight.Low:
                 default: return GetBodyPart(Lower);
             }
+        }
+
+        public static EquipMask GetEquipMask(BodyPart bodyPart)
+        {
+            switch (bodyPart)
+            {
+                case BodyPart.Abdomen:
+                    return EquipMask.AbdomenArmor | EquipMask.AbdomenWear;
+                case BodyPart.Chest:
+                    return EquipMask.ChestArmor | EquipMask.ChestWear;
+                case BodyPart.Foot:
+                    return EquipMask.FootWear;
+                case BodyPart.Hand:
+                    return EquipMask.HandWear;
+                case BodyPart.Head:
+                    return EquipMask.HeadWear;
+                case BodyPart.LowerArm:
+                    return EquipMask.LowerArmArmor | EquipMask.LowerArmWear;
+                case BodyPart.LowerLeg:
+                    return EquipMask.LowerLegArmor | EquipMask.LowerLegWear;
+                case BodyPart.UpperArm:
+                    return EquipMask.UpperArmArmor | EquipMask.UpperArmWear;
+                case BodyPart.UpperLeg:
+                    return EquipMask.UpperLegArmor | EquipMask.UpperLegWear;
+                default:
+                    return EquipMask.None;
+            }
+        }
+
+        public static List<BodyPart> GetFlags(BodyPart bodyParts)
+        {
+            return Enum.GetValues(typeof(BodyPart)).Cast<BodyPart>().Where(p => bodyParts.HasFlag(p)).ToList();
+        }
+
+        public static List<EquipMask> GetFlags(EquipMask locations)
+        {
+            return Enum.GetValues(typeof(EquipMask)).Cast<EquipMask>().Where(p => p != EquipMask.None && locations.HasFlag(p)).ToList();
+        }
+
+        public static bool HasAny(EquipMask? location, List<EquipMask> flags)
+        {
+            if (location == null)
+                return false;
+
+            foreach (var flag in flags)
+                if (location.Value.HasFlag(flag))
+                    return true;
+            return false;
         }
     }
 }

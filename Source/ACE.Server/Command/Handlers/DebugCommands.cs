@@ -764,7 +764,7 @@ namespace ACE.Server.Command.Handlers
             if (!relValue)
                 session.Player.UpdateVital(vital, (uint)value);
             else
-                session.Player.DeltaVital(vital, value);
+                session.Player.UpdateVitalDelta(vital, value);
         }
 
         [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "sets your current health to a specific value.", "ushort")]

@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
             if (Sanctuary != null)
             {
                 // FIXME(ddevec): I should probably make a better interface for this
-                UpdateVitalInternal(Mana, Mana.Current / 2);
+                UpdateVital(Mana, Mana.Current / 2);
 
                 if (CombatMode != CombatMode.NonCombat)
                 {

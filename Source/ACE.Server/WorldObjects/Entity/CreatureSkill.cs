@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (formula != null)
                 {
-                    if ((Status == SkillStatus.Untrained && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
+                    if ((Status == SkillStatus.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
                         total = formula.CalcBase(creature.Strength.Base, creature.Endurance.Base, creature.Coordination.Base, creature.Quickness.Base, creature.Focus.Base, creature.Self.Base);
                 }
 
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (formula != null)
                 {
-                    if ((Status == SkillStatus.Untrained && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
+                    if ((Status == SkillStatus.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
                         total = formula.CalcBase(creature.Strength.Current, creature.Endurance.Current, creature.Coordination.Current, creature.Quickness.Current, creature.Focus.Current, creature.Self.Current);
                 }
 
@@ -92,6 +92,11 @@ namespace ACE.Server.WorldObjects.Entity
                     if (player.HasVitae)
                         total = (uint)Math.Round(total * player.Vitae);
                 }
+
+                // handle monster skills
+                if (!(creature is Player) && InitLevel != 0)
+                    total += InitLevel;
+
                 return total;
             }
         }
@@ -107,6 +112,15 @@ namespace ACE.Server.WorldObjects.Entity
             var scalar = 1d + Math.Pow(Math.E, 0.03 * delta);
             var percentSuccess = 1d - (1d / scalar);
             return percentSuccess;
+        }
+
+        /// <summary>
+        /// The initial skill level for a creature
+        /// </summary>
+        public uint InitLevel
+        {
+            get => biotaPropertiesSkill.InitLevel;
+            set => biotaPropertiesSkill.InitLevel = value;
         }
     }
 }

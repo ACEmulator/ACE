@@ -94,9 +94,9 @@ namespace ACE.Server.WorldObjects
                     var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
                     var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
 
-                    UpdateVitalInternal(Health, newHealth);
-                    UpdateVitalInternal(Stamina, newStamina);
-                    UpdateVitalInternal(Mana, newMana);
+                    UpdateVital(Health, newHealth);
+                    UpdateVital(Stamina, newStamina);
+                    UpdateVital(Mana, newMana);
 
                     killerSession.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
