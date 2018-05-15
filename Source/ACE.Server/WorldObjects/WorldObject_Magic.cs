@@ -772,10 +772,8 @@ namespace ACE.Server.WorldObjects
                                    (defaultVelocity * .44868f) / Math.Pow(distance, 2f) - (defaultVelocity * .25256f)
                                    / Math.Pow(distance, 3f));
 
-            if (velocity <= 0)
-                velocity = 0.1f;
-            else if (velocity > 50)
-                velocity = 50f;
+            velocity = Math.Clamp(velocity, 1, 50);
+
             return velocity;
         }
 
