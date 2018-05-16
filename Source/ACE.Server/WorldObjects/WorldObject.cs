@@ -269,14 +269,14 @@ namespace ACE.Server.WorldObjects
         public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver)
         {
             var emoteChain = new ActionChain();
-
+             
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
             var result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId && rng >= emote.Probability);
             if (result.Count() < 1)
             {
                 result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
             }
-
+            Console.WriteLine("Result.Count = " + result.Count());
             if (result.Count() > 0)
             {
                 var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt<BiotaPropertiesEmote>(0).Category);
