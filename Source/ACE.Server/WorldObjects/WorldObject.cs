@@ -276,7 +276,6 @@ namespace ACE.Server.WorldObjects
             {
                 result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
             }
-            Console.WriteLine("Result.Count = " + result.Count());
             if (result.Count() > 0)
             {
                 var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt<BiotaPropertiesEmote>(0).Category);

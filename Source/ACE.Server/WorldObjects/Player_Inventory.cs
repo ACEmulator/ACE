@@ -703,7 +703,6 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
             if (!target.GetProperty(PropertyBool.AllowGive)??false)
             {
-                Console.WriteLine("Allow give is false.");
                 actionChain.AddAction(this, () =>
                 {
                     Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow , ChatMessageType.System));
@@ -713,7 +712,6 @@ namespace ACE.Server.WorldObjects
             }
             else if(item.GetProperty(PropertyBool.Retained)??false)
             {
-                Console.WriteLine("Item is retained.");
                 actionChain.AddAction(this, () =>
                 {
                     Session.Network.EnqueueSend(new GameMessageSystemChat("You can't give this item away.(Retained)", ChatMessageType.System));
@@ -722,7 +720,6 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Console.WriteLine("Turning to player.");
                 actionChain.AddDelaySeconds(Rotate(target));
                 
                     if (target.GetProperty(PropertyBool.AllowGive) == true)
@@ -734,7 +731,6 @@ namespace ACE.Server.WorldObjects
                         
                             if (result.ElementAt(0).Category == 6)
                             {
-                            Console.WriteLine("Inside handle receive, npc accepting item.");
                             ///Item accepted by collector/NPC
                             actionChain.AddAction(this, () =>
                                 {
@@ -748,7 +744,6 @@ namespace ACE.Server.WorldObjects
                             else if (result.ElementAt(0).Category == 1)
                             {
                             ////Item rejected by npc
-                            Console.WriteLine("Inside handle receive, npc NOT accepting item.");
                             actionChain.AddAction(this, () =>
                             {
                                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
