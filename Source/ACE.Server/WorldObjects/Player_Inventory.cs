@@ -761,6 +761,18 @@ namespace ACE.Server.WorldObjects
                     }
                     }
             }
+            if (target.GetProperty(PropertyBool.AllowGive) ?? false)
+            {
+                ///Item accepted by NPC that accepts anything
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name + ".", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
+                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+                    Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+                });
+            }
             actionChain.EnqueueChain();
             //SendUseDoneEvent();
         }
