@@ -761,7 +761,7 @@ namespace ACE.Server.WorldObjects
                     }
                     }
             }
-            if (target.GetProperty(PropertyBool.AllowGive) ?? false)
+            if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
                 ///Item accepted by NPC that accepts anything
                 actionChain.AddAction(this, () =>
