@@ -697,28 +697,87 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
-
+            
             WorldObject target = CurrentLandblock.GetObject(targetID) as WorldObject;
             WorldObject item = GetInventoryItem(itemGuid) as WorldObject;
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(Rotate(target));
-            actionChain.AddAction(this, () =>
+            if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
-                if (target.GetProperty(PropertyBool.AllowGive) == true)
+                ///Item accepted by NPC that accepts anything
+                actionChain.AddDelaySeconds(Rotate(target));
+                actionChain.AddAction(this, () =>
                 {
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name +".", ChatMessageType.System));
-                    WorldObject player = this;
-                    //if (target.handleReceive(item, amount, target, player))
-                    //{
-                    //    Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
-                    //}
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name + ".", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
                     Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
-                }
-            });
+                });
+            }
+            else if (!target.GetProperty(PropertyBool.AllowGive)??false)
+            {
+                actionChain.AddDelaySeconds(Rotate(target));
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow , ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                });
+                
+            }
+            else if(item.GetProperty(PropertyBool.Retained)??false)
+            {
+                actionChain.AddDelaySeconds(Rotate(target));
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You can't give this item away.(Retained)", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                });
+            }
+            else
+            {
+                actionChain.AddDelaySeconds(Rotate(target));
+                
+                    if (target.GetProperty(PropertyBool.AllowGive) == true)
+                    {
+                    var result = target.Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
+                    WorldObject player = this;
+                        if (target.HandleReceive(item, amount, target, player))
+                        {
+                        
+                            if (result.ElementAt(0).Category == 6)
+                            {
+                            ///Item accepted by collector/NPC
+                            actionChain.AddAction(this, () =>
+                                {
+                                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                                    Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name + ".", ChatMessageType.System));
+                                    Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
+                                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+                                    Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+                                });
+                            }
+                            else if (result.ElementAt(0).Category == 1)
+                            {
+                            ////Item rejected by npc
+                            actionChain.AddAction(this, () =>
+                            {
+                                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                                Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + " does not accept this item.", ChatMessageType.System));
+                            });
+                            }
+                        }
+                        else
+                        {
+                        actionChain.AddAction(this, () =>
+                        {
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + " does not accept this item.", ChatMessageType.System));
+                        });
+                    }
+                    }
+            }
+            
             actionChain.EnqueueChain();
-
         }
 
 

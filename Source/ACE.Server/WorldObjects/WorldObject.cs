@@ -266,7 +266,33 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
+        public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver)
+        {
+            var emoteChain = new ActionChain();
+             
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            var result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId && rng >= emote.Probability);
+            if (result.Count() < 1)
+            {
+                result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
+            }
+            if (result.Count() > 0)
+            {
+                var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt<BiotaPropertiesEmote>(0).Category);
 
+                foreach (var action in actions)
+                {
+                    EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, emoteChain, receiver, giver);
+                }
+                emoteChain.EnqueueChain();
+                return true;
+
+            }
+            else
+            {
+                return false;
+            }
+        }
 
 
 

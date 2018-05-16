@@ -873,6 +873,7 @@ namespace ACE.Server.Managers
 
         public void ExecuteEmote(BiotaPropertiesEmote emote, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject = null, WorldObject targetObject = null)
         {
+            var player = targetObject as Player;
             switch ((EmoteType)emoteAction.Type)
             {
                 case EmoteType.Say:
@@ -886,8 +887,9 @@ namespace ACE.Server.Managers
 
                 case EmoteType.Motion:
 
-                    if (emote.Category != (uint)EmoteCategory.Vendor)
+                    if (emote.Category != (uint)EmoteCategory.Vendor && emote.Style != null)
                     {
+
                         var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
                         var motion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
 
@@ -943,8 +945,45 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
-                        var player = targetObject as Player;
                         player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.Tell));
+                    });
+                    break;
+
+                case EmoteType.TurnToTarget:
+                    var creature = sourceObject is Creature ? (Creature)sourceObject : null;
+                    actionChain.AddDelaySeconds(creature.Rotate(player));
+                    break;
+
+                case EmoteType.AwardXP:
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        if (player != null)
+                        {
+                            player.EarnXP((long)emoteAction.Amount64);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.System));
+                        }
+                    });
+                    break;
+
+                case EmoteType.Give:
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        if (player != null)
+                        {
+                            uint weenie = (uint)emoteAction.WeenieClassId;
+                            WorldObject item = WorldObjectFactory.CreateNewWorldObject(weenie);
+                            if (emoteAction.WeenieClassId != null)
+                            {
+                                if (emoteAction.StackSize > 1)
+                                {
+                                    item.StackSize = (ushort)emoteAction.StackSize;
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(WorldObject.Name + " gives you " + emoteAction.StackSize + " " + item.Name + ".", ChatMessageType.System));
+                                }
+                                else
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(WorldObject.Name + " gives you " + item.Name + ".", ChatMessageType.System));
+                                var success = player.TryCreateInInventoryWithNetworking(item);
+                            }
+                        }
                     });
                     break;
 
