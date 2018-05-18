@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
             motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.WalkRunThreshold = 1.0f;
             motion.RunRate = runRate;
-            
+
             CurrentMotionState = motion;
 
             if (CurrentLandblock != null)

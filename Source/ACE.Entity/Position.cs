@@ -220,6 +220,9 @@ namespace ACE.Entity
             return changedBlock;
         }
 
+        /// <summary>
+        /// Determines the outdoor landcell for current position
+        /// </summary>
         public bool SetLandCell()
         {
             if (Indoors) return false;

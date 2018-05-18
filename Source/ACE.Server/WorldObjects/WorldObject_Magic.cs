@@ -237,7 +237,7 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
         {
-            return Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetMagicSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill));
+            return Physics.Common.Random.RollDice(0.0f, 1.0f) < (1.0f - SkillCheck.GetSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill));
         }
 
         /// <summary>
@@ -252,6 +252,7 @@ namespace ACE.Server.WorldObjects
         protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false)
         {
             string srcVital, destVital, action;
+            string targetMsg = null;
 
             Player player = null;
             Creature creature = null;
@@ -294,12 +295,12 @@ namespace ACE.Server.WorldObjects
                             if (newSpellTargetVital < spellTarget.Mana.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
-                                    spellTarget.Mana.Current = 0;
+                                    spellTarget.UpdateVital(spellTarget.Mana, 0);
                                 else
-                                    spellTarget.Mana.Current = (uint)newSpellTargetVital;
+                                    spellTarget.UpdateVital(spellTarget.Mana, (uint)newSpellTargetVital);
                             }
                             else
-                                spellTarget.Mana.Current = spellTarget.Mana.MaxValue;
+                                spellTarget.UpdateVital(spellTarget.Mana, spellTarget.Mana.MaxValue);
                             break;
                         case 256:   // Stamina
                             newSpellTargetVital = (int)(spellTarget.Stamina.Current + boost);
@@ -307,12 +308,12 @@ namespace ACE.Server.WorldObjects
                             if (newSpellTargetVital < spellTarget.Stamina.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
-                                    spellTarget.Stamina.Current = 0;
+                                    spellTarget.UpdateVital(spellTarget.Stamina, 0);
                                 else
-                                    spellTarget.Stamina.Current = (uint)newSpellTargetVital;
+                                    spellTarget.UpdateVital(spellTarget.Stamina, (uint)newSpellTargetVital);
                             }
                             else
-                                spellTarget.Stamina.Current = spellTarget.Stamina.MaxValue;
+                                spellTarget.UpdateVital(spellTarget.Stamina, spellTarget.Stamina.MaxValue);
                             break;
                         default:   // Health
                             newSpellTargetVital = (int)(spellTarget.Health.Current + boost);
@@ -320,24 +321,29 @@ namespace ACE.Server.WorldObjects
                             if (newSpellTargetVital < spellTarget.Health.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
-                                    spellTarget.Health.Current = 0;
+                                    spellTarget.UpdateVital(spellTarget.Health, 0);
                                 else
-                                    spellTarget.Health.Current = (uint)newSpellTargetVital;
+                                    spellTarget.UpdateVital(spellTarget.Health, (uint)newSpellTargetVital);
                             }
                             else
-                                spellTarget.Health.Current = spellTarget.Health.MaxValue;
+                                spellTarget.UpdateVital(spellTarget.Health, spellTarget.Health.MaxValue);
                             break;
                     }
-                    if (WeenieClassId == 1)
+                    if (this is Player)
                     {
                         if (spell.BaseRangeConstant == 0)
                             message = $"You {action} {Math.Abs(boost).ToString()} {srcVital}";
                         else
-                            message = $"You {action} {Math.Abs(boost).ToString()} of {srcVital} from {spellTarget.Name}";
+                            message = $"You {action} {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
                     }
                     else
                         message = null;
+
+                    if (target is Player && spell.BaseRangeConstant > 0)
+                        targetMsg = $"{Name} casts {spell.Name} and {action}s {Math.Abs(boost)} points of your {srcVital}.";
+
                     break;
+
                 case SpellType.Transfer:
                     // Calculate the change in vitals of the target
                     Creature caster;
@@ -375,23 +381,23 @@ namespace ACE.Server.WorldObjects
                         case (int)PropertyAttribute2nd.Mana:
                             srcVital = "mana";
                             if (newSpellTargetVital <= 0)
-                                spellTarget.Mana.Current = 0;
+                                spellTarget.UpdateVital(spellTarget.Mana, 0);
                             else
-                                spellTarget.Mana.Current = (uint)newSpellTargetVital;
+                                spellTarget.UpdateVital(spellTarget.Mana, (uint)newSpellTargetVital);
                             break;
                         case (int)PropertyAttribute2nd.Stamina:
                             srcVital = "stamina";
                             if (newSpellTargetVital <= 0)
-                                spellTarget.Stamina.Current = 0;
+                                spellTarget.UpdateVital(spellTarget.Stamina, 0);
                             else
-                                spellTarget.Stamina.Current = (uint)newSpellTargetVital;
+                                spellTarget.UpdateVital(spellTarget.Stamina, (uint)newSpellTargetVital);
                             break;
                         default:   // Health
                             srcVital = "health";
                             if (newSpellTargetVital <= 0)
-                                spellTarget.Health.Current = 0;
+                                spellTarget.UpdateVital(spellTarget.Health, 0);
                             else
-                                spellTarget.Health.Current = (uint)newSpellTargetVital;
+                                spellTarget.UpdateVital(spellTarget.Health, (uint)newSpellTargetVital);
                             break;
                     }
 
@@ -402,23 +408,17 @@ namespace ACE.Server.WorldObjects
                         case (int)PropertyAttribute2nd.Mana:
                             destVital = "mana";
                             newCasterVital = caster.Mana.Current + casterVitalChange;
-                            caster.Mana.Current = newCasterVital;
-                            if (caster.Mana.Current >= caster.Mana.MaxValue)
-                                caster.Mana.Current = caster.Mana.MaxValue;
+                            caster.UpdateVital(caster.Mana, newCasterVital);
                             break;
                         case (int)PropertyAttribute2nd.Stamina:
                             destVital = "stamina";
                             newCasterVital = caster.Stamina.Current + casterVitalChange;
-                            caster.Stamina.Current = newCasterVital;
-                            if (caster.Stamina.Current >= caster.Stamina.MaxValue)
-                                caster.Stamina.Current = caster.Stamina.MaxValue;
+                            caster.UpdateVital(caster.Stamina, newCasterVital);
                             break;
                         default:   // Health
                             destVital = "health";
                             newCasterVital = caster.Mana.Current + casterVitalChange;
-                            caster.Health.Current = newCasterVital;
-                            if (caster.Health.Current >= caster.Health.MaxValue)
-                                caster.Health.Current = caster.Health.MaxValue;
+                            caster.UpdateVital(caster.Health, newCasterVital);
                             break;
                     }
 
@@ -426,14 +426,19 @@ namespace ACE.Server.WorldObjects
                     {
                         if (target.Guid == Guid)
                         {
-                            message = $"You drain {vitalChange.ToString()} of {srcVital} and apply {casterVitalChange.ToString()} of {destVital} to yourself";
+                            message = $"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself";
                         }
                         else
-                            message = $"You drain {vitalChange.ToString()} of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself";
+                            message = $"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself";
                     }
                     else
                         message = null;
+
+                    if (target is Player && target != this)
+                        targetMsg = $"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you";
+
                     break;
+
                 case SpellType.LifeProjectile:
                     caster = (Creature)this;
                     uint damage;
@@ -442,27 +447,27 @@ namespace ACE.Server.WorldObjects
                         damage = (uint)(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetNaturalResistence(ResistanceType.ManaDrain));
                         newCasterVital = caster.Mana.Current - damage;
                         if (newCasterVital <= 0)
-                            caster.Mana.Current = 0;
+                            caster.UpdateVital(caster.Mana, 0);
                         else
-                            caster.Mana.Current = (uint)newCasterVital;
+                            caster.UpdateVital(caster.Mana, (uint)newCasterVital);
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
                         damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetNaturalResistence(ResistanceType.StaminaDrain));
                         newCasterVital = caster.Stamina.Current - damage;
                         if (newCasterVital <= 0)
-                            caster.Stamina.Current = 0;
+                            caster.UpdateVital(caster.Stamina, 0);
                         else
-                            caster.Stamina.Current = (uint)newCasterVital;
+                            caster.UpdateVital(caster.Stamina, (uint)newCasterVital);
                     }
                     else
                     {
                         damage = (uint)(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetNaturalResistence(ResistanceType.HealthDrain));
                         newCasterVital = caster.Health.Current - damage;
                         if (newCasterVital <= 0)
-                            caster.Health.Current = 0;
+                            caster.UpdateVital(caster.Health, 0);
                         else
-                            caster.Health.Current = (uint)newCasterVital;
+                            caster.UpdateVital(caster.Health, (uint)newCasterVital);
                     }
 
                     CreateSpellProjectile(this, target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
@@ -488,6 +493,12 @@ namespace ACE.Server.WorldObjects
                 default:
                     message = "Spell not implemented, yet!";
                     break;
+            }
+
+            if (targetMsg != null)
+            {
+                var playerTarget = target as Player;
+                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(targetMsg, ChatMessageType.Magic));
             }
 
             if (spellTarget.Health.Current == 0)
@@ -626,49 +637,44 @@ namespace ACE.Server.WorldObjects
             var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
             var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
 
-            if (WeenieClassId == 1)
+            var player = this as Player;
+            var playerTarget = target as Player;
+            var creatureTarget = target as Creature;
+
+            // build message
+            var suffix = "";
+            switch (stackType)
             {
-                var player = this as Player;
-                var playerTarget = target as Player;
-                var creatureTarget = target as Creature;
-
-                // build message
-                var suffix = "";
-                switch (stackType)
-                {
-                    case StackType.Refresh:
-                        suffix = $", refreshing {spell.Name}";
-                        break;
-                    case StackType.Surpass:
-                        suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
-                        break;
-                    case StackType.Surpassed:
-                        suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
-                        break;
-                }
-
-                var targetName = this == target ? "yourself" : target.Name;
-
-                string message;
-                if (castByItem == true)
-                    message = $"An item casts {spell.Name} on you";
-                else
-                    message = $"You cast {spell.Name} on {targetName}{suffix}";
-
-
-                if (target is Player)
-                {
-                    if (stackType != StackType.Surpassed)
-                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
-
-                    if (player != playerTarget)
-                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-                }
-
-                return message;
+                case StackType.Refresh:
+                    suffix = $", refreshing {spell.Name}";
+                    break;
+                case StackType.Surpass:
+                    suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
+                    break;
+                case StackType.Surpassed:
+                    suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
+                    break;
             }
 
-            return "";
+            var targetName = this == target ? "yourself" : target.Name;
+
+            string message;
+            if (castByItem == true)
+                message = $"An item casts {spell.Name} on you";
+            else
+                message = $"You cast {spell.Name} on {targetName}{suffix}";
+
+
+            if (target is Player)
+            {
+                if (stackType != StackType.Surpassed)
+                    playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+
+                if (playerTarget != this)
+                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+            }
+
+            return message;
         }
 
         /// <summary>
@@ -766,10 +772,8 @@ namespace ACE.Server.WorldObjects
                                    (defaultVelocity * .44868f) / Math.Pow(distance, 2f) - (defaultVelocity * .25256f)
                                    / Math.Pow(distance, 3f));
 
-            if (velocity <= 0)
-                velocity = 0.1f;
-            else if (velocity > 50)
-                velocity = 50f;
+            velocity = Math.Clamp(velocity, 1, 50);
+
             return velocity;
         }
 

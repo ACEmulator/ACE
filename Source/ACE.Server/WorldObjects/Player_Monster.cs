@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
                 var monsters = landblock.worldObjects.Values.OfType<Creature>().ToList();
                 foreach (var monster in monsters)
                 {
-                    if (this == monster) continue;
+                    if (this == monster || monster is Player) continue;
 
                     if (Location.SquaredDistanceTo(monster.Location) < distSq)
                         AlertMonster(monster);
@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
 
                 var monster = obj.WeenieObj.WorldObject as Creature;
 
-                if (monster == null) continue;
+                if (monster == null || monster is Player) continue;
 
                 if (Location.SquaredDistanceTo(monster.Location) < distSq)
                     AlertMonster(monster);

@@ -50,11 +50,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartTurn()
         {
-            IsTurning = true;
-            var time = EstimateTurnTo();
-
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
+
+            IsTurning = true;
+            var time = EstimateTurnTo();
 
             MoveTo(AttackTarget, RunRate);
 
@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
         public float EstimateTurnTo()
         {
             var angle = GetAngle(AttackTarget);
-            var rotateTime = Math.PI / (360.0f / angle);
+            var rotateTime = Math.PI / (360.0f / angle) / MoveSpeed;
             return (float)rotateTime;
         }
 
@@ -122,6 +122,14 @@ namespace ACE.Server.WorldObjects
         public bool IsMeleeRange()
         {
             return GetDistanceToTarget() <= MaxMeleeRange;
+        }
+
+        /// <summary>
+        /// Returns TRUE if monster in range for current attack type
+        /// </summary>
+        public bool IsAttackRange()
+        {
+            return GetDistanceToTarget() <= MaxRange;
         }
 
         /// <summary>
@@ -152,7 +160,7 @@ namespace ACE.Server.WorldObjects
             UpdatePosition();
             LastMoveTime = Timer.CurrentTime;
 
-            if (IsMeleeRange())
+            if (IsAttackRange())
                 OnMoveComplete();
 
             if (GetDistanceToTarget() >= MaxChaseRange)
@@ -188,6 +196,7 @@ namespace ACE.Server.WorldObjects
         public void GetMovementSpeed()
         {
             var moveSpeed = MotionTable.GetRunSpeed(MotionTableId);
+            if (moveSpeed == 0) moveSpeed = 2.5f;
             var scale = ObjScale ?? 1.0f;
 
             var runSkill = GetCreatureSkill(Skill.Run).Current;
