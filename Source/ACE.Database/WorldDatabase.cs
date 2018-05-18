@@ -286,7 +286,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
         public List<LandblockInstances> GetCachedInstancesByLandblock(ushort landblock)
         {

@@ -82,6 +82,8 @@ namespace ACE.Server.WorldObjects
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 
+            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+
             QueueNextTick();
         }
 
@@ -232,7 +234,10 @@ namespace ACE.Server.WorldObjects
                 UniversalMotion mm = new UniversalMotion(MotionStance.Spellcasting);
                 mm.MovementData.CurrentStyle = (uint)MotionStance.Spellcasting;
                 SetMotionState(this, mm);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Magic));
+
+                var player = this as Player;
+                if (player != null)
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Magic));
             }
             else
                 log.InfoFormat("Changing combat mode for {0} - could not locate a wielded magic caster", Guid);
@@ -280,9 +285,11 @@ namespace ACE.Server.WorldObjects
             mm.MovementData.CurrentStyle = (uint)MotionStance.Standing;
             SetMotionState(this, mm);
             var mEquipedAmmo = EquippedObjects.FirstOrDefault(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
+            var player = this as Player;
             if (mEquipedAmmo != null)
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
+            if (player != null)
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
         }
 
         public void HandleSwitchToMissileCombatMode(ActionChain combatModeChain)
@@ -326,29 +333,31 @@ namespace ACE.Server.WorldObjects
 
                 UniversalMotion mm = new UniversalMotion(ms);
                 mm.MovementData.CurrentStyle = (ushort)ms;
-                if (mEquipedAmmo == null)
+
+                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+                SetMotionState(this, mm);
+
+                if (mEquipedAmmo != null)
                 {
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
-                    SetMotionState(this, mm);
-                }
-                else
-                {
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
-                    SetMotionState(this, mm);
                     mm.MovementData.ForwardCommand = (uint)MotionCommand.Reload;
                     SetMotionState(this, mm);
                     CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.25);
-                    // System.Threading.Thread.Sleep(250); // used for debugging
                     mm.MovementData.ForwardCommand = (ushort)MotionCommand.Invalid;
                     SetMotionState(this, mm);
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.40);
                     combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
-                    // CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, ammo, 1, 1)); // used for debugging
+
+                    // add to player tracking
+                    var wielder = CurrentLandblock.GetObject(new ObjectGuid(mEquipedAmmo.WielderId.Value));
+                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(wielder)));
                 }
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
+
+                var player = this as Player;
+                if (player != null)
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
             }
         }
 
@@ -474,7 +483,10 @@ namespace ACE.Server.WorldObjects
                 UniversalMotion mm = new UniversalMotion(ms);
                 mm.MovementData.CurrentStyle = (ushort)ms;
                 SetMotionState(this, mm);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Melee));
+
+                var player = this as Player;
+                if (player != null)
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Melee));
             }
             else
                 log.InfoFormat("Changing combat mode for {0} - wielded item {1} has not be assigned a default combat style", Guid, mEquipedMelee?.Guid ?? mEquipedTwoHanded?.Guid);
@@ -482,7 +494,9 @@ namespace ACE.Server.WorldObjects
 
         public void SetCombatMode(CombatMode newCombatMode)
         {
-            log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
+            var player = this as Player;
+            if (player != null)
+                log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
 
             ActionChain combatModeChain = new ActionChain();
             combatModeChain.AddAction(this, () =>

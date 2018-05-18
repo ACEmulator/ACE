@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the currently equipped missle ammo
+        /// Returns the currently equipped missile ammo
         /// </summary>
         /// <returns></returns>
         public WorldObject GetEquippedAmmo()
@@ -100,6 +100,9 @@ namespace ACE.Server.WorldObjects
 
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
+
+            if (CurrentLandblock != null)
+                CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
 
             return true;
         }
@@ -129,6 +132,9 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal -= worldObject.EncumbranceVal;
                 Value -= worldObject.Value;
 
+                if (CurrentLandblock != null)
+                    CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+
                 return true;
             }
 
@@ -145,7 +151,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>
         /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
         /// <param name="parentLocation">out parameter - this is another part of the orientation data for correct visual display</param>
-        protected void SetChild(WorldObject item, int placementPosition, out int placementId, out int parentLocation)
+        public void SetChild(WorldObject item, int placementPosition, out int placementId, out int parentLocation)
         {
             placementId = 0;
             parentLocation = 0;
@@ -186,7 +192,9 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case EquipMask.MissileAmmo:
-                    throw new NotImplementedException();
+                    // quiver = 5 for arrows/bolts?
+                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 case EquipMask.Held:
@@ -211,7 +219,7 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield))
+            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 

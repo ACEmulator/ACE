@@ -1,3 +1,5 @@
+using System;
+
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -39,25 +41,43 @@ namespace ACE.Server.WorldObjects
             if (CurrentAttack == null)
             {
                 CurrentAttack = GetAttackType();
-                MaxRange = GetMaxRange();   // FIXME: server position sync
-                MaxRange = MaxMeleeRange;
+                MaxRange = GetMaxRange();
+
+                if (CurrentAttack == AttackType.Magic)
+                    MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
             // get distance to target
             var targetDist = GetDistanceToTarget();
 
-            if (targetDist > MaxRange)
+            if (CurrentAttack != AttackType.Missile)
             {
-                // move towards
-                if (!IsTurning && !IsMoving)
-                    StartTurn();
+                if (targetDist > MaxRange)
+                {
+                    // move towards
+                    if (!IsTurning && !IsMoving)
+                        StartTurn();
+                    else
+                        Movement();
+                }
                 else
-                    Movement();
+                {
+                    // perform attack
+                    if (AttackReady()) Attack();
+                }
             }
             else
             {
-                // perform attack
-                if (AttackReady()) Attack();
+                if (!IsFacing(AttackTarget))
+                {
+                    if (!IsTurning)
+                        StartTurn();
+                }
+                else
+                {
+                    // perform attack
+                    if (AttackReady()) Attack();
+                }
             }
         }
 

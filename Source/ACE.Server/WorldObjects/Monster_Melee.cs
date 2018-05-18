@@ -85,6 +85,8 @@ namespace ACE.Server.WorldObjects
         {
             MotionCommand motion = new MotionCommand();
 
+            //Console.WriteLine("MotionStance: " + CurrentMotionState.Stance);
+
             switch (CurrentMotionState.Stance)
             {
                 case MotionStance.DualWieldAttack:
@@ -94,6 +96,11 @@ namespace ACE.Server.WorldObjects
                 case MotionStance.ThrownWeaponAttack:
                 case MotionStance.TwoHandedStaffAttack:
                 case MotionStance.TwoHandedSwordAttack:
+                    {
+                        Enum.TryParse("Slash" + GetAttackHeight(), out motion);
+                        return motion;
+                    }
+
                 case MotionStance.UaNoShieldAttack:
                 default:
                     {
@@ -108,6 +115,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
+            if (CurrentAttack == AttackType.Missile)
+                return GetMissileDamage();
+
             var maxDamage = attackPart.DVal;
             var variance = attackPart.DVar;
             var minDamage = maxDamage - maxDamage * variance;
@@ -117,14 +127,23 @@ namespace ACE.Server.WorldObjects
 
         public Skill GetCurrentAttackSkill()
         {
-            // TODO: determine if monster attack with weapon
-            return Skill.UnarmedCombat;
+            var weapon = GetEquippedWeapon();
+            if (weapon == null) return Skill.UnarmedCombat;
+
+            var combatStyle = weapon.DefaultCombatStyle;
+            switch (combatStyle)
+            {
+                case CombatStyle.Bow: return Skill.Bow;
+                case CombatStyle.Crossbow: return Skill.Crossbow;
+
+                // TODO: weapon skills
+                default: return Skill.UnarmedCombat;
+            }
         }
 
         /// <summary>
         /// Returns the chance for player to avoid monster attack
         /// </summary>
-        /// <returns></returns>
         public float GetEvadeChance()
         {
             // get monster attack skill
@@ -132,7 +151,9 @@ namespace ACE.Server.WorldObjects
 
             // get player defense skill
             var player = AttackTarget as Player;
-            var difficulty = player.GetCreatureSkill(Skill.MeleeDefense).Current;
+
+            var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var difficulty = player.GetCreatureSkill(defenseSkill).Current;
 
             //Console.WriteLine("Attack skill: " + attackSkill.Current);
             //Console.WriteLine("Defense skill: " + difficulty);
@@ -155,7 +176,7 @@ namespace ACE.Server.WorldObjects
 
             // get base damage
             var attackPart = GetAttackPart();
-            damageType = (DamageType)attackPart.DType;
+            damageType = GetDamageType(attackPart);
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
 
