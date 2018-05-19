@@ -787,7 +787,7 @@ namespace ACE.Server.WorldObjects
                                                                 {77, 21080}
                                                             };
             //CreatureSkill skill = GetCreatureSkill(Skill.Salvaging);
-            double salvageSkill = (double)GetCreatureSkill(Skill.Salvaging).Current;
+            double salvageSkill = Math.Max((uint)GetCreatureSkill(Skill.Salvaging).Current, Math.Max((uint)GetCreatureSkill(Skill.ArmorTinkering).Current, Math.Max((uint)GetCreatureSkill(Skill.MagicItemTinkering).Current, Math.Max((uint)GetCreatureSkill(Skill.WeaponTinkering).Current, (uint)GetCreatureSkill(Skill.ItemTinkering).Current))));
             double workAverage = 0;
             int materialType = 0;
             int amount = 0;
