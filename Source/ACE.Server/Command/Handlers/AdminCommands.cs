@@ -512,7 +512,7 @@ namespace ACE.Server.Command.Handlers
             // LOL
 
             // TODO: output
-        }        
+        }
 
         /// <summary>
         /// Command for saving the Admin's current location as the sanctuary position. If a uint between 1-9 is provided as a parameter, the corresponding named recall is saved.
@@ -1010,46 +1010,43 @@ namespace ACE.Server.Command.Handlers
         public static void HandleCrack(Session session, params string[] parameters)
         {
             bool openIt = (parameters?.Length > 0 && parameters[0] == ".");
+            bool notOK = false;
             if (session.Player.CurrentAppraisalTarget.HasValue)
             {
                 var objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
                 var wo = session.Player.CurrentLandblock.GetObject(objectId);
-                if (wo is Door woDoor)
+                if (wo is Lock @lock)
                 {
-                    var opening = openIt ? " Opening door." : "";
-                    Door.UnlockDoorResults res;
-                    if (!string.IsNullOrWhiteSpace(woDoor.LockCode))
+                    var opening = openIt ? $" Opening {wo.WeenieType}." : "";
+                    string lockCode = LockHelper.GetLockCode(wo);
+                    int? resistLockpick = LockHelper.GetResistLockpick(wo);
+                    UnlockResults res = UnlockResults.IncorrectKey;
+
+                    if (!string.IsNullOrWhiteSpace(lockCode))
                     {
-                        res = woDoor.UnlockDoor(woDoor.LockCode);
-                        ChatPacket.SendServerMessage(session, $"Crack via {woDoor.LockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
+                        res = @lock.Unlock(lockCode);
+                        ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} via {lockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
                     }
-                    else if (woDoor.ResistLockpick.HasValue)
+                    else if (resistLockpick.HasValue && resistLockpick > 0)
                     {
-                        res = woDoor.UnlockDoor((uint)woDoor.ResistLockpick);
-                        ChatPacket.SendServerMessage(session, $"Crack with skill {woDoor.ResistLockpick} result: {res}.{opening}", ChatMessageType.Broadcast);
+                        res = @lock.Unlock((uint)(resistLockpick * 2));
+                        ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} with skill {resistLockpick}*2 result: {res}.{opening}", ChatMessageType.Broadcast);
                     }
                     else
-                        ChatPacket.SendServerMessage(session, $"The door has no key code or lockpick difficulty.  Unable to crack it.{opening}", ChatMessageType.Broadcast);
-                    if (openIt) woDoor.Open(session.Player.Guid);
-                }
-                else if (wo is Chest woChest)
-                {
-                    var opening = openIt ? " Opening chest." : "";
-                    Chest.UnlockChestResults res;
-                    if (!string.IsNullOrWhiteSpace(woChest.LockCode))
+                        ChatPacket.SendServerMessage(session, $"The {wo.WeenieType} has no key code or lockpick difficulty.  Unable to crack it.{opening}", ChatMessageType.Broadcast);
+
+                    if (openIt)
                     {
-                        res = woChest.UnlockChest(woChest.LockCode);
-                        ChatPacket.SendServerMessage(session, $"Crack via {woChest.LockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
+                        if (wo is Door woDoor)
+                            woDoor.Open(session.Player.Guid);
+                        else if (wo is Chest woChest)
+                            ChatPacket.SendServerMessage(session, $"The {wo.WeenieType} cannot be opened because it is not implemented yet!", ChatMessageType.Broadcast);
                     }
-                    else
-                        ChatPacket.SendServerMessage(session, $"The chest has no key code.  Unable to crack it.{opening}", ChatMessageType.Broadcast);
-                    if (openIt) woChest.Open(session.Player);
                 }
+                else notOK = true;
             }
-            else
-            {
-                ChatPacket.SendServerMessage(session, "Appraise a locked target before using @crack", ChatMessageType.Broadcast);
-            }
+            else notOK = true;
+            if (notOK) ChatPacket.SendServerMessage(session, "Appraise a locked target before using @crack", ChatMessageType.Broadcast);
         }
 
         // cm <material type> <quantity> <ave. workmanship>
@@ -1360,7 +1357,7 @@ namespace ACE.Server.Command.Handlers
 
             //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
             var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
-            foreach(var wearable in wearables)
+            foreach (var wearable in wearables)
             {
                 var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
 

@@ -10,7 +10,7 @@ using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Chest : Container
+    public class Chest : Container, Lock
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -117,42 +117,33 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motionClosed;
         }
 
-        public enum UnlockChestResults : ushort
-        {
-            UnlockSuccess = 0,
-            //PickLockFailed = 1,
-            IncorrectKey = 2,
-            AlreadyUnlocked = 3,
-            //CannotBePicked = 4,
-            ChestOpen = 5
-        }
-
         public string LockCode
         {
             get => GetProperty(PropertyString.LockCode);
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
         }
 
+        public int? ResistLockpick
+        {
+            get => GetProperty(PropertyInt.ResistLockpick);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
+        }
+
+        /// <summary>
+        /// Used for unlocking a chest via lockpick, so contains a skill check
+        /// player.Skills[Skill.Lockpick].Current should be sent for the skill check
+        /// </summary>
+        public UnlockResults Unlock(uint playerLockpickSkillLvl)
+        {
+            return LockHelper.Unlock(this, playerLockpickSkillLvl);
+        }
+
         /// <summary>
         /// Used for unlocking a chest via a key
         /// </summary>
-        public UnlockChestResults UnlockChest(string keyCode)
+        public UnlockResults Unlock(string keyCode)
         {
-            if (IsOpen ?? false)
-                return UnlockChestResults.ChestOpen;
-
-            if (keyCode == LockCode)
-            {
-                if (!IsLocked ?? false)
-                    return UnlockChestResults.AlreadyUnlocked;
-
-                IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
-                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
-                return UnlockChestResults.UnlockSuccess;
-            }
-
-            return UnlockChestResults.IncorrectKey;
+            return LockHelper.Unlock(this, keyCode);
         }
     }
 }

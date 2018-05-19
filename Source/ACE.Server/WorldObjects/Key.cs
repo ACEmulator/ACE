@@ -46,11 +46,11 @@ namespace ACE.Server.WorldObjects
                 {
                     var door = (Door)target;
 
-                    Door.UnlockDoorResults results = door.UnlockDoor(keyCode);
+                    UnlockResults results = door.Unlock(keyCode);
 
                     switch (results)
                     {
-                        case Door.UnlockDoorResults.UnlockSuccess:
+                        case UnlockResults.UnlockSuccess:
                             Structure--;
                             if (Structure < 1)
                                 player.TryRemoveItemFromInventoryWithNetworking(this, 1);
@@ -58,10 +58,10 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
                             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
                             break;
-                        case Door.UnlockDoorResults.DoorOpen:
+                        case UnlockResults.Open:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
                             break;
-                        case Door.UnlockDoorResults.AlreadyUnlocked:
+                        case UnlockResults.AlreadyUnlocked:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
                             break;
                         default:

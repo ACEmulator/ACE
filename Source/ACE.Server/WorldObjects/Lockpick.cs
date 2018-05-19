@@ -33,57 +33,51 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Lockpick;
         }
 
+        private void Consume(Player player)
+        {
+            // to-do don't consume "Limitless Lockpick" rare.
+            Structure--;
+            if (Structure < 1)
+                player.TryRemoveItemFromInventoryWithNetworking(this, 1);
+            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+            player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, (int)Structure));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your lockpicks have {Structure} uses left.", ChatMessageType.Craft));
+        }
+
         public void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             ActionChain chain = new ActionChain();
 
-
             chain.AddAction(player, () =>
             {
-                if (target.WeenieType == WeenieType.Door)
+                if (player.Skills[Skill.Lockpick].Status != SkillStatus.Trained && player.Skills[Skill.Lockpick].Status != SkillStatus.Specialized)
                 {
-                    var door = (Door)target;
-
-                    if (player.Skills[Skill.Lockpick].Status != SkillStatus.Trained && player.Skills[Skill.Lockpick].Status != SkillStatus.Specialized)
-                    {
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
-                        return;
-                    }
-
-                    void consume(Player plr, Lockpick lp)
-                    {
-                        lp.Structure--;
-                        if (lp.Structure < 1)
-                            plr.TryRemoveItemFromInventoryWithNetworking(this, 1);
-                        plr.Session.Network.EnqueueSend(new GameEventUseDone(plr.Session));
-                        plr.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(lp, PropertyInt.Structure, (int)lp.Structure));
-                        plr.Session.Network.EnqueueSend(new GameMessageSystemChat($"Uses reamaining: {Structure}", ChatMessageType.System));
-                    }
-
-                    Door.UnlockDoorResults results = door.UnlockDoor(player.Skills[Skill.Lockpick].Current);
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
+                    return;
+                }
+                if (target is Lock @lock)
+                {
+                    UnlockResults results = @lock.Unlock(player.Skills[Skill.Lockpick].Current);
                     switch (results)
                     {
-                        case Door.UnlockDoorResults.UnlockSuccess:
-                            consume(player, this);
+                        case UnlockResults.UnlockSuccess:
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Craft));
+                            Consume(player);
                             break;
-                        case Door.UnlockDoorResults.DoorOpen:
+                        case UnlockResults.Open:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
                             break;
-                        case Door.UnlockDoorResults.AlreadyUnlocked:
+                        case UnlockResults.AlreadyUnlocked:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
                             break;
-                        case Door.UnlockDoorResults.PickLockFailed:
-                            consume(player, this);
+                        case UnlockResults.PickLockFailed:
+                            target.CurrentLandblock.EnqueueBroadcastSound(target, Sound.PicklockFail);
+                            Consume(player);
                             break;
                         default:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.KeyDoesntFitThisLock));
                             break;
                     }
-                }
-                else if (target.WeenieType == WeenieType.Chest)
-                {
-                    var message = new GameMessageSystemChat($"Unlocking {target.Name} has not been implemented, yet!", ChatMessageType.System);
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session), message);
                 }
                 else
                 {

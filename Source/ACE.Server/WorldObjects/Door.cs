@@ -14,19 +14,11 @@ using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Door : WorldObject
+    public class Door : WorldObject, Lock
     {
         private static List<GenericPropertyId> _updateLocked = new List<GenericPropertyId>() { new GenericPropertyId((uint)PropertyBool.Locked, PropertyType.PropertyBool) };
 
-        public enum UnlockDoorResults : ushort
-        {
-            UnlockSuccess   = 0,
-            PickLockFailed  = 1,
-            IncorrectKey    = 2,
-            AlreadyUnlocked = 3,
-            CannotBePicked  = 4,
-            DoorOpen        = 5
-        }
+
 
         //private static readonly MovementData movementOpen = new MovementData();
         //private static readonly MovementData movementClosed = new MovementData();
@@ -272,47 +264,19 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Used for unlocking a door via lockpick, so contains a skill check
-        /// player.Skills[Skill.Lockpick].ActiveValue should be sent for the skill check
+        /// player.Skills[Skill.Lockpick].Current should be sent for the skill check
         /// </summary>
-        public UnlockDoorResults UnlockDoor(uint playerLockpickSkillLvl)
+        public UnlockResults Unlock(uint playerLockpickSkillLvl)
         {
-            if (!ResistLockpick.HasValue || ResistLockpick < 1)
-                return UnlockDoorResults.CannotBePicked;
-
-            if (!IsLocked ?? false)
-                return UnlockDoorResults.AlreadyUnlocked;
-
-            var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, (int)ResistLockpick);
-            var dice = Physics.Common.Random.RollDice(0.0f, 1.0f);
-            if (dice > pickChance)
-                return UnlockDoorResults.PickLockFailed;
-
-            IsLocked = false;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
-            CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
-            return UnlockDoorResults.UnlockSuccess;
+            return LockHelper.Unlock(this, playerLockpickSkillLvl);
         }
 
         /// <summary>
         /// Used for unlocking a door via a key
         /// </summary>
-        public UnlockDoorResults UnlockDoor(string keyCode)
+        public UnlockResults Unlock(string keyCode)
         {
-            if (IsOpen ?? false)
-                return UnlockDoorResults.DoorOpen;
-
-            if (keyCode == LockCode)
-            {
-                if (!IsLocked ?? false)
-                    return UnlockDoorResults.AlreadyUnlocked;
-
-                IsLocked = false;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? false));
-                CurrentLandblock.EnqueueBroadcastSound(this, Sound.LockSuccess);
-                return UnlockDoorResults.UnlockSuccess;
-            }
-
-            return UnlockDoorResults.IncorrectKey;
+            return LockHelper.Unlock(this, keyCode);
         }
     }
 }
