@@ -1,6 +1,8 @@
+using System;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -39,13 +41,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsDead => Health.Current <= 0;
 
-        public AttackType GetAttackType()
+        public virtual AttackType GetAttackType()
         {
-            // is this monster a spellcaster?
-            if (!IsCaster)
-                return AttackType.Melee;
+            if (IsRanged)
+                return AttackType.Missile;
 
-            // chance for casting spell
+            // if caster, roll for spellcasting chance
             if (!IsCaster || !RollCastMagic())
                 return AttackType.Melee;
             else
@@ -57,15 +58,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void DoAttackStance()
         {
-            // TODO: get attack stance based on weapon type
-            var attackStance = MotionStance.UaNoShieldAttack;
+            var combatMode = IsRanged ? CombatMode.Missile : CombatMode.Melee;
 
-            var motion = new UniversalMotion(attackStance);
-            motion.MovementData.CurrentStyle = (uint)attackStance;
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.Ready;
+            if (IsRanged)
+                GiveAmmo();
 
-            CurrentMotionState = motion;
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            SetCombatMode(combatMode);
         }
 
         public float GetMaxRange()
@@ -77,7 +75,16 @@ namespace ACE.Server.WorldObjects
 
                 return GetSpellMaxRange();
             }
-            return MaxMeleeRange;   // distance_to_target?
+            else if (CurrentAttack == AttackType.Missile)
+            {
+                var weapon = GetEquippedWeapon();
+                if (weapon == null) return MaxMissileRange;
+
+                var maxRange = weapon.GetProperty(PropertyInt.WeaponRange) ?? MaxMissileRange;
+                return Math.Min(maxRange, MaxMissileRange);     // in-game cap @ 80 yds.
+            }
+            else
+                return MaxMeleeRange;   // distance_to_target?
         }
 
         /// <summary>
@@ -99,11 +106,13 @@ namespace ACE.Server.WorldObjects
                 case AttackType.Melee:
                     MeleeAttack();
                     break;
+                case AttackType.Missile:
+                    RangeAttack();
+                    break;
                 case AttackType.Magic:
                     MagicAttack();
                     break;
             }
-
             ResetAttack();
         }
 
@@ -112,8 +121,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void ResetAttack()
         {
+            // wait for missile to strike
+            if (CurrentAttack == AttackType.Missile)
+                return;
+
             CurrentAttack = null;
             MaxRange = 0.0f;
+        }
+
+        public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart)
+        {
+            if (CurrentAttack != AttackType.Missile)
+                return (DamageType)attackPart.DType;
+            else
+                return GetDamageType(false);
         }
     }
 }

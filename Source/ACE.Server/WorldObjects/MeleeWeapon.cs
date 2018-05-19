@@ -27,6 +27,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            CurrentMotionState = null;
         }
 
         public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)

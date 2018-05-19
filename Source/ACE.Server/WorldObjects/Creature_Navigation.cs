@@ -88,5 +88,18 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
+
+        public void TurnTo(WorldObject target)
+        {
+            if (this is Player) return;
+
+            var motion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
+            motion.MovementTypes = MovementTypes.TurnToObject;
+
+            CurrentMotionState = motion;
+
+            if (CurrentLandblock != null)
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+        }
     }
 }

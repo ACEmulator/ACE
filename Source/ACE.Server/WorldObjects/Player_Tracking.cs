@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -121,11 +122,47 @@ namespace ACE.Server.WorldObjects
 
             log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
 
+            // TODO: Better handling of sending updates to client. The below line is causing much more problems than it is solving until we get proper movement.
+            // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
-            // TODO: Better handling of sending updates to client. The above line is causing much more problems then it is solving until we get proper movement.
-            // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
-            // Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));
+            // add creature equipped objects / wielded items
+            if (worldObject is Creature)
+                TrackEquippedObjects(worldObject as Creature);
+        }
+
+        /// <summary>
+        /// Adds/updates the tracking list for creature wielded items
+        /// </summary>
+        public void TrackEquippedObjects(Creature creature)
+        {
+            var addList = new List<WorldObject>();
+
+            foreach (var wieldedItem in creature.EquippedObjects.Values)
+            {
+                var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
+                var missileCombat = creature.CombatMode == CombatMode.Missile && (wieldedItem.ValidLocations.Value & EquipMask.MissileAmmo) != 0;
+
+                if (!selectable && !missileCombat)
+                    continue;
+
+                if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
+                    creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
+
+                lock (clientObjectList)
+                {
+                    var sendUpdate = clientObjectList.ContainsKey(wieldedItem.Guid);
+
+                    if (!sendUpdate)
+                        clientObjectList.Add(wieldedItem.Guid, WorldManager.PortalYearTicks);
+                    else
+                        clientObjectList[wieldedItem.Guid] = WorldManager.PortalYearTicks;
+                }
+                addList.Add(wieldedItem);
+            }
+
+            foreach (var item in addList)
+                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
         }
 
         /// <summary>

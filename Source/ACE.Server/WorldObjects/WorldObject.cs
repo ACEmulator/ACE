@@ -256,7 +256,7 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            //CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
 
             QueueNextHeartBeat();
         }
@@ -853,19 +853,19 @@ namespace ACE.Server.WorldObjects
         /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
         public virtual DamageType GetDamageType(bool multiple = false)
         {
-            var player = this as Player;
+            var creature = this as Creature;
 
-            var weapon = player.GetEquippedWeapon();
+            var weapon = creature.GetEquippedWeapon();
             if (weapon == null)
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
-            var attackType = player.GetAttackType();
+            var attackType = creature.GetAttackType();
             if (attackType == AttackType.Melee)
                 damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
             else
             {
-                var ammo = player.GetEquippedAmmo();
+                var ammo = creature.GetEquippedAmmo();
                 damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
             }
 
@@ -878,7 +878,7 @@ namespace ACE.Server.WorldObjects
                 if ((damageTypes & damageType) != 0)
                 {
                     // handle multiple damage types
-                    if (damageType == DamageType.Slash && player.CurrentMotionState.Commands[0].Motion.ToString().Contains("Thrust"))
+                    if (damageType == DamageType.Slash && creature.CurrentMotionState.Commands[0].Motion.ToString().Contains("Thrust"))
                         continue;
 
                     return damageType;

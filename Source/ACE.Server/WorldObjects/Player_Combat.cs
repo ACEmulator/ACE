@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
             return maxMelee.Skill;
         }
 
-        public AttackType GetAttackType()
+        public override AttackType GetAttackType()
         {
             AttackType attackType;
             if (GetEquippedWeapon() == null)

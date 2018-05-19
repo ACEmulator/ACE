@@ -1,4 +1,6 @@
 using System;
+using ACE.Entity.Enum;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -41,6 +43,9 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
             DoAttackStance();
+
+            if (IsBow)
+                NextAttackTime = Timer.CurrentTime + MissileDelay + 1.0f;   // initial reload motion
         }
 
         /// <summary>

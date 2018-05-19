@@ -26,5 +26,10 @@ namespace ACE.Server.WorldObjects
 
             return leftRight + frontBack;
         }
+
+        public virtual float GetAimHeight(WorldObject target)
+        {
+            return 2.0f;
+        }
     }
 }

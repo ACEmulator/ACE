@@ -21,6 +21,12 @@ namespace ACE.Server.WorldObjects
         public static readonly float MaxMeleeRange = 1.0f;
 
         /// <summary>
+        /// The maximum range for a monster missile attack
+        /// </summary>
+        //public static readonly float MaxMissileRange = 80.0f;
+        public static readonly float MaxMissileRange = 40.0f;   // for testing
+
+        /// <summary>
         /// The distance per second from running animation
         /// </summary>
         public float MoveSpeed;
@@ -56,7 +62,10 @@ namespace ACE.Server.WorldObjects
             IsTurning = true;
             var time = EstimateTurnTo();
 
-            MoveTo(AttackTarget, RunRate);
+            if (IsRanged)
+                TurnTo(AttackTarget);
+            else
+                MoveTo(AttackTarget, RunRate);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(time);
@@ -69,8 +78,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnTurnComplete()
         {
+            var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
+            Location.Rotate(dir);
+
             IsTurning = false;
-            StartMove();
+
+            if (!IsRanged)
+                StartMove();
         }
 
         /// <summary>
@@ -157,8 +171,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Movement()
         {
-            UpdatePosition();
-            LastMoveTime = Timer.CurrentTime;
+            if (!IsRanged)
+            {
+                UpdatePosition();
+                LastMoveTime = Timer.CurrentTime;
+            }
 
             if (IsAttackRange())
                 OnMoveComplete();
@@ -220,9 +237,33 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetFinalPosition()
         {
+            if (AttackTarget == null) return;
+
             var playerDir = AttackTarget.Location.GetCurrentDir();
             Location.Pos = AttackTarget.Location.Pos + playerDir * (AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius());
             SendUpdatePosition();
+        }
+
+        /// <summary>
+        /// Returns TRUE if monster is facing towards the target
+        /// </summary>
+        public bool IsFacing(WorldObject target)
+        {
+            var angle = GetAngle(target);
+            var dist = Math.Max(0, GetDistanceToTarget());
+
+            //Console.WriteLine("Angle: " + angle);
+            //Console.WriteLine("Dist: " + dist);
+
+            // rotation accuracy?
+            var threshold = 10.0f;
+
+            var minDist = 10.0f;
+
+            if (dist < minDist)
+                threshold += (minDist - dist) * 2.0f;
+
+            return angle < threshold;
         }
     }
 }
