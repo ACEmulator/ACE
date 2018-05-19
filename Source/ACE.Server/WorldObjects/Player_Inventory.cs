@@ -693,20 +693,11 @@ namespace ACE.Server.WorldObjects
                 }
             }).EnqueueChain();
         }
-
         /// <summary>
-        /// This code handles salvaginng materials with the Ust.
+        /// Dictionary for salvage bags/material types
         /// </summary>
-        /// ///FORMULA FOR VALUE
-        ///(skill) / 387 * (1.0 + (augmentations)
-        ////WHERE
-        /// skill = Salvaging Skill
-        ////augmentations = 0.0 for no augmentations, 0.25 for one, 0.5 for two, 
-        ///0.75 for three, 1.0 for four
 
-        public void HandleTinkeringTool(List<ObjectGuid> list)
-        {
-            IDictionary<int, int> dict = new Dictionary<int, int>()
+        static Dictionary<int, int> dict = new Dictionary<int, int>()
                                                             {
                                                                 {1, 20983},
                                                                 {2, 21067},
@@ -786,6 +777,20 @@ namespace ACE.Server.WorldObjects
                                                                 {76, 20990},
                                                                 {77, 21080}
                                                             };
+
+        /// <summary>
+        /// This code handles salvaginng materials with the Ust.
+        /// </summary>
+        /// ///FORMULA FOR VALUE
+        ///(skill) / 387 * (1.0 + (augmentations)
+        ////WHERE
+        /// skill = Salvaging Skill
+        ////augmentations = 0.0 for no augmentations, 0.25 for one, 0.5 for two, 
+        ///0.75 for three, 1.0 for four
+
+        public void HandleTinkeringTool(List<ObjectGuid> list)
+        {
+            
             //CreatureSkill skill = GetCreatureSkill(Skill.Salvaging);
             double salvageSkill = (double)Math.Max((uint)GetCreatureSkill(Skill.Salvaging).Current, Math.Max((uint)GetCreatureSkill(Skill.ArmorTinkering).Current, Math.Max((uint)GetCreatureSkill(Skill.MagicItemTinkering).Current, Math.Max((uint)GetCreatureSkill(Skill.WeaponTinkering).Current, (uint)GetCreatureSkill(Skill.ItemTinkering).Current))));
             double workAverage = 0;
