@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
                     if (!IsTurning)
                         StartTurn();
                 }
-                else
+                else if (targetDist <= MaxRange)
                 {
                     // perform attack
                     if (AttackReady()) Attack();

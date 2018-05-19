@@ -23,8 +23,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The maximum range for a monster missile attack
         /// </summary>
-        public static readonly float MaxMissileRange = 80.0f;
-        //public static readonly float MaxMissileRange = 40.0f;   // for testing
+        //public static readonly float MaxMissileRange = 80.0f;
+        public static readonly float MaxMissileRange = 40.0f;   // for testing
 
         /// <summary>
         /// The distance per second from running animation
