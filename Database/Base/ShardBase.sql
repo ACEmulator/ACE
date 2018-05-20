@@ -612,6 +612,26 @@ CREATE TABLE `biota_properties_position` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `biota_properties_quest_registry`
+--
+
+DROP TABLE IF EXISTS `biota_properties_quest_registry`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `biota_properties_quest_registry` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `quest_Name` varchar(255) NOT NULL COMMENT 'Unique Name of Quest',
+  `last_Time_Completed` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp of last successful completion',
+  `num_Times_Completed` int(10) NOT NULL DEFAULT '0' COMMENT 'Number of successful completions',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wcid_questbook_name_uidx` (`object_Id`,`quest_Name`),
+  KEY `wcid_questbook_idx` (`object_Id`),
+  CONSTRAINT `wcid_questbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='QuestBook Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `biota_properties_shortcut_bar`
 --
 
@@ -784,4 +804,4 @@ CREATE TABLE `character` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-31 21:45:07
+-- Dump completed on 2018-05-20  1:18:42
