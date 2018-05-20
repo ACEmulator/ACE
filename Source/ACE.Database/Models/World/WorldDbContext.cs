@@ -65,8 +65,6 @@ namespace ACE.Database.Models.World
         {
             modelBuilder.Entity<CookBook>(entity =>
             {
-                entity.HasKey(e => new { e.RecipeId, e.TargetWCID, e.SourceWCID });
-
                 entity.ToTable("cook_book");
 
                 entity.HasIndex(e => e.SourceWCID)
@@ -75,37 +73,43 @@ namespace ACE.Database.Models.World
                 entity.HasIndex(e => e.TargetWCID)
                     .HasName("target_idx");
 
+                entity.HasIndex(e => new { e.RecipeId, e.TargetWCID, e.SourceWCID })
+                    .HasName("recipe_target_source_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
                 entity.Property(e => e.RecipeId)
                     .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.TargetWCID)
-                    .HasColumnName("target_W_C_I_D")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SourceWCID)
                     .HasColumnName("source_W_C_I_D")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.TargetWCID)
+                    .HasColumnName("target_W_C_I_D")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.CookBook)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("cookbook_recipe");
             });
 
             modelBuilder.Entity<Encounter>(entity =>
             {
-                entity.HasKey(e => new { e.Landblock, e.CellX, e.CellY });
-
                 entity.ToTable("encounter");
 
                 entity.HasIndex(e => e.Landblock)
                     .HasName("landblock_idx");
 
-                entity.Property(e => e.Landblock)
-                    .HasColumnName("landblock")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => new { e.Landblock, e.CellX, e.CellY })
+                    .HasName("landblock_cellx_celly_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.CellX)
                     .HasColumnName("cell_X")
@@ -117,6 +121,11 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(5)")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.Landblock)
+                    .HasColumnName("landblock")
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.WeenieClassId)
                     .HasColumnName("weenie_Class_Id")
                     .HasDefaultValueSql("'0'");
@@ -124,18 +133,23 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<Event>(entity =>
             {
-                entity.HasKey(e => e.Name);
-
                 entity.ToTable("event");
 
-                entity.Property(e => e.Name)
-                    .HasColumnName("name")
-                    .HasMaxLength(255);
+                entity.HasIndex(e => e.Name)
+                    .HasName("name_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.EndTime)
                     .HasColumnName("end_Time")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'-1'");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.StartTime)
                     .HasColumnName("start_Time")
@@ -150,13 +164,13 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<HousePortal>(entity =>
             {
-                entity.HasKey(e => new { e.HouseId, e.ObjCellId });
-
                 entity.ToTable("house_portal");
 
-                entity.Property(e => e.HouseId).HasColumnName("house_Id");
+                entity.HasIndex(e => new { e.HouseId, e.ObjCellId })
+                    .HasName("house_Id_UNIQUE")
+                    .IsUnique();
 
-                entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AnglesW).HasColumnName("angles_W");
 
@@ -165,6 +179,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.AnglesY).HasColumnName("angles_Y");
 
                 entity.Property(e => e.AnglesZ).HasColumnName("angles_Z");
+
+                entity.Property(e => e.HouseId).HasColumnName("house_Id");
+
+                entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
@@ -257,13 +275,13 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<Quest>(entity =>
             {
-                entity.HasKey(e => e.Name);
-
                 entity.ToTable("quest");
 
-                entity.Property(e => e.Name)
-                    .HasColumnName("name")
-                    .HasMaxLength(255);
+                entity.HasIndex(e => e.Name)
+                    .HasName("name_UNIQUE")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.MaxSolves)
                     .HasColumnName("max_Solves")
@@ -278,15 +296,22 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.MinDelta)
                     .HasColumnName("min_Delta")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnName("name")
+                    .HasMaxLength(255);
             });
 
             modelBuilder.Entity<Recipe>(entity =>
             {
                 entity.ToTable("recipe");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.RecipeId)
+                    .HasName("recipe_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.DataId)
                     .HasColumnName("data_Id")
@@ -307,6 +332,10 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.FailWCID)
                     .HasColumnName("fail_W_C_I_D")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.RecipeId)
+                    .HasColumnName("recipe_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SalvageType)
@@ -363,6 +392,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeComponent)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_component");
             });
@@ -440,6 +470,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeMod)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_Mod");
             });
@@ -483,6 +514,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeModsBool)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_mod_bool");
             });
@@ -526,6 +558,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeModsDID)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_mod_did");
             });
@@ -569,6 +602,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeModsFloat)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_mod_float");
             });
@@ -612,6 +646,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeModsIID)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_mod_iid");
             });
@@ -656,6 +691,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeModsInt)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_mod_int");
             });
@@ -700,6 +736,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeModsString)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_mod_string");
             });
@@ -738,6 +775,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsBool)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_bool");
             });
@@ -776,6 +814,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsDID)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_did");
             });
@@ -814,6 +853,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsFloat)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_float");
             });
@@ -852,6 +892,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsIID)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_iid");
             });
@@ -891,6 +932,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsInt)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_int");
             });
@@ -930,6 +972,7 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsString)
+                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_string");
             });
@@ -942,7 +985,11 @@ namespace ACE.Database.Models.World
                     .HasName("metaspell_id_uidx")
                     .IsUnique();
 
-                entity.Property(e => e.SpellId).HasColumnName("spell_Id");
+                entity.HasIndex(e => e.SpellId)
+                    .HasName("spell_id_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Align)
                     .HasColumnName("align")
@@ -1210,6 +1257,8 @@ namespace ACE.Database.Models.World
                     .HasColumnName("spell_Formula_Comp_8_Component_Id")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.SpellId).HasColumnName("spell_Id");
+
                 entity.Property(e => e.SpreadAngle).HasColumnName("spread_Angle");
 
                 entity.Property(e => e.StatModKey).HasColumnName("stat_Mod_Key");
@@ -1262,17 +1311,21 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesAnimPart>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Index });
-
                 entity.ToTable("weenie_properties_anim_part");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Index })
+                    .HasName("object_Id_index_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.AnimationId).HasColumnName("animation_Id");
+
+                entity.Property(e => e.Index).HasColumnName("index");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Index).HasColumnName("index");
-
-                entity.Property(e => e.AnimationId).HasColumnName("animation_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesAnimPart)
@@ -1282,17 +1335,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesAttribute>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_attribute");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_attribute_idx");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_attribute_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.CPSpent)
                     .HasColumnName("c_P_Spent")
@@ -1306,6 +1358,14 @@ namespace ACE.Database.Models.World
                     .HasColumnName("level_From_C_P")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesAttribute)
                     .HasForeignKey(d => d.ObjectId)
@@ -1314,17 +1374,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesAttribute2nd>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_attribute_2nd");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_attribute2nd_idx");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_attribute2nd_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.CPSpent)
                     .HasColumnName("c_P_Spent")
@@ -1342,6 +1401,14 @@ namespace ACE.Database.Models.World
                     .HasColumnName("level_From_C_P")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesAttribute2nd)
                     .HasForeignKey(d => d.ObjectId)
@@ -1350,17 +1417,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesBodyPart>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Key });
-
                 entity.ToTable("weenie_properties_body_part");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_bodypart_idx");
 
-                entity.Property(e => e.Key)
-                    .HasColumnName("key")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => new { e.ObjectId, e.Key })
+                    .HasName("wcid_bodypart_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ArmorVsAcid)
                     .HasColumnName("armor_Vs_Acid")
@@ -1442,6 +1508,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("h_r_f")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.Key)
+                    .HasColumnName("key")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.LLB)
                     .HasColumnName("l_l_b")
                     .HasDefaultValueSql("'0'");
@@ -1474,6 +1544,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("m_r_f")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesBodyPart)
                     .HasForeignKey(d => d.ObjectId)
@@ -1482,13 +1556,13 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesBook>(entity =>
             {
-                entity.HasKey(e => e.ObjectId);
-
                 entity.ToTable("weenie_properties_book");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_bookdata_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.MaxNumCharsPerPage)
                     .HasColumnName("max_Num_Chars_Per_Page")
@@ -1500,6 +1574,10 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'1'");
 
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Object)
                     .WithOne(p => p.WeeniePropertiesBook)
                     .HasForeignKey<WeeniePropertiesBook>(d => d.ObjectId)
@@ -1508,17 +1586,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesBookPageData>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.PageId });
-
                 entity.ToTable("weenie_properties_book_page_data");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_pagedata_idx");
 
-                entity.Property(e => e.PageId)
-                    .HasColumnName("page_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => new { e.ObjectId, e.PageId })
+                    .HasName("wcid_pageid_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AuthorAccount)
                     .IsRequired()
@@ -1540,6 +1617,14 @@ namespace ACE.Database.Models.World
                     .HasColumnName("ignore_Author")
                     .HasColumnType("bit(1)");
 
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.PageId)
+                    .HasColumnName("page_Id")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.PageText)
                     .IsRequired()
                     .HasColumnName("page_Text")
@@ -1553,9 +1638,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesBool>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_bool");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_bool_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_bool_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1623,9 +1715,19 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesDID>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_d_i_d");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_did_idx");
+
+                entity.HasIndex(e => e.Type)
+                    .HasName("wcid_did_type_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_did_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1647,13 +1749,22 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesEmote>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Category, e.EmoteSetId });
-
                 entity.ToTable("weenie_properties_emote");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.Category)
+                    .HasName("category_idx");
+
+                entity.HasIndex(e => e.EmoteSetId)
+                    .HasName("emoteset_idx");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_emote_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Category, e.EmoteSetId })
+                    .HasName("wcid_category_emoteset_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Category)
                     .HasColumnName("category")
@@ -1666,6 +1777,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.MaxHealth).HasColumnName("max_Health");
 
                 entity.Property(e => e.MinHealth).HasColumnName("min_Health");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
@@ -1695,25 +1810,25 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesEmoteAction>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Order });
-
                 entity.ToTable("weenie_properties_emote_action");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.EmoteCategory)
+                    .HasName("emotecategory_idx");
 
-                entity.Property(e => e.EmoteCategory)
-                    .HasColumnName("emote_Category")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_emoteaction_idx");
 
-                entity.Property(e => e.EmoteSetId)
-                    .HasColumnName("emote_Set_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.Order)
+                    .HasName("emoteorder_idx");
 
-                entity.Property(e => e.Order)
-                    .HasColumnName("order")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.Type)
+                    .HasName("emotetype_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Order })
+                    .HasName("wcid_category_set_order_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Amount)
                     .HasColumnName("amount")
@@ -1742,6 +1857,14 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Display)
                     .HasColumnName("display")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.EmoteCategory)
+                    .HasColumnName("emote_Category")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EmoteSetId)
+                    .HasColumnName("emote_Set_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Extent)
                     .HasColumnName("extent")
@@ -1780,6 +1903,14 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Order)
+                    .HasColumnName("order")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
@@ -1850,23 +1981,31 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.WeeniePropertiesEmote)
                     .WithMany(p => p.WeeniePropertiesEmoteAction)
+                    .HasPrincipalKey(p => new { p.ObjectId, p.Category, p.EmoteSetId })
                     .HasForeignKey(d => new { d.ObjectId, d.EmoteCategory, d.EmoteSetId })
                     .HasConstraintName("wcid_emoteset");
             });
 
             modelBuilder.Entity<WeeniePropertiesEventFilter>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Event });
-
                 entity.ToTable("weenie_properties_event_filter");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_eventfilter_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Event })
+                    .HasName("wcid_eventfilter_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Event)
                     .HasColumnName("event")
                     .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.Object)
@@ -1877,9 +2016,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesFloat>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_float");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_float_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_float_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1972,9 +2118,19 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesIID>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_i_i_d");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_iid_idx");
+
+                entity.HasIndex(e => e.Type)
+                    .HasName("wcid_did_type_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_iid_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1996,9 +2152,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesInt>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_int");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_int_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_int_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -2021,9 +2184,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesInt64>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_int64");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_int64_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_int64_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -2046,19 +2216,23 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesPalette>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.SubPaletteId, e.Offset, e.Length });
-
                 entity.ToTable("weenie_properties_palette");
+
+                entity.HasIndex(e => new { e.ObjectId, e.SubPaletteId, e.Offset, e.Length })
+                    .HasName("object_Id_subPaletteId_offset_length_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Length).HasColumnName("length");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.SubPaletteId).HasColumnName("sub_Palette_Id");
-
                 entity.Property(e => e.Offset).HasColumnName("offset");
 
-                entity.Property(e => e.Length).HasColumnName("length");
+                entity.Property(e => e.SubPaletteId).HasColumnName("sub_Palette_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesPalette)
@@ -2068,16 +2242,19 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesPosition>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.PositionType });
-
                 entity.ToTable("weenie_properties_position");
 
                 entity.HasIndex(e => e.ObjCellId)
                     .HasName("objCellId_idx");
 
-                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_position_idx");
 
-                entity.Property(e => e.PositionType).HasColumnName("position_Type");
+                entity.HasIndex(e => new { e.ObjectId, e.PositionType })
+                    .HasName("wcid_position_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AnglesW).HasColumnName("angles_W");
 
@@ -2089,11 +2266,15 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
+
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
                 entity.Property(e => e.OriginY).HasColumnName("origin_Y");
 
                 entity.Property(e => e.OriginZ).HasColumnName("origin_Z");
+
+                entity.Property(e => e.PositionType).HasColumnName("position_Type");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesPosition)
@@ -2103,17 +2284,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesSkill>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_skill");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_skill_idx");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_skill_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AdjustPP)
                     .HasColumnName("adjust_P_P")
@@ -2131,6 +2311,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("level_From_P_P")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.PP)
                     .HasColumnName("p_p")
                     .HasDefaultValueSql("'0'");
@@ -2143,6 +2327,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("s_a_c")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesSkill)
                     .HasForeignKey(d => d.ObjectId)
@@ -2151,22 +2339,29 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesSpellBook>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Spell });
-
                 entity.ToTable("weenie_properties_spell_book");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_spellbook_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Spell })
+                    .HasName("wcid_spellbook_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.Probability)
+                    .HasColumnName("probability")
+                    .HasDefaultValueSql("'2'");
+
                 entity.Property(e => e.Spell)
                     .HasColumnName("spell")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Probability)
-                    .HasColumnName("probability")
-                    .HasDefaultValueSql("'2'");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesSpellBook)
@@ -2176,9 +2371,16 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesString>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Type });
-
                 entity.ToTable("weenie_properties_string");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_string_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Type })
+                    .HasName("wcid_string_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -2201,19 +2403,23 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesTextureMap>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.Index, e.OldId });
-
                 entity.ToTable("weenie_properties_texture_map");
+
+                entity.HasIndex(e => new { e.ObjectId, e.Index, e.OldId })
+                    .HasName("object_Id_index_oldId_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.NewId).HasColumnName("new_Id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Index).HasColumnName("index");
-
                 entity.Property(e => e.OldId).HasColumnName("old_Id");
-
-                entity.Property(e => e.NewId).HasColumnName("new_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesTextureMap)

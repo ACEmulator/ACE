@@ -5,6 +5,7 @@ namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesAttribute
     {
+        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public ushort Type { get; set; }
         public uint InitLevel { get; set; }

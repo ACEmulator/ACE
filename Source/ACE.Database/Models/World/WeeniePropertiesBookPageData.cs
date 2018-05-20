@@ -5,6 +5,7 @@ namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesBookPageData
     {
+        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public uint PageId { get; set; }
         public uint AuthorId { get; set; }

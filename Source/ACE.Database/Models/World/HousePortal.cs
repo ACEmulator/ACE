@@ -5,6 +5,7 @@ namespace ACE.Database.Models.World
 {
     public partial class HousePortal
     {
+        public uint Id { get; set; }
         public uint HouseId { get; set; }
         public uint ObjCellId { get; set; }
         public float OriginX { get; set; }

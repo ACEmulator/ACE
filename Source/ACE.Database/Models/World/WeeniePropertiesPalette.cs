@@ -5,6 +5,7 @@ namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesPalette
     {
+        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public uint SubPaletteId { get; set; }
         public ushort Offset { get; set; }
