@@ -5,7 +5,6 @@ namespace ACE.Database.Models.Shard
 {
     public partial class Character
     {
-        public uint Id { get; set; }
         public uint AccountId { get; set; }
         public uint BiotaId { get; set; }
         public string Name { get; set; }

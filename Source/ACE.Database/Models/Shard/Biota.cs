@@ -31,8 +31,7 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesPalette = new HashSet<BiotaPropertiesPalette>();
             BiotaPropertiesPosition = new HashSet<BiotaPropertiesPosition>();
             BiotaPropertiesQuestRegistry = new HashSet<BiotaPropertiesQuestRegistry>();
-            BiotaPropertiesShortcutBarObject = new HashSet<BiotaPropertiesShortcutBar>();
-            BiotaPropertiesShortcutBarShortcutObject = new HashSet<BiotaPropertiesShortcutBar>();
+            BiotaPropertiesShortcutBar = new HashSet<BiotaPropertiesShortcutBar>();
             BiotaPropertiesSkill = new HashSet<BiotaPropertiesSkill>();
             BiotaPropertiesSpellBar = new HashSet<BiotaPropertiesSpellBar>();
             BiotaPropertiesSpellBook = new HashSet<BiotaPropertiesSpellBook>();
@@ -71,8 +70,7 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; }
         public ICollection<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; }
         public ICollection<BiotaPropertiesQuestRegistry> BiotaPropertiesQuestRegistry { get; set; }
-        public ICollection<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBarObject { get; set; }
-        public ICollection<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBarShortcutObject { get; set; }
+        public ICollection<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBar { get; set; }
         public ICollection<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; }
         public ICollection<BiotaPropertiesSpellBar> BiotaPropertiesSpellBar { get; set; }
         public ICollection<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }

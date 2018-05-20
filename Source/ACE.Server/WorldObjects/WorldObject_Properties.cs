@@ -132,49 +132,49 @@ namespace ACE.Server.WorldObjects
         {
             if (EphemeralPropertyBools.ContainsKey(property))
                 EphemeralPropertyBools[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesBoolLock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesBoolLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         public void RemoveProperty(PropertyDataId property)
         {
             if (EphemeralPropertyDataIds.ContainsKey(property))
                 EphemeralPropertyDataIds[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesDIDLock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesDIDLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         public void RemoveProperty(PropertyFloat property)
         {
             if (EphemeralPropertyFloats.ContainsKey(property))
                 EphemeralPropertyFloats[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesFloatLock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesFloatLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         public void RemoveProperty(PropertyInstanceId property)
         {
             if (EphemeralPropertyInstanceIds.ContainsKey(property))
                 EphemeralPropertyInstanceIds[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesIIDLock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesIIDLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         public void RemoveProperty(PropertyInt property)
         {
             if (EphemeralPropertyInts.ContainsKey(property))
                 EphemeralPropertyInts[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesIntLock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesIntLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         public void RemoveProperty(PropertyInt64 property)
         {
             if (EphemeralPropertyInt64s.ContainsKey(property))
                 EphemeralPropertyInt64s[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesInt64Lock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesInt64Lock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         public void RemoveProperty(PropertyString property)
         {
             if (EphemeralPropertyStrings.ContainsKey(property))
                 EphemeralPropertyStrings[property] = null;
-            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesStringLock) && ExistsInDatabase && entity.Id != 0)
+            else if (Biota.TryRemoveProperty(property, out var entity, biotaPropertiesStringLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
         #endregion
@@ -329,14 +329,14 @@ namespace ACE.Server.WorldObjects
         {
             Positions.Remove(positionType);
 
-            if (Biota.TryRemovePosition(positionType, out var entity, biotaPropertiesPositionLock) && ExistsInDatabase && entity.Id != 0)
+            if (Biota.TryRemovePosition(positionType, out var entity, biotaPropertiesPositionLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
 
 
         public void RemoveEnchantment(int spellId)
         {
-            if (Biota.TryRemoveEnchantment(spellId, out var entity, biotaPropertiesEnchantmentLock) && ExistsInDatabase && entity.Id != 0)
+            if (Biota.TryRemoveEnchantment(spellId, out var entity, biotaPropertiesEnchantmentLock) && ExistsInDatabase && entity.ObjectId != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
 

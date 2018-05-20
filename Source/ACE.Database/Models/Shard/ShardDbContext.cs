@@ -65,21 +65,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesAnimPart>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Index });
+
                 entity.ToTable("biota_properties_anim_part");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Index })
-                    .HasName("object_Id_index_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.AnimationId).HasColumnName("animation_Id");
-
-                entity.Property(e => e.Index).HasColumnName("index");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.AnimationId).HasColumnName("animation_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesAnimPart)
@@ -89,16 +85,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesAttribute>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_attribute");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_attribute_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_attribute_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CPSpent)
                     .HasColumnName("c_P_Spent")
@@ -112,14 +109,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("level_From_C_P")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
-
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesAttribute)
                     .HasForeignKey(d => d.ObjectId)
@@ -128,16 +117,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesAttribute2nd>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_attribute_2nd");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_attribute2nd_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_attribute2nd_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CPSpent)
                     .HasColumnName("c_P_Spent")
@@ -155,14 +145,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("level_From_C_P")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
-
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesAttribute2nd)
                     .HasForeignKey(d => d.ObjectId)
@@ -171,16 +153,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesBodyPart>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Key });
+
                 entity.ToTable("biota_properties_body_part");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bodypart_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Key })
-                    .HasName("wcid_bodypart_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Key)
+                    .HasColumnName("key")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.ArmorVsAcid)
                     .HasColumnName("armor_Vs_Acid")
@@ -262,10 +245,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("h_r_f")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Key)
-                    .HasColumnName("key")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.LLB)
                     .HasColumnName("l_l_b")
                     .HasDefaultValueSql("'0'");
@@ -298,10 +277,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("m_r_f")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesBodyPart)
                     .HasForeignKey(d => d.ObjectId)
@@ -310,13 +285,13 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesBook>(entity =>
             {
+                entity.HasKey(e => e.ObjectId);
+
                 entity.ToTable("biota_properties_book");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bookdata_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.MaxNumCharsPerPage)
                     .HasColumnName("max_Num_Chars_Per_Page")
@@ -328,10 +303,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'1'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.HasOne(d => d.Object)
                     .WithOne(p => p.BiotaPropertiesBook)
                     .HasForeignKey<BiotaPropertiesBook>(d => d.ObjectId)
@@ -340,16 +311,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesBookPageData>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.PageId });
+
                 entity.ToTable("biota_properties_book_page_data");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_pagedata_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.PageId })
-                    .HasName("wcid_pageid_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.PageId)
+                    .HasColumnName("page_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.AuthorAccount)
                     .IsRequired()
@@ -371,14 +343,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("ignore_Author")
                     .HasColumnType("bit(1)");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.PageId)
-                    .HasColumnName("page_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.PageText)
                     .IsRequired()
                     .HasColumnName("page_Text")
@@ -392,16 +356,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesBool>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_bool");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bool_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_bool_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -423,26 +380,19 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesContract>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.ContractId });
+
                 entity.ToTable("biota_properties_contract");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_contract_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.ContractId })
-                    .HasName("wcid_contract_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.ContractId).HasColumnName("contract_Id");
 
                 entity.Property(e => e.DeleteContract)
                     .HasColumnName("delete_Contract")
                     .HasColumnType("bit(1)");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SetAsDisplayContract)
                     .HasColumnName("set_As_Display_Contract")
@@ -510,19 +460,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesDID>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_d_i_d");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_did_idx");
-
-                entity.HasIndex(e => e.Type)
-                    .HasName("wcid_did_type_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_did_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -544,22 +484,13 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesEmote>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Category, e.EmoteSetId });
+
                 entity.ToTable("biota_properties_emote");
 
-                entity.HasIndex(e => e.Category)
-                    .HasName("category_idx");
-
-                entity.HasIndex(e => e.EmoteSetId)
-                    .HasName("emoteset_idx");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_emote_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Category, e.EmoteSetId })
-                    .HasName("wcid_category_emoteset_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Category)
                     .HasColumnName("category")
@@ -572,10 +503,6 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.MaxHealth).HasColumnName("max_Health");
 
                 entity.Property(e => e.MinHealth).HasColumnName("min_Health");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
@@ -605,25 +532,25 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesEmoteAction>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Order });
+
                 entity.ToTable("biota_properties_emote_action");
 
-                entity.HasIndex(e => e.EmoteCategory)
-                    .HasName("emotecategory_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_emoteaction_idx");
+                entity.Property(e => e.EmoteCategory)
+                    .HasColumnName("emote_Category")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => e.Order)
-                    .HasName("emoteorder_idx");
+                entity.Property(e => e.EmoteSetId)
+                    .HasColumnName("emote_Set_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => e.Type)
-                    .HasName("emotetype_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Order })
-                    .HasName("wcid_category_set_order_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Order)
+                    .HasColumnName("order")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Amount)
                     .HasColumnName("amount")
@@ -652,14 +579,6 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.Display)
                     .HasColumnName("display")
                     .HasColumnType("int(10)");
-
-                entity.Property(e => e.EmoteCategory)
-                    .HasColumnName("emote_Category")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.EmoteSetId)
-                    .HasColumnName("emote_Set_Id")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Extent)
                     .HasColumnName("extent")
@@ -698,14 +617,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Order)
-                    .HasColumnName("order")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
@@ -776,23 +687,32 @@ namespace ACE.Database.Models.Shard
 
                 entity.HasOne(d => d.BiotaPropertiesEmote)
                     .WithMany(p => p.BiotaPropertiesEmoteAction)
-                    .HasPrincipalKey(p => new { p.ObjectId, p.Category, p.EmoteSetId })
                     .HasForeignKey(d => new { d.ObjectId, d.EmoteCategory, d.EmoteSetId })
                     .HasConstraintName("wcid_emoteset");
             });
 
             modelBuilder.Entity<BiotaPropertiesEnchantmentRegistry>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.EnchantmentCategory, e.SpellId, e.LayerId });
+
                 entity.ToTable("biota_properties_enchantment_registry");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_enchantmentregistry_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.SpellId, e.LayerId })
-                    .HasName("wcid_enchantmentregistry_objectId_spellId_layerId_uidx")
-                    .IsUnique();
+                entity.Property(e => e.EnchantmentCategory)
+                    .HasColumnName("enchantment_Category")
+                    .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.SpellId)
+                    .HasColumnName("spell_Id")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.LayerId)
+                    .HasColumnName("layer_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CasterObjectId)
                     .HasColumnName("caster_Object_Id")
@@ -810,10 +730,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("duration")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.EnchantmentCategory)
-                    .HasColumnName("enchantment_Category")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.HasSpellSetId)
                     .HasColumnName("has_Spell_Set_Id")
                     .HasColumnType("bit(1)");
@@ -822,25 +738,12 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("last_Time_Degraded")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.LayerId)
-                    .HasColumnName("layer_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.PowerLevel)
                     .HasColumnName("power_Level")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SpellCategory)
                     .HasColumnName("spell_Category")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellId)
-                    .HasColumnName("spell_Id")
-                    .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SpellSetId)
@@ -871,24 +774,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesEventFilter>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Event });
+
                 entity.ToTable("biota_properties_event_filter");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_eventfilter_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Event })
-                    .HasName("wcid_eventfilter_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Event)
                     .HasColumnName("event")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.Object)
@@ -899,28 +795,21 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesFillCompBook>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.SpellComponentId });
+
                 entity.ToTable("biota_properties_fill_comp_book");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_fillcompbook_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.SpellComponentId })
-                    .HasName("wcid_fillcompbook_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.QuantityToRebuy)
-                    .HasColumnName("quantity_To_Rebuy")
+                entity.Property(e => e.SpellComponentId)
+                    .HasColumnName("spell_Component_Id")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.SpellComponentId)
-                    .HasColumnName("spell_Component_Id")
+                entity.Property(e => e.QuantityToRebuy)
+                    .HasColumnName("quantity_To_Rebuy")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
@@ -932,16 +821,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesFloat>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_float");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_float_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_float_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1076,19 +958,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesIID>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_i_i_d");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_iid_idx");
-
-                entity.HasIndex(e => e.Type)
-                    .HasName("wcid_iid_type_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_iid_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1110,16 +982,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesInt>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_int");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_int_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_int_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1142,16 +1007,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesInt64>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_int64");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_int64_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_int64_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1174,23 +1032,19 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesPalette>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.SubPaletteId, e.Offset, e.Length });
+
                 entity.ToTable("biota_properties_palette");
-
-                entity.HasIndex(e => new { e.ObjectId, e.SubPaletteId, e.Offset, e.Length })
-                    .HasName("object_Id_subPaletteId_offset_length_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.Length).HasColumnName("length");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.SubPaletteId).HasColumnName("sub_Palette_Id");
+
                 entity.Property(e => e.Offset).HasColumnName("offset");
 
-                entity.Property(e => e.SubPaletteId).HasColumnName("sub_Palette_Id");
+                entity.Property(e => e.Length).HasColumnName("length");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesPalette)
@@ -1200,19 +1054,16 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesPosition>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.PositionType });
+
                 entity.ToTable("biota_properties_position");
 
                 entity.HasIndex(e => e.ObjCellId)
                     .HasName("objCellId_idx");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_position_idx");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.HasIndex(e => new { e.ObjectId, e.PositionType })
-                    .HasName("wcid_position_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.PositionType).HasColumnName("position_Type");
 
                 entity.Property(e => e.AnglesW).HasColumnName("angles_W");
 
@@ -1224,15 +1075,11 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
-                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
-
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
                 entity.Property(e => e.OriginY).HasColumnName("origin_Y");
 
                 entity.Property(e => e.OriginZ).HasColumnName("origin_Z");
-
-                entity.Property(e => e.PositionType).HasColumnName("position_Type");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesPosition)
@@ -1242,16 +1089,17 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesQuestRegistry>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.QuestName });
+
                 entity.ToTable("biota_properties_quest_registry");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_questbook_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.QuestName })
-                    .HasName("wcid_questbook_name_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.QuestName)
+                    .HasColumnName("quest_Name")
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.LastTimeCompleted)
                     .HasColumnName("last_Time_Completed")
@@ -1262,15 +1110,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.QuestName)
-                    .IsRequired()
-                    .HasColumnName("quest_Name")
-                    .HasMaxLength(255);
-
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesQuestRegistry)
                     .HasForeignKey(d => d.ObjectId)
@@ -1279,19 +1118,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesShortcutBar>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.ShortcutBarIndex });
+
                 entity.ToTable("biota_properties_shortcut_bar");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_shortcutbar_idx");
-
-                entity.HasIndex(e => e.ShortcutObjectId)
-                    .HasName("wcid_shortcut_objectId_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.ShortcutBarIndex, e.ShortcutObjectId })
-                    .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1306,28 +1135,24 @@ namespace ACE.Database.Models.Shard
                     .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesShortcutBarObject)
+                    .WithMany(p => p.BiotaPropertiesShortcutBar)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_shortcutbar");
-
-                entity.HasOne(d => d.ShortcutObject)
-                    .WithMany(p => p.BiotaPropertiesShortcutBarShortcutObject)
-                    .HasForeignKey(d => d.ShortcutObjectId)
-                    .HasConstraintName("wcid_shortcut_objectId");
             });
 
             modelBuilder.Entity<BiotaPropertiesSkill>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_skill");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_skill_idx");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_skill_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.AdjustPP)
                     .HasColumnName("adjust_P_P")
@@ -1345,10 +1170,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("level_From_P_P")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.PP)
                     .HasColumnName("p_p")
                     .HasDefaultValueSql("'0'");
@@ -1361,10 +1182,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("s_a_c")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
-
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesSkill)
                     .HasForeignKey(d => d.ObjectId)
@@ -1373,27 +1190,20 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesSpellBar>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.SpellBarNumber, e.SpellBarIndex });
+
                 entity.ToTable("biota_properties_spell_bar");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_spellbar_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.SpellBarNumber, e.SpellId })
-                    .HasName("wcid_spellbar_barId_spellId_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.SpellBarIndex)
-                    .HasColumnName("spell_Bar_Index")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.SpellBarNumber)
                     .HasColumnName("spell_Bar_Number")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellBarIndex)
+                    .HasColumnName("spell_Bar_Index")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SpellId)
@@ -1408,29 +1218,22 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesSpellBook>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Spell });
+
                 entity.ToTable("biota_properties_spell_book");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_spellbook_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Spell })
-                    .HasName("wcid_spellbook_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Probability)
-                    .HasColumnName("probability")
-                    .HasDefaultValueSql("'2'");
-
                 entity.Property(e => e.Spell)
                     .HasColumnName("spell")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Probability)
+                    .HasColumnName("probability")
+                    .HasDefaultValueSql("'2'");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesSpellBook)
@@ -1440,16 +1243,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesString>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type });
+
                 entity.ToTable("biota_properties_string");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_string_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_string_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1472,23 +1268,19 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesTextureMap>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Index, e.OldId });
+
                 entity.ToTable("biota_properties_texture_map");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Index, e.OldId })
-                    .HasName("object_Id_index_oldId_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.Index).HasColumnName("index");
-
-                entity.Property(e => e.NewId).HasColumnName("new_Id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.Index).HasColumnName("index");
+
                 entity.Property(e => e.OldId).HasColumnName("old_Id");
+
+                entity.Property(e => e.NewId).HasColumnName("new_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesTextureMap)
@@ -1498,16 +1290,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesTitleBook>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.TitleId });
+
                 entity.ToTable("biota_properties_title_book");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_titlebook_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.TitleId })
-                    .HasName("wcid_titlebook_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1525,6 +1310,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<Character>(entity =>
             {
+                entity.HasKey(e => new { e.AccountId, e.BiotaId });
+
                 entity.ToTable("character");
 
                 entity.HasIndex(e => e.AccountId)
@@ -1536,8 +1323,6 @@ namespace ACE.Database.Models.Shard
 
                 entity.HasIndex(e => e.Name)
                     .HasName("character_name_idx");
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AccountId)
                     .HasColumnName("account_Id")

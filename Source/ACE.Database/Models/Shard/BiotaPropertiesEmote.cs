@@ -10,7 +10,6 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesEmoteAction = new HashSet<BiotaPropertiesEmoteAction>();
         }
 
-        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public uint Category { get; set; }
         public float Probability { get; set; }

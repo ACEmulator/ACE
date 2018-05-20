@@ -313,7 +313,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesInt64)
                 .Include(r => r.BiotaPropertiesPalette)
                 .Include(r => r.BiotaPropertiesPosition)
-                .Include(r => r.BiotaPropertiesShortcutBarObject)
+                .Include(r => r.BiotaPropertiesShortcutBar)
                 .Include(r => r.BiotaPropertiesSkill)
                 .Include(r => r.BiotaPropertiesSpellBar)
                 .Include(r => r.BiotaPropertiesSpellBook)
@@ -356,7 +356,7 @@ namespace ACE.Database
                     .Include(r => r.BiotaPropertiesInt64)
                     //.Include(r => r.BiotaPropertiesPalette)
                     .Include(r => r.BiotaPropertiesPosition)
-                    .Include(r => r.BiotaPropertiesShortcutBarObject)       // Player Only
+                    .Include(r => r.BiotaPropertiesShortcutBar)       // Player Only
                     .Include(r => r.BiotaPropertiesSkill)
                     .Include(r => r.BiotaPropertiesSpellBar)                // Player Only
                     .Include(r => r.BiotaPropertiesSpellBook)

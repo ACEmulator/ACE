@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
         {
             var shortcuts = new List<Shortcut>();
 
-            foreach (var shortcut in Biota.BiotaPropertiesShortcutBarObject)
+            foreach (var shortcut in Biota.BiotaPropertiesShortcutBar)
                 shortcuts.Add(new Shortcut(shortcut));
 
             return shortcuts;
@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
 
             var entity = new BiotaPropertiesShortcutBar { ObjectId = Biota.Id, ShortcutBarIndex = shortcut.Index, ShortcutObjectId = shortcut.ObjectId, Object = Biota };
 
-            Biota.BiotaPropertiesShortcutBarObject.Add(entity);
+            Biota.BiotaPropertiesShortcutBar.Add(entity);
             ChangesDetected = true;
         }
 
@@ -110,14 +110,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionRemoveShortcut(uint index)
         {
-            var entity = Biota.BiotaPropertiesShortcutBarObject.FirstOrDefault(x => x.ShortcutBarIndex == index);
+            var entity = Biota.BiotaPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index);
 
             if (entity != null)
             {
-                Biota.BiotaPropertiesShortcutBarObject.Remove(entity);
+                Biota.BiotaPropertiesShortcutBar.Remove(entity);
                 entity.Object = null;
 
-                if (ExistsInDatabase && entity.Id != 0)
+                if (ExistsInDatabase && entity.ObjectId != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);
             }
         }
