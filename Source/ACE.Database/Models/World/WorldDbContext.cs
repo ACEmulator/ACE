@@ -1695,7 +1695,7 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<WeeniePropertiesEmoteAction>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Type, e.Order });
+                entity.HasKey(e => new { e.ObjectId, e.EmoteCategory, e.EmoteSetId, e.Order });
 
                 entity.ToTable("weenie_properties_emote_action");
 
@@ -1709,10 +1709,6 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.EmoteSetId)
                     .HasColumnName("emote_Set_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Order)
@@ -1834,6 +1830,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.TryToBond)
                     .HasColumnName("try_To_Bond")
                     .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.WealthRating)
                     .HasColumnName("wealth_Rating")

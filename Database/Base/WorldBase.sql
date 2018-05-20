@@ -862,7 +862,7 @@ CREATE TABLE `weenie_properties_emote_action` (
   `angles_X` float DEFAULT NULL,
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
-  PRIMARY KEY (`object_Id`,`emote_Category`,`emote_Set_Id`,`type`,`order`),
+  PRIMARY KEY (`object_Id`,`emote_Category`,`emote_Set_Id`,`order`),
   CONSTRAINT `wcid_emoteaction` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `wcid_emoteset` FOREIGN KEY (`object_Id`, `emote_Category`, `emote_Set_Id`) REFERENCES `weenie_properties_emote` (`object_Id`, `category`, `emote_Set_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
@@ -1102,4 +1102,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-19 21:39:23
+-- Dump completed on 2018-05-20  1:45:29
