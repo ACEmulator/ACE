@@ -921,6 +921,21 @@ namespace ACE.Server.Command.Handlers
             AdminCommands.HandleAdd(session, parameters);
         }
 
+        // addallspells
+        [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
+        public static void HandleAddAllSpells(Session session, params string[] parameters)
+        {
+            var spells = DatManager.PortalDat.SpellTable.Spells;
+
+            foreach (var spell in spells)
+            {
+                uint spellId = spell.Key;
+
+                if (Enum.IsDefined(typeof(Network.Enum.Spell), spellId))
+                    session.Player.LearnSpellWithNetworking((uint)spellId);
+            }
+        }
+
         /// <summary>
         /// Debug console command to test the GetSpellFormula function.
         /// </summary>
