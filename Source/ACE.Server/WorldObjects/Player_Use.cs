@@ -191,7 +191,7 @@ namespace ACE.Server.WorldObjects
                     var key = invSource as Key;
                     key.HandleActionUseOnTarget(this, worldTarget);
                 }
-                else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Door)
+                else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Lock)
                 {
                     var lp = invSource as Lockpick;
                     lp.HandleActionUseOnTarget(this, worldTarget);
