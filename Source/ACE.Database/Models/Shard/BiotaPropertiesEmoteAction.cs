@@ -5,6 +5,7 @@ namespace ACE.Database.Models.Shard
 {
     public partial class BiotaPropertiesEmoteAction
     {
+        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public uint EmoteCategory { get; set; }
         public uint EmoteSetId { get; set; }

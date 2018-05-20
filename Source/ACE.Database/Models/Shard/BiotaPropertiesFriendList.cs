@@ -10,7 +10,6 @@ namespace ACE.Database.Models.Shard
         public uint FriendId { get; set; }
         public uint AccountId { get; set; }
 
-        public Biota Friend { get; set; }
         public Biota Object { get; set; }
     }
 }

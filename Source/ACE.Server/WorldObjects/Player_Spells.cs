@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
                 Biota.BiotaPropertiesSpellBook.Remove(entity);
                 entity.Object = null;
 
-                if (ExistsInDatabase && entity.ObjectId != 0)
+                if (ExistsInDatabase && entity.Id != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);
 
                 GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
@@ -160,7 +160,7 @@ namespace ACE.Server.WorldObjects
                 Biota.BiotaPropertiesSpellBar.Remove(entity);
                 entity.Object = null;
 
-                if (ExistsInDatabase && entity.ObjectId != 0)
+                if (ExistsInDatabase && entity.Id != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);
             }
         }

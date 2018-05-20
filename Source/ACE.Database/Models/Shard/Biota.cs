@@ -22,8 +22,7 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesEventFilter = new HashSet<BiotaPropertiesEventFilter>();
             BiotaPropertiesFillCompBook = new HashSet<BiotaPropertiesFillCompBook>();
             BiotaPropertiesFloat = new HashSet<BiotaPropertiesFloat>();
-            BiotaPropertiesFriendListFriend = new HashSet<BiotaPropertiesFriendList>();
-            BiotaPropertiesFriendListObject = new HashSet<BiotaPropertiesFriendList>();
+            BiotaPropertiesFriendList = new HashSet<BiotaPropertiesFriendList>();
             BiotaPropertiesGenerator = new HashSet<BiotaPropertiesGenerator>();
             BiotaPropertiesIID = new HashSet<BiotaPropertiesIID>();
             BiotaPropertiesInt = new HashSet<BiotaPropertiesInt>();
@@ -61,8 +60,7 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesEventFilter> BiotaPropertiesEventFilter { get; set; }
         public ICollection<BiotaPropertiesFillCompBook> BiotaPropertiesFillCompBook { get; set; }
         public ICollection<BiotaPropertiesFloat> BiotaPropertiesFloat { get; set; }
-        public ICollection<BiotaPropertiesFriendList> BiotaPropertiesFriendListFriend { get; set; }
-        public ICollection<BiotaPropertiesFriendList> BiotaPropertiesFriendListObject { get; set; }
+        public ICollection<BiotaPropertiesFriendList> BiotaPropertiesFriendList { get; set; }
         public ICollection<BiotaPropertiesGenerator> BiotaPropertiesGenerator { get; set; }
         public ICollection<BiotaPropertiesIID> BiotaPropertiesIID { get; set; }
         public ICollection<BiotaPropertiesInt> BiotaPropertiesInt { get; set; }

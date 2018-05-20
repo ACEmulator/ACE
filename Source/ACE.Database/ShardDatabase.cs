@@ -305,8 +305,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesEventFilter)
                 .Include(r => r.BiotaPropertiesFillCompBook)
                 .Include(r => r.BiotaPropertiesFloat)
-                // .Include(r => r.BiotaPropertiesFriendListFriend)
-                .Include(r => r.BiotaPropertiesFriendListObject)
+                .Include(r => r.BiotaPropertiesFriendList)
                 .Include(r => r.BiotaPropertiesGenerator)
                 .Include(r => r.BiotaPropertiesIID)
                 .Include(r => r.BiotaPropertiesInt)
@@ -348,8 +347,7 @@ namespace ACE.Database
                     .Include(r => r.BiotaPropertiesEnchantmentRegistry)
                     .Include(r => r.BiotaPropertiesFillCompBook)            // Player Only
                     .Include(r => r.BiotaPropertiesFloat)
-                    //.Include(r => r.BiotaPropertiesFriendListFriend)
-                    .Include(r => r.BiotaPropertiesFriendListObject)        // Player Only
+                    .Include(r => r.BiotaPropertiesFriendList)        // Player Only
                     //.Include(r => r.BiotaPropertiesGenerator)
                     .Include(r => r.BiotaPropertiesIID)
                     .Include(r => r.BiotaPropertiesInt)

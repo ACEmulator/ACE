@@ -257,76 +257,76 @@ namespace ACE.Database.Models.World
             }
 
 
-            //foreach (var value in weenie.WeeniePropertiesEmote)
-            //{
-            //    var emote = new BiotaPropertiesEmote
-            //    {
-            //        ObjectId = biota.Id,
-            //        Category = value.Category,
-            //        Probability = value.Probability,
-            //        EmoteSetId = value.EmoteSetId,
-            //        WeenieClassId = value.WeenieClassId,
-            //        Style = value.Style,
-            //        Substyle = value.Substyle,
-            //        Quest = value.Quest,
-            //        VendorType = value.VendorType,
-            //        MinHealth = value.MinHealth,
-            //        MaxHealth = value.MaxHealth,
-            //    };
+            foreach (var value in weenie.WeeniePropertiesEmote)
+            {
+                var emote = new BiotaPropertiesEmote
+                {
+                    ObjectId = biota.Id,
+                    Category = value.Category,
+                    Probability = value.Probability,
+                    EmoteSetId = value.EmoteSetId,
+                    WeenieClassId = value.WeenieClassId,
+                    Style = value.Style,
+                    Substyle = value.Substyle,
+                    Quest = value.Quest,
+                    VendorType = value.VendorType,
+                    MinHealth = value.MinHealth,
+                    MaxHealth = value.MaxHealth,
+                };
 
-            //    biota.BiotaPropertiesEmote.Add(emote);
-            //}
+                biota.BiotaPropertiesEmote.Add(emote);
+            }
 
-            //foreach (var value in weenie.WeeniePropertiesEmoteAction)
-            //{
-            //    var action = new BiotaPropertiesEmoteAction
-            //    {
-            //        ObjectId = biota.Id,
-            //        EmoteCategory = value.EmoteCategory,
-            //        EmoteSetId = value.EmoteSetId,
-            //        Type = value.Type,
-            //        Order = value.Order,
-            //        Delay = value.Delay,
-            //        Extent = value.Extent,
-            //        Motion = value.Motion,
-            //        Message = value.Message,
-            //        TestString = value.TestString,
-            //        Min = value.Min,
-            //        Max = value.Max,
-            //        Min64 = value.Min64,
-            //        Max64 = value.Max64,
-            //        MinDbl = value.MinDbl,
-            //        MaxDbl = value.MaxDbl,
-            //        Stat = value.Stat,
-            //        Display = value.Display,
-            //        Amount = value.Amount,
-            //        Amount64 = value.Amount64,
-            //        HeroXP64 = value.HeroXP64,
-            //        Percent = value.Percent,
-            //        SpellId = value.SpellId,
-            //        WealthRating = value.WealthRating,
-            //        TreasureClass = value.TreasureClass,
-            //        TreasureType = value.TreasureType,
-            //        PScript = value.PScript,
-            //        Sound = value.Sound,
-            //        DestinationType = value.DestinationType,
-            //        WeenieClassId = value.WeenieClassId,
-            //        StackSize = value.StackSize,
-            //        Palette = value.Palette,
-            //        Shade = value.Shade,
-            //        TryToBond = value.TryToBond,
-            //        ObjCellId = value.ObjCellId,
-            //        OriginX = value.OriginX,
-            //        OriginY = value.OriginY,
-            //        OriginZ = value.OriginZ,
-            //        AnglesW = value.AnglesW,
-            //        AnglesX = value.AnglesX,
-            //        AnglesY = value.AnglesY,
-            //        AnglesZ = value.AnglesZ,
-            //    };
+            foreach (var value in weenie.WeeniePropertiesEmoteAction)
+            {
+                var action = new BiotaPropertiesEmoteAction
+                {
+                    ObjectId = biota.Id,
+                    EmoteCategory = value.EmoteCategory,
+                    EmoteSetId = value.EmoteSetId,
+                    Type = value.Type,
+                    Order = value.Order,
+                    Delay = value.Delay,
+                    Extent = value.Extent,
+                    Motion = value.Motion,
+                    Message = value.Message,
+                    TestString = value.TestString,
+                    Min = value.Min,
+                    Max = value.Max,
+                    Min64 = value.Min64,
+                    Max64 = value.Max64,
+                    MinDbl = value.MinDbl,
+                    MaxDbl = value.MaxDbl,
+                    Stat = value.Stat,
+                    Display = value.Display,
+                    Amount = value.Amount,
+                    Amount64 = value.Amount64,
+                    HeroXP64 = value.HeroXP64,
+                    Percent = value.Percent,
+                    SpellId = value.SpellId,
+                    WealthRating = value.WealthRating,
+                    TreasureClass = value.TreasureClass,
+                    TreasureType = value.TreasureType,
+                    PScript = value.PScript,
+                    Sound = value.Sound,
+                    DestinationType = value.DestinationType,
+                    WeenieClassId = value.WeenieClassId,
+                    StackSize = value.StackSize,
+                    Palette = value.Palette,
+                    Shade = value.Shade,
+                    TryToBond = value.TryToBond,
+                    ObjCellId = value.ObjCellId,
+                    OriginX = value.OriginX,
+                    OriginY = value.OriginY,
+                    OriginZ = value.OriginZ,
+                    AnglesW = value.AnglesW,
+                    AnglesX = value.AnglesX,
+                    AnglesY = value.AnglesY,
+                    AnglesZ = value.AnglesZ,
+                };
 
-            //    biota.BiotaPropertiesEmoteAction.Add(action);
-            //}
+                biota.BiotaPropertiesEmoteAction.Add(action);
+            }
 
 
             foreach (var value in weenie.WeeniePropertiesEventFilter)

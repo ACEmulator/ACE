@@ -5,6 +5,7 @@ namespace ACE.Database.Models.Shard
 {
     public partial class BiotaPropertiesQuestRegistry
     {
+        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public string QuestName { get; set; }
         public uint LastTimeCompleted { get; set; }

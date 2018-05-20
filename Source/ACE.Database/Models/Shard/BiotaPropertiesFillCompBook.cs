@@ -5,6 +5,7 @@ namespace ACE.Database.Models.Shard
 {
     public partial class BiotaPropertiesFillCompBook
     {
+        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public int SpellComponentId { get; set; }
         public int QuantityToRebuy { get; set; }
