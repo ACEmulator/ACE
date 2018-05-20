@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+### 2018-05-20
+
+**ACE-World-16PY world db release v0.0.14+ required with this update**
+
+**You will need to update both shard and world databases with scripts in the respective update folders**
+[Ripley]
+* Rebased Shard and World DB.
+* Rescaffolded both databases.
+* Fixed issues #782 and #783.
+
 ### 2018-04-29
 **ACE-World-16PY world db release v0.0.13+ required with this update**
 
