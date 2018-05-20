@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
 {
-    public partial class BiotaPropertiesFriendList
+    public partial class CharacterPropertiesFriendList
     {
         public uint Id { get; set; }
         public uint ObjectId { get; set; }

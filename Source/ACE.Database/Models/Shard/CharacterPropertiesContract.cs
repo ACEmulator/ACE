@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
 {
-    public partial class BiotaPropertiesContract
+    public partial class CharacterPropertiesContract
     {
         public uint Id { get; set; }
         public uint ObjectId { get; set; }

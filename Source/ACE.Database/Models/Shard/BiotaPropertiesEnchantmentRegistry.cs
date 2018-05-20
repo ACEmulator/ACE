@@ -6,8 +6,8 @@ namespace ACE.Database.Models.Shard
     public partial class BiotaPropertiesEnchantmentRegistry
     {
         public uint Id { get; set; }
-        public uint EnchantmentCategory { get; set; }
         public uint ObjectId { get; set; }
+        public uint EnchantmentCategory { get; set; }
         public int SpellId { get; set; }
         public ushort LayerId { get; set; }
         public bool HasSpellSetId { get; set; }

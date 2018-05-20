@@ -125,11 +125,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalLogins); else SetProperty(PropertyInt.TotalLogins, value.Value); }
         }
 
-        public long? DeleteTime
-        {
-            get => GetProperty(PropertyInt64.DeleteTime);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt64.DeleteTime); else SetProperty(PropertyInt64.DeleteTime, value.Value); }
-        }
+        //public long? DeleteTime
+        //{
+        //    get => GetProperty(PropertyInt64.DeleteTime);
+        //    set { if (!value.HasValue) RemoveProperty(PropertyInt64.DeleteTime); else SetProperty(PropertyInt64.DeleteTime, value.Value); }
+        //}
 
         public int? Age
         {

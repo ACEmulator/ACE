@@ -14,31 +14,31 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesBook> BiotaPropertiesBook { get; set; }
         public virtual DbSet<BiotaPropertiesBookPageData> BiotaPropertiesBookPageData { get; set; }
         public virtual DbSet<BiotaPropertiesBool> BiotaPropertiesBool { get; set; }
-        public virtual DbSet<BiotaPropertiesContract> BiotaPropertiesContract { get; set; }
         public virtual DbSet<BiotaPropertiesCreateList> BiotaPropertiesCreateList { get; set; }
         public virtual DbSet<BiotaPropertiesDID> BiotaPropertiesDID { get; set; }
         public virtual DbSet<BiotaPropertiesEmote> BiotaPropertiesEmote { get; set; }
         public virtual DbSet<BiotaPropertiesEmoteAction> BiotaPropertiesEmoteAction { get; set; }
         public virtual DbSet<BiotaPropertiesEnchantmentRegistry> BiotaPropertiesEnchantmentRegistry { get; set; }
         public virtual DbSet<BiotaPropertiesEventFilter> BiotaPropertiesEventFilter { get; set; }
-        public virtual DbSet<BiotaPropertiesFillCompBook> BiotaPropertiesFillCompBook { get; set; }
         public virtual DbSet<BiotaPropertiesFloat> BiotaPropertiesFloat { get; set; }
-        public virtual DbSet<BiotaPropertiesFriendList> BiotaPropertiesFriendList { get; set; }
         public virtual DbSet<BiotaPropertiesGenerator> BiotaPropertiesGenerator { get; set; }
         public virtual DbSet<BiotaPropertiesIID> BiotaPropertiesIID { get; set; }
         public virtual DbSet<BiotaPropertiesInt> BiotaPropertiesInt { get; set; }
         public virtual DbSet<BiotaPropertiesInt64> BiotaPropertiesInt64 { get; set; }
         public virtual DbSet<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; }
         public virtual DbSet<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; }
-        public virtual DbSet<BiotaPropertiesQuestRegistry> BiotaPropertiesQuestRegistry { get; set; }
-        public virtual DbSet<BiotaPropertiesShortcutBar> BiotaPropertiesShortcutBar { get; set; }
         public virtual DbSet<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; }
-        public virtual DbSet<BiotaPropertiesSpellBar> BiotaPropertiesSpellBar { get; set; }
         public virtual DbSet<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }
         public virtual DbSet<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public virtual DbSet<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
-        public virtual DbSet<BiotaPropertiesTitleBook> BiotaPropertiesTitleBook { get; set; }
         public virtual DbSet<Character> Character { get; set; }
+        public virtual DbSet<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
+        public virtual DbSet<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
+        public virtual DbSet<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
+        public virtual DbSet<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
+        public virtual DbSet<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
+        public virtual DbSet<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual DbSet<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -419,47 +419,6 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesBool)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_bool");
-            });
-
-            modelBuilder.Entity<BiotaPropertiesContract>(entity =>
-            {
-                entity.ToTable("biota_properties_contract");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_contract_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.ContractId })
-                    .HasName("wcid_contract_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.ContractId).HasColumnName("contract_Id");
-
-                entity.Property(e => e.DeleteContract)
-                    .HasColumnName("delete_Contract")
-                    .HasColumnType("bit(1)");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SetAsDisplayContract)
-                    .HasColumnName("set_As_Display_Contract")
-                    .HasColumnType("bit(1)");
-
-                entity.Property(e => e.Stage).HasColumnName("stage");
-
-                entity.Property(e => e.TimeWhenDone).HasColumnName("time_When_Done");
-
-                entity.Property(e => e.TimeWhenRepeats).HasColumnName("time_When_Repeats");
-
-                entity.Property(e => e.Version).HasColumnName("version");
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesContract)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_contract");
             });
 
             modelBuilder.Entity<BiotaPropertiesCreateList>(entity =>
@@ -897,39 +856,6 @@ namespace ACE.Database.Models.Shard
                     .HasConstraintName("wcid_eventfilter");
             });
 
-            modelBuilder.Entity<BiotaPropertiesFillCompBook>(entity =>
-            {
-                entity.ToTable("biota_properties_fill_comp_book");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_fillcompbook_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.SpellComponentId })
-                    .HasName("wcid_fillcompbook_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.QuantityToRebuy)
-                    .HasColumnName("quantity_To_Rebuy")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellComponentId)
-                    .HasColumnName("spell_Component_Id")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesFillCompBook)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_fillcompbook");
-            });
-
             modelBuilder.Entity<BiotaPropertiesFloat>(entity =>
             {
                 entity.ToTable("biota_properties_float");
@@ -959,40 +885,6 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesFloat)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_float");
-            });
-
-            modelBuilder.Entity<BiotaPropertiesFriendList>(entity =>
-            {
-                entity.ToTable("biota_properties_friend_list");
-
-                entity.HasIndex(e => e.AccountId)
-                    .HasName("wcid_account_id_idx");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_friend_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.FriendId })
-                    .HasName("wcid_friend_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.AccountId)
-                    .HasColumnName("account_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.FriendId)
-                    .HasColumnName("friend_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesFriendList)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_friend");
             });
 
             modelBuilder.Entity<BiotaPropertiesGenerator>(entity =>
@@ -1232,74 +1124,6 @@ namespace ACE.Database.Models.Shard
                     .HasConstraintName("wcid_position");
             });
 
-            modelBuilder.Entity<BiotaPropertiesQuestRegistry>(entity =>
-            {
-                entity.ToTable("biota_properties_quest_registry");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_questbook_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.QuestName })
-                    .HasName("wcid_questbook_name_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.LastTimeCompleted)
-                    .HasColumnName("last_Time_Completed")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.NumTimesCompleted)
-                    .HasColumnName("num_Times_Completed")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.QuestName)
-                    .IsRequired()
-                    .HasColumnName("quest_Name")
-                    .HasMaxLength(255);
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesQuestRegistry)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_questbook");
-            });
-
-            modelBuilder.Entity<BiotaPropertiesShortcutBar>(entity =>
-            {
-                entity.ToTable("biota_properties_shortcut_bar");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_shortcutbar_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.ShortcutBarIndex, e.ShortcutObjectId })
-                    .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ShortcutBarIndex)
-                    .HasColumnName("shortcut_Bar_Index")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ShortcutObjectId)
-                    .HasColumnName("shortcut_Object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesShortcutBar)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_shortcutbar");
-            });
-
             modelBuilder.Entity<BiotaPropertiesSkill>(entity =>
             {
                 entity.ToTable("biota_properties_skill");
@@ -1353,41 +1177,6 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.BiotaPropertiesSkill)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_skill");
-            });
-
-            modelBuilder.Entity<BiotaPropertiesSpellBar>(entity =>
-            {
-                entity.ToTable("biota_properties_spell_bar");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_spellbar_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.SpellBarNumber, e.SpellId })
-                    .HasName("wcid_spellbar_barId_spellId_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellBarIndex)
-                    .HasColumnName("spell_Bar_Index")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellBarNumber)
-                    .HasColumnName("spell_Bar_Number")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellId)
-                    .HasColumnName("spell_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesSpellBar)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_spellbar");
             });
 
             modelBuilder.Entity<BiotaPropertiesSpellBook>(entity =>
@@ -1480,33 +1269,6 @@ namespace ACE.Database.Models.Shard
                     .HasConstraintName("wcid_texturemap");
             });
 
-            modelBuilder.Entity<BiotaPropertiesTitleBook>(entity =>
-            {
-                entity.ToTable("biota_properties_title_book");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_titlebook_idx");
-
-                entity.HasIndex(e => new { e.ObjectId, e.TitleId })
-                    .HasName("wcid_titlebook_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.TitleId)
-                    .HasColumnName("title_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Object)
-                    .WithMany(p => p.BiotaPropertiesTitleBook)
-                    .HasForeignKey(d => d.ObjectId)
-                    .HasConstraintName("wcid_titlebook");
-            });
-
             modelBuilder.Entity<Character>(entity =>
             {
                 entity.ToTable("character");
@@ -1531,8 +1293,26 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("biota_Id")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.CharacterOptions1)
+                    .HasColumnName("character_Options_1")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CharacterOptions2)
+                    .HasColumnName("character_Options_2")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.DefaultHairTexture)
+                    .HasColumnName("default_Hair_Texture")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.DeleteTime)
                     .HasColumnName("delete_Time")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.HairTexture)
+                    .HasColumnName("hair_Texture")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.IsDeleted)
@@ -1548,10 +1328,253 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("name")
                     .HasMaxLength(255);
 
+                entity.Property(e => e.TotalLogins)
+                    .HasColumnName("total_Logins")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
                 entity.HasOne(d => d.Biota)
                     .WithOne(p => p.Character)
                     .HasForeignKey<Character>(d => d.BiotaId)
                     .HasConstraintName("biota_character");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesContract>(entity =>
+            {
+                entity.ToTable("character_properties_contract");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_contract_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.ContractId })
+                    .HasName("wcid_contract_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ContractId).HasColumnName("contract_Id");
+
+                entity.Property(e => e.DeleteContract)
+                    .HasColumnName("delete_Contract")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SetAsDisplayContract)
+                    .HasColumnName("set_As_Display_Contract")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Stage).HasColumnName("stage");
+
+                entity.Property(e => e.TimeWhenDone).HasColumnName("time_When_Done");
+
+                entity.Property(e => e.TimeWhenRepeats).HasColumnName("time_When_Repeats");
+
+                entity.Property(e => e.Version).HasColumnName("version");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesContract)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_contract");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesFillCompBook>(entity =>
+            {
+                entity.ToTable("character_properties_fill_comp_book");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_fillcompbook_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.SpellComponentId })
+                    .HasName("wcid_fillcompbook_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.QuantityToRebuy)
+                    .HasColumnName("quantity_To_Rebuy")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellComponentId)
+                    .HasColumnName("spell_Component_Id")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesFillCompBook)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_fillcompbook");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesFriendList>(entity =>
+            {
+                entity.ToTable("character_properties_friend_list");
+
+                entity.HasIndex(e => e.AccountId)
+                    .HasName("wcid_account_id_idx");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_friend_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.FriendId })
+                    .HasName("wcid_friend_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.AccountId)
+                    .HasColumnName("account_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FriendId)
+                    .HasColumnName("friend_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesFriendList)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_friend");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesQuestRegistry>(entity =>
+            {
+                entity.ToTable("character_properties_quest_registry");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_questbook_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.QuestName })
+                    .HasName("wcid_questbook_name_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.LastTimeCompleted)
+                    .HasColumnName("last_Time_Completed")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.NumTimesCompleted)
+                    .HasColumnName("num_Times_Completed")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.QuestName)
+                    .IsRequired()
+                    .HasColumnName("quest_Name")
+                    .HasMaxLength(255);
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesQuestRegistry)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_questbook");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesShortcutBar>(entity =>
+            {
+                entity.ToTable("character_properties_shortcut_bar");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_shortcutbar_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.ShortcutBarIndex, e.ShortcutObjectId })
+                    .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ShortcutBarIndex)
+                    .HasColumnName("shortcut_Bar_Index")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.ShortcutObjectId)
+                    .HasColumnName("shortcut_Object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesShortcutBar)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_shortcutbar");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesSpellBar>(entity =>
+            {
+                entity.ToTable("character_properties_spell_bar");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_spellbar_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.SpellBarNumber, e.SpellId })
+                    .HasName("wcid_spellbar_barId_spellId_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellBarIndex)
+                    .HasColumnName("spell_Bar_Index")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellBarNumber)
+                    .HasColumnName("spell_Bar_Number")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellId)
+                    .HasColumnName("spell_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesSpellBar)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_spellbar");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesTitleBook>(entity =>
+            {
+                entity.ToTable("character_properties_title_book");
+
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_titlebook_idx");
+
+                entity.HasIndex(e => new { e.ObjectId, e.TitleId })
+                    .HasName("wcid_titlebook_type_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TitleId)
+                    .HasColumnName("title_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.HasOne(d => d.Object)
+                    .WithMany(p => p.CharacterPropertiesTitleBook)
+                    .HasForeignKey(d => d.ObjectId)
+                    .HasConstraintName("wcid_titlebook");
             });
         }
     }

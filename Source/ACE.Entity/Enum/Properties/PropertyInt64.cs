@@ -20,10 +20,7 @@ namespace ACE.Entity.Enum.Properties
         AvailableLuminance  = 6,
         [SendOnLogin]
         MaximumLuminance    = 7,
-        InteractionReqs     = 8,
-
-        [ServerOnly]
-        DeleteTime          = 9001
+        InteractionReqs     = 8
     }
 
     public static class PropertyInt64Extensions

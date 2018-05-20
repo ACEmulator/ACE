@@ -20,7 +20,7 @@ namespace ACE.Server.Network.Structure
             Spell = new LayeredSpell();
         }
 
-        public Shortcut(BiotaPropertiesShortcutBar shortcut)
+        public Shortcut(CharacterPropertiesShortcutBar shortcut)
         {
             Index = shortcut.ShortcutBarIndex;
             ObjectId = shortcut.ShortcutObjectId;

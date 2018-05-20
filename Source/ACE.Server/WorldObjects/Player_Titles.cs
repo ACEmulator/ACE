@@ -21,7 +21,7 @@ namespace ACE.Server.WorldObjects
 
             var titlebook = new List<uint>();
 
-            foreach (var title in Biota.BiotaPropertiesTitleBook)
+            foreach (var title in Biota.CharacterPropertiesTitleBook)
                 titlebook.Add(title.TitleId);
 
             NumCharacterTitles = titlebook.Count();
@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
 
             if (!titlebook.Contains(titleId))
             {
-                Biota.BiotaPropertiesTitleBook.Add(new Database.Models.Shard.BiotaPropertiesTitleBook { ObjectId = Guid.Full, TitleId = titleId });
+                Biota.CharacterPropertiesTitleBook.Add(new Database.Models.Shard.CharacterPropertiesTitleBook { ObjectId = Guid.Full, TitleId = titleId });
                 titlebook.Add(titleId);
                 NumCharacterTitles++;
                 sendMsg = true;

@@ -161,9 +161,7 @@ namespace ACE.Entity.Enum.Properties
         Account15Days                    = 127,
         HadNoVitae                       = 128,
         NoOlthoiTalk                     = 129,
-        AutowieldLeft                    = 130,
-        [ServerOnly]
-        IsDeleted                        = 9001
+        AutowieldLeft                    = 130
     }
 
     public static class PropertyBoolExtensions

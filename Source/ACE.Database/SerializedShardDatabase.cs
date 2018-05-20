@@ -280,7 +280,7 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveEntity(BiotaPropertiesShortcutBar entity, Action<bool> callback)
+        public void RemoveEntity(CharacterPropertiesShortcutBar entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -289,7 +289,7 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveEntity(BiotaPropertiesSpellBar entity, Action<bool> callback)
+        public void RemoveEntity(CharacterPropertiesSpellBar entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
