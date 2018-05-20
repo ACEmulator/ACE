@@ -964,7 +964,6 @@ namespace ACE.Server.Command.Handlers
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
         }
-        }
 
         // ci wclassid (number)
         [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number)")]
