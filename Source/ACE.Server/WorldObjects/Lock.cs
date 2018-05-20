@@ -1,8 +1,10 @@
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Network;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using System;
 using System.Diagnostics;
 
 namespace ACE.Server.WorldObjects
@@ -20,6 +22,83 @@ namespace ACE.Server.WorldObjects
     {
         UnlockResults Unlock(string keyCode);
         UnlockResults Unlock(uint playerLockpickSkillLvl);
+    }
+    public class UnlockerHelper
+    {
+        public static void ConsumeUnlocker(Player player,WorldObject unlocker)
+        {
+            // to-do don't consume "Limitless Lockpick" rare.
+            unlocker.Structure--;
+            if (unlocker.Structure < 1)
+                player.TryRemoveItemFromInventoryWithNetworking(unlocker, 1);
+            else { } // to-do confirm persistence is working
+            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+            player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your lockpicks have {unlocker.Structure} uses left.", ChatMessageType.Craft));
+        }
+        public static void UseUnlocker(Player player, WorldObject unlocker, WorldObject target)
+        {
+            ActionChain chain = new ActionChain();
+
+            chain.AddAction(player, () =>
+            {
+                if (unlocker.WeenieType == WeenieType.Lockpick &&
+                    player.Skills[Skill.Lockpick].Status != SkillStatus.Trained &&
+                    player.Skills[Skill.Lockpick].Status != SkillStatus.Specialized)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
+                    return;
+                }
+                if (target is Lock @lock)
+                {
+                    UnlockResults result = UnlockResults.IncorrectKey;
+                    if (unlocker.WeenieType == WeenieType.Lockpick)
+                        result = @lock.Unlock(player.Skills[Skill.Lockpick].Current);
+                    else if (unlocker is Key woKey)
+                    {
+                        if (target is Door woDoor)
+                        {
+                            if (woDoor.LockCode == "") // the door isn't to be opened with keys
+                            {
+                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
+                                return;
+                            }
+                        }
+                        result = @lock.Unlock(woKey.KeyCode);
+                    }
+
+                    switch (result)
+                    {
+                        case UnlockResults.UnlockSuccess:
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Craft));
+                            ConsumeUnlocker(player, unlocker);
+                            break;
+                        case UnlockResults.Open:
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
+                            break;
+                        case UnlockResults.AlreadyUnlocked:
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
+                            break;
+                        case UnlockResults.PickLockFailed:
+                            target.CurrentLandblock.EnqueueBroadcastSound(target, Sound.PicklockFail);
+                            ConsumeUnlocker(player, unlocker);
+                            break;
+                        case UnlockResults.CannotBePicked:
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
+                            break;
+                        case UnlockResults.IncorrectKey:
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.KeyDoesntFitThisLock));
+                            break;
+                    }
+                }
+                else
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
+                }
+            });
+
+            chain.EnqueueChain();
+        }
     }
     public class LockHelper
     {

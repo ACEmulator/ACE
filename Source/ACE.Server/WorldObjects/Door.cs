@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -11,6 +9,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
