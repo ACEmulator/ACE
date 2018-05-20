@@ -5,7 +5,6 @@ namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesEmoteAction
     {
-        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public uint EmoteCategory { get; set; }
         public uint EmoteSetId { get; set; }

@@ -5,7 +5,6 @@ namespace ACE.Database.Models.World
 {
     public partial class Spell
     {
-        public uint Id { get; set; }
         public uint SpellId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

@@ -5,7 +5,6 @@ namespace ACE.Database.Models.World
 {
     public partial class Event
     {
-        public uint Id { get; set; }
         public string Name { get; set; }
         public int StartTime { get; set; }
         public int EndTime { get; set; }

@@ -10,7 +10,6 @@ namespace ACE.Database.Models.World
             WeeniePropertiesEmoteAction = new HashSet<WeeniePropertiesEmoteAction>();
         }
 
-        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public uint Category { get; set; }
         public float Probability { get; set; }

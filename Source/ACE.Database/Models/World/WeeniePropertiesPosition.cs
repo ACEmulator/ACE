@@ -5,7 +5,6 @@ namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesPosition
     {
-        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public ushort PositionType { get; set; }
         public uint ObjCellId { get; set; }
