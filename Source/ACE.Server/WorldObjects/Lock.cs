@@ -31,7 +31,6 @@ namespace ACE.Server.WorldObjects
             unlocker.Structure--;
             if (unlocker.Structure < 1)
                 player.TryRemoveItemFromInventoryWithNetworking(unlocker, 1);
-            else { } // to-do confirm persistence is working
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your lockpicks have {unlocker.Structure} uses left.", ChatMessageType.Craft));
@@ -70,6 +69,8 @@ namespace ACE.Server.WorldObjects
                     switch (result)
                     {
                         case UnlockResults.UnlockSuccess:
+                            if (unlocker.WeenieType == WeenieType.Lockpick)
+                                player.HandleActionApplySoundEffect(Sound.Lockpicking);// Sound.Lockpicking doesn't work via EnqueueBroadcastSound for some reason.
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Craft));
                             ConsumeUnlocker(player, unlocker);
                             break;
@@ -165,7 +166,7 @@ namespace ACE.Server.WorldObjects
 
             me.IsLocked = false;
             me.CurrentLandblock.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
-            me.CurrentLandblock.EnqueueBroadcastSound(me, Sound.LockSuccess);
+            //me.CurrentLandblock.EnqueueBroadcastSound(me, Sound.Lockpicking);
             return UnlockResults.UnlockSuccess;
         }
     }
