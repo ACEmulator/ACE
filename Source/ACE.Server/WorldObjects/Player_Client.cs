@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
                 Biota.BiotaPropertiesShortcutBar.Remove(entity);
                 entity.Object = null;
 
-                if (ExistsInDatabase && entity.ObjectId != 0)
+                if (ExistsInDatabase && entity.Id != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);
             }
         }
