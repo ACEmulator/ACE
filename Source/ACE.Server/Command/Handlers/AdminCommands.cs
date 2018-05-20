@@ -855,21 +855,6 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        // addallspells
-        [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
-        public static void HandleAddAllSpells(Session session, params string[] parameters)
-        {
-            var spells = DatManager.PortalDat.SpellTable.Spells;
-
-            foreach(var spell in spells)
-            {
-                uint spellId = spell.Key;
-
-                if (Enum.IsDefined(typeof(Network.Enum.Spell), spellId))
-                    session.Player.LearnSpellWithNetworking((uint)spellId);
-            }
-        }
-
         // adminhouse
         [CommandHandler("adminhouse", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleAdminhouse(Session session, params string[] parameters)
@@ -978,6 +963,7 @@ namespace ACE.Server.Command.Handlers
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
+        }
         }
 
         // ci wclassid (number)
