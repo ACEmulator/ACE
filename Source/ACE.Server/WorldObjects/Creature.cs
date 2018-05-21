@@ -570,12 +570,21 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(player.Rotate(this));
             if (Biota.BiotaPropertiesEmote.Count > 0)
             {
-                var result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7) ?? null;
-                var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == 0 && action.EmoteCategory == result.ElementAt<BiotaPropertiesEmote>(0).Category);
+                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                var result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7 && rng >= emote.Probability);
 
-                foreach (var action in actions)
+                if (result.Count() < 1)
                 {
-                    EmoteManager.ExecuteEmote(result.ElementAt(0), action, actionChain, this, player);
+                    result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7);
+                }
+                if (result.Count() > 0)
+                {
+                    var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt(result.Count() - 1).Category);
+
+                    foreach (var action in actions)
+                    {
+                        EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, actionChain, this, player);
+                    }
                 }
                 actionChain.EnqueueChain();
                 //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
