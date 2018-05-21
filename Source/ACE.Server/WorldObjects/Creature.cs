@@ -566,11 +566,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(Player player)
         {
-            //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(player.Rotate(this));
+            if (Biota.BiotaPropertiesEmote.Count > 0)
+            {
+                var result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7) ?? null;
+                var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == 0 && action.EmoteCategory == result.ElementAt<BiotaPropertiesEmote>(0).Category);
 
-            //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
-            //player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            player.SendUseDoneEvent();
+                foreach (var action in actions)
+                {
+                    EmoteManager.ExecuteEmote(result.ElementAt(0), action, actionChain, this, player);
+                }
+                actionChain.EnqueueChain();
+                //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+                //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                //player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                player.SendUseDoneEvent();
+            }
+            else
+            {
+                player.SendUseDoneEvent();
+            }
         }
 
         public static readonly float TickInterval = 1.0f;
