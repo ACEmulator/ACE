@@ -25,7 +25,7 @@
 ### 2018-05-18
 [gmriggs]
 * Combat: Added Magical Combat for monsters.
-  - Monsters now cast War/Creature/Item spells on players, using spells from their own "spellbook".
+  - Monsters now cast War/Creature/Life spells on players, using spells from their own "spellbook".
   - Added the associated emotes and behaviors for monster spellcasting to match retail.
   - Before exploring Dereth, make sure you've buffed!
 
