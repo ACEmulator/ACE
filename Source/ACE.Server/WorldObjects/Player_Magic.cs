@@ -80,6 +80,27 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        ///  Learns spells in bulk, without notification, filtered by school and level
+        /// </summary>
+        public void LearnSpellsInBulk(uint magicSchool, uint spellLevel)
+        {
+            var spells = DatManager.PortalDat.SpellTable.Spells;
+            Player player = CurrentLandblock.GetObject(Guid) as Player;
+
+            if (Enum.IsDefined(typeof(SpellLevel), (int)WorldObject.CalculateSpellLevel(spellLevel)))
+            {
+                foreach (var spell in spells)
+                {
+                    if ((magicSchool == (uint)spell.Value.School) & ((uint)WorldObject.CalculateSpellLevel(spellLevel) == spell.Value.Power))
+                    {
+                        if (Enum.IsDefined(typeof(Network.Enum.Spell), spell.Key))
+                            player.LearnSpellWithNetworking((uint)spell.Key, false);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Method used for handling items casting spells on the player equiping the item
         /// </summary>
         /// <param name="guidItem"></param>

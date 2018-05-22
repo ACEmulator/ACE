@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public void LearnSpellWithNetworking(uint spellId)
+        public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
         {
             var spells = DatManager.PortalDat.SpellTable;
 
@@ -62,12 +62,16 @@ namespace ACE.Server.WorldObjects
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
 
-            // Always seems to be this SkillUpPurple effect
-            Session.Player.ApplyVisualEffects(ACE.Entity.Enum.PlayScript.SkillUpPurple);
+            //Check to see if we echo output to the client
+            if (uiOutput == true)
+            {
+                // Always seems to be this SkillUpPurple effect
+                Session.Player.ApplyVisualEffects(ACE.Entity.Enum.PlayScript.SkillUpPurple);
 
-            string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
-            GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-            Session.Network.EnqueueSend(learnMessage);
+                string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
+                GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(learnMessage);
+            }
         }
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
