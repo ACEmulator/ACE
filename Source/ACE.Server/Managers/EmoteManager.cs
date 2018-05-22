@@ -987,6 +987,10 @@ namespace ACE.Server.Managers
                     });
                     break;
 
+                case EmoteType.UpdateQuest:
+                    //This is for the quest NPC's. This will be filled out when quests are added.
+                    break;
+
                 default:
                     log.Debug($"EmoteManager.Execute - Encountered Unhandled EmoteType {(EmoteType)emoteAction.Type} for {sourceObject.Name} ({sourceObject.WeenieClassId})");
                     break;
