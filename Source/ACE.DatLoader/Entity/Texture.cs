@@ -15,13 +15,12 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            Texture tex = new Texture();
             Id = reader.ReadInt32();
             Unknown = reader.ReadInt32();
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();
             Format = reader.ReadInt32();
-            D3DFormat = (D3DTextureFormat)tex.Format;
+            D3DFormat = (D3DTextureFormat)Format;
             Length = reader.ReadInt32();
             Data = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position); // to-do: identify the 4 extra bytes (trailing crc?)
         }
