@@ -23,7 +23,7 @@ namespace ACE.DatLoader.Entity
             Format = reader.ReadInt32();
             D3DFormat = (D3DTextureFormat)tex.Format;
             Length = reader.ReadInt32();
-            Data = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position); // Length + 4 (I wonder why) 
+            Data = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position); // to-do: identify the 4 extra bytes (trailing crc?)
         }
 
         public enum D3DTextureFormat
