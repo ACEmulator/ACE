@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2018-05-23
+[mcreedjr]
+* Moved addallspells code from a debug handler to the Player object
+* Added ability to filter requests to learn spells in bulk by both school and level
+* Modified the LearnSpellWithNetworking method to not display Purple bubbles or chat text upon learning new spell
+
 ### 2018-04-29
 **ACE-World-16PY world db release v0.0.13+ required with this update**
 
