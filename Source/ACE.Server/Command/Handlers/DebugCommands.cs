@@ -925,14 +925,13 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
         public static void HandleAddAllSpells(Session session, params string[] parameters)
         {
-            var spells = DatManager.PortalDat.SpellTable.Spells;
-
-            foreach (var spell in spells)
+            foreach (WorldObject.SpellLevel powerLevel in Enum.GetValues(typeof(WorldObject.SpellLevel)))
             {
-                uint spellId = spell.Key;
-
-                if (Enum.IsDefined(typeof(Network.Enum.Spell), spellId))
-                    session.Player.LearnSpellWithNetworking((uint)spellId);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.CreatureEnchantment, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.ItemEnchantment, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.LifeMagic, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.VoidMagic, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.WarMagic, (uint)powerLevel);
             }
         }
 

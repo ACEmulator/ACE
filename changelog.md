@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2018-05-23
+[mcreedjr]
+* Moved addallspells code from a debug handler to the Player object
+* Added ability to filter requests to learn spells in bulk by both school and level
+* Modified the LearnSpellWithNetworking method to not display Purple bubbles or chat text upon learning new spell
+
 ### 2018-05-22
 [dgatewood]
 * Implemented On-Use Emotes for NPCs. When interacting with a Quest NPC, they will now respond with actions.
