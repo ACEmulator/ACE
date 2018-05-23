@@ -1,7 +1,6 @@
 # ACEmulator Change Log
 
-### 2018-05-20
-
+### 2018-05-24
 **ACE-World-16PY world db release v0.0.14+ required with this update**
 
 **You will need drop and recreate both Shard and World databases with this update**
@@ -9,6 +8,88 @@
 * Rebased Shard and World DB.
 * Rescaffolded both databases.
 * Fixed issues #782 and #783.
+
+### 2018-05-23
+[mcreedjr]
+* Moved addallspells code from a debug handler to the Player object
+* Added ability to filter requests to learn spells in bulk by both school and level
+* Modified the LearnSpellWithNetworking method to not display Purple bubbles or chat text upon learning new spell
+
+### 2018-05-22
+[dgatewood]
+* Implemented On-Use Emotes for NPCs. When interacting with a Quest NPC, they will now respond with actions.
+
+### 2018-05-20
+[mcreedjr]
+* Added the `addallspells` debug command, which adds all in-game spells to the player's spellbook.
+
+### 2018-05-19
+[gmriggs]
+* Combat: Added Ranged Combat for monsters.
+  - Monsters can now attack players with bows, crossbows and thrown weapons.
+  - Monsters can now switch between Ranged and Magical combat.
+
+[dgatewood]
+* Added the basis for Salvaging.
+  - The Ust can now be used to salvage loot items via the Salvaging panel.
+  - Implemented formulae to determine the workmanship, material type and the amount of salvage generated.
+
+[fartwhif]
+* Further clean-up and polish on Lockpicking and usage of keys on locked chests/doors.
+
+### 2018-05-18
+[gmriggs]
+* Combat: Added Magical Combat for monsters.
+  - Monsters now cast War/Creature/Life spells on players, using spells from their own "spellbook".
+  - Added the associated emotes and behaviors for monster spellcasting to match retail.
+  - Before exploring Dereth, make sure you've buffed!
+
+### 2018-05-16
+[dgatewood]
+* Further implementation of Item Giving.
+  - Many hand-in NPCs, including Collectors and Gamesmasters, now have basic functionality.
+  - World Objects now handle the receiving of items, performing checks to see if an item has been given.
+
+### 2018-05-14
+[gmriggs]
+* Combat: Added the basis for Melee Combat for monsters.
+
+[fartwhif]
+* Implemented Lockpicking. Players can now use lockpicks, with a success rate based on the Lockpick skill.
+
+### 2018-05-12
+[fartwhif]
+* Added two new debug commands:
+  - `crack` - Unlocks and opens locked doors and chests.
+  - `nudge` - Corrects the player's position if they are stuck in black space.
+
+### 2018-05-11
+[Slushnas]
+* Magic: Adjustments to Bolt/Streak/Arc projectile behavior to match retail more closely.
+
+[Jyrus]
+* Fixed routing for in-game messages given by magic and portal spells.
+
+### 2018-05-09
+[dgatewood]
+* Re-implemented the basis for Item Giving.
+
+### 2018-05-08
+[Jyrus]
+* Magic: Further fixes for null cases of targeted spells.
+
+### 2018-05-07
+[Jyrus]
+* Magic: Clean-up of code for spells casted by items/creatures, plus miscellaneous fixes of null cases.
+
+### 2018-05-04
+[Jyrus]
+* Magic: Items with spells can now cast them on players.
+* Fixed a null exception bug where the player attacks without a weapon equipped.
+
+### 2018-05-02
+[gmriggs + dgatewood + Slushnas]
+* Monster Movement added. Hostile creatures will now pursue players in range.
 
 ### 2018-04-29
 **ACE-World-16PY world db release v0.0.13+ required with this update**

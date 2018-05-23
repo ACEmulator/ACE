@@ -921,6 +921,20 @@ namespace ACE.Server.Command.Handlers
             AdminCommands.HandleAdd(session, parameters);
         }
 
+        // addallspells
+        [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
+        public static void HandleAddAllSpells(Session session, params string[] parameters)
+        {
+            foreach (WorldObject.SpellLevel powerLevel in Enum.GetValues(typeof(WorldObject.SpellLevel)))
+            {
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.CreatureEnchantment, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.ItemEnchantment, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.LifeMagic, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.VoidMagic, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk((uint)MagicSchool.WarMagic, (uint)powerLevel);
+            }
+        }
+
         /// <summary>
         /// Debug console command to test the GetSpellFormula function.
         /// </summary>

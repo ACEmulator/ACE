@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        protected enum SpellLevel
+        public enum SpellLevel
         {
             One = 1,
             Two = 50,
@@ -31,7 +31,6 @@ namespace ACE.Server.WorldObjects
             Seven = 300,
             Eight = 350
         }
-
         protected static SpellLevel CalculateSpellLevel(uint spellPower)
         {
             if (spellPower < 50)

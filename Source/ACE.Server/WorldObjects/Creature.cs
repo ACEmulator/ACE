@@ -566,11 +566,36 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(Player player)
         {
-            //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(player.Rotate(this));
+            if (Biota.BiotaPropertiesEmote.Count > 0)
+            {
+                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                var result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7 && rng >= emote.Probability);
 
-            //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
-            //player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            player.SendUseDoneEvent();
+                if (result.Count() < 1)
+                {
+                    result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7);
+                }
+                if (result.Count() > 0)
+                {
+                    var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt(result.Count() - 1).Category);
+
+                    foreach (var action in actions)
+                    {
+                        EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, actionChain, this, player);
+                    }
+                }
+                actionChain.EnqueueChain();
+                //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+                //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                //player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                player.SendUseDoneEvent();
+            }
+            else
+            {
+                player.SendUseDoneEvent();
+            }
         }
 
         public static readonly float TickInterval = 1.0f;
