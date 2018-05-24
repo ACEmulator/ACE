@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2018-05-24
+**ACE-World-16PY world db release v0.0.14+ required with this update**
+
+**You will need drop and recreate both Shard and World databases with this update**
+[Ripley]
+* Rebased Shard and World DB.
+* Rescaffolded both databases.
+* Fixed issues #782 and #783.
+
 ### 2018-05-23
 [mcreedjr]
 * Moved addallspells code from a debug handler to the Player object

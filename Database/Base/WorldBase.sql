@@ -26,32 +26,83 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/ `ace_world` /*!40100 DEFAULT CHARACTER 
 USE `ace_world`;
 
 --
--- Table structure for table `ace_recipe`
+-- Table structure for table `cook_book`
 --
 
-DROP TABLE IF EXISTS `ace_recipe`;
+DROP TABLE IF EXISTS `cook_book`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ace_recipe` (
-  `recipeGuid` binary(16) NOT NULL COMMENT 'surrogate key',
-  `recipeType` tinyint(3) unsigned NOT NULL COMMENT 'see RecipeType enum in code',
-  `userModified` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'flag indicating whether or not this has record has been altered since deployment',
-  `sourceWcid` int(10) unsigned NOT NULL COMMENT 'the object being used',
-  `targetWcid` int(10) unsigned NOT NULL COMMENT 'the target of use',
-  `skillId` smallint(6) unsigned DEFAULT NULL COMMENT 'skill required for the formula, if any',
-  `skillDifficulty` smallint(6) unsigned DEFAULT NULL COMMENT 'skill value required for 50% success',
-  `partialFailDifficulty` smallint(6) unsigned DEFAULT NULL COMMENT 'skill value for a partial botch (dyed clothing)',
-  `successMessage` text,
-  `failMessage` text,
-  `alternateMessage` text,
-  `resultFlags` int(10) unsigned DEFAULT NULL COMMENT 'bitmask of what happens.  see RecipeResults enum in code',
-  `successItem1Wcid` int(10) unsigned DEFAULT NULL,
-  `successItem2Wcid` int(10) unsigned DEFAULT NULL,
-  `failureItem1Wcid` int(10) unsigned DEFAULT NULL,
-  `failureItem2Wcid` int(10) unsigned DEFAULT NULL,
-  `healingAttribute` smallint(6) unsigned DEFAULT NULL COMMENT 'used by recipeType = Healing. health = 64, stam = 128, mana = 256. if null, will default to health. source enum: ACE.Entity.Enum.Ability',
-  PRIMARY KEY (`recipeGuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `cook_book` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this cook book instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `target_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of the target object for this recipe',
+  `source_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of the source object for this recipe',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `recipe_target_source_uidx` (`recipe_Id`,`target_W_C_I_D`,`source_W_C_I_D`),
+  KEY `source_idx` (`source_W_C_I_D`),
+  KEY `target_idx` (`target_W_C_I_D`),
+  CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cook Book for Recipes';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `encounter`
+--
+
+DROP TABLE IF EXISTS `encounter`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `encounter` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Encounter',
+  `landblock` int(5) NOT NULL DEFAULT '0' COMMENT 'Landblock for this Encounter',
+  `weenie_Class_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of generator/object to spawn for Encounter',
+  `cell_X` int(5) NOT NULL DEFAULT '0' COMMENT 'CellX position of this Encounter',
+  `cell_Y` int(5) NOT NULL DEFAULT '0' COMMENT 'CellY position of this Encounter',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `landblock_cellx_celly_uidx` (`landblock`,`cell_X`,`cell_Y`),
+  KEY `landblock_idx` (`landblock`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Encounters';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `event`
+--
+
+DROP TABLE IF EXISTS `event`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `event` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Event',
+  `name` varchar(255) NOT NULL COMMENT 'Unique Event of Quest',
+  `start_Time` int(10) NOT NULL DEFAULT '-1' COMMENT 'Unixtime of Event Start',
+  `end_Time` int(10) NOT NULL DEFAULT '-1' COMMENT 'Unixtime of Event End',
+  `state` int(10) NOT NULL DEFAULT '0' COMMENT 'State of Event (GameEventState)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Events';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `house_portal`
+--
+
+DROP TABLE IF EXISTS `house_portal`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `house_portal` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this House Portal',
+  `house_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of House',
+  `obj_Cell_Id` int(10) unsigned NOT NULL,
+  `origin_X` float NOT NULL,
+  `origin_Y` float NOT NULL,
+  `origin_Z` float NOT NULL,
+  `angles_W` float NOT NULL,
+  `angles_X` float NOT NULL,
+  `angles_Y` float NOT NULL,
+  `angles_Z` float NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `house_Id_UNIQUE` (`house_Id`,`obj_Cell_Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='House Portal Destinations';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,6 +151,456 @@ CREATE TABLE `points_of_interest` (
   KEY `wcid_poi_idx` (`weenie_Class_Id`),
   CONSTRAINT `wcid_poi` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Points of Interest for @telepoi command';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `quest`
+--
+
+DROP TABLE IF EXISTS `quest`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `quest` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Quest',
+  `name` varchar(255) NOT NULL COMMENT 'Unique Name of Quest',
+  `min_Delta` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Minimum time between Quest completions',
+  `max_Solves` int(10) NOT NULL DEFAULT '0' COMMENT 'Maximum number of times Quest can be completed',
+  `message` text NOT NULL COMMENT 'Quest solved text - unused?',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Quests';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe`
+--
+
+DROP TABLE IF EXISTS `recipe`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `unknown_1` int(10) unsigned NOT NULL DEFAULT '0',
+  `skill` int(10) unsigned NOT NULL DEFAULT '0',
+  `difficulty` int(10) unsigned NOT NULL DEFAULT '0',
+  `salvage_Type` int(10) unsigned NOT NULL DEFAULT '0',
+  `success_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of object to create upon successful application of this recipe',
+  `success_Amount` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Amount of objects to create upon successful application of this recipe',
+  `success_Message` text NOT NULL,
+  `fail_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of object to create upon failing application of this recipe',
+  `fail_Amount` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Amount of objects to create upon failing application of this recipe',
+  `fail_Message` text NOT NULL,
+  `data_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `recipe_uidx` (`recipe_Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipes';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_component`
+--
+
+DROP TABLE IF EXISTS `recipe_component`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_component` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Component instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `destroy_Chance` double NOT NULL DEFAULT '0',
+  `destroy_Amount` int(10) unsigned NOT NULL DEFAULT '0',
+  `destroy_Message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_component` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Components';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mod`
+--
+
+DROP TABLE IF EXISTS `recipe_mod`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mod` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `health` int(10) NOT NULL DEFAULT '0',
+  `unknown_2` int(10) NOT NULL DEFAULT '0',
+  `mana` int(10) NOT NULL DEFAULT '0',
+  `unknown_4` int(10) NOT NULL DEFAULT '0',
+  `unknown_5` int(10) NOT NULL DEFAULT '0',
+  `unknown_6` int(10) NOT NULL DEFAULT '0',
+  `unknown_7` bit(1) NOT NULL,
+  `data_Id` int(10) NOT NULL DEFAULT '0',
+  `unknown_9` int(10) NOT NULL DEFAULT '0',
+  `instance_Id` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `recipe_modset_uidx` (`recipe_Id`,`mod_Set_Id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mods_bool`
+--
+
+DROP TABLE IF EXISTS `recipe_mods_bool`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mods_bool` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` bit(1) NOT NULL,
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `unknown_1` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mods_d_i_d`
+--
+
+DROP TABLE IF EXISTS `recipe_mods_d_i_d`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mods_d_i_d` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` int(10) unsigned NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `unknown_1` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mods_float`
+--
+
+DROP TABLE IF EXISTS `recipe_mods_float`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mods_float` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` double NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `unknown_1` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mods_i_i_d`
+--
+
+DROP TABLE IF EXISTS `recipe_mods_i_i_d`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mods_i_i_d` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` int(10) unsigned NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `unknown_1` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mods_int`
+--
+
+DROP TABLE IF EXISTS `recipe_mods_int`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mods_int` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` int(10) NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `unknown_1` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_mods_string`
+--
+
+DROP TABLE IF EXISTS `recipe_mods_string`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_mods_string` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` text NOT NULL,
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `unknown_1` int(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Mods';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_requirements_bool`
+--
+
+DROP TABLE IF EXISTS `recipe_requirements_bool`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_requirements_bool` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` bit(1) NOT NULL,
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Requirments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_requirements_d_i_d`
+--
+
+DROP TABLE IF EXISTS `recipe_requirements_d_i_d`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_requirements_d_i_d` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` int(10) unsigned NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Requirments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_requirements_float`
+--
+
+DROP TABLE IF EXISTS `recipe_requirements_float`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_requirements_float` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` double NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Requirments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_requirements_i_i_d`
+--
+
+DROP TABLE IF EXISTS `recipe_requirements_i_i_d`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_requirements_i_i_d` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` int(10) unsigned NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Requirments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_requirements_int`
+--
+
+DROP TABLE IF EXISTS `recipe_requirements_int`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_requirements_int` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` int(10) NOT NULL DEFAULT '0',
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Requirments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipe_requirements_string`
+--
+
+DROP TABLE IF EXISTS `recipe_requirements_string`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recipe_requirements_string` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
+  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `stat` int(10) NOT NULL DEFAULT '0',
+  `value` text NOT NULL,
+  `enum` int(10) NOT NULL DEFAULT '0',
+  `message` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `recipe_idx` (`recipe_Id`),
+  CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Requirments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `spell`
+--
+
+DROP TABLE IF EXISTS `spell`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `spell` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Spell',
+  `spell_Id` int(10) unsigned NOT NULL COMMENT 'Unique Spell Id',
+  `name` text NOT NULL,
+  `description` text NOT NULL,
+  `school` int(10) NOT NULL DEFAULT '0',
+  `icon_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `category` int(10) unsigned NOT NULL DEFAULT '0',
+  `bitfield` int(10) unsigned NOT NULL DEFAULT '0',
+  `mana` int(10) unsigned NOT NULL DEFAULT '0',
+  `range_Constant` float NOT NULL,
+  `range_Mod` float NOT NULL,
+  `power` int(10) unsigned NOT NULL DEFAULT '0',
+  `economy_Mod` float NOT NULL,
+  `formula_Version` int(10) unsigned NOT NULL DEFAULT '0',
+  `component_Loss` float NOT NULL,
+  `meta_Spell_Type` int(10) NOT NULL DEFAULT '0',
+  `meta_Spell_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_1_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_2_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_3_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_4_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_5_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_6_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_7_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `spell_Formula_Comp_8_Component_Id` int(10) unsigned NOT NULL DEFAULT '0',
+  `caster_Effect` int(10) unsigned NOT NULL DEFAULT '0',
+  `target_Effect` int(10) unsigned NOT NULL DEFAULT '0',
+  `fizzle_Effect` int(10) unsigned NOT NULL DEFAULT '0',
+  `recovery_Interval` double NOT NULL,
+  `recovery_Amount` float NOT NULL,
+  `display_Order` int(10) unsigned NOT NULL DEFAULT '0',
+  `non_Component_Target_Type` int(10) unsigned NOT NULL DEFAULT '0',
+  `mana_Mod` int(10) unsigned NOT NULL DEFAULT '0',
+  `duration` double DEFAULT NULL,
+  `degrade_Modifier` float DEFAULT NULL,
+  `degrade_Limit` float DEFAULT NULL,
+  `stat_Mod_Type` int(10) unsigned DEFAULT NULL,
+  `stat_Mod_Key` int(10) unsigned DEFAULT NULL,
+  `stat_Mod_Val` float DEFAULT NULL,
+  `e_Type` int(10) unsigned DEFAULT NULL,
+  `base_Intensity` int(10) DEFAULT NULL,
+  `variance` int(10) DEFAULT NULL,
+  `wcid` int(10) unsigned DEFAULT NULL,
+  `num_Projectiles` int(10) DEFAULT NULL,
+  `num_Projectiles_Variance` int(10) DEFAULT NULL,
+  `spread_Angle` float DEFAULT NULL,
+  `vertical_Angle` float DEFAULT NULL,
+  `default_Launch_Angle` float DEFAULT NULL,
+  `non_Tracking` bit(1) DEFAULT NULL,
+  `create_Offset_Origin_X` float DEFAULT NULL,
+  `create_Offset_Origin_Y` float DEFAULT NULL,
+  `create_Offset_Origin_Z` float DEFAULT NULL,
+  `padding_Origin_X` float DEFAULT NULL,
+  `padding_Origin_Y` float DEFAULT NULL,
+  `padding_Origin_Z` float DEFAULT NULL,
+  `dims_Origin_X` float DEFAULT NULL,
+  `dims_Origin_Y` float DEFAULT NULL,
+  `dims_Origin_Z` float DEFAULT NULL,
+  `peturbation_Origin_X` float DEFAULT NULL,
+  `peturbation_Origin_Y` float DEFAULT NULL,
+  `peturbation_Origin_Z` float DEFAULT NULL,
+  `imbued_Effect` int(10) unsigned DEFAULT NULL,
+  `slayer_Creature_Type` int(10) DEFAULT NULL,
+  `slayer_Damage_Bonus` float DEFAULT NULL,
+  `crit_Freq` double DEFAULT NULL,
+  `crit_Multiplier` double DEFAULT NULL,
+  `ignore_Magic_Resist` int(10) DEFAULT NULL,
+  `elemental_Modifier` double DEFAULT NULL,
+  `drain_Percentage` float DEFAULT NULL,
+  `damage_Ratio` float DEFAULT NULL,
+  `damage_Type` int(10) DEFAULT NULL,
+  `boost` int(10) DEFAULT NULL,
+  `boost_Variance` int(10) DEFAULT NULL,
+  `source` int(10) DEFAULT NULL,
+  `destination` int(10) DEFAULT NULL,
+  `proportion` float DEFAULT NULL,
+  `loss_Percent` float DEFAULT NULL,
+  `source_Loss` int(10) DEFAULT NULL,
+  `transfer_Cap` int(10) DEFAULT NULL,
+  `max_Boost_Allowed` int(10) DEFAULT NULL,
+  `transfer_Bitfield` int(10) unsigned DEFAULT NULL,
+  `index` int(10) DEFAULT NULL,
+  `portal_Lifetime` double DEFAULT NULL,
+  `link` int(10) DEFAULT NULL,
+  `position_Obj_Cell_ID` int(10) unsigned DEFAULT NULL,
+  `position_Origin_X` float DEFAULT NULL,
+  `position_Origin_Y` float DEFAULT NULL,
+  `position_Origin_Z` float DEFAULT NULL,
+  `position_Angles_W` float DEFAULT NULL,
+  `position_Angles_X` float DEFAULT NULL,
+  `position_Angles_Y` float DEFAULT NULL,
+  `position_Angles_Z` float DEFAULT NULL,
+  `min_Power` int(10) DEFAULT NULL,
+  `max_Power` int(10) DEFAULT NULL,
+  `power_Variance` float DEFAULT NULL,
+  `dispel_School` int(10) DEFAULT NULL,
+  `align` int(10) DEFAULT NULL,
+  `number` int(10) DEFAULT NULL,
+  `number_Variance` float DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `spell_id_uidx` (`spell_Id`),
+  UNIQUE KEY `metaspell_id_uidx` (`meta_Spell_Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Spell Table Extended Data';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -682,4 +1183,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-31 21:48:17
+-- Dump completed on 2018-05-20 17:36:22

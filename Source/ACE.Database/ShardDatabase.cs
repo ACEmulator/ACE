@@ -296,30 +296,29 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesBook)
                 .Include(r => r.BiotaPropertiesBookPageData)
                 .Include(r => r.BiotaPropertiesBool)
-                .Include(r => r.BiotaPropertiesContract)
+                .Include(r => r.CharacterPropertiesContract)
                 .Include(r => r.BiotaPropertiesCreateList)
                 .Include(r => r.BiotaPropertiesDID)                
                 .Include(r => r.BiotaPropertiesEmote)
                 .Include(r => r.BiotaPropertiesEmoteAction)
                 .Include(r => r.BiotaPropertiesEnchantmentRegistry)
                 .Include(r => r.BiotaPropertiesEventFilter)
-                .Include(r => r.BiotaPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFillCompBook)
                 .Include(r => r.BiotaPropertiesFloat)
-                // .Include(r => r.BiotaPropertiesFriendListFriend)
-                .Include(r => r.BiotaPropertiesFriendListObject)
+                .Include(r => r.CharacterPropertiesFriendList)
                 .Include(r => r.BiotaPropertiesGenerator)
                 .Include(r => r.BiotaPropertiesIID)
                 .Include(r => r.BiotaPropertiesInt)
                 .Include(r => r.BiotaPropertiesInt64)
                 .Include(r => r.BiotaPropertiesPalette)
                 .Include(r => r.BiotaPropertiesPosition)
-                .Include(r => r.BiotaPropertiesShortcutBarObject)
+                .Include(r => r.CharacterPropertiesShortcutBar)
                 .Include(r => r.BiotaPropertiesSkill)
-                .Include(r => r.BiotaPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
                 .Include(r => r.BiotaPropertiesSpellBook)
                 .Include(r => r.BiotaPropertiesString)
                 .Include(r => r.BiotaPropertiesTextureMap)
-                .Include(r => r.BiotaPropertiesTitleBook)
+                .Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == id);
         }
 
@@ -339,29 +338,28 @@ namespace ACE.Database
                     //.Include(r => r.BiotaPropertiesBook)
                     //.Include(r => r.BiotaPropertiesBookPageData)
                     .Include(r => r.BiotaPropertiesBool)
-                    .Include(r => r.BiotaPropertiesContract)                // Player Only
+                    .Include(r => r.CharacterPropertiesContract)                // Player Only
                     //.Include(r => r.BiotaPropertiesCreateList)
                     .Include(r => r.BiotaPropertiesDID)
                     //.Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
                     //.Include(r => r.BiotaPropertiesEmoteAction)
                     //.Include(r => r.BiotaPropertiesEventFilter)
                     .Include(r => r.BiotaPropertiesEnchantmentRegistry)
-                    .Include(r => r.BiotaPropertiesFillCompBook)            // Player Only
+                    .Include(r => r.CharacterPropertiesFillCompBook)            // Player Only
                     .Include(r => r.BiotaPropertiesFloat)
-                    //.Include(r => r.BiotaPropertiesFriendListFriend)
-                    .Include(r => r.BiotaPropertiesFriendListObject)        // Player Only
+                    .Include(r => r.CharacterPropertiesFriendList)        // Player Only
                     //.Include(r => r.BiotaPropertiesGenerator)
                     .Include(r => r.BiotaPropertiesIID)
                     .Include(r => r.BiotaPropertiesInt)
                     .Include(r => r.BiotaPropertiesInt64)
                     //.Include(r => r.BiotaPropertiesPalette)
                     .Include(r => r.BiotaPropertiesPosition)
-                    .Include(r => r.BiotaPropertiesShortcutBarObject)       // Player Only
+                    .Include(r => r.CharacterPropertiesShortcutBar)       // Player Only
                     .Include(r => r.BiotaPropertiesSkill)
-                    .Include(r => r.BiotaPropertiesSpellBar)                // Player Only
+                    .Include(r => r.CharacterPropertiesSpellBar)                // Player Only
                     .Include(r => r.BiotaPropertiesSpellBook)
                     .Include(r => r.BiotaPropertiesString)
-                    .Include(r => r.BiotaPropertiesTitleBook)               // Player Only
+                    .Include(r => r.CharacterPropertiesTitleBook)               // Player Only
                     //.Include(r => r.BiotaPropertiesTextureMap)
                     .FirstOrDefault(r => r.Id == id);
             }
@@ -703,11 +701,11 @@ namespace ACE.Database
             }
         }
 
-        public bool RemoveEntity(BiotaPropertiesShortcutBar entity)
+        public bool RemoveEntity(CharacterPropertiesShortcutBar entity)
         {
             using (var context = new ShardDbContext())
             {
-                context.BiotaPropertiesShortcutBar.Remove(entity);
+                context.CharacterPropertiesShortcutBar.Remove(entity);
 
                 try
                 {
@@ -723,11 +721,11 @@ namespace ACE.Database
             }
         }
 
-        public bool RemoveEntity(BiotaPropertiesSpellBar entity)
+        public bool RemoveEntity(CharacterPropertiesSpellBar entity)
         {
             using (var context = new ShardDbContext())
             {
-                context.BiotaPropertiesSpellBar.Remove(entity);
+                context.CharacterPropertiesSpellBar.Remove(entity);
 
                 try
                 {

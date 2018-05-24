@@ -70,13 +70,7 @@ namespace ACE.Entity.Enum.Properties
         TeleportedCharacter              = 42,
         Pet                              = 43,
         PetOwner                         = 44,
-        PetDevice                        = 45,
-
-        // values over 9000 are ones that we have added and should not be sent to the client
-        [ServerOnly]
-        Account                          = 9001,
-        [ServerOnly]
-        Friend                           = 9002
+        PetDevice                        = 45
     }
 
     public static class PropertyInstanceIdExtensions

@@ -48,9 +48,9 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesContract GetContract(this Biota biota, uint contractId)
+        public static CharacterPropertiesContract GetContract(this Biota biota, uint contractId)
         {
-            return biota.BiotaPropertiesContract.FirstOrDefault(x => x.ContractId == contractId);
+            return biota.CharacterPropertiesContract.FirstOrDefault(x => x.ContractId == contractId);
         }
 
         public static BiotaPropertiesCreateList GetCreateList(this Biota biota, sbyte destinationType)

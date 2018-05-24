@@ -11,7 +11,7 @@ namespace ACE.Entity.Enum.Properties
         Quickness    = 3,
         Coordination = 4,
         Focus        = 5,
-        Self         = 6,
+        Self         = 6
     }
 
     public static class PropertyAttributeExtensions

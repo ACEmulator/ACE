@@ -71,7 +71,6 @@ namespace ACE.Entity.Enum.Properties
 
         [Description("Gear Plating Name")]
         GearPlatingName                 = 52
-        // values over 9000 are ones that we have added and should not be sent to the client
     }
 
     public static class PropertyStringExtensions
