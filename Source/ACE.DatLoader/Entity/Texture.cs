@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace ACE.DatLoader.Entity
@@ -12,6 +13,7 @@ namespace ACE.DatLoader.Entity
         public D3DTextureFormat D3DFormat { get; set; } = D3DTextureFormat.D3DFMT_UNKNOWN;
         public int Length { get; set; }
         public byte[] Data { get; set; }
+        public uint PaletteId { get; set; }
 
         public void Unpack(BinaryReader reader)
         {
@@ -22,7 +24,11 @@ namespace ACE.DatLoader.Entity
             Format = reader.ReadInt32();
             D3DFormat = (D3DTextureFormat)Format;
             Length = reader.ReadInt32();
-            Data = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position); // to-do: identify the 4 extra bytes (trailing crc?)
+            Data = reader.ReadBytes((int)reader.BaseStream.Length - (int)reader.BaseStream.Position - 4);
+            PaletteId = reader.ReadUInt32();
+
+            if (Length != Data.Length)
+                throw new Exception($"Texture data length was unexpected.");
         }
 
         public enum D3DTextureFormat

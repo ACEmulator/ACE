@@ -35,8 +35,7 @@ namespace ACE.DatLoader.FileTypes
 
             var dataFiles = new string[] {
                 Path.Combine(ConfigManager.Config.Server.DatFilesDirectory, "client_portal.dat"),
-                Path.Combine(ConfigManager.Config.Server.DatFilesDirectory, "client_highres.dat"),
-                //Path.Combine(ConfigManager.Config.Server.DatFilesDirectory, "client_cell_1.dat") // not sure if this one is needed
+                Path.Combine(ConfigManager.Config.Server.DatFilesDirectory, "client_highres.dat")
             };
 
             foreach (uint fileId in TextureFileIds)
@@ -63,10 +62,9 @@ namespace ACE.DatLoader.FileTypes
             if (Textures.Count != TextureCount)
                 throw new Exception($"Found only {Textures.Count} of {TextureCount} surface textures for SurfaceTexture {Id}");
 
-            //not using datmanager, highrez is still unimplemented
+            //// not using datmanager because highres is still unimplemented
             //if (DatManager.PortalDat == null)
             //    DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory);
-            // missing highrez portaldat?
             //var allDatabases = new DatDatabase[] { DatManager.PortalDat, DatManager.CellDat };
             //foreach (uint fileId in TextureFileIds)
             //{
@@ -81,10 +79,10 @@ namespace ACE.DatLoader.FileTypes
             //            var bytes = datReader.Buffer;
             //            using (var ms = new MemoryStream(bytes))
             //            {
-            //var texReader = new BinaryReader(ms);
-            //Texture tex = new Texture();
-            //tex.Unpack(texReader);
-            //Textures.Add(tex);
+            //                var texReader = new BinaryReader(ms);
+            //                Texture tex = new Texture();
+            //                tex.Unpack(texReader);
+            //                Textures.Add(tex);
             //            }
             //            break;
             //        }
