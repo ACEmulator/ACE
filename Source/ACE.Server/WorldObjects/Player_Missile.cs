@@ -62,6 +62,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void LaunchMissile(WorldObject target)
         {
+            if (GetEquippedAmmo() == null || CombatMode == CombatMode.NonCombat)
+                return;
+
             var creature = target as Creature;
             if (MissileTarget == null || creature.Health.Current <= 0)
             {
@@ -71,7 +74,7 @@ namespace ACE.Server.WorldObjects
 
             var weapon = GetEquippedWeapon();
             var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
-            Session.Network.EnqueueSend(new GameMessageSound(Guid, sound, 1.0f));
+            CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
 
             float targetTime = 0.0f;
             targetTime = LaunchProjectile(target);
