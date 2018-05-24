@@ -972,7 +972,7 @@ namespace ACE.Server.Command.Handlers
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
 
-            var isValidStackSize = int.TryParse(parameters[1], out var stackSize);
+            var isValidStackSize = ushort.TryParse(parameters[1], out var stackSize);
             if (parameters.Length > 1 && (!isValidStackSize || stackSize == 0))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between 1 - {ushort.MaxValue}", ChatMessageType.Broadcast));
@@ -1007,7 +1007,7 @@ namespace ACE.Server.Command.Handlers
             if (loot.MaxStackSize != null && stackSize > loot.MaxStackSize)
                 loot.StackSize = loot.MaxStackSize;
             else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
-                loot.StackSize = (ushort)stackSize;
+                loot.StackSize = stackSize;
 
             // todo set the palette, shade here
 
