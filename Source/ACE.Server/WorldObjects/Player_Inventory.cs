@@ -16,8 +16,6 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
-using ACE.Server.WorldObjects.Entity;
-using ACE.Database.Models.Shard;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,7 +99,7 @@ namespace ACE.Server.WorldObjects
         public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount)
         {
             if (amount >= (worldObject.StackSize ?? 1))
-                return TryDestroyFromInventoryWithNetworking(worldObject);
+                return TryRemoveFromInventoryWithNetworking(worldObject);
 
             worldObject.StackSize -= amount;
 
@@ -122,11 +120,11 @@ namespace ACE.Server.WorldObjects
         /// If isFromMergeEvent is false, update messages will be sent for EncumbranceVal and if WeenieType is Coin, CoinValue will be updated and update messages will be sent for CoinValue.
         /// </summary>
         /// <returns></returns>
-        public bool TryDestroyFromInventoryWithNetworking(WorldObject worldObject, bool isFromMergeEvent = false)
+        public bool TryRemoveFromInventoryWithNetworking(WorldObject worldObject, bool isFromMergeEvent = false)
         {
             if (TryRemoveFromInventory(worldObject.Guid))
             {
-                Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
+                Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, worldObject));
 
                 if (!isFromMergeEvent)
                 {
@@ -1109,7 +1107,6 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessagePrivateUpdatePropertyInt(fromWo, PropertyInt.Value, newFromValue),
                 new GameMessageSetStackSize(fromWo));
         }
 
@@ -1121,7 +1118,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="fromWo">World object of the item are we merging from</param>
         /// <param name="toWo">World object of the item we are merging into</param>
         /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        private void UpdateToStack(WorldObject fromWo, WorldObject toWo, int amount)
+        private void UpdateToStack(WorldObject fromWo, WorldObject toWo, int amount, bool missileAmmo = false)
         {
             Debug.Assert(toWo.Value != null, "toWo.Value != null");
             Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
@@ -1139,10 +1136,13 @@ namespace ACE.Server.WorldObjects
             toWo.EncumbranceVal = (int)newBurden;
 
             // Build the needed messages to the client.
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessagePrivateUpdatePropertyInt(toWo, PropertyInt.Value, newValue),
-                new GameEventItemServerSaysContainId(Session, toWo, this),
-                new GameMessageSetStackSize(toWo));
+            if (missileAmmo)
+                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                    new GameMessageSetStackSize(toWo));
+            else
+                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                    new GameEventItemServerSaysContainId(Session, toWo, this),
+                    new GameMessageSetStackSize(toWo));
         }
 
 
@@ -1337,6 +1337,7 @@ namespace ACE.Server.WorldObjects
 
                 var fromItem = GetInventoryItem(mergeFromGuid);
                 var toItem = GetInventoryItem(mergeToGuid);
+                var missileAmmo = toItem.ItemType == ItemType.MissileWeapon;
 
                 if (fromItem == null || toItem == null)
                     return;
@@ -1349,22 +1350,22 @@ namespace ACE.Server.WorldObjects
                 if (toItem.MaxStackSize >= (ushort)((toItem.StackSize ?? 0) + amount))
                 {
                     // The toItem has enoguh capacity to take the full amount
-                    UpdateToStack(fromItem, toItem, amount);
+                    UpdateToStack(fromItem, toItem, amount, missileAmmo);
 
-                    // Ok did we merge it all? If so, let's destroy the from item.
+                    // Ok did we merge it all? If so, let's remove the item.
                     if (fromItem.StackSize == amount)
-                        TryDestroyFromInventoryWithNetworking(fromItem, true);
+                        TryRemoveFromInventoryWithNetworking(fromItem, true);
                     else
                         UpdateFromStack(fromItem, amount);
                 }
                 else
                 {
-                    // The toItem does not have enoguh capacity to take the full amount. Just add what we can and adjust both.
+                    // The toItem does not have enough capacity to take the full amount. Just add what we can and adjust both.
                     Debug.Assert(toItem.MaxStackSize != null, "toWo.MaxStackSize != null");
 
                     var amtToFill = (toItem.MaxStackSize ?? 0) - (toItem.StackSize ?? 0);
 
-                    UpdateToStack(fromItem, toItem, amtToFill);
+                    UpdateToStack(fromItem, toItem, amtToFill, missileAmmo);
                     UpdateFromStack(toItem, amtToFill);
                 }
             }).EnqueueChain();

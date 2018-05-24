@@ -178,7 +178,7 @@ namespace ACE.Server.WorldObjects
 
             // Don't remove it if it went into our inventory...
             if (removed && remove)
-                Session.Network.EnqueueSend(new GameMessageRemoveObject(worldObject));
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
 
             return removed;
         }

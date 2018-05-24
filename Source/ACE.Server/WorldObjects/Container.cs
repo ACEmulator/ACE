@@ -161,6 +161,16 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            var ammo = (this as Player)?.GetEquippedAmmo();
+            if (ammo != null)
+            {
+                if (ammo.Guid == objectGuid)
+                {
+                    container = null;
+                    return ammo;
+                }
+            }
+
             container = null;
             return null;
         }
@@ -393,11 +403,11 @@ namespace ACE.Server.WorldObjects
 
             player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
-            // send removeobject for all objects in this container's inventory to player
+            // send deleteobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
 
             foreach (var item in Inventory.Values)
-                itemsToSend.Add(new GameMessageRemoveObject(item));
+                itemsToSend.Add(new GameMessageDeleteObject(item));
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
