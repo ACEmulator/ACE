@@ -120,7 +120,8 @@ namespace ACE.Server.WorldObjects
                 if (item.CurrentWieldedLocation == EquipMask.MissileAmmo)
                 {
                     item.ParentLocation = null;
-                    item.Placement = null;
+                    item.Placement = ACE.Entity.Enum.Placement.Resting;
+                    item.Location = null;
                 }
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
