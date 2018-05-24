@@ -112,7 +112,6 @@ namespace ACE.DatLoader.Tests
                 Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
 
                 // These file types aren't converted yet
-                if (fileType == DatFileType.SurfaceTexture) continue;
                 if (fileType == DatFileType.RenderSurface) continue;
                 if (fileType == DatFileType.SecondaryAttributeTable) continue;
                 if (fileType == DatFileType.SkillTable) continue;
