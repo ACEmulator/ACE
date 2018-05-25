@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
             {
                 // notify attacker
                 var intDamage = (uint)Math.Round(damage);
-                if (damageSource.ItemType == ItemType.MissileWeapon)
+                if (damageSource?.ItemType == ItemType.MissileWeapon)
                 {
                     var damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
                     Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
@@ -151,7 +151,7 @@ namespace ACE.Server.WorldObjects
 
             // get target resistance
             DamageType damageType;
-            if (damageSource.ItemType == ItemType.MissileWeapon)
+            if (damageSource?.ItemType == ItemType.MissileWeapon)
             {
                 damageType = (DamageType) damageSource.GetProperty(PropertyInt.DamageType);
             }
