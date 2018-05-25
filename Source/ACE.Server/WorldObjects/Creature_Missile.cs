@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public float LaunchProjectile(WorldObject target)
+        public WorldObject LaunchProjectile(WorldObject target, out float time)
         {
             var ammo = GetEquippedAmmo();
             var arrow = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
 
             origin += dir * 2.0f;
 
-            arrow.Velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out var time);
+            arrow.Velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
 
             var loc = Location;
             origin = Position.FromGlobal(origin).Pos;
@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(arrow, () => CurrentLandblock.RemoveWorldObject(arrow.Guid, false));
             actionChain.EnqueueChain();
 
-            return time;
+            return arrow;
         }
 
         /// <summary>
