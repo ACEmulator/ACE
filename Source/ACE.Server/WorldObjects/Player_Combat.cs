@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
             return attackType;
         }
 
-        public void DamageTarget(WorldObject target)
+        public void DamageTarget(WorldObject target, WorldObject damageSource)
         {
             var creature = target as Creature;
 
@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var critical = false;
-            var damage = CalculateDamage(target, ref critical);
+            var damage = CalculateDamage(target, damageSource, ref critical);
             if (damage > 0.0f)
                 target.TakeDamage(this, damage, critical);
             else
@@ -75,7 +75,15 @@ namespace ACE.Server.WorldObjects
             {
                 // notify attacker
                 var intDamage = (uint)Math.Round(damage);
-                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                if (damageSource?.ItemType == ItemType.MissileWeapon)
+                {
+                    var damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                }
+                else
+                {
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                }
 
                 // splatter effects
                 Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
@@ -111,7 +119,7 @@ namespace ACE.Server.WorldObjects
             return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
         }
 
-        public float CalculateDamage(WorldObject target, ref bool criticalHit)
+        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit)
         {
             // evasion chance
             var evadeChance = GetEvadeChance(target);
@@ -142,7 +150,13 @@ namespace ACE.Server.WorldObjects
             var armor = GetArmor(target, bodyPart);
 
             // get target resistance
-            var damageType = GetDamageType();
+            DamageType damageType;
+            if (damageSource?.ItemType == ItemType.MissileWeapon)
+            {
+                damageType = (DamageType) damageSource.GetProperty(PropertyInt.DamageType);
+            }
+            else
+                damageType = GetDamageType();
             var resistance = GetResistance(target, bodyPart, damageType);
 
             // scale damage for armor

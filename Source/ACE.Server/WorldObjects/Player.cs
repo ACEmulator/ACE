@@ -228,7 +228,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        private MotionStance stance = MotionStance.Standing;
+        public MotionStance stance = MotionStance.Standing;
 
 
 

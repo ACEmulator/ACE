@@ -194,7 +194,7 @@ namespace ACE.Server.WorldObjects
                 {
                     player.LearnSpellWithNetworking(SpellId);
                     player.HandleActionMotion(motionReady);
-                    if (player.TryDestroyFromInventoryWithNetworking(this))
+                    if (player.TryRemoveFromInventoryWithNetworking(this))
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
                 });
             }

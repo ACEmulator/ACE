@@ -289,7 +289,10 @@ namespace ACE.Server.WorldObjects
             if (mEquipedAmmo != null)
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
             if (player != null)
+            {
+                player.stance = MotionStance.Standing;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
+            } 
         }
 
         public void HandleSwitchToMissileCombatMode(ActionChain combatModeChain)
@@ -348,11 +351,12 @@ namespace ACE.Server.WorldObjects
                     SetMotionState(this, mm);
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.40);
-                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
 
                     // add to player tracking
                     var wielder = CurrentLandblock.GetObject(new ObjectGuid(mEquipedAmmo.WielderId.Value));
                     combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(wielder)));
+
+                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
                 }
 
                 var player = this as Player;

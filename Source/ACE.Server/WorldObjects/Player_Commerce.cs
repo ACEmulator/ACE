@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    TryDestroyFromInventoryWithNetworking(wo);
+                    TryRemoveFromInventoryWithNetworking(wo);
 
                     /*TryRemoveFromInventory(wo.Guid);
                     ObjectGuid clearContainer = new ObjectGuid(0);
@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
                     throw new NotImplementedException();
                     // todo fix for EF
                     //DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);*/
-                    Session.Network.EnqueueSend(new GameMessageRemoveObject(wo));
+                    Session.Network.EnqueueSend(new GameMessageDeleteObject(wo));
                 }
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
@@ -270,7 +270,7 @@ namespace ACE.Server.WorldObjects
                 // todo fix for EF
                 //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
 
-                Session.Network.EnqueueSend(new GameMessageRemoveObject(item));
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
                 purchaselist.Add(item);
             }
 

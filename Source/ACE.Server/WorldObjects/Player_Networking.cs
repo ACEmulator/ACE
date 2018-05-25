@@ -106,16 +106,23 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in EquippedObjects.Values)
             {
-                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
+                if (item.CurrentWieldedLocation != null
+                    && ((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0
+                    && item.CurrentWieldedLocation != EquipMask.MissileAmmo)
                 {
                     int placementId;
                     int parentLocation;
                     session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
                     item.CurrentMotionState = null;
-                    item.Placement = (Placement)placementId;
-                    item.ParentLocation = (ParentLocation)parentLocation;
                 }
 
+                // We don't want missile ammo to appear in the players right hand on login.
+                if (item.CurrentWieldedLocation == EquipMask.MissileAmmo)
+                {
+                    item.ParentLocation = null;
+                    item.Placement = ACE.Entity.Enum.Placement.Resting;
+                    item.Location = null;
+                }
                 session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
         }

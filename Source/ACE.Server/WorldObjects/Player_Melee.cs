@@ -86,7 +86,8 @@ namespace ACE.Server.WorldObjects
             var creature = target as Creature;
             var actionChain = DoSwingMotion(target, out float animLength);
 
-            DamageTarget(target);
+            // TODO: Send correct damage source.
+            DamageTarget(target, null);
 
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             { 
