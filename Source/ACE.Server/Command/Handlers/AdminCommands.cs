@@ -972,11 +972,15 @@ namespace ACE.Server.Command.Handlers
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
 
-            var isValidStackSize = ushort.TryParse(parameters[1], out var stackSize);
-            if (parameters.Length > 1 && (!isValidStackSize || stackSize == 0))
+            ushort stackSize = 0;
+            if (parameters.Length > 1)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between 1 - {ushort.MaxValue}", ChatMessageType.Broadcast));
-                return;
+                var isValidStackSize = ushort.TryParse(parameters[1], out stackSize);
+                if (!isValidStackSize || stackSize == 0)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between 1 - {ushort.MaxValue}", ChatMessageType.Broadcast));
+                    return;
+                }
             }
 
             if (parameters.Length > 2 && !int.TryParse(parameters[2], out int palette))
@@ -1003,11 +1007,15 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
+
+            if (stackSize != 0)
+            {
+                if (loot.MaxStackSize != null && stackSize > loot.MaxStackSize)
+                    loot.StackSize = loot.MaxStackSize;
+                else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
+                    loot.StackSize = stackSize;
+            }
             
-            if (loot.MaxStackSize != null && stackSize > loot.MaxStackSize)
-                loot.StackSize = loot.MaxStackSize;
-            else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
-                loot.StackSize = stackSize;
 
             // todo set the palette, shade here
 
