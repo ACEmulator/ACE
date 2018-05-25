@@ -76,14 +76,16 @@ namespace ACE.Server.WorldObjects
             var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
 
-            var time = LaunchProjectile(target);
+            float targetTime = 0.0f;
+            var damageSource = LaunchProjectile(target, out targetTime);
 
-            // todo: get correct animlenghts for shoot + reload + aim
+            // todo: get correct animlengths for shoot + reload + aim
             var animLength = ReloadMotion() * 2.5f;
 
             var actionChain = new ActionChain();
             //actionChain.AddDelaySeconds(targetTime);
             //actionChain.AddAction(this, () => DamageTarget(target, damageSource));
+
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             {
                 // reload animation, accuracy bar refill

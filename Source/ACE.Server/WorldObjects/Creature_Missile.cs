@@ -2,6 +2,8 @@ using System;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -43,6 +45,12 @@ namespace ACE.Server.WorldObjects
                 CurrentMotionState = motion;
             });
 
+            var ammo = GetEquippedAmmo();
+            if (ammo != null)
+                actionChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
+                    new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
+                        (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+
             actionChain.AddDelaySeconds(animLength);
 
             var player = this as Player;
@@ -50,6 +58,7 @@ namespace ACE.Server.WorldObjects
             {
                 actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventAttackDone(player.Session)));
                 actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(player.Session)));
+                // TODO: This gets rid of the hourglass but doesn't seem to be sent in retail pcaps...
                 actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventAttackDone(player.Session)));
             }
             actionChain.EnqueueChain();
@@ -87,7 +96,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public float LaunchProjectile(WorldObject target)
+        public WorldObject LaunchProjectile(WorldObject target, out float time)
         {
             var ammo = GetEquippedAmmo();
             var arrow = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
@@ -106,7 +115,7 @@ namespace ACE.Server.WorldObjects
             var dir = GetDir2D(origin, dest);
             origin += dir * 2.0f;
 
-            var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out var time);
+            var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
             arrow.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
             origin = Location.FromGlobal(origin).Pos;
@@ -114,8 +123,37 @@ namespace ACE.Server.WorldObjects
             arrow.Location = new Position(Location.LandblockId.Raw, origin.X, origin.Y, origin.Z, rotation.X, rotation.Y, rotation.Z, rotation.W);
             SetProjectilePhysicsState(arrow, target);
 
+            // TODO: Get correct aim level based on arrow velocity and add aim motion delay.
+            var motion = new UniversalMotion(CurrentMotionState.Stance);
+            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+            motion.MovementData.ForwardCommand = (uint)MotionCommand.AimLevel;
+            CurrentMotionState = motion;
+
+            DoMotion(motion);
+            //actionChain.AddDelaySeconds(animLength);
+
             LandblockManager.AddObject(arrow);
-            CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
+            CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessagePickupEvent(ammo));
+
+            var player = this as Player;
+            // TODO: Add support for monster ammo depletion. For now only players will use up ammo.
+            if (player != null)
+                UpdateAmmoAfterLaunch(ammo);
+            // Not sure why this would be needed but it is sent in retail pcaps.
+            CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageSetStackSize(arrow));
+
+            if (player != null)
+            {
+                CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
+                    arrow, PropertyInt.PlayerKillerStatus, (int)(player.PlayerKillerStatus ?? ACE.Entity.Enum.PlayerKillerStatus.NPK) ));
+            }
+            else
+            {
+                CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
+                    arrow, PropertyInt.PlayerKillerStatus, (int)ACE.Entity.Enum.PlayerKillerStatus.Creature));
+            }
+            
+            CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
 
             // detonate point-blank projectiles immediately
             var radsum = target.PhysicsObj.GetRadius() + arrow.PhysicsObj.GetRadius();
@@ -123,7 +161,29 @@ namespace ACE.Server.WorldObjects
             if (dist < radsum)
                 arrow.OnCollideObject(target);
 
-            return time;
+            return arrow;
+        }
+
+        /// <summary>
+        /// Updates the ammo count or destroys the ammo after launching the projectile.
+        /// </summary>
+        /// <param name="ammo">The missile ammo object</param>
+        public void UpdateAmmoAfterLaunch(WorldObject ammo)
+        {
+            var player = this as Player;
+
+            if (ammo.StackSize == 1)
+            {
+                TryDequipObject(ammo.Guid);
+                player?.Session.Network.EnqueueSend(new GameMessageDeleteObject(ammo));
+                CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, p => p.StopTrackingObject(ammo, true));
+            }
+            else
+            {
+                ammo.StackSize--;
+                player?.Session.Network.EnqueueSend(new GameMessageSetStackSize(ammo));
+                CurrentLandblock.EnqueueBroadcast(Location, new GameMessagePickupEvent(ammo));
+            }
         }
 
         /// <summary>
@@ -175,6 +235,8 @@ namespace ACE.Server.WorldObjects
             var rotation = obj.Location.Rotation;
             obj.PhysicsObj.Position.Frame.Origin = pos;
             obj.PhysicsObj.Position.Frame.Orientation = rotation;
+            obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
+            obj.CurrentMotionState = null;
 
             var velocity = obj.Velocity.Get();
             velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));

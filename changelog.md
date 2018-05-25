@@ -22,6 +22,19 @@
 * Various other minor tweaks to bring sent game messages more in line with retail pcaps.
 
 ### 2018-05-24
+[Slushnas]
+* Renamed GameMessageRemoveObject to GameMessageDeleteObject to avoid confusion with other messages.
+* Renamed TryDestroyFromInventoryWithNetworking() to TryRemoveFromInventoryWithNetworking() as that function sends InventoryRemoveObject messages.
+* Cleaned up some stack merging code and added support for merging missile ammo to currently equipped ammo.
+* Added the ability to set the stacksize of spawned items created with the /ci command.
+* Fix for observed players improperly playing last combat mode animation when moving.
+* Fixed missile ammo appearing in players hands on login.
+* Fixed arrows being fired after switching to peace mode.
+* Added ammo usage to player missile attacks.
+* Added damageSource parameter to damage functions to better support edge cases.
+* Various other minor tweaks to bring sent game messages more in line with retail pcaps.
+
+### 2018-05-24
 **ACE-World-16PY world db release v0.0.14+ required with this update**
 
 **You will need drop and recreate both Shard and World databases with this update**
