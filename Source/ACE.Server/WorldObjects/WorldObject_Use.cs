@@ -55,13 +55,10 @@ namespace ACE.Server.WorldObjects
                 if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
                 var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
                 var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
+                var msg = string.Empty;
                 player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
-                const ushort layer = 1;
-                var enchantment = new Enchantment(player, SpellDID.Value, (spell.Duration.HasValue) ? (double)spell.Duration : 0, layer, spell.Category);
-                player.EnchantmentManager.Add(enchantment, false);
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session),
-                    new GameMessageSystemChat($"The {Name} casts {spell.Name} on you.", ChatMessageType.Magic),
-                    new GameEventMagicUpdateEnchantment(player.Session, enchantment));
+                LifeMagic(player, spellBase, spell, out msg);
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
                 return;
             }
 
