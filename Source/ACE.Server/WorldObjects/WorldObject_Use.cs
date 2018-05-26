@@ -1,8 +1,11 @@
 
+using ACE.Database;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -27,11 +30,11 @@ namespace ACE.Server.WorldObjects
         public virtual void UseItem(Player player, ActionChain actionChain)
         {
             // Do Nothing by default
-            #if DEBUG
+#if DEBUG
             var message = $"Default UseItem reached, this object ({Name}) not programmed yet.";
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
             log.Error(message);
-            #endif
+#endif
 
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
@@ -45,13 +48,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void ActOnUse(Player player)
         {
+            if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && Spell.HasValue && SpellDID.HasValue)
+            {
+                //taken from Gem.UseItem
+                var spellTable = DatManager.PortalDat.SpellTable;
+                if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
+                var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
+                var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
+                var msg = string.Empty;
+                player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
+                LifeMagic(player, spellBase, spell, out msg);
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+                return;
+            }
+
             // Do Nothing by default
-            #if DEBUG
+#if DEBUG
             var message = $"Default ActOnUse reached, this object ({Name}) not programmed yet.";
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
             log.Error(message);
-            #endif
-
+#endif
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
     }
