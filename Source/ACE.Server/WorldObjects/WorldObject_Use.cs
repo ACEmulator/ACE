@@ -1,8 +1,11 @@
 
+using ACE.Database;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -27,11 +30,11 @@ namespace ACE.Server.WorldObjects
         public virtual void UseItem(Player player, ActionChain actionChain)
         {
             // Do Nothing by default
-            #if DEBUG
+#if DEBUG
             var message = $"Default UseItem reached, this object ({Name}) not programmed yet.";
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
             log.Error(message);
-            #endif
+#endif
 
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
@@ -45,13 +48,29 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void ActOnUse(Player player)
         {
+            if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && Spell.HasValue && SpellDID.HasValue)
+            {
+                //taken from Gem.UseItem
+                var spellTable = DatManager.PortalDat.SpellTable;
+                if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
+                var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
+                var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
+                player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
+                const ushort layer = 1;
+                var enchantment = new Enchantment(player, SpellDID.Value, (spell.Duration.HasValue) ? (double)spell.Duration : 0, layer, spell.Category);
+                player.EnchantmentManager.Add(enchantment, false);
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session),
+                    new GameMessageSystemChat($"The {Name} casts {spell.Name} on you.", ChatMessageType.Magic),
+                    new GameEventMagicUpdateEnchantment(player.Session, enchantment));
+                return;
+            }
+
             // Do Nothing by default
-            #if DEBUG
+#if DEBUG
             var message = $"Default ActOnUse reached, this object ({Name}) not programmed yet.";
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
             log.Error(message);
-            #endif
-
+#endif
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
     }
