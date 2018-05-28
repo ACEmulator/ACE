@@ -277,6 +277,7 @@ namespace ACE.Server.WorldObjects
                             wo.StackSize = (ushort)item.StackSize;
 
                         TryAddToInventory(wo);
+                        //TryEquipObject(wo, (int)wo.ValidLocations);
                     }
                 }
             }
