@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2018-05-28
+**ACE-World-16PY world db release v0.0.15+ required with this update**
+
+**You will need to update world database with scripts in the respective update folders**
+[Ripley]
+* Added New Treasure Tables to World Database.
+* Scaffolded the new tables.
+
 ### 2018-05-24
 [Slushnas]
 * Renamed GameMessageRemoveObject to GameMessageDeleteObject to avoid confusion with other messages.

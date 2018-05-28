@@ -29,6 +29,8 @@ namespace ACE.Database.Models.World
         public virtual DbSet<RecipeRequirementsInt> RecipeRequirementsInt { get; set; }
         public virtual DbSet<RecipeRequirementsString> RecipeRequirementsString { get; set; }
         public virtual DbSet<Spell> Spell { get; set; }
+        public virtual DbSet<TreasureDeath> TreasureDeath { get; set; }
+        public virtual DbSet<TreasureWielded> TreasureWielded { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public virtual DbSet<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -1284,6 +1286,131 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.VerticalAngle).HasColumnName("vertical_Angle");
 
                 entity.Property(e => e.Wcid).HasColumnName("wcid");
+            });
+
+            modelBuilder.Entity<TreasureDeath>(entity =>
+            {
+                entity.ToTable("treasure_death");
+
+                entity.HasIndex(e => e.TreasureType)
+                    .HasName("treasureType_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Tier)
+                    .HasColumnName("tier")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.TreasureType).HasColumnName("treasure_Type");
+
+                entity.Property(e => e.Unknown1).HasColumnName("unknown_1");
+
+                entity.Property(e => e.Unknown10)
+                    .HasColumnName("unknown_10")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown11)
+                    .HasColumnName("unknown_11")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown12)
+                    .HasColumnName("unknown_12")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown13)
+                    .HasColumnName("unknown_13")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown14)
+                    .HasColumnName("unknown_14")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown2)
+                    .HasColumnName("unknown_2")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown3)
+                    .HasColumnName("unknown_3")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown4)
+                    .HasColumnName("unknown_4")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown5)
+                    .HasColumnName("unknown_5")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown6)
+                    .HasColumnName("unknown_6")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown7)
+                    .HasColumnName("unknown_7")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown8)
+                    .HasColumnName("unknown_8")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.Unknown9)
+                    .HasColumnName("unknown_9")
+                    .HasColumnType("int(10)");
+            });
+
+            modelBuilder.Entity<TreasureWielded>(entity =>
+            {
+                entity.ToTable("treasure_wielded");
+
+                entity.HasIndex(e => e.TreasureType)
+                    .HasName("treasureType_idx");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.PaletteId).HasColumnName("palette_Id");
+
+                entity.Property(e => e.Probability).HasColumnName("probability");
+
+                entity.Property(e => e.Shade).HasColumnName("shade");
+
+                entity.Property(e => e.StackSize)
+                    .HasColumnName("stack_Size")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.TreasureType).HasColumnName("treasure_Type");
+
+                entity.Property(e => e.Unknown1).HasColumnName("unknown_1");
+
+                entity.Property(e => e.Unknown10).HasColumnName("unknown_10");
+
+                entity.Property(e => e.Unknown11).HasColumnName("unknown_11");
+
+                entity.Property(e => e.Unknown12).HasColumnName("unknown_12");
+
+                entity.Property(e => e.Unknown2).HasColumnName("unknown_2");
+
+                entity.Property(e => e.Unknown3).HasColumnName("unknown_3");
+
+                entity.Property(e => e.Unknown4).HasColumnName("unknown_4");
+
+                entity.Property(e => e.Unknown5).HasColumnName("unknown_5");
+
+                entity.Property(e => e.Unknown6)
+                    .HasColumnName("unknown_6")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Unknown7)
+                    .HasColumnName("unknown_7")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Unknown8)
+                    .HasColumnName("unknown_8")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Unknown9).HasColumnName("unknown_9");
+
+                entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
             });
 
             modelBuilder.Entity<Weenie>(entity =>
