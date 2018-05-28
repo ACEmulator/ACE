@@ -78,7 +78,10 @@ namespace ACE.Server.WorldObjects
                 Mana.Current = Mana.MaxValue;
 
             if (!(this is Player))
+            {
                 GenerateWieldList();
+                GenerateWieldedTreasure();
+            }
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 

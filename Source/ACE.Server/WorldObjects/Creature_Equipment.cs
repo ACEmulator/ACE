@@ -254,5 +254,32 @@ namespace ACE.Server.WorldObjects
                     return null;
             }
         }
+
+        public void GenerateWieldedTreasure()
+        {
+            foreach (var item in WieldedTreasure)
+            {
+                var rng = Physics.Common.Random.RollDice(0f, 1f);
+
+                if (rng < item.Probability)
+                {
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                    if (wo != null)
+                    {
+                        if (item.PaletteId > 0)
+                            wo.PaletteTemplate = (int)item.PaletteId;
+
+                        if (item.Shade > 0)
+                            wo.Shade = item.Shade;
+
+                        if (item.StackSize > 0)
+                            wo.StackSize = (ushort)item.StackSize;
+
+                        TryAddToInventory(wo);
+                    }
+                }
+            }
+        }
     }
 }
