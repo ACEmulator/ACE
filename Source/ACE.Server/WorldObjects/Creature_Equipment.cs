@@ -257,6 +257,9 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldedTreasure()
         {
+            if (WieldedTreasure is null)
+                return;
+
             foreach (var item in WieldedTreasure)
             {
                 var rng = Physics.Common.Random.RollDice(0f, 1f);
