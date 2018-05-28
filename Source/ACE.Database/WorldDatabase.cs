@@ -507,5 +507,68 @@ namespace ACE.Database
 
             return null;
         }
+
+        private readonly ConcurrentDictionary<uint, TreasureDeath> cachedDeathTreasure = new ConcurrentDictionary<uint, TreasureDeath>();
+
+        /// <summary>
+        /// Returns the number of TreasureDeath currently cached.
+        /// </summary>
+        public int GetDeathTreasureCacheCount()
+        {
+            return cachedDeathTreasure.Count;
+        }
+
+        public TreasureDeath GetDeathTreasure(uint dataId)
+        {
+            if (cachedDeathTreasure.TryGetValue(dataId, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var result = context.TreasureDeath
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.TreasureType == dataId);
+
+                if (result != null)
+                {
+                    cachedDeathTreasure[dataId] = result;
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        private readonly ConcurrentDictionary<uint, List<TreasureWielded>> cachedWieldedTreasure = new ConcurrentDictionary<uint, List<TreasureWielded>>();
+
+        /// <summary>
+        /// Returns the number of TreasureWielded currently cached.
+        /// </summary>
+        public int GetWieldedTreasureCacheCount()
+        {
+            return cachedWieldedTreasure.Count;
+        }
+
+        public List<TreasureWielded> GetWieldedTreasure(uint dataId)
+        {
+            if (cachedWieldedTreasure.TryGetValue(dataId, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureWielded
+                    .AsNoTracking()
+                    .Where(r => r.TreasureType == dataId)
+                    .ToList();
+
+                if (results != null)
+                {
+                    cachedWieldedTreasure[dataId] = results;
+                    return results;
+                }
+            }
+
+            return null;
+        }
     }
 }

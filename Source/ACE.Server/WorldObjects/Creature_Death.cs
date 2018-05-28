@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 
 using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -19,6 +20,23 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         private static readonly UniversalMotion deadMotion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+
+        public uint? DeathTreasureType
+        {
+            get => GetProperty(PropertyDataId.DeathTreasureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DeathTreasureType); else SetProperty(PropertyDataId.DeathTreasureType, value.Value); }
+        }
+
+        public TreasureDeath DeathTreasure
+        {
+            get
+            {
+                if (DeathTreasureType.HasValue)
+                    return DatabaseManager.World.GetDeathTreasure(DeathTreasureType.Value);
+                else
+                    return null;
+            }
+        }
 
         private void CreateCorpse()
         {
@@ -84,7 +102,7 @@ namespace ACE.Server.WorldObjects
             // Transfer of generated treasure from creature to corpse here
 
             var random = new Random((int)DateTime.UtcNow.Ticks);
-            int level = (int)this.Level;
+            int level = (int)Level;
             int tier;
             if (level < 16)
             {
@@ -115,6 +133,10 @@ namespace ACE.Server.WorldObjects
                 tier = 7;
             }
             ////Tier 8 is reserved for special creatures, usually based on which landblock they were on...Not level based. to be added later
+
+            if (DeathTreasure?.Tier > 0)
+                tier = DeathTreasure.Tier;
+
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
                 if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability

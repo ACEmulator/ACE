@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -234,6 +235,23 @@ namespace ACE.Server.WorldObjects
                     if (wo.ValidLocations != null)
                         TryEquipObject(wo, (int)wo.ValidLocations.Value);
                 }
+            }
+        }
+
+        public uint? WieldedTreasureType
+        {
+            get => GetProperty(PropertyDataId.WieldedTreasureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.WieldedTreasureType); else SetProperty(PropertyDataId.WieldedTreasureType, value.Value); }
+        }
+
+        public List<TreasureWielded> WieldedTreasure
+        {
+            get
+            {
+                if (WieldedTreasureType.HasValue)
+                    return DatabaseManager.World.GetWieldedTreasure(WieldedTreasureType.Value);
+                else
+                    return null;
             }
         }
     }
