@@ -1,4 +1,3 @@
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -7,12 +6,8 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-//using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
@@ -39,17 +34,16 @@ namespace ACE.Server.WorldObjects
         private ActionChain ActionLoop = null;
         public override void HandleActionOnCollide(ObjectGuid playerId)
         {
+            // to-do: pressure plates
             if (!playerId.IsPlayer()) return;
             if (!Players.Any(k => k == playerId))
                 Players.Add(playerId);
-
             if (ActionLoop == null)
             {
                 ActionLoop = NextActionLoop;
                 NextActionLoop.EnqueueChain();
             }
         }
-
         private ActionChain NextActionLoop
         {
             get
@@ -71,13 +65,11 @@ namespace ACE.Server.WorldObjects
                 return ActionLoop;
             }
         }
-
         public string ActivationTalkString
         {
             get => GetProperty(PropertyString.ActivationTalk);
             set { if (value == null) RemoveProperty(PropertyString.ActivationTalk); else SetProperty(PropertyString.ActivationTalk, value); }
         }
-
         private double CycleTimeNext
         {
             get
@@ -103,11 +95,10 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var r = Math.Abs((int)Damage);
-                double variance = r * (double)DamageVariance;
-                var min = Math.Floor(r - variance);
-                var max = Math.Ceiling(r + variance);
+                var min = Math.Floor(r * (double)DamageVariance);
+                var max = Math.Ceiling((double)r);
                 var p = Physics.Common.Random.RollDice((int)min, (int)max);
-                return ((int)Damage < 0) ? p * -1 : p;
+                return Damage < 0 ? p * -1 : p;
             }
         }
         public double? DamageVariance
@@ -147,15 +138,17 @@ namespace ACE.Server.WorldObjects
                     if (amount > 0) break; // to-do: top it off
                     plr.Mana.Current -= (uint)amount;
                     var msg = new GameMessagePrivateUpdateAttribute2ndLevel(plr, Vital.Mana, plr.Mana.Current);
+                    plr.Session.Network.EnqueueSend(msg);
                     break;
                 default:
                     amount = (int)Math.Ceiling(plr.GetLifeResistance((DamageType)_DamageType) * amount);
                     plr.TakeDamage(this, (DamageType)_DamageType, amount, Server.Entity.BodyPart.Foot, false);
                     break;
             }
+            if (!(Visibility ?? false))
+                CurrentLandblock.EnqueueBroadcastSound(this, Sound.TriggerActivated);
             if (amount != 0 && !string.IsNullOrWhiteSpace(ActivationTalkString))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalkString.Replace("%i", Math.Abs((int)amount).ToString()), ChatMessageType.Craft));
+                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalkString.Replace("%i", Math.Abs(amount).ToString()), ChatMessageType.Craft));
         }
-
     }
 }

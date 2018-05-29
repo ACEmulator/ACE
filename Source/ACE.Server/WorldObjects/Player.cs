@@ -365,9 +365,9 @@ namespace ACE.Server.WorldObjects
         }
 
         // Play a sound
-        public void PlaySound(Sound sound, ObjectGuid targetId)
+        public void PlaySound(Sound sound, ObjectGuid sourceId)
         {
-            Session.Network.EnqueueSend(new GameMessageSound(targetId, sound, 1f));
+            Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, 1f));
         }
 
    
