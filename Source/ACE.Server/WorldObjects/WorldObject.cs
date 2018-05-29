@@ -595,6 +595,11 @@ namespace ACE.Server.WorldObjects
             // todo: implement.  default is probably to do nothing.
         }
 
+        public virtual void HandleActionOnCollideEnd(ObjectGuid playerId)
+        {
+            // todo: implement.  default is probably to do nothing.
+        }
+
         public void HandleActionMotion(UniversalMotion motion)
         {
             if (CurrentLandblock != null)

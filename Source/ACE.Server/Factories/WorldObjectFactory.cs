@@ -95,6 +95,8 @@ namespace ACE.Server.Factories
                     return new Caster(weenie, guid);
                 case WeenieType.ProjectileSpell:
                     return new SpellProjectile(weenie, guid);
+                case WeenieType.HotSpot:
+                    return new Hotspot(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -176,6 +178,8 @@ namespace ACE.Server.Factories
                     return new Lockpick(biota);
                 case WeenieType.Caster:
                     return new Caster(biota);
+                case WeenieType.HotSpot:
+                    return new Hotspot(biota);
                 default:
                     return new GenericObject(biota);
             }

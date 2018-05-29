@@ -887,7 +887,7 @@ namespace ACE.Server.Physics
             var hook = new FPHook(HookType.Velocity, PhysicsTimer.CurrentTime, delta, start, end, 0);
             Hooks.AddLast(hook);*/
         }
-        
+
 
         public void SetLighting(float luminosity, float diffuse)
         {
@@ -1143,7 +1143,7 @@ namespace ACE.Server.Physics
                 return ForceIntoCell(newCell, pos);
 
             //if (setPos.Flags.HasFlag(SetPositionFlags.DontCreateCells))
-                //transition.CellArray.DoNotLoadCells = true;
+            //transition.CellArray.DoNotLoadCells = true;
 
             if (!CheckPositionInternal(newCell, pos, transition, setPos))
                 return handle_all_collisions(transition.CollisionInfo, false, false) ?
@@ -1370,7 +1370,7 @@ namespace ACE.Server.Physics
         public void UpdateChild(PhysicsObj childObj, int partIdx, AFrame childFrame)
         {
             var frame = partIdx >= PartArray.NumParts ?
-                AFrame.Combine(Position.Frame, childFrame) :AFrame.Combine(PartArray.Parts[partIdx].Pos.Frame, childFrame);
+                AFrame.Combine(Position.Frame, childFrame) : AFrame.Combine(PartArray.Parts[partIdx].Pos.Frame, childFrame);
 
             childObj.set_frame(frame);
 
@@ -1697,7 +1697,7 @@ namespace ACE.Server.Physics
         public void attack(AttackCone attackCone)
         {
             if (CurCell.ID == 0) return;
-            if (AttackManager == null)AttackManager = new AttackManager();
+            if (AttackManager == null) AttackManager = new AttackManager();
 
             var sphere = new Sphere();
             sphere.Center.Z = attackCone.Height * Scale;
@@ -1914,7 +1914,7 @@ namespace ACE.Server.Physics
             calc_acceleration();
             var walkable = TransientState.HasFlag(TransientStateFlags.OnWalkable);
             TransientState &= ~(TransientStateFlags.OnWalkable | TransientStateFlags.WaterContact);
-            if (MovementManager != null && walkable)MovementManager.LeaveGround();
+            if (MovementManager != null && walkable) MovementManager.LeaveGround();
             calc_acceleration();
             TransientState = 0;
         }
@@ -2210,7 +2210,7 @@ namespace ACE.Server.Physics
                 CollidingWithEnvironment = collisions.CollidedWithEnvironment;
             }
             else if (collisions.CollidedWithEnvironment || !prev_on_walkable && TransientState.HasFlag(TransientStateFlags.OnWalkable))
-            { 
+            {
                 retval = report_environment_collision(prev_has_contact);
             }
             if (collisions.FramesStationaryFall <= 1)
@@ -2525,7 +2525,7 @@ namespace ACE.Server.Physics
                     UpdateTime = Timer.CurrentTime;     // hiword?
 
                 TransientState |= TransientStateFlags.Active;
-            } 
+            }
         }
 
         public bool prepare_to_leave_visibility()
@@ -2546,7 +2546,8 @@ namespace ACE.Server.Physics
         {
             switch (type)
             {
-                case 0: SetScaleStatic(curr_value);
+                case 0:
+                    SetScaleStatic(curr_value);
                     break;
                 case 1:
                     SetTranslucencyInternal(curr_value);
@@ -2698,7 +2699,7 @@ namespace ACE.Server.Physics
                 var collision_id = kvp.Key;
                 var collision = kvp.Value;
 
-                var deltaTime = PhysicsTimer.CurrentTime - collision.TouchedTime;
+                var deltaTime = Timer.CurrentTime - collision.TouchedTime;
 
                 if (deltaTime > 1.0f || collision.Ethereal && deltaTime > 0.0f || forceEnd)
                     ends.Add(collision_id);
@@ -2751,6 +2752,8 @@ namespace ACE.Server.Physics
             if (obj.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                 return report_environment_collision(prev_has_contact);
 
+
+
             var velocityCollide = Velocity - obj.Velocity;
 
             bool collided = false;
@@ -2761,17 +2764,29 @@ namespace ACE.Server.Physics
                     var profile = build_collision_profile(obj, prev_has_contact, velocityCollide);
                     WeenieObj.DoCollision(profile, ObjID, obj);
                     collided = true;
+
+                    if (!CollisionTable.ContainsKey(obj.ID))
+                        CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = Timer.CurrentTime });
+                    else
+                        CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = Timer.CurrentTime };
+                    ObjMaint.AddObject(obj);
                 }
 
                 if (State.HasFlag(PhysicsState.Missile))
                     State &= ~(PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped);
             }
 
-            if (obj.State.HasFlag(PhysicsState.ReportCollisions) &&!State.HasFlag(PhysicsState.IgnoreCollisions) && WeenieObj != null)
+            if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && WeenieObj != null)
             {
                 var profile = obj.build_collision_profile(this, prev_has_contact, velocityCollide);
                 obj.WeenieObj.DoCollision(profile, ObjID, obj);
                 collided = true;
+
+                if (!CollisionTable.ContainsKey(obj.ID))
+                    CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = Timer.CurrentTime });
+                else
+                    CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = Timer.CurrentTime };
+                ObjMaint.AddObject(obj);
             }
             return collided;
         }
@@ -2780,22 +2795,23 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint != null)
             {
+                //var collision = WeenieObj.WorldObject.CurrentLandblock.GetObject(new ObjectGuid(objectID));//not PhysicsObj
                 var collision = ObjMaint.GetObjectA(objectID);
                 if (collision != null)
                 {
                     if (!collision.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                     {
                         if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
-                            WeenieObj.DoCollisionEnd(objectID);
+                            WeenieObj.DoCollisionEnd(new ObjectGuid(objectID));
 
                         if (collision.State.HasFlag(PhysicsState.ReportCollisions) && collision.WeenieObj != null)
-                            collision.WeenieObj.DoCollisionEnd(objectID);
+                            collision.WeenieObj.DoCollisionEnd(ObjID);
                     }
                 }
                 return true;
             }
             if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
-                WeenieObj.DoCollisionEnd(objectID);
+                WeenieObj.DoCollisionEnd(new ObjectGuid(objectID));
 
             return false;
         }
@@ -3373,6 +3389,9 @@ namespace ACE.Server.Physics
 
             if (CollisionTable == null)
                 CollisionTable = new Dictionary<uint, CollisionRecord>();
+
+            //if (!CollisionTable.ContainsKey(obj.ID))
+            //    CollisionTable.Add(obj.ID, null);
 
             //if (!CollisionTable.ContainsKey(obj.ID)) return false;
             //CollisionTable.Remove(obj.ID);

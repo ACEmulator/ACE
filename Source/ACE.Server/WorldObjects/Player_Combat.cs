@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
             DamageType damageType;
             if (damageSource?.ItemType == ItemType.MissileWeapon)
             {
-                damageType = (DamageType) damageSource.GetProperty(PropertyInt.DamageType);
+                damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
             }
             else
                 damageType = GetDamageType();
@@ -206,6 +206,48 @@ namespace ACE.Server.WorldObjects
             var part = GetBodyPart(target, bodyPart);
 
             return part.BaseArmorMod;
+        }
+
+        public double GetLifeResistance(DamageType damageType)
+        {
+            double resistance = 1.0;
+
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    resistance = ResistAcidMod;
+                    break;
+
+                case DamageType.Pierce:
+                    resistance = ResistPierceMod;
+                    break;
+
+                case DamageType.Bludgeon:
+                    resistance = ResistBludgeonMod;
+                    break;
+
+                case DamageType.Fire:
+                    resistance = ResistFireMod;
+                    break;
+
+                case DamageType.Cold:
+                    resistance = ResistColdMod;
+                    break;
+
+                case DamageType.Acid:
+                    resistance = ResistAcidMod;
+                    break;
+
+                case DamageType.Electric:
+                    resistance = ResistElectricMod;
+                    break;
+
+                case DamageType.Nether:
+                    resistance = ResistNetherMod;
+                    break;
+            }
+
+            return resistance;
         }
 
         public float GetResistance(WorldObject target, BodyPart bodyPart, DamageType damageType)
@@ -267,6 +309,7 @@ namespace ACE.Server.WorldObjects
 
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
+            if (Invincible.HasValue && Invincible.Value) return;
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
 

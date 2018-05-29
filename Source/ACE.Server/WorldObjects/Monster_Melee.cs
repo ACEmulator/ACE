@@ -73,6 +73,8 @@ namespace ACE.Server.WorldObjects
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
+            if (CurrentLandblock == null) return null; // occurs when /smite all command is used
+
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);
 
             return null;
