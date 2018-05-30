@@ -34,7 +34,6 @@ namespace ACE.Server.WorldObjects
         private ActionChain ActionLoop = null;
         public override void HandleActionOnCollide(ObjectGuid playerId)
         {
-            // to-do: pressure plates
             if (!playerId.IsPlayer()) return;
             if (!Players.Any(k => k == playerId))
                 Players.Add(playerId);
@@ -90,31 +89,23 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyFloat.HotspotCycleTimeVariance);
             set { if (value == null) RemoveProperty(PropertyFloat.HotspotCycleTimeVariance); else SetProperty(PropertyFloat.HotspotCycleTimeVariance, (double)value); }
         }
-        private int DamageNext
+        private float DamageNext
         {
             get
             {
-                var r = Math.Abs((int)Damage);
-                var min = Math.Floor(r * (double)DamageVariance);
-                var max = Math.Ceiling((double)r);
-                var p = Physics.Common.Random.RollDice((int)min, (int)max);
-                return Damage < 0 ? p * -1 : p;
+                var r = GetBaseDamage();
+                var p = Physics.Common.Random.RollDice(r.Min, r.Max);
+                return p;
             }
         }
-        public double? DamageVariance
-        {
-            get => GetProperty(PropertyFloat.DamageVariance);
-            set { if (value == null) RemoveProperty(PropertyFloat.DamageVariance); else SetProperty(PropertyFloat.DamageVariance, (double)value); }
-        }
-        public int? Damage
-        {
-            get => GetProperty(PropertyInt.Damage);
-            set { if (value == null) RemoveProperty(PropertyInt.Damage); else SetProperty(PropertyInt.Damage, (int)value); }
-        }
-        public int? _DamageType
+        private int? _DamageType
         {
             get => GetProperty(PropertyInt.DamageType);
             set { if (value == null) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, (int)value); }
+        }
+        public DamageType DamageType
+        {
+            get { return (DamageType)_DamageType; }
         }
         private void Activate()
         {
@@ -129,26 +120,31 @@ namespace ACE.Server.WorldObjects
         private void Activate(Player plr)
         {
             var amount = DamageNext;
-            switch ((DamageType)_DamageType)
+            switch (DamageType)
             {
                 case DamageType.Mana:
-                    if (plr.Mana.Current >= plr.Mana.MaxValue) return;
-                    amount = (int)Math.Max(plr.Mana.Current + amount - plr.Mana.MaxValue, amount); // to-do: implement Player properties ManaMod using enchantment manager
-                    if (amount == 0) break;
-                    if (amount > 0) break; // to-do: top it off
-                    plr.Mana.Current -= (uint)amount;
-                    var msg = new GameMessagePrivateUpdateAttribute2ndLevel(plr, Vital.Mana, plr.Mana.Current);
-                    plr.Session.Network.EnqueueSend(msg);
+                    var manaDmg = amount;
+                    var result = plr.Mana.Current - manaDmg;
+                    if (result < 0 && manaDmg > 0)
+                        manaDmg += result;
+                    else if (result > plr.Mana.MaxValue && manaDmg < 0)
+                        manaDmg -= plr.Mana.MaxValue - result;
+                    if (manaDmg != 0)
+                    {
+                        plr.Mana.Current -= (uint)Math.Round(manaDmg);
+                        var msg = new GameMessagePrivateUpdateAttribute2ndLevel(plr, Vital.Mana, plr.Mana.Current);
+                        plr.Session.Network.EnqueueSend(msg);
+                    }
                     break;
                 default:
-                    amount = (int)Math.Ceiling(plr.GetLifeResistance((DamageType)_DamageType) * amount);
-                    plr.TakeDamage(this, (DamageType)_DamageType, amount, Server.Entity.BodyPart.Foot, false);
+                    amount = (float)plr.GetLifeResistance(DamageType) * amount;
+                    plr.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     break;
             }
             if (!(Visibility ?? false))
                 CurrentLandblock.EnqueueBroadcastSound(this, Sound.TriggerActivated);
-            if (amount != 0 && !string.IsNullOrWhiteSpace(ActivationTalkString))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalkString.Replace("%i", Math.Abs(amount).ToString()), ChatMessageType.Craft));
+            if (!string.IsNullOrWhiteSpace(ActivationTalkString))
+                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalkString.Replace("%i", Math.Abs(Math.Round(amount)).ToString()), ChatMessageType.Craft));
         }
     }
 }
