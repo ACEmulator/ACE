@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -233,6 +234,54 @@ namespace ACE.Server.WorldObjects
 
                     if (wo.ValidLocations != null)
                         TryEquipObject(wo, (int)wo.ValidLocations.Value);
+                }
+            }
+        }
+
+        public uint? WieldedTreasureType
+        {
+            get => GetProperty(PropertyDataId.WieldedTreasureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.WieldedTreasureType); else SetProperty(PropertyDataId.WieldedTreasureType, value.Value); }
+        }
+
+        public List<TreasureWielded> WieldedTreasure
+        {
+            get
+            {
+                if (WieldedTreasureType.HasValue)
+                    return DatabaseManager.World.GetWieldedTreasure(WieldedTreasureType.Value);
+                else
+                    return null;
+            }
+        }
+
+        public void GenerateWieldedTreasure()
+        {
+            if (WieldedTreasure is null)
+                return;
+
+            foreach (var item in WieldedTreasure)
+            {
+                var rng = Physics.Common.Random.RollDice(0f, 1f);
+
+                if (rng < item.Probability)
+                {
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                    if (wo != null)
+                    {
+                        if (item.PaletteId > 0)
+                            wo.PaletteTemplate = (int)item.PaletteId;
+
+                        if (item.Shade > 0)
+                            wo.Shade = item.Shade;
+
+                        if (item.StackSize > 0)
+                            wo.StackSize = (ushort)item.StackSize;
+
+                        TryAddToInventory(wo);
+                        //TryEquipObject(wo, (int)wo.ValidLocations);
+                    }
                 }
             }
         }

@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
             if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
                 GenerateNewFace();
 
-            if (CreatureType == ACE.Entity.Enum.CreatureType.Shadow)
+            if (CreatureType == ACE.Entity.Enum.CreatureType.Shadow || CreatureType == ACE.Entity.Enum.CreatureType.Simulacrum)
                 GenerateNewFace();
 
             // If any of the vitals don't exist for this biota, one will be created automatically in the CreatureVital ctor
@@ -78,7 +78,10 @@ namespace ACE.Server.WorldObjects
                 Mana.Current = Mana.MaxValue;
 
             if (!(this is Player))
+            {
                 GenerateWieldList();
+                GenerateWieldedTreasure();
+            }
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 
