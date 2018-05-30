@@ -94,9 +94,10 @@ namespace ACE.Server.Physics.Common
             return 0;
         }
 
-        public void DoCollisionEnd(uint objectID)
+        public void DoCollisionEnd(ObjectGuid guid)
         {
-
+            if (WorldObject != null)
+                WorldObject.HandleActionOnCollideEnd(guid);
         }
 
         public void OnMotionDone(uint motionID, bool success)
