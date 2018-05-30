@@ -111,10 +111,9 @@ namespace ACE.Server.WorldObjects
         {
             Players.ForEach(plrId =>
             {
-                if (!Players.Any(k => k == plrId)) return;
                 var player = CurrentLandblock.GetObject(plrId) as Player;
-                if (player == null) return;
-                Activate(player);
+                if (player != null)
+                    Activate(player);
             });
         }
         private void Activate(Player plr)
@@ -130,11 +129,7 @@ namespace ACE.Server.WorldObjects
                     else if (result > plr.Mana.MaxValue && manaDmg < 0)
                         manaDmg -= plr.Mana.MaxValue - result;
                     if (manaDmg != 0)
-                    {
-                        plr.Mana.Current -= (uint)Math.Round(manaDmg);
-                        var msg = new GameMessagePrivateUpdateAttribute2ndLevel(plr, Vital.Mana, plr.Mana.Current);
-                        plr.Session.Network.EnqueueSend(msg);
-                    }
+                        plr.UpdateVital(plr.Mana, plr.Mana.Current - (uint)Math.Round(manaDmg));
                     break;
                 default:
                     amount = (float)plr.GetLifeResistance(DamageType) * amount;
