@@ -79,8 +79,8 @@ namespace ACE.Server.WorldObjects
                 var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
                 var msg = string.Empty;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(player, PropertyInstanceId.CurrentAttacker, this.Guid.Full));
+                // TODO: Perform a spell resist check. Cast spell on resist failure or output ActivationFailiure text upon resisting the spell
                 LifeMagic(player, spellBase, spell, out msg);
-                //to-do: ActivationFailiure text upon resisting the spell
                 player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
             }
         }
