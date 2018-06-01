@@ -248,7 +248,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="message"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false) // to-do return or out whether the spell was resisted or not
+        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false)
         {
             string srcVital, destVital, action;
             string targetMsg = null;
@@ -307,7 +307,7 @@ namespace ACE.Server.WorldObjects
                             if (newSpellTargetVital < spellTarget.Stamina.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
-                                    spellTarget.UpdateVital(spellTarget.Stamina, 0); // to-do modify the spell text to reflect the actual amount
+                                    spellTarget.UpdateVital(spellTarget.Stamina, 0);
                                 else
                                     spellTarget.UpdateVital(spellTarget.Stamina, (uint)newSpellTargetVital);
                             }
