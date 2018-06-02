@@ -225,20 +225,12 @@ namespace ACE.Server.WorldObjects
         public void UpdateIndoorCells(Vector3 newPos)
         {
             var adjustCell = AdjustCell.Get(Location.LandblockId.Raw >> 16);
-            if (adjustCell == null)
-            {
-                Console.WriteLine("Couldn't find AdjustCell for " + Name);
-                return;
-            }
+            if (adjustCell == null) return;
             var newCell = adjustCell.GetCell(newPos);
-            if (newCell == null)
-            {
-                Console.WriteLine("Couldn't find newCell for " + Name);
-                return;
-            }
+            if (newCell == null) return;
             if (newCell.Value == Location.LandblockId.Raw) return;
             Location.LandblockId = new ACE.Entity.LandblockId(newCell.Value);
-            Console.WriteLine("Moving " + Name + " to indoor cell " + newCell.Value.ToString("X8"));
+            //Console.WriteLine("Moving " + Name + " to indoor cell " + newCell.Value.ToString("X8"));
         }
 
         public void GetMovementSpeed()
@@ -248,8 +240,6 @@ namespace ACE.Server.WorldObjects
             var scale = ObjScale ?? 1.0f;
 
             var runSkill = GetCreatureSkill(Skill.Run).Current;
-
-            runSkill = 0;
 
             RunRate = (float)MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
             MoveSpeed = moveSpeed * RunRate * scale;
