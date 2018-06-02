@@ -2358,12 +2358,17 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyInt.MaterialType, mT);
             wo.SetProperty(PropertyInt.Value, value);
+            int gemCount = r.Next(1, 6);
+            int gemType = r.Next(10, 51);
+            wo.SetProperty(PropertyInt.GemCount, gemCount);
+            wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
             wo.SetProperty(PropertyInt.ItemDifficulty, difficulty);
             wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
             wo.SetProperty(PropertyInt.ItemMaxMana, max_mana);
             wo.SetProperty(PropertyInt.ItemCurMana, max_mana);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
             int[] shuffledValues = new int[JewelrySpells.Length];
             for (int i = 0; i < JewelrySpells.Length; i++)
@@ -3301,7 +3306,8 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
                 wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
                 wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-                if (numSpells == 0)
+                wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            if (numSpells == 0)
                 {
                     wo.RemoveProperty(PropertyInt.ItemManaCost);
                     wo.RemoveProperty(PropertyInt.ItemMaxMana);
@@ -13488,8 +13494,8 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemWorkmanship, GetWorkmanship(tier));
             wo.SetProperty(PropertyInt.UiEffects, 1);
             wo.SetProperty(PropertyInt.Value, GetValue(tier));
-            wo.SetProperty(PropertyInt.GemCount, GetWorkmanship(tier));
             wo.SetProperty(PropertyInt.ArmorLevel, GetArmorLevel(tier, armorPieceType));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -14745,6 +14751,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.WeaponSkill, weaponSkillInt);
             wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
             wo.SetProperty(PropertyInt.WieldSkilltype, wieldSkillType);
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -15111,12 +15118,14 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
             wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
             wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana );
+            wo.SetProperty(PropertyInt.ItemCurMana, itemMaxMana);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, appraisalDesc);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
             wo.SetProperty(PropertyInt.DamageType, damageType);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyString.Name, shortDesc);
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
@@ -18088,6 +18097,23 @@ namespace ACE.Server.Factories
 
             }
             return amount;
+        }
+
+        public static String getLongDesc(String name, int gemType, int gemNum)
+        {
+            //Still need to get spell name
+            //Format for long description is: "Exquisitely crafted Ruby Ring of Fire Protection set with 1 White Sapphire."
+            String lD = "";
+            if(gemNum > 1)
+            {
+                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] +"s.";
+            }
+            else
+            {
+                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType]+".";
+            }
+
+            return lD;
         }
     }
 }

@@ -9,6 +9,51 @@ namespace ACE.Factories
     public static class LootHelper
     {
 
+        public static Dictionary<int, String> gemNames = new Dictionary<int, String>()
+                                                            { 
+                                                                {10, "Agate"},
+                                                                {11, "Amber"},
+                                                                {12, "Amethyst"},
+                                                                {13, "Aquamarine"},
+                                                                {14, "Azurite"},
+                                                                {15, "Black Garnet"},
+                                                                {16, "Black Opal"},
+                                                                {17, "Bloodstone"},
+                                                                {18, "Carnelian"},
+                                                                {19, "Citrine"},
+                                                                {20, "Diamond"},
+                                                                {21, "Emerald"},
+                                                                {22, "Fire Opal"},
+                                                                {23, "Green Garnet"},
+                                                                {24, "Green Jade"},
+                                                                {25, "Hematite"},
+                                                                {26, "Imperial Topaz"},
+                                                                {27, "Jet"},
+                                                                {28, "Lapis Lazuli"},
+                                                                {29, "Lavender Jade"},
+                                                                {30, "Malachite"},
+                                                                {31, "Moonstone"},
+                                                                {32, "Onyx"},
+                                                                {33, "Opal"},
+                                                                {34, "Peridot"},
+                                                                {35, "Red Garnet"},
+                                                                {36, "Red Jade"},
+                                                                {37, "Rose Quartz"},
+                                                                {38, "Ruby"},
+                                                                {39, "Sapphire"},
+                                                                {40, "Smokey Quartz"},
+                                                                {41, "Sunstone"},
+                                                                {42, "Tiger Eye"},
+                                                                {43, "Tourmaline"},
+                                                                {44, "Turquoise"},
+                                                                {45, "White Jade"},
+                                                                {46, "White Quartz"},
+                                                                {47, "White Sapphire"},
+                                                                {48, "Yellow Garnet"},
+                                                                {49, "Yellow Topaz"},
+                                                                {50, "Zircon"}
+                                                            };
+
         public static int[][] HeadSpells =
 {
 ////Focus
