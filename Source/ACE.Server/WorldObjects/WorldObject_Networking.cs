@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+using System.Threading;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -15,6 +17,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -1234,18 +1237,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Used by physics engine to actually update the entities position
+        /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
         /// </summary>
-        /// <param name="newPosition"></param>
-        public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
+        /// <param name="newPosition">The new position being requested, before verification through physics engine</param>
+        public void UpdatePlayerPhysics(ACE.Entity.Position newPosition)
         {
             var player = this as Player;
 
             // currently only processes players
             if (player == null) return;
 
-            //var previousLocation = Location;
             if (PhysicsObj != null)
             {
                 var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
@@ -1255,7 +1257,10 @@ namespace ACE.Server.WorldObjects
                     if (curCell != null)
                     {
                         if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
+                        {
                             PhysicsObj.change_cell_server(curCell);
+                            Console.WriteLine("Cell: " + curCell.ID + " (" + curCell.ShadowObjectList.Count + ")");
+                        }
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
@@ -1271,12 +1276,49 @@ namespace ACE.Server.WorldObjects
             SendUpdatePosition();
 
             if (Teleporting)
-            {
                 CurrentLandblock.EnqueueBroadcast(PreviousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+        }
+
+        public double lastDist;
+
+        /// <summary>
+        /// Handles calling the physics engine for non-player objects
+        /// </summary>
+        public bool UpdateObjectPhysics()
+        {
+            if (PhysicsObj == null)
+                return false;
+
+            // get position before
+            var pos = PhysicsObj.Position.Frame.Origin;
+            var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
+            var cellBefore = PhysicsObj.CurCell.ID;
+
+            //Console.WriteLine("UpdateObjectPhysics");
+            PhysicsObj.update_object();
+
+            // get position after
+            pos = PhysicsObj.Position.Frame.Origin;
+            var newPos = new Vector3(pos.X, pos.Y, pos.Z);
+
+            // handle landblock / cell change
+            var isMoved = prevPos.IsMoved(newPos);
+            var curCell = PhysicsObj.CurCell;
+            var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
+            if (isMoved)
+            {
+                //var dist = Vector3.Distance(newPos, ProjectileTarget.PhysicsObj.Position.Frame.Origin);
+                //Console.WriteLine("Dist: " + dist);
+
+                Location.LandblockId = new LandblockId(curCell.ID);
+                Location.Pos = newPos;
+                if (landblockUpdate)
+                    WorldManager.UpdateLandblock.Add(this);
             }
 
-            ForcedLocation = null;
-            RequestedLocation = null;
+            // return position change?
+
+            return false;
         }
 
         public bool? IgnoreCloIcons

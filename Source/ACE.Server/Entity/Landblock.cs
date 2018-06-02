@@ -457,12 +457,11 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Intended only for use in physics.
-        /// TBD: Actual interface for this-- this is just a filler for now
+        /// Returns landblock objects with physics initialized
         /// </summary>
         public IEnumerable<WorldObject> GetPhysicsWorldObjects()
         {
-            return worldObjects.Values;
+            return worldObjects.Values.Where(wo => wo.PhysicsObj != null);
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)

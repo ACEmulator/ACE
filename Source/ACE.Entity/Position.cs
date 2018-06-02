@@ -37,16 +37,16 @@ namespace ACE.Entity
             }
         }
 
-        public bool SetPosition(Vector3 pos)
+        public Tuple<bool, bool> SetPosition(Vector3 pos)
         {
             PositionX = pos.X;
             PositionY = pos.Y;
             PositionZ = pos.Z;
 
             var blockUpdate = SetLandblock();
-            SetLandCell();
+            var cellUpdate = SetLandCell();
 
-            return blockUpdate;
+            return new Tuple<bool, bool>(blockUpdate, cellUpdate);
         }
 
         public Quaternion Rotation

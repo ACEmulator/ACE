@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
             var bodyPart = GetBodyPart();
 
             float targetTime = 0.0f;
-            var damageSource = LaunchProjectile(AttackTarget, out targetTime);
+            var damageSource = LaunchProjectile(AttackTarget);
             var animLength = ReloadMotion();
 
             var actionChain = new ActionChain();

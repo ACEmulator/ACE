@@ -288,6 +288,12 @@ namespace ACE.Server.WorldObjects
             CurrentAppraisalTarget = examinationId.Full;
         }
 
+        public override void OnCollideObject(WorldObject target)
+        {
+            if (target is Portal)
+                (target as Portal).OnCollideObject(this);
+        }
+
         public void HandleActionQueryHealth(ObjectGuid queryId)
         {
             if (queryId.Full == 0)

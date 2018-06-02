@@ -48,6 +48,7 @@ namespace ACE.Server.Physics.Common
         public static readonly int BlockLength = 192;
         public static readonly int CellLength = 24;
         public static readonly int LandLength = 2040;
+        public static readonly int VertexDim = 9;
 
         public static readonly int BlockSide = 8;
         public static readonly int VertexPerCell = 1;

@@ -69,6 +69,9 @@ namespace ACE.Server.WorldObjects
 
         public List<AttackDamage> AttackList = new List<AttackDamage>();
 
+        public WorldObject ProjectileSource;
+        public WorldObject ProjectileTarget;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
@@ -331,7 +334,7 @@ namespace ACE.Server.WorldObjects
 
         public Position RequestedLocation { get; private set; }
 
-        public Position PreviousLocation { get; protected set; }
+        public Position PreviousLocation { get; set; }
 
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
@@ -590,14 +593,19 @@ namespace ACE.Server.WorldObjects
             return snapshot;
         }*/
 
-        public virtual void HandleActionOnCollide(ObjectGuid playerId)
+        public virtual void OnCollideObject(WorldObject target)
         {
-            // todo: implement.  default is probably to do nothing.
+            // empty base
         }
 
-        public virtual void HandleActionOnCollideEnd(ObjectGuid playerId)
+        public virtual void OnCollideObjectEnd(WorldObject target)
         {
-            // todo: implement.  default is probably to do nothing.
+            // empty base
+        }
+
+        public virtual void OnCollideEnvironment()
+        {
+            // empty base
         }
 
         public void HandleActionMotion(UniversalMotion motion)

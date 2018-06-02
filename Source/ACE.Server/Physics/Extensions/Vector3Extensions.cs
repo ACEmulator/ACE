@@ -39,5 +39,10 @@ namespace ACE.Server.Physics.Extensions
             }
             return false;
         }
+
+        public static bool IsMoved(this Vector3 a, Vector3 b)
+        {
+            return (a.X != b.X || a.Y != b.Y || a.Z != b.Z);
+        }
     }
 }

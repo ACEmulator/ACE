@@ -80,16 +80,29 @@ namespace ACE.Server.Physics.Common
 
         public int DoCollision(AtkCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
         {
+            // no collision with self
+            if (WorldObject.Guid.Equals(obj.WeenieObj.WorldObject.Guid))
+                return -1;
+
+            Console.WriteLine("AtkCollisionProfile");
+            Console.WriteLine("Source: " + WorldObject.Name);
+            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);
+
             if (WorldObject != null)
-                obj.WeenieObj.WorldObject.HandleActionOnCollide(guid);
+                WorldObject.OnCollideObject(obj.WeenieObj.WorldObject);
 
             return 0;
         }
 
         public int DoCollision(EnvCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
         {
+            Console.WriteLine("EnvCollisionProfile");
+
+            Console.WriteLine("Source: " + WorldObject.Name);
+            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);
+
             if (WorldObject != null)
-                obj.WeenieObj.WorldObject.HandleActionOnCollide(guid);
+                WorldObject.OnCollideEnvironment();
 
             return 0;
         }
@@ -97,7 +110,7 @@ namespace ACE.Server.Physics.Common
         public void DoCollisionEnd(ObjectGuid guid)
         {
             if (WorldObject != null)
-                WorldObject.HandleActionOnCollideEnd(guid);
+                WorldObject.OnCollideObjectEnd(WorldObject);
         }
 
         public void OnMotionDone(uint motionID, bool success)
