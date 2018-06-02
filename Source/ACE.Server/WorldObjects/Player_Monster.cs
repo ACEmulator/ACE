@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
             var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
             var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
 
-            if (attackable && monster.MonsterState == State.Idle/* && tolerance == Tolerance.None*/)
+            if (attackable && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
             {
                 //Console.WriteLine("Waking up " + monster.Name);
 

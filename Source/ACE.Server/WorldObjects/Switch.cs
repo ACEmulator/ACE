@@ -55,18 +55,17 @@ namespace ACE.Server.WorldObjects
             resets.ForEach(k => HitTimes.Remove(k));
         }
 
-        public override void HandleActionOnCollide(ObjectGuid playerId)
+        public override void OnCollideObject(WorldObject wo)
         {
-            if (!playerId.IsPlayer()) return;
-            var player = CurrentLandblock.GetObject(playerId) as Player;
+            var player = wo as Player;
             if (player == null) return;
 
             if (ResetTime.HasValue && ResetTime > 0)
             {
                 pruneHits();
-                if (HitTimes.ContainsKey(playerId))
+                if (HitTimes.ContainsKey(player.Guid))
                     return;
-                HitTimes.Add(playerId, Timer.CurrentTime);
+                HitTimes.Add(player.Guid, Timer.CurrentTime);
             }
 
             //spell traps

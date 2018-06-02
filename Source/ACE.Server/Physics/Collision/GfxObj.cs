@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.BSP;
-using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Collision
 {
@@ -26,9 +26,6 @@ namespace ACE.Server.Physics.Collision
         public Dictionary<ushort, Polygon> Polygons;
         public Sphere DrawingSphere;
         public BSP.BSPTree DrawingBSP;
-
-        // is this useful for collision detection,
-        // or only for drawing?
         public BBox GfxBoundBox;
 
         public GfxObj() { }
@@ -42,11 +39,14 @@ namespace ACE.Server.Physics.Collision
             NumSurfaces = SurfaceIDs != null ? SurfaceIDs.Count : 0;
             VertexArray = CreateMutable(gfxObj.VertexArray);
             NumPhysicsPolygons = gfxObj.PhysicsPolygons.Count;
-            PhysicsPolygons = new Dictionary<ushort, Polygon>();
-            foreach (var kvp in gfxObj.PhysicsPolygons)
-                PhysicsPolygons.Add(kvp.Key, new Polygon(kvp.Value, gfxObj.VertexArray));
-            PhysicsBSP = new BSP.BSPTree(gfxObj.PhysicsBSP, gfxObj.PhysicsPolygons, gfxObj.VertexArray);
-            PhysicsSphere = PhysicsBSP.GetSphere();
+            if (NumPhysicsPolygons > 0)
+            {
+                PhysicsPolygons = new Dictionary<ushort, Polygon>();
+                foreach (var kvp in gfxObj.PhysicsPolygons)
+                    PhysicsPolygons.Add(kvp.Key, new Polygon(kvp.Value, gfxObj.VertexArray));
+                PhysicsBSP = new BSP.BSPTree(gfxObj.PhysicsBSP, gfxObj.PhysicsPolygons, gfxObj.VertexArray);
+                PhysicsSphere = PhysicsBSP.GetSphere();
+            }
             SortCenter = gfxObj.SortCenter;
             NumPolygons = gfxObj.Polygons.Count;
             Polygons = new Dictionary<ushort, Polygon>();
@@ -55,6 +55,7 @@ namespace ACE.Server.Physics.Collision
             // usebuiltmesh
             DrawingBSP = new BSP.BSPTree(gfxObj.DrawingBSP, gfxObj.Polygons, gfxObj.VertexArray);
             DrawingSphere = DrawingBSP.GetSphere();
+            Init();
         }
 
         public TransitionState FindObjCollisions(GfxObj gfxObj, Transition transition, float scaleZ)
@@ -98,6 +99,26 @@ namespace ACE.Server.Physics.Collision
             vertex.Y = _vertex.Y;
             vertex.Z = _vertex.Z;
             return vertex;
+        }
+
+        public void Init()
+        {
+            GfxBoundBox = new BBox();
+
+            if (VertexArray.Vertices != null)
+            {
+                var v = VertexArray.Vertices.Values.First();
+                GfxBoundBox.Min = new Vector3(v.X, v.Y, v.Z);
+                GfxBoundBox.Max = new Vector3(v.X, v.Y, v.Z);
+
+                foreach (var vertex in VertexArray.Vertices.Values)
+                    GfxBoundBox.AdjustBBox(new Vector3(vertex.X, vertex.Y, vertex.Z));
+            }
+            else
+            {
+                GfxBoundBox.Min = Vector3.Zero;
+                GfxBoundBox.Max = Vector3.Zero;
+            }
         }
     }
 }

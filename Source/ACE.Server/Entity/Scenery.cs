@@ -53,9 +53,9 @@ namespace ACE.Server.Entity
                 var cellYMat = 1813693831 * globalCellY;
                 cellMat = 1360117743 * globalCellX * globalCellY + 1888038839;
 
-                for (var j = 0; j < scene.Objects.Count; j++)
+                for (uint j = 0; j < scene.Objects.Count; j++)
                 {
-                    var obj = scene.Objects[j];
+                    var obj = scene.Objects[(int)j];
                     var noise = (uint)(cellXMat + cellYMat - cellMat * 23399) * 2.3283064e-10;
 
                     if (noise < obj.Freq && obj.WeenieObj == 0)
@@ -98,7 +98,7 @@ namespace ACE.Server.Entity
         /// <param name="iy">The global cell Y-offset</param>
         /// <param name="iq">The scene index of the object</param>
         /// <returns>The new location of the object</returns>
-        public static Vector2 Displace(ObjectDesc obj, uint ix, uint iy, int iq)
+        public static Vector2 Displace(ObjectDesc obj, uint ix, uint iy, uint iq)
         {
             float x;
             float y;
@@ -133,7 +133,7 @@ namespace ACE.Server.Entity
         /// <param name="x">The global cell X-offset</param>
         /// <param name="y">The global cell Y-offset</param>
         /// <param name="k">The scene index of the object</param>
-        public static float ScaleObj(ObjectDesc obj, uint x, uint y, int k)
+        public static float ScaleObj(ObjectDesc obj, uint x, uint y, uint k)
         {
             var scale = 1.0f;
 
@@ -152,7 +152,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns the rotation for a scenery object
         /// </summary>
-        public static float RotateObj(ObjectDesc obj, uint x, uint y, int k)
+        public static float RotateObj(ObjectDesc obj, uint x, uint y, uint k)
         {
             if (obj.MaxRotation <= 0.0f)
                 return 0.0f;

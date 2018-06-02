@@ -2,8 +2,6 @@ using System;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -12,7 +10,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
-
+using PhysicsState = ACE.Server.Physics.PhysicsState;
 
 namespace ACE.Server.WorldObjects
 {
@@ -36,6 +34,7 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
             actionChain.AddAction(this, () => DoMotion(motion));
+
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
@@ -44,12 +43,6 @@ namespace ACE.Server.WorldObjects
                 CurrentMotionState = motion;
             });
 
-            var ammo = GetEquippedAmmo();
-            if (ammo != null)
-                actionChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location,
-                    new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                        (int)ACE.Entity.Enum.Placement.RightHandCombat)));
-
             actionChain.AddDelaySeconds(animLength);
 
             var player = this as Player;
@@ -57,7 +50,6 @@ namespace ACE.Server.WorldObjects
             {
                 actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventAttackDone(player.Session)));
                 actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(player.Session)));
-                // TODO: This gets rid of the hourglass but doesn't seem to be sent in retail pcaps...
                 actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventAttackDone(player.Session)));
             }
             actionChain.EnqueueChain();
@@ -85,123 +77,89 @@ namespace ACE.Server.WorldObjects
             return motion;
         }
 
+        public Vector3 GetDir2D(Vector3 source, Vector3 dest)
+        {
+            var diff = dest - source;
+            diff.Z = 0;
+            return Vector3.Normalize(diff);
+        }
+
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public WorldObject LaunchProjectile(WorldObject target, out float time)
+        public float LaunchProjectile(WorldObject target)
         {
             var ammo = GetEquippedAmmo();
             var arrow = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
 
-            var origin = Location.ToGlobal();
+            arrow.ProjectileSource = this;
+            arrow.ProjectileTarget = target;
+
+            var origin = Location.GlobalPos;
             origin.Z += Height;
 
-            var dest = target.Location.ToGlobal();
+            var dest = target.Location.GlobalPos;
+            //var dest = target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 
             var speed = 35.0f;
-            var dir = Vector3.Normalize(dest - origin);
-
+            var dir = GetDir2D(origin, dest);
             origin += dir * 2.0f;
 
-            arrow.Velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
+            var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out var time);
+            arrow.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
-            var loc = Location;
             origin = Position.FromGlobal(origin).Pos;
-            arrow.Location = new Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
-            SetProjectilePhysicsState(arrow);
+            var rotation = Location.Rotation;
+            arrow.Location = new Position(Location.LandblockId.Raw, origin.X, origin.Y, origin.Z, rotation.X, rotation.Y, rotation.Z, rotation.W);
+            SetProjectilePhysicsState(arrow, target);
 
-            var actionChain = new ActionChain();
+            LandblockManager.AddObject(arrow);
+            CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 1.0f));
 
-            // TODO: Get correct aim level based on arrow velocity and add aim motion delay.
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.AimLevel;
-            CurrentMotionState = motion;
+            // detonate point-blank projectiles immediately
+            var radsum = target.PhysicsObj.GetRadius() + arrow.PhysicsObj.GetRadius();
+            var dist = Vector3.Distance(origin, dest);
+            if (dist < radsum)
+                arrow.OnCollideObject(target);
 
-            actionChain.AddAction(this, () => DoMotion(motion));
-            //actionChain.AddDelaySeconds(animLength);
-
-            actionChain.AddAction(this, () => LandblockManager.AddObject(arrow));
-            actionChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessagePickupEvent(ammo)));
-
-            var player = this as Player;
-            // TODO: Add support for monster ammo depletion. For now only players will use up ammo.
-            if (player != null)
-                actionChain.AddAction(this, () => UpdateAmmoAfterLaunch(ammo));
-            // Not sure why this would be needed but it is sent in retail pcaps.
-            actionChain.AddAction(arrow, () => CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageSetStackSize(arrow)));
-
-            if (player != null)
-            {
-                actionChain.AddAction(arrow, () => CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
-                    arrow, PropertyInt.PlayerKillerStatus, (int)(player.PlayerKillerStatus ?? ACE.Entity.Enum.PlayerKillerStatus.NPK) )));
-            }
-            else
-            {
-                actionChain.AddAction(arrow, () => CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
-                    arrow, PropertyInt.PlayerKillerStatus, (int)ACE.Entity.Enum.PlayerKillerStatus.Creature)));
-            }
-            
-            actionChain.AddAction(arrow, () => CurrentLandblock.EnqueueBroadcast(arrow.Location, new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f)));
-            actionChain.AddDelaySeconds(time);
-            // todo: landblock broadcast?
-            
-            if (player != null)
-                actionChain.AddAction(arrow, () => player.Session.Network.EnqueueSend(new GameMessageSound(arrow.Guid, Sound.Collision, 1.0f)));
-
-            actionChain.AddAction(arrow, () => CurrentLandblock.RemoveWorldObject(arrow.Guid, false));
-            actionChain.EnqueueChain();
-
-            return arrow;
-        }
-
-        /// <summary>
-        /// Updates the ammo count or destroys the ammo after launching the projectile.
-        /// </summary>
-        /// <param name="ammo">The missile ammo object</param>
-        public void UpdateAmmoAfterLaunch(WorldObject ammo)
-        {
-            var player = this as Player;
-
-            if (ammo.StackSize == 1)
-            {
-                TryDequipObject(ammo.Guid);
-                player?.Session.Network.EnqueueSend(new GameMessageDeleteObject(ammo));
-                CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, p => p.StopTrackingObject(ammo, true));
-            }
-            else
-            {
-                ammo.StackSize--;
-                player?.Session.Network.EnqueueSend(new GameMessageSetStackSize(ammo));
-                CurrentLandblock.EnqueueBroadcast(Location, new GameMessagePickupEvent(ammo));
-            }
+            return time;
         }
 
         /// <summary>
         /// Calculates the velocity to launch the projectile from origin to dest
         /// </summary>
-        public AceVector3 GetProjectileVelocity(WorldObject target, Vector3 origin, Vector3 dir, Vector3 dest, float speed, out float time)
+        public Vector3 GetProjectileVelocity(WorldObject target, Vector3 origin, Vector3 dir, Vector3 dest, float speed, out float time, bool useGravity = true)
         {
             var velocity = dir * speed;
 
+            time = 0.0f;
             Vector3 s0, s1;
             float t0, t1;
-            Trajectory.solve_ballistic_arc(origin, speed, dest, -PhysicsGlobals.Gravity, out s0, out s1, out t0, out t1);
 
-            /*Console.WriteLine("s0: " + s0);
-            Console.WriteLine("s1: " + s1);
-            Console.WriteLine("t0: " + t0);
-            Console.WriteLine("t1: " + t1);*/
+            var gravity = useGravity ? -PhysicsGlobals.Gravity : -0.00001f;
 
-            time = t0 + target.PhysicsObj.GetRadius() / speed;
-            return new AceVector3(s0.X, s0.Y, s0.Z);
+            var targetVelocity = target.PhysicsObj.CachedVelocity;
+            if (!targetVelocity.Equals(Vector3.Zero))
+            {
+                // use movement quartic solver
+                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out s1);
+
+                if (numSolutions > 0)
+                    return s0;
+            }
+
+            // use stationary solver
+            Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out s1, out t0, out t1);
+
+            time = t0;
+            return s0;
         }
 
         /// <summary>
         /// Sets the physics state for a launched projectile
         /// </summary>
-        public void SetProjectilePhysicsState(WorldObject obj)
+        public void SetProjectilePhysicsState(WorldObject obj, WorldObject target)
         {
             obj.ReportCollisions = true;
             obj.Missile = true;
@@ -209,8 +167,21 @@ namespace ACE.Server.WorldObjects
             obj.PathClipped = true;
             obj.Ethereal = false;
             obj.IgnoreCollisions = false;
-            obj.CurrentMotionState = null;
-            obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
+
+            obj.PhysicsObj.State |= PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
+            obj.PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
+
+            var pos = obj.Location.Pos;
+            var rotation = obj.Location.Rotation;
+            obj.PhysicsObj.Position.Frame.Origin = pos;
+            obj.PhysicsObj.Position.Frame.Orientation = rotation;
+
+            var velocity = obj.Velocity.Get();
+            velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
+            obj.PhysicsObj.Velocity = velocity;
+            obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
+
+            obj.PhysicsObj.set_active(true);
         }
     }
 }

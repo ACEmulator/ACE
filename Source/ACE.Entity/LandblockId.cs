@@ -40,7 +40,7 @@ namespace ACE.Entity
         public byte LandblockY => (byte)((Raw >> 16) & 0xFF);
 
         /// <summary>
-        /// This is only used to calclate LandcellX and LandcellY - it has no other function.
+        /// This is only used to calculate LandcellX and LandcellY - it has no other function.
         /// </summary>
         public ushort Landcell => (byte)((Raw & 0x3F) - 1);
 

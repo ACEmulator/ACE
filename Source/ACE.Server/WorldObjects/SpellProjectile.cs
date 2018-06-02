@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Numerics;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -14,6 +15,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
+using PhysicsState = ACE.Server.Physics.PhysicsState;
 
 namespace ACE.Server.WorldObjects
 {
@@ -65,7 +67,7 @@ namespace ACE.Server.WorldObjects
             Placement = null;
 
             // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
-
+            InitPhysicsObj();
         }
 
         /// <summary>
@@ -109,10 +111,11 @@ namespace ACE.Server.WorldObjects
         public override void HeartBeat()
         {
             // First heartbeat always appears to happen after spell has already traveled its maximum range, already
-            // ProjectileImpact();
+            //ProjectileImpact();
             // TODO: Following line should be removed and previous line uncommented, once projectile movement and collision is server controlled
             // This is handled in CreateSpellProjectile() for now. Commenting it out since it causes double hits.
             //HandleOnCollide(targetGuid);
+            Console.WriteLine("SpellProjectile.HeartBeat()");
         }
 
         public enum ProjectileSpellType
@@ -215,6 +218,8 @@ namespace ACE.Server.WorldObjects
                 Cloaked = true;
                 LightsStatus = false;
 
+                PhysicsObj.set_active(false);
+
                 EnqueueBroadcastPhysicsState();
 
                 SpellType = GetProjectileSpellType(spellId);
@@ -233,36 +238,46 @@ namespace ACE.Server.WorldObjects
         /// Handles collision with scenery or other static objects that would block a projectile from reaching its target,
         /// in which case the projectile should be removed with no further processing.
         /// </summary>
-        public void HandleOnCollide()
+        public override void OnCollideEnvironment()
         {
+            Console.WriteLine("SpellProjectile.OnCollideEnvironment()");
             ProjectileImpact();
         }
 
-        public void HandleOnCollide(ObjectGuid guidTarget)
+        public override void OnCollideObject(WorldObject _target)
         {
+            Console.WriteLine("SpellProjectile.OnCollideObject(" + _target.Guid.Full.ToString("X8") + ")");
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             SpellBase spell = spellTable.Spells[spellId];
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
             // Ensure target still exist before proceeding to handle collision
-            Creature target = CurrentLandblock.GetObject(guidTarget) as Creature;
+            //Creature target = CurrentLandblock.GetObject(guidTarget) as Creature;
+            var target = _target as Creature;
             if (target == null)
+            {
+                OnCollideEnvironment();
                 return;
+            }
 
             // Projectile struck some target that isn't a player or creature
             if (target.WeenieType != WeenieType.Creature)
             {
                 if (target.WeenieClassId != 1)
                 {
-                    ProjectileImpact();
+                    OnCollideEnvironment();
                     return;
                 }
             }
 
             // Collision registered against a valid target that was not the intended target
-            if (guidTarget != targetGuid)
+            if (!target.Guid.Equals(targetGuid))
+            {
+                Console.WriteLine("Collided with non-target object " + target.Name + " (" + target.Guid.Full.ToString("X8") + ")");
+                OnCollideEnvironment();
                 return;
+            }
 
             ProjectileImpact();
 
@@ -502,6 +517,31 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Sets the physics state for a launched projectile
+        /// </summary>
+        public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
+        {
+            PhysicsObj.State |= PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
+            PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
+
+            if (!useGravity)
+                PhysicsObj.State &= ~PhysicsState.Gravity;
+
+            var pos = Location.Pos;
+            var rotation = Location.Rotation;
+            PhysicsObj.Position.Frame.Origin = pos;
+            PhysicsObj.Position.Frame.Orientation = rotation;
+
+            var velocity = Velocity.Get();
+            velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
+            PhysicsObj.Velocity = velocity;
+            PhysicsObj.ProjectileTarget = target.PhysicsObj;
+
+            PhysicsObj.set_active(true);
         }
     }
 }

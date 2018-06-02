@@ -57,12 +57,12 @@ namespace ACE.Server.WorldObjects
             return attackType;
         }
 
-        public void DamageTarget(WorldObject target, WorldObject damageSource)
+        public float DamageTarget(WorldObject target, WorldObject damageSource)
         {
             var creature = target as Creature;
 
             if (creature.Health.Current <= 0)
-                return;
+                return 0.0f;
 
             var critical = false;
             var damage = CalculateDamage(target, damageSource, ref critical);
@@ -95,6 +95,7 @@ namespace ACE.Server.WorldObjects
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
             }
+            return damage;
         }
 
         public float GetEvadeChance(WorldObject target)
@@ -106,6 +107,9 @@ namespace ACE.Server.WorldObjects
             var creature = target as Creature;
             var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
             var difficulty = creature.GetCreatureSkill(defenseSkill).Current;
+
+            //Console.WriteLine("Attack skill: " + attackSkill.Current);
+            //Console.WriteLine("Defense skill: " + difficulty);
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill.Current, (int)difficulty);
             return (float)evadeChance;
