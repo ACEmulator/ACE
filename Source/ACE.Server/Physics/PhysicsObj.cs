@@ -2217,6 +2217,7 @@ namespace ACE.Server.Physics
             }
             else if (collisions.CollidedWithEnvironment || !prev_on_walkable && TransientState.HasFlag(TransientStateFlags.OnWalkable))
             {
+                Console.WriteLine("handle_all_collisions: environment");
                 retval = report_environment_collision(prev_has_contact);
             }
             if (collisions.FramesStationaryFall <= 1)
@@ -2757,8 +2758,6 @@ namespace ACE.Server.Physics
         {
             if (obj.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                 return report_environment_collision(prev_has_contact);
-
-
 
             var velocityCollide = Velocity - obj.Velocity;
 
@@ -3397,8 +3396,8 @@ namespace ACE.Server.Physics
 
         public bool track_object_collision(PhysicsObj obj, bool prev_has_contact)
         {
-            if (State.HasFlag(PhysicsState.Static))
-                return report_environment_collision(prev_has_contact);
+            //if (State.HasFlag(PhysicsState.Static))
+                //return report_environment_collision(prev_has_contact);
 
             if (CollisionTable == null)
                 CollisionTable = new Dictionary<uint, CollisionRecord>();

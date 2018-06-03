@@ -182,6 +182,7 @@ namespace ACE.Server.WorldObjects
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             obj.PhysicsObj.set_active(true);
+            Console.WriteLine("In-flight PhysicsState for " + obj.Name + ": " + obj.PhysicsObj.State);
         }
     }
 }

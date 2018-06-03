@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj = new PhysicsObj();
             PhysicsObj.set_object_guid(Guid);
-            PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
+            //PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
 
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
@@ -112,6 +112,12 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScale(ObjScale ?? 1.0f);
+
+            var physicsState = GetProperty(PropertyInt.PhysicsState);
+            if (physicsState != null)
+                PhysicsObj.State = (Physics.PhysicsState)physicsState;
+
+            Console.WriteLine("Cloning PhysicsState for " + Name + ": " + PhysicsObj.State);
         }
 
         private void SetEphemeralValues()
