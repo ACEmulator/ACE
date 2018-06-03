@@ -762,6 +762,12 @@ namespace ACE.Server.WorldObjects
             else
                 physicsState &= ~PhysicsState.Frozen;
 
+            // clone physicsState into PhysicsObj.State
+            //PhysicsObj.State = (Physics.PhysicsState)physicsState;
+
+            // newbietowngharundimgen
+            //Console.WriteLine("Cloning PhysicsState for " + Name + ": " + PhysicsObj.State);
+
             return physicsState;
         }
 
