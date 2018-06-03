@@ -245,7 +245,19 @@ namespace ACE.Server.Network
             uint issacXor = packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
             if (!packet.VerifyChecksum(issacXor))
             {
-                log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
+                if (issacXor != 0)
+                {
+                    issacXor = ConnectionData.IssacClient.GetOffset();
+                    log.WarnFormat("[{0}] Packet {1} has invalid checksum, trying the next offset", session.LoggingIdentifier, packet.Header.Sequence);
+
+                    // not sure why there was a missed offset increment
+                    // results in a valid checksum
+                    // however, the client is now in a sort of "can't move" state.  The monsters react so the communication is still working, right?  fartwhif
+                    bool verified = packet.VerifyChecksum(issacXor);
+                    log.WarnFormat("[{0}] Packet {1} improvised offset checksum result: {2}", session.LoggingIdentifier, packet.Header.Sequence, (verified) ? "successful" : "failed");
+                }
+                else
+                    log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
             }
 
             // depending on the current session state:
@@ -254,7 +266,7 @@ namespace ACE.Server.Network
             // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
             // Example: Applications that check uptime will stay in the AuthLoginRequest state.
             session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks : 
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
                 DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
@@ -665,7 +677,7 @@ namespace ACE.Server.Network
 
             public ClientMessage GetMessage()
             {
-                fragments.Sort(delegate(ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Index - (int)y.Header.Index; });
+                fragments.Sort(delegate (ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Index - (int)y.Header.Index; });
                 MemoryStream stream = new MemoryStream();
                 BinaryWriter writer = new BinaryWriter(stream);
                 foreach (ClientPacketFragment fragment in fragments)
