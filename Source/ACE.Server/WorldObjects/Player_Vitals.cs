@@ -152,8 +152,11 @@ namespace ACE.Server.WorldObjects
                         ForwardCommand = (uint)MotionCommand.RunForward
                     };
                     CurrentMotionState = motion;
-                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
+                    if (CurrentLandblock != null)
+                    {
+                        CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
+                    }
                 }
             }
             base.UpdateVital(vital, newVal);
