@@ -594,6 +594,12 @@ namespace ACE.Server.WorldObjects
                             selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability >= rng);
                         }
 
+                        if (selectedEmoteSet == null)
+                        {
+                            player.SendUseDoneEvent();
+                            return;
+                        }
+
                         var emoteActions = Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == selectedEmoteSet.Category && x.EmoteSetId == selectedEmoteSet.EmoteSetId).OrderBy(x => x.Order).ToList();
 
                         foreach (var action in emoteActions)
