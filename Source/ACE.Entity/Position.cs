@@ -526,6 +526,9 @@ namespace ACE.Entity
 
         public Vector3 ToGlobal()
         {
+            if (Indoors)
+                return Pos;
+
             var x = LandblockId.LandblockX * BlockLength + PositionX;
             var y = LandblockId.LandblockY * BlockLength + PositionY;
             var z = PositionZ;
@@ -533,8 +536,16 @@ namespace ACE.Entity
             return new Vector3(x, y, z);
         }
 
-        public static Position FromGlobal(Vector3 pos)
+        public Position FromGlobal(Vector3 pos)
         {
+            if (Indoors)
+            {
+                var iPos = new Position();
+                iPos.LandblockId = LandblockId;
+                iPos.Pos = new Vector3(pos.X, pos.Y, pos.Z);
+                return iPos;
+            }
+
             var blockX = (uint)pos.X / BlockLength;
             var blockY = (uint)pos.Y / BlockLength;
 
