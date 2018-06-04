@@ -116,8 +116,6 @@ namespace ACE.Server.WorldObjects
             var physicsState = GetProperty(PropertyInt.PhysicsState);
             if (physicsState != null)
                 PhysicsObj.State = (Physics.PhysicsState)physicsState;
-
-            Console.WriteLine("Cloning PhysicsState for " + Name + ": " + PhysicsObj.State);
         }
 
         private void SetEphemeralValues()
@@ -735,7 +733,7 @@ namespace ACE.Server.WorldObjects
 
             if (cellID != null && pos.Cell != cellID.Value)
             {
-                pos.Cell = cellID.Value;
+                pos.LandblockId = new LandblockId(cellID.Value);
                 return true;
             }
             return false;

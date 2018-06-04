@@ -762,12 +762,6 @@ namespace ACE.Server.WorldObjects
             else
                 physicsState &= ~PhysicsState.Frozen;
 
-            // clone physicsState into PhysicsObj.State
-            //PhysicsObj.State = (Physics.PhysicsState)physicsState;
-
-            // newbietowngharundimgen
-            //Console.WriteLine("Cloning PhysicsState for " + Name + ": " + PhysicsObj.State);
-
             return physicsState;
         }
 
@@ -1263,10 +1257,7 @@ namespace ACE.Server.WorldObjects
                     if (curCell != null)
                     {
                         if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                        {
                             PhysicsObj.change_cell_server(curCell);
-                            Console.WriteLine("Cell: " + curCell.ID + " (" + curCell.ShadowObjectList.Count + ")");
-                        }
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
@@ -1300,7 +1291,6 @@ namespace ACE.Server.WorldObjects
             var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
             var cellBefore = PhysicsObj.CurCell.ID;
 
-            //Console.WriteLine("UpdateObjectPhysics");
             PhysicsObj.update_object();
 
             // get position after
@@ -1313,17 +1303,15 @@ namespace ACE.Server.WorldObjects
             var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
             if (isMoved)
             {
-                //var dist = Vector3.Distance(newPos, ProjectileTarget.PhysicsObj.Position.Frame.Origin);
-                //Console.WriteLine("Dist: " + dist);
+                if (curCell.ID != cellBefore)
+                    Location.LandblockId = new LandblockId(curCell.ID);
 
-                Location.LandblockId = new LandblockId(curCell.ID);
                 Location.Pos = newPos;
                 if (landblockUpdate)
                     WorldManager.UpdateLandblock.Add(this);
             }
 
             // return position change?
-
             return false;
         }
 
