@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
             var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out var time);
             arrow.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
-            origin = Position.FromGlobal(origin).Pos;
+            origin = Location.FromGlobal(origin).Pos;
             var rotation = Location.Rotation;
             arrow.Location = new Position(Location.LandblockId.Raw, origin.X, origin.Y, origin.Z, rotation.X, rotation.Y, rotation.Z, rotation.W);
             SetProjectilePhysicsState(arrow, target);

@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
             var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
 
-            var damageSource = LaunchProjectile(target);
+            var time = LaunchProjectile(target);
 
             // todo: get correct animlenghts for shoot + reload + aim
             var animLength = ReloadMotion() * 2.5f;

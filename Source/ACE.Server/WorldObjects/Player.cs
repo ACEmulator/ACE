@@ -292,6 +292,14 @@ namespace ACE.Server.WorldObjects
         {
             if (target is Portal)
                 (target as Portal).OnCollideObject(this);
+            else if (target is Hotspot)
+                (target as Hotspot).OnCollideObject(this);
+        }
+
+        public override void OnCollideObjectEnd(WorldObject target)
+        {
+            if (target is Hotspot)
+                (target as Hotspot).OnCollideObjectEnd(this);
         }
 
         public void HandleActionQueryHealth(ObjectGuid queryId)
