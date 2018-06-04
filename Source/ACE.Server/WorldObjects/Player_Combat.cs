@@ -300,14 +300,14 @@ namespace ACE.Server.WorldObjects
 
         public Sound GetHitSound(WorldObject source, BodyPart bodyPart)
         {
-            var creature = source as Creature;
+            /*var creature = source as Creature;
             var armors = creature.GetArmor(bodyPart);
 
             foreach (var armor in armors)
             {
                 var material = armor.GetProperty(PropertyInt.MaterialType) ?? 0;
                 //Console.WriteLine("Name: " + armor.Name + " | Material: " + material);
-            }
+            }*/
             return Sound.HitFlesh1;
         }
 

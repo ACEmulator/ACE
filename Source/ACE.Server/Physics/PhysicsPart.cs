@@ -50,7 +50,7 @@ namespace ACE.Server.Physics
                 transition.SpherePath.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
                 return GfxObj[0].FindObjCollisions(GfxObj[0], transition, GfxObjScale.Z);
             }
-            return TransitionState.Invalid;
+            return TransitionState.OK;  // should be invalid?
         }
 
         public BBox GetBoundingBox()

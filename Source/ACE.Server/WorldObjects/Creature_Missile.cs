@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
             Vector3 s0, s1;
             float t0, t1;
 
-            var gravity = useGravity ? -PhysicsGlobals.Gravity : -0.00001f;
+            var gravity = useGravity ? -PhysicsGlobals.Gravity : 0.00001f;
 
             var targetVelocity = target.PhysicsObj.CachedVelocity;
             if (!targetVelocity.Equals(Vector3.Zero))

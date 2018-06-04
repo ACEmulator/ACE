@@ -1236,6 +1236,8 @@ namespace ACE.Server.WorldObjects
             PreviousLocation = null;
         }
 
+        public uint prevCell;
+
         /// <summary>
         /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
@@ -1253,16 +1255,24 @@ namespace ACE.Server.WorldObjects
                 var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
                 if (dist > Physics.PhysicsGlobals.EPSILON)
                 {
-                    var curCell = Physics.Common.LScape.get_landcell(Location.Cell);
+                    var curCell = Physics.Common.LScape.get_landcell(newPosition.Cell);
                     if (curCell != null)
                     {
-                        if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                            PhysicsObj.change_cell_server(curCell);
+                        //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
+                            //PhysicsObj.change_cell_server(curCell);
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
 
                         player.CheckMonsters();
+
+                        /*if (curCell.ID != prevCell)
+                        {
+                            prevCell = curCell.ID;
+                            Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
+                            if (curCell.ID != PhysicsObj.CurCell.ID)
+                                Console.WriteLine("Physics cell: " + PhysicsObj.CurCell.ID.ToString("X8"));
+                        }*/
                     }
                 }
             }
@@ -1300,6 +1310,14 @@ namespace ACE.Server.WorldObjects
             // handle landblock / cell change
             var isMoved = prevPos.IsMoved(newPos);
             var curCell = PhysicsObj.CurCell;
+
+            if (PhysicsObj.CurCell == null)
+            {
+                //Console.WriteLine("CurCell is null");
+                CurrentLandblock.RemoveWorldObject(Guid, false);
+                return false;
+            }
+
             var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
             if (isMoved)
             {
