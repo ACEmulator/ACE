@@ -68,6 +68,14 @@ namespace ACE.Server.Network.Motion
             TargetGuid = targetGuid;
             MovementTypes = MovementTypes.MoveToObject;
         }
+
+        public UniversalMotion(MotionStance stance, Position moveToObjectPosition)
+        {
+            Stance = stance;
+            Position = moveToObjectPosition;
+            MovementTypes = MovementTypes.TurnToHeading;
+        }
+
         public UniversalMotion(MotionStance stance, MotionItem motionItem)
         {
             Stance = stance;

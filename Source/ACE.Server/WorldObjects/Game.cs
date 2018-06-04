@@ -44,9 +44,13 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
-            ActOnJoin(player.Guid);
+            if (worldObject is Player)
+            {
+                var player = worldObject as Player;
+                ActOnJoin(player.Guid);
+            }
         }
 
         public void ActOnJoin(ObjectGuid playerId)

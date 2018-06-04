@@ -46,29 +46,33 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public virtual void ActOnUse(Player player)
+        public virtual void ActOnUse(WorldObject worldObject)
         {
-            if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && Spell.HasValue && SpellDID.HasValue)
-            {
-                //taken from Gem.UseItem
-                var spellTable = DatManager.PortalDat.SpellTable;
-                if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
-                var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
-                var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
-                var msg = string.Empty;
-                player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
-                LifeMagic(player, spellBase, spell, out msg);
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                return;
-            }
+            //if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && Spell.HasValue && SpellDID.HasValue)
+            //{
+            //    //taken from Gem.UseItem
+            //    var spellTable = DatManager.PortalDat.SpellTable;
+            //    if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
+            //    var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
+            //    var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
+            //    var msg = string.Empty;
+            //    player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
+            //    LifeMagic(player, spellBase, spell, out msg);
+            //    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+            //    return;
+            //}
 
             // Do Nothing by default
+            if (worldObject is Player)
+            {
+                var player = worldObject as Player;
 #if DEBUG
-            var message = $"Default ActOnUse reached, this object ({Name}) not programmed yet.";
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
-            log.Error(message);
+                var message = $"Default ActOnUse reached, this object ({Name}) not programmed yet.";
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
+                log.Error(message);
 #endif
-            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+            }
         }
     }
 }

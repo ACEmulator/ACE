@@ -65,42 +65,46 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
-            ////if (playerDistanceTo >= 2500)
-            ////{
-            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-            ////    return;
-            ////}
-
-            if (!(IsLocked ?? false))
+            if (worldObject is Player)
             {
-                if (!(IsOpen ?? false))
+                var player = worldObject as Player;
+                ////if (playerDistanceTo >= 2500)
+                ////{
+                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
+                ////    return;
+                ////}
+
+                if (!(IsLocked ?? false))
                 {
-                    var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
-                    turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+                    if (!(IsOpen ?? false))
+                    {
+                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
-                    ActionChain turnToTimer = new ActionChain();
-                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
-                    turnToTimer.AddDelaySeconds(1);
-                    turnToTimer.AddAction(this, () => Open(player));
-                    turnToTimer.EnqueueChain();
+                        ActionChain turnToTimer = new ActionChain();
+                        turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                        turnToTimer.AddDelaySeconds(1);
+                        turnToTimer.AddAction(this, () => Open(player));
+                        turnToTimer.EnqueueChain();
 
-                    return;
+                        return;
+                    }
+
+                    if (Viewer == player.Guid.Full)
+                        Close(player);
+
+                    // else error msg?
+                }
+                else
+                {
+                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                 }
 
-                if (Viewer == player.Guid.Full)
-                    Close(player);
-
-                // else error msg?
+                player.SendUseDoneEvent();
             }
-            else
-            {
-                CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
-            }
-
-            player.SendUseDoneEvent();
         }
 
         protected override void DoOnOpenMotionChanges()

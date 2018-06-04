@@ -45,22 +45,26 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
-            ActionChain sancTimer = new ActionChain();
-            sancTimer.AddAction(player, () =>
+            if (worldObject is Player)
             {
-                CurrentLandblock.EnqueueBroadcastMotion(player, sanctuary);
-                CurrentLandblock.EnqueueBroadcastSound(player, Sound.LifestoneOn, 1);
-            });
-            sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
-            sancTimer.AddAction(player, () =>
-            {
-                if (player.IsWithinUseRadiusOf(this))
+                var player = worldObject as Player;
+
+                ActionChain sancTimer = new ActionChain();
+                sancTimer.AddAction(player, () =>
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
-                    player.Sanctuary = player.Location;
-                }
+                    CurrentLandblock.EnqueueBroadcastMotion(player, sanctuary);
+                    CurrentLandblock.EnqueueBroadcastSound(player, Sound.LifestoneOn, 1);
+                });
+                sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
+                sancTimer.AddAction(player, () =>
+                {
+                    if (player.IsWithinUseRadiusOf(this))
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                        player.Sanctuary = player.Location;
+                    }
                 // Unsure if there was a fail message...
                 //else
                 //{
@@ -69,8 +73,9 @@ namespace ACE.Server.WorldObjects
                 //}
 
                 player.SendUseDoneEvent();
-            });
-            sancTimer.EnqueueChain();
+                });
+                sancTimer.EnqueueChain();
+            }
         }
     }
 }

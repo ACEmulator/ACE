@@ -65,22 +65,26 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
-            ////if (playerDistanceTo >= 2500)
-            ////{
-            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-            ////    return;
-            ////}
-
-            if (AllowedActivator == null)
+            if (worldObject is Player)
             {
-                Activate(player.Guid);
-            }
+                var player = worldObject as Player;
+                ////if (playerDistanceTo >= 2500)
+                ////{
+                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
+                ////    return;
+                ////}
 
-            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                if (AllowedActivator == null)
+                {
+                    Activate(player.Guid);
+                }
+
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            }
         }
 
         private void Activate(ObjectGuid activator = new ObjectGuid())

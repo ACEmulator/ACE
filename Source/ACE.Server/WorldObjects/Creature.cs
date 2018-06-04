@@ -571,37 +571,65 @@ namespace ACE.Server.WorldObjects
         /// Note - we may need to make an NPC class vs monster as using a monster does not make them turn towrad you as I recall. Og II
         ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
         /// </summary>
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(player.Rotate(this));
-            if (Biota.BiotaPropertiesEmote.Count > 0)
+            if (worldObject is Player)
             {
-                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-                var result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7 && rng >= emote.Probability);
+                var player = worldObject as Player;
 
-                if (result.Count() < 1)
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(player.Rotate(this));
+                if (Biota.BiotaPropertiesEmote.Count > 0)
                 {
-                    result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7);
-                }
-                if (result.Count() > 0)
-                {
-                    var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt(result.Count() - 1).Category);
+                    //var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                    //var result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7 && rng >= emote.Probability);
 
-                    foreach (var action in actions)
+                    //if (result.Count() < 1)
+                    //{
+                    //    result = Biota.BiotaPropertiesEmote.Where(emote => emote.Category == 7);
+                    //}
+                    //if (result.Count() > 0)
+                    //{
+                    //    var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt(result.Count() - 1).Category);
+
+                    //    foreach (var action in actions)
+                    //    {
+                    //        EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, actionChain, this, player);
+                    //    }
+                    //}
+                    //actionChain.EnqueueChain();
+                    //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
+                    //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    //player.Session.Network.EnqueueSend(sendUseDoneEvent);
+
+                    var emoteSets = Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.Use).ToList();
+
+                    if (emoteSets.Count > 0)
                     {
-                        EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, actionChain, this, player);
+                        var selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability == 1);
+
+                        if (selectedEmoteSet == null)
+                        {
+                            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
+                            selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability >= rng);
+                        }
+
+                        var emoteActions = Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == selectedEmoteSet.Category && x.EmoteSetId == selectedEmoteSet.EmoteSetId).OrderBy(x => x.Order).ToList();
+
+                        foreach (var action in emoteActions)
+                        {
+                            EmoteManager.ExecuteEmote(selectedEmoteSet, action, actionChain, this, player);
+                        }
+                        actionChain.EnqueueChain();
                     }
+                    
+                    player.SendUseDoneEvent();
                 }
-                actionChain.EnqueueChain();
-                //OnAutonomousMove(player.Location, this.Sequences, MovementTypes.TurnToObject, playerId);
-                //GameEventUseDone sendUseDoneEvent = new GameEventUseDone(player.Session);
-                //player.Session.Network.EnqueueSend(sendUseDoneEvent);
-                player.SendUseDoneEvent();
-            }
-            else
-            {
-                player.SendUseDoneEvent();
+                else
+                {
+                    player.SendUseDoneEvent();
+                }
             }
         }
 
