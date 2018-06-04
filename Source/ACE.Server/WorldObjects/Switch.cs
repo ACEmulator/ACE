@@ -7,6 +7,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
@@ -146,6 +147,26 @@ namespace ACE.Server.WorldObjects
                 }
             });
             switchTimer.EnqueueChain();
+        }
+
+        public override void ActivateLinks()
+        {
+            if (LinkedInstances.Count > 0)
+            {
+                foreach (var link in LinkedInstances)
+                {
+                    var wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
+
+                    if (wo != null)
+                    {
+                        wo.Location = new Position(link.ObjCellId, link.OriginX, link.OriginY, link.OriginZ, link.AnglesX, link.AnglesY, link.AnglesZ, link.AnglesW);
+
+                        wo.ActivationTarget = Guid.Full;
+
+                        CurrentLandblock.AddWorldObject(wo);
+                    }
+                }
+            }
         }
     }
 }
