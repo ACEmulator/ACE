@@ -1,4 +1,5 @@
 using ACE.Common;
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -6,25 +7,15 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
-using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
     public class Door : WorldObject, Lock
     {
-        private static List<GenericPropertyId> _updateLocked = new List<GenericPropertyId>() { new GenericPropertyId((uint)PropertyBool.Locked, PropertyType.PropertyBool) };
-
-
-
-        //private static readonly MovementData movementOpen = new MovementData();
-        //private static readonly MovementData movementClosed = new MovementData();
-
-        //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, movementOpen);
-        //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, movementClosed);
-
         private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
         private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
 
@@ -46,8 +37,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            // TODO we shouldn't be auto setting properties that come from our weenie by default
-
             BaseDescriptionFlags |= ObjectDescriptionFlag.Door;
 
             if (!DefaultOpen)
@@ -77,9 +66,6 @@ namespace ACE.Server.WorldObjects
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
             if (IsLocked ?? false)
                 DefaultLocked = true;
-
-            //movementOpen.ForwardCommand = (uint)MotionCommand.On;
-            //movementClosed.ForwardCommand = (uint)MotionCommand.Off;
 
             if (UseRadius < 2)
                 UseRadius = 2;
@@ -166,7 +152,7 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
             ////if (playerDistanceTo >= 2500)
             ////{
@@ -183,11 +169,11 @@ namespace ACE.Server.WorldObjects
                 {
                     if (!IsOpen ?? false)
                     {
-                        Open(player.Guid);
+                        Open(worldObject.Guid);
                     }
                     else
                     {
-                        Close(player.Guid);
+                        Close(worldObject.Guid);
                     }
 
                     // Create Door auto close timer
@@ -198,13 +184,21 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
-                    player.Session.Network.EnqueueSend(doorIsLocked);
-                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    if (worldObject is Player)
+                    {
+                        var player = worldObject as Player;
+                        var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
+                        player.Session.Network.EnqueueSend(doorIsLocked);
+                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    }
                 }
 
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                if (worldObject is Player)
+                {
+                    var player = worldObject as Player;
+                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                }
             });
 
             checkDoorChain.EnqueueChain();
@@ -276,6 +270,26 @@ namespace ACE.Server.WorldObjects
         public UnlockResults Unlock(string keyCode)
         {
             return LockHelper.Unlock(this, keyCode);
+        }
+
+        public override void ActivateLinks()
+        {
+            if (LinkedInstances.Count > 0)
+            {
+                foreach (var link in LinkedInstances)
+                {
+                    var wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
+
+                    if (wo != null)
+                    {
+                        wo.Location = new Position(link.ObjCellId, link.OriginX, link.OriginY, link.OriginZ, link.AnglesX, link.AnglesY, link.AnglesZ, link.AnglesW);
+
+                        wo.ActivationTarget = Guid.Full;
+
+                        CurrentLandblock.AddWorldObject(wo);
+                    }
+                }
+            }
         }
     }
 }

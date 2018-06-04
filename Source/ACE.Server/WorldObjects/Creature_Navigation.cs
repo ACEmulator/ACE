@@ -20,6 +20,15 @@ namespace ACE.Server.WorldObjects
         {
             var currentDir = Location.GetCurrentDir();
             var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+            
+            // get the 2D angle between these vectors
+            return GetAngle(currentDir, targetDir);
+        }
+
+        public float GetAngle(ACE.Entity.Position position)
+        {
+            var currentDir = Location.GetCurrentDir();
+            var targetDir = position.GetCurrentDir();
 
             // get the 2D angle between these vectors
             return GetAngle(currentDir, targetDir);
@@ -55,15 +64,20 @@ namespace ACE.Server.WorldObjects
 
         public float Rotate(WorldObject target)
         {
-            // get inner angle between current heading and target
-            var angle = GetAngle(target);
-
-            if (angle < PhysicsGlobals.EPSILON) return 0.0f;
-
             // execute the TurnToObject motion
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
             CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion);
+
+            return GetRotateDelay(target);
+        }
+
+        public float GetRotateDelay(WorldObject target)
+        {
+            // get inner angle between current heading and target
+            var angle = GetAngle(target);
+
+            if (angle < PhysicsGlobals.EPSILON) return 0.0f;
 
             // calculate time to complete the rotation
             var rotateTime = Math.PI / (360.0f / angle);
@@ -100,6 +114,30 @@ namespace ACE.Server.WorldObjects
 
             if (CurrentLandblock != null)
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+        }
+
+        public float TurnTo(ACE.Entity.Position position)
+        {
+            // execute the TurnToObject motion
+            var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, position);
+            turnToMotion.MovementTypes = MovementTypes.TurnToHeading;
+            CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion);
+
+            return GetTurnToDelay(position);
+        }
+
+        public float GetTurnToDelay(ACE.Entity.Position position)
+        {
+            // get inner angle between current heading and target
+            var angle = GetAngle(position);
+
+            if (angle < PhysicsGlobals.EPSILON) return 0.0f;
+
+            // calculate time to complete the rotation
+            var rotateTime = Math.PI / (360.0f / angle);
+
+            var waitTime = 0.25f;
+            return (float)rotateTime + waitTime;
         }
     }
 }

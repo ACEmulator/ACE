@@ -950,11 +950,17 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.TurnToTarget:
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
                     var creature = sourceObject is Creature ? (Creature)sourceObject : null;
-                    actionChain.AddDelaySeconds(creature.Rotate(player));
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        creature.Rotate(player);
+                    });
+                    actionChain.AddDelaySeconds(creature.GetRotateDelay(player));
                     break;
 
                 case EmoteType.AwardXP:
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
                         if (player != null)
@@ -989,6 +995,30 @@ namespace ACE.Server.Managers
 
                 case EmoteType.UpdateQuest:
                     //This is for the quest NPC's. This will be filled out when quests are added.
+                    break;
+
+                case EmoteType.Turn:
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
+                    creature = sourceObject is Creature ? (Creature)sourceObject : null;
+                    var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        creature.TurnTo(pos);
+                    });
+                    actionChain.AddDelaySeconds(creature.GetTurnToDelay(pos));
+                    break;
+
+                case EmoteType.Activate:
+                    creature = sourceObject is Creature ? (Creature)sourceObject : null;
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        if ((creature.ActivationTarget ?? 0) > 0)
+                        {
+                            var activationTarget = creature.CurrentLandblock.GetObject(new ObjectGuid(creature.ActivationTarget ?? 0));
+                            activationTarget.ActOnUse(creature);
+                        }
+                    });
                     break;
 
                 default:

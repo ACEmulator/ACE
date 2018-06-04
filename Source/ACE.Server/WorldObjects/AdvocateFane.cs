@@ -78,112 +78,117 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(Player player)
+        public override void ActOnUse(WorldObject worldObject)
         {
-            if (AllowedActivator == null)
+            if (worldObject is Player)
             {
-                if ((player.PkLevelModifier ?? -1) != -1 || player.WeenieType == WeenieType.Admin || player.WeenieType == WeenieType.Sentinel) // PlayerKillers, Admins and Sentinels can't be Advocates.
+                var player = worldObject as Player;
+
+                if (AllowedActivator == null)
                 {
-                    //error msg here
-                    if (UseTargetFailureAnimation.HasValue)
-                        CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
-                    else
-                        CurrentLandblock.EnqueueBroadcastMotion(this, twitch2);
-
-                    player.SendUseDoneEvent();
-                    return;
-                }
-
-                if (!(player.AdvocateQuest ?? false))
-                {
-                    AllowedActivator = ObjectGuid.Invalid.Full;
-
-                    var faneTimer = new ActionChain();
-                    var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
-                    turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-                    faneTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
-                    faneTimer.AddDelaySeconds(1);
-                    faneTimer.AddAction(player, () =>
+                    if ((player.PkLevelModifier ?? -1) != -1 || player.WeenieType == WeenieType.Admin || player.WeenieType == WeenieType.Sentinel) // PlayerKillers, Admins and Sentinels can't be Advocates.
                     {
-                        if (UseUserAnimation.HasValue)
-                            CurrentLandblock.EnqueueBroadcastMotion(player, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseUserAnimation)));
+                        //error msg here
+                        if (UseTargetFailureAnimation.HasValue)
+                            CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         else
-                            CurrentLandblock.EnqueueBroadcastMotion(player, bowDeep);
-                    });
-                    faneTimer.AddAction(player, () =>
-                    {
-                        if (UseTargetSuccessAnimation.HasValue)
-                            CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
-                        else
-                            CurrentLandblock.EnqueueBroadcastMotion(this, twitch);
-                    });
-                    if (UseTargetSuccessAnimation.HasValue)
-                        faneTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
-                    else
-                        faneTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
-                    faneTimer.AddAction(player, () =>
-                    {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
-                        player.AdvocateQuest = true;
+                            CurrentLandblock.EnqueueBroadcastMotion(this, twitch2);
 
-                        if (UseCreateItem.HasValue)
+                        player.SendUseDoneEvent();
+                        return;
+                    }
+
+                    if (!(player.AdvocateQuest ?? false))
+                    {
+                        AllowedActivator = ObjectGuid.Invalid.Full;
+
+                        var faneTimer = new ActionChain();
+                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+                        faneTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                        faneTimer.AddDelaySeconds(1);
+                        faneTimer.AddAction(player, () =>
                         {
-                            var useCreateItem = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
+                            if (UseUserAnimation.HasValue)
+                                CurrentLandblock.EnqueueBroadcastMotion(player, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseUserAnimation)));
+                            else
+                                CurrentLandblock.EnqueueBroadcastMotion(player, bowDeep);
+                        });
+                        faneTimer.AddAction(player, () =>
+                        {
+                            if (UseTargetSuccessAnimation.HasValue)
+                                CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                            else
+                                CurrentLandblock.EnqueueBroadcastMotion(this, twitch);
+                        });
+                        if (UseTargetSuccessAnimation.HasValue)
+                            faneTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
+                        else
+                            faneTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
+                        faneTimer.AddAction(player, () =>
+                        {
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
+                            player.AdvocateQuest = true;
 
-                            if (useCreateItem != null)
-                                player.TryCreateInInventoryWithNetworking(useCreateItem);
-                        }
+                            if (UseCreateItem.HasValue)
+                            {
+                                var useCreateItem = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
+
+                                if (useCreateItem != null)
+                                    player.TryCreateInInventoryWithNetworking(useCreateItem);
+                            }
 
                         #region BestowCommandStuff // This stuff did not occur automatically IIRC, it was based on someone Advocate Level 2 or above issuing a bestow command. This is here temp likely
                         if (!player.AdvocateLevel.HasValue)
-                            player.AdvocateLevel = 1;
+                                player.AdvocateLevel = 1;
 
-                        player.IsAdvocate = true;
+                            player.IsAdvocate = true;
 
-                        player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AdvocateLevel, player.AdvocateLevel ?? 1));
-                        player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(player, PropertyBool.IsAdvocate, player.IsAdvocate));
+                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AdvocateLevel, player.AdvocateLevel ?? 1));
+                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(player, PropertyBool.IsAdvocate, player.IsAdvocate));
 
-                        if (player.ChannelsActive.HasValue)
-                            player.ChannelsActive |= Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3;
-                        else
-                            player.ChannelsActive = Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3;
+                            if (player.ChannelsActive.HasValue)
+                                player.ChannelsActive |= Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3;
+                            else
+                                player.ChannelsActive = Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3;
 
-                        if (player.ChannelsAllowed.HasValue)
-                            player.ChannelsAllowed |= Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.TownChans;
-                        else
-                            player.ChannelsAllowed = Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.TownChans;
+                            if (player.ChannelsAllowed.HasValue)
+                                player.ChannelsAllowed |= Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.TownChans;
+                            else
+                                player.ChannelsAllowed = Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.TownChans;
 
-                        var useCreateBook = WorldObjectFactory.CreateNewWorldObject("bookadvocateinstructions");
+                            var useCreateBook = WorldObjectFactory.CreateNewWorldObject("bookadvocateinstructions");
 
-                        if (useCreateBook != null)
-                            player.TryCreateInInventoryWithNetworking(useCreateBook);
+                            if (useCreateBook != null)
+                                player.TryCreateInInventoryWithNetworking(useCreateBook);
 
-                        var useCreateAegis = WorldObjectFactory.CreateNewWorldObject($"shieldadvocate{player.AdvocateLevel ?? 1}");
+                            var useCreateAegis = WorldObjectFactory.CreateNewWorldObject($"shieldadvocate{player.AdvocateLevel ?? 1}");
 
-                        if (useCreateAegis != null)
-                            player.TryCreateInInventoryWithNetworking(useCreateAegis);
+                            if (useCreateAegis != null)
+                                player.TryCreateInInventoryWithNetworking(useCreateAegis);
                         #endregion
 
                         player.SendUseDoneEvent();
 
-                        Reset();
-                    });
-                    faneTimer.EnqueueChain();
+                            Reset();
+                        });
+                        faneTimer.EnqueueChain();
+                    }
+                    else
+                    {
+                        if (UseTargetFailureAnimation.HasValue)
+                            CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                        else
+                            CurrentLandblock.EnqueueBroadcastMotion(this, twitch2);
+
+                        player.SendUseDoneEvent();
+                    }
                 }
                 else
                 {
-                    if (UseTargetFailureAnimation.HasValue)
-                        CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
-                    else
-                        CurrentLandblock.EnqueueBroadcastMotion(this, twitch2);
-
+                    // do nothing / in use error msg?
                     player.SendUseDoneEvent();
                 }
-            }
-            else
-            {
-                // do nothing / in use error msg?
-                player.SendUseDoneEvent();
             }
         }
 

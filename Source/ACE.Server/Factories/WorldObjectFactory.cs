@@ -236,7 +236,7 @@ namespace ACE.Server.Factories
                 {
                     worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
 
-                    foreach (var link in sourceObjects.Where(x => x.LinkSlot == instance.LinkSlot))
+                    foreach (var link in sourceObjects.Where(x => x.LinkSlot == instance.LinkSlot && (x.LinkController ?? false) == false))
                         worldObject.LinkedInstances.Add(link);
 
                     results.Add(worldObject);
