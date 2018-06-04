@@ -87,12 +87,6 @@ namespace ACE.Server.WorldObjects
         //    }
         //}
 
-        //public uint? ActivationTarget
-        //{
-        //    get => GetProperty(PropertyInstanceId.ActivationTarget);
-        //    set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value.Value); }
-        //}
-
         public uint? UseTargetAnimation
         {
             get => GetProperty(PropertyDataId.UseTargetAnimation);

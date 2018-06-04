@@ -952,7 +952,6 @@ namespace ACE.Server.Managers
                 case EmoteType.TurnToTarget:
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     var creature = sourceObject is Creature ? (Creature)sourceObject : null;
-                    //actionChain.AddDelaySeconds(creature.Rotate(player));
                     actionChain.AddAction(sourceObject, () =>
                     {
                         creature.Rotate(player);
@@ -1002,7 +1001,6 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     creature = sourceObject is Creature ? (Creature)sourceObject : null;
                     var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
-                    //actionChain.AddDelaySeconds(creature.TurnTo(pos));
                     actionChain.AddAction(sourceObject, () =>
                     {
                         creature.TurnTo(pos);
@@ -1015,7 +1013,6 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
-                        //player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.Tell));
                         if ((creature.ActivationTarget ?? 0) > 0)
                         {
                             var activationTarget = creature.CurrentLandblock.GetObject(new ObjectGuid(creature.ActivationTarget ?? 0));

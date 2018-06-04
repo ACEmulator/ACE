@@ -276,28 +276,8 @@ namespace ACE.Server.WorldObjects
         {
             if (LinkedInstances.Count > 0)
             {
-                //var profileTemplate = GeneratorProfiles[0];
-
                 foreach (var link in LinkedInstances)
                 {
-                    //var profile = new BiotaPropertiesGenerator();
-                    //profile.WeenieClassId = link.WeenieClassId;
-                    //profile.ObjCellId = link.ObjCellId;
-                    //profile.OriginX = link.OriginX;
-                    //profile.OriginY = link.OriginY;
-                    //profile.OriginZ = link.OriginZ;
-                    //profile.AnglesW = link.AnglesW;
-                    //profile.AnglesX = link.AnglesX;
-                    //profile.AnglesY = link.AnglesY;
-                    //profile.AnglesZ = link.AnglesZ;
-                    //profile.Probability = profileTemplate.Probability;
-                    //profile.InitCreate = profileTemplate.InitCreate;
-                    //profile.MaxCreate = profileTemplate.MaxCreate;
-                    //profile.WhenCreate = profileTemplate.WhenCreate;
-                    //profile.WhereCreate = profileTemplate.WhereCreate;
-
-                    //GeneratorProfiles.Add(profile);
-
                     var wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
 
                     if (wo != null)
@@ -306,7 +286,6 @@ namespace ACE.Server.WorldObjects
 
                         wo.ActivationTarget = Guid.Full;
 
-                        //wo.EnterWorld();
                         CurrentLandblock.AddWorldObject(wo);
                     }
                 }
