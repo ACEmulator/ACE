@@ -120,12 +120,11 @@ namespace ACE.Server.WorldObjects
                     clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
             }
 
-            log.Debug($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
-
             // TODO: Better handling of sending updates to client. The below line is causing much more problems than it is solving until we get proper movement.
             // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
-            if (!sendUpdate)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+            //if (!sendUpdate)
+            //Console.WriteLine($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
+            Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
             if (worldObject is Creature)
@@ -155,17 +154,18 @@ namespace ACE.Server.WorldObjects
                     var sendUpdate = clientObjectList.ContainsKey(wieldedItem.Guid);
 
                     if (!sendUpdate)
-                    {
-                        addList.Add(wieldedItem);
                         clientObjectList.Add(wieldedItem.Guid, WorldManager.PortalYearTicks);
-                    }
                     else
                         clientObjectList[wieldedItem.Guid] = WorldManager.PortalYearTicks;
                 }
+                addList.Add(wieldedItem);
             }
 
             foreach (var item in addList)
+            {
+                //Console.WriteLine($"Telling {Name} about {item.Name} - {item.Guid.Full:X}");
                 Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+            }
         }
 
         /// <summary>
