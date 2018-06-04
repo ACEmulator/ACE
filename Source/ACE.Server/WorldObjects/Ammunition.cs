@@ -43,11 +43,11 @@ namespace ACE.Server.WorldObjects
         {
             if (!PhysicsObj.is_active()) return;
 
-            Console.WriteLine(string.Format("Projectile.OnCollideObject({0} - {1} || {2} - {3})", Guid.Full.ToString("X8"), Name, target.Guid.Full.ToString("X8"), target.Name));
+            //Console.WriteLine(string.Format("Projectile.OnCollideObject({0} - {1} || {2} - {3})", Guid.Full.ToString("X8"), Name, target.Guid.Full.ToString("X8"), target.Name));
 
             if (ProjectileTarget == null || !ProjectileTarget.Equals(target))
             {
-                Console.WriteLine("Unintended projectile target! (should be " + ProjectileTarget.Guid.Full.ToString("X8") + " - " + ProjectileTarget.Name + ")");
+                //Console.WriteLine("Unintended projectile target! (should be " + ProjectileTarget.Guid.Full.ToString("X8") + " - " + ProjectileTarget.Name + ")");
                 OnCollideEnvironment();
                 return;
             }
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!PhysicsObj.is_active()) return;
 
-            Console.WriteLine("Projectile.OnCollideEnvironment(" + Guid.Full.ToString("X8") + ")");
+            //Console.WriteLine("Projectile.OnCollideEnvironment(" + Guid.Full.ToString("X8") + ")");
 
             CurrentLandblock.RemoveWorldObject(Guid, false);
             PhysicsObj.set_active(false);

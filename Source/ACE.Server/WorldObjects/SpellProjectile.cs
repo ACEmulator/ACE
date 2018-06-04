@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
             // TODO: Following line should be removed and previous line uncommented, once projectile movement and collision is server controlled
             // This is handled in CreateSpellProjectile() for now. Commenting it out since it causes double hits.
             //HandleOnCollide(targetGuid);
-            Console.WriteLine("SpellProjectile.HeartBeat()");
+            //Console.WriteLine("SpellProjectile.HeartBeat()");
         }
 
         public enum ProjectileSpellType
@@ -240,13 +240,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnCollideEnvironment()
         {
-            Console.WriteLine("SpellProjectile.OnCollideEnvironment()");
+            //Console.WriteLine("SpellProjectile.OnCollideEnvironment()");
             ProjectileImpact();
         }
 
         public override void OnCollideObject(WorldObject _target)
         {
-            Console.WriteLine("SpellProjectile.OnCollideObject(" + _target.Guid.Full.ToString("X8") + ")");
+            //Console.WriteLine("SpellProjectile.OnCollideObject(" + _target.Guid.Full.ToString("X8") + ")");
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             SpellBase spell = spellTable.Spells[spellId];
 
@@ -274,7 +274,7 @@ namespace ACE.Server.WorldObjects
             // Collision registered against a valid target that was not the intended target
             if (!target.Guid.Equals(targetGuid))
             {
-                Console.WriteLine("Collided with non-target object " + target.Name + " (" + target.Guid.Full.ToString("X8") + ")");
+                //Console.WriteLine("Collided with non-target object " + target.Name + " (" + target.Guid.Full.ToString("X8") + ")");
                 OnCollideEnvironment();
                 return;
             }
