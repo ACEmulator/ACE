@@ -9,6 +9,7 @@ using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -157,26 +158,21 @@ namespace ACE.Server.WorldObjects
                                 var random_x = Physics.Common.Random.RollDice(genRadius * -1, genRadius);
                                 var random_y = Physics.Common.Random.RollDice(genRadius * -1, genRadius);
                                 var pos = new Physics.Common.Position(Location);
-
-                                if ((pos.ObjCellID & 0xFFFF) < 0x100) // Based on GDL scatter
+                                wo.Location = new ACE.Entity.Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+                                var newPos = wo.Location.Pos + new Vector3(random_x, random_y, 0.0f);
+                                if (!Location.Indoors)
                                 {
-                                    pos.Frame.Origin += new System.Numerics.Vector3(random_x, random_y, 0.0f);
-                                    pos.Frame.Origin.Z = LScape.get_landblock(pos.ObjCellID).GetZ(pos.Frame.Origin);
-
-                                    if (pos.Frame.Origin.X < 0.5f)
-                                        pos.Frame.Origin.X = 0.5f;
-                                    if (pos.Frame.Origin.Y < 0.5f)
-                                        pos.Frame.Origin.Y = 0.5f;
-
-                                    wo.Location = new ACE.Entity.Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+                                    // Based on GDL scatter
+                                    newPos.X = Math.Clamp(newPos.X, 0.5f, 191.5f);
+                                    newPos.Y = Math.Clamp(newPos.Y, 0.5f, 191.5f);
                                 }
-                                else
+                                wo.Location.SetPosition(newPos);
+                                if (!Location.Indoors)
                                 {
-                                    pos.Frame.Origin += new System.Numerics.Vector3(random_x, random_y, 0.0f);
-
-                                    wo.Location = new ACE.Entity.Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
+                                    newPos.Z = LScape.get_landblock(pos.ObjCellID).GetZ(newPos);
+                                    wo.Location.SetPosition(newPos);
                                 }
-                                    break;
+                                break;
                             default:
                                 wo.Location = Location;
                                 break;
