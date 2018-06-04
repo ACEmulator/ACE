@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
         public void UpdateCell()
         {
             var curCell = Physics.Common.LScape.get_landcell(Location.LandblockId.Raw);
-            Console.WriteLine("Moving " + Name + " to " + curCell.ID.ToString("X8"));
+            //Console.WriteLine("Moving " + Name + " to " + curCell.ID.ToString("X8"));
             PhysicsObj.change_cell_server(curCell);
             //PhysicsObj.remove_shadows_from_cells();
             PhysicsObj.add_shadows_to_cell(curCell);

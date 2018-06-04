@@ -84,9 +84,9 @@ namespace ACE.Server.Physics.Common
             if (WorldObject.Guid.Equals(obj.WeenieObj.WorldObject.Guid))
                 return -1;
 
-            Console.WriteLine("AtkCollisionProfile");
+            /*Console.WriteLine("AtkCollisionProfile");
             Console.WriteLine("Source: " + WorldObject.Name);
-            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);
+            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);*/
 
             if (WorldObject != null)
                 WorldObject.OnCollideObject(obj.WeenieObj.WorldObject);
@@ -96,10 +96,9 @@ namespace ACE.Server.Physics.Common
 
         public int DoCollision(EnvCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
         {
-            Console.WriteLine("EnvCollisionProfile");
-
+            /*Console.WriteLine("EnvCollisionProfile");
             Console.WriteLine("Source: " + WorldObject.Name);
-            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);
+            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);*/
 
             if (WorldObject != null)
                 WorldObject.OnCollideEnvironment();
