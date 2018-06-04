@@ -398,14 +398,14 @@ namespace ACE.Server.Physics
             double G = gravity;
 
             double A = proj_pos.X;
-            double B = proj_pos.Y;
-            double C = proj_pos.Z;
+            double B = proj_pos.Z;
+            double C = proj_pos.Y;
             double M = target_pos.X;
-            double N = target_pos.Y;
-            double O = target_pos.Z;
+            double N = target_pos.Z;
+            double O = target_pos.Y;
             double P = target_velocity.X;
-            double Q = target_velocity.Y;
-            double R = target_velocity.Z;
+            double Q = target_velocity.Z;
+            double R = target_velocity.Y;
             double S = proj_speed;
 
             double H = M - A;

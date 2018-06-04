@@ -165,13 +165,10 @@ namespace ACE.Server.WorldObjects
                                     // Based on GDL scatter
                                     newPos.X = Math.Clamp(newPos.X, 0.5f, 191.5f);
                                     newPos.Y = Math.Clamp(newPos.Y, 0.5f, 191.5f);
+                                    wo.Location.SetPosition(newPos);
+                                    newPos.Z = LScape.get_landblock(wo.Location.Cell).GetZ(newPos);
                                 }
                                 wo.Location.SetPosition(newPos);
-                                if (!Location.Indoors)
-                                {
-                                    newPos.Z = LScape.get_landblock(pos.ObjCellID).GetZ(newPos);
-                                    wo.Location.SetPosition(newPos);
-                                }
                                 break;
                             default:
                                 wo.Location = Location;
