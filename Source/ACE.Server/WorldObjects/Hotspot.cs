@@ -136,10 +136,6 @@ namespace ACE.Server.WorldObjects
                     plr.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     break;
             }
-            if (!(Visibility ?? false))
-                CurrentLandblock.EnqueueBroadcastSound(this, Sound.TriggerActivated);
-            if (!string.IsNullOrWhiteSpace(ActivationTalkString))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalkString.Replace("%i", Math.Abs(Math.Round(amount)).ToString()), ChatMessageType.Craft));
         }
     }
 }
