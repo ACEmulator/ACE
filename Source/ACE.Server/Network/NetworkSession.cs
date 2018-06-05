@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Handlers;
@@ -42,7 +43,7 @@ namespace ACE.Server.Network
         // Sending this too early seems to cause issues with clients disconnecting.
         private bool sendAck = true;
         private DateTime nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
-        
+
         private uint lastReceivedPacketSequence = 1;
         private uint lastReceivedFragmentSequence;
 
@@ -180,11 +181,16 @@ namespace ACE.Server.Network
 
             // Check if this packet's sequence is greater then the next one we should be getting.
             // If true we must store it to replay once we have caught up.
-            if (packet.Header.Sequence > lastReceivedPacketSequence + 1)
+            var desiredSeq = lastReceivedPacketSequence + 1;
+            if (packet.Header.Sequence > desiredSeq)
             {
                 log.WarnFormat("[{0}] Packet {1} received out of order", session.LoggingIdentifier, packet.Header.Sequence);
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
+
+                if (desiredSeq + 2 <= packet.Header.Sequence && DateTime.Now - LastRequestForRetransmitTime > new TimeSpan(0, 0, 1))
+                    DoRequestForRetransmission(packet.Header.Sequence);
+
                 return;
             }
 
@@ -195,6 +201,38 @@ namespace ACE.Server.Network
             CheckOutOfOrderPackets();
             CheckOutOfOrderFragments();
         }
+        /// <summary>
+        /// request retransmission of lost sequences
+        /// </summary>
+        /// <param name="rcvdSeq">the sequence of the packet that was just received.</param>
+        private void DoRequestForRetransmission(uint rcvdSeq)
+        {
+            var desiredSeq = lastReceivedPacketSequence + 1;
+            List<uint> needSeq = new List<uint>();
+            needSeq.Add(desiredSeq);
+            uint bottom = desiredSeq + 1;
+            for (uint a = bottom; a < rcvdSeq; a++)
+                if (!outOfOrderPackets.ContainsKey(a))
+                    needSeq.Add(a);
+
+            ServerPacket reqPacket = new ServerPacket();
+            byte[] reqData = new byte[4 + (needSeq.Count * 4)];
+            MemoryStream msReqData = new MemoryStream(reqData);
+            msReqData.Write(BitConverter.GetBytes((uint)needSeq.Count), 0, 4);
+            needSeq.ForEach(k => msReqData.Write(BitConverter.GetBytes(k), 0, 4));
+            reqPacket.Data = msReqData;
+            reqPacket.Header.Flags = PacketHeaderFlags.RequestRetransmit;
+            //reqPacket.Header.Checksum = reqPacket.Header.CalculateHash32();
+
+            EnqueueSend(reqPacket);
+
+            // TODO: calculate session packet loss
+            RequestsForRetransmit += (uint)needSeq.Count;
+            LastRequestForRetransmitTime = DateTime.Now;
+            log.WarnFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
+        }
+        private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
+        private uint RequestsForRetransmit = 0;
 
         /// <summary>
         /// Handles a packet, reading the flags and processing all fragments.
@@ -207,7 +245,19 @@ namespace ACE.Server.Network
             uint issacXor = packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
             if (!packet.VerifyChecksum(issacXor))
             {
-                log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
+                if (issacXor != 0)
+                {
+                    issacXor = ConnectionData.IssacClient.GetOffset();
+                    log.WarnFormat("[{0}] Packet {1} has invalid checksum, trying the next offset", session.LoggingIdentifier, packet.Header.Sequence);
+
+                    // not sure why there was a missed offset increment
+                    // results in a valid checksum
+                    // however, the client is now in a sort of "can't move" state.  The monsters react so the communication is still working, right?  fartwhif
+                    bool verified = packet.VerifyChecksum(issacXor);
+                    log.WarnFormat("[{0}] Packet {1} improvised offset checksum result: {2}", session.LoggingIdentifier, packet.Header.Sequence, (verified) ? "successful" : "failed");
+                }
+                else
+                    log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
             }
 
             // depending on the current session state:
@@ -216,7 +266,7 @@ namespace ACE.Server.Network
             // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
             // Example: Applications that check uptime will stay in the AuthLoginRequest state.
             session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks : 
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
                 DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
@@ -391,6 +441,8 @@ namespace ACE.Server.Network
             {
                 ServerPacket removedPacket;
                 cachedPackets.TryRemove(item.Key, out removedPacket);
+                if (removedPacket.Data != null)
+                    removedPacket.Data.Dispose();
             }
         }
 
@@ -418,13 +470,14 @@ namespace ACE.Server.Network
                     ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
 
                 // If we are only ACKing, then we don't seem to have to increment the sequence
-                if (packet.Header.Flags == PacketHeaderFlags.AckSequence)
+                if (packet.Header.Flags == PacketHeaderFlags.AckSequence || packet.Header.Flags.HasFlag(PacketHeaderFlags.RequestRetransmit))
                     packet.Header.Sequence = ConnectionData.PacketSequence.CurrentValue;
                 else
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
                 packet.Header.Table = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
+
 
                 if (packet.Header.Sequence >= 2u)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
@@ -624,7 +677,7 @@ namespace ACE.Server.Network
 
             public ClientMessage GetMessage()
             {
-                fragments.Sort(delegate(ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Index - (int)y.Header.Index; });
+                fragments.Sort(delegate (ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Index - (int)y.Header.Index; });
                 MemoryStream stream = new MemoryStream();
                 BinaryWriter writer = new BinaryWriter(stream);
                 foreach (ClientPacketFragment fragment in fragments)

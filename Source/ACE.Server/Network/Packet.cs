@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ACE.Server.Network
@@ -10,7 +10,7 @@ namespace ACE.Server.Network
         public static uint MaxPacketDataSize { get; } = 464u;
 
         public PacketHeader Header { get; protected set; }
-        public MemoryStream Data { get; protected set; }
+        public MemoryStream Data { get; internal set; }
         public List<PacketFragment> Fragments { get; } = new List<PacketFragment>();
     }
 }
