@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,10 +10,10 @@ namespace ACE.Server.Managers
     public static class ConfigurationManager
     {
         // caching internally to the server
-        private static Dictionary<string, ConfigurationEntry<bool>> CachedBooleanSettings = new Dictionary<string, ConfigurationEntry<bool>>();
-        private static Dictionary<string, ConfigurationEntry<int>> CachedIntegerSettings = new Dictionary<string, ConfigurationEntry<int>>();
-        private static Dictionary<string, ConfigurationEntry<float>> CachedFloatSettings = new Dictionary<string, ConfigurationEntry<float>>();
-        private static Dictionary<string, ConfigurationEntry<string>> CachedStringSettings = new Dictionary<string, ConfigurationEntry<string>>();
+        private static ConcurrentDictionary<string, ConfigurationEntry<bool>> CachedBooleanSettings = new ConcurrentDictionary<string, ConfigurationEntry<bool>>();
+        private static ConcurrentDictionary<string, ConfigurationEntry<int>> CachedIntegerSettings = new ConcurrentDictionary<string, ConfigurationEntry<int>>();
+        private static ConcurrentDictionary<string, ConfigurationEntry<float>> CachedFloatSettings = new ConcurrentDictionary<string, ConfigurationEntry<float>>();
+        private static ConcurrentDictionary<string, ConfigurationEntry<string>> CachedStringSettings = new ConcurrentDictionary<string, ConfigurationEntry<string>>();
 
         public static bool GetBool(string key)
         {
@@ -27,7 +28,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetBool(key);
 
             var boolVal = dbValue?.Value ?? false;
-            CachedBooleanSettings.Add(key, new ConfigurationEntry<bool>(false, boolVal));
+            CachedBooleanSettings[key] = new ConfigurationEntry<bool>(false, boolVal);
             return boolVal;
         }
 
@@ -47,7 +48,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetInt(key);
 
             var intVal = dbValue?.Value ?? 0;
-            CachedIntegerSettings.Add(key, new ConfigurationEntry<int>(false, intVal));
+            CachedIntegerSettings[key] = new ConfigurationEntry<int>(false, intVal);
             return intVal;
         }
 
@@ -66,7 +67,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetFloat(key);
 
             var floatVal = dbValue?.Value ?? 0.0f;
-            CachedFloatSettings.Add(key, new ConfigurationEntry<float>(false, floatVal));
+            CachedFloatSettings[key] = new ConfigurationEntry<float>(false, floatVal);
             return floatVal;
         }
 
@@ -85,7 +86,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetString(key);
 
             var stringVal = dbValue?.Value ?? "";
-            CachedStringSettings.Add(key, new ConfigurationEntry<string>(false, stringVal));
+            CachedStringSettings[key] = new ConfigurationEntry<string>(false, stringVal);
             return stringVal;
         }
 
