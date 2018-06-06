@@ -7,5 +7,7 @@ namespace ACE.Common
         public MySqlConfiguration Shard { get; set; }
 
         public MySqlConfiguration World { get; set; }
+
+        public MySqlConfiguration Config { get; set; }
     }
 }
