@@ -129,6 +129,37 @@ namespace ACE.Database
                 return context.FloatStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
+        public void AddString(string key, string value)
+        {
+
+            var stat = new StringStat();
+            stat.Key = key;
+            stat.Value = value;
+
+            using (var context = new ConfigDbContext())
+            {
+                context.StringStat.Add(stat);
+
+                context.SaveChanges();
+            }
+        }
+
+        public void ModifyString(StringStat stat)
+        {
+            using (var context = new ConfigDbContext())
+            {
+                context.Entry(stat).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+        }
+
+        public StringStat GetString(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.StringStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+        }
+
 
     }
 }
