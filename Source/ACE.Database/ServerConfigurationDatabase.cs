@@ -98,6 +98,37 @@ namespace ACE.Database
                 return context.IntegerStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
+        public void AddFloat(string key, float value)
+        {
+
+            var stat = new FloatStat();
+            stat.Key = key;
+            stat.Value = value;
+
+            using (var context = new ConfigDbContext())
+            {
+                context.FloatStat.Add(stat);
+
+                context.SaveChanges();
+            }
+        }
+
+        public void ModifyFloat(FloatStat stat)
+        {
+            using (var context = new ConfigDbContext())
+            {
+                context.Entry(stat).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+        }
+
+        public FloatStat GetFloat(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.FloatStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+        }
+
 
     }
 }
