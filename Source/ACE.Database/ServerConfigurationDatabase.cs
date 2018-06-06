@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace ACE.Database
 {
-    class ServerConfigurationDatabase
+    public class ServerConfigurationDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
