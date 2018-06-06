@@ -21,5 +21,5 @@ CREATE TABLE `float_stat`(
 
 CREATE TABLE `bool_stat`(
 	`key`	varchar(45) PRIMARY KEY,
-    `value` bool
+    `value` bit(1)
 );

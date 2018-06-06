@@ -35,7 +35,7 @@ namespace ACE.Database.Models.Config
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
-                    .HasColumnType("tinyint(1)");
+                    .HasColumnType("bit(1)");
             });
 
             modelBuilder.Entity<FloatStat>(entity =>

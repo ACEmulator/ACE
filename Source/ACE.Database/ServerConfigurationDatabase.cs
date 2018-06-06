@@ -1,7 +1,9 @@
 using ACE.Database.Models.Config;
 using log4net;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Linq;
 using System.Threading;
 
 namespace ACE.Database
@@ -32,6 +34,37 @@ namespace ACE.Database
                 else
                     return false;
             }
+        }
+
+        public void AddBool(string key, bool value)
+        {
+
+            var stat = new BoolStat();
+            stat.Key = key;
+            stat.Value = value;
+
+            using (var context = new ConfigDbContext())
+            {
+                context.BoolStat.Add(stat);
+
+                context.SaveChanges();
+            }
+        }
+
+        public void ModifyBool(BoolStat stat)
+        {
+            using (var context = new ConfigDbContext())
+            {
+                context.Entry(stat).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+        }
+
+        public BoolStat GetBool(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.BoolStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
 
