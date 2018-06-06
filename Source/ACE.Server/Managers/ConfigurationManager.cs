@@ -31,6 +31,12 @@ namespace ACE.Server.Managers
             return boolVal;
         }
 
+        public static void ModifyBool(string key, bool newVal)
+        {
+            // modify and flag the cache value for the next update.
+            CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
+        }
+
         public static int GetInt(string key)
         {
             if (CachedIntegerSettings.ContainsKey(key))
@@ -43,6 +49,11 @@ namespace ACE.Server.Managers
             var intVal = dbValue?.Value ?? 0;
             CachedIntegerSettings.Add(key, new ConfigurationEntry<int>(false, intVal));
             return intVal;
+        }
+
+        public static void ModifyInt(string key, int newVal)
+        {
+            CachedIntegerSettings[key] = new ConfigurationEntry<int>(true, newVal);
         }
 
         public static float GetFloat(string key)
@@ -59,6 +70,11 @@ namespace ACE.Server.Managers
             return floatVal;
         }
 
+        public static void ModifyFloat(string key, float newVal)
+        {
+            CachedFloatSettings[key] = new ConfigurationEntry<float>(true, newVal);
+        }
+
         public static string GetString(string key)
         {
             if (CachedStringSettings.ContainsKey(key))
@@ -71,6 +87,11 @@ namespace ACE.Server.Managers
             var stringVal = dbValue?.Value ?? "";
             CachedStringSettings.Add(key, new ConfigurationEntry<string>(false, stringVal));
             return stringVal;
+        }
+
+        public static void ModifyString(string key, string newVal)
+        {
+            CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal);
         }
 
     }
