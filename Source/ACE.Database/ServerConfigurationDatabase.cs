@@ -67,6 +67,37 @@ namespace ACE.Database
                 return context.BoolStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
+        public void AddInt(string key, int value)
+        {
+
+            var stat = new IntegerStat();
+            stat.Key = key;
+            stat.Value = value;
+
+            using (var context = new ConfigDbContext())
+            {
+                context.IntegerStat.Add(stat);
+
+                context.SaveChanges();
+            }
+        }
+
+        public void ModifyInt(IntegerStat stat)
+        {
+            using (var context = new ConfigDbContext())
+            {
+                context.Entry(stat).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+        }
+
+        public IntegerStat GetInt(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.IntegerStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+        }
+
 
     }
 }
