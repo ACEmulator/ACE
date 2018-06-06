@@ -3,6 +3,7 @@ using log4net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -158,6 +159,30 @@ namespace ACE.Database
         {
             using (var context = new ConfigDbContext())
                 return context.StringStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+        }
+
+        public List<BoolStat> GetAllBools()
+        {
+            using (var context = new ConfigDbContext())
+                return context.BoolStat.AsNoTracking().ToList();
+        }
+
+        public List<IntegerStat> GetAllInts()
+        {
+            using (var context = new ConfigDbContext())
+                return context.IntegerStat.AsNoTracking().ToList();
+        }
+
+        public List<FloatStat> GetAllFloats()
+        {
+            using (var context = new ConfigDbContext())
+                return context.FloatStat.AsNoTracking().ToList();
+        }
+
+        public List<StringStat> GetAllStrings()
+        {
+            using (var context = new ConfigDbContext())
+                return context.StringStat.AsNoTracking().ToList();
         }
 
 
