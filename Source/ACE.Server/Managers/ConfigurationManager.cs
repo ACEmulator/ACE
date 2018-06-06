@@ -32,7 +32,7 @@ namespace ACE.Server.Managers
             _workerThread.Stop();
         }
 
-        public static bool GetBool(string key)
+        public static bool GetBool(string key, bool fallback = false)
         {
             // first, check the cache. If the key exists in the cache, grab it regardless of it's modified value
             // then, check the database. if the key exists in the database, grab it and cache it
@@ -44,7 +44,7 @@ namespace ACE.Server.Managers
 
             var dbValue = DatabaseManager.ServerConfig.GetBool(key);
 
-            var boolVal = dbValue?.Value ?? false;
+            var boolVal = dbValue?.Value ?? fallback;
             CachedBooleanSettings[key] = new ConfigurationEntry<bool>(false, boolVal);
             return boolVal;
         }
@@ -55,7 +55,7 @@ namespace ACE.Server.Managers
             CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
         }
 
-        public static int GetInt(string key)
+        public static int GetInt(string key, int fallback = 0)
         {
             if (CachedIntegerSettings.ContainsKey(key))
             {
@@ -64,7 +64,7 @@ namespace ACE.Server.Managers
 
             var dbValue = DatabaseManager.ServerConfig.GetInt(key);
 
-            var intVal = dbValue?.Value ?? 0;
+            var intVal = dbValue?.Value ?? fallback;
             CachedIntegerSettings[key] = new ConfigurationEntry<int>(false, intVal);
             return intVal;
         }
@@ -74,7 +74,7 @@ namespace ACE.Server.Managers
             CachedIntegerSettings[key] = new ConfigurationEntry<int>(true, newVal);
         }
 
-        public static float GetFloat(string key)
+        public static float GetFloat(string key, float fallback = 0.0f)
         {
             if (CachedFloatSettings.ContainsKey(key))
             {
@@ -83,7 +83,7 @@ namespace ACE.Server.Managers
 
             var dbValue = DatabaseManager.ServerConfig.GetFloat(key);
 
-            var floatVal = dbValue?.Value ?? 0.0f;
+            var floatVal = dbValue?.Value ?? fallback;
             CachedFloatSettings[key] = new ConfigurationEntry<float>(false, floatVal);
             return floatVal;
         }
@@ -93,7 +93,7 @@ namespace ACE.Server.Managers
             CachedFloatSettings[key] = new ConfigurationEntry<float>(true, newVal);
         }
 
-        public static string GetString(string key)
+        public static string GetString(string key, string fallback = "")
         {
             if (CachedStringSettings.ContainsKey(key))
             {
@@ -102,7 +102,7 @@ namespace ACE.Server.Managers
 
             var dbValue = DatabaseManager.ServerConfig.GetString(key);
 
-            var stringVal = dbValue?.Value ?? "";
+            var stringVal = dbValue?.Value ?? fallback;
             CachedStringSettings[key] = new ConfigurationEntry<string>(false, stringVal);
             return stringVal;
         }
