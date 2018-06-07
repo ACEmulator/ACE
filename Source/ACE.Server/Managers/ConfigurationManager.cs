@@ -48,7 +48,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetBool(key);
             var isModified = false;
 
-            if (dbValue?.Value == null)
+            if (dbValue == null || dbValue?.Value == null)
             {
                 isModified = true;
             }
@@ -75,7 +75,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetInt(key);
             var isModified = false;
 
-            if (dbValue?.Value == null)
+            if (dbValue == null || dbValue?.Value == null)
             {
                 isModified = true;
             }
@@ -125,7 +125,7 @@ namespace ACE.Server.Managers
             var dbValue = DatabaseManager.ServerConfig.GetString(key);
             var isModified = false;
 
-            if (dbValue?.Value == null)
+            if (dbValue == null || dbValue?.Value == null)
             {
                 isModified = true;
             }
@@ -161,26 +161,23 @@ namespace ACE.Server.Managers
                 CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value ?? "");
         }
 
-        private static void DoWork(Object source, System.Timers.ElapsedEventArgs e)
+        private static void WriteBoolToDB()
         {
-            // first, check for variables updated on the server-side. Write those to the DB.
-            // then, compare variables to DB and update from DB as necessary. (needs to minimize r/w to DB)
-
-            // we start with boolean
-            log.Debug("Beginning to write modified boolean properties into database");
+            log.Info("Beginning to write modified boolean properties into database");
             foreach (var i in CachedBooleanSettings.Where(r => r.Value.Modified == true))
             {
-                // todo: figure out how to handle situations where the value is new in the cache and not in the DB
-                // right now, this will update the boolean but if the value doesn't exist the query won't work.
-                // solutions: call exists before modify/add, have modify fallback to add if possible at the EF layer
+                // this probably should be upsert. This does 2 queries per modified datapoint.
+                // perhaps run a transaction to queue all the queries at once.
                 if (DatabaseManager.ServerConfig.BoolExists(i.Key))
                     DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Config.BoolStat { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddBool(i.Key, i.Value.Item);
             }
+        }
 
-            // int next
-            log.Debug("Beginning to write modified integer properties into database");
+        private static void WriteIntToDB()
+        {
+            log.Info("Beginning to write modified integer properties into database");
             foreach (var i in CachedIntegerSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
@@ -189,10 +186,12 @@ namespace ACE.Server.Managers
                 else
                     DatabaseManager.ServerConfig.AddInt(i.Key, i.Value.Item);
             }
+        }
 
+        private static void WriteFloatToDB()
+        {
             // float next
             log.Info("Beginning to write modified float properties into database");
-            log.Info(string.Join(", ", CachedFloatSettings.Select(kv => $"{kv.Key}={kv.Value}")));
             foreach (var i in CachedFloatSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
@@ -201,9 +200,11 @@ namespace ACE.Server.Managers
                 else
                     DatabaseManager.ServerConfig.AddFloat(i.Key, i.Value.Item);
             }
+        }
 
-            // finally, string
-            log.Debug("Beginning to write modified string properties into database");
+        private static void WriteStringToDB()
+        {
+            log.Info("Beginning to write modified string properties into database");
             foreach (var i in CachedStringSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
@@ -212,6 +213,17 @@ namespace ACE.Server.Managers
                 else
                     DatabaseManager.ServerConfig.AddString(i.Key, i.Value.Item);
             }
+        }
+
+        private static void DoWork(Object source, ElapsedEventArgs e)
+        {
+            // first, check for variables updated on the server-side. Write those to the DB.
+            // then, compare variables to DB and update from DB as necessary. (needs to minimize r/w)
+
+            WriteBoolToDB();
+            WriteIntToDB();
+            WriteFloatToDB();
+            WriteStringToDB();
 
             // next, we need to fetch all of the variables from the DB and compare them quickly.
             LoadPropertiesFromDB();
