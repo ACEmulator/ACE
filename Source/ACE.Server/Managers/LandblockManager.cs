@@ -23,6 +23,19 @@ namespace ACE.Server.Managers
 
         private static readonly object landblockMutex = new object();
 
+        private static string motdString
+        {
+            get
+            {
+                string welcomeMsg = "Welcome to Asheron's Call" + "\n";
+                welcomeMsg += "  powered by ACEmulator  " + "\n";
+                welcomeMsg += "" + "\n";
+                welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
+
+                return ConfigurationManager.GetString("motd_string", welcomeMsg);
+            }
+        }
+
         // FIXME(ddevec): Does making this volatile really make double-check locking safe?
         private static volatile Landblock[,] landblocks = new Landblock[256, 256];
 
@@ -63,12 +76,7 @@ namespace ACE.Server.Managers
                 // Must enqueue add world object -- this is called from a message handler context
                 block.AddWorldObject(session.Player);
 
-                string welcomeMsg = "Welcome to Asheron's Call" + "\n";
-                welcomeMsg += "  powered by ACEmulator  " + "\n";
-                welcomeMsg += "" + "\n";
-                welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
-
-                session.Network.EnqueueSend(new GameMessageSystemChat(welcomeMsg, ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
             });
         }
 
