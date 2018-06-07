@@ -1717,17 +1717,26 @@ namespace ACE.Server.Command.Handlers
 
         [CommandHandler("modifyfloat", AccessLevel.Admin, CommandHandlerFlag.None, 2,
             "Modifies a server property that is a float", "modifyfloat (string) (float)")]
-        public static void HandleModifyServerProperty(Session session, params string[] paramters)
+        public static void HandleModifyServerFloatProperty(Session session, params string[] paramters)
         {
             try
             {
                 var floatVal = float.Parse(paramters[1]);
                 ConfigurationManager.ModifyFloat(paramters[0], floatVal);
+                session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
 
             } catch (Exception)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid float", ChatMessageType.Help));
             }
+        }
+
+        [CommandHandler("fetchfloat", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a float", "fetchfloat (string)")]
+        public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
+        {
+            var floatVal = ConfigurationManager.GetFloat(paramters[0]);
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
         }
     }
 }
