@@ -1738,5 +1738,21 @@ namespace ACE.Server.Command.Handlers
             var floatVal = ConfigurationManager.GetFloat(paramters[0]);
             session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
         }
+
+        [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a string", "modifystring (string) (string)")]
+        public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
+        {
+            ConfigurationManager.ModifyString(parameters[0], parameters[1]);
+            session.Network.EnqueueSend(new GameMessageSystemChat("String property successfully updated!", ChatMessageType.System));
+        }
+
+        [CommandHandler("fetchstring", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a string", "fetchstring (string)")]
+        public static void HandleFetchServerFloat(Session session, params string[] parameters)
+        {
+            var stringVal = ConfigurationManager.GetString(parameters[0]);
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]}: {stringVal}", ChatMessageType.System));
+        }
     }
 }
