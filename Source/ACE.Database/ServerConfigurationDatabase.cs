@@ -68,6 +68,12 @@ namespace ACE.Database
                 return context.BoolStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
+        public bool BoolExists(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.BoolStat.Any(r => r.Key == key);
+        }
+
         public void AddInt(string key, int value)
         {
 
@@ -97,6 +103,12 @@ namespace ACE.Database
         {
             using (var context = new ConfigDbContext())
                 return context.IntegerStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+        }
+
+        public bool IntExists(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.IntegerStat.Any(r => r.Key == key);
         }
 
         public void AddFloat(string key, float value)
@@ -130,6 +142,12 @@ namespace ACE.Database
                 return context.FloatStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
+        public bool FloatExists(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.FloatStat.Any(r => r.Key == key);
+        }
+
         public void AddString(string key, string value)
         {
 
@@ -159,6 +177,12 @@ namespace ACE.Database
         {
             using (var context = new ConfigDbContext())
                 return context.StringStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+        }
+
+        public bool StringExists(string key)
+        {
+            using (var context = new ConfigDbContext())
+                return context.StringStat.Any(r => r.Key == key);
         }
 
         public List<BoolStat> GetAllBools()
