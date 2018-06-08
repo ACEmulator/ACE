@@ -12,10 +12,16 @@ namespace ACE.Database
     public class ServerConfigurationDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static bool IsActive = false;
 
         public bool Exists(bool retryUntilFound)
         {
             var config = Common.ConfigManager.Config.MySql.Config;
+
+            if (config == null)
+            {
+                return false;
+            }
 
             for (; ; )
             {
@@ -24,6 +30,7 @@ namespace ACE.Database
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
                         log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        IsActive = true;
                         return true;
                     }
                 }
@@ -39,7 +46,8 @@ namespace ACE.Database
 
         public void AddBool(string key, bool value)
         {
-
+            if (!IsActive)
+                return;
             var stat = new BoolStat();
             stat.Key = key;
             stat.Value = value;
@@ -54,6 +62,8 @@ namespace ACE.Database
 
         public void ModifyBool(BoolStat stat)
         {
+            if (!IsActive)
+                return;
             using (var context = new ConfigDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
@@ -64,19 +74,24 @@ namespace ACE.Database
 
         public BoolStat GetBool(string key)
         {
+            if (!IsActive)
+                return null;
             using (var context = new ConfigDbContext())
                 return context.BoolStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool BoolExists(string key)
         {
+            if (!IsActive)
+                return false;
             using (var context = new ConfigDbContext())
                 return context.BoolStat.Any(r => r.Key == key);
         }
 
         public void AddInt(string key, int value)
         {
-
+            if (!IsActive)
+                return;
             var stat = new IntegerStat();
             stat.Key = key;
             stat.Value = value;
@@ -91,6 +106,8 @@ namespace ACE.Database
 
         public void ModifyInt(IntegerStat stat)
         {
+            if (!IsActive)
+                return;
             using (var context = new ConfigDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
@@ -101,19 +118,24 @@ namespace ACE.Database
 
         public IntegerStat GetInt(string key)
         {
+            if (!IsActive)
+                return null;
             using (var context = new ConfigDbContext())
                 return context.IntegerStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool IntExists(string key)
         {
+            if (!IsActive)
+                return false;
             using (var context = new ConfigDbContext())
                 return context.IntegerStat.Any(r => r.Key == key);
         }
 
         public void AddFloat(string key, float value)
         {
-
+            if (!IsActive)
+                return;
             var stat = new FloatStat();
             stat.Key = key;
             stat.Value = value;
@@ -128,6 +150,8 @@ namespace ACE.Database
 
         public void ModifyFloat(FloatStat stat)
         {
+            if (!IsActive)
+                return;
             using (var context = new ConfigDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
@@ -138,19 +162,24 @@ namespace ACE.Database
 
         public FloatStat GetFloat(string key)
         {
+            if (!IsActive)
+                return null;
             using (var context = new ConfigDbContext())
                 return context.FloatStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool FloatExists(string key)
         {
+            if (!IsActive)
+                return false;
             using (var context = new ConfigDbContext())
                 return context.FloatStat.Any(r => r.Key == key);
         }
 
         public void AddString(string key, string value)
         {
-
+            if (!IsActive)
+                return;
             var stat = new StringStat();
             stat.Key = key;
             stat.Value = value;
@@ -165,6 +194,8 @@ namespace ACE.Database
 
         public void ModifyString(StringStat stat)
         {
+            if (!IsActive)
+                return;
             using (var context = new ConfigDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
@@ -175,36 +206,48 @@ namespace ACE.Database
 
         public StringStat GetString(string key)
         {
+            if (!IsActive)
+                return null;
             using (var context = new ConfigDbContext())
                 return context.StringStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool StringExists(string key)
         {
+            if (!IsActive)
+                return false;
             using (var context = new ConfigDbContext())
                 return context.StringStat.Any(r => r.Key == key);
         }
 
         public List<BoolStat> GetAllBools()
         {
+            if (!IsActive)
+                return new List<BoolStat>();
             using (var context = new ConfigDbContext())
                 return context.BoolStat.AsNoTracking().ToList();
         }
 
         public List<IntegerStat> GetAllInts()
         {
+            if (!IsActive)
+                return new List<IntegerStat>();
             using (var context = new ConfigDbContext())
                 return context.IntegerStat.AsNoTracking().ToList();
         }
 
         public List<FloatStat> GetAllFloats()
         {
+            if (!IsActive)
+                return new List<FloatStat>();
             using (var context = new ConfigDbContext())
                 return context.FloatStat.AsNoTracking().ToList();
         }
 
         public List<StringStat> GetAllStrings()
         {
+            if (!IsActive)
+                return new List<StringStat>();
             using (var context = new ConfigDbContext())
                 return context.StringStat.AsNoTracking().ToList();
         }

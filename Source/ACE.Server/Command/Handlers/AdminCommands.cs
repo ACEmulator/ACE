@@ -1723,11 +1723,17 @@ namespace ACE.Server.Command.Handlers
             {
                 var floatVal = float.Parse(paramters[1]);
                 ConfigurationManager.ModifyFloat(paramters[0], floatVal);
-                session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
+                else
+                    Console.WriteLine("Float property successfully updated!");
 
             } catch (Exception)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid float", ChatMessageType.Help));
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid float", ChatMessageType.Help));
+                else
+                    Console.WriteLine("Please input a valid float");
             }
         }
 
@@ -1736,7 +1742,10 @@ namespace ACE.Server.Command.Handlers
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
             var floatVal = ConfigurationManager.GetFloat(paramters[0]);
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
+            else
+                Console.WriteLine($"{paramters[0]}: {floatVal}");
         }
 
         [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2,
@@ -1744,7 +1753,10 @@ namespace ACE.Server.Command.Handlers
         public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
         {
             ConfigurationManager.ModifyString(parameters[0], parameters[1]);
-            session.Network.EnqueueSend(new GameMessageSystemChat("String property successfully updated!", ChatMessageType.System));
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat("String property successfully updated!", ChatMessageType.System));
+            else
+                Console.WriteLine("String property successfully updated!");
         }
 
         [CommandHandler("fetchstring", AccessLevel.Admin, CommandHandlerFlag.None, 1,
@@ -1752,7 +1764,10 @@ namespace ACE.Server.Command.Handlers
         public static void HandleFetchServerFloat(Session session, params string[] parameters)
         {
             var stringVal = ConfigurationManager.GetString(parameters[0]);
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]}: {stringVal}", ChatMessageType.System));
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]}: {stringVal}", ChatMessageType.System));
+            else
+                Console.WriteLine($"{parameters[0]}: {stringVal}");
         }
     }
 }
