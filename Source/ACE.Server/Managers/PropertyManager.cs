@@ -9,7 +9,7 @@ using log4net;
 
 namespace ACE.Server.Managers
 {
-    public static class ConfigurationManager
+    public static class PropertyManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

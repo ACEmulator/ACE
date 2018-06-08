@@ -1722,7 +1722,7 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var boolVal = bool.Parse(paramters[1]);
-                ConfigurationManager.ModifyBool(paramters[0], boolVal);
+                PropertyManager.ModifyBool(paramters[0], boolVal);
                 if (session != null)
                     session.Network.EnqueueSend(new GameMessageSystemChat("Bool property successfully updated!", ChatMessageType.System));
                 else
@@ -1742,7 +1742,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a bool", "fetchbool (string)")]
         public static void HandleFetchServerBoolProperty(Session session, params string[] paramters)
         {
-            var boolVal = ConfigurationManager.GetBool(paramters[0]);
+            var boolVal = PropertyManager.GetBool(paramters[0]);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {boolVal}", ChatMessageType.System));
             else
@@ -1756,7 +1756,7 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var intVal = int.Parse(paramters[1]);
-                ConfigurationManager.ModifyInt(paramters[0], intVal);
+                PropertyManager.ModifyInt(paramters[0], intVal);
                 if (session != null)
                     session.Network.EnqueueSend(new GameMessageSystemChat("Int property successfully updated!", ChatMessageType.System));
                 else
@@ -1776,7 +1776,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is an int", "fetchint (string)")]
         public static void HandleFetchServerIntProperty(Session session, params string[] paramters)
         {
-            var intVal = ConfigurationManager.GetInt(paramters[0]);
+            var intVal = PropertyManager.GetInt(paramters[0]);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {intVal}", ChatMessageType.System));
             else
@@ -1790,7 +1790,7 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var floatVal = float.Parse(paramters[1]);
-                ConfigurationManager.ModifyFloat(paramters[0], floatVal);
+                PropertyManager.ModifyFloat(paramters[0], floatVal);
                 if (session != null)
                     session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
                 else
@@ -1809,7 +1809,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a float", "fetchfloat (string)")]
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
-            var floatVal = ConfigurationManager.GetFloat(paramters[0]);
+            var floatVal = PropertyManager.GetFloat(paramters[0]);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
             else
@@ -1820,7 +1820,7 @@ namespace ACE.Server.Command.Handlers
             "Modifies a server property that is a string", "modifystring (string) (string)")]
         public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
         {
-            ConfigurationManager.ModifyString(parameters[0], parameters[1]);
+            PropertyManager.ModifyString(parameters[0], parameters[1]);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat("String property successfully updated!", ChatMessageType.System));
             else
@@ -1831,7 +1831,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a string", "fetchstring (string)")]
         public static void HandleFetchServerStringProperty(Session session, params string[] parameters)
         {
-            var stringVal = ConfigurationManager.GetString(parameters[0]);
+            var stringVal = PropertyManager.GetString(parameters[0]);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]}: {stringVal}", ChatMessageType.System));
             else
@@ -1842,7 +1842,7 @@ namespace ACE.Server.Command.Handlers
             "Resync the properties database", "resyncproperties")]
         public static void HandleResyncServerProperties()
         {
-            ConfigurationManager.ResyncVariables();
+            PropertyManager.ResyncVariables();
         }
     }
 }

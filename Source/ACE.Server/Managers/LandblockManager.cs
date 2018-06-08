@@ -32,7 +32,7 @@ namespace ACE.Server.Managers
                 welcomeMsg += "" + "\n";
                 welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
 
-                return ConfigurationManager.GetString("motd_string", welcomeMsg);
+                return PropertyManager.GetString("motd_string", welcomeMsg);
             }
         }
 

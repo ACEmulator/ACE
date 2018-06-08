@@ -15,7 +15,7 @@ namespace ACE.Database
 
         public static SerializedShardDatabase Shard { get; private set; }
 
-        public static ServerConfigurationDatabase ServerConfig { get; private set; } = new ServerConfigurationDatabase();
+        public static ServerPropertyDatabase ServerConfig { get; private set; } = new ServerPropertyDatabase();
 
         public static void Initialize(bool autoRetry = true)
         {

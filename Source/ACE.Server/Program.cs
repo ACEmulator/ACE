@@ -62,7 +62,7 @@ namespace ACE.Server
             EventManager.Initialize();
 
             log.Info("Starting configuration manager...");
-            ConfigurationManager.Initialize();
+            PropertyManager.Initialize();
 
 
             // This should be last
@@ -72,7 +72,7 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            ConfigurationManager.StopUpdating();
+            PropertyManager.StopUpdating();
             DatabaseManager.Stop();
         }
     }

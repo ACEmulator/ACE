@@ -36,13 +36,13 @@ namespace ACE.Server.Managers
         /// The amount of vitae reduced on player death
         /// </summary>
         // 0.05f
-        public static float VitaePenalty { get { return ConfigurationManager.GetFloat("vitae_penalty", 0.05f); } }
+        public static float VitaePenalty { get { return PropertyManager.GetFloat("vitae_penalty", 0.05f); } }
 
         /// <summary>
         /// The minimum possible vitae a player can have
         /// </summary>
         // 0.60f
-        public static float MinVitae { get { return ConfigurationManager.GetFloat("vitae_min", 0.60f); } }
+        public static float MinVitae { get { return PropertyManager.GetFloat("vitae_min", 0.60f); } }
 
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry

@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace ACE.Database
 {
-    public class ServerConfigurationDatabase
+    public class ServerPropertyDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static bool IsActive = false;
