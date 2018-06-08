@@ -1,5 +1,7 @@
 using System;
 using System.Numerics;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 
@@ -31,5 +33,58 @@ namespace ACE.Server.WorldObjects
         {
             return 2.0f;
         }
+
+        public float GetShieldMod(WorldObject attacker, DamageType damageType)
+        {
+            // does the player have a shield equipped?
+            var shield = GetEquippedShield();
+            if (shield == null) return 1.0f;
+
+            // is monster in front of player,
+            // within shield effectiveness area?
+            var effectiveAngle = 135.0f;
+            var angle = GetAngle(attacker);
+            if (Math.Abs(angle) > effectiveAngle / 2.0f)
+                return 1.0f;
+
+            // get base shield AL
+            var baseSL = shield.GetProperty(PropertyInt.ArmorLevel) ?? 0.0f;
+
+            // shield AL item enchantment additives:
+            // impenetrability, brittlemail
+            var modSL = EnchantmentManager.GetArmorMod();
+            var effectiveSL = baseSL + modSL;
+
+            // get shield RL against damage type
+            var baseRL = GetResistance(shield, damageType);
+
+            // shield RL item enchantment additives:
+            // banes, lures
+            var modRL = EnchantmentManager.GetArmorModVsType(damageType);
+            var effectiveRL = (float)(baseRL + modRL);
+
+            // resistance cap
+            if (effectiveRL > 2.0f)
+                effectiveRL = 2.0f;
+
+            var effectiveLevel = effectiveSL * effectiveRL;
+
+            // SL cap:
+            // Trained / untrained: 1/2 shield skill
+            // Spec: shield skill
+            // SL cap is applied *after* item enchantments
+            var shieldSkill = GetCreatureSkill(Skill.Shield);
+            var shieldCap = shieldSkill.Current;
+            if (shieldSkill.Status != SkillStatus.Specialized)
+                shieldCap = (uint)Math.Round(shieldCap / 2.0f);
+
+            effectiveLevel = Math.Min(effectiveLevel, shieldCap);
+
+            // SL is multiplied by existing AL
+            var shieldMod = SkillFormula.CalcArmorMod(effectiveLevel);
+            //Console.WriteLine("ShieldMod: " + shieldMod);
+            return shieldMod;
+        }
+
     }
 }

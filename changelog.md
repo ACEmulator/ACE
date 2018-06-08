@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-06-08
+[gmriggs]
+* Added monster physics-based movement
+* Added shield combat
+
 ### 2018-06-04
 [gmriggs]
 * Added projectile physics collisions

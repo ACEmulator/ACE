@@ -125,6 +125,8 @@ namespace ACE.Server.WorldObjects
 
         public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit)
         {
+            var creature = target as Creature;
+
             // evasion chance
             var evadeChance = GetEvadeChance(target);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < evadeChance)
@@ -163,10 +165,11 @@ namespace ACE.Server.WorldObjects
                 damageType = GetDamageType();
             var resistance = GetResistance(target, bodyPart, damageType);
 
-            // scale damage for armor
-            damage *= SkillFormula.CalcArmorMod(resistance);
+            // scale damage for armor and shield
+            var armorMod = SkillFormula.CalcArmorMod(resistance);
+            var shieldMod = creature.GetShieldMod(this, damageType);
 
-            return damage;
+            return damage * armorMod * shieldMod;
         }
 
         public float GetAttributeMod()
