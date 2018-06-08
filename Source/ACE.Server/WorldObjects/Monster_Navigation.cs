@@ -1,10 +1,11 @@
 using System;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Util;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,6 +102,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnMoveComplete()
         {
+            PhysicsObj.CachedVelocity = Vector3.Zero;
             IsMoving = false;
         }
 
@@ -204,10 +206,31 @@ namespace ACE.Server.WorldObjects
 
             // update position, and landblock if required
             Location.Rotate(dir);
-            if (Location.SetPosition(newPos))
+            var blockCellUpdate = Location.SetPosition(newPos);
+            if (Location.Indoors)
+                UpdateIndoorCells(newPos);
+            PhysicsObj.Position.Frame.Origin = newPos;
+            if (blockCellUpdate.Item1)
                 UpdateLandblock();
+            if (blockCellUpdate.Item1 || blockCellUpdate.Item2)
+                UpdateCell();
+
+            // set cached velocity
+            var velocity = movement / deltaTime;
+            PhysicsObj.CachedVelocity = velocity;
 
             SendUpdatePosition();
+        }
+
+        public void UpdateIndoorCells(Vector3 newPos)
+        {
+            var adjustCell = AdjustCell.Get(Location.LandblockId.Raw >> 16);
+            if (adjustCell == null) return;
+            var newCell = adjustCell.GetCell(newPos);
+            if (newCell == null) return;
+            if (newCell.Value == Location.LandblockId.Raw) return;
+            Location.LandblockId = new ACE.Entity.LandblockId(newCell.Value);
+            //Console.WriteLine("Moving " + Name + " to indoor cell " + newCell.Value.ToString("X8"));
         }
 
         public void GetMovementSpeed()
@@ -217,6 +240,7 @@ namespace ACE.Server.WorldObjects
             var scale = ObjScale ?? 1.0f;
 
             var runSkill = GetCreatureSkill(Skill.Run).Current;
+
             RunRate = (float)MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
             MoveSpeed = moveSpeed * RunRate * scale;
 
@@ -230,6 +254,18 @@ namespace ACE.Server.WorldObjects
         {
             PreviousLocation = Location;
             LandblockManager.RelocateObjectForPhysics(this);
+        }
+
+        /// <summary>
+        /// Called when a monster changes cells
+        /// </summary>
+        public void UpdateCell()
+        {
+            var curCell = Physics.Common.LScape.get_landcell(Location.LandblockId.Raw);
+            //Console.WriteLine("Moving " + Name + " to " + curCell.ID.ToString("X8"));
+            PhysicsObj.change_cell_server(curCell);
+            //PhysicsObj.remove_shadows_from_cells();
+            PhysicsObj.add_shadows_to_cell(curCell);
         }
 
         /// <summary>

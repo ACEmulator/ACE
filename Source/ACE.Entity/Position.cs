@@ -19,9 +19,8 @@ namespace ACE.Entity
             set => landblockId = value;
         }
 
-        // TODO: This is just named wrong needs to be fixed.
         [JsonIgnore]
-        public uint Cell { get; set; }
+        public uint Cell { get => landblockId.Raw; }
 
         public Vector3 Pos
         {
@@ -37,16 +36,16 @@ namespace ACE.Entity
             }
         }
 
-        public bool SetPosition(Vector3 pos)
+        public Tuple<bool, bool> SetPosition(Vector3 pos)
         {
             PositionX = pos.X;
             PositionY = pos.Y;
             PositionZ = pos.Z;
 
             var blockUpdate = SetLandblock();
-            SetLandCell();
+            var cellUpdate = SetLandCell();
 
-            return blockUpdate;
+            return new Tuple<bool, bool>(blockUpdate, cellUpdate);
         }
 
         public Quaternion Rotation
@@ -246,7 +245,6 @@ namespace ACE.Entity
         public Position(uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
             LandblockId = new LandblockId(newCell);
-            Cell = newCell;
             PositionX = newPositionX;
             PositionY = newPositionY;
             PositionZ = newPositionZ;
@@ -256,13 +254,12 @@ namespace ACE.Entity
             RotationW = newRotationW;
 
             if (newCell.ToString("X8").EndsWith("0000"))
-                CalculateObjCell(newCell);
+                SetPosition(Pos);
         }
 
         public Position(BinaryReader payload)
         {
             LandblockId = new LandblockId(payload.ReadUInt32());
-            Cell = LandblockId.Raw;
             // Offset  = new Vector3(payload.ReadSingle(), payload.ReadSingle(), payload.ReadSingle());
             PositionX = payload.ReadSingle();
             PositionY = payload.ReadSingle();
@@ -295,7 +292,6 @@ namespace ACE.Entity
             const float zOffset = 0.0f;
 
             LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
-            Cell = LandblockId.Raw;
             // Offset
             PositionX = xOffset;
             PositionY = yOffset;
@@ -524,25 +520,15 @@ namespace ACE.Entity
         private const long vertex_per_cell = 1;
         private const long polys_per_landcell = 2;
 
-        public void CalculateObjCell(uint newCell)
-        {
-            float X = (((((int)newCell >> (int)block_part_shift) & (int)blockx_mask) >> (int)max_block_shift) << (int)lblock_shift);
-            float Y = ((((int)newCell >> (int)block_part_shift) & (int)blocky_mask) << (int)lblock_shift);
-
-            X += PositionX / square_length;
-            Y += PositionY / square_length;
-
-            Cell = GetCellFromBase((uint)X, (uint)Y);
-            LandblockId = new LandblockId(Cell);
-            // System.Diagnostics.Debug.WriteLine($"Cell came in as {newCell.ToString("X8")}, should be {Cell.ToString("X8")} ");
-        }
-
         public static readonly int BlockLength = 192;
         public static readonly int CellSide = 8;
         public static readonly int CellLength = 24;
 
         public Vector3 ToGlobal()
         {
+            if (Indoors)
+                return Pos;
+
             var x = LandblockId.LandblockX * BlockLength + PositionX;
             var y = LandblockId.LandblockY * BlockLength + PositionY;
             var z = PositionZ;
@@ -550,8 +536,16 @@ namespace ACE.Entity
             return new Vector3(x, y, z);
         }
 
-        public static Position FromGlobal(Vector3 pos)
+        public Position FromGlobal(Vector3 pos)
         {
+            if (Indoors)
+            {
+                var iPos = new Position();
+                iPos.LandblockId = LandblockId;
+                iPos.Pos = new Vector3(pos.X, pos.Y, pos.Z);
+                return iPos;
+            }
+
             var blockX = (uint)pos.X / BlockLength;
             var blockY = (uint)pos.Y / BlockLength;
 

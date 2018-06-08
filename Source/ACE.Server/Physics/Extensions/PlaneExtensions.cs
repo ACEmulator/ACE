@@ -69,5 +69,14 @@ namespace ACE.Server.Physics.Extensions
             }
             return result;
         }
+
+        public static bool set_height(this Plane p, ref Vector3 v)
+        {
+            if (Math.Abs(p.Normal.Z) <= PhysicsGlobals.EPSILON)
+                return false;
+
+            v.Z = -((v.Y * p.Normal.Y + v.X * p.Normal.X + p.D) / p.Normal.Z);
+            return true;
+        }
     }
 }

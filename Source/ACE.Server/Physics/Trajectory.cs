@@ -398,14 +398,14 @@ namespace ACE.Server.Physics
             double G = gravity;
 
             double A = proj_pos.X;
-            double B = proj_pos.Y;
-            double C = proj_pos.Z;
+            double B = proj_pos.Z;
+            double C = proj_pos.Y;
             double M = target_pos.X;
-            double N = target_pos.Y;
-            double O = target_pos.Z;
+            double N = target_pos.Z;
+            double O = target_pos.Y;
             double P = target_velocity.X;
-            double Q = target_velocity.Y;
-            double R = target_velocity.Z;
+            double Q = target_velocity.Z;
+            double R = target_velocity.Y;
             double S = proj_speed;
 
             double H = M - A;
@@ -557,7 +557,7 @@ namespace ACE.Server.Physics
         // impact_point (out Vector3): point where moving target will be hit
         //
         // return (bool): true if a valid solution was found
-        public static bool solve_ballistic_arc_lateral(Vector3 proj_pos, float lateral_speed, Vector3 target, Vector3 target_velocity, float max_height_offset, out Vector3 fire_velocity, out float gravity, out Vector3 impact_point)
+        public static bool solve_ballistic_arc_lateral(Vector3 proj_pos, float lateral_speed, Vector3 target, Vector3 target_velocity, float gravity, out Vector3 fire_velocity, out float time, out Vector3 impact_point)
         {
 
             // Handling these cases is up to your project's coding standards
@@ -565,7 +565,7 @@ namespace ACE.Server.Physics
 
             // Initialize output variables
             fire_velocity = Vector3.Zero;
-            gravity = 0f;
+            time = 0.0f;
             impact_point = Vector3.Zero;
 
             // Ground plane terms
@@ -609,11 +609,18 @@ namespace ACE.Server.Physics
             // end = z0 + vertical_speed*time + .5*gravity*time^s
             // Wolfram Alpha: solve b = a + .5*v*t + .5*g*(.5*t)^2, c = a + vt + .5*g*t^2 for g, v
             float a = proj_pos.Z;       // initial
-            float b = Math.Max(proj_pos.Z, impact_point.Z) + max_height_offset;  // peak
+            //float b = Math.Max(proj_pos.Z, impact_point.Z) + max_height_offset;  // peak
             float c = impact_point.Z;   // final
 
-            gravity = -4 * (a - 2 * b + c) / (t * t);
-            fire_velocity.Z = -(3 * a - 4 * b + c) / t;
+            //gravity = -4 * (a - 2 * b + c) / (t * t);
+            //fire_velocity.Z = -(3 * a - 4 * b + c) / t;
+
+            var g = gravity;
+            var b = (4 * a + 4 * c - g * t * t) / 8;
+
+            fire_velocity.Z = (2 * a - 2 * c + g * t * t) / (t * 2) * -1;
+
+            time = t;
 
             return true;
         }

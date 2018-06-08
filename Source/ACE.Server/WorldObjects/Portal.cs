@@ -177,14 +177,9 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
-        public override void HandleActionOnCollide(ObjectGuid playerId)
+        public void OnCollideObject(Player player)
         {
             string serverMessage;
-
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
-
-            if (player == null)
-                return;
 
             if (player.Teleporting)
                 return;

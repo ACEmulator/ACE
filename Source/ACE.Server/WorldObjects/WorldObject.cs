@@ -69,6 +69,9 @@ namespace ACE.Server.WorldObjects
 
         public List<AttackDamage> AttackList = new List<AttackDamage>();
 
+        public WorldObject ProjectileSource;
+        public WorldObject ProjectileTarget;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
@@ -100,7 +103,7 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj = new PhysicsObj();
             PhysicsObj.set_object_guid(Guid);
-            PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
+            //PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
 
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
@@ -109,6 +112,10 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScale(ObjScale ?? 1.0f);
+
+            var physicsState = GetProperty(PropertyInt.PhysicsState);
+            if (physicsState != null)
+                PhysicsObj.State = (Physics.PhysicsState)physicsState;
         }
 
         private void SetEphemeralValues()
@@ -331,7 +338,7 @@ namespace ACE.Server.WorldObjects
 
         public Position RequestedLocation { get; private set; }
 
-        public Position PreviousLocation { get; protected set; }
+        public Position PreviousLocation { get; set; }
 
         /// <summary>
         /// Should only be adjusted by LandblockManager -- default is null
@@ -590,14 +597,19 @@ namespace ACE.Server.WorldObjects
             return snapshot;
         }*/
 
-        public virtual void HandleActionOnCollide(ObjectGuid playerId)
+        public virtual void OnCollideObject(WorldObject target)
         {
-            // todo: implement.  default is probably to do nothing.
+            // empty base
         }
 
-        public virtual void HandleActionOnCollideEnd(ObjectGuid playerId)
+        public virtual void OnCollideObjectEnd(WorldObject target)
         {
-            // todo: implement.  default is probably to do nothing.
+            // empty base
+        }
+
+        public virtual void OnCollideEnvironment()
+        {
+            // empty base
         }
 
         public void HandleActionMotion(UniversalMotion motion)
@@ -721,7 +733,7 @@ namespace ACE.Server.WorldObjects
 
             if (cellID != null && pos.Cell != cellID.Value)
             {
-                pos.Cell = cellID.Value;
+                pos.LandblockId = new LandblockId(cellID.Value);
                 return true;
             }
             return false;

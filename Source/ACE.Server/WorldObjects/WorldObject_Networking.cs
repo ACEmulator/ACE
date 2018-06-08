@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+using System.Threading;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -15,6 +17,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -1233,34 +1236,43 @@ namespace ACE.Server.WorldObjects
             PreviousLocation = null;
         }
 
+        public uint prevCell;
+
         /// <summary>
-        /// Used by physics engine to actually update the entities position
+        /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
         /// </summary>
-        /// <param name="newPosition"></param>
-        public void PhysicsUpdatePosition(ACE.Entity.Position newPosition)
+        /// <param name="newPosition">The new position being requested, before verification through physics engine</param>
+        public void UpdatePlayerPhysics(ACE.Entity.Position newPosition)
         {
             var player = this as Player;
 
             // currently only processes players
             if (player == null) return;
 
-            //var previousLocation = Location;
             if (PhysicsObj != null)
             {
                 var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
                 if (dist > Physics.PhysicsGlobals.EPSILON)
                 {
-                    var curCell = Physics.Common.LScape.get_landcell(Location.Cell);
+                    var curCell = Physics.Common.LScape.get_landcell(newPosition.Cell);
                     if (curCell != null)
                     {
-                        if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                            PhysicsObj.change_cell_server(curCell);
+                        //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
+                            //PhysicsObj.change_cell_server(curCell);
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
 
                         player.CheckMonsters();
+
+                        /*if (curCell.ID != prevCell)
+                        {
+                            prevCell = curCell.ID;
+                            Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
+                            if (curCell.ID != PhysicsObj.CurCell.ID)
+                                Console.WriteLine("Physics cell: " + PhysicsObj.CurCell.ID.ToString("X8"));
+                        }*/
                     }
                 }
             }
@@ -1271,12 +1283,54 @@ namespace ACE.Server.WorldObjects
             SendUpdatePosition();
 
             if (Teleporting)
-            {
                 CurrentLandblock.EnqueueBroadcast(PreviousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+        }
+
+        public double lastDist;
+
+        /// <summary>
+        /// Handles calling the physics engine for non-player objects
+        /// </summary>
+        public bool UpdateObjectPhysics()
+        {
+            if (PhysicsObj == null)
+                return false;
+
+            // get position before
+            var pos = PhysicsObj.Position.Frame.Origin;
+            var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
+            var cellBefore = PhysicsObj.CurCell.ID;
+
+            PhysicsObj.update_object();
+
+            // get position after
+            pos = PhysicsObj.Position.Frame.Origin;
+            var newPos = new Vector3(pos.X, pos.Y, pos.Z);
+
+            // handle landblock / cell change
+            var isMoved = prevPos.IsMoved(newPos);
+            var curCell = PhysicsObj.CurCell;
+
+            if (PhysicsObj.CurCell == null)
+            {
+                //Console.WriteLine("CurCell is null");
+                CurrentLandblock.RemoveWorldObject(Guid, false);
+                return false;
             }
 
-            ForcedLocation = null;
-            RequestedLocation = null;
+            var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
+            if (isMoved)
+            {
+                if (curCell.ID != cellBefore)
+                    Location.LandblockId = new LandblockId(curCell.ID);
+
+                Location.Pos = newPos;
+                if (landblockUpdate)
+                    WorldManager.UpdateLandblock.Add(this);
+            }
+
+            // return position change?
+            return false;
         }
 
         public bool? IgnoreCloIcons

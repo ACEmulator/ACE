@@ -24,19 +24,21 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }
-        public override void HandleActionOnCollideEnd(ObjectGuid playerId)
+        public override void OnCollideObjectEnd(WorldObject wo)
         {
-            if (!playerId.IsPlayer()) return;
-            if (Players.Any(k => k == playerId))
-                Players.Remove(playerId);
+            var player = wo as Player;
+            if (player == null) return;
+            if (Players.Any(k => k.Equals(player)))
+                Players.Remove(player);
         }
-        private List<ObjectGuid> Players = new List<ObjectGuid>();
+        private List<Player> Players = new List<Player>();
         private ActionChain ActionLoop = null;
-        public override void HandleActionOnCollide(ObjectGuid playerId)
+        public override void OnCollideObject(WorldObject wo)
         {
-            if (!playerId.IsPlayer()) return;
-            if (!Players.Any(k => k == playerId))
-                Players.Add(playerId);
+            var player = wo as Player;
+            if (player == null) return;
+            if (!Players.Any(k => k.Equals(player)))
+                Players.Add(player);
             if (ActionLoop == null)
             {
                 ActionLoop = NextActionLoop;
@@ -109,11 +111,9 @@ namespace ACE.Server.WorldObjects
         }
         private void Activate()
         {
-            Players.ForEach(plrId =>
+            Players.ForEach(player =>
             {
-                var player = CurrentLandblock.GetObject(plrId) as Player;
-                if (player != null)
-                    Activate(player);
+                Activate(player);
             });
         }
         private void Activate(Player plr)
@@ -136,10 +136,6 @@ namespace ACE.Server.WorldObjects
                     plr.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     break;
             }
-            if (!(Visibility ?? false))
-                CurrentLandblock.EnqueueBroadcastSound(this, Sound.TriggerActivated);
-            if (!string.IsNullOrWhiteSpace(ActivationTalkString))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalkString.Replace("%i", Math.Abs(Math.Round(amount)).ToString()), ChatMessageType.Craft));
         }
     }
 }
