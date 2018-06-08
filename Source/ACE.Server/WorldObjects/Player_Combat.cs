@@ -125,6 +125,8 @@ namespace ACE.Server.WorldObjects
 
         public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit)
         {
+            var creature = target as Creature;
+
             // evasion chance
             var evadeChance = GetEvadeChance(target);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < evadeChance)
@@ -163,10 +165,11 @@ namespace ACE.Server.WorldObjects
                 damageType = GetDamageType();
             var resistance = GetResistance(target, bodyPart, damageType);
 
-            // scale damage for armor
-            damage *= SkillFormula.CalcArmorMod(resistance);
+            // scale damage for armor and shield
+            var armorMod = SkillFormula.CalcArmorMod(resistance);
+            var shieldMod = creature.GetShieldMod(this, damageType);
 
-            return damage;
+            return damage * armorMod * shieldMod;
         }
 
         public float GetAttributeMod()
@@ -329,7 +332,7 @@ namespace ACE.Server.WorldObjects
             var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
 
             // send network messages
-            var msgHealth = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current));
 
             var creature = source as Creature;
             var hotspot = source as Hotspot;
@@ -338,14 +341,14 @@ namespace ACE.Server.WorldObjects
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + creature.GetSplatterDir(this)));
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text, msgHealth, hitSound, splatter);
+                Session.Network.EnqueueSend(text, hitSound, splatter);
             }
             else if (hotspot != null)
             {
-                if (!(hotspot.Visibility ?? false))
-                    CurrentLandblock.EnqueueBroadcastSound(hotspot, Sound.TriggerActivated);
                 if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
                     Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
+                if (!(hotspot.Visibility ?? false))
+                    CurrentLandblock.EnqueueBroadcastSound(hotspot, Sound.TriggerActivated);
             }
 
             if (percent >= 0.1f)
