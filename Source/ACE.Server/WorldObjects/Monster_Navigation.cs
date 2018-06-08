@@ -1,11 +1,14 @@
 using System;
 using System.Numerics;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
+using Timer = ACE.Server.Entity.Timer;
 
 namespace ACE.Server.WorldObjects
 {
@@ -204,6 +207,18 @@ namespace ACE.Server.WorldObjects
             if (movement.Length() > dist)
                 newPos = GetDestination();
 
+            //UpdatePosition_Inner(newPos, dir);
+            UpdatePosition_PhysicsInner(newPos, dir);
+
+            // set cached velocity
+            var velocity = movement / deltaTime;
+            PhysicsObj.CachedVelocity = velocity;
+
+            SendUpdatePosition();
+        }
+
+        public void UpdatePosition_Inner(Vector3 newPos, Vector3 dir)
+        {
             // update position, and landblock if required
             Location.Rotate(dir);
             var blockCellUpdate = Location.SetPosition(newPos);
@@ -214,12 +229,25 @@ namespace ACE.Server.WorldObjects
                 UpdateLandblock();
             if (blockCellUpdate.Item1 || blockCellUpdate.Item2)
                 UpdateCell();
+        }
 
-            // set cached velocity
-            var velocity = movement / deltaTime;
-            PhysicsObj.CachedVelocity = velocity;
+        public void UpdatePosition_PhysicsInner(Vector3 newPos, Vector3 dir)
+        {
+            Location.Rotate(dir);
+            PhysicsObj.Position.Frame.Orientation = Location.Rotation;
 
-            SendUpdatePosition();
+            var cell = LScape.get_landcell(Location.Cell);
+
+            PhysicsObj.set_request_pos(newPos, Location.Rotation, cell);
+
+            // simulate running forward for this amount of time
+            PhysicsObj.update_object_server(false);
+
+            // was the position successfully moved to?
+            // use the physics position as the source-of-truth?
+            Location.Pos = PhysicsObj.Position.Frame.Origin;
+            if (PhysicsObj.CurCell != null && PhysicsObj.CurCell.ID != Location.Cell)
+                Location.LandblockId = new LandblockId(PhysicsObj.CurCell.ID);
         }
 
         public void UpdateIndoorCells(Vector3 newPos)
