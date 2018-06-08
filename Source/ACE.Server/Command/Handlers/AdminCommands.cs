@@ -1741,7 +1741,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a bool", "fetchbool (string)")]
         public static void HandleFetchServerBoolProperty(Session session, params string[] paramters)
         {
-            var boolVal = PropertyManager.GetBool(paramters[0]);
+            var boolVal = PropertyManager.GetBool(paramters[0], cacheFallback: false);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {boolVal}", ChatMessageType.System));
             else
@@ -1774,7 +1774,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is an int", "fetchint (string)")]
         public static void HandleFetchServerIntProperty(Session session, params string[] paramters)
         {
-            var intVal = PropertyManager.GetInt(paramters[0]);
+            var intVal = PropertyManager.GetInt(paramters[0], cacheFallback: false);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {intVal}", ChatMessageType.System));
             else
@@ -1806,7 +1806,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a float", "fetchfloat (string)")]
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
-            var floatVal = PropertyManager.GetFloat(paramters[0]);
+            var floatVal = PropertyManager.GetFloat(paramters[0], cacheFallback: false);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
             else
@@ -1828,7 +1828,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a string", "fetchstring (string)")]
         public static void HandleFetchServerStringProperty(Session session, params string[] parameters)
         {
-            var stringVal = PropertyManager.GetString(parameters[0]);
+            var stringVal = PropertyManager.GetString(parameters[0], cacheFallback: false);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]}: {stringVal}", ChatMessageType.System));
             else
