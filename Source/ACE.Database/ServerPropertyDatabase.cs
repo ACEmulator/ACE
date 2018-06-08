@@ -48,9 +48,11 @@ namespace ACE.Database
         {
             if (!IsActive)
                 return;
-            var stat = new BoolStat();
-            stat.Key = key;
-            stat.Value = value;
+            var stat = new BoolStat
+            {
+                Key = key,
+                Value = value
+            };
 
             using (var context = new ConfigDbContext())
             {
@@ -92,9 +94,11 @@ namespace ACE.Database
         {
             if (!IsActive)
                 return;
-            var stat = new IntegerStat();
-            stat.Key = key;
-            stat.Value = value;
+            var stat = new IntegerStat
+            {
+                Key = key,
+                Value = value
+            };
 
             using (var context = new ConfigDbContext())
             {
@@ -136,9 +140,11 @@ namespace ACE.Database
         {
             if (!IsActive)
                 return;
-            var stat = new FloatStat();
-            stat.Key = key;
-            stat.Value = value;
+            var stat = new FloatStat
+            {
+                Key = key,
+                Value = value
+            };
 
             using (var context = new ConfigDbContext())
             {
@@ -180,9 +186,11 @@ namespace ACE.Database
         {
             if (!IsActive)
                 return;
-            var stat = new StringStat();
-            stat.Key = key;
-            stat.Value = value;
+            var stat = new StringStat
+            {
+                Key = key,
+                Value = value
+            };
 
             using (var context = new ConfigDbContext())
             {
@@ -251,7 +259,5 @@ namespace ACE.Database
             using (var context = new ConfigDbContext())
                 return context.StringStat.AsNoTracking().ToList();
         }
-
-
     }
 }

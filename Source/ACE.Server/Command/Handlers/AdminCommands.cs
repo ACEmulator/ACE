@@ -1727,7 +1727,6 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("Bool property successfully updated!", ChatMessageType.System));
                 else
                     Console.WriteLine("Bool property successfully updated!");
-
             }
             catch (Exception)
             {
@@ -1761,7 +1760,6 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("Int property successfully updated!", ChatMessageType.System));
                 else
                     Console.WriteLine("Int property successfully updated!");
-
             }
             catch (Exception)
             {
@@ -1795,7 +1793,6 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
                 else
                     Console.WriteLine("Float property successfully updated!");
-
             } catch (Exception)
             {
                 if (session != null)
