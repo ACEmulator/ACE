@@ -140,6 +140,13 @@ namespace ACE.Server.Managers
             CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal);
         }
 
+        public static void ResyncVariables()
+        {
+            _workerThread.Stop();
+            DoWork(null, null);
+            _workerThread.Start();
+        }
+
         private static void LoadPropertiesFromDB()
         {
             log.Debug("Fetching boolean properties from database");
