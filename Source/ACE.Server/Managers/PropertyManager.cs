@@ -21,6 +21,10 @@ namespace ACE.Server.Managers
 
         private static Timer _workerThread;
 
+        /// <summary>
+        /// Initializes the PropertyManager.
+        /// Run this only once per server instance.
+        /// </summary>
         public static void Initialize()
         {
             LoadPropertiesFromDB();
@@ -30,11 +34,20 @@ namespace ACE.Server.Managers
             _workerThread.Start();
         }
 
+        /// <summary>
+        /// Stops updating the cached store from the database.
+        /// </summary>
         public static void StopUpdating()
         {
             _workerThread.Stop();
         }
 
+        /// <summary>
+        /// Retrieves a boolean property from the cache or database
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <returns>A boolean value representing the property</returns>
         public static bool GetBool(string key, bool fallback = false)
         {
             // first, check the cache. If the key exists in the cache, grab it regardless of it's modified value
@@ -59,12 +72,23 @@ namespace ACE.Server.Managers
             return boolVal;
         }
 
+        /// <summary>
+        /// Modifies a boolean value in the cache and marks it for being synced on the next cycle.
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyBool(string key, bool newVal)
         {
             // modify and flag the cache value for the next update.
             CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
         }
 
+        /// <summary>
+        /// Retreives an integer property from the cache or database
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <returns>An integer value representing the property</returns>
         public static int GetInt(string key, int fallback = 0)
         {
             if (CachedIntegerSettings.ContainsKey(key))
@@ -85,11 +109,22 @@ namespace ACE.Server.Managers
             return intVal;
         }
 
+        /// <summary>
+        /// Modifies an integer value in the cache and marks it for being synced on the next cycle.
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyInt(string key, int newVal)
         {
             CachedIntegerSettings[key] = new ConfigurationEntry<int>(true, newVal);
         }
 
+        /// <summary>
+        /// Retrieves a float property from the cache or database
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <returns>A float value representing the property</returns>
         public static float GetFloat(string key, float fallback = 0.0f)
         {
             if (CachedFloatSettings.ContainsKey(key))
@@ -110,11 +145,22 @@ namespace ACE.Server.Managers
             return floatVal;
         }
 
+        /// <summary>
+        /// Modifies a float value in the cache and marks it for being synced on the next cycle.
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyFloat(string key, float newVal)
         {
             CachedFloatSettings[key] = new ConfigurationEntry<float>(true, newVal);
         }
 
+        /// <summary>
+        /// Retreives a string property from the cache or database
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <returns>A string value representing the property</returns>
         public static string GetString(string key, string fallback = "")
         {
             if (CachedStringSettings.ContainsKey(key))
@@ -135,11 +181,20 @@ namespace ACE.Server.Managers
             return stringVal;
         }
 
+        /// <summary>
+        /// Modifies a string value in the cache and marks it for being synced on the next cycle
+        /// </summary>
+        /// <param name="key">The string key for the property</param>
+        /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyString(string key, string newVal)
         {
             CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal);
         }
 
+        /// <summary>
+        /// Resyncs the variables with the database manually.
+        /// Disables the timer so that the elapsed event cannot run during the update operation.
+        /// </summary>
         public static void ResyncVariables()
         {
             _workerThread.Stop();
@@ -147,13 +202,14 @@ namespace ACE.Server.Managers
             _workerThread.Start();
         }
 
+        /// <summary>
+        /// Loads the variables from the database directly into the cache.
+        /// </summary>
         private static void LoadPropertiesFromDB()
         {
             log.Debug("Fetching boolean properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllBools())
-            {
                 CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value ?? false);
-            }
 
             log.Debug("Fetching integer properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllInts())
@@ -168,6 +224,9 @@ namespace ACE.Server.Managers
                 CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value ?? "");
         }
 
+        /// <summary>
+        /// Writes all of the updated boolean values from the cache into the database.
+        /// </summary>
         private static void WriteBoolToDB()
         {
             log.Info("Beginning to write modified boolean properties into database");
@@ -182,6 +241,9 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// Writes all of the updated integer values from the cache into the database.
+        /// </summary>
         private static void WriteIntToDB()
         {
             log.Info("Beginning to write modified integer properties into database");
@@ -195,6 +257,9 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// Writes all of the updated float values from the cache into the database.
+        /// </summary>
         private static void WriteFloatToDB()
         {
             // float next
@@ -209,6 +274,9 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// Writes all of the updated string values from the cache into the database.
+        /// </summary>
         private static void WriteStringToDB()
         {
             log.Info("Beginning to write modified string properties into database");
