@@ -61,7 +61,7 @@ namespace ACE.Server
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
 
-            log.Info("Starting configuration manager...");
+            log.Info("Starting PropertyManager...");
             PropertyManager.Initialize();
 
 
