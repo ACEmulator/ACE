@@ -25,8 +25,13 @@ namespace ACE.Server.Managers
         /// Initializes the PropertyManager.
         /// Run this only once per server instance.
         /// </summary>
-        public static void Initialize()
+        /// <param name="loadDefaultValues">Should we use the DefaultPropertyManager to load the default properties for keys?</param>
+        public static void Initialize(bool loadDefaultValues = true)
         {
+            if (loadDefaultValues)
+            {
+                DefaultPropertyManager.LoadDefaultProperties();
+            }
             LoadPropertiesFromDB();
             _workerThread = new Timer(300000);
             _workerThread.Elapsed += DoWork;
@@ -328,6 +333,29 @@ namespace ACE.Server.Managers
         public override string ToString()
         {
             return Item.ToString() + " " + Modified;
+        }
+    }
+
+    public static class DefaultPropertyManager
+    {
+        // TODO: There has got to be a better way to load default properties into the cache before the server starts
+        // without duplicating the variables here. Look into calling each of the get() methods (perhaps here even) before publishing.
+        public static void LoadDefaultProperties()
+        {
+            // Place any default properties to load in here
+            //bool
+            //float
+            PropertyManager.ModifyFloat("xp_modifier", 1.0f);
+            PropertyManager.ModifyFloat("luminance_modifier", 1.0f);
+            PropertyManager.ModifyFloat("vitae_penalty", 0.05f);
+            PropertyManager.ModifyFloat("vitae_min", 0.60f);
+            //int
+            //string
+            string welcomeMsg = "Welcome to Asheron's Call" + "\n";
+            welcomeMsg += "  powered by ACEmulator  " + "\n";
+            welcomeMsg += "" + "\n";
+            welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
+            PropertyManager.ModifyString("motd_string", welcomeMsg);
         }
     }
 }
