@@ -46,9 +46,10 @@ namespace ACE.Server.Managers
         /// Retrieves a boolean property from the cache or database
         /// </summary>
         /// <param name="key">The string key for the property</param>
-        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <param name="fallback">The value to return if the property cannot be found.</param>
+        /// <param name="cacheFallback">Whether or not the fallback property should be cached.</param>
         /// <returns>A boolean value representing the property</returns>
-        public static bool GetBool(string key, bool fallback = false)
+        public static bool GetBool(string key, bool fallback = false, bool cacheFallback = true)
         {
             // first, check the cache. If the key exists in the cache, grab it regardless of it's modified value
             // then, check the database. if the key exists in the database, grab it and cache it
@@ -59,16 +60,17 @@ namespace ACE.Server.Managers
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetBool(key);
-            var isModified = false;
+            var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
             {
-                isModified = true;
+                useFallback = true;
             }
 
             var boolVal = dbValue?.Value ?? fallback;
 
-            CachedBooleanSettings[key] = new ConfigurationEntry<bool>(isModified, boolVal);
+            if (!useFallback || (useFallback && cacheFallback))
+                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, boolVal);
             return boolVal;
         }
 
@@ -87,9 +89,10 @@ namespace ACE.Server.Managers
         /// Retreives an integer property from the cache or database
         /// </summary>
         /// <param name="key">The string key for the property</param>
-        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <param name="fallback">The value to return if the property cannot be found.</param>
+        /// <param name="cacheFallback">Whether or not the fallback property should be cached</param>
         /// <returns>An integer value representing the property</returns>
-        public static int GetInt(string key, int fallback = 0)
+        public static int GetInt(string key, int fallback = 0, bool cacheFallback = true)
         {
             if (CachedIntegerSettings.ContainsKey(key))
             {
@@ -97,15 +100,16 @@ namespace ACE.Server.Managers
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetInt(key);
-            var isModified = false;
+            var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
             {
-                isModified = true;
+                useFallback = true;
             }
 
             var intVal = dbValue?.Value ?? fallback;
-            CachedIntegerSettings[key] = new ConfigurationEntry<int>(isModified, intVal);
+            if (!useFallback || (useFallback && cacheFallback))
+                CachedIntegerSettings[key] = new ConfigurationEntry<int>(useFallback, intVal);
             return intVal;
         }
 
@@ -123,9 +127,10 @@ namespace ACE.Server.Managers
         /// Retrieves a float property from the cache or database
         /// </summary>
         /// <param name="key">The string key for the property</param>
-        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <param name="fallback">The value to return if the property cannot be found.</param>
+        /// <param name="cacheFallback">Whether or not the fallpack property should be cached</param>
         /// <returns>A float value representing the property</returns>
-        public static float GetFloat(string key, float fallback = 0.0f)
+        public static float GetFloat(string key, float fallback = 0.0f, bool cacheFallback = true)
         {
             if (CachedFloatSettings.ContainsKey(key))
             {
@@ -133,15 +138,16 @@ namespace ACE.Server.Managers
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetFloat(key);
-            var isModified = false;
+            var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
             {
-                isModified = true;
+                useFallback = true;
             }
 
             var floatVal = dbValue?.Value ?? fallback;
-            CachedFloatSettings[key] = new ConfigurationEntry<float>(isModified, floatVal);
+            if (!useFallback || (useFallback && cacheFallback))
+                CachedFloatSettings[key] = new ConfigurationEntry<float>(useFallback, floatVal);
             return floatVal;
         }
 
@@ -159,9 +165,10 @@ namespace ACE.Server.Managers
         /// Retreives a string property from the cache or database
         /// </summary>
         /// <param name="key">The string key for the property</param>
-        /// <param name="fallback">The value to return if the property cannot be found. This will be cached as well.</param>
+        /// <param name="fallback">The value to return if the property cannot be found.</param>
+        /// <param name="cacheFallback">Whether or not the fallback value will be cached.</param>
         /// <returns>A string value representing the property</returns>
-        public static string GetString(string key, string fallback = "")
+        public static string GetString(string key, string fallback = "", bool cacheFallback = true)
         {
             if (CachedStringSettings.ContainsKey(key))
             {
@@ -169,15 +176,16 @@ namespace ACE.Server.Managers
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetString(key);
-            var isModified = false;
+            var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
             {
-                isModified = true;
+                useFallback = true;
             }
 
             var stringVal = dbValue?.Value ?? fallback;
-            CachedStringSettings[key] = new ConfigurationEntry<string>(isModified, stringVal);
+            if (!useFallback || (useFallback && cacheFallback))
+                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, stringVal);
             return stringVal;
         }
 
