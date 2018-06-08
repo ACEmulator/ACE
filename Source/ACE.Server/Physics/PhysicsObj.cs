@@ -3527,12 +3527,13 @@ namespace ACE.Server.Physics
             }
         }
 
-        public void update_object_server()
+        public void update_object_server(bool forcePos = true)
         {
             var deltaTime = Timer.CurrentTime - UpdateTime;
             UpdateObjectInternalServer(deltaTime);
 
-            set_current_pos(RequestPos);
+            if (forcePos)
+                set_current_pos(RequestPos);
         }
 
         public void update_position()

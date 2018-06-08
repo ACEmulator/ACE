@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // turn if required
-                var rotateTime = Rotate(target);
+                var rotateTime = Rotate(target) - 0.25f;
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(rotateTime);
 

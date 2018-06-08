@@ -329,7 +329,7 @@ namespace ACE.Server.WorldObjects
             var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
 
             // send network messages
-            var msgHealth = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current));
 
             var creature = source as Creature;
             var hotspot = source as Hotspot;
@@ -338,14 +338,14 @@ namespace ACE.Server.WorldObjects
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + creature.GetSplatterDir(this)));
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text, msgHealth, hitSound, splatter);
+                Session.Network.EnqueueSend(text, hitSound, splatter);
             }
             else if (hotspot != null)
             {
-                if (!(hotspot.Visibility ?? false))
-                    CurrentLandblock.EnqueueBroadcastSound(hotspot, Sound.TriggerActivated);
                 if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
                     Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
+                if (!(hotspot.Visibility ?? false))
+                    CurrentLandblock.EnqueueBroadcastSound(hotspot, Sound.TriggerActivated);
             }
 
             if (percent >= 0.1f)
