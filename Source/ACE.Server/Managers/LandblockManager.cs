@@ -23,16 +23,11 @@ namespace ACE.Server.Managers
 
         private static readonly object landblockMutex = new object();
 
-        private static string motdString
+        private static string MotdString
         {
             get
             {
-                string welcomeMsg = "Welcome to Asheron's Call" + "\n";
-                welcomeMsg += "  powered by ACEmulator  " + "\n";
-                welcomeMsg += "" + "\n";
-                welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
-
-                return PropertyManager.GetString("motd_string", welcomeMsg);
+                return PropertyManager.GetString("motd_string", DefaultPropertyManager.DefaultStringProperties.WelcomeMsgDefault);
             }
         }
 
@@ -76,7 +71,7 @@ namespace ACE.Server.Managers
                 // Must enqueue add world object -- this is called from a message handler context
                 block.AddWorldObject(session.Player);
 
-                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat(MotdString, ChatMessageType.Broadcast));
             });
         }
 

@@ -338,24 +338,48 @@ namespace ACE.Server.Managers
 
     public static class DefaultPropertyManager
     {
-        // TODO: There has got to be a better way to load default properties into the cache before the server starts
-        // without duplicating the variables here. Look into calling each of the get() methods (perhaps here even) before publishing.
         public static void LoadDefaultProperties()
         {
             // Place any default properties to load in here
             //bool
             //float
-            PropertyManager.ModifyFloat("xp_modifier", 1.0f);
-            PropertyManager.ModifyFloat("luminance_modifier", 1.0f);
-            PropertyManager.ModifyFloat("vitae_penalty", 0.05f);
-            PropertyManager.ModifyFloat("vitae_min", 0.60f);
+            PropertyManager.ModifyFloat("xp_modifier", DefaultFloatProperties.XpModifierDefault);
+            PropertyManager.ModifyFloat("luminance_modifier", DefaultFloatProperties.LuminanceModifierDefault);
+            PropertyManager.ModifyFloat("vitae_penalty", DefaultFloatProperties.VitaePenaltyDefault);
+            PropertyManager.ModifyFloat("vitae_min", DefaultFloatProperties.VitaeMinimumDefault);
             //int
             //string
-            string welcomeMsg = "Welcome to Asheron's Call" + "\n";
-            welcomeMsg += "  powered by ACEmulator  " + "\n";
-            welcomeMsg += "" + "\n";
-            welcomeMsg += "For more information on commands supported by this server, type @acehelp" + "\n";
-            PropertyManager.ModifyString("motd_string", welcomeMsg);
+            PropertyManager.ModifyString("motd_string", DefaultStringProperties.WelcomeMsgDefault);
+        }
+
+        public static class DefaultBooleanProperties
+        {
+            // define all default bool properties here
+        }
+
+        public static class DefaultIntegerProperties
+        {
+            // define all default integer properties here
+        }
+
+        public static class DefaultFloatProperties
+        {
+            // define all default float properties here
+            public const float XpModifierDefault = 1.0f;
+            public const float LuminanceModifierDefault = 1.0f;
+            public const float VitaePenaltyDefault = 0.05f;
+            public const float VitaeMinimumDefault = 0.60f;
+        }
+
+        public static class DefaultStringProperties
+        {
+            // define all default string properties here
+            public const string WelcomeMsgDefault = @"Welcome to Asheron's Call
+          powered by ACEmulator
+          
+          For more information on commands supported by this server, type @acehelp";
         }
     }
+
+
 }

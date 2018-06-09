@@ -1837,7 +1837,7 @@ namespace ACE.Server.Command.Handlers
 
         [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, -1,
             "Resync the properties database", "resyncproperties")]
-        public static void HandleResyncServerProperties()
+        public static void HandleResyncServerProperties(Session session, params string[] parameters)
         {
             PropertyManager.ResyncVariables();
         }
