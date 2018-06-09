@@ -6,6 +6,7 @@ using System.Timers;
 using ACE.Database;
 using System.Linq;
 using log4net;
+using System.Collections.ObjectModel;
 
 namespace ACE.Server.Managers
 {
@@ -338,47 +339,59 @@ namespace ACE.Server.Managers
 
     public static class DefaultPropertyManager
     {
+        private static ReadOnlyDictionary<A,V> DictOf<A, V>()
+        {
+            return new ReadOnlyDictionary<A, V>(new Dictionary<A, V>());
+        }
+
+        private static ReadOnlyDictionary<A, V> DictOf<A, V>(params (A, V)[] pairs) {
+            return new ReadOnlyDictionary<A, V>(pairs.ToDictionary(
+                (tup) => tup.Item1,
+                (tup) => tup.Item2
+            ));
+        }
+
         public static void LoadDefaultProperties()
         {
             // Place any default properties to load in here
             //bool
+            foreach (var item in DefaultBooleanProperties)
+            {
+                PropertyManager.ModifyBool(item.Key, item.Value);
+            }
             //float
-            PropertyManager.ModifyFloat("xp_modifier", DefaultFloatProperties.XpModifierDefault);
-            PropertyManager.ModifyFloat("luminance_modifier", DefaultFloatProperties.LuminanceModifierDefault);
-            PropertyManager.ModifyFloat("vitae_penalty", DefaultFloatProperties.VitaePenaltyDefault);
-            PropertyManager.ModifyFloat("vitae_min", DefaultFloatProperties.VitaeMinimumDefault);
+            foreach (var item in DefaultFloatProperties)
+            {
+                PropertyManager.ModifyFloat(item.Key, item.Value);
+            }
             //int
+            foreach (var item in DefaultIntegerProperties)
+            {
+                PropertyManager.ModifyInt(item.Key, item.Value);
+            }
             //string
-            PropertyManager.ModifyString("motd_string", DefaultStringProperties.WelcomeMsgDefault);
+            foreach (var item in DefaultStringProperties)
+            {
+                PropertyManager.ModifyString(item.Key, item.Value);
+            }
         }
 
-        public static class DefaultBooleanProperties
-        {
-            // define all default bool properties here
-        }
-
-        public static class DefaultIntegerProperties
-        {
-            // define all default integer properties here
-        }
-
-        public static class DefaultFloatProperties
-        {
-            // define all default float properties here
-            public const float XpModifierDefault = 1.0f;
-            public const float LuminanceModifierDefault = 1.0f;
-            public const float VitaePenaltyDefault = 0.05f;
-            public const float VitaeMinimumDefault = 0.60f;
-        }
-
-        public static class DefaultStringProperties
-        {
-            // define all default string properties here
-            public const string WelcomeMsgDefault = @"Welcome to Asheron's Call
+        public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties = DictOf<string, bool>();
+        public static readonly ReadOnlyDictionary<string, int> DefaultIntegerProperties = DictOf<string, int>();
+        public static readonly ReadOnlyDictionary<string, float> DefaultFloatProperties =
+            DictOf(
+                ("xp_modifier", 1.0f),
+                ("luminance_modifier", 1.0f),
+                ("vitae_penalty", 0.05f),
+                ("vitae_min", 0.60f)
+                );
+        public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
+            DictOf(
+                ("motd_string", @"Welcome to Asheron's Call
           powered by ACEmulator
           
-          For more information on commands supported by this server, type @acehelp";
-        }
+          For more information on commands supported by this server, type @acehelp")
+                );
     }
 
 

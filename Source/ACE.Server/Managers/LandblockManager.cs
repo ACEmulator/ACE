@@ -27,7 +27,7 @@ namespace ACE.Server.Managers
         {
             get
             {
-                return PropertyManager.GetString("motd_string", DefaultPropertyManager.DefaultStringProperties.WelcomeMsgDefault);
+                return PropertyManager.GetString("motd_string");
             }
         }
 
