@@ -20,6 +20,7 @@ namespace ACE.Database
 
             if (config == null)
             {
+                log.Warn("The server property database is not loaded. Please create the server property database.");
                 return false;
             }
 
