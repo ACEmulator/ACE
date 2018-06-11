@@ -49,7 +49,7 @@ namespace ACE.Database
         {
             if (!IsActive)
                 return;
-            var stat = new BoolStat
+            var stat = new PropertiesBoolean
             {
                 Key = key,
                 Value = value
@@ -57,13 +57,13 @@ namespace ACE.Database
 
             using (var context = new ConfigDbContext())
             {
-                context.BoolStat.Add(stat);
+                context.PropertiesBoolean.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyBool(BoolStat stat)
+        public void ModifyBool(PropertiesBoolean stat)
         {
             if (!IsActive)
                 return;
@@ -75,12 +75,12 @@ namespace ACE.Database
             }
         }
 
-        public BoolStat GetBool(string key)
+        public PropertiesBoolean GetBool(string key)
         {
             if (!IsActive)
                 return null;
             using (var context = new ConfigDbContext())
-                return context.BoolStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+                return context.PropertiesBoolean.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool BoolExists(string key)
@@ -88,14 +88,14 @@ namespace ACE.Database
             if (!IsActive)
                 return false;
             using (var context = new ConfigDbContext())
-                return context.BoolStat.Any(r => r.Key == key);
+                return context.PropertiesBoolean.Any(r => r.Key == key);
         }
 
-        public void AddInt(string key, int value)
+        public void AddLong(string key, long value)
         {
             if (!IsActive)
                 return;
-            var stat = new IntegerStat
+            var stat = new PropertiesLong
             {
                 Key = key,
                 Value = value
@@ -103,13 +103,13 @@ namespace ACE.Database
 
             using (var context = new ConfigDbContext())
             {
-                context.IntegerStat.Add(stat);
+                context.PropertiesLong.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyInt(IntegerStat stat)
+        public void ModifyLong(PropertiesLong stat)
         {
             if (!IsActive)
                 return;
@@ -121,27 +121,27 @@ namespace ACE.Database
             }
         }
 
-        public IntegerStat GetInt(string key)
+        public PropertiesLong GetLong(string key)
         {
             if (!IsActive)
                 return null;
             using (var context = new ConfigDbContext())
-                return context.IntegerStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+                return context.PropertiesLong.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
-        public bool IntExists(string key)
+        public bool LongExists(string key)
         {
             if (!IsActive)
                 return false;
             using (var context = new ConfigDbContext())
-                return context.IntegerStat.Any(r => r.Key == key);
+                return context.PropertiesLong.Any(r => r.Key == key);
         }
 
-        public void AddFloat(string key, float value)
+        public void AddDouble(string key, double value)
         {
             if (!IsActive)
                 return;
-            var stat = new FloatStat
+            var stat = new PropertiesDouble
             {
                 Key = key,
                 Value = value
@@ -149,13 +149,13 @@ namespace ACE.Database
 
             using (var context = new ConfigDbContext())
             {
-                context.FloatStat.Add(stat);
+                context.PropertiesDouble.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyFloat(FloatStat stat)
+        public void ModifyDouble(PropertiesDouble stat)
         {
             if (!IsActive)
                 return;
@@ -167,27 +167,27 @@ namespace ACE.Database
             }
         }
 
-        public FloatStat GetFloat(string key)
+        public PropertiesDouble GetDouble(string key)
         {
             if (!IsActive)
                 return null;
             using (var context = new ConfigDbContext())
-                return context.FloatStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+                return context.PropertiesDouble.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
-        public bool FloatExists(string key)
+        public bool DoubleExists(string key)
         {
             if (!IsActive)
                 return false;
             using (var context = new ConfigDbContext())
-                return context.FloatStat.Any(r => r.Key == key);
+                return context.PropertiesDouble.Any(r => r.Key == key);
         }
 
         public void AddString(string key, string value)
         {
             if (!IsActive)
                 return;
-            var stat = new StringStat
+            var stat = new PropertiesString
             {
                 Key = key,
                 Value = value
@@ -195,13 +195,13 @@ namespace ACE.Database
 
             using (var context = new ConfigDbContext())
             {
-                context.StringStat.Add(stat);
+                context.PropertiesString.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyString(StringStat stat)
+        public void ModifyString(PropertiesString stat)
         {
             if (!IsActive)
                 return;
@@ -213,12 +213,12 @@ namespace ACE.Database
             }
         }
 
-        public StringStat GetString(string key)
+        public PropertiesString GetString(string key)
         {
             if (!IsActive)
                 return null;
             using (var context = new ConfigDbContext())
-                return context.StringStat.AsNoTracking().FirstOrDefault(r => r.Key == key);
+                return context.PropertiesString.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool StringExists(string key)
@@ -226,39 +226,39 @@ namespace ACE.Database
             if (!IsActive)
                 return false;
             using (var context = new ConfigDbContext())
-                return context.StringStat.Any(r => r.Key == key);
+                return context.PropertiesString.Any(r => r.Key == key);
         }
 
-        public List<BoolStat> GetAllBools()
+        public List<PropertiesBoolean> GetAllBools()
         {
             if (!IsActive)
-                return new List<BoolStat>();
+                return new List<PropertiesBoolean>();
             using (var context = new ConfigDbContext())
-                return context.BoolStat.AsNoTracking().ToList();
+                return context.PropertiesBoolean.AsNoTracking().ToList();
         }
 
-        public List<IntegerStat> GetAllInts()
+        public List<PropertiesLong> GetAllLongs()
         {
             if (!IsActive)
-                return new List<IntegerStat>();
+                return new List<PropertiesLong>();
             using (var context = new ConfigDbContext())
-                return context.IntegerStat.AsNoTracking().ToList();
+                return context.PropertiesLong.AsNoTracking().ToList();
         }
 
-        public List<FloatStat> GetAllFloats()
+        public List<PropertiesDouble> GetAllDoubles()
         {
             if (!IsActive)
-                return new List<FloatStat>();
+                return new List<PropertiesDouble>();
             using (var context = new ConfigDbContext())
-                return context.FloatStat.AsNoTracking().ToList();
+                return context.PropertiesDouble.AsNoTracking().ToList();
         }
 
-        public List<StringStat> GetAllStrings()
+        public List<PropertiesString> GetAllStrings()
         {
             if (!IsActive)
-                return new List<StringStat>();
+                return new List<PropertiesString>();
             using (var context = new ConfigDbContext())
-                return context.StringStat.AsNoTracking().ToList();
+                return context.PropertiesString.AsNoTracking().ToList();
         }
     }
 }

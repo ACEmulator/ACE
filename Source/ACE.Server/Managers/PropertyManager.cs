@@ -16,8 +16,8 @@ namespace ACE.Server.Managers
 
         // caching internally to the server
         private static ConcurrentDictionary<string, ConfigurationEntry<bool>> CachedBooleanSettings = new ConcurrentDictionary<string, ConfigurationEntry<bool>>();
-        private static ConcurrentDictionary<string, ConfigurationEntry<int>> CachedIntegerSettings = new ConcurrentDictionary<string, ConfigurationEntry<int>>();
-        private static ConcurrentDictionary<string, ConfigurationEntry<float>> CachedFloatSettings = new ConcurrentDictionary<string, ConfigurationEntry<float>>();
+        private static ConcurrentDictionary<string, ConfigurationEntry<long>> CachedLongSettings = new ConcurrentDictionary<string, ConfigurationEntry<long>>();
+        private static ConcurrentDictionary<string, ConfigurationEntry<double>> CachedDoubleSettings = new ConcurrentDictionary<string, ConfigurationEntry<double>>();
         private static ConcurrentDictionary<string, ConfigurationEntry<string>> CachedStringSettings = new ConcurrentDictionary<string, ConfigurationEntry<string>>();
 
         private static Timer _workerThread;
@@ -98,14 +98,14 @@ namespace ACE.Server.Managers
         /// <param name="fallback">The value to return if the property cannot be found.</param>
         /// <param name="cacheFallback">Whether or not the fallback property should be cached</param>
         /// <returns>An integer value representing the property</returns>
-        public static int GetInt(string key, int fallback = 0, bool cacheFallback = true)
+        public static long GetLong(string key, long fallback = 0, bool cacheFallback = true)
         {
-            if (CachedIntegerSettings.ContainsKey(key))
+            if (CachedLongSettings.ContainsKey(key))
             {
-                return CachedIntegerSettings[key].Item;
+                return CachedLongSettings[key].Item;
             }
 
-            var dbValue = DatabaseManager.ServerConfig.GetInt(key);
+            var dbValue = DatabaseManager.ServerConfig.GetLong(key);
             var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
@@ -115,7 +115,7 @@ namespace ACE.Server.Managers
 
             var intVal = dbValue?.Value ?? fallback;
             if (!useFallback || (useFallback && cacheFallback))
-                CachedIntegerSettings[key] = new ConfigurationEntry<int>(useFallback, intVal);
+                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, intVal);
             return intVal;
         }
 
@@ -124,9 +124,9 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static void ModifyInt(string key, int newVal)
+        public static void ModifyLong(string key, long newVal)
         {
-            CachedIntegerSettings[key] = new ConfigurationEntry<int>(true, newVal);
+            CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal);
         }
 
         /// <summary>
@@ -136,14 +136,14 @@ namespace ACE.Server.Managers
         /// <param name="fallback">The value to return if the property cannot be found.</param>
         /// <param name="cacheFallback">Whether or not the fallpack property should be cached</param>
         /// <returns>A float value representing the property</returns>
-        public static float GetFloat(string key, float fallback = 0.0f, bool cacheFallback = true)
+        public static double GetDouble(string key, double fallback = 0.0f, bool cacheFallback = true)
         {
-            if (CachedFloatSettings.ContainsKey(key))
+            if (CachedDoubleSettings.ContainsKey(key))
             {
-                return CachedFloatSettings[key].Item;
+                return CachedDoubleSettings[key].Item;
             }
 
-            var dbValue = DatabaseManager.ServerConfig.GetFloat(key);
+            var dbValue = DatabaseManager.ServerConfig.GetLong(key);
             var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
@@ -153,7 +153,7 @@ namespace ACE.Server.Managers
 
             var floatVal = dbValue?.Value ?? fallback;
             if (!useFallback || (useFallback && cacheFallback))
-                CachedFloatSettings[key] = new ConfigurationEntry<float>(useFallback, floatVal);
+                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, floatVal);
             return floatVal;
         }
 
@@ -162,9 +162,9 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static void ModifyFloat(string key, float newVal)
+        public static void ModifyDouble(string key, double newVal)
         {
-            CachedFloatSettings[key] = new ConfigurationEntry<float>(true, newVal);
+            CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal);
         }
 
         /// <summary>
@@ -225,13 +225,13 @@ namespace ACE.Server.Managers
             foreach (var i in DatabaseManager.ServerConfig.GetAllBools())
                 CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value ?? false);
 
-            log.Debug("Fetching integer properties from database");
-            foreach (var i in DatabaseManager.ServerConfig.GetAllInts())
-                CachedIntegerSettings[i.Key] = new ConfigurationEntry<int>(false, i.Value ?? 0);
+            log.Debug("Fetching long properties from database");
+            foreach (var i in DatabaseManager.ServerConfig.GetAllLongs())
+                CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value ?? 0);
 
-            log.Debug("Fetching float properties from database");
-            foreach (var i in DatabaseManager.ServerConfig.GetAllFloats())
-                CachedFloatSettings[i.Key] = new ConfigurationEntry<float>(false, i.Value ?? 0.0f);
+            log.Debug("Fetching double properties from database");
+            foreach (var i in DatabaseManager.ServerConfig.GetAllDoubles())
+                CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value ?? 0.0f);
 
             log.Debug("Fetching string properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllStrings())
@@ -249,7 +249,7 @@ namespace ACE.Server.Managers
                 // this probably should be upsert. This does 2 queries per modified datapoint.
                 // perhaps run a transaction to queue all the queries at once.
                 if (DatabaseManager.ServerConfig.BoolExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Config.BoolStat { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Config.PropertiesBoolean { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddBool(i.Key, i.Value.Item);
             }
@@ -258,33 +258,33 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Writes all of the updated integer values from the cache into the database.
         /// </summary>
-        private static void WriteIntToDB()
+        private static void WriteLongToDB()
         {
             log.Info("Beginning to write modified integer properties into database");
-            foreach (var i in CachedIntegerSettings.Where(r => r.Value.Modified == true))
+            foreach (var i in CachedLongSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
-                if (DatabaseManager.ServerConfig.IntExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyInt(new Database.Models.Config.IntegerStat { Key = i.Key, Value = i.Value.Item });
+                if (DatabaseManager.ServerConfig.LongExists(i.Key))
+                    DatabaseManager.ServerConfig.ModifyLong(new Database.Models.Config.PropertiesLong { Key = i.Key, Value = i.Value.Item });
                 else
-                    DatabaseManager.ServerConfig.AddInt(i.Key, i.Value.Item);
+                    DatabaseManager.ServerConfig.AddLong(i.Key, i.Value.Item);
             }
         }
 
         /// <summary>
         /// Writes all of the updated float values from the cache into the database.
         /// </summary>
-        private static void WriteFloatToDB()
+        private static void WriteDoubleToDB()
         {
             // float next
             log.Info("Beginning to write modified float properties into database");
-            foreach (var i in CachedFloatSettings.Where(r => r.Value.Modified == true))
+            foreach (var i in CachedDoubleSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
-                if (DatabaseManager.ServerConfig.FloatExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyFloat(new Database.Models.Config.FloatStat { Key = i.Key, Value = i.Value.Item });
+                if (DatabaseManager.ServerConfig.LongExists(i.Key))
+                    DatabaseManager.ServerConfig.ModifyDouble(new Database.Models.Config.PropertiesDouble { Key = i.Key, Value = i.Value.Item });
                 else
-                    DatabaseManager.ServerConfig.AddFloat(i.Key, i.Value.Item);
+                    DatabaseManager.ServerConfig.AddDouble(i.Key, i.Value.Item);
             }
         }
 
@@ -298,7 +298,7 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.StringExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Config.StringStat { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Config.PropertiesString { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddString(i.Key, i.Value.Item);
             }
@@ -310,8 +310,8 @@ namespace ACE.Server.Managers
             // then, compare variables to DB and update from DB as necessary. (needs to minimize r/w)
 
             WriteBoolToDB();
-            WriteIntToDB();
-            WriteFloatToDB();
+            WriteLongToDB();
+            WriteDoubleToDB();
             WriteStringToDB();
 
             // next, we need to fetch all of the variables from the DB and compare them quickly.
@@ -360,14 +360,14 @@ namespace ACE.Server.Managers
                 PropertyManager.ModifyBool(item.Key, item.Value);
             }
             //float
-            foreach (var item in DefaultFloatProperties)
+            foreach (var item in DefaultDoubleProperties)
             {
-                PropertyManager.ModifyFloat(item.Key, item.Value);
+                PropertyManager.ModifyDouble(item.Key, item.Value);
             }
             //int
-            foreach (var item in DefaultIntegerProperties)
+            foreach (var item in DefaultLongProperties)
             {
-                PropertyManager.ModifyInt(item.Key, item.Value);
+                PropertyManager.ModifyLong(item.Key, item.Value);
             }
             //string
             foreach (var item in DefaultStringProperties)
@@ -377,13 +377,13 @@ namespace ACE.Server.Managers
         }
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties = DictOf<string, bool>();
-        public static readonly ReadOnlyDictionary<string, int> DefaultIntegerProperties = DictOf<string, int>();
-        public static readonly ReadOnlyDictionary<string, float> DefaultFloatProperties =
+        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();
+        public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
-                ("xp_modifier", 1.0f),
-                ("luminance_modifier", 1.0f),
-                ("vitae_penalty", 0.05f),
-                ("vitae_min", 0.60f)
+                ("xp_modifier", 1.0d),
+                ("luminance_modifier", 1.0d),
+                ("vitae_penalty", 0.05d),
+                ("vitae_min", 0.60d)
                 );
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(

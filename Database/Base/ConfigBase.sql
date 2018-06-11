@@ -4,22 +4,22 @@ CREATE DATABASE ace_config DEFAULT CHARACTER SET utf8;
 
 USE ace_config;
 
-CREATE TABLE `string_stat`(
+CREATE TABLE `properties_string`(
 	`key`	varchar(45) PRIMARY KEY,
     `value` varchar(45)
 );
 
-CREATE TABLE `integer_stat`(
+CREATE TABLE `properties_long`(
 	`key`	varchar(45) PRIMARY KEY,
-    `value` int(10)
+    `value` bigint
 );
 
-CREATE TABLE `float_stat`(
+CREATE TABLE `properties_double`(
 	`key`	varchar(45) PRIMARY KEY,
-    `value`	float(8)
+    `value`	real
 );
 
-CREATE TABLE `bool_stat`(
+CREATE TABLE `properties_boolean`(
 	`key`	varchar(45) PRIMARY KEY,
     `value` bit(1)
 );

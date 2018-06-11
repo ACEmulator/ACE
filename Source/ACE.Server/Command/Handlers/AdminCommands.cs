@@ -1755,7 +1755,7 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var intVal = int.Parse(paramters[1]);
-                PropertyManager.ModifyInt(paramters[0], intVal);
+                PropertyManager.ModifyLong(paramters[0], intVal);
                 if (session != null)
                     session.Network.EnqueueSend(new GameMessageSystemChat("Int property successfully updated!", ChatMessageType.System));
                 else
@@ -1774,7 +1774,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is an int", "fetchint (string)")]
         public static void HandleFetchServerIntProperty(Session session, params string[] paramters)
         {
-            var intVal = PropertyManager.GetInt(paramters[0], cacheFallback: false);
+            var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {intVal}", ChatMessageType.System));
             else
@@ -1788,7 +1788,7 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var floatVal = float.Parse(paramters[1]);
-                PropertyManager.ModifyFloat(paramters[0], floatVal);
+                PropertyManager.ModifyDouble(paramters[0], floatVal);
                 if (session != null)
                     session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
                 else
@@ -1806,7 +1806,7 @@ namespace ACE.Server.Command.Handlers
             "Fetches a server property that is a float", "fetchfloat (string)")]
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
-            var floatVal = PropertyManager.GetFloat(paramters[0], cacheFallback: false);
+            var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]}: {floatVal}", ChatMessageType.System));
             else

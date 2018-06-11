@@ -6,28 +6,25 @@ namespace ACE.Database.Models.Config
 {
     public partial class ConfigDbContext : DbContext
     {
-        public virtual DbSet<BoolStat> BoolStat { get; set; }
-        public virtual DbSet<FloatStat> FloatStat { get; set; }
-        public virtual DbSet<IntegerStat> IntegerStat { get; set; }
-        public virtual DbSet<StringStat> StringStat { get; set; }
+        public virtual DbSet<PropertiesBoolean> PropertiesBoolean { get; set; }
+        public virtual DbSet<PropertiesDouble> PropertiesDouble { get; set; }
+        public virtual DbSet<PropertiesLong> PropertiesLong { get; set; }
+        public virtual DbSet<PropertiesString> PropertiesString { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var config = Common.ConfigManager.Config.MySql.Config;
+            var config = Common.ConfigManager.Config.MySql.Config;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
-            }
+            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BoolStat>(entity =>
+            modelBuilder.Entity<PropertiesBoolean>(entity =>
             {
                 entity.HasKey(e => e.Key);
 
-                entity.ToTable("bool_stat");
+                entity.ToTable("properties_boolean");
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
@@ -38,11 +35,11 @@ namespace ACE.Database.Models.Config
                     .HasColumnType("bit(1)");
             });
 
-            modelBuilder.Entity<FloatStat>(entity =>
+            modelBuilder.Entity<PropertiesDouble>(entity =>
             {
                 entity.HasKey(e => e.Key);
 
-                entity.ToTable("float_stat");
+                entity.ToTable("properties_double");
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
@@ -51,11 +48,11 @@ namespace ACE.Database.Models.Config
                 entity.Property(e => e.Value).HasColumnName("value");
             });
 
-            modelBuilder.Entity<IntegerStat>(entity =>
+            modelBuilder.Entity<PropertiesLong>(entity =>
             {
                 entity.HasKey(e => e.Key);
 
-                entity.ToTable("integer_stat");
+                entity.ToTable("properties_long");
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
@@ -63,14 +60,14 @@ namespace ACE.Database.Models.Config
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
-                    .HasColumnType("int(10)");
+                    .HasColumnType("bigint(20)");
             });
 
-            modelBuilder.Entity<StringStat>(entity =>
+            modelBuilder.Entity<PropertiesString>(entity =>
             {
                 entity.HasKey(e => e.Key);
 
-                entity.ToTable("string_stat");
+                entity.ToTable("properties_string");
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")

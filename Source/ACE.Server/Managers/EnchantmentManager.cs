@@ -35,12 +35,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// The amount of vitae reduced on player death
         /// </summary>
-        public static float VitaePenalty { get { return PropertyManager.GetFloat("vitae_penalty"); } }
+        public static double VitaePenalty { get { return PropertyManager.GetDouble("vitae_penalty"); } }
 
         /// <summary>
         /// The minimum possible vitae a player can have
         /// </summary>
-        public static float MinVitae { get { return PropertyManager.GetFloat("vitae_min"); } }
+        public static double MinVitae { get { return PropertyManager.GetDouble("vitae_min"); } }
 
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
@@ -178,7 +178,7 @@ namespace ACE.Server.Managers
                 vitae = BuildEntry((uint)Spell.Vitae);
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
                 vitae.LayerId = 0;
-                vitae.StatModValue = 1.0f - VitaePenalty;
+                vitae.StatModValue = 1.0f - (float)VitaePenalty;
 
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(vitae);
             }
@@ -186,7 +186,7 @@ namespace ACE.Server.Managers
             {
                 // update existing vitae
                 vitae = GetVitae();
-                vitae.StatModValue -= VitaePenalty;
+                vitae.StatModValue -= (float)VitaePenalty;
             }
 
             var player = WorldObject as Player;
@@ -375,7 +375,7 @@ namespace ACE.Server.Managers
 
             var minVitae = (100 - maxPenalty) / 100.0f;
             if (minVitae < MinVitae)
-                minVitae = MinVitae;
+                minVitae = (float)MinVitae;
 
             return minVitae;
         }

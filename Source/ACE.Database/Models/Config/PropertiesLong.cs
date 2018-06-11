@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace ACE.Database.Models.Config
 {
-    public partial class IntegerStat
+    public partial class PropertiesLong
     {
         public string Key { get; set; }
-        public int? Value { get; set; }
+        public long? Value { get; set; }
     }
 }
