@@ -1748,31 +1748,31 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{paramters[0]}: {boolVal}");
         }
 
-        [CommandHandler("modifyint", AccessLevel.Admin, CommandHandlerFlag.None, 2,
-            "Modifies a server property that is an int", "modifyint (string) (int)")]
-        public static void HandleModifyServerIntProperty(Session session, params string[] paramters)
+        [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a long", "modifylong (string) (long)")]
+        public static void HandleModifyServerLongProperty(Session session, params string[] paramters)
         {
             try
             {
                 var intVal = int.Parse(paramters[1]);
                 PropertyManager.ModifyLong(paramters[0], intVal);
                 if (session != null)
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Int property successfully updated!", ChatMessageType.System));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Long property successfully updated!", ChatMessageType.System));
                 else
-                    Console.WriteLine("Int property successfully updated!");
+                    Console.WriteLine("Long property successfully updated!");
             }
             catch (Exception)
             {
                 if (session != null)
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid int", ChatMessageType.Help));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid long", ChatMessageType.Help));
                 else
-                    Console.WriteLine("Please input a valid int");
+                    Console.WriteLine("Please input a valid long");
             }
         }
 
-        [CommandHandler("fetchint", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Fetches a server property that is an int", "fetchint (string)")]
-        public static void HandleFetchServerIntProperty(Session session, params string[] paramters)
+        [CommandHandler("fetchlong", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a long", "fetchlong (string)")]
+        public static void HandleFetchServerLongProperty(Session session, params string[] paramters)
         {
             var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
             if (session != null)
@@ -1781,8 +1781,8 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{paramters[0]}: {intVal}");
         }
 
-        [CommandHandler("modifyfloat", AccessLevel.Admin, CommandHandlerFlag.None, 2,
-            "Modifies a server property that is a float", "modifyfloat (string) (float)")]
+        [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a double", "modifyfloat (string) (double)")]
         public static void HandleModifyServerFloatProperty(Session session, params string[] paramters)
         {
             try
@@ -1790,20 +1790,20 @@ namespace ACE.Server.Command.Handlers
                 var floatVal = float.Parse(paramters[1]);
                 PropertyManager.ModifyDouble(paramters[0], floatVal);
                 if (session != null)
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Float property successfully updated!", ChatMessageType.System));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Double property successfully updated!", ChatMessageType.System));
                 else
-                    Console.WriteLine("Float property successfully updated!");
+                    Console.WriteLine("Double property successfully updated!");
             } catch (Exception)
             {
                 if (session != null)
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid float", ChatMessageType.Help));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid double", ChatMessageType.Help));
                 else
-                    Console.WriteLine("Please input a valid float");
+                    Console.WriteLine("Please input a valid double");
             }
         }
 
-        [CommandHandler("fetchfloat", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Fetches a server property that is a float", "fetchfloat (string)")]
+        [CommandHandler("fetchdoublg", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a double", "fetchdouble (string)")]
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
             var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
