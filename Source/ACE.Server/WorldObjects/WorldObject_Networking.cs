@@ -1264,6 +1264,9 @@ namespace ACE.Server.WorldObjects
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
                         PhysicsObj.update_object_server();
 
+                        if (PhysicsObj.CurCell == null)
+                            PhysicsObj.CurCell = curCell;
+
                         player.CheckMonsters();
 
                         /*if (curCell.ID != prevCell)
