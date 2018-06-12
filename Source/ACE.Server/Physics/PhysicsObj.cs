@@ -3531,6 +3531,12 @@ namespace ACE.Server.Physics
 
         public void update_object_server(bool forcePos = true)
         {
+            if (CurCell == null || (RequestPos.ObjCellID >> 16) != (CurCell.ID >> 16))
+            {
+                set_current_pos(RequestPos);
+                return;
+            }
+
             var deltaTime = Timer.CurrentTime - UpdateTime;
             UpdateObjectInternalServer(deltaTime);
 
