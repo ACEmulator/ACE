@@ -91,11 +91,10 @@ namespace ACE.Server.WorldObjects
                 // reload animation, accuracy bar refill
                 actionChain.AddDelaySeconds(animLength + AccuracyLevel);
                 actionChain.AddAction(this, () => { LaunchMissile(target); });
+                actionChain.EnqueueChain();
             }
             else
                 MissileTarget = null;
-
-            actionChain.EnqueueChain();
         }
 
         public override float GetAimHeight(WorldObject target)

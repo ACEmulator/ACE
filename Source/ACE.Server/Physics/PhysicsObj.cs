@@ -2051,7 +2051,9 @@ namespace ACE.Server.Physics
             cellArray.AddedOutside = false;
             cellArray.add_cell(CurCell.ID, CurCell);
 
-            foreach (var cell in cellArray.Cells.Values)
+            var checkCells = cellArray.Cells.Values.ToList();
+
+            foreach (var cell in checkCells)
                 PartArray.calc_cross_cells_static(cell, cellArray);
         }
 
