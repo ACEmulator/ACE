@@ -723,17 +723,9 @@ namespace ACE.Server.WorldObjects
             // the target is moving toward the caster. This still needs more research.
 
             var velocity = direction * speed;
-            
-            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
-            {
-                spellProjectile.Velocity = GetSpellProjectileVelocity(origin, dest, speed, out time);
-            }
-            else
-            {
-                spellProjectile.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
-                var velocityLength = spellProjectile.Velocity.Get().Length();
-                time = dist / velocityLength;
-            }
+
+            var useGravity = spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc;
+            spellProjectile.Velocity = GetSpellProjectileVelocity(origin, target, dest, speed, useGravity, out time);
             spellProjectile.FlightTime = time;
 
             var loc = caster.Location;
@@ -748,15 +740,23 @@ namespace ACE.Server.WorldObjects
             spellProjectile.ParentWorldObject = (Creature)this;
             spellProjectile.TargetGuid = target.Guid;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
+            spellProjectile.ProjectileSource = caster;
+            spellProjectile.ProjectileTarget = target;
+            spellProjectile.SetProjectilePhysicsState(target, useGravity);
 
             LandblockManager.AddObject(spellProjectile);
             CurrentLandblock.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, spellProjectile.PlayscriptIntensity));
 
+            // detonate point-blank projectiles immediately
+            var radsum = target.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius();
+            if (dist < radsum)
+                spellProjectile.OnCollideObject(target);
+
             // TODO : removed when real server projectile tracking and collisions are implemented
-            var actionChain = new ActionChain();
+            /*var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(spellProjectile.FlightTime);
             actionChain.AddAction(spellProjectile, () => spellProjectile.HandleOnCollide(spellProjectile.TargetGuid));
-            actionChain.EnqueueChain();
+            actionChain.EnqueueChain();*/
         }
 
         /// <summary>
@@ -779,9 +779,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the velocity to launch the projectile from origin to dest
         /// </summary>
-        private AceVector3 GetSpellProjectileVelocity(Vector3 origin, Vector3 dest, float speed, out float time)
+        private AceVector3 GetSpellProjectileVelocity(Vector3 origin, WorldObject target, Vector3 dest, float speed, bool useGravity, out float time)
         {
-            Trajectory.SolveBallisticArc(origin, speed, dest, out Vector3 velocity, out time);
+            var targetVelocity = Vector3.Zero;
+            if (!useGravity)    // no target tracking for arc spells
+                targetVelocity = target.PhysicsObj.CachedVelocity;
+
+            var gravity = useGravity ? PhysicsGlobals.Gravity : 0;
+            Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, targetVelocity, gravity, out Vector3 velocity, out time, out var impactPoint);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);
         }

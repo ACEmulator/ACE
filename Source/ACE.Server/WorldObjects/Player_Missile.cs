@@ -78,21 +78,23 @@ namespace ACE.Server.WorldObjects
 
             float targetTime = 0.0f;
             var damageSource = LaunchProjectile(target, out targetTime);
-            var animLength = ReloadMotion();
+
+            // todo: get correct animlengths for shoot + reload + aim
+            var animLength = ReloadMotion() * 2.5f;
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(targetTime);
-            actionChain.AddAction(this, () => DamageTarget(target, damageSource));
+            //actionChain.AddDelaySeconds(targetTime);
+            //actionChain.AddAction(this, () => DamageTarget(target, damageSource));
+
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             {
                 // reload animation, accuracy bar refill
                 actionChain.AddDelaySeconds(animLength + AccuracyLevel);
                 actionChain.AddAction(this, () => { LaunchMissile(target); });
+                actionChain.EnqueueChain();
             }
             else
                 MissileTarget = null;
-
-            actionChain.EnqueueChain();
         }
 
         public override float GetAimHeight(WorldObject target)
@@ -101,7 +103,8 @@ namespace ACE.Server.WorldObjects
             {
                 case AttackHeight.High: return 1.0f;
                 case AttackHeight.Medium: return 2.0f;
-                case AttackHeight.Low: return target.Height;
+                //case AttackHeight.Low: return target.Height;
+                case AttackHeight.Low: return 3.0f;
             }
             return 2.0f;
         }

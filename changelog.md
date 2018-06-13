@@ -1,5 +1,20 @@
 # ACEmulator Change Log
 
+### 2018-06-08
+[gmriggs]
+* Added monster physics-based movement
+* Added shield combat
+
+### 2018-06-04
+[gmriggs]
+* Added projectile physics collisions
+
+### 2018-06-01
+[fartwhif]
+* Added Hotspots - revitalizing wells, damaging acid pools
+* Added spell traps
+* Updated Random for thread safety
+
 ### 2018-05-28
 **ACE-World-16PY world db release v0.0.15+ required with this update**
 

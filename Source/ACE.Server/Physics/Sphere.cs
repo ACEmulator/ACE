@@ -313,7 +313,7 @@ namespace ACE.Server.Physics
                 if (CollidesWithSphere(disp, radsum) || (transition.SpherePath.NumSphere > 1 && CollidesWithSphere(disp_, radsum)))
                 {
                     var blockOffset = transition.SpherePath.GetCurPosCheckPosBlockOffset();
-                    var movement = transition.SpherePath.GlobalCurrCenter[1].Center - globSphere.Center - blockOffset;      // verify offset 14
+                    var movement = transition.SpherePath.GlobalCurrCenter[0].Center - globSphere.Center - blockOffset;
                     radsum += PhysicsGlobals.EPSILON;
                     var lenSq = movement.LengthSquared();
                     var diff = -Vector3.Dot(movement, disp);
@@ -334,7 +334,7 @@ namespace ACE.Server.Physics
                     //if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
                         //return TransitionState.OK;  // ??
 
-                    var contactPlane = new Plane(disp, (globSphere.Center - disp * globSphere.Radius).Length());   // verify, convert normal
+                    var contactPlane = new Plane(disp, -Vector3.Dot(disp, disp_));
                     transition.CollisionInfo.SetContactPlane(contactPlane, true);
                     transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
                     transition.SpherePath.WalkInterp = timecheck;

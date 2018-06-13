@@ -350,6 +350,30 @@ namespace ACE.Server.Physics.Common
                 LandCell.add_all_outside_cells(position, numSphere, spheres, cellArray);
         }
 
+        public void init_static_objects()
+        {
+            if (StaticObjects != null)
+            {
+                foreach (var staticObj in StaticObjects)
+                {
+                    if (!staticObj.is_completely_visible())
+                        staticObj.calc_cross_cells_static();
+                }
+            }
+            else
+            {
+                StaticObjects = new List<PhysicsObj>();
+
+                for (var i = 0; i < NumStaticObjects; i++)
+                {
+                    var staticObj = PhysicsObj.makeObject(StaticObjectIDs[i], 0, false);
+                    staticObj.add_obj_to_cell(this, StaticObjectFrames[i]);
+
+                    StaticObjects.Add(staticObj);
+                }
+            }
+        }
+
         public static ObjCell get_visible(uint cellID)
         {
             var cell = (EnvCell)LScape.get_landcell(cellID);

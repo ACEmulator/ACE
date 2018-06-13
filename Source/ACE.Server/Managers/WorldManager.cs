@@ -405,45 +405,81 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
+        public static List<WorldObject> UpdateLandblock = new List<WorldObject>();
+
+        /// <summary>
+        /// Processes physics objects in all active landblocks for updating
+        /// </summary>
         private static IEnumerable<WorldObject> HandlePhysics(double timeTick)
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
-            // Accessing ActiveLandblocks is safe here -- nothing can modify the landblocks at this point
-            // This crashes sometimes with the following exception: System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
+
+            // Access ActiveLandblocks should be safe here, but sometimes crashes with
+            // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
             try
             {
                 Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
                 {
                     foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                     {
-                        Position newPosition = wo.Location;
+                        Position newPosition = null;
 
-                        if (wo.ForcedLocation != null)
+                        // detect player movement
+                        // TODO: handle players the same as everything else
+                        var player = wo as Player;
+                        if (player != null)
                         {
-                            newPosition = wo.ForcedLocation;
-                            movedObjects.Enqueue(wo);
-                        }
-                        else if (wo.RequestedLocation != null)
-                        {
-                            newPosition = wo.RequestedLocation;
-                            movedObjects.Enqueue(wo);
-                        }
+                            newPosition = HandlePlayerPhysics(player, timeTick);
 
-                        if (newPosition != wo.Location)
-                        {
-                            wo.PhysicsUpdatePosition(newPosition);
-                        }
+                            if (newPosition != null)
+                            {
+                                movedObjects.Enqueue(wo);
 
-                        wo.ClearRequestedPositions();
+                                // update position through physics engine
+                                wo.UpdatePlayerPhysics(newPosition);
+                            }
+                        }
+                        else if (wo.Missile.HasValue && wo.Missile.Value)
+                        {
+                            // physics minimum quantum?
+                            var isMoved = wo.UpdateObjectPhysics();
+                            if (isMoved)
+                                movedObjects.Enqueue(wo);   // send update?
+                        }
                     }
                 });
+
+                foreach (var wo in UpdateLandblock)
+                {
+                    wo.PreviousLocation = wo.Location;
+                    LandblockManager.RelocateObjectForPhysics(wo);
+                }
+                UpdateLandblock.Clear();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);   // FIXME: concurrency
             }
-
             return movedObjects;
+        }
+
+        /// <summary>
+        /// Detects if player has moved through ForcedLocation or RequestedLocation
+        /// </summary>
+        private static Position HandlePlayerPhysics(Player player, double timeTick)
+        {
+            Position newPosition = null;
+
+            if (player.ForcedLocation != null)
+                newPosition = player.ForcedLocation;
+
+            else if (player.RequestedLocation != null)
+                newPosition = player.RequestedLocation;
+
+            if (newPosition != null)
+                player.ClearRequestedPositions();
+
+            return newPosition;
         }
 
         public static double SecondsToTicks(double elapsedTimeSeconds)

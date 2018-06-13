@@ -197,8 +197,12 @@ namespace ACE.Server.WorldObjects
             // get resistance modifiers (protect/vuln)
             var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
+            // get shield modifier
+            var attackTarget = AttackTarget as Creature;
+            var shieldMod = attackTarget.GetShieldMod(this, damageType);
+
             // scale damage by modifiers
-            var damage = baseDamage * armorMod * resistanceMod;
+            var damage = baseDamage * armorMod * shieldMod * resistanceMod;
 
             if (criticalHit) damage *= 2;
 

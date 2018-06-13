@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -30,6 +29,7 @@ namespace ACE.Server.Managers
     public class EnchantmentManager
     {
         public WorldObject WorldObject { get; }
+
         public ICollection<BiotaPropertiesEnchantmentRegistry> Enchantments { get; }
 
         /// <summary>
@@ -71,40 +71,6 @@ namespace ACE.Server.Managers
             // check for existing spell in this category
             var entry = GetCategory(enchantment.Spell.Category);
 
-/*
-                if (enchantment.Spell.Power > entry.PowerLevel)
-                {
-                    // surpass existing spell
-                    Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
-                    Remove(entry, false);
-                    entry = BuildEntry(enchantment.Spell.SpellId);
-                    entry.Duration = -1;
-                    entry.StartTime = 0;
-                    entry.LayerId = enchantment.Layer;
-                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
-                    return StackType.Surpass;
-                }
-
-                // TODO: the refresh spell case may need some additional functionality to get working correctly
-                if (enchantment.Spell.Power == entry.PowerLevel)
-                {
-                    if (entry.Duration != -1)
-                    {
-                        // refresh existing spell with a no countdown timer
-                        entry.LayerId++;
-                        entry.Duration = -1;
-                        entry.StartTime = 0;
-                        return StackType.Refresh;
-                    }
-                    
-                    return StackType.None;
-                }
-
-                // superior existing spell
-                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
-                return StackType.Surpassed;
-            }
-            */
             // if none, add new record
             if (entry == null)
             {
@@ -124,20 +90,19 @@ namespace ACE.Server.Managers
                 entry = BuildEntry(enchantment.Spell.SpellId, castByItem);
                 entry.LayerId = enchantment.Layer;
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+
                 return StackType.Surpass;
             }
 
             if (enchantment.Spell.Power == entry.PowerLevel)
             {
-                if (entry.Duration != -1)
-                {
-                    // refresh existing spell
-                    entry.LayerId++;
-                    entry.StartTime = 0;
-                    return StackType.Refresh;
-                }
+                if (entry.Duration == -1)
+                    return StackType.None;
 
-                return StackType.None;
+                // refresh existing spell
+                entry.LayerId++;
+                entry.StartTime = 0;
+                return StackType.Refresh;
             }
 
             // superior existing spell
@@ -489,24 +454,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Gets the multiplicative armor level modifier, ie. banes
-        /// </summary>
-        public float GetArmorModVsType(DamageType damageType)
-        {
-            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
-            var key = GetImpenBaneKey(damageType);
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (int)key);
-            if (enchantments == null) return 0.0f;
-
-            // additive
-            var modifier = 0.0f;
-            foreach (var enchantment in enchantments)
-                modifier += enchantment.StatModValue;
-
-            return modifier;
-        }
-
-        /// <summary>
         /// Gets the ArmorModVsType key for a DamageType
         /// </summary>
         public PropertyFloat GetImpenBaneKey(DamageType damageType)
@@ -607,6 +554,24 @@ namespace ACE.Server.Managers
         public int GetArmorMod()
         {
             return GetAdditiveMod(PropertyInt.ArmorLevel);
+        }
+
+        /// <summary>
+        /// Gets the additive armor level vs type modifier, ie. banes
+        /// </summary>
+        public float GetArmorModVsType(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var key = GetImpenBaneKey(damageType);
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (int)key);
+            if (enchantments == null) return 0.0f;
+
+            // additive
+            var modifier = 0.0f;
+            foreach (var enchantment in enchantments)
+                modifier += enchantment.StatModValue;
+
+            return modifier;
         }
     }
 }

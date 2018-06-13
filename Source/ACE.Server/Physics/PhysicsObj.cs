@@ -74,11 +74,12 @@ namespace ACE.Server.Physics
         public Dictionary<uint, CollisionRecord> CollisionTable;
         public bool CollidingWithEnvironment;
         public int[] UpdateTimes;
+        public PhysicsObj ProjectileTarget;
 
         // server
         public Position RequestPos;
 
-        public static CellArray CellArray;
+        public CellArray CellArray;
         public static ObjectMaint ObjMaint;
         public static PhysicsObj PlayerObject;
 
@@ -86,7 +87,6 @@ namespace ACE.Server.Physics
 
         static PhysicsObj()
         {
-            CellArray = new CellArray();
             ObjMaint = new ObjectMaint();
         }
 
@@ -113,7 +113,10 @@ namespace ACE.Server.Physics
             Children = new ChildList();
             ShadowObjects = new Dictionary<uint, ShadowObj>();
             CollisionTable = new Dictionary<uint, CollisionRecord>();
+            CellArray = new CellArray();
+            UpdateTime = Timer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
+            WeenieObj = new WeenieObject();
 
             if (PhysicsEngine.Instance != null && PhysicsEngine.Instance.Server)
             {
@@ -1949,6 +1952,7 @@ namespace ACE.Server.Physics
         public void enqueue_objs(AddUpdateObjs addUpdateObjs)
         {
             var player = WeenieObj.WorldObject as WorldObjects.Player;
+            if (player == null) return;
 
             foreach (var obj in addUpdateObjs.AddObjects)
                 player.TrackObject(obj.WeenieObj.WorldObject);
@@ -1982,6 +1986,8 @@ namespace ACE.Server.Physics
                 if (addUpdateObjs == null) return;
                 enqueue_objs(addUpdateObjs);
             }
+
+            //Console.WriteLine("Cell: " + newCell.ID.ToString("X8") + " (" + newCell.ShadowObjectList.Count + ")");
         }
 
         public bool enter_world(Position pos)
@@ -2045,7 +2051,9 @@ namespace ACE.Server.Physics
             cellArray.AddedOutside = false;
             cellArray.add_cell(CurCell.ID, CurCell);
 
-            foreach (var cell in cellArray.Cells.Values)
+            var checkCells = cellArray.Cells.Values.ToList();
+
+            foreach (var cell in checkCells)
                 PartArray.calc_cross_cells_static(cell, cellArray);
         }
 
@@ -2752,8 +2760,6 @@ namespace ACE.Server.Physics
             if (obj.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                 return report_environment_collision(prev_has_contact);
 
-
-
             var velocityCollide = Velocity - obj.Velocity;
 
             bool collided = false;
@@ -2846,6 +2852,11 @@ namespace ACE.Server.Physics
                 TransientState &= ~TransientStateFlags.Active;
                 return true;
             }
+        }
+
+        public bool is_active()
+        {
+            return TransientState.HasFlag(TransientStateFlags.Active);
         }
 
         public void set_current_pos(Position newPos)
@@ -3099,6 +3110,8 @@ namespace ACE.Server.Physics
         /// </summary>
         public void set_initial_frame(AFrame frame)
         {
+            Position.Frame = frame;
+
             if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
                 PartArray.SetFrame(frame);
 
@@ -3472,6 +3485,8 @@ namespace ACE.Server.Physics
                 PositionManager.Unstick();
         }
 
+        public static float TickRate = 1.0f / 60.0f;
+
         public void update_object()
         {
             if (Parent != null || CurCell == null || State.HasFlag(PhysicsState.Frozen))
@@ -3490,6 +3505,10 @@ namespace ACE.Server.Physics
             }*/
 
             var deltaTime = Timer.CurrentTime - UpdateTime;
+
+            if (deltaTime < TickRate)
+                return;
+
             PhysicsTimer.CurrentTime = UpdateTime;
             if (deltaTime <= PhysicsGlobals.EPSILON /*|| deltaTime > 2.0f */)   // commented out for debugging
             {
@@ -3510,12 +3529,13 @@ namespace ACE.Server.Physics
             }
         }
 
-        public void update_object_server()
+        public void update_object_server(bool forcePos = true)
         {
             var deltaTime = Timer.CurrentTime - UpdateTime;
             UpdateObjectInternalServer(deltaTime);
 
-            set_current_pos(RequestPos);
+            if (forcePos)
+                set_current_pos(RequestPos);
         }
 
         public void update_position()

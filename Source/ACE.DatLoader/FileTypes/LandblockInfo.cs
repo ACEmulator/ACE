@@ -23,7 +23,7 @@ namespace ACE.DatLoader.FileTypes
         public uint NumCells { get; private set; }
 
         /// <summary>
-        /// list of model numbers. 0x01 and 0x01 types and their specific locations
+        /// list of model numbers. 0x01 and 0x02 types and their specific locations
         /// </summary>
         public List<Stab> Objects { get; } = new List<Stab>();
 

@@ -57,7 +57,7 @@ namespace ACE.Server.Physics.Common
             }
             var waterDepth = get_water_depth(localPoint);
 
-            var checkPos = path.GlobalSphere[0];
+            var checkPos = new Sphere(path.GlobalSphere[0]);
             checkPos.Center -= LandDefs.GetBlockOffset(path.CheckPos.ObjCellID, ID);
 
             return objInfo.ValidateWalkable(checkPos, walkable.Plane, WaterType != LandDefs.WaterType.NotWater, waterDepth, transition, ID);
@@ -152,7 +152,7 @@ namespace ACE.Server.Physics.Common
                 add_outside_cell(cellArray, x + 1, y);
                 if (point.Y > maxRad)
                     add_outside_cell(cellArray, x + 1, y + 1);
-                else
+                if (point.Y < minRad)
                     add_outside_cell(cellArray, x + 1, y - 1);
             }
             if (point.X < minRad)
@@ -160,13 +160,13 @@ namespace ACE.Server.Physics.Common
                 add_outside_cell(cellArray, x - 1, y);
                 if (point.Y > maxRad)
                     add_outside_cell(cellArray, x - 1, y + 1);
-                else
+                if (point.Y < minRad)
                     add_outside_cell(cellArray, x - 1, y - 1);
             }
             if (point.Y > maxRad)
                 add_outside_cell(cellArray, x, y + 1);
 
-            else if (point.Y < minRad)
+            if (point.Y < minRad)
                 add_outside_cell(cellArray, x, y - 1);
         }
 

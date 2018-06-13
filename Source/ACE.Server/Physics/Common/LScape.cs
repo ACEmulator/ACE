@@ -82,6 +82,8 @@ namespace ACE.Server.Physics.Common
             // if not, load into cache
             landblock = new Landblock((DatLoader.FileTypes.CellLandblock)DBObj.Get(new QualifiedDataID(1, landblockID)));
             Landblocks.Add(landblockID, landblock);
+            landblock.PostInit();
+
             return landblock;
         }
 

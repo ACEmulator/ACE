@@ -78,26 +78,40 @@ namespace ACE.Server.Physics.Common
             return 0;
         }
 
-        public int DoCollision(AtkCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
+        public int DoCollision(AtkCollisionProfile prof, ObjectGuid guid, PhysicsObj target)
         {
+            // no collision with self
+            if (WorldObject.Guid.Equals(target.WeenieObj.WorldObject.Guid))
+                return -1;
+
+            /*Console.WriteLine("AtkCollisionProfile");
+            Console.WriteLine("Source: " + WorldObject.Name);
+            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);*/
+
             if (WorldObject != null)
-                obj.WeenieObj.WorldObject.HandleActionOnCollide(guid);
+                WorldObject.OnCollideObject(target.WeenieObj.WorldObject);
 
             return 0;
         }
 
-        public int DoCollision(EnvCollisionProfile prof, ObjectGuid guid, PhysicsObj obj)
+        public int DoCollision(EnvCollisionProfile prof, ObjectGuid guid, PhysicsObj target)
         {
+            /*Console.WriteLine("EnvCollisionProfile");
+            Console.WriteLine("Source: " + WorldObject.Name);
+            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);*/
+
             if (WorldObject != null)
-                obj.WeenieObj.WorldObject.HandleActionOnCollide(guid);
+                WorldObject.OnCollideEnvironment();
 
             return 0;
         }
 
-        public void DoCollisionEnd(ObjectGuid guid)
+        public void DoCollisionEnd(ObjectGuid targetGuid)
         {
+            var target = WorldObject.CurrentLandblock.GetObject(targetGuid);
+
             if (WorldObject != null)
-                WorldObject.HandleActionOnCollideEnd(guid);
+                WorldObject.OnCollideObjectEnd(target);
         }
 
         public void OnMotionDone(uint motionID, bool success)

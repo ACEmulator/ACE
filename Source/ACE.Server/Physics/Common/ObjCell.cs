@@ -65,7 +65,6 @@ namespace ACE.Server.Physics.Common
                 }
             }
         }
-
         public void AddShadowObject(ShadowObj shadowObj)
         {
             ShadowObjectList.Add(shadowObj);
@@ -117,7 +116,25 @@ namespace ACE.Server.Physics.Common
 
                 var state = obj.FindObjCollisions(transition);
                 if (state != TransitionState.OK)
+                {
+                    // clip through dynamic non-target objects
+                    var target = transition.ObjectInfo.Object.ProjectileTarget;
+                    if (target != null && !obj.Equals(target) /*&& !obj.State.HasFlag(PhysicsState.Static)*/)
+                    {
+                        if (obj.State.HasFlag(PhysicsState.Static))
+                        {
+                            //Console.WriteLine("Collision with static object");
+                        }
+                        else
+                        {
+                            var wo = obj.WeenieObj.WorldObject;
+                            var name = wo != null ? wo.Name : "Unnamed object";
+                            //Console.WriteLine("Clipping through " + name);
+                            continue;
+                        }
+                    }
                     return state;
+                }
             }
             return TransitionState.OK;
         }
@@ -369,6 +386,7 @@ namespace ACE.Server.Physics.Common
             // multiple shadows?
             ShadowObjectList.Remove(shadowObj);
             shadowObj.Cell = null;
+            NumShadowObjects--;
         }
 
         public void unhide_object(PhysicsObj obj)
