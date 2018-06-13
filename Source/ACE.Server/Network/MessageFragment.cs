@@ -91,7 +91,7 @@ namespace ACE.Server.Network
             fragment.Header.Id = 0x80000000;
             fragment.Header.Count = Count;
             fragment.Header.Index = index;
-            fragment.Header.Group = (ushort)Message.Group;
+            fragment.Header.Queue = (ushort)Message.Group;
 
             DataRemaining -= dataToSend;
             log.DebugFormat("Done creating ServerFragment for index {0}. After reading {1} DataRemaining {2}", index, dataToSend, DataRemaining);

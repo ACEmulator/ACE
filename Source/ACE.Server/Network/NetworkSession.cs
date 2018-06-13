@@ -277,7 +277,11 @@ namespace ACE.Server.Network
         {
             log.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
 
-            uint issacXor = packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
+
+            // Upon a client's request of packet retransmit the session CRC salt/offset becomes out of sync somehow.
+            // This hack recovers the correct offset and makes WAN client sessions at least reliable enough to test with.
+            // TODO: figure out why
+            uint issacXor = !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) && packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
             if (!packet.VerifyChecksum(issacXor))
             {
                 if (issacXor != 0)
@@ -285,15 +289,13 @@ namespace ACE.Server.Network
                     issacXor = ConnectionData.IssacClient.GetOffset();
                     log.WarnFormat("[{0}] Packet {1} has invalid checksum, trying the next offset", session.LoggingIdentifier, packet.Header.Sequence);
 
-                    // not sure why there was a missed offset increment
-                    // results in a valid checksum
-                    // however, the client is now in a sort of "can't move" state.  The monsters react so the communication is still working, right?  fartwhif
                     bool verified = packet.VerifyChecksum(issacXor);
                     log.WarnFormat("[{0}] Packet {1} improvised offset checksum result: {2}", session.LoggingIdentifier, packet.Header.Sequence, (verified) ? "successful" : "failed");
                 }
                 else
                     log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
             }
+            // TODO: drop corrupted packets?
 
             // depending on the current session state:
             // Set the next timeout tick value, to compare against in the WorldManager
@@ -312,7 +314,7 @@ namespace ACE.Server.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
                 AcknowledgeSequence(packet.HeaderOptional.Sequence);
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSync))
             {
                 log.DebugFormat("[{0}] Incoming TimeSync TS: {1}", session.LoggingIdentifier, packet.HeaderOptional.TimeSynch);
                 // Do something with this...
@@ -326,6 +328,7 @@ namespace ACE.Server.Network
             {
                 foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                     Retransmit(sequence);
+                // TODO: calculate packet loss
             }
 
             // This should be set on the first packet to the server indicating the client is logging in.
@@ -512,7 +515,7 @@ namespace ACE.Server.Network
                 else
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
-                //packet.Header.Table = 0x14; //comment this for the client confusion, uncomment it and the "GameMessageGroup" work becomes useless.
+                packet.Header.Iteration = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
 
@@ -658,7 +661,6 @@ namespace ACE.Server.Network
                         availableSpace -= (uint)packet.Data.Length;
                     }
                 }
-                packet.Header.Table = (ushort)group;
                 EnqueueSend(packet);
             }
         }
@@ -675,7 +677,7 @@ namespace ACE.Server.Network
 
             if (bundle.TimeSync) // 0x1000000
             {
-                packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
+                packetHeader.Flags |= PacketHeaderFlags.TimeSync;
                 log.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
                 packet.BodyWriter.Write(ConnectionData.ServerTime);
             }
