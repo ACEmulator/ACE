@@ -1802,7 +1802,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("fetchdoublg", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+        [CommandHandler("fetchdouble", AccessLevel.Admin, CommandHandlerFlag.None, 1,
             "Fetches a server property that is a double", "fetchdouble (string)")]
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
