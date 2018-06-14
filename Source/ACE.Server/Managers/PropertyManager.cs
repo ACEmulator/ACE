@@ -223,19 +223,19 @@ namespace ACE.Server.Managers
         {
             log.Debug("Fetching boolean properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllBools())
-                CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value ?? false);
+                CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value);
 
             log.Debug("Fetching long properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllLongs())
-                CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value ?? 0);
+                CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value);
 
             log.Debug("Fetching double properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllDoubles())
-                CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value ?? 0.0f);
+                CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value);
 
             log.Debug("Fetching string properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllStrings())
-                CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value ?? "");
+                CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace ACE.Server.Managers
                 // this probably should be upsert. This does 2 queries per modified datapoint.
                 // perhaps run a transaction to queue all the queries at once.
                 if (DatabaseManager.ServerConfig.BoolExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Config.PropertiesBoolean { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Shard.ConfigPropertiesBoolean { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddBool(i.Key, i.Value.Item);
             }
@@ -265,7 +265,7 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.LongExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyLong(new Database.Models.Config.PropertiesLong { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyLong(new Database.Models.Shard.ConfigPropertiesLong { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddLong(i.Key, i.Value.Item);
             }
@@ -282,7 +282,7 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.LongExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyDouble(new Database.Models.Config.PropertiesDouble { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyDouble(new Database.Models.Shard.ConfigPropertiesDouble { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddDouble(i.Key, i.Value.Item);
             }
@@ -298,7 +298,7 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.StringExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Config.PropertiesString { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Shard.ConfigPropertiesString { Key = i.Key, Value = i.Value.Item });
                 else
                     DatabaseManager.ServerConfig.AddString(i.Key, i.Value.Item);
             }

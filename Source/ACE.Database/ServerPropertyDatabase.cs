@@ -1,4 +1,4 @@
-using ACE.Database.Models.Config;
+using ACE.Database.Models.Shard;
 using log4net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -12,26 +12,18 @@ namespace ACE.Database
     public class ServerPropertyDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static bool IsActive = false;
 
         public bool Exists(bool retryUntilFound)
         {
-            var config = Common.ConfigManager.Config.MySql.Config;
-
-            if (config == null)
-            {
-                log.Warn("The server property database is not loaded. Please create the server property database.");
-                return false;
-            }
+            var config = Common.ConfigManager.Config.MySql.Shard;
 
             for (; ; )
             {
-                using (var context = new ConfigDbContext())
+                using (var context = new ShardDbContext())
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
                         log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
-                        IsActive = true;
                         return true;
                     }
                 }
@@ -47,27 +39,23 @@ namespace ACE.Database
 
         public void AddBool(string key, bool value)
         {
-            if (!IsActive)
-                return;
-            var stat = new PropertiesBoolean
+            var stat = new ConfigPropertiesBoolean
             {
                 Key = key,
                 Value = value
             };
 
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
-                context.PropertiesBoolean.Add(stat);
+                context.ConfigPropertiesBoolean.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyBool(PropertiesBoolean stat)
+        public void ModifyBool(ConfigPropertiesBoolean stat)
         {
-            if (!IsActive)
-                return;
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
 
@@ -75,45 +63,37 @@ namespace ACE.Database
             }
         }
 
-        public PropertiesBoolean GetBool(string key)
+        public ConfigPropertiesBoolean GetBool(string key)
         {
-            if (!IsActive)
-                return null;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesBoolean.AsNoTracking().FirstOrDefault(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesBoolean.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool BoolExists(string key)
         {
-            if (!IsActive)
-                return false;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesBoolean.Any(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesBoolean.Any(r => r.Key == key);
         }
 
         public void AddLong(string key, long value)
         {
-            if (!IsActive)
-                return;
-            var stat = new PropertiesLong
+            var stat = new ConfigPropertiesLong
             {
                 Key = key,
                 Value = value
             };
 
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
-                context.PropertiesLong.Add(stat);
+                context.ConfigPropertiesLong.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyLong(PropertiesLong stat)
+        public void ModifyLong(ConfigPropertiesLong stat)
         {
-            if (!IsActive)
-                return;
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
 
@@ -121,45 +101,37 @@ namespace ACE.Database
             }
         }
 
-        public PropertiesLong GetLong(string key)
+        public ConfigPropertiesLong GetLong(string key)
         {
-            if (!IsActive)
-                return null;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesLong.AsNoTracking().FirstOrDefault(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesLong.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool LongExists(string key)
         {
-            if (!IsActive)
-                return false;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesLong.Any(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesLong.Any(r => r.Key == key);
         }
 
         public void AddDouble(string key, double value)
         {
-            if (!IsActive)
-                return;
-            var stat = new PropertiesDouble
+            var stat = new ConfigPropertiesDouble
             {
                 Key = key,
                 Value = value
             };
 
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
-                context.PropertiesDouble.Add(stat);
+                context.ConfigPropertiesDouble.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyDouble(PropertiesDouble stat)
+        public void ModifyDouble(ConfigPropertiesDouble stat)
         {
-            if (!IsActive)
-                return;
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
 
@@ -167,45 +139,37 @@ namespace ACE.Database
             }
         }
 
-        public PropertiesDouble GetDouble(string key)
+        public ConfigPropertiesDouble GetDouble(string key)
         {
-            if (!IsActive)
-                return null;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesDouble.AsNoTracking().FirstOrDefault(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesDouble.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool DoubleExists(string key)
         {
-            if (!IsActive)
-                return false;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesDouble.Any(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesDouble.Any(r => r.Key == key);
         }
 
         public void AddString(string key, string value)
         {
-            if (!IsActive)
-                return;
-            var stat = new PropertiesString
+            var stat = new ConfigPropertiesString
             {
                 Key = key,
                 Value = value
             };
 
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
-                context.PropertiesString.Add(stat);
+                context.ConfigPropertiesString.Add(stat);
 
                 context.SaveChanges();
             }
         }
 
-        public void ModifyString(PropertiesString stat)
+        public void ModifyString(ConfigPropertiesString stat)
         {
-            if (!IsActive)
-                return;
-            using (var context = new ConfigDbContext())
+            using (var context = new ShardDbContext())
             {
                 context.Entry(stat).State = EntityState.Modified;
 
@@ -213,52 +177,40 @@ namespace ACE.Database
             }
         }
 
-        public PropertiesString GetString(string key)
+        public ConfigPropertiesString GetString(string key)
         {
-            if (!IsActive)
-                return null;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesString.AsNoTracking().FirstOrDefault(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesString.AsNoTracking().FirstOrDefault(r => r.Key == key);
         }
 
         public bool StringExists(string key)
         {
-            if (!IsActive)
-                return false;
-            using (var context = new ConfigDbContext())
-                return context.PropertiesString.Any(r => r.Key == key);
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesString.Any(r => r.Key == key);
         }
 
-        public List<PropertiesBoolean> GetAllBools()
+        public List<ConfigPropertiesBoolean> GetAllBools()
         {
-            if (!IsActive)
-                return new List<PropertiesBoolean>();
-            using (var context = new ConfigDbContext())
-                return context.PropertiesBoolean.AsNoTracking().ToList();
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesBoolean.AsNoTracking().ToList();
         }
 
-        public List<PropertiesLong> GetAllLongs()
+        public List<ConfigPropertiesLong> GetAllLongs()
         {
-            if (!IsActive)
-                return new List<PropertiesLong>();
-            using (var context = new ConfigDbContext())
-                return context.PropertiesLong.AsNoTracking().ToList();
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesLong.AsNoTracking().ToList();
         }
 
-        public List<PropertiesDouble> GetAllDoubles()
+        public List<ConfigPropertiesDouble> GetAllDoubles()
         {
-            if (!IsActive)
-                return new List<PropertiesDouble>();
-            using (var context = new ConfigDbContext())
-                return context.PropertiesDouble.AsNoTracking().ToList();
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesDouble.AsNoTracking().ToList();
         }
 
-        public List<PropertiesString> GetAllStrings()
+        public List<ConfigPropertiesString> GetAllStrings()
         {
-            if (!IsActive)
-                return new List<PropertiesString>();
-            using (var context = new ConfigDbContext())
-                return context.PropertiesString.AsNoTracking().ToList();
+            using (var context = new ShardDbContext())
+                return context.ConfigPropertiesString.AsNoTracking().ToList();
         }
     }
 }

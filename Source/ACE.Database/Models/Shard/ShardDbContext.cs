@@ -39,12 +39,19 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
         public virtual DbSet<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
         public virtual DbSet<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
+        public virtual DbSet<ConfigPropertiesBoolean> ConfigPropertiesBoolean { get; set; }
+        public virtual DbSet<ConfigPropertiesDouble> ConfigPropertiesDouble { get; set; }
+        public virtual DbSet<ConfigPropertiesLong> ConfigPropertiesLong { get; set; }
+        public virtual DbSet<ConfigPropertiesString> ConfigPropertiesString { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var config = Common.ConfigManager.Config.MySql.Shard;
+            if (!optionsBuilder.IsConfigured)
+            {
+                var config = Common.ConfigManager.Config.MySql.Shard;
 
-            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -1575,6 +1582,81 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.CharacterPropertiesTitleBook)
                     .HasForeignKey(d => d.ObjectId)
                     .HasConstraintName("wcid_titlebook");
+            });
+
+            modelBuilder.Entity<ConfigPropertiesBoolean>(entity =>
+            {
+                entity.HasKey(e => e.Key);
+
+                entity.ToTable("config_properties_boolean");
+
+                entity.Property(e => e.Key)
+                    .HasColumnName("key")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasColumnType("bit(1)");
+            });
+
+            modelBuilder.Entity<ConfigPropertiesDouble>(entity =>
+            {
+                entity.HasKey(e => e.Key);
+
+                entity.ToTable("config_properties_double");
+
+                entity.Property(e => e.Key)
+                    .HasColumnName("key")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Value).HasColumnName("value");
+            });
+
+            modelBuilder.Entity<ConfigPropertiesLong>(entity =>
+            {
+                entity.HasKey(e => e.Key);
+
+                entity.ToTable("config_properties_long");
+
+                entity.Property(e => e.Key)
+                    .HasColumnName("key")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Value)
+                    .HasColumnName("value")
+                    .HasColumnType("bigint(20)");
+            });
+
+            modelBuilder.Entity<ConfigPropertiesString>(entity =>
+            {
+                entity.HasKey(e => e.Key);
+
+                entity.ToTable("config_properties_string");
+
+                entity.Property(e => e.Key)
+                    .HasColumnName("key")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("description")
+                    .HasMaxLength(45);
+
+                entity.Property(e => e.Value)
+                    .IsRequired()
+                    .HasColumnName("value")
+                    .HasMaxLength(45);
             });
         }
     }
