@@ -10,7 +10,15 @@ namespace ACE.Server.Network.GameAction.Actions
             var unknown1 = message.Payload.ReadUInt32();
             // TODO
 
-            var allegianceUpdate = new GameEventAllegianceUpdate(session);
+            var player = session.Player;
+
+            if (player == null)
+                return;
+
+            var allegiance = player != null ? player.Allegiance : null;
+            var allegianceNode = player != null ? player.AllegianceNode : null;
+
+            var allegianceUpdate = new GameEventAllegianceUpdate(session, allegiance, allegianceNode);
 
             session.Network.EnqueueSend(allegianceUpdate, new GameEventAllegianceAllegianceUpdateDone(session));
         }

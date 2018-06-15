@@ -64,6 +64,10 @@ namespace ACE.Server.Network
         /// </summary>
         private NestedActionQueue actionQueue = new NestedActionQueue();
 
+        public bool IsOnline = true;
+
+        public Session() { IsOnline = false;  }
+
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
