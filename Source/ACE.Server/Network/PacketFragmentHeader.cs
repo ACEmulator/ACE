@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace ACE.Server.Network
@@ -13,7 +13,7 @@ namespace ACE.Server.Network
         public ushort Count { get; set; }
         public ushort Size { get; set; }
         public ushort Index { get; set; }
-        public ushort Group { get; set; }
+        public ushort Queue { get; set; }
 
         public PacketFragmentHeader() { }
 
@@ -24,7 +24,7 @@ namespace ACE.Server.Network
             Count = payload.ReadUInt16();
             Size = payload.ReadUInt16();
             Index = payload.ReadUInt16();
-            Group = payload.ReadUInt16();
+            Queue = payload.ReadUInt16();
         }
 
         public byte[] GetRaw()

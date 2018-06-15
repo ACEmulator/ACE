@@ -25,8 +25,10 @@ namespace ACE.Server.Network
 
         private readonly Session session;
 
-        private readonly Object currentBundleLock = new Object();
-        private NetworkBundle currentBundle = new NetworkBundle();
+        //private readonly Object currentBundleLock = new Object();
+        private ConcurrentDictionary<GameMessageGroup, Object> currentBundleLocks = new ConcurrentDictionary<GameMessageGroup, Object>();
+        private ConcurrentDictionary<GameMessageGroup, NetworkBundle> currentBundles = new ConcurrentDictionary<GameMessageGroup, NetworkBundle>();
+        //private NetworkBundle currentBundle = new NetworkBundle();
 
         private ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
@@ -78,6 +80,13 @@ namespace ACE.Server.Network
             ServerId = serverId;
             // New network auth session timeouts will always be low.
             TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
+
+            foreach (var gmg in System.Enum.GetValues(typeof(GameMessageGroup)))
+            {
+                var group = (GameMessageGroup)gmg;
+                currentBundleLocks[group] = new object();
+                currentBundles[group] = new NetworkBundle();
+            }
         }
 
         /// <summary>
@@ -87,17 +96,24 @@ namespace ACE.Server.Network
         /// <param name="messages">One or more GameMessages to send</param>
         public void EnqueueSend(params GameMessage[] messages)
         {
-            lock (currentBundleLock)
+            messages.GroupBy(k => k.Group).ToList().ForEach(k =>
             {
-                currentBundle.EncryptedChecksum = true;
-
-                foreach (var message in messages)
+                var grp = k.First().Group;
+                var currentBundleLock = currentBundleLocks[grp];
+                lock (currentBundleLock)
                 {
-                    log.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, message.Opcode);
-                    currentBundle.Enqueue(message);
+                    foreach (var msg in k)
+                    {
+                        var currentBundle = currentBundles[msg.Group];
+                        currentBundle.EncryptedChecksum = true;
+                        log.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, msg.Opcode);
+                        currentBundle.Enqueue(msg);
+                    }
                 }
-            }
+            });
         }
+
+
 
         /// <summary>
         /// Enqueues a ServerPacket for sending to this client.
@@ -121,42 +137,61 @@ namespace ACE.Server.Network
         public void Update(double lastTick)
         {
             ConnectionData.ServerTime += lastTick;
-            NetworkBundle bundleToSend = null;
-            lock (currentBundleLock)
+
+            currentBundles.Keys.ToList().ForEach(group =>
             {
-                if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
+                var currentBundleLock = currentBundleLocks[group];
+                var currentBundle = currentBundles[group];
+
+                NetworkBundle bundleToSend = null;
+                lock (currentBundleLock)
                 {
-                    log.DebugFormat("[{0}] Setting to send TimeSync packet", session.LoggingIdentifier);
-                    currentBundle.TimeSync = true;
-                    currentBundle.EncryptedChecksum = true;
-                    nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
+                    if (group == GameMessageGroup.InvalidQueue)
+                    {
+                        if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
+                        {
+                            log.DebugFormat("[{0}] Setting to send TimeSync packet", session.LoggingIdentifier);
+                            currentBundle.TimeSync = true;
+                            currentBundle.EncryptedChecksum = true;
+                            nextResync = DateTime.UtcNow.AddMilliseconds(timeBetweenTimeSync);
+                        }
+
+                        if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
+                        {
+                            log.DebugFormat("[{0}] Setting to send ACK packet", session.LoggingIdentifier);
+                            currentBundle.SendAck = true;
+                            nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
+                        }
+
+                        if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                        {
+                            log.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
+                            // Swap out bundle so we can process it
+                            bundleToSend = currentBundle;
+                            currentBundles[group] = new NetworkBundle();
+                        }
+                    }
+                    else
+                    {
+                        if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                        {
+                            log.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
+                            // Swap out bundle so we can process it
+                            bundleToSend = currentBundle;
+                            currentBundles[group] = new NetworkBundle();
+                        }
+                    }
                 }
 
-                if (sendAck && !currentBundle.SendAck && DateTime.UtcNow > nextAck)
+                // Send our bundle if we have one
+                // We should be able to execute this outside the lock as Sending is single threaded
+                // and all future writes from other threads will go to the new bundle
+                if (bundleToSend != null)
                 {
-                    log.DebugFormat("[{0}] Setting to send ACK packet", session.LoggingIdentifier);
-                    currentBundle.SendAck = true;
-                    nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
+                    SendBundle(bundleToSend, group);
+                    nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
                 }
-
-                if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
-                {
-                    log.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
-                    // Swap out bundle so we can process it
-                    bundleToSend = currentBundle;
-                    currentBundle = new NetworkBundle();
-                }
-            }
-
-            // Send our bundle if we have one
-            // We should be able to execute this outside the lock as Sending is single threaded
-            // and all future writes from other threads will go to the new bundle
-            if (bundleToSend != null)
-            {
-                SendBundle(bundleToSend);
-                nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
-            }
-
+            });
             FlushPackets();
         }
 
@@ -242,7 +277,11 @@ namespace ACE.Server.Network
         {
             log.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
 
-            uint issacXor = packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
+
+            // Upon a client's request of packet retransmit the session CRC salt/offset becomes out of sync somehow.
+            // This hack recovers the correct offset and makes WAN client sessions at least reliable enough to test with.
+            // TODO: figure out why
+            uint issacXor = !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) && packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
             if (!packet.VerifyChecksum(issacXor))
             {
                 if (issacXor != 0)
@@ -250,15 +289,13 @@ namespace ACE.Server.Network
                     issacXor = ConnectionData.IssacClient.GetOffset();
                     log.WarnFormat("[{0}] Packet {1} has invalid checksum, trying the next offset", session.LoggingIdentifier, packet.Header.Sequence);
 
-                    // not sure why there was a missed offset increment
-                    // results in a valid checksum
-                    // however, the client is now in a sort of "can't move" state.  The monsters react so the communication is still working, right?  fartwhif
                     bool verified = packet.VerifyChecksum(issacXor);
                     log.WarnFormat("[{0}] Packet {1} improvised offset checksum result: {2}", session.LoggingIdentifier, packet.Header.Sequence, (verified) ? "successful" : "failed");
                 }
                 else
                     log.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
             }
+            // TODO: drop corrupted packets?
 
             // depending on the current session state:
             // Set the next timeout tick value, to compare against in the WorldManager
@@ -277,7 +314,7 @@ namespace ACE.Server.Network
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
                 AcknowledgeSequence(packet.HeaderOptional.Sequence);
 
-            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSynch))
+            if (packet.Header.HasFlag(PacketHeaderFlags.TimeSync))
             {
                 log.DebugFormat("[{0}] Incoming TimeSync TS: {1}", session.LoggingIdentifier, packet.HeaderOptional.TimeSynch);
                 // Do something with this...
@@ -291,6 +328,7 @@ namespace ACE.Server.Network
             {
                 foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                     Retransmit(sequence);
+                // TODO: calculate packet loss
             }
 
             // This should be set on the first packet to the server indicating the client is logging in.
@@ -419,8 +457,10 @@ namespace ACE.Server.Network
             }
         }
 
+        //is this special channel
         private void FlagEcho(float clientTime)
         {
+            var currentBundle = currentBundles[GameMessageGroup.InvalidQueue];
             lock (currentBundle)
             {
                 // Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
@@ -475,7 +515,7 @@ namespace ACE.Server.Network
                 else
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
-                packet.Header.Table = 0x14;
+                packet.Header.Iteration = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
 
@@ -524,7 +564,7 @@ namespace ACE.Server.Network
         /// several packets as needed.
         /// </summary>
         /// <param name="bundle"></param>
-        private void SendBundle(NetworkBundle bundle)
+        private void SendBundle(NetworkBundle bundle, GameMessageGroup group)
         {
             log.DebugFormat("[{0}] Sending Bundle", session.LoggingIdentifier);
             bool writeOptionalHeaders = true;
@@ -535,6 +575,7 @@ namespace ACE.Server.Network
             while (bundle.HasMoreMessages)
             {
                 var message = bundle.Dequeue();
+
                 var fragment = new MessageFragment(message, ConnectionData.FragmentSequence++);
                 fragments.Add(fragment);
             }
@@ -620,7 +661,6 @@ namespace ACE.Server.Network
                         availableSpace -= (uint)packet.Data.Length;
                     }
                 }
-
                 EnqueueSend(packet);
             }
         }
@@ -637,7 +677,7 @@ namespace ACE.Server.Network
 
             if (bundle.TimeSync) // 0x1000000
             {
-                packetHeader.Flags |= PacketHeaderFlags.TimeSynch;
+                packetHeader.Flags |= PacketHeaderFlags.TimeSync;
                 log.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
                 packet.BodyWriter.Write(ConnectionData.ServerTime);
             }
@@ -686,98 +726,6 @@ namespace ACE.Server.Network
                 }
                 stream.Seek(0, SeekOrigin.Begin);
                 return new ClientMessage(stream);
-            }
-        }
-
-        private class MessageFragment
-        {
-            public GameMessage Message { get; private set; }
-
-            public uint Sequence { get; set; }
-
-            public ushort Index { get; set; }
-
-            public ushort Count { get; set; }
-
-            public uint DataLength => (uint)Message.Data.Length;
-
-            public uint DataRemaining { get; private set; }
-
-            public uint NextSize
-            {
-                get
-                {
-                    var dataSize = DataRemaining;
-                    if (dataSize > ServerPacketFragment.MaxFragmentDataSize)
-                        dataSize = ServerPacketFragment.MaxFragmentDataSize;
-                    return PacketFragmentHeader.HeaderSize + dataSize;
-                }
-            }
-
-            public uint TailSize => PacketFragmentHeader.HeaderSize + (DataLength % ServerPacketFragment.MaxFragmentDataSize);
-
-            public bool TailSent { get; private set; }
-
-            public MessageFragment(GameMessage message, uint sequence)
-            {
-                Message = message;
-                DataRemaining = DataLength;
-                Sequence = sequence;
-                Count = (ushort)(Math.Ceiling((double)DataLength / PacketFragment.MaxFragmentDataSize));
-                Index = 0;
-                if (Count == 1)
-                    TailSent = true;
-                log.DebugFormat("Sequence {0}, count {1}, DataRemaining {2}", sequence, Count, DataRemaining);
-            }
-
-            public ServerPacketFragment GetTailFragment()
-            {
-                var index = (ushort)(Count - 1);
-                TailSent = true;
-                return CreateServerFragment(index);
-            }
-
-            public ServerPacketFragment GetNextFragment()
-            {
-                return CreateServerFragment(Index++);
-            }
-
-            private ServerPacketFragment CreateServerFragment(ushort index)
-            {
-                log.DebugFormat("Creating ServerFragment for index {0}", index);
-                if (index >= Count)
-                    throw new ArgumentOutOfRangeException("index", index, "Passed index is greater then computed count");
-
-                var position = index * ServerPacketFragment.MaxFragmentDataSize;
-                if (position > DataLength)
-                    throw new ArgumentOutOfRangeException("index", index, "Passed index computes to invalid position size");
-
-                if (DataRemaining <= 0)
-                    throw new InvalidOperationException("There is no data remaining");
-
-                var dataToSend = DataLength - position;
-                if (dataToSend > ServerPacketFragment.MaxFragmentDataSize)
-                    dataToSend = ServerPacketFragment.MaxFragmentDataSize;
-
-                if (DataRemaining < dataToSend)
-                    throw new InvalidOperationException("More data to send then data remaining!");
-
-                // Read data starting at position reading dataToSend bytes
-                Message.Data.Seek(position, SeekOrigin.Begin);
-                byte[] data = new byte[dataToSend];
-                Message.Data.Read(data, 0, (int)dataToSend);
-
-                // Build ServerPacketFragment structure
-                ServerPacketFragment fragment = new ServerPacketFragment(data);
-                fragment.Header.Sequence = Sequence;
-                fragment.Header.Id = 0x80000000;
-                fragment.Header.Count = Count;
-                fragment.Header.Index = index;
-                fragment.Header.Group = (ushort)Message.Group;
-
-                DataRemaining -= dataToSend;
-                log.DebugFormat("Done creating ServerFragment for index {0}. After reading {1} DataRemaining {2}", index, dataToSend, DataRemaining);
-                return fragment;
             }
         }
 

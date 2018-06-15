@@ -15,7 +15,7 @@ namespace ACE.Server.Network
         public ushort Id { get; set; }
         public ushort Time { get; set; }
         public ushort Size { get; set; }
-        public ushort Table { get; set; }
+        public ushort Iteration { get; set; }
 
         public PacketHeader() { }
 
@@ -27,7 +27,7 @@ namespace ACE.Server.Network
             Id = payload.ReadUInt16();
             Time = payload.ReadUInt16();
             Size = payload.ReadUInt16();
-            Table = payload.ReadUInt16();
+            Iteration = payload.ReadUInt16();
         }
 
         public byte[] GetRaw()
