@@ -1,4 +1,3 @@
-using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -10,6 +9,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -80,81 +80,41 @@ namespace ACE.Server.Command.Handlers
             // This command teleports yourself (or the specified character) to the given longitude and latitude.
             // @tele - Teleports you(or a player) to some location.
 
-            // TODO: rework command to support name first then long, lat and then handle correctly.
-
             if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5)
                 return;
 
-            var singleparam = false;
-            if (parameters.Length == 1)
-                singleparam = true;
-
-            if (!singleparam && parameters[parameters.Length - 2] == ",")
-            {
-                var p = parameters.ToList();
-                p.RemoveAt(parameters.Length - 2);
-                p[p.Count - 1] = "," + p[p.Count - 1];
-                parameters = p.ToArray();
-            }
-
             Player targetPlayer = null;
             Position position = null;
-            string[] coords = null;
-            int coordsParamCount = 2;
-            var w = parameters[parameters.Length - 1].ToLower();
-            var z = (w.Contains("n") || w.Contains("s")) && (w.Contains("e") || w.Contains("w"));  // accommodate no comma or space(s) in coordinates
-            if ((parameters[parameters.Length - 1].Contains(",") && !parameters[parameters.Length - 1].StartsWith(",")) || z) // accommodate space comma space in coordinates
+
+            var parameterBlob = parameters.Aggregate((a, b) => a + " " + b);
+            var match = Regex.Match(parameterBlob, @"([0-9\.]+[n|s|e|w])[^nsew]*([0-9\.]+[n|s|e|w])", RegexOptions.IgnoreCase);
+
+            if (!match.Success)
             {
-                coordsParamCount = 1;
-                if (z)
-                {
-                    var token1 = w.IndexOf("n");
-                    var token2 = w.IndexOf("s");
-                    var b = Math.Max(token1, token2) + 1;
-                    if (b == w.Length)
-                    {
-                        ChatPacket.SendServerMessage(session, $"Coordinate longitude and latitude are transposed.", ChatMessageType.Broadcast);
-                        return;
-                    }
-                    coords = new string[] { w.Substring(0, b), w.Substring(b) };
-                }
-                else
-                {
-                    coords = parameters.Last().Split(",");
-                }
+                ChatPacket.SendServerMessage(session, $"Coordinates could not be parsed.", ChatMessageType.Broadcast);
+                return;
             }
-            else
+            var ns = match.Groups[1].Value;
+            var ew = match.Groups[2].Value;
+            if (!CoordinateExtensions.TryParse(new string[] { ns, ew }, out string errorMessage, out position))
             {
-                coords = parameters.TakeLast(2).ToArray();
-                coordsParamCount = 2;
+                ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
+                return;
             }
-            if (parameters.Length > 2 || coordsParamCount == 1 && parameters.Length > 1)
+
+            var coordsStartPos = Math.Min(match.Groups[1].Index, match.Groups[2].Index);
+            var name = (coordsStartPos == 0) ? string.Empty : parameterBlob.Substring(0, coordsStartPos).Trim(new char[] { ' ', ',' });
+            if (name.Length > 0)
             {
-                if (!CoordinateExtensions.TryParse(coords, out string errorMessage, out position))
-                {
-                    ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
-                    return;
-                }
-                var nameParts = new string[parameters.Length - coordsParamCount];
-                Array.Copy(parameters, nameParts, parameters.Length - coordsParamCount);
-                var charName = nameParts.Aggregate((a, b) => a + " " + b).Replace(",", "").Trim();
-                var targetPlayerSession = WorldManager.FindByPlayerName(charName);
+                var targetPlayerSession = WorldManager.FindByPlayerName(name);
                 if (targetPlayerSession == null)
                 {
-                    ChatPacket.SendServerMessage(session, $"Unable to find player {charName}", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, $"Unable to find player {name}", ChatMessageType.Broadcast);
                     return;
                 }
                 targetPlayer = targetPlayerSession.Player;
             }
-            else
-            {
-                if (!CoordinateExtensions.TryParse(coords, out string errorMessage, out position))
-                {
-                    ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
-                    return;
-                }
-                targetPlayer = session.Player;
-            }
+            else targetPlayer = session.Player;
 
             // TODO: Check if water block?
 
@@ -176,8 +136,8 @@ namespace ACE.Server.Command.Handlers
                 return false;
             }
 
-            string northSouth = parameters[startingElement].ToLower().Replace(",", "");
-            string eastWest = parameters[startingElement + 1].ToLower().Replace(",", "");
+            string northSouth = parameters[startingElement].ToLower().Replace(",", "").Trim();
+            string eastWest = parameters[startingElement + 1].ToLower().Replace(",", "").Trim();
 
 
             if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
