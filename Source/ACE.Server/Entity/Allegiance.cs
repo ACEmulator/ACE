@@ -35,8 +35,6 @@ namespace ACE.Server.Entity
 
             Monarch.BuildChain(this, members);
             BuildMembers(Monarch);
-
-            //Console.WriteLine("TotalMembers: " + TotalMembers);
         }
 
         /// <summary>
