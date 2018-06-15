@@ -82,7 +82,7 @@ namespace ACE.Server.Network
                 writer.Write(payload.ReadBytes(8));
             }
 
-            if (header.HasFlag(PacketHeaderFlags.TimeSynch)) // 0x1000000
+            if (header.HasFlag(PacketHeaderFlags.TimeSync)) // 0x1000000
             {
                 TimeSynch = payload.ReadDouble();
                 writer.Write(TimeSynch);
