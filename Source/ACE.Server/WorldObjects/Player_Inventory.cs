@@ -941,7 +941,7 @@ namespace ACE.Server.WorldObjects
         {
             
             WorldObject target = CurrentLandblock.GetObject(targetID) as WorldObject;
-            WorldObject item = GetInventoryItem(itemGuid) as WorldObject ?? GetWieldedItem(itemGuid) as WorldObject; ; ;
+            WorldObject item = GetInventoryItem(itemGuid) as WorldObject ?? GetWieldedItem(itemGuid) as WorldObject; 
             var actionChain = new ActionChain();
             if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
