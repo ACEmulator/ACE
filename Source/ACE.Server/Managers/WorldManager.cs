@@ -18,6 +18,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
+using ACE.Database;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
@@ -35,6 +36,8 @@ namespace ACE.Server.Managers
         private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
         private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
         private static readonly PhysicsEngine Physics;
+
+        private static List<Player> AllPlayers;
 
         /// <summary>
         /// Seconds until a session will timeout. 
@@ -64,7 +67,29 @@ namespace ACE.Server.Managers
         {
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
             Physics.Server = true;
+
+            LoadAllPlayers();
         }
+
+        public static void LoadAllPlayers()
+        {
+            AllPlayers = new List<Player>();
+
+            // get all character ids
+            DatabaseManager.Shard.GetAllCharacters(characters =>
+            {
+                foreach (var character in characters)
+                {
+                    DatabaseManager.Shard.GetPlayerBiotas(character.BiotaId, biotas =>
+                    {
+                        var session = new Session();
+                        var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                        AllPlayers.Add(player);
+                    });
+                }
+            });
+        }
+
 
         public static void Initialize()
         {
@@ -264,6 +289,23 @@ namespace ACE.Server.Managers
                     return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
                 return sessions.Where(s => s.Player != null).ToList();
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of all players who are under a monarch
+        /// </summary>
+        /// <param name="monarch">The monarch of an allegiance</param>
+        public static List<Player> GetAllegiance(Player monarch)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return AllPlayers.Where(p => p.Monarch == monarch.Guid.Full).ToList();
             }
             finally
             {

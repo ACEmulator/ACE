@@ -15,6 +15,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -101,6 +102,9 @@ namespace ACE.Server.WorldObjects
             }
 
             UpdateCoinValue(false);
+
+            if (Session.IsOnline)
+                AllegianceManager.LoadPlayer(this);
 
             IsOnline = true;
 
