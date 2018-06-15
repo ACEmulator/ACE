@@ -8,6 +8,8 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using System;
+using System.Linq;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -66,15 +68,15 @@ namespace ACE.Server.Command.Handlers
         }
 
         // tele [name,] <longitude> <latitude>
-        [CommandHandler("tele", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 2,
+        [CommandHandler("tele", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Teleports you(or a player) to some location.",
-            "<longitude> <latitude> [name] \n"
+            "[name] <longitude> <latitude>\nExample: /tele 0n0w\nExample: /tele plats4days 37s,67w\n"
             + "This command teleports yourself (or the specified character) to the given longitude and latitude.")]
         public static void HandleTele(Session session, params string[] parameters)
         {
             // Used PhatAC source to implement most of this.  Thanks Pea!
 
-            // usage: @tele [name,] longitude latitude
+            // usage: @tele [name] longitude latitude
             // This command teleports yourself (or the specified character) to the given longitude and latitude.
             // @tele - Teleports you(or a player) to some location.
 
@@ -83,17 +85,59 @@ namespace ACE.Server.Command.Handlers
             if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5)
                 return;
 
-            Player targetPlayer = null;
+            var singleparam = false;
+            if (parameters.Length == 1)
+                singleparam = true;
 
-            if (!CoordinateExtensions.TryParse(parameters, out string errorMessage, out Position position))
+            if (!singleparam && parameters[parameters.Length - 2] == ",")
             {
-                ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
-                return;
+                var p = parameters.ToList();
+                p.RemoveAt(parameters.Length - 2);
+                p[p.Count - 1] = "," + p[p.Count - 1];
+                parameters = p.ToArray();
             }
 
-            if (parameters.Length > 2)
+            Player targetPlayer = null;
+            Position position = null;
+            string[] coords = null;
+            int coordsParamCount = 2;
+            var w = parameters[parameters.Length - 1].ToLower();
+            var z = (w.Contains("n") || w.Contains("s")) && (w.Contains("e") || w.Contains("w"));  // accommodate no comma or space(s) in coordinates
+            if ((parameters[parameters.Length - 1].Contains(",") && !parameters[parameters.Length - 1].StartsWith(",")) || z) // accommodate space comma space in coordinates
             {
-                var charName = CharacterNameExtensions.StringArrayToCharacterName(parameters, 2);
+                coordsParamCount = 1;
+                if (z)
+                {
+                    var token1 = w.IndexOf("n");
+                    var token2 = w.IndexOf("s");
+                    var b = Math.Max(token1, token2) + 1;
+                    if (b == w.Length)
+                    {
+                        ChatPacket.SendServerMessage(session, $"Coordinate longitude and latitude are transposed.", ChatMessageType.Broadcast);
+                        return;
+                    }
+                    coords = new string[] { w.Substring(0, b), w.Substring(b) };
+                }
+                else
+                {
+                    coords = parameters.Last().Split(",");
+                }
+            }
+            else
+            {
+                coords = parameters.TakeLast(2).ToArray();
+                coordsParamCount = 2;
+            }
+            if (parameters.Length > 2 || coordsParamCount == 1 && parameters.Length > 1)
+            {
+                if (!CoordinateExtensions.TryParse(coords, out string errorMessage, out position))
+                {
+                    ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
+                    return;
+                }
+                var nameParts = new string[parameters.Length - coordsParamCount];
+                Array.Copy(parameters, nameParts, parameters.Length - coordsParamCount);
+                var charName = nameParts.Aggregate((a, b) => a + " " + b).Replace(",", "").Trim();
                 var targetPlayerSession = WorldManager.FindByPlayerName(charName);
                 if (targetPlayerSession == null)
                 {
@@ -103,7 +147,14 @@ namespace ACE.Server.Command.Handlers
                 targetPlayer = targetPlayerSession.Player;
             }
             else
+            {
+                if (!CoordinateExtensions.TryParse(coords, out string errorMessage, out position))
+                {
+                    ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
+                    return;
+                }
                 targetPlayer = session.Player;
+            }
 
             // TODO: Check if water block?
 
