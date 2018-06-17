@@ -1835,6 +1835,46 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{parameters[0]} - {stringVal.Description ?? "No Description"}: {stringVal.Item}");
         }
 
+        [CommandHandler("modifypropertydesc", AccessLevel.Admin, CommandHandlerFlag.None, 3,
+            "Modifies a server properties' description", "modifypropertydesc <STRING|BOOL|DOUBLE|LONG> (string) (string)")]
+        public static void HandleModifyPropertyDescription(Session session, params string[] parameters)
+        {
+            var isSession = session != null;
+            switch (parameters[0]) {
+                case "STRING":
+                    PropertyManager.ModifyStringDescription(parameters[1], parameters[2]);
+                    break;
+                case "BOOL":
+                    PropertyManager.ModifyBoolDescription(parameters[1], parameters[2]);
+                    break;
+                case "DOUBLE":
+                    PropertyManager.ModifyDoubleDescription(parameters[1], parameters[2]);
+                    break;
+                case "LONG":
+                    PropertyManager.ModifyLongDescription(parameters[1], parameters[2]);
+                    break;
+                default:
+                    if (isSession)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat("Please pick from STRING, BOOL, DOUBLE, or LONG", ChatMessageType.Help));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please pick from STRING, BOOL, DOUBLE, or LONG");
+                    }
+                    return;
+            }
+
+            if (isSession)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Successfully updated property description!", ChatMessageType.Help));
+            }
+            else
+            {
+                Console.WriteLine("Successfully updated property description!");
+            }
+        }
+
         [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, -1,
             "Resync the properties database", "resyncproperties")]
         public static void HandleResyncServerProperties(Session session, params string[] parameters)
