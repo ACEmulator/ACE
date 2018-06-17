@@ -55,14 +55,14 @@ namespace ACE.Server.Managers
         /// <param name="fallback">The value to return if the property cannot be found.</param>
         /// <param name="cacheFallback">Whether or not the fallback property should be cached.</param>
         /// <returns>A boolean value representing the property</returns>
-        public static bool GetBool(string key, bool fallback = false, bool cacheFallback = true)
+        public static Property<bool> GetBool(string key, bool fallback = false, bool cacheFallback = true)
         {
             // first, check the cache. If the key exists in the cache, grab it regardless of it's modified value
             // then, check the database. if the key exists in the database, grab it and cache it
             // finally, set it to a default of false.
             if (CachedBooleanSettings.ContainsKey(key))
             {
-                return CachedBooleanSettings[key].Item;
+                return new Property<bool>(CachedBooleanSettings[key].Item, CachedBooleanSettings[key].Description);
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetBool(key);
@@ -76,8 +76,8 @@ namespace ACE.Server.Managers
             var boolVal = dbValue?.Value ?? fallback;
 
             if (!useFallback || (useFallback && cacheFallback))
-                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, boolVal);
-            return boolVal;
+                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, boolVal, dbValue.Description);
+            return new Property<bool>(boolVal, dbValue.Description);
         }
 
         /// <summary>
@@ -88,7 +88,12 @@ namespace ACE.Server.Managers
         public static void ModifyBool(string key, bool newVal)
         {
             // modify and flag the cache value for the next update.
-            CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
+            CachedBooleanSettings[key].Modify(newVal);
+        }
+
+        public static void ModifyBoolDescription(string key, string description)
+        {
+            CachedBooleanSettings[key].ModifyDescription(description);
         }
 
         /// <summary>
@@ -98,11 +103,11 @@ namespace ACE.Server.Managers
         /// <param name="fallback">The value to return if the property cannot be found.</param>
         /// <param name="cacheFallback">Whether or not the fallback property should be cached</param>
         /// <returns>An integer value representing the property</returns>
-        public static long GetLong(string key, long fallback = 0, bool cacheFallback = true)
+        public static Property<long> GetLong(string key, long fallback = 0, bool cacheFallback = true)
         {
             if (CachedLongSettings.ContainsKey(key))
             {
-                return CachedLongSettings[key].Item;
+                return new Property<long>(CachedLongSettings[key].Item, CachedLongSettings[key].Description);
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetLong(key);
@@ -115,8 +120,8 @@ namespace ACE.Server.Managers
 
             var intVal = dbValue?.Value ?? fallback;
             if (!useFallback || (useFallback && cacheFallback))
-                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, intVal);
-            return intVal;
+                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, intVal, dbValue.Description);
+            return new Property<long>(intVal, dbValue.Description);
         }
 
         /// <summary>
@@ -126,7 +131,12 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyLong(string key, long newVal)
         {
-            CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal);
+            CachedLongSettings[key].Modify(newVal);
+        }
+
+        public static void ModifyLongDescription(string key, string description)
+        {
+            CachedLongSettings[key].ModifyDescription(description);
         }
 
         /// <summary>
@@ -136,11 +146,11 @@ namespace ACE.Server.Managers
         /// <param name="fallback">The value to return if the property cannot be found.</param>
         /// <param name="cacheFallback">Whether or not the fallpack property should be cached</param>
         /// <returns>A float value representing the property</returns>
-        public static double GetDouble(string key, double fallback = 0.0f, bool cacheFallback = true)
+        public static Property<double> GetDouble(string key, double fallback = 0.0f, bool cacheFallback = true)
         {
             if (CachedDoubleSettings.ContainsKey(key))
             {
-                return CachedDoubleSettings[key].Item;
+                return new Property<double>(CachedDoubleSettings[key].Item, CachedDoubleSettings[key].Description);
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetLong(key);
@@ -153,8 +163,8 @@ namespace ACE.Server.Managers
 
             var floatVal = dbValue?.Value ?? fallback;
             if (!useFallback || (useFallback && cacheFallback))
-                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, floatVal);
-            return floatVal;
+                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, floatVal, dbValue.Description);
+            return new Property<double>(CachedDoubleSettings[key].Item, CachedDoubleSettings[key].Description);
         }
 
         /// <summary>
@@ -164,7 +174,12 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyDouble(string key, double newVal)
         {
-            CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal);
+            CachedDoubleSettings[key].Modify(newVal);
+        }
+
+        public static void ModifyDoubleDescription(string key, string description)
+        {
+            CachedDoubleSettings[key].ModifyDescription(description);
         }
 
         /// <summary>
@@ -174,11 +189,11 @@ namespace ACE.Server.Managers
         /// <param name="fallback">The value to return if the property cannot be found.</param>
         /// <param name="cacheFallback">Whether or not the fallback value will be cached.</param>
         /// <returns>A string value representing the property</returns>
-        public static string GetString(string key, string fallback = "", bool cacheFallback = true)
+        public static Property<string> GetString(string key, string fallback = "", bool cacheFallback = true)
         {
             if (CachedStringSettings.ContainsKey(key))
             {
-                return CachedStringSettings[key].Item;
+                return new Property<string>(CachedStringSettings[key].Item, CachedStringSettings[key].Description);
             }
 
             var dbValue = DatabaseManager.ServerConfig.GetString(key);
@@ -191,8 +206,8 @@ namespace ACE.Server.Managers
 
             var stringVal = dbValue?.Value ?? fallback;
             if (!useFallback || (useFallback && cacheFallback))
-                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, stringVal);
-            return stringVal;
+                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, stringVal, dbValue.Description);
+            return new Property<string>(stringVal, dbValue.Description);
         }
 
         /// <summary>
@@ -202,7 +217,12 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyString(string key, string newVal)
         {
-            CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal);
+            CachedStringSettings[key].Modify(newVal);
+        }
+
+        public static void ModifyStringDescription(string key, string description)
+        {
+            CachedStringSettings[key].ModifyDescription(description);
         }
 
         /// <summary>
@@ -223,19 +243,19 @@ namespace ACE.Server.Managers
         {
             log.Debug("Fetching boolean properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllBools())
-                CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value);
+                CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value, i.Description);
 
             log.Debug("Fetching long properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllLongs())
-                CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value);
+                CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value, i.Description);
 
             log.Debug("Fetching double properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllDoubles())
-                CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value);
+                CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value, i.Description);
 
             log.Debug("Fetching string properties from database");
             foreach (var i in DatabaseManager.ServerConfig.GetAllStrings())
-                CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value);
+                CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value, i.Description);
         }
 
         /// <summary>
@@ -249,9 +269,9 @@ namespace ACE.Server.Managers
                 // this probably should be upsert. This does 2 queries per modified datapoint.
                 // perhaps run a transaction to queue all the queries at once.
                 if (DatabaseManager.ServerConfig.BoolExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Shard.ConfigPropertiesBoolean { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Shard.ConfigPropertiesBoolean { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddBool(i.Key, i.Value.Item);
+                    DatabaseManager.ServerConfig.AddBool(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -265,9 +285,9 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.LongExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyLong(new Database.Models.Shard.ConfigPropertiesLong { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyLong(new Database.Models.Shard.ConfigPropertiesLong { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddLong(i.Key, i.Value.Item);
+                    DatabaseManager.ServerConfig.AddLong(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -282,9 +302,9 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.LongExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyDouble(new Database.Models.Shard.ConfigPropertiesDouble { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyDouble(new Database.Models.Shard.ConfigPropertiesDouble { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddDouble(i.Key, i.Value.Item);
+                    DatabaseManager.ServerConfig.AddDouble(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -298,9 +318,9 @@ namespace ACE.Server.Managers
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.ServerConfig.StringExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Shard.ConfigPropertiesString { Key = i.Key, Value = i.Value.Item });
+                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Shard.ConfigPropertiesString { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddString(i.Key, i.Value.Item);
+                    DatabaseManager.ServerConfig.AddString(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -320,15 +340,47 @@ namespace ACE.Server.Managers
 
     }
 
+    public struct Property<T>
+    {
+        public Property(T item, string description) : this()
+        {
+            Item = item;
+            Description = description;
+        }
+
+        public T Item { get;  private set; }
+        public string Description { get;  private set; }
+    }
+
     class ConfigurationEntry<T>
     {
         public bool Modified;
         public T Item;
+        public string Description;
 
         public ConfigurationEntry(bool modified, T item)
         {
             this.Modified = modified;
             this.Item = item;
+        }
+
+        public ConfigurationEntry(bool modified, T item, string description)
+        {
+            this.Modified = modified;
+            this.Item = item;
+            this.Description = description;
+        }
+
+        public void Modify(T item)
+        {
+            this.Item = item;
+            this.Modified = true;
+        }
+
+        public void ModifyDescription(string description)
+        {
+            this.Description = description;
+            this.Modified = true;
         }
 
         public override string ToString()

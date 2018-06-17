@@ -37,12 +37,13 @@ namespace ACE.Database
             }
         }
 
-        public void AddBool(string key, bool value)
+        public void AddBool(string key, bool value, string description = "")
         {
             var stat = new ConfigPropertiesBoolean
             {
                 Key = key,
-                Value = value
+                Value = value,
+                Description = description
             };
 
             using (var context = new ShardDbContext())
@@ -75,12 +76,13 @@ namespace ACE.Database
                 return context.ConfigPropertiesBoolean.Any(r => r.Key == key);
         }
 
-        public void AddLong(string key, long value)
+        public void AddLong(string key, long value, string description = "")
         {
             var stat = new ConfigPropertiesLong
             {
                 Key = key,
-                Value = value
+                Value = value,
+                Description = description
             };
 
             using (var context = new ShardDbContext())
@@ -113,12 +115,13 @@ namespace ACE.Database
                 return context.ConfigPropertiesLong.Any(r => r.Key == key);
         }
 
-        public void AddDouble(string key, double value)
+        public void AddDouble(string key, double value, string description = "")
         {
             var stat = new ConfigPropertiesDouble
             {
                 Key = key,
-                Value = value
+                Value = value,
+                Description = description
             };
 
             using (var context = new ShardDbContext())
@@ -151,12 +154,13 @@ namespace ACE.Database
                 return context.ConfigPropertiesDouble.Any(r => r.Key == key);
         }
 
-        public void AddString(string key, string value)
+        public void AddString(string key, string value, string description = "")
         {
             var stat = new ConfigPropertiesString
             {
                 Key = key,
-                Value = value
+                Value = value,
+                Description = description
             };
 
             using (var context = new ShardDbContext())

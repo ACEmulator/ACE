@@ -13,8 +13,8 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
 
-        private static double XpModifier { get { return PropertyManager.GetDouble("xp_modifier"); } }
-        private static double LuminanceModifier { get { return PropertyManager.GetDouble("luminance_modifier"); } }
+        private static double XpModifier { get { return PropertyManager.GetDouble("xp_modifier").Item; } }
+        private static double LuminanceModifier { get { return PropertyManager.GetDouble("luminance_modifier").Item; } }
 
         /// <summary>
         /// Raise the available XP by a specified amount

@@ -35,12 +35,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// The amount of vitae reduced on player death
         /// </summary>
-        public static double VitaePenalty { get { return PropertyManager.GetDouble("vitae_penalty"); } }
+        public static double VitaePenalty { get { return PropertyManager.GetDouble("vitae_penalty").Item; } }
 
         /// <summary>
         /// The minimum possible vitae a player can have
         /// </summary>
-        public static double MinVitae { get { return PropertyManager.GetDouble("vitae_min"); } }
+        public static double MinVitae { get { return PropertyManager.GetDouble("vitae_min").Item; } }
 
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
