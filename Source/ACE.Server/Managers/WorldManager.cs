@@ -584,5 +584,6 @@ namespace ACE.Server.Managers
         {
             return elapsedTimeSeconds;
         }
+        //
     }
 }
