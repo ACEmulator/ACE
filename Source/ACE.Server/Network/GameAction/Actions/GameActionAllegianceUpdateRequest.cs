@@ -12,8 +12,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
             var player = session.Player;
 
-            if (player == null)
-                return;
+            //if (player == null)
+                //return;
 
             var allegiance = player != null ? player.Allegiance : null;
             var allegianceNode = player != null ? player.AllegianceNode : null;
