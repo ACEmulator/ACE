@@ -240,7 +240,11 @@ namespace ACE.Entity
             return true;
         }
 
-        public Position() { }
+        public Position()
+        {
+            Pos = Vector3.Zero;
+            Rotation = Quaternion.Identity;
+        }
 
         public Position(uint newCell, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {

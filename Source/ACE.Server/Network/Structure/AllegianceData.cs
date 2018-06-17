@@ -70,7 +70,6 @@ namespace ACE.Server.Network.Structure
                 gender = (Gender)player.Gender;
                 hg = (HeritageGroup)player.Heritage;
                 rank = (ushort)node.Rank;
-                //rank = 1;
                 level = (uint)player.Level;
                 loyalty = (ushort)player.GetCreatureSkill(Skill.Loyalty).Current;
                 leadership = (ushort)player.GetCreatureSkill(Skill.Leadership).Current;

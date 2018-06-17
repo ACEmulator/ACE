@@ -32,7 +32,9 @@ namespace ACE.Server.Network.Structure
 
             if (profile.Allegiance != null)
             {
-                totalMembers = (uint)profile.Allegiance.TotalMembers;
+                // this is actually the total # of followers,
+                // so we subtract 1 (the monarch)
+                totalMembers = (uint)profile.Allegiance.TotalMembers - 1;
                 totalVassals = (uint)profile.Node.TotalVassals;
             }
 
