@@ -1,9 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using ACE.Database.Models.Shard;
-using ACE.Entity.Enum;
-using ACE.Server.WorldObjects;
 using ACE.Server.Entity;
 
 namespace ACE.Server.Network.Structure
@@ -27,15 +22,14 @@ namespace ACE.Server.Network.Structure
             // uint - totalMembers - The number of allegiance members.
             // uint - totalVassals - Your personal number of followers.
             // AllegianceHeirarchy - allegianceHeirarchy
+
             uint totalMembers = 0; 
             uint totalVassals = 0;
 
             if (profile.Allegiance != null)
             {
-                // this is actually the total # of followers,
-                // so we subtract 1 (the monarch)
-                totalMembers = (uint)profile.Allegiance.TotalMembers - 1;
-                totalVassals = (uint)profile.Node.TotalVassals;
+                totalMembers = (uint)profile.Node.Monarch.TotalFollowers;
+                totalVassals = (uint)profile.Node.TotalFollowers;
             }
 
             writer.Write(totalMembers);

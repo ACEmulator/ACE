@@ -16,13 +16,26 @@ namespace ACE.Server.Entity
         public AllegianceNode Patron;
         public List<AllegianceNode> Vassals;
 
+        public uint Rank;
+
         public bool IsMonarch { get => Patron == null; }
 
         public bool HasVassals { get => TotalVassals > 0; }
 
         public int TotalVassals { get => Vassals != null ? Vassals.Count : 0; }
 
-        public uint Rank;
+        public int TotalFollowers
+        {
+            get
+            {
+                var totalFollowers = 0;
+
+                foreach (var vassal in Vassals)
+                    totalFollowers += vassal.TotalFollowers + 1;
+
+                return totalFollowers;
+            }
+        }
 
         public AllegianceNode(Player player, Allegiance allegiance, AllegianceNode monarch = null, AllegianceNode patron = null)
         {

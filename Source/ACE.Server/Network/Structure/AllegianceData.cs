@@ -1,10 +1,7 @@
-using System.Collections.Generic;
+using System;
 using System.IO;
-using System.Linq;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.WorldObjects;
 using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 
@@ -27,7 +24,7 @@ namespace ACE.Server.Network.Structure
             // ObjectID - characterID - Character ID
             // uint - cpCached - XP gained while logged off
             // uint - cpTithed - Total allegiance XP contribution
-            // uint - bitfield
+            // uint - bitfield - AllegianceIndex
             // Gender - gender - The gender of the character (for determining title)
             // HeritageGroup - hg - The heritage of the character (for determining title)
             // ushort - rank - The numerical rank (1 is lowest).
