@@ -1592,11 +1592,11 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(45);
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
-                    .HasMaxLength(45);
+                    .HasColumnType("text");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -1611,11 +1611,11 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(45);
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
-                    .HasMaxLength(45);
+                    .HasColumnType("text");
 
                 entity.Property(e => e.Value).HasColumnName("value");
             });
@@ -1628,11 +1628,11 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(45);
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
-                    .HasMaxLength(45);
+                    .HasColumnType("text");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -1647,16 +1647,16 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(45);
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
-                    .HasMaxLength(45);
+                    .HasColumnType("text");
 
                 entity.Property(e => e.Value)
                     .IsRequired()
                     .HasColumnName("value")
-                    .HasMaxLength(45);
+                    .HasColumnType("text");
             });
         }
     }

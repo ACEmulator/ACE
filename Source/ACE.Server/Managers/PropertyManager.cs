@@ -87,13 +87,18 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyBool(string key, bool newVal)
         {
-            // modify and flag the cache value for the next update.
-            CachedBooleanSettings[key].Modify(newVal);
+            if (CachedBooleanSettings.ContainsKey(key))
+                CachedBooleanSettings[key].Modify(newVal);
+            else
+                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
         }
 
         public static void ModifyBoolDescription(string key, string description)
         {
-            CachedBooleanSettings[key].ModifyDescription(description);
+            if (CachedBooleanSettings.ContainsKey(key))
+                CachedBooleanSettings[key].ModifyDescription(description);
+            else
+                log.Warn($"Attempted to modify {key} which did not exist in the BOOL cache.");
         }
 
         /// <summary>
@@ -131,12 +136,18 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyLong(string key, long newVal)
         {
-            CachedLongSettings[key].Modify(newVal);
+            if (CachedLongSettings.ContainsKey(key))
+                CachedLongSettings[key].Modify(newVal);
+            else
+                CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal);
         }
 
         public static void ModifyLongDescription(string key, string description)
         {
-            CachedLongSettings[key].ModifyDescription(description);
+            if (CachedLongSettings.ContainsKey(key))
+                CachedLongSettings[key].ModifyDescription(description);
+            else
+                log.Warn($"Attempted to modify {key} which did not exist in the LONG cache.");
         }
 
         /// <summary>
@@ -174,12 +185,18 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyDouble(string key, double newVal)
         {
-            CachedDoubleSettings[key].Modify(newVal);
+            if (CachedDoubleSettings.ContainsKey(key))
+                CachedDoubleSettings[key].Modify(newVal);
+            else
+                CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal);
         }
 
         public static void ModifyDoubleDescription(string key, string description)
         {
-            CachedDoubleSettings[key].ModifyDescription(description);
+            if (CachedDoubleSettings.ContainsKey(key))
+                CachedDoubleSettings[key].ModifyDescription(description);
+            else
+                log.Warn($"Attempted to modify the description of {key} which did not exist in the DOUBLE cache.");
         }
 
         /// <summary>
@@ -217,12 +234,18 @@ namespace ACE.Server.Managers
         /// <param name="newVal">The value to replace the old value with</param>
         public static void ModifyString(string key, string newVal)
         {
-            CachedStringSettings[key].Modify(newVal);
+            if (CachedStringSettings.ContainsKey(key))
+                CachedStringSettings[key].Modify(newVal);
+            else
+                CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal);
         }
 
         public static void ModifyStringDescription(string key, string description)
         {
-            CachedStringSettings[key].ModifyDescription(description);
+            if (CachedStringSettings.ContainsKey(key))
+                CachedStringSettings[key].ModifyDescription(description);
+            else
+                log.Warn($"Attempted to modify {key} which did not exist in the STRING cache.");
         }
 
         /// <summary>

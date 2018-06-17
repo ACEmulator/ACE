@@ -1,25 +1,29 @@
 USE ace_shard;
 
+DROP TABLE IF EXISTS `config_properties_string`;
 CREATE TABLE IF NOT EXISTS `config_properties_string`(
-	`key`	        varchar(45) PRIMARY KEY,
-    `value`         varchar(45) NOT NULL,
-    `description`   varchar(45)
+	`key`	        VARCHAR(255) PRIMARY KEY,
+    `value`         TEXT NOT NULL,
+    `description`   TEXT
 );
 
+DROP TABLE IF EXISTS `config_properties_long`;
 CREATE TABLE IF NOT EXISTS `config_properties_long`(
-	`key`	        varchar(45) PRIMARY KEY,
-    `value`         bigint NOT NULL,
-    `description`   varchar(45)
+	`key`	        VARCHAR(255) PRIMARY KEY,
+    `value`         BIGINT NOT NULL,
+    `description`   TEXT
 );
 
+DROP TABLE IF EXISTS `config_properties_double`;
 CREATE TABLE IF NOT EXISTS `config_properties_double`(
-	`key`	        varchar(45) PRIMARY KEY,
-    `value`	        real NOT NULL,
-    `description`   varchar(45)
+	`key`	        VARCHAR(255) PRIMARY KEY,
+    `value`	        REAL NOT NULL,
+    `description`   TEXT
 );
 
+DROP TABLE IF EXISTS `config_properties_boolean`;
 CREATE TABLE IF NOT EXISTS `config_properties_boolean`(
-	`key`	        varchar(45) PRIMARY KEY,
-    `value`         bit(1) NOT NULL,
-    `description`   varchar(45)
+	`key`	        VARCHAR(255) PRIMARY KEY,
+    `value`         BIT(1) NOT NULL,
+    `description`   TEXT
 );
