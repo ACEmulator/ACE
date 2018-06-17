@@ -1743,9 +1743,9 @@ namespace ACE.Server.Command.Handlers
         {
             var boolVal = PropertyManager.GetBool(paramters[0], cacheFallback: false);
             if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {boolVal.Description}: {boolVal.Item}", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}", ChatMessageType.System));
             else
-                Console.WriteLine($"{paramters[0]} - {boolVal.Description}: {boolVal.Item}");
+                Console.WriteLine($"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
         }
 
         [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2,
@@ -1776,9 +1776,9 @@ namespace ACE.Server.Command.Handlers
         {
             var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
             if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {intVal.Description}: {intVal.Item}", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}", ChatMessageType.System));
             else
-                Console.WriteLine($"{paramters[0]} - {intVal.Description}: {intVal.Item}");
+                Console.WriteLine($"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
         }
 
         [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2,
@@ -1808,9 +1808,9 @@ namespace ACE.Server.Command.Handlers
         {
             var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
             if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {floatVal.Description}: {floatVal.Item}", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}", ChatMessageType.System));
             else
-                Console.WriteLine($"{paramters[0]} - {floatVal.Description}: {floatVal.Item}");
+                Console.WriteLine($"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
         }
 
         [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2,
@@ -1830,9 +1830,9 @@ namespace ACE.Server.Command.Handlers
         {
             var stringVal = PropertyManager.GetString(parameters[0], cacheFallback: false);
             if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} - {stringVal.Description}: {stringVal.Item}", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} - {stringVal.Description ?? "No Description"}: {stringVal.Item}", ChatMessageType.System));
             else
-                Console.WriteLine($"{parameters[0]} - {stringVal.Description}: {stringVal.Item}");
+                Console.WriteLine($"{parameters[0]} - {stringVal.Description ?? "No Description"}: {stringVal.Item}");
         }
 
         [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, -1,
