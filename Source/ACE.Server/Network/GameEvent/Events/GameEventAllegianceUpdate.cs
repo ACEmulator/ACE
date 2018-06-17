@@ -17,7 +17,7 @@ namespace ACE.Server.Network.GameEvent.Events
             // uint - rank - this player's rank within their allegiance
             // AllegianceProfile - prof
             uint rank = (node == null) ? 0 : node.Rank;
-            Console.WriteLine("Rank: " + rank);
+            //Console.WriteLine("Rank: " + rank);
             Writer.Write(rank);
 
             var prof = new AllegianceProfile(allegiance, node);
@@ -26,7 +26,7 @@ namespace ACE.Server.Network.GameEvent.Events
             var endPos = Writer.BaseStream.Position;
 
             var totalBytes = endPos - startPos;
-            Console.WriteLine("Allegiance bytes written: " + totalBytes);
+            //Console.WriteLine("Allegiance bytes written: " + totalBytes);
         }
     }
 }

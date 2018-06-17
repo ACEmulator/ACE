@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using ACE.Entity;
-using ACE.Server.Managers;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
-using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -23,57 +20,107 @@ namespace ACE.Server.WorldObjects
 
         public bool HasAllegiance { get => Allegiance != null && Allegiance.TotalMembers > 1; }
 
+        /// <summary>
+        /// Called when a player tries to Swear Allegiance to a target
+        /// </summary>
+        /// <param name="targetGuid">The target this player is attempting to swear allegiance to</param>
         public void HandleActionSwearAllegiance(ObjectGuid targetGuid)
         {
-            Console.WriteLine("Target: " + targetGuid.Full.ToString("X8"));
+            if (!IsPledgable(targetGuid)) return;
 
-            var target = WorldManager.GetPlayerByGuidId(targetGuid.Full);
-            if (target == null)
-            {
-                Console.WriteLine("Couldn't find patron");
-                return;
-            }
-            // exceptions:
-            // player can't swear to themselves
-            // 2 players can't swear to each other
-            // prevent any loops in the allegiance chain
-            // player already sworn?
-            // ensure character swearing to equal or greater level
-            // at time of swearing
-            // maximum # of direct vassals = 11
-            // check distance < 4.0
-            // check ignore allegiance requests
-
-            // add/break allegiance: rebuild tree structures
-
-            if (Patron != null)
-            {
-                Console.WriteLine("Existing patron: " + WorldManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
-                //return;
-            }
+            var patron = WorldManager.GetPlayerByGuidId(targetGuid.Full);
 
             Patron = targetGuid.Full;
-            Monarch = AllegianceManager.GetMonarch(target).Guid.Full;
+            Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
 
             Console.WriteLine("Patron: " + WorldManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
             Console.WriteLine("Monarch: " + WorldManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
 
             // send message to patron:
             // %vassal% has sworn Allegiance to you.
-            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has sworn Allegiance to you.", ChatMessageType.Broadcast));
+            patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has sworn Allegiance to you.", ChatMessageType.Broadcast));
 
             // send message to vassal:
             // %patron% has accepted your oath of Allegiance!
             // Motion_Kneel
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has accepted your oath of Allegiance!", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{patron.Name} has accepted your oath of Allegiance!", ChatMessageType.Broadcast));
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, new MotionItem(MotionCommand.Kneel));
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);
 
-            var allegiance = AllegianceManager.GetAllegiance(this);
+            // add/break allegiance: rebuild tree structures
+            AllegianceManager.LoadPlayer(this);
         }
 
-        public void AddAllegianceXP(bool showMsg = false)
+        /// <summary>
+        /// Returns TRUE if this player can swear to the target guid
+        /// </summary>
+        public bool IsPledgable(ObjectGuid targetGuid)
+        {
+            // ensure target player is online, and within range
+            var target = WorldManager.GetPlayerByGuidId(targetGuid.Full);
+            if (target == null)
+            {
+                Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
+                return false;
+            }
+
+            // player already sworn?
+            if (Patron != null)
+            {
+                Console.WriteLine(Name + " tried to swear to " + target.Name + ", but is already sworn to " + WorldManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
+                return false;
+            }
+
+            // player can't swear to themselves
+            if (targetGuid.Full == Guid.Full)
+            {
+                Console.WriteLine(Name + " tried to swear to themselves");
+                return false;
+            }
+
+            // patron must currently be greater or equal level
+            if (target.Level < Level)
+            {
+                Console.WriteLine(Name + " tried to swear to a lower level character");
+                return false;
+            }
+
+            var selfNode = AllegianceNode;
+            var targetNode = target.AllegianceNode;
+
+            if (targetNode != null)
+            {
+                // maximum # of direct vassals = 11
+                if (targetNode.TotalVassals >= 11)
+                {
+                    Console.WriteLine(target.Name + " already has the maximum # of vassals");
+                    return false;
+                }
+
+                // 2 players can't swear to each other
+                // prevent any loops in the allegiance chain
+                if (selfNode != null && selfNode.IsMonarch)
+                {
+                    if (selfNode.Player.Guid.Full == targetNode.Monarch.Player.Guid.Full)
+                    {
+                        Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
+                        return false;
+                    }
+                }
+            }
+
+            // check distance <= 4.0
+            // check ignore allegiance requests
+
+            return true;
+        }
+
+        /// <summary>
+        /// Adds any pending XP in CPPoolToUnload to the player's total XP
+        /// </summary>
+        /// <param name="showMsg">Set to TRUE if player is logging in</param>
+        public void AddCPPoolToUnload(bool showMsg = false)
         {
             var patron = WorldManager.GetPlayerByGuidId(Guid.Full);
 
