@@ -1,3 +1,4 @@
+using System;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -7,13 +8,9 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.AllegianceUpdateRequest)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var unknown1 = message.Payload.ReadUInt32();
-            // TODO
+            var uiPanel = Convert.ToBoolean(message.Payload.ReadUInt32());
 
             var player = session.Player;
-
-            //if (player == null)
-                //return;
 
             var allegiance = player != null ? player.Allegiance : null;
             var allegianceNode = player != null ? player.AllegianceNode : null;

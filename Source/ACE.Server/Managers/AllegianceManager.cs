@@ -30,19 +30,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public static Player GetMonarch(Player player)
         {
-            return WorldManager.AllPlayers.Where(p => p.Guid.Full.Equals(player.Monarch)).FirstOrDefault();
+            var monarch = WorldManager.AllPlayers.Where(p => p.Guid.Full.Equals(player.Monarch)).FirstOrDefault();
 
-            // find the monarch by walking the allegiance chain
-            var currentPlayer = player;
-            do
-            {
-                var patron = currentPlayer.GetProperty(PropertyInstanceId.Patron);
-                if (patron != null)
-                    currentPlayer = WorldManager.GetPlayerByGuidId(patron.Value);
-                else
-                    return currentPlayer;
-            }
-            while (true);
+            return monarch != null ? monarch : player;
         }
 
         /// <summary>
