@@ -7,6 +7,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -22,6 +23,8 @@ namespace ACE.Server.WorldObjects
             // apply xp modifier
             amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
             UpdateXpAndLevel(amount);
+            UpdateXpAllegiance(amount);
+
             if (message)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement));
         }
@@ -96,6 +99,13 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
             if (HasVitae) UpdateXpVitae(amount);
+        }
+
+        private void UpdateXpAllegiance(long amount)
+        {
+            if (!HasAllegiance) return;
+
+            AllegianceManager.PassXP(AllegianceNode, (ulong)amount, true);
         }
 
         private void UpdateXpVitae(long amount)

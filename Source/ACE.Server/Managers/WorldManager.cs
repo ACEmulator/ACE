@@ -37,7 +37,7 @@ namespace ACE.Server.Managers
         private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
         private static readonly PhysicsEngine Physics;
 
-        private static List<Player> AllPlayers;
+        public static List<Player> AllPlayers;
 
         /// <summary>
         /// Seconds until a session will timeout. 
@@ -260,6 +260,12 @@ namespace ACE.Server.Managers
             {
                 sessionLock.ExitReadLock();
             }
+        }
+
+
+        public static Player GetOfflinePlayerByGuidId(uint playerId)
+        {
+            return AllPlayers.FirstOrDefault(p => p.Guid.Full.Equals(playerId));
         }
 
         public static List<Session> FindInverseFriends(ObjectGuid characterGuid)

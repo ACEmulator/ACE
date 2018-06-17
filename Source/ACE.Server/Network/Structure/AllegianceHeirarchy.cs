@@ -81,6 +81,8 @@ namespace ACE.Server.Network.Structure
                 // i == 2 : peer?
                 // i  > 2 : vassals
 
+                // peers = others with the same patron?
+
                 recordCount = 1;    // monarch
                 if (node.Patron != null)
                     recordCount++;
