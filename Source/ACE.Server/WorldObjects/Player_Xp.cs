@@ -18,12 +18,14 @@ namespace ACE.Server.WorldObjects
         /// Raise the available XP by a specified amount
         /// </summary>
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
-        public void GrantXp(long amount, bool message = true)
+        public void GrantXp(long amount, bool message = true, bool passup = true)
         {
             // apply xp modifier
             amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
             UpdateXpAndLevel(amount);
-            UpdateXpAllegiance(amount);
+
+            if (passup)
+                UpdateXpAllegiance(amount);
 
             if (message)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement));

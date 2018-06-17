@@ -224,6 +224,8 @@ namespace ACE.Server.Managers
                 patron.CPCached += passupAmount;
                 patron.CPPoolToUnload += passupAmount;
 
+                patron.AddAllegianceXP(false);
+
                 // call recursively
                 PassXP(patronNode, passupAmount, false);
             }

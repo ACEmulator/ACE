@@ -72,5 +72,23 @@ namespace ACE.Server.WorldObjects
 
             var allegiance = AllegianceManager.GetAllegiance(this);
         }
+
+        public void AddAllegianceXP(bool showMsg = false)
+        {
+            var patron = WorldManager.GetPlayerByGuidId(Guid.Full);
+
+            // is player logged in?
+            if (patron == null || !patron.IsOnline) return;
+
+            if (CPPoolToUnload == 0) return;
+
+            // FIXME: should be ulong
+            patron.GrantXp((long)CPPoolToUnload, false, false);
+
+            if (showMsg)
+                patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.System));
+
+            CPPoolToUnload = 0;     // force save?
+        }
     }
 }
