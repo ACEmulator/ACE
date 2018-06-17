@@ -206,7 +206,7 @@ namespace ACE.Server.Managers
             var generatedAmount = (ulong)(amount * generated);
             var passupAmount = (ulong)(amount * passup);
 
-            Console.WriteLine("---");
+            /*Console.WriteLine("---");
             Console.WriteLine("AllegianceManager.PassXP(" + amount + ")");
             Console.WriteLine("Vassal: " + vassal.Name);
             Console.WriteLine("Patron: " + patron.Name);
@@ -216,7 +216,7 @@ namespace ACE.Server.Managers
             Console.WriteLine("Passup: " + Math.Round(passup * 100, 2) + "%");
 
             Console.WriteLine("Generated amount: " + generatedAmount);
-            Console.WriteLine("Passup amount: " + passupAmount);
+            Console.WriteLine("Passup amount: " + passupAmount);*/
 
             if (passupAmount > 0)
             {
