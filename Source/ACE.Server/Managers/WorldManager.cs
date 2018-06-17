@@ -73,6 +73,9 @@ namespace ACE.Server.Managers
 
         public static void LoadAllPlayers()
         {
+            // FIXME: this is a placeholder for offline players
+
+            // probably bugged when players are added/removed...
             AllPlayers = new List<Player>();
 
             // get all character ids
@@ -88,6 +91,16 @@ namespace ACE.Server.Managers
                     });
                 }
             });
+        }
+
+        public static void SyncOffline(Player player)
+        {
+            var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
+            if (offlinePlayer == null) return;
+
+            // FIXME: this is a placeholder for offline players
+            offlinePlayer.Monarch = player.Monarch;
+            offlinePlayer.Patron = player.Patron;
         }
 
 

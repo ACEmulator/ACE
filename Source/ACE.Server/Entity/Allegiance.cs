@@ -36,7 +36,7 @@ namespace ACE.Server.Entity
             Monarch.BuildChain(this, members);
             BuildMembers(Monarch);
 
-            Console.WriteLine("TotalMembers: " + TotalMembers);
+            //Console.WriteLine("TotalMembers: " + TotalMembers);
         }
 
         /// <summary>
@@ -51,6 +51,23 @@ namespace ACE.Server.Entity
 
             foreach (var vassal in node.Vassals)
                 BuildMembers(vassal);
+        }
+
+        /// <summary>
+        /// An allegiance is defined by its monarch
+        /// </summary>
+        public override bool Equals(Object obj)
+        {
+            var allegiance = obj as Allegiance;
+            if (allegiance != null)
+                return Monarch.Player.Guid.Full == allegiance.Monarch.Player.Guid.Full;
+            else
+                return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Monarch.Player.Guid.Full.GetHashCode();
         }
     }
 }

@@ -69,7 +69,7 @@ namespace ACE.Server.Network.Structure
             var allegiance = heirarchy.Profile.Allegiance;
             var node = heirarchy.Profile.Node;
 
-            if (allegiance != null)
+            if (allegiance != null && node != null)
             {
                 // aclogview (verify):
                 // i == 0 : monarch (no guid)
@@ -80,38 +80,39 @@ namespace ACE.Server.Network.Structure
                 // peers = others with the same patron?
 
                 recordCount = 1;    // monarch
-                if (node.Patron != null && !node.Patron.IsMonarch)
+                if (node.Patron != null && !node.Patron.IsMonarch)  // patron
                     recordCount++;
-                if (node.TotalVassals > 0)
+                if (!node.IsMonarch)    // self
+                    recordCount++;
+                if (node.TotalVassals > 0)  // vassals
                 {
-                    if (!node.IsMonarch)
-                        recordCount++;
-
                     recordCount += (ushort)node.TotalVassals;
                 }
+                //Console.WriteLine("Records: " + recordCount);
 
                 chatRoomID = allegiance.Monarch.Player.Guid.Full;
                 allegianceName = allegiance.Monarch.Player.Name;
 
+                // monarch
                 monarchData = new AllegianceData(allegiance.Monarch);
 
                 if (recordCount > 1)
                 {
                     records = new List<Tuple<ObjectGuid, AllegianceData>>();
 
+                    // patron
                     if (node.Patron != null && !node.Patron.IsMonarch)
                     {
-                        // patron
-                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Patron.Patron.Player.Guid, new AllegianceData(node.Patron)));
+                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Monarch.Player.Guid, new AllegianceData(node.Patron)));
                     }
 
+                    // self
+                    if (!node.IsMonarch)
+                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Patron.Player.Guid, new AllegianceData(node)));
+
+                    // vassals
                     if (node.TotalVassals > 0)
                     {
-                        // self
-                        if (!node.IsMonarch)
-                            records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Patron.Player.Guid, new AllegianceData(node)));
-
-                        // vassals
                         foreach (var vassal in node.Vassals)
                             records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Player.Guid, new AllegianceData(vassal)));
                     }
