@@ -13,9 +13,6 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
 
-        private static double XpModifier { get { return PropertyManager.GetDouble("xp_modifier").Item; } }
-        private static double LuminanceModifier { get { return PropertyManager.GetDouble("luminance_modifier").Item; } }
-
         /// <summary>
         /// Raise the available XP by a specified amount
         /// </summary>
@@ -23,7 +20,7 @@ namespace ACE.Server.WorldObjects
         public void GrantXp(long amount, bool message = true)
         {
             // apply xp modifier
-            amount = (long)(amount * XpModifier);
+            amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
             UpdateXpAndLevel(amount);
             if (message)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement));
@@ -49,7 +46,7 @@ namespace ACE.Server.WorldObjects
         public void GrantLuminance(long amount)
         {
             // apply lum modifier
-            amount = (long)(amount * LuminanceModifier);
+            amount = (long)(amount * PropertyManager.GetDouble("luminance_modifier").Item);
 
             if (AvailableLuminance + amount > MaximumLuminance)
                 amount = MaximumLuminance.Value - AvailableLuminance.Value;
@@ -64,7 +61,7 @@ namespace ACE.Server.WorldObjects
         public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
         {
             // apply xp modifier
-            amount = (long)(amount * XpModifier);
+            amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
             if (sharable)
             {
                 if (Fellowship != null && Fellowship.ShareXP)
