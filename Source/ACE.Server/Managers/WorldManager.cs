@@ -251,10 +251,14 @@ namespace ACE.Server.Managers
             sessionLock.EnterReadLock();
             try
             {
-                if (isOnlineRequired)
-                    return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId).Player;
+                Session session;
 
-                return sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId).Player;
+                if (isOnlineRequired)
+                    session = sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId);
+                else
+                    session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
+
+                return session != null ? session.Player : null;
             }
             finally
             {
