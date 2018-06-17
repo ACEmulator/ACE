@@ -26,7 +26,7 @@ namespace ACE.Server.Network.Structure
             uint totalMembers = 0; 
             uint totalVassals = 0;
 
-            if (profile.Allegiance != null)
+            if (profile.Allegiance != null && profile.Node != null)
             {
                 totalMembers = (uint)profile.Node.Monarch.TotalFollowers;
                 totalVassals = (uint)profile.Node.TotalFollowers;

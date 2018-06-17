@@ -45,6 +45,10 @@ namespace ACE.Server.Managers
 
             if (monarch == null) return null;
 
+            // is this allegiance already loaded / cached?
+            if (Players.ContainsKey(monarch))
+                return Players[monarch].Allegiance;
+
             var allegiance = new Allegiance(monarch);
             if (allegiance.TotalMembers == 1)
                 return null;
@@ -82,6 +86,28 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Called when a player joins/exits an Allegiance
+        /// </summary>
+        public static void Rebuild(Allegiance allegiance)
+        {
+            if (allegiance == null) return;
+
+            RemoveCache(allegiance);
+
+            // rebuild allegiance
+            var refresh = GetAllegiance(allegiance.Monarch.Player);
+
+            // relink players
+            foreach (var member in allegiance.Members.Keys)
+            {
+                var player = WorldManager.GetPlayerByGuidId(member.Guid.Full);
+                if (player == null) continue;
+
+                LoadPlayer(player);
+            }
+        }
+
+        /// <summary>
         /// Appends the Players lookup table with the members of an Allegiance
         /// </summary>
         public static void AddPlayers(Allegiance allegiance)
@@ -96,6 +122,15 @@ namespace ACE.Server.Managers
                 else
                     Players[player] = allegianceNode;
             }
+        }
+
+        /// <summary>
+        /// Removes an Allegiance from the Players lookup table cache
+        /// </summary>
+        public static void RemoveCache(Allegiance allegiance)
+        {
+            foreach (var member in allegiance.Members)
+                Players.Remove(member.Key);
         }
 
         /// <summary>
@@ -219,6 +254,41 @@ namespace ACE.Server.Managers
                 // call recursively
                 PassXP(patronNode, passupAmount, false);
             }
+        }
+
+        /// <summary>
+        /// Updates the Allegiance tree structure when a new player joins
+        /// </summary>
+        /// <param name="vassal">The vassal swearing into the Allegiance</param>
+        public static void OnSwearAllegiance(Player vassal)
+        {
+            // was this vassal previously a Monarch?
+            if (vassal.Allegiance != null)
+                RemoveCache(vassal.Allegiance);
+
+            // rebuild the new combined structure
+            var allegiance = GetAllegiance(vassal);
+            Rebuild(allegiance);
+
+            LoadPlayer(vassal);
+        }
+
+        /// <summary>
+        /// Updates the Allegiance tree structure when a member leaves
+        /// </summary>
+        /// <param name="self">The player initiating the break request</param>
+        /// <param name="target">The patron or vassal of the self player</param>
+        public static void OnBreakAllegiance(Player self, Player target)
+        {
+            // remove the previous allegiance structure
+            RemoveCache(self.Allegiance);
+
+            // rebuild for self and target
+            Rebuild(GetAllegiance(self));
+            Rebuild(GetAllegiance(target));
+
+            LoadPlayer(self);
+            LoadPlayer(target);
         }
     }
 }

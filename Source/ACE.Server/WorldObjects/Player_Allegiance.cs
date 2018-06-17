@@ -32,6 +32,7 @@ namespace ACE.Server.WorldObjects
 
             Patron = targetGuid.Full;
             Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
+            WorldManager.SyncOffline(this);
 
             Console.WriteLine("Patron: " + WorldManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
             Console.WriteLine("Monarch: " + WorldManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
@@ -48,8 +49,50 @@ namespace ACE.Server.WorldObjects
             var motion = new UniversalMotion(CurrentMotionState.Stance, new MotionItem(MotionCommand.Kneel));
             CurrentLandblock.EnqueueBroadcastMotion(this, motion);
 
-            // add/break allegiance: rebuild tree structures
-            AllegianceManager.LoadPlayer(this);
+            // rebuild allegiance tree structure
+            AllegianceManager.OnSwearAllegiance(this);
+        }
+
+        /// <summary>
+        /// Called when a player tries to break Allegiance to a target
+        /// </summary>
+        /// <param name="targetGuid">The target this player is attempting to break allegiance from</param>
+        public void HandleActionBreakAllegiance(ObjectGuid targetGuid)
+        {
+            if (!IsBreakable(targetGuid)) return;
+
+            var target = WorldManager.GetOfflinePlayerByGuidId(targetGuid.Full);
+
+            Console.WriteLine(Name + " breaking allegiance to " + target.Name);
+
+            // target can be either patron or vassal
+            var isPatron = Patron == target.Guid.Full;
+            var isVassal = target.Patron == Guid.Full;
+
+            // break ties
+            if (isVassal)
+            {
+                target.Patron = null;
+                target.Monarch = null;
+                WorldManager.SyncOffline(target);
+            }
+            else
+            {
+                Patron = null;
+                Monarch = null;
+                WorldManager.SyncOffline(this);
+            }
+
+            // send message to target if online
+            var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full, true);
+            if (onlineTarget != null)
+                onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
+
+            // send message to self
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have broken your Allegiance to {target.Name}!", ChatMessageType.Broadcast));
+
+            // rebuild allegiance tree structures
+            AllegianceManager.OnBreakAllegiance(this, target);
         }
 
         /// <summary>
@@ -113,6 +156,33 @@ namespace ACE.Server.WorldObjects
             // check distance <= 4.0
             // check ignore allegiance requests
 
+            return true;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this player can break allegiance to the target guid
+        /// </summary>
+        public bool IsBreakable(ObjectGuid targetGuid)
+        {
+            // players can break from either vassals or patrons
+
+            // ensure target player exists
+            var target = WorldManager.GetOfflinePlayerByGuidId(targetGuid.Full);
+            if (target == null)
+            {
+                Console.WriteLine(Name + " tried to break allegiance to an unknown player guid: " + targetGuid.Full.ToString("X8"));
+                return false;
+            }
+
+            // verify patron or vassal
+            var isPatron = Patron == target.Guid.Full;
+            var isVassal = target.Patron == Guid.Full;
+
+            if (!isPatron && !isVassal)
+            {
+                Console.WriteLine(Name + " tried to break allegiance from " + target.Name + ", but they aren't patron or vassal");
+                return false;
+            }
             return true;
         }
 
