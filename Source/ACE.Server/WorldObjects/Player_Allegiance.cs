@@ -3,6 +3,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 
@@ -16,7 +17,7 @@ namespace ACE.Server.WorldObjects
         // TODO: write to db
         public ulong CPTithed;
         public ulong CPCached;
-        public ulong CPPoolToUnload;
+        public ulong CPPoolToUnload { get => (ulong)(AllegianceCPPool ?? 0); set => AllegianceCPPool = (int)value; }
 
         public bool HasAllegiance { get => Allegiance != null && Allegiance.TotalMembers > 1; }
 
@@ -51,6 +52,9 @@ namespace ACE.Server.WorldObjects
 
             // rebuild allegiance tree structure
             AllegianceManager.OnSwearAllegiance(this);
+
+            // refresh ui panel
+            Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
         }
 
         /// <summary>
@@ -93,6 +97,9 @@ namespace ACE.Server.WorldObjects
 
             // rebuild allegiance tree structures
             AllegianceManager.OnBreakAllegiance(this, target);
+
+            // refresh ui panel
+            Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
         }
 
         /// <summary>
@@ -203,7 +210,7 @@ namespace ACE.Server.WorldObjects
             patron.GrantXp((long)CPPoolToUnload, false, false);
 
             if (showMsg)
-                patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.System));
+                patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
 
             CPPoolToUnload = 0;     // force save?
         }
