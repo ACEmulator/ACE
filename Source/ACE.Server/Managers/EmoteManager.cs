@@ -95,7 +95,7 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.GrantXp((long)emote.Amount);
+                        player.EarnXP((long)emote.Amount, false);
                     break;
 
                 case EmoteType.AwardSkillPoints:

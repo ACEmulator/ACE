@@ -206,8 +206,8 @@ namespace ACE.Server.WorldObjects
 
             if (CPPoolToUnload == 0) return;
 
-            // FIXME: should be ulong
-            patron.GrantXp((long)CPPoolToUnload, false, false);
+            // FIXME: should be uint?
+            patron.EarnXP((long)CPPoolToUnload, false);
 
             if (showMsg)
                 patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
