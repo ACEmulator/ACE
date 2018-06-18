@@ -939,14 +939,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
-            
+
             WorldObject target = CurrentLandblock.GetObject(targetID) as WorldObject;
             WorldObject item = GetInventoryItem(itemGuid) as WorldObject ?? GetWieldedItem(itemGuid) as WorldObject;
-            if(item == null)
+            if (item == null)
             {
-                ///This return glitches the client but does prevent the server from crashing when your main pack, which is you, is attempted to be given to a town crier. I cannot find an attempt of this in pcaps so I do not know what the client is expecting so that the hourglass will go away.
-                item = CurrentLandblock.GetObject(itemGuid) as WorldObject;
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Cannot give " + item.Name + " to " + target.Name, ChatMessageType.System));
                 return;
             }
             Console.WriteLine("The item's name is " + item.Name);
@@ -957,10 +954,11 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(Rotate(target));
                 actionChain.AddAction(this, () =>
                 {
+                    UnwieldItemWithNetworking(this, item, 0);
+                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat("You give " + target.Name + " " + item.Name + ".", ChatMessageType.System));
                     Session.Network.EnqueueSend(new GameMessageSound(this.Guid, Sound.ReceiveItem, 1));
-                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
                     Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                 });
             }
