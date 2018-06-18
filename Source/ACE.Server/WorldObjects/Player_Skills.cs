@@ -181,11 +181,11 @@ namespace ACE.Server.WorldObjects
                 {
                     // fireworks on rank up is 0x8D
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {skill} is now {creatureSkill.Base} and has reached its upper limit!";
+                    messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base} and has reached its upper limit!";
                 }
                 else
                 {
-                    messageText = $"Your base {skill} is now {creatureSkill.Base}!";
+                    messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base}!";
                 }
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
@@ -254,7 +254,7 @@ namespace ACE.Server.WorldObjects
                 skill.Ranks += rankUps;
 
             if (!usage)
-                SpendXp(amount);
+                SpendXP(amount);
 
             skill.ExperienceSpent += amount;
             result = skill.ExperienceSpent;
