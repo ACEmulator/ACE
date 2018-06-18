@@ -3,8 +3,13 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects;
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -63,48 +68,100 @@ namespace ACE.Server.Command.Handlers
         }
 
         // tele [name,] <longitude> <latitude>
-        [CommandHandler("tele", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 2,
+        [CommandHandler("tele", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Teleports you(or a player) to some location.",
-            "[name,] <longitude> <latitude>\n"
+            "[name] <longitude> <latitude>\nExample: /tele 0n0w\nExample: /tele plats4days 37s,67w\n"
             + "This command teleports yourself (or the specified character) to the given longitude and latitude.")]
         public static void HandleTele(Session session, params string[] parameters)
         {
             // Used PhatAC source to implement most of this.  Thanks Pea!
 
-            // usage: @tele [name,] longitude latitude
+            // usage: @tele [name] longitude latitude
             // This command teleports yourself (or the specified character) to the given longitude and latitude.
             // @tele - Teleports you(or a player) to some location.
-
-            // TODO: rework command to support name first then long, lat and then handle correctly.
 
             if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5)
                 return;
 
-            string northSouth = parameters[0].ToLower().Replace(",", "");
-            string eastWest = parameters[1].ToLower().Replace(",", "");
+            Player targetPlayer = null;
+            Position position = null;
+
+            var parameterBlob = parameters.Aggregate((a, b) => a + " " + b);
+            var match = Regex.Match(parameterBlob, @"([0-9\.]+[n|s|e|w])[^nsew]*([0-9\.]+[n|s|e|w])", RegexOptions.IgnoreCase);
+
+            if (!match.Success)
+            {
+                ChatPacket.SendServerMessage(session, $"Coordinates could not be parsed.", ChatMessageType.Broadcast);
+                return;
+            }
+            var ns = match.Groups[1].Value;
+            var ew = match.Groups[2].Value;
+            if (!CoordinateExtensions.TryParse(new string[] { ns, ew }, out string errorMessage, out position))
+            {
+                ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
+                return;
+            }
+
+            var coordsStartPos = Math.Min(match.Groups[1].Index, match.Groups[2].Index);
+            var name = (coordsStartPos == 0) ? string.Empty : parameterBlob.Substring(0, coordsStartPos).Trim(new char[] { ' ', ',' });
+            if (name.Length > 0)
+            {
+                var targetPlayerSession = WorldManager.FindByPlayerName(name);
+                if (targetPlayerSession == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"Unable to find player {name}", ChatMessageType.Broadcast);
+                    return;
+                }
+                targetPlayer = targetPlayerSession.Player;
+            }
+            else targetPlayer = session.Player;
+
+            // TODO: Check if water block?
+
+            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
+
+            targetPlayer.Teleport(position);
+        }
+
+    }
+    public static class CoordinateExtensions
+    {
+        public static bool TryParse(string[] parameters, out string errorMessage, out Position position, int startingElement = 0)
+        {
+            errorMessage = string.Empty;
+            position = null;
+            if (parameters.Length - startingElement - 1 < 1)
+            {
+                errorMessage = "not enough parameters";
+                return false;
+            }
+
+            string northSouth = parameters[startingElement].ToLower().Replace(",", "").Trim();
+            string eastWest = parameters[startingElement + 1].ToLower().Replace(",", "").Trim();
+
 
             if (!northSouth.EndsWith("n") && !northSouth.EndsWith("s"))
             {
-                ChatPacket.SendServerMessage(session, "Missing n or s indicator on first parameter", ChatMessageType.Broadcast);
-                return;
+                errorMessage = "Missing n or s indicator on first parameter";
+                return false;
             }
 
             if (!eastWest.EndsWith("e") && !eastWest.EndsWith("w"))
             {
-                ChatPacket.SendServerMessage(session, "Missing e or w indicator on second parameter", ChatMessageType.Broadcast);
-                return;
+                errorMessage = "Missing e or w indicator on second parameter";
+                return false;
             }
 
             if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out var coordNS))
             {
-                ChatPacket.SendServerMessage(session, "North/South coordinate is not a valid number.", ChatMessageType.Broadcast);
-                return;
+                errorMessage = "North/South coordinate is not a valid number.";
+                return false;
             }
 
             if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out var coordEW))
             {
-                ChatPacket.SendServerMessage(session, "East/West coordinate is not a valid number.", ChatMessageType.Broadcast);
-                return;
+                errorMessage = "East/West coordinate is not a valid number.";
+                return false;
             }
 
             if (northSouth.EndsWith("s"))
@@ -112,7 +169,6 @@ namespace ACE.Server.Command.Handlers
             if (eastWest.EndsWith("w"))
                 coordEW *= -1.0f;
 
-            Position position = null;
             try
             {
                 position = new Position(coordNS, coordEW);
@@ -121,15 +177,10 @@ namespace ACE.Server.Command.Handlers
             }
             catch (System.Exception)
             {
-                ChatPacket.SendServerMessage(session, "There was a problem teleporting to that location (bad coordinates?).", ChatMessageType.Broadcast);
-                return;
+                errorMessage = $"There was a problem with that location (bad coordinates?).";
+                return false;
             }
-
-            // TODO: Check if water block?
-
-            ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{position.LandblockId.Landblock:X4} | Offset: {position.PositionX}, {position.PositionY}, {position.PositionZ} | Facing: {position.RotationX}, {position.RotationY}, {position.RotationZ}, {position.RotationW}]", ChatMessageType.Broadcast);
-
-            session.Player.Teleport(position);
+            return true;
         }
     }
 }
