@@ -128,8 +128,8 @@ namespace ACE.Server.WorldObjects
             return DatManager.PortalDat.XpTable.CharacterLevelXPList[level + 1];
         }
         /// <summary>
-                 /// Returns the XP required to go from level A to level B
-                 /// </summary>
+        /// Returns the XP required to go from level A to level B
+        /// </summary>
         public ulong GetXPBetweenLevels(int levelA, int levelB)
         {
             var levelA_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelA + 1];
