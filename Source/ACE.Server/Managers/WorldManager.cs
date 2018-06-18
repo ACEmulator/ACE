@@ -71,6 +71,11 @@ namespace ACE.Server.Managers
             LoadAllPlayers();
         }
 
+        /// <summary>
+        /// Populate a list of all players on the server
+        /// This includes offline players, and these records are technically separate from the online records
+        /// This method is a placeholder until syncing the offline data with the online Players is sorted out...
+        /// </summary>
         public static void LoadAllPlayers()
         {
             // FIXME: this is a placeholder for offline players
@@ -93,6 +98,20 @@ namespace ACE.Server.Managers
             });
         }
 
+        /// <summary>
+        /// Returns an offline player record from the AllPlayers list
+        /// </summary>
+        /// <param name="playerGuid"></param>
+        /// <returns></returns>
+        public static Player GetOfflinePlayer(ObjectGuid playerGuid)
+        {
+            return AllPlayers.FirstOrDefault(p => p.Guid.Equals(playerGuid));
+        }
+
+        /// <summary>
+        /// Syncs the cached offline player fields
+        /// </summary>
+        /// <param name="player">An online player</param>
         public static void SyncOffline(Player player)
         {
             var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
@@ -101,8 +120,22 @@ namespace ACE.Server.Managers
             // FIXME: this is a placeholder for offline players
             offlinePlayer.Monarch = player.Monarch;
             offlinePlayer.Patron = player.Patron;
+
+            offlinePlayer.AllegianceCPPool = player.AllegianceCPPool;
         }
 
+        /// <summary>
+        /// Syncs an online player with the cached offline fields
+        /// </summary>
+        /// <param name="player">An online player</param>
+        public static void SyncOnline(Player player)
+        {
+            var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
+            if (offlinePlayer == null) return;
+
+            // FIXME: this is a placeholder for offline players
+            player.AllegianceCPPool = offlinePlayer.AllegianceCPPool;
+        }
 
         public static void Initialize()
         {
