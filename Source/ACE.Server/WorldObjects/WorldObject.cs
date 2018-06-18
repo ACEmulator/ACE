@@ -785,7 +785,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var deathMessage = monster.GetDeathMessage(source, crit);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, monster.Name), ChatMessageType.Broadcast));
-                    player.GrantXp((long)monster.XpOverride, false);
+                    player.EarnXP((long)monster.XpOverride);
                 }
             }
         }

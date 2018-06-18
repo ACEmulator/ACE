@@ -515,7 +515,7 @@ namespace ACE.Server.WorldObjects
                                 creatureTarget.Die();
                                 Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
-                                player.GrantXp((long)target.XpOverride, true);
+                                player.EarnXP((long)target.XpOverride);
                             }
                             break;
                         case MagicSchool.ItemEnchantment:

@@ -105,10 +105,10 @@ namespace ACE.Server.WorldObjects
             if (rankUps > 0)
             {
                 // FIXME(ddevec):
-                //      Really AddRank() should probably be a method of CreatureAbility/CreatureVital
+                // Really AddRank() should probably be a method of CreatureAbility/CreatureVital
                 ability.Ranks += rankUps;
                 ability.ExperienceSpent += amount;
-                SpendXp(amount);
+                SpendXP(amount);
                 result = ability.ExperienceSpent;
             }
 
