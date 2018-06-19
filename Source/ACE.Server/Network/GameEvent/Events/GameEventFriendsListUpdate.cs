@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Server.Managers;
 
@@ -18,7 +20,7 @@ namespace ACE.Server.Network.GameEvent.Events
         }
 
         private FriendsUpdateTypeFlag updateType;
-        private Friend friend;
+        private CharacterPropertiesFriendList friend;
         private bool overrideOnlineStatus;
         private bool onlineStatusVal;
 
@@ -41,24 +43,25 @@ namespace ACE.Server.Network.GameEvent.Events
         /// <param name="friend"></param>
         /// <param name="overrideOnlineStatus">Set to true if you want to force a value for the online status of the friend.  Useful if you know the status and don't want to have the WorldManager check</param>
         /// <param name="onlineStatusVal">If overrideOnlineStatus is true, then this is the online status value that you want to force in the packet</param>
-        public GameEventFriendsListUpdate(Session session, FriendsUpdateTypeFlag updateType, Friend friend, bool overrideOnlineStatus = false, bool onlineStatusVal = false)
+        public GameEventFriendsListUpdate(Session session, FriendsUpdateTypeFlag updateType, CharacterPropertiesFriendList friend, bool overrideOnlineStatus = false, bool onlineStatusVal = false)
             : base(GameEventType.FriendsListUpdate, GameMessageGroup.UIQueue, session)
         {
             this.updateType = updateType;
             this.friend = friend;
             this.overrideOnlineStatus = overrideOnlineStatus;
             this.onlineStatusVal = onlineStatusVal;
+
             WriteEventBody();
         }
 
         private void WriteEventBody()
         {
-            List<Friend> friendList;
+            List<CharacterPropertiesFriendList> friendList;
 
-            /* todo fix for not use aceobj if (updateType == FriendsUpdateTypeFlag.FullList)
-                friendList = Session.Player.Friends.ToList();
-            else*/
-                friendList = new List<Friend>();
+            if (updateType == FriendsUpdateTypeFlag.FullList)
+                friendList = Session.Player.Biota.CharacterPropertiesFriendList.ToList();
+            else
+                friendList = new List<CharacterPropertiesFriendList>() { friend };
 
             Writer.Write((uint)friendList.Count);
 
@@ -70,23 +73,30 @@ namespace ACE.Server.Network.GameEvent.Events
                     isOnline = onlineStatusVal;
                 else
                 {
-                    Session friendSession = WorldManager.Find(f.Id);
-                    if (friendSession != null && friendSession.Player?.GetVirtualOnlineStatus() == true)
+                    // lookup by player id or account id?
+                    //Session friendSession = WorldManager.Find(f.FriendId);
+                    var onlineFriend = WorldManager.GetPlayerByGuidId(f.FriendId);
+                    if (onlineFriend != null && onlineFriend.GetVirtualOnlineStatus() == true)
                         isOnline = true;
                 }
 
-                Writer.Write(f.Id.Full); // friend Object ID
-                Writer.Write(isOnline ? 1u : 0u); // is Online
-                Writer.Write(0u); // Unknown
-                Writer.WriteString16L(f.Name); // Friend Name
+                var offlinePlayer = WorldManager.AllPlayers.FirstOrDefault(p => p.Guid.Full == f.FriendId);
+                var friendName = offlinePlayer != null ? offlinePlayer.Name : "";
 
-                Writer.Write((uint)f.FriendIdList.Count); // Number of people on this persons friend's list.
-                foreach (var fid in f.FriendIdList)
-                    Writer.Write(fid.Full);
+                Writer.Write(f.FriendId);           // Friend's ID
+                Writer.Write(isOnline ? 1u : 0u);   // Whether this friend is online
+                Writer.Write(0u);                   // Whether the friend should appear to be offline
+                Writer.WriteString16L(friendName);  // Name of the friend
 
-                Writer.Write((uint)f.FriendOfIdList.Count); // Number of people that have this person as a friend.
-                foreach (var fid in f.FriendOfIdList)
-                    Writer.Write(fid.Full);
+                // send the list of friend's friends
+                Writer.Write((uint)offlinePlayer.Biota.CharacterPropertiesFriendList.Count);
+                foreach (var friendFriend in offlinePlayer.Biota.CharacterPropertiesFriendList)
+                    Writer.Write(friendFriend.FriendId);
+
+                // todo: send the inverse list of friend's friends
+                Writer.Write((uint)offlinePlayer.Biota.CharacterPropertiesFriendList.Count);
+                foreach (var friendFriend in offlinePlayer.Biota.CharacterPropertiesFriendList)
+                    Writer.Write(friendFriend.FriendId);
             }
 
             Writer.Write((uint)updateType);

@@ -37,6 +37,7 @@ namespace ACE.Server.WorldObjects
         private readonly ReaderWriterLockSlim biotaPropertiesDIDLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesEnchantmentLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesFloatLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim biotaPropertiesFriendLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesIIDLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesIntLock = new ReaderWriterLockSlim();
         private readonly ReaderWriterLockSlim biotaPropertiesInt64Lock = new ReaderWriterLockSlim();
@@ -337,6 +338,12 @@ namespace ACE.Server.WorldObjects
         public void RemoveEnchantment(int spellId)
         {
             if (Biota.TryRemoveEnchantment(spellId, out var entity, biotaPropertiesEnchantmentLock) && ExistsInDatabase && entity.Id != 0)
+                DatabaseManager.Shard.RemoveEntity(entity, null);
+        }
+
+        public void RemoveFriend(ObjectGuid friendGuid)
+        {
+            if (Biota.TryRemoveFriend(friendGuid, out var entity, biotaPropertiesFriendLock) && ExistsInDatabase && entity.Id != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
         }
 
