@@ -65,7 +65,7 @@ namespace ACE.Server.Managers
                 return new Property<bool>(CachedBooleanSettings[key].Item, CachedBooleanSettings[key].Description);
             }
 
-            var dbValue = DatabaseManager.ServerConfig.GetBool(key);
+            var dbValue = DatabaseManager.Shard.Config.GetBool(key);
             var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
@@ -115,7 +115,7 @@ namespace ACE.Server.Managers
                 return new Property<long>(CachedLongSettings[key].Item, CachedLongSettings[key].Description);
             }
 
-            var dbValue = DatabaseManager.ServerConfig.GetLong(key);
+            var dbValue = DatabaseManager.Shard.Config.GetLong(key);
             var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
@@ -164,7 +164,7 @@ namespace ACE.Server.Managers
                 return new Property<double>(CachedDoubleSettings[key].Item, CachedDoubleSettings[key].Description);
             }
 
-            var dbValue = DatabaseManager.ServerConfig.GetLong(key);
+            var dbValue = DatabaseManager.Shard.Config.GetLong(key);
             var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
@@ -213,7 +213,7 @@ namespace ACE.Server.Managers
                 return new Property<string>(CachedStringSettings[key].Item, CachedStringSettings[key].Description);
             }
 
-            var dbValue = DatabaseManager.ServerConfig.GetString(key);
+            var dbValue = DatabaseManager.Shard.Config.GetString(key);
             var useFallback = false;
 
             if (dbValue == null || dbValue?.Value == null)
@@ -265,19 +265,19 @@ namespace ACE.Server.Managers
         private static void LoadPropertiesFromDB()
         {
             log.Debug("Fetching boolean properties from database");
-            foreach (var i in DatabaseManager.ServerConfig.GetAllBools())
+            foreach (var i in DatabaseManager.Shard.Config.GetAllBools())
                 CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value, i.Description);
 
             log.Debug("Fetching long properties from database");
-            foreach (var i in DatabaseManager.ServerConfig.GetAllLongs())
+            foreach (var i in DatabaseManager.Shard.Config.GetAllLongs())
                 CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value, i.Description);
 
             log.Debug("Fetching double properties from database");
-            foreach (var i in DatabaseManager.ServerConfig.GetAllDoubles())
+            foreach (var i in DatabaseManager.Shard.Config.GetAllDoubles())
                 CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value, i.Description);
 
             log.Debug("Fetching string properties from database");
-            foreach (var i in DatabaseManager.ServerConfig.GetAllStrings())
+            foreach (var i in DatabaseManager.Shard.Config.GetAllStrings())
                 CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value, i.Description);
         }
 
@@ -291,10 +291,10 @@ namespace ACE.Server.Managers
             {
                 // this probably should be upsert. This does 2 queries per modified datapoint.
                 // perhaps run a transaction to queue all the queries at once.
-                if (DatabaseManager.ServerConfig.BoolExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyBool(new Database.Models.Shard.ConfigPropertiesBoolean { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
+                if (DatabaseManager.Shard.Config.BoolExists(i.Key))
+                    DatabaseManager.Shard.Config.ModifyBool(new Database.Models.Shard.ConfigPropertiesBoolean { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddBool(i.Key, i.Value.Item, i.Value.Description);
+                    DatabaseManager.Shard.Config.AddBool(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -307,10 +307,10 @@ namespace ACE.Server.Managers
             foreach (var i in CachedLongSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
-                if (DatabaseManager.ServerConfig.LongExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyLong(new Database.Models.Shard.ConfigPropertiesLong { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
+                if (DatabaseManager.Shard.Config.LongExists(i.Key))
+                    DatabaseManager.Shard.Config.ModifyLong(new Database.Models.Shard.ConfigPropertiesLong { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddLong(i.Key, i.Value.Item, i.Value.Description);
+                    DatabaseManager.Shard.Config.AddLong(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -324,10 +324,10 @@ namespace ACE.Server.Managers
             foreach (var i in CachedDoubleSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
-                if (DatabaseManager.ServerConfig.LongExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyDouble(new Database.Models.Shard.ConfigPropertiesDouble { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
+                if (DatabaseManager.Shard.Config.LongExists(i.Key))
+                    DatabaseManager.Shard.Config.ModifyDouble(new Database.Models.Shard.ConfigPropertiesDouble { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddDouble(i.Key, i.Value.Item, i.Value.Description);
+                    DatabaseManager.Shard.Config.AddDouble(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 
@@ -340,10 +340,10 @@ namespace ACE.Server.Managers
             foreach (var i in CachedStringSettings.Where(r => r.Value.Modified == true))
             {
                 // todo: see boolean section for caveat in this approach
-                if (DatabaseManager.ServerConfig.StringExists(i.Key))
-                    DatabaseManager.ServerConfig.ModifyString(new Database.Models.Shard.ConfigPropertiesString { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
+                if (DatabaseManager.Shard.Config.StringExists(i.Key))
+                    DatabaseManager.Shard.Config.ModifyString(new Database.Models.Shard.ConfigPropertiesString { Key = i.Key, Value = i.Value.Item, Description = i.Value.Description });
                 else
-                    DatabaseManager.ServerConfig.AddString(i.Key, i.Value.Item, i.Value.Description);
+                    DatabaseManager.Shard.Config.AddString(i.Key, i.Value.Item, i.Value.Description);
             }
         }
 

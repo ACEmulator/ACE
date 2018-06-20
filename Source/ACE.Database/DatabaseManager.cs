@@ -15,13 +15,10 @@ namespace ACE.Database
 
         public static SerializedShardDatabase Shard { get; private set; }
 
-        public static ServerPropertyDatabase ServerConfig { get; private set; } = new ServerPropertyDatabase();
-
         public static void Initialize(bool autoRetry = true)
         {
             Authentication.Exists(true);
             World.Exists(true);
-            ServerConfig.Exists(true);
 
             var shardDb = new ShardDatabase();
             serializedShardDb = new SerializedShardDatabase(shardDb);
