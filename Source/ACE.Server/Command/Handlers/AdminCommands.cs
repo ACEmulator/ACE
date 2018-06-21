@@ -1714,5 +1714,172 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
             session.Network.EnqueueSend(new GameMessageSystemChat($"{sb}", ChatMessageType.System));
         }
+
+        [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a bool", "modifybool (string) (bool)")]
+        public static void HandleModifyServerBoolProperty(Session session, params string[] paramters)
+        {
+            try
+            {
+                var boolVal = bool.Parse(paramters[1]);
+                PropertyManager.ModifyBool(paramters[0], boolVal);
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Bool property successfully updated!", ChatMessageType.System));
+                else
+                    Console.WriteLine("Bool property successfully updated!");
+            }
+            catch (Exception)
+            {
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid bool", ChatMessageType.Help));
+                else
+                    Console.WriteLine("Please input a valid bool");
+            }
+        }
+
+        [CommandHandler("fetchbool", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a bool", "fetchbool (string)")]
+        public static void HandleFetchServerBoolProperty(Session session, params string[] paramters)
+        {
+            var boolVal = PropertyManager.GetBool(paramters[0], cacheFallback: false);
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}", ChatMessageType.System));
+            else
+                Console.WriteLine($"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
+        }
+
+        [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a long", "modifylong (string) (long)")]
+        public static void HandleModifyServerLongProperty(Session session, params string[] paramters)
+        {
+            try
+            {
+                var intVal = int.Parse(paramters[1]);
+                PropertyManager.ModifyLong(paramters[0], intVal);
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Long property successfully updated!", ChatMessageType.System));
+                else
+                    Console.WriteLine("Long property successfully updated!");
+            }
+            catch (Exception)
+            {
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid long", ChatMessageType.Help));
+                else
+                    Console.WriteLine("Please input a valid long");
+            }
+        }
+
+        [CommandHandler("fetchlong", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a long", "fetchlong (string)")]
+        public static void HandleFetchServerLongProperty(Session session, params string[] paramters)
+        {
+            var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}", ChatMessageType.System));
+            else
+                Console.WriteLine($"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
+        }
+
+        [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a double", "modifyfloat (string) (double)")]
+        public static void HandleModifyServerFloatProperty(Session session, params string[] paramters)
+        {
+            try
+            {
+                var floatVal = float.Parse(paramters[1]);
+                PropertyManager.ModifyDouble(paramters[0], floatVal);
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Double property successfully updated!", ChatMessageType.System));
+                else
+                    Console.WriteLine("Double property successfully updated!");
+            } catch (Exception)
+            {
+                if (session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Please input a valid double", ChatMessageType.Help));
+                else
+                    Console.WriteLine("Please input a valid double");
+            }
+        }
+
+        [CommandHandler("fetchdouble", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a double", "fetchdouble (string)")]
+        public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
+        {
+            var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}", ChatMessageType.System));
+            else
+                Console.WriteLine($"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
+        }
+
+        [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Modifies a server property that is a string", "modifystring (string) (string)")]
+        public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
+        {
+            PropertyManager.ModifyString(parameters[0], parameters[1]);
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat("String property successfully updated!", ChatMessageType.System));
+            else
+                Console.WriteLine("String property successfully updated!");
+        }
+
+        [CommandHandler("fetchstring", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Fetches a server property that is a string", "fetchstring (string)")]
+        public static void HandleFetchServerStringProperty(Session session, params string[] parameters)
+        {
+            var stringVal = PropertyManager.GetString(parameters[0], cacheFallback: false);
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} - {stringVal.Description ?? "No Description"}: {stringVal.Item}", ChatMessageType.System));
+            else
+                Console.WriteLine($"{parameters[0]} - {stringVal.Description ?? "No Description"}: {stringVal.Item}");
+        }
+
+        [CommandHandler("modifypropertydesc", AccessLevel.Admin, CommandHandlerFlag.None, 3,
+            "Modifies a server properties' description", "modifypropertydesc <STRING|BOOL|DOUBLE|LONG> (string) (string)")]
+        public static void HandleModifyPropertyDescription(Session session, params string[] parameters)
+        {
+            var isSession = session != null;
+            switch (parameters[0]) {
+                case "STRING":
+                    PropertyManager.ModifyStringDescription(parameters[1], parameters[2]);
+                    break;
+                case "BOOL":
+                    PropertyManager.ModifyBoolDescription(parameters[1], parameters[2]);
+                    break;
+                case "DOUBLE":
+                    PropertyManager.ModifyDoubleDescription(parameters[1], parameters[2]);
+                    break;
+                case "LONG":
+                    PropertyManager.ModifyLongDescription(parameters[1], parameters[2]);
+                    break;
+                default:
+                    if (isSession)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat("Please pick from STRING, BOOL, DOUBLE, or LONG", ChatMessageType.Help));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please pick from STRING, BOOL, DOUBLE, or LONG");
+                    }
+                    return;
+            }
+
+            if (isSession)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Successfully updated property description!", ChatMessageType.Help));
+            }
+            else
+            {
+                Console.WriteLine("Successfully updated property description!");
+            }
+        }
+
+        [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, -1,
+            "Resync the properties database", "resyncproperties")]
+        public static void HandleResyncServerProperties(Session session, params string[] parameters)
+        {
+            PropertyManager.ResyncVariables();
+        }
     }
 }

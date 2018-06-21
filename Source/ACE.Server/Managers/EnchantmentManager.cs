@@ -33,16 +33,6 @@ namespace ACE.Server.Managers
         public ICollection<BiotaPropertiesEnchantmentRegistry> Enchantments { get; }
 
         /// <summary>
-        /// The amount of vitae reduced on player death
-        /// </summary>
-        public static readonly float VitaePenalty = 0.05f;
-
-        /// <summary>
-        /// The minimum possible vitae a player can have
-        /// </summary>
-        public static readonly float MinVitae = 0.60f;
-
-        /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
         /// </summary>
         public bool HasEnchantments => WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any();
@@ -143,7 +133,7 @@ namespace ACE.Server.Managers
                 vitae = BuildEntry((uint)Spell.Vitae);
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
                 vitae.LayerId = 0;
-                vitae.StatModValue = 1.0f - VitaePenalty;
+                vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;
 
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(vitae);
             }
@@ -151,7 +141,7 @@ namespace ACE.Server.Managers
             {
                 // update existing vitae
                 vitae = GetVitae();
-                vitae.StatModValue -= VitaePenalty;
+                vitae.StatModValue -= (float)PropertyManager.GetDouble("vitae_penalty").Item;
             }
 
             var player = WorldObject as Player;
@@ -331,16 +321,17 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetMinVitae(uint level)
         {
+            var propVitae = PropertyManager.GetDouble("vitae_min").Item;
             var maxPenalty = (level - 1) * 3;
             if (maxPenalty < 1)
                 maxPenalty = 1;
-            var globalMax = 100 - (uint)Math.Round(MinVitae * 100);
+            var globalMax = 100 - (uint)Math.Round(propVitae * 100);
             if (maxPenalty > globalMax)
                 maxPenalty = globalMax;
 
             var minVitae = (100 - maxPenalty) / 100.0f;
-            if (minVitae < MinVitae)
-                minVitae = MinVitae;
+            if (minVitae < propVitae)
+                minVitae = (float)propVitae;
 
             return minVitae;
         }

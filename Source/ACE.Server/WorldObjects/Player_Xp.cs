@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
@@ -11,12 +12,15 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+
         /// <summary>
         /// Raise the available XP by a specified amount
         /// </summary>
         /// <param name="amount">A unsigned long containing the desired XP amount to raise</param>
         public void GrantXp(long amount, bool message = true)
         {
+            // apply xp modifier
+            amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
             UpdateXpAndLevel(amount);
             if (message)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement));
@@ -41,6 +45,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GrantLuminance(long amount)
         {
+            // apply lum modifier
+            amount = (long)(amount * PropertyManager.GetDouble("luminance_modifier").Item);
+
             if (AvailableLuminance + amount > MaximumLuminance)
                 amount = MaximumLuminance.Value - AvailableLuminance.Value;
 
@@ -53,6 +60,8 @@ namespace ACE.Server.WorldObjects
 
         public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
         {
+            // apply xp modifier
+            amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
             if (sharable)
             {
                 if (Fellowship != null && Fellowship.ShareXP)

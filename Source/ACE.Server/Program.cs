@@ -61,6 +61,9 @@ namespace ACE.Server
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
 
+            log.Info("Starting PropertyManager...");
+            PropertyManager.Initialize();
+
 
             // This should be last
             log.Info("Initializing CommandManager...");
@@ -69,6 +72,7 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
+            PropertyManager.StopUpdating();
             DatabaseManager.Stop();
         }
     }
