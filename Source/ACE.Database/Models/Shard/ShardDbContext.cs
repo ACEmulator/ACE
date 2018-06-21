@@ -46,12 +46,9 @@ namespace ACE.Database.Models.Shard
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var config = Common.ConfigManager.Config.MySql.Shard;
+            var config = Common.ConfigManager.Config.MySql.Shard;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
-            }
+            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
