@@ -86,12 +86,39 @@ namespace ACE.Server.WorldObjects
             bool showHelm = true;
             bool showCloak = true;
 
+            uint thisSetupId = SetupTableId;
+
             if (this is Player player)
             { 
                 var characterOptions2 = player.CharacterOptions2Mapping ?? 0;
 
                 showHelm = (characterOptions2 & (int)CharacterOptions2.ShowYourHelmOrHeadGear) == (int)CharacterOptions2.ShowYourHelmOrHeadGear;
                 showCloak = (characterOptions2 & (int)CharacterOptions2.ShowYourCloak) == (int)CharacterOptions2.ShowYourCloak;
+
+                // Some player races use an AlternateSetupDid, either at creation of via Barber options.
+                // BUT -- those values do not correspond with entries in the Clothing Table.
+                // So, we need to make some adjustments to look up something that DOES exist and is appropriate for the AlternateSetup model.
+                switch (thisSetupId)
+                {
+                    case (uint)SetupConst.UndeadMaleSkeleton:
+                    case (uint)SetupConst.UndeadMaleSkeletonNoflame:
+                    case (uint)SetupConst.UndeadMaleZombie:
+                    case (uint)SetupConst.UndeadMaleZombieNoflame:
+                        thisSetupId = (uint)SetupConst.UndeadMaleUndead;
+                        break;
+                    case (uint)SetupConst.UndeadFemaleSkeleton:
+                    case (uint)SetupConst.UndeadFemaleSkeletonNoflame:
+                    case (uint)SetupConst.UndeadFemaleZombie:
+                    case (uint)SetupConst.UndeadFemaleZombieNoflame:
+                        thisSetupId = (uint)SetupConst.UndeadFemaleUndead;
+                        break;
+                    case (uint)SetupConst.PenumbraenMaleNocrown:
+                        thisSetupId = (uint)SetupConst.PenumbraenMaleCrown;
+                        break;
+                    case (uint)SetupConst.PenumbraenFemaleNocrown:
+                        thisSetupId = (uint)SetupConst.PenumbraenFemaleCrown;
+                        break;
+                }
             }
 
             foreach (var w in EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority))
@@ -110,11 +137,11 @@ namespace ACE.Server.WorldObjects
                     else
                         continue;
 
-                    if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
+                    if (item.ClothingBaseEffects.ContainsKey(thisSetupId))
                     // Check if the player model has data. Gear Knights, this is usually you.
                     {
                         // Add the model and texture(s)
-                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[SetupTableId];
+                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[thisSetupId];
                         foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
                         {
                             byte partNum = (byte)t.Index;
@@ -169,6 +196,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Add the "naked" body parts. These are the ones not already covered.
+            // Note that this is the original SetupTableId, not thisSetupId.
             if (SetupTableId > 0)
             {
                 var baseSetup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
