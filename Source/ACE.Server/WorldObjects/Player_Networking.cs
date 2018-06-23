@@ -145,8 +145,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void SendFriendStatusUpdates()
         {
-            return;// todo fix
-            List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
+            return; // todo fix
+
+            /*List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
 
             if (inverseFriends.Count > 0)
             {
@@ -156,7 +157,7 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var friendSession in inverseFriends)
                     friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
-            }
+            }*/
         }
 
 

@@ -683,5 +683,33 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
+
+        public static bool TryRemoveFriend(this Biota biota, ObjectGuid friendGuid, out CharacterPropertiesFriendList entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendGuid.Full);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.CharacterPropertiesFriendList.Remove(entity);
+                        entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
     }
 }

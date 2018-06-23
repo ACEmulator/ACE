@@ -23,7 +23,7 @@ namespace ACE.Server.Network.Structure
             // uint - totalVassals - Your personal number of followers.
             // AllegianceHeirarchy - allegianceHeirarchy
 
-            uint totalMembers = 0;
+            uint totalMembers = 0; 
             uint totalVassals = 0;
 
             if (profile.Allegiance != null && profile.Node != null)

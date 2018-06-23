@@ -382,14 +382,15 @@ namespace ACE.Server.WorldObjects
             CurrentLandblock.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
         }
 
-        // Play a sound
-        public void PlaySound(Sound sound, ObjectGuid sourceId)
+        /// <summary>
+        /// Emits a sound at location sourceId and volume
+        /// The client will perform sound attenuation / volume adjustment
+        /// based on the listener distance from the origin of sourceId
+        /// </summary>
+        public void PlaySound(Sound sound, ObjectGuid sourceId, float volume = 1.0f)
         {
-            Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, 1f));
+            Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
         }
-
-   
-
 
         /// <summary>
         /// Adds a friend and updates the database.
@@ -400,36 +401,29 @@ namespace ACE.Server.WorldObjects
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
 
-            // Check if friend exists
-            if (Friends.SingleOrDefault(f => string.Equals(f.Name, friendName, StringComparison.CurrentCultureIgnoreCase)) != null)
+            // get friend player info
+            var friendInfo = WorldManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
+
+            if (friendInfo == null)
+            {
+                ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
+                return;
+            }
+
+            // already exists in friends list?
+            if (Biota.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
                 ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
 
-            // TODO: check if player is online first to avoid database hit??
-            // Get character record from DB
-            throw new System.NotImplementedException();
-            /* TODO fix for new EF model
-            DatabaseManager.Shard.GetObjectInfoByName(friendName, ((ObjectInfo friendInfo) =>
-            {
-                if (friendInfo == null)
-                {
-                    ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
-                    return;
-                }
+            var newFriend = new CharacterPropertiesFriendList();
+            newFriend.ObjectId = Biota.Id;      // current player id
+            //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
+            newFriend.FriendId = friendInfo.Biota.Id;
 
-                Friend newFriend = new Friend();
-                newFriend.Name = friendInfo.Name;
-                newFriend.Id = new ObjectGuid(friendInfo.Guid);
+            // add friend to DB
+            Biota.CharacterPropertiesFriendList.Add(newFriend);
 
-                // Save to DB, assume success
-                DatabaseManager.Shard.AddFriend(Guid.Low, newFriend.Id.Low, (() =>
-                {
-                    // Add to character object
-                    Character.AddFriend(newFriend);
-
-                    // Send packet
-                    Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
-                }));
-            }));*/
+            // send network message
+            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
         }
 
         /// <summary>
@@ -438,7 +432,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public void HandleActionRemoveFriend(ObjectGuid friendId)
         {
-            Friend friendToRemove = Friends.SingleOrDefault(f => f.Id.Low == friendId.Low);
+            var friendToRemove = Biota.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
 
             // Not in friend list
             if (friendToRemove == null)
@@ -447,15 +441,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // Remove from DB
-            DatabaseManager.Shard.DeleteFriend(Guid.Low, friendId.Low, (() =>
-            {
-                // Remove from character object
-                HandleActionRemoveFriend(friendId);
+            // remove friend in DB
+            RemoveFriend(friendId);
 
-                // Send packet
-                Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
-            }));
+            // send network message
+            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
         }
 
         /// <summary>
@@ -528,14 +518,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool GetVirtualOnlineStatus()
         {
-            //if (CharacterOptions[CharacterOption.AppearOffline])
+            if (GetCharacterOption(CharacterOption.AppearOffline))
                 return false;
 
             return IsOnline;
         }
-
-
-
 
         public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
         {
