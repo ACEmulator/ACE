@@ -155,7 +155,7 @@ namespace ACE.Server.Managers
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
                     session.ProcessPacket(packet);
-                
+
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
@@ -584,5 +584,6 @@ namespace ACE.Server.Managers
         {
             return elapsedTimeSeconds;
         }
+        //
     }
 }
