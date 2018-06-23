@@ -44,6 +44,11 @@ namespace ACE.Server.WorldObjects
             var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+
+            // check if vassals earned XP while offline
+            var offlinePlayer = WorldManager.GetOfflinePlayer(Guid);
+            if (offlinePlayer != null)
+                offlinePlayer.AddCPPoolToUnload(true);
         }
 
         /// <summary>

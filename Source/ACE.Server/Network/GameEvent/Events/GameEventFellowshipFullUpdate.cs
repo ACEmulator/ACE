@@ -25,7 +25,7 @@ namespace ACE.Server.Network.GameEvent.Events
             #region PackableHashTable of fellowship table - <ObjectID,Fellow>
             // the current number of fellowship members
             Writer.Write((ushort)fellowship.FellowshipMembers.Count); //count - number of items in the table
-            Writer.Write(64); //tablesize - max size of the table - default of 64 taken from GDL source.
+            Writer.Write((ushort)64); //tablesize - max size of the table - default of 64 taken from GDL source.
 
             // --- FellowInfo ---
 

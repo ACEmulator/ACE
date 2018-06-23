@@ -74,7 +74,12 @@ namespace ACE.Entity
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return Full.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Full.ToString("X8");
         }
     }
 }

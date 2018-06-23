@@ -92,6 +92,15 @@ namespace ACE.Database
             }));
         }
 
+        public void GetAllCharacters(Action<List<Character>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.GetAllCharacters();
+                callback?.Invoke(result);
+            }));
+        }
+
         public void IsCharacterNameAvailable(string name, Action<bool> callback)
         {
             _queue.Add(new Task(() =>

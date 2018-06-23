@@ -833,6 +833,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
         }
 
+        public uint? Patron
+        {
+            get => GetProperty(PropertyInstanceId.Patron);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Patron); else SetProperty(PropertyInstanceId.Patron, value.Value); }
+        }
+
         public ushort? HookType
         {
             get => (ushort?)GetProperty(PropertyInt.HookType);

@@ -84,6 +84,28 @@ namespace ACE.Database
             }
         }
 
+        public List<Character> GetAllCharacters()
+        {
+            using (var context = new ShardDbContext())
+            {
+                var results = context.Character.AsNoTracking().ToList();
+                return results;
+            }
+        }
+
+        public List<Character> GetAllegianceCharacters(uint monarchID)
+        {
+            using (var context = new ShardDbContext())
+            {
+                /*var results = context.Character
+                    .AsNoTracking()
+                    .Where(r => r.Biota.BiotaProperties).ToList();
+
+                return results;*/
+            }
+            return null;
+        }
+
         public bool IsCharacterNameAvailable(string name)
         {
             using (var context = new ShardDbContext())
