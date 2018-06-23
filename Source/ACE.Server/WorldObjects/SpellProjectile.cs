@@ -407,7 +407,7 @@ namespace ACE.Server.WorldObjects
 
                             Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
-                            player.GrantXp((long)targetCreature.XpOverride, true);
+                            player.EarnXP((long)targetCreature.XpOverride);
                         }
                     }
                 }
@@ -512,7 +512,7 @@ namespace ACE.Server.WorldObjects
                             targetCreature.Die();
 
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
-                            player.GrantXp((long)targetCreature.XpOverride, true);
+                            player.EarnXP((long)targetCreature.XpOverride);
                         }
                     }
                 }

@@ -712,7 +712,7 @@ namespace ACE.Server.Command.Handlers
 
                 if (long.TryParse(xpAmountToParse, out var xp))
                 {
-                    session.Player.GrantXp(xp);
+                    session.Player.GrantXP(xp);
                     return;
                 }
             }
