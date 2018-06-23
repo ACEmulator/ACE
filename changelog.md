@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-06-23
+[OptimShi]
+* Fixed a bug that left Undead player characters naked, as well as Penumbrean 
+
 ### 2018-06-08
 [gmriggs]
 * Added monster physics-based movement
