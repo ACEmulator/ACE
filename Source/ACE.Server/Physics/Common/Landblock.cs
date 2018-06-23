@@ -201,7 +201,7 @@ namespace ACE.Server.Physics.Common
                         var ly = cellY * LandDefs.CellLength + position.Y;
 
                         // TODO: ensure walkable slope
-                        if (lx < 0 || ly < 0 || lx > LandDefs.BlockLength || ly > LandDefs.BlockLength || OnRoad(obj, lx, ly)) continue;
+                        if (lx < 0 || ly < 0 || lx >= LandDefs.BlockLength || ly >= LandDefs.BlockLength || OnRoad(obj, lx, ly)) continue;
 
                         // load scenery
                         var pos = new Position(ID);
@@ -209,6 +209,8 @@ namespace ACE.Server.Physics.Common
                         pos.Frame.Orientation = Quaternion.CreateFromYawPitchRoll(0, 0, RotateObj(obj, globalCellX, globalCellY, j));
                         var outside = LandDefs.AdjustToOutside(pos);
                         var cell = get_landcell(pos.ObjCellID);
+                        //if (cell == null) continue;
+
                         Polygon walkable = null;
                         var terrainPoly = cell.find_terrain_poly(pos.Frame.Origin, ref walkable);
                         walkable.Plane.set_height(ref pos.Frame.Origin);
@@ -435,6 +437,36 @@ namespace ACE.Server.Physics.Common
         {
             // legacy method
             //EnvCell.release_visible(StabList);
+        }
+
+        private bool? isDungeon;
+
+        /// <summary>
+        /// Returns TRUE if this landblock is a dungeon
+        /// </summary>
+        public bool IsDungeon
+        {
+            get
+            {
+                // return cached value
+                if (isDungeon != null)
+                    return isDungeon.Value;
+
+                // a dungeon landblock is determined by:
+                // - all heights being 0
+                // - having at least 1 EnvCell (0x100+)
+                // - contains no buildings
+                foreach (var height in Height)
+                {
+                    if (height != 0)
+                    {
+                        isDungeon = false;
+                        return isDungeon.Value;
+                    }
+                }
+                isDungeon = Info != null && Info.NumCells > 0 && Info.Buildings != null && Info.Buildings.Count > 0;
+                return isDungeon.Value;
+            }
         }
     }
 }

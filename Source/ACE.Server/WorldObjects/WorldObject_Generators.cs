@@ -98,11 +98,13 @@ namespace ACE.Server.WorldObjects
                 var queue = new GeneratorQueueNode();
 
                 queue.Slot = (uint)slot;
-                double when = Common.Time.GetFutureTimestamp((RegenerationInterval ?? 0) + (GeneratorProfiles[slot].Delay ?? 0));
+                //double when = Common.Time.GetFutureTimestamp((RegenerationInterval ?? 0) + (GeneratorProfiles[slot].Delay ?? 0));
+                double when = Time.GetFutureTimestamp(Physics.Common.Random.RollDice(0, (float)(RegenerationInterval ?? 0)) + (GeneratorProfiles[0].Delay ?? 0));
+                //Console.WriteLine(Name + " RegenerationInterval: " + RegenerationInterval + ", Delay: " + GeneratorProfiles[slot].Delay);
 
                 if (GeneratorRegistry.Count < InitGeneratedObjects)
                     if (CurrentlyPoweringUp ?? false)
-                        when = Common.Time.GetFutureTimestamp((GeneratorInitialDelay ?? 0));
+                        when = Time.GetFutureTimestamp((GeneratorInitialDelay ?? 0));
 
                 queue.When = when;
 

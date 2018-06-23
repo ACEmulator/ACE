@@ -40,7 +40,7 @@ namespace ACE.Entity.Enum.Properties
         /// <returns>string with spaces infront of capital letters</returns>
         public static string ToSentence(this PropertyAttribute2nd attribute2nd)
         {
-            return new string(attribute2nd.ToString().Replace("Max", "Maximum").ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
+            return new string(attribute2nd.ToString().Replace("Max", "").ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
         }
     }
 }

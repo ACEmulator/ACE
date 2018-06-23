@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -141,15 +142,19 @@ namespace ACE.Server.WorldObjects
                     // Check if the player model has data. Gear Knights, this is usually you.
                     {
                         // Add the model and texture(s)
-                        ClothingBaseEffect clothingBaseEffec = item.ClothingBaseEffects[thisSetupId];
-                        foreach (CloObjectEffect t in clothingBaseEffec.CloObjectEffects)
+                        ClothingBaseEffect clothingBaseEffect = item.ClothingBaseEffects[SetupTableId];
+                        foreach (CloObjectEffect t in clothingBaseEffect.CloObjectEffects)
                         {
                             byte partNum = (byte)t.Index;
-                            objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+                            if (objDesc.AnimPartChanges.FirstOrDefault(c => c.PartIndex == (byte)t.Index && c.PartID == t.ModelId) == null)
+                                objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
                             //AddModel((byte)t.Index, (ushort)t.ModelId);
                             coverage.Add(partNum);
                             foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                            {
+                                if (objDesc.TextureChanges.FirstOrDefault(c => c.PartIndex == (byte)t.Index && c.OldTexture == t1.OldTexture && c.NewTexture == t1.NewTexture) == null)
+                                    objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                            }
                             //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                         }
 
@@ -210,6 +215,20 @@ namespace ACE.Server.WorldObjects
 
             if (coverage.Count == 0 && ClothingBase.HasValue)
                 return base.CalculateObjDesc();
+
+            /*var p = this as Player;
+            if (p != null)
+            {
+                Console.WriteLine("AnimPart changes:");
+                Console.WriteLine("PartIndex\tPartID\n====================================");
+                foreach (var animPartChange in objDesc.AnimPartChanges)
+                    Console.WriteLine(animPartChange.PartIndex + "\t" + animPartChange.PartID.ToString("X8"));
+
+                Console.WriteLine("TextureMap changes:");
+                Console.WriteLine("PartIndex\tOldTex\tNewTex\n====================================");
+                foreach (var texChange in objDesc.TextureChanges)
+                    Console.WriteLine(texChange.PartIndex + "\t" + texChange.OldTexture.ToString("X8") + "\t" + texChange.NewTexture.ToString("X8"));
+            }*/
 
             return objDesc;
         }
