@@ -94,5 +94,10 @@ namespace ACE.Entity
         {
             return base.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return (Raw | 0xFFFF).ToString("X8");
+        }
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 using log4net;
 
@@ -40,7 +42,9 @@ namespace ACE.Server.Managers
         /// Landblocks should not be directly accessed by world objects, or world-object associated handlers.
         ///   Instead use: FIXME(ddevec): TBD, interface a work in progress
         /// </summary>
-        public static List<Landblock> ActiveLandblocks { get; } = new List<Landblock>();
+        public static ConcurrentDictionary<Landblock, bool> ActiveLandblocks { get; } = new ConcurrentDictionary<Landblock, bool>();
+
+        public static List<Landblock> DestructionQueue = new List<Landblock>();
 
         public static void PlayerEnterWorld(Session session, ObjectGuid guid)
         {
@@ -129,7 +133,11 @@ namespace ACE.Server.Managers
 
                             // kick off the landblock use time thread
                             // block.StartUseTime();
-                            ActiveLandblocks.Add(landblock);
+                            if (!ActiveLandblocks.TryAdd(landblock, true))
+                            {
+                                Console.WriteLine("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
+                                return landblock;
+                            }
                         }
                         SetAdjacencies(landblockId, autoLoad);
                         if (autoLoad)
@@ -225,6 +233,37 @@ namespace ACE.Server.Managers
         {
             log.DebugFormat("Finished Forceloading Landblocks");
             Console.WriteLine("Finished Forceloading Landblocks");
+        }
+
+        /// <summary>
+        /// Queues a landblock for thread-safe unloading
+        /// </summary>
+        /// <param name="landblock">The landblock to be unloaded</param>
+        public static void AddToDestructionQueue(Landblock landblock)
+        {
+            if (!DestructionQueue.Contains(landblock))
+                DestructionQueue.Add(landblock);
+        }
+
+        /// <summary>
+        /// Processes the destruction queue in a thread-safe manner
+        /// </summary>
+        public static void UnloadLandblocks()
+        {
+            if (DestructionQueue.Count == 0)
+                return;
+
+            foreach (var landblock in DestructionQueue)
+            {
+                landblock.Unload();
+
+                // remove from list of managed landblocks
+                if (ActiveLandblocks.TryRemove(landblock, out var active))
+                    landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
+                else
+                    Console.WriteLine("LandblockManager: failed to unload " + (landblock.Id.Raw | 0xFFFF).ToString("X8"));
+            }
+            DestructionQueue.Clear();
         }
     }
 }

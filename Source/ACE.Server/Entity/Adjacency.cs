@@ -14,4 +14,31 @@ namespace ACE.Server.Entity
         SouthWest       = 6,
         West            = 7
     }
+
+    public static class AdjacencyHelper
+    {
+        public static Adjacency? GetInverse(Adjacency adj)
+        {
+            switch (adj)
+            {
+                case Adjacency.NorthWest:
+                    return Adjacency.SouthEast;
+                case Adjacency.North:
+                    return Adjacency.South;
+                case Adjacency.NorthEast:
+                    return Adjacency.SouthWest;
+                case Adjacency.East:
+                    return Adjacency.West;
+                case Adjacency.SouthEast:
+                    return Adjacency.NorthWest;
+                case Adjacency.South:
+                    return Adjacency.North;
+                case Adjacency.SouthWest:
+                    return Adjacency.NorthEast;
+                case Adjacency.West:
+                    return Adjacency.East;
+            }
+            return null;
+        }
+    }
 }

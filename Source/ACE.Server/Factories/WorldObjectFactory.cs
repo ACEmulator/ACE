@@ -247,6 +247,24 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
+        /// Creates a list of WorldObjects from a list of Biotas
+        /// </summary>
+        public static List<WorldObject> CreateWorldObjects(List<Biota> biotas)
+        {
+            var results = new List<WorldObject>();
+
+            foreach (var biota in biotas)
+            {
+                var worldObject = CreateWorldObject(biota);
+                //worldObject.CalculateObjDesc();
+
+                if (worldObject != null)
+                    results.Add(worldObject);
+            }
+            return results;
+        }
+
+        /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// </summary>
         public static WorldObject CreateNewWorldObject(Weenie weenie)

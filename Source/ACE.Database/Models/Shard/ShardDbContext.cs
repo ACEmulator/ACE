@@ -71,7 +71,7 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_anim_part");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Index })
+                entity.HasIndex(e => new { e.ObjectId, e.Index, e.AnimationId })
                     .HasName("object_Id_index_uidx")
                     .IsUnique();
 
@@ -80,6 +80,8 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.AnimationId).HasColumnName("animation_Id");
 
                 entity.Property(e => e.Index).HasColumnName("index");
+
+                entity.Property(e => e.Order).HasColumnName("order");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -1251,7 +1253,7 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_texture_map");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Index, e.OldId })
+                entity.HasIndex(e => new { e.ObjectId, e.Index, e.OldId, e.NewId })
                     .HasName("object_Id_index_oldId_uidx")
                     .IsUnique();
 
@@ -1266,6 +1268,8 @@ namespace ACE.Database.Models.Shard
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.OldId).HasColumnName("old_Id");
+
+                entity.Property(e => e.Order).HasColumnName("order");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesTextureMap)

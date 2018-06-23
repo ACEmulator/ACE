@@ -2,29 +2,31 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
-using log4net;
-
 using ACE.Database;
+using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
-using ACE.Database.Models.World;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Common;
+using ACE.Server.WorldObjects;
+
+using log4net;
+
 using Position = ACE.Entity.Position;
-using System.Numerics;
 
 namespace ACE.Server.Entity
 {
@@ -60,7 +62,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private int broadcastQueued;
 
-        // Can be appeneded concurrently, will be sent serially
+        // Can be appended concurrently, will be sent serially
         // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
         //    -- Therefore broadcasting between landblocks doesn't require locking O_o
         private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
@@ -81,6 +83,7 @@ namespace ACE.Server.Entity
 
         public CellLandblock CellLandblock;
         public LandblockInfo LandblockInfo;
+
         public bool AdjacenciesLoaded;
 
         /// <summary>
@@ -96,6 +99,7 @@ namespace ACE.Server.Entity
         public Landblock(LandblockId id)
         {
             Id = id;
+            Console.WriteLine("Landblock contructor(" + (id.Raw | 0xFFFF).ToString("X8") + ")");
 
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
@@ -113,14 +117,22 @@ namespace ACE.Server.Entity
 
             actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
 
-            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock); // Instances
-
+            // create world objects (monster locations, generators)
+            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
-            factoryObjects.ForEach(fo =>
+            foreach (var fo in factoryObjects)
             {
                 AddWorldObject(fo);
                 fo.ActivateLinks();
-            });
+            }
+
+            // create shard objects (corpses after unloading)
+            DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock, ((List<Biota> biotas) =>
+            {
+                var shardObjects = (WorldObjectFactory.CreateWorldObjects(biotas));
+                foreach (var so in shardObjects)
+                    AddWorldObject(so);
+            }));
 
             _landblock = LScape.get_landblock(Id.Raw);
 
@@ -160,6 +172,10 @@ namespace ACE.Server.Entity
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
 
             motionQueue = new NestedActionQueue(WorldManager.MotionQueue);
+
+            LastActiveTime = Timer.CurrentTime;
+
+            QueueNextHeartBeat();
         }
 
         /// <summary>
@@ -930,6 +946,119 @@ namespace ACE.Server.Entity
             List<WorldObject> wolist = null;
             wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
             AddPlayerTracking(wolist, (wo as Player));
+        }
+
+        /// <summary>
+        /// Landblocks will be checked for activity every # seconds
+        /// </summary>
+        public static readonly int HeartbeatInterval = 5;
+
+        public void QueueNextHeartBeat()
+        {
+            ActionChain nextHeartBeat = new ActionChain();
+            nextHeartBeat.AddDelaySeconds(HeartbeatInterval);
+            nextHeartBeat.AddAction(this, () => HeartBeat());
+            nextHeartBeat.EnqueueChain();
+        }
+
+        /// <summary>
+        /// Landblocks which have been inactive for this many seconds
+        /// will be unloaded
+        /// </summary>
+        public static readonly int UnloadInterval = 30;
+
+        public void HeartBeat()
+        {
+            if (IsActive)
+            {
+                // tick decayable objects
+
+                // tick items sold to vendors
+            }
+
+            // TODO: handle perma-loaded landblocks
+            if (LastActiveTime + UnloadInterval < Timer.CurrentTime)
+                LandblockManager.AddToDestructionQueue(this);
+            else
+                QueueNextHeartBeat();
+        }
+
+        public bool IsActive = true;
+        public double LastActiveTime;
+
+        /*/// <summary>
+        /// A landblock is active when it contains at least 1 player
+        /// </summary>
+        public bool IsActive(bool testAdjacents = true)
+        {
+            // TODO: handle perma-loaded landblocks 
+
+            // for increased performance,
+            // if Player ObjectGuids are always within a specific range,
+            // those could possibly be checked instead of casting WorldObject to Player here
+            var currentActive = worldObjects.Values.FirstOrDefault(wo => wo is Player) != null;
+
+            if (currentActive || !testAdjacents || _landblock.IsDungeon)
+                return currentActive;
+
+            // outdoor landblocks:
+            // activity is also determined by adjacent landblocks
+            foreach (var adjacent in adjacencies.Values)
+                if (adjacent.IsActive(false))
+                    return true;
+
+            return false;
+        }*/
+
+        /// <summary>
+        /// Sets a landblock to active state, with the current time
+        /// as the LastActiveTime
+        /// </summary>
+        /// <param name="isAdjacent">Public calls to this function should always set isAdjacent to false</param>
+        public void SetActive(bool isAdjacent = false)
+        {
+            IsActive = true;
+            LastActiveTime = Timer.CurrentTime;
+
+            if (isAdjacent || _landblock.IsDungeon) return;
+
+            // for outdoor landblocks, recursively call 1 iteration
+            // to set adjacents to active
+            foreach (var landblock in adjacencies.Values)
+                if (landblock != null)
+                    landblock.SetActive(true);
+        }
+
+        /// <summary>
+        /// Handles the cleanup process for a landblock
+        /// This method is called by LandblockManager
+        /// </summary>
+        public void Unload()
+        {
+            Console.WriteLine("Landblock.Unload(" + (Id.Raw | 0xFFFF).ToString("X8") + ")");
+
+            // dungeon landblocks do not handle adjacents
+            if (_landblock.IsDungeon) return;
+
+            // notify adjacents
+            foreach (var adjacent in adjacencies.Where(adj => adj.Value != null))
+                adjacent.Value.UnloadAdjacent(AdjacencyHelper.GetInverse(adjacent.Key), this);
+
+            // TODO: cleanup physics landblock references
+        }
+
+        /// <summary>
+        /// Removes a neighbor landblock from the adjacencies list
+        /// </summary>
+        public void UnloadAdjacent(Adjacency? adjacency, Landblock landblock)
+        {
+            if (adjacency == null || adjacencies[adjacency.Value] != landblock)
+            {
+                Console.WriteLine($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
+                return;
+            }
+            adjacencies[adjacency.Value] = null;
+            AdjacenciesLoaded = false;
         }
     }
 }

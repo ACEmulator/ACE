@@ -361,6 +361,15 @@ namespace ACE.Database
 
         }
 
+        public void GetObjectsByLandblock(ushort landblockId, Action<List<Biota>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var c = _wrappedDatabase.GetObjectsByLandblock(landblockId);
+                callback?.Invoke(c);
+            }));
+        }
+
 
 
 

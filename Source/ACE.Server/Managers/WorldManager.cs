@@ -155,7 +155,7 @@ namespace ACE.Server.Managers
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
                     session.ProcessPacket(packet);
-
+                
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
@@ -497,6 +497,9 @@ namespace ACE.Server.Managers
 
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
+
+                // clean up inactive landblocks
+                LandblockManager.UnloadLandblocks();
             }
 
             // World has finished operations and concedes the thread to garbage collection
@@ -516,7 +519,7 @@ namespace ACE.Server.Managers
             // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
             try
             {
-                Parallel.ForEach(LandblockManager.ActiveLandblocks, landblock =>
+                Parallel.ForEach(LandblockManager.ActiveLandblocks.Keys, landblock =>
                 {
                     foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
                     {
@@ -584,6 +587,5 @@ namespace ACE.Server.Managers
         {
             return elapsedTimeSeconds;
         }
-        //
     }
 }
