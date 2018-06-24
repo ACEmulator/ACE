@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 corpse.SetDecayTime(player);
 
-                player.CalculateDeathItems();
+                player.CalculateDeathItems(corpse);
             }
 
             corpse.RemoveProperty(PropertyInt.Value);

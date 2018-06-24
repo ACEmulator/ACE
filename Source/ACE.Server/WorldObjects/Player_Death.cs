@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
 using ACE.DatLoader;
@@ -7,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
@@ -139,7 +141,7 @@ namespace ACE.Server.WorldObjects
 
         }
 
-        public void CalculateDeathItems()
+        public List<WorldObject> CalculateDeathItems(Corpse corpse)
         {
             // https://web.archive.org/web/20140712134108/http://support.turbine.com/link/portal/24001/24001/Article/464/How-do-death-items-work-in-Asheron-s-Call-Could-you-explain-how-the-game-decides-what-you-drop-when-you-die-in-Asheron-s-Call
 
@@ -288,22 +290,58 @@ namespace ACE.Server.WorldObjects
             inventory = inventory.Where(i => (i.GetProperty(PropertyInt.Bonded) ?? 0) == 0).ToList();
 
             // construct the list of death items
-            var deathItems = new DeathItems(inventory);
+            var sorted = new DeathItems(inventory);
 
-            for (var i = 0; i < numItemsDropped && i < deathItems.Inventory.Count; i++)
+            var dropItems = new List<WorldObject>();
+
+            for (var i = 0; i < numItemsDropped && i < sorted.Inventory.Count; i++)
             {
-                var deathItem = deathItems.Inventory[i];
+                var deathItem = sorted.Inventory[i];
 
                 var stackSize = deathItem.WorldObject.StackSize ?? 1;
                 var stackMsg = stackSize > 1 ? " (stack)" : "";
+
                 Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
+                dropItems.Add(deathItem.WorldObject);
             }
+
+            // add pyreals to dropped items
+            var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
+            dropItems.AddRange(pyreals);
+            Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
+
+            // add items to corpse
+            foreach (var dropItem in dropItems)
+            {
+                // coins already removed from SpendCurrency
+                if (dropItem.WeenieType == WeenieType.Coin)
+                    continue;
+
+                if (!TryRemoveItemWithNetworking(dropItem))
+                {
+                    Console.WriteLine($"Player_Death: couldn't remove item from {Name}'s inventory: {dropItem.Name}");
+                    continue;
+                }
+                if (!corpse.TryAddToInventory(dropItem))
+                {
+                    Console.WriteLine($"Player_Death: couldn't add item to {Name}'s corpse: {dropItem.Name}");
+
+                    if (!TryAddToInventory(dropItem))
+                        Console.WriteLine($"Player_Death: couldn't re-add item to {Name}'s inventory: {dropItem.Name}");
+                }
+            }
+
+            // send network messages
+            var dropList = DropMessage(dropItems);
+            Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
+
+            return dropItems;
         }
 
         /// <summary>
         /// The maximum # of items a player can drop
         /// </summary>
-        public static readonly int MaxItemsDropped = 12;
+        public static readonly int MaxItemsDropped = 14;
 
         /// <summary>
         /// Rolls for the # of items to drop for a player death
@@ -341,7 +379,7 @@ namespace ACE.Server.WorldObjects
             // level 21+
             var numItemsDropped = (level / 20) + Physics.Common.Random.RollDice(0, 2);
 
-            numItemsDropped = Math.Min(numItemsDropped, MaxItemsDropped);
+            numItemsDropped = Math.Min(numItemsDropped, MaxItemsDropped);   // is this really a max cap?
 
             // TODO: PK deaths
 
@@ -362,6 +400,43 @@ namespace ACE.Server.WorldObjects
             var numCoinsDropped = level > 5 ? coins / 2 : 0;
 
             return numCoinsDropped;
+        }
+
+        /// <summary>
+        /// Builds the network text message for list of items dropped
+        /// </summary>
+        public string DropMessage(List<WorldObject> dropItems)
+        {
+            var msg = "";
+
+            for (var i = 0; i < dropItems.Count; i++)
+            {
+                var dropItem = dropItems[i];
+
+                if (i == 0)
+                    msg += "You've dropped ";
+                else
+                {
+                    msg += ", ";
+
+                    if (i == dropItems.Count - 1)
+                        msg += "and ";
+                }
+
+                if (!dropItem.Name.Equals("Pyreal"))
+                    msg += "your ";
+
+                var stackSize = dropItem.StackSize ?? 1;
+
+                if (stackSize == 1)
+                    msg += dropItem.Name;
+                else
+                    msg += stackSize + " " + dropItem.GetPluralName();
+            }
+            if (msg.Length > 0)
+                msg += "!";
+
+            return msg;
         }
     }
 }

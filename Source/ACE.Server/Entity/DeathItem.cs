@@ -105,9 +105,12 @@ namespace ACE.Server.Entity
         public static int GetValueWithVariance(int value)
         {
             // At this point, we add a random 0 - 10 % variance to each item's value.
-            // should this be -10% - 10% ??
+            // should this be +/- 10%, or even +/- 5%?
 
-            var variance = Physics.Common.Random.RollDice(0, MaxVariance);
+            // http://www.postcount.net/forum/showthread.php?79784-death-item-formula
+            // according to this post, it could be +/- 10%
+
+            var variance = Physics.Common.Random.RollDice(-MaxVariance, MaxVariance);
 
             return (int)(value + value * variance);
         }
