@@ -172,9 +172,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleBuff(Session session, params string[] parameters)
         {
             Player targetPlayer = null;
-            if (parameters.Length == 0)
-                targetPlayer = session.Player;
-            else
+            if (parameters.Length > 0)
             {
                 var parameterBlob = parameters.Aggregate((a, b) => a + " " + b);
                 var targetPlayerSession = WorldManager.FindByPlayerName(parameterBlob);
@@ -185,81 +183,75 @@ namespace ACE.Server.Command.Handlers
                 }
                 targetPlayer = targetPlayerSession.Player;
             }
-
-            string[] buffs = BeneficialBuffs;
-            if (targetPlayer != session.Player)
-                buffs = buffs.Select(k => k.Replace("Self", "Other")).ToArray();
-
-            int maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? 7 : 8;
+            else
+                targetPlayer = session.Player;
+            string SelfOrOther = (targetPlayer != session.Player) ? "Other" : "Self";
+            string maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? "7" : "8";
             var tySpell = typeof(Network.Enum.Spell);
-
-            foreach (string spellCat in buffs)
+            foreach (var spell in Buffs)
             {
-                uint spellID = (uint)Enum.Parse(tySpell, spellCat + maxSpellLevel.ToString());
-                if (!CastBuffOnPlayer(spellID, targetPlayer))
-                {
-                   // It's likely the database doesn't yet have the spell
-                }
+                uint spellID = (uint)Enum.Parse(tySpell, spell + SelfOrOther + maxSpellLevel);
+                CastBuffOnPlayer(spellID, targetPlayer);
             }
         }
 
-        private static string[] BeneficialBuffs = new string[] {
+        private static string[] Buffs = new string[] {
 #region spells
             // TODO: Item Aura buffs
-            "StrengthSelf",
-            "InvulnerabilitySelf",
-            "FireProtectionSelf",
-            "ArmorSelf",
-            "RejuvenationSelf",
-            "RegenerationSelf",
-            "ManaRenewalSelf",
-            "ImpregnabilitySelf",
-            "MagicResistanceSelf",
-            "AxeMasterySelf",
-            "DaggerMasterySelf",
-            "MaceMasterySelf",
-            "SpearMasterySelf",
-            "StaffMasterySelf",
-            "SwordMasterySelf",
-            "UnarmedCombatMasterySelf",
-            "BowMasterySelf",
-            "CrossbowMasterySelf",
-            "AcidProtectionSelf",
-            "ThrownWeaponMasterySelf",
-            "CreatureEnchantmentMasterySelf",
-            "ItemEnchantmentMasterySelf",
-            "LifeMagicMasterySelf",
-            "WarMagicMasterySelf",
-            "ManaMasterySelf",
-            "ArcaneEnlightenmentSelf",
-            "ArmorExpertiseSelf",
-            "ItemExpertiseSelf",
-            "MagicItemExpertiseSelf",
-            "WeaponExpertiseSelf",
-            "MonsterAttunementSelf",
-            "PersonAttunementSelf",
-            "DeceptionMasterySelf",
-            "HealingMasterySelf",
-            "LeadershipMasterySelf",
-            "LockpickMasterySelf",
-            "FealtySelf",
-            "JumpingMasterySelf",
-            "SprintSelf",
-            "BludgeonProtectionSelf",
-            "ColdProtectionSelf",
-            "LightningProtectionSelf",
-            "BladeProtectionSelf",
-            "PiercingProtectionSelf",
-            "EnduranceSelf",
-            "CoordinationSelf",
-            "QuicknessSelf",
-            "FocusSelf",
-            "WillpowerSelf",
-            "CookingMasterySelf",
-            "FletchingMasterySelf",
-            "AlchemyMasterySelf",
-            "VoidMagicMasterySelf",
-            "SummoningMasterySelf"
+            "Strength",
+            "Invulnerability",
+            "FireProtection",
+            "Armor",
+            "Rejuvenation",
+            "Regeneration",
+            "ManaRenewal",
+            "Impregnability",
+            "MagicResistance",
+            "AxeMastery",
+            "DaggerMastery",
+            "MaceMastery",
+            "SpearMastery",
+            "StaffMastery",
+            "SwordMastery",
+            "UnarmedCombatMastery",
+            "BowMastery",
+            "CrossbowMastery",
+            "AcidProtection",
+            "ThrownWeaponMastery",
+            "CreatureEnchantmentMastery",
+            "ItemEnchantmentMastery",
+            "LifeMagicMastery",
+            "WarMagicMastery",
+            "ManaMastery",
+            "ArcaneEnlightenment",
+            "ArmorExpertise",
+            "ItemExpertise",
+            "MagicItemExpertise",
+            "WeaponExpertise",
+            "MonsterAttunement",
+            "PersonAttunement",
+            "DeceptionMastery",
+            "HealingMastery",
+            "LeadershipMastery",
+            "LockpickMastery",
+            "Fealty",
+            "JumpingMastery",
+            "Sprint",
+            "BludgeonProtection",
+            "ColdProtection",
+            "LightningProtection",
+            "BladeProtection",
+            "PiercingProtection",
+            "Endurance",
+            "Coordination",
+            "Quickness",
+            "Focus",
+            "Willpower",
+            "CookingMastery",
+            "FletchingMastery",
+            "AlchemyMastery",
+            "VoidMagicMastery",
+            "SummoningMastery"
 #endregion
             };
 
@@ -267,7 +259,7 @@ namespace ACE.Server.Command.Handlers
         {
             if (spellID < 1) throw new Exception("spell not found");
             var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID]; if (spellBase == null) return false;
-            var spell = DatabaseManager.World.GetCachedSpell(spellID); if (spell == null) return false;
+            var spell = DatabaseManager.World.GetCachedSpell(spellID); if (spell == null) return false; // the database doesn't yet have the spell
             var runEnchantment = new Enchantment(targetPlayer, spellID, (double)spell.Duration, 0, spell.StatModType, spell.StatModVal);
             var msgRunEnchantment = new GameEventMagicUpdateEnchantment(targetPlayer.Session, runEnchantment);
             targetPlayer.Session.Network.EnqueueSend(msgRunEnchantment);
@@ -278,9 +270,9 @@ namespace ACE.Server.Command.Handlers
 
         // run < on | off | toggle | check >
         [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
-                "Temporarily boosts your run skill.",
-                "( on | off | toggle | check )\n"
-                + "Boosts the run skill of the PSR so they can pursue the \"bad folks\". The enchantment will wear off after a while. This command defaults to toggle.")]
+            "Temporarily boosts your run skill.",
+            "( on | off | toggle | check )\n"
+            + "Boosts the run skill of the PSR so they can pursue the \"bad folks\". The enchantment will wear off after a while. This command defaults to toggle.")]
         public static void HandleRun(Session session, params string[] parameters)
         {
             // usage: @run on| off | toggle | check
