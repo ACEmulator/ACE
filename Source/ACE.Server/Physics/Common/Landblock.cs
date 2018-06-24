@@ -201,7 +201,7 @@ namespace ACE.Server.Physics.Common
                         var ly = cellY * LandDefs.CellLength + position.Y;
 
                         // TODO: ensure walkable slope
-                        if (lx < 0 || ly < 0 || lx >= LandDefs.BlockLength || ly >= LandDefs.BlockLength || OnRoad(obj, lx, ly)) continue;
+                        if (lx < 0 || ly < 0 || lx > LandDefs.BlockLength || ly > LandDefs.BlockLength || OnRoad(obj, lx, ly)) continue;
 
                         // load scenery
                         var pos = new Position(ID);
