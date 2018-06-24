@@ -923,6 +923,11 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public string GetPluralName()
+        {
+            return Name + "s";
+        }
+
         public int CompareTo(WorldObject wo)
         {
             return Guid.Full.CompareTo(wo.Guid.Full);

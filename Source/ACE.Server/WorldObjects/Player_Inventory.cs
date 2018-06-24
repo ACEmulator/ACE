@@ -142,6 +142,23 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        /// <summary>
+        /// Removes an item from either the player's inventory,
+        /// or equipped items, and sends network messages
+        /// </summary>
+        public bool TryRemoveItemWithNetworking(WorldObject item)
+        {
+            if (item.CurrentWieldedLocation != null)
+            {
+                if (!UnwieldItemWithNetworking(this, item))
+                {
+                    Console.WriteLine($"Player_Inventory.TryRemoveItemWithNetworking: couldn't unwield item from {Name} ({item.Name})");
+                    return false;
+                }
+            }
+            return TryRemoveFromInventoryWithNetworking(item);
+        }
+
 
         // =====================================
         // Helper Functions - Inventory Movement
@@ -330,14 +347,14 @@ namespace ACE.Server.WorldObjects
         /// It sets the appropriate properties, sends out response messages  and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
         /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
         /// </summary>
-        private void UnwieldItemWithNetworking(Container container, WorldObject item, int placement)
+        private bool UnwieldItemWithNetworking(Container container, WorldObject item, int placement = 0)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
             if (!TryDequipObject(item.Guid))
             {
                 log.Error("Player_Inventory UnwieldItemWithNetworking TryDequipObject failed");
-                return;
+                return false;
             }
 
             item.SetPropertiesForContainer();
@@ -345,7 +362,7 @@ namespace ACE.Server.WorldObjects
             if (!container.TryAddToInventory(item, placement))
             {
                 log.Error("Player_Inventory UnwieldItemWithNetworking TryAddToInventory failed");
-                return;
+                return false;
             }
 
             // If we've unwielded the item to a side pack, we must increment our main EncumbranceValue and Value
@@ -373,10 +390,11 @@ namespace ACE.Server.WorldObjects
                 new GameMessageObjDescEvent(this));
 
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
-                return;
+                return true;
 
             HandleSwitchToPeaceMode(CombatMode);
             HandleSwitchToMeleeCombatMode(CombatMode);
+            return true;
         }
 
         /// <summary>
