@@ -1,10 +1,14 @@
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
+using ACE.Server.WorldObjects;
+using System;
+using System.Linq;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -160,11 +164,123 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        // buff [name]
+        [CommandHandler("buff", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Buffs you (or a player) with all beneficial spells.",
+            "[name]\n"
+            + "This command buffs yourself (or the specified character).")]
+        public static void HandleBuff(Session session, params string[] parameters)
+        {
+            Player targetPlayer = null;
+            if (parameters.Length == 0)
+                targetPlayer = session.Player;
+            else
+            {
+                var parameterBlob = parameters.Aggregate((a, b) => a + " " + b);
+                var targetPlayerSession = WorldManager.FindByPlayerName(parameterBlob);
+                if (targetPlayerSession == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"Unable to find player {parameterBlob}", ChatMessageType.Broadcast);
+                    return;
+                }
+                targetPlayer = targetPlayerSession.Player;
+            }
+
+            string[] buffs = BeneficialBuffs;
+            if (targetPlayer != session.Player)
+                buffs = buffs.Select(k => k.Replace("Self", "Other")).ToArray();
+
+            int maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? 7 : 8;
+            var tySpell = typeof(Network.Enum.Spell);
+
+            foreach (string spellCat in buffs)
+            {
+                uint spellID = (uint)Enum.Parse(tySpell, spellCat + maxSpellLevel.ToString());
+                if (!CastBuffOnPlayer(spellID, targetPlayer))
+                {
+                   // It's likely the database doesn't yet have the spell
+                }
+            }
+        }
+
+        private static string[] BeneficialBuffs = new string[] {
+#region spells
+            // TODO: Item Aura buffs
+            "StrengthSelf",
+            "InvulnerabilitySelf",
+            "FireProtectionSelf",
+            "ArmorSelf",
+            "RejuvenationSelf",
+            "RegenerationSelf",
+            "ManaRenewalSelf",
+            "ImpregnabilitySelf",
+            "MagicResistanceSelf",
+            "AxeMasterySelf",
+            "DaggerMasterySelf",
+            "MaceMasterySelf",
+            "SpearMasterySelf",
+            "StaffMasterySelf",
+            "SwordMasterySelf",
+            "UnarmedCombatMasterySelf",
+            "BowMasterySelf",
+            "CrossbowMasterySelf",
+            "AcidProtectionSelf",
+            "ThrownWeaponMasterySelf",
+            "CreatureEnchantmentMasterySelf",
+            "ItemEnchantmentMasterySelf",
+            "LifeMagicMasterySelf",
+            "WarMagicMasterySelf",
+            "ManaMasterySelf",
+            "ArcaneEnlightenmentSelf",
+            "ArmorExpertiseSelf",
+            "ItemExpertiseSelf",
+            "MagicItemExpertiseSelf",
+            "WeaponExpertiseSelf",
+            "MonsterAttunementSelf",
+            "PersonAttunementSelf",
+            "DeceptionMasterySelf",
+            "HealingMasterySelf",
+            "LeadershipMasterySelf",
+            "LockpickMasterySelf",
+            "FealtySelf",
+            "JumpingMasterySelf",
+            "SprintSelf",
+            "BludgeonProtectionSelf",
+            "ColdProtectionSelf",
+            "LightningProtectionSelf",
+            "BladeProtectionSelf",
+            "PiercingProtectionSelf",
+            "EnduranceSelf",
+            "CoordinationSelf",
+            "QuicknessSelf",
+            "FocusSelf",
+            "WillpowerSelf",
+            "CookingMasterySelf",
+            "FletchingMasterySelf",
+            "AlchemyMasterySelf",
+            "VoidMagicMasterySelf",
+            "SummoningMasterySelf"
+#endregion
+            };
+
+        public static bool CastBuffOnPlayer(uint spellID, Player targetPlayer)
+        {
+            if (spellID < 1) throw new Exception("spell not found");
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID]; if (spellBase == null) return false;
+            var spell = DatabaseManager.World.GetCachedSpell(spellID); if (spell == null) return false;
+            var runEnchantment = new Enchantment(targetPlayer, spellID, (double)spell.Duration, 0, spell.StatModType, spell.StatModVal);
+            var msgRunEnchantment = new GameEventMagicUpdateEnchantment(targetPlayer.Session, runEnchantment);
+            targetPlayer.Session.Network.EnqueueSend(msgRunEnchantment);
+            targetPlayer.CurrentLandblock.EnqueueBroadcast(targetPlayer.Location, new GameMessageScript(targetPlayer.Guid, (PlayScript)spellBase.TargetEffect, 1f));
+            targetPlayer.EnchantmentManager.Add(runEnchantment, false);
+            return true;
+        }
+
         // run < on | off | toggle | check >
         [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
-            "Temporarily boosts your run skill.",
-            "( on | off | toggle | check )\n"
-            + "Boosts the run skill of the PSR so they can pursue the \"bad folks\". The enchantment will wear off after a while. This command defaults to toggle.")]
+                "Temporarily boosts your run skill.",
+                "( on | off | toggle | check )\n"
+                + "Boosts the run skill of the PSR so they can pursue the \"bad folks\". The enchantment will wear off after a while. This command defaults to toggle.")]
         public static void HandleRun(Session session, params string[] parameters)
         {
             // usage: @run on| off | toggle | check
@@ -181,7 +297,7 @@ namespace ACE.Server.Command.Handlers
             var spellID = (uint)Network.Enum.Spell.SentinelRun;
             var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
             var spell = DatabaseManager.World.GetCachedSpell(spellID);
-            
+
             switch (param)
             {
                 case "toggle":
