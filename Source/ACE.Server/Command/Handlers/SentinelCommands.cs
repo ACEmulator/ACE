@@ -185,8 +185,8 @@ namespace ACE.Server.Command.Handlers
             }
             else
                 targetPlayer = session.Player;
-            string SelfOrOther = (targetPlayer != session.Player) ? "Other" : "Self";
-            string maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? "7" : "8";
+            var SelfOrOther = (targetPlayer != session.Player) ? "Other" : "Self";
+            var maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? "7" : "8";
             var tySpell = typeof(Network.Enum.Spell);
             foreach (var spell in Buffs)
             {

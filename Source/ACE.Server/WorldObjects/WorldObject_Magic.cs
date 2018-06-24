@@ -248,7 +248,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="message"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false)
+        public bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false)
         {
             string srcVital, destVital, action;
             string targetMsg = null;
