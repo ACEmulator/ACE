@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
@@ -12,15 +13,17 @@ namespace ACE.Server.WorldObjects
     public class Corpse : Container
     {
         /// <summary>
-        /// The number of seconds for a corpse to disappear
+        /// The default number of seconds for a corpse to disappear
         /// </summary>
-        public double DecayTime = 120;
+        public static readonly double DefaultDecayTime = 120.0;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Corpse(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            TimeToRot = DefaultDecayTime;
+
             SetEphemeralValues();
         }
 
@@ -40,6 +43,9 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 10;
             ItemCapacity = 120;
+
+            var timeToRot = GetProperty(PropertyFloat.TimeToRot);
+            Console.WriteLine("Corpse.TimeToRot: " + timeToRot);
         }
 
         /// <summary>
@@ -74,7 +80,7 @@ namespace ACE.Server.WorldObjects
         {
             // a player corpse decays after 5 mins * playerLevel
             // with a minimum of 1 hour
-            DecayTime = Math.Max(3600, (player.Level ?? 1) * 300);
+            TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
         }
 
         /// <summary>
@@ -82,14 +88,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void HeartBeat()
         {
-            DecayTime -= HeartbeatInterval ?? 5;
+            TimeToRot -= HeartbeatInterval ?? 5;
 
-            if (DecayTime <= 0)
+            if (TimeToRot <= 0)
             {
                 // if items are left on corpse,
                 // create these items in the world
-
                 // http://asheron.wikia.com/wiki/Item_Decay
+
+                DatabaseManager.Shard.RemoveBiota(Biota, result => { } );
 
                 Destroy();
                 return;

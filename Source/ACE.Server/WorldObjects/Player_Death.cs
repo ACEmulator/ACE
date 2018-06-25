@@ -305,10 +305,13 @@ namespace ACE.Server.WorldObjects
                 dropItems.Add(deathItem.WorldObject);
             }
 
-            // add pyreals to dropped items
-            var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
-            dropItems.AddRange(pyreals);
-            Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
+            if (numCoinsDropped > 0)
+            {
+                // add pyreals to dropped items
+                var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
+                dropItems.AddRange(pyreals);
+                Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
+            }
 
             // add items to corpse
             foreach (var dropItem in dropItems)

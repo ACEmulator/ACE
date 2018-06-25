@@ -85,7 +85,8 @@ namespace ACE.Server.WorldObjects
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            if (CurrentLandblock != null)
+                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
         }
 
         /// <summary>
@@ -136,14 +137,14 @@ namespace ACE.Server.WorldObjects
 
                     if (!targetSelf && ResistSpell(Skill.LifeMagic))break;
                     LifeMagic(target, spellBase, spell, out var msg);
-                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    if (CurrentLandblock != null) CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
 
                 case MagicSchool.CreatureEnchantment:
 
                     if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
                     CreatureMagic(target, spellBase, spell);
-                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    if (CurrentLandblock != null) CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
             }
         }

@@ -967,6 +967,12 @@ namespace ACE.Server.Entity
         /// </summary>
         public static readonly int UnloadInterval = 30;
 
+        /// <summary>
+        /// Flag indicates if this landblock is permanently loaded
+        /// (for example, towns on high-traffic servers)
+        /// </summary>
+        public bool Permaload = false;
+
         public void HeartBeat()
         {
             if (IsActive)
@@ -977,7 +983,7 @@ namespace ACE.Server.Entity
             }
 
             // TODO: handle perma-loaded landblocks
-            if (LastActiveTime + UnloadInterval < Timer.CurrentTime)
+            if (!Permaload && LastActiveTime + UnloadInterval < Timer.CurrentTime)
                 LandblockManager.AddToDestructionQueue(this);
             else
                 QueueNextHeartBeat();
@@ -1036,6 +1042,7 @@ namespace ACE.Server.Entity
         public void Unload()
         {
             Console.WriteLine("Landblock.Unload(" + (Id.Raw | 0xFFFF).ToString("X8") + ")");
+            SaveDB();
 
             // dungeon landblocks do not handle adjacents
             if (_landblock.IsDungeon) return;
@@ -1059,6 +1066,14 @@ namespace ACE.Server.Entity
             }
             adjacencies[adjacency.Value] = null;
             AdjacenciesLoaded = false;
+        }
+
+        public void SaveDB()
+        {
+            // only updates corpses atm
+            var biotas = worldObjects.Values.Where(wo => wo is Corpse).Select(wo => wo.Biota).ToList();
+
+            DatabaseManager.Shard.SaveBiotas(biotas, result => { });
         }
     }
 }
