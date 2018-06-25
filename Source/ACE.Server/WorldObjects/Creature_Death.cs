@@ -102,14 +102,17 @@ namespace ACE.Server.WorldObjects
                 corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
 
             var player = this as Player;
-            if (player == null)
-                GenerateTreasure(corpse);
-            else
+            if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 corpse.SetDecayTime(player);
 
                 player.CalculateDeathItems(corpse);
+            }
+            else
+            {
+                corpse.IsMonster = true;
+                GenerateTreasure(corpse);
             }
 
             corpse.RemoveProperty(PropertyInt.Value);

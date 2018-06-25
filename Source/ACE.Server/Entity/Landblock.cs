@@ -1071,7 +1071,7 @@ namespace ACE.Server.Entity
         public void SaveDB()
         {
             // only updates corpses atm
-            var biotas = worldObjects.Values.Where(wo => wo is Corpse).Select(wo => wo.Biota).ToList();
+            var biotas = worldObjects.Values.Where(wo => wo is Corpse && (wo as Corpse).IsMonster == false).Select(wo => wo.Biota).ToList();
 
             DatabaseManager.Shard.SaveBiotas(biotas, result => { });
         }

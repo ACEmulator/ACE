@@ -47,5 +47,19 @@ namespace ACE.Server.Entity
                 return sorted.FirstOrDefault().Key;
             }
         }
+
+        /// <summary>
+        /// Called when an AttackTarget regains health
+        /// </summary>
+        /// <param name="healAmount">The amount of health restored</param>
+        /// <param name="missingHealth">The amount of health that was missing before healing</param>
+        public void OnHeal(int healAmount, int missingHealth)
+        {
+            // on heal, scale the damage from each source by 1 - healAmount / missingHealth
+            var scalar = 1.0f - healAmount / missingHealth;
+
+            foreach (var damager in Damagers.Keys)
+                Damagers[damager] *= (uint)Math.Round(scalar);
+        }
     }
 }

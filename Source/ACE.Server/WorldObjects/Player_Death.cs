@@ -294,23 +294,34 @@ namespace ACE.Server.WorldObjects
 
             var dropItems = new List<WorldObject>();
 
-            for (var i = 0; i < numItemsDropped && i < sorted.Inventory.Count; i++)
-            {
-                var deathItem = sorted.Inventory[i];
-
-                var stackSize = deathItem.WorldObject.StackSize ?? 1;
-                var stackMsg = stackSize > 1 ? " (stack)" : "";
-
-                Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
-                dropItems.Add(deathItem.WorldObject);
-            }
-
             if (numCoinsDropped > 0)
             {
                 // add pyreals to dropped items
                 var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
                 dropItems.AddRange(pyreals);
                 Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
+            }
+
+            for (var i = 0; i < numItemsDropped && i < sorted.Inventory.Count; i++)
+            {
+                var deathItem = sorted.Inventory[i];
+
+                // split stack if needed
+                var stackSize = deathItem.WorldObject.StackSize ?? 1;
+                var stackMsg = stackSize > 1 ? " (stack)" : "";
+
+                var dropItem = deathItem.WorldObject;
+                if (stackSize > 1)
+                {
+                    deathItem.WorldObject.StackSize--;
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(deathItem.WorldObject));
+
+                    dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+                    TryAddToInventory(dropItem);
+                }
+
+                Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
+                dropItems.Add(dropItem);
             }
 
             // add items to corpse
@@ -417,7 +428,7 @@ namespace ACE.Server.WorldObjects
                 var dropItem = dropItems[i];
 
                 if (i == 0)
-                    msg += "You've dropped ";
+                    msg += "You've lost ";
                 else
                 {
                     msg += ", ";

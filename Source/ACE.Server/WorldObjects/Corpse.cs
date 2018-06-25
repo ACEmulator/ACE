@@ -18,6 +18,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static readonly double DefaultDecayTime = 120.0;
 
+        public bool IsMonster = false;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -91,13 +93,17 @@ namespace ACE.Server.WorldObjects
         {
             TimeToRot -= HeartbeatInterval ?? 5;
 
+            // empty corpses decay faster?
+            if (Inventory.Count == 0) TimeToRot = 0;
+
             if (TimeToRot <= 0)
             {
                 // TODO: if items are left on corpse,
                 // create these items in the world
                 // http://asheron.wikia.com/wiki/Item_Decay
 
-                DatabaseManager.Shard.RemoveBiota(Biota, result => { } );
+                if (!IsMonster)
+                    DatabaseManager.Shard.RemoveBiota(Biota, result => { });
 
                 Destroy();
                 return;
