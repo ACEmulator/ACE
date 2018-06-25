@@ -6,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
@@ -92,7 +93,7 @@ namespace ACE.Server.WorldObjects
 
             if (TimeToRot <= 0)
             {
-                // if items are left on corpse,
+                // TODO: if items are left on corpse,
                 // create these items in the world
                 // http://asheron.wikia.com/wiki/Item_Decay
 
@@ -102,6 +103,24 @@ namespace ACE.Server.WorldObjects
                 return;
             }
             QueueNextHeartBeat();
+        }
+
+        /// <summary>
+        /// Called when a player attempts to loot a corpse
+        /// </summary>
+        public override void Open(Player player)
+        {
+            // check for looting permission
+            if (Name != null && Name.StartsWith("Corpse of "))
+            {
+                var corpseName = Name.Replace("Corpse of ", "");
+                if (!player.Name.Equals(corpseName) && player.Guid.Full != AllowedActivator)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            base.Open(player);
         }
     }
 }

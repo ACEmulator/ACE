@@ -2418,5 +2418,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyFloat.TimeToRot);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.TimeToRot); else SetProperty(PropertyFloat.TimeToRot, value.Value); }
         }
+
+        public uint? AllowedActivator
+        {
+            get => GetProperty(PropertyInstanceId.AllowedActivator);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.AllowedActivator); else SetProperty(PropertyInstanceId.AllowedActivator, value.Value); }
+        }
     }
 }

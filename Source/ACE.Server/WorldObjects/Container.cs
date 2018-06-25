@@ -367,7 +367,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void Open(Player player)
+        public virtual void Open(Player player)
         {
             if (IsOpen ?? false)
                 return;

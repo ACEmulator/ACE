@@ -50,5 +50,14 @@ namespace ACE.Server.Entity
             else
                 return false;
         }
+
+        /// <summary>
+        /// Returns the top damager on creature death
+        /// </summary>
+        public static WorldObject GetTopDamager(List<AttackDamage> attacks)
+        {
+            // build the attack list
+            return new AttackList(attacks).TopDamager;
+        }
     }
 }
