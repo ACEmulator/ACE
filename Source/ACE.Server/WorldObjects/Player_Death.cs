@@ -299,7 +299,7 @@ namespace ACE.Server.WorldObjects
                 // add pyreals to dropped items
                 var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
                 dropItems.AddRange(pyreals);
-                Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
+                //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }
 
             for (var i = 0; i < numItemsDropped && i < sorted.Inventory.Count; i++)
@@ -320,7 +320,7 @@ namespace ACE.Server.WorldObjects
                     TryAddToInventory(dropItem);
                 }
 
-                Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
+                //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
                 dropItems.Add(dropItem);
             }
 
@@ -445,7 +445,7 @@ namespace ACE.Server.WorldObjects
                 if (stackSize == 1)
                     msg += dropItem.Name;
                 else
-                    msg += stackSize + " " + dropItem.GetPluralName();
+                    msg += stackSize.ToString("N0") + " " + dropItem.GetPluralName();
             }
             if (msg.Length > 0)
                 msg += "!";

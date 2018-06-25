@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             var wo = session.Player.CurrentLandblock.GetObject(objectGuid) as Container;
 
-            if (wo.Viewer == session.Player.Guid.Full)
+            if (wo != null && wo.Viewer == session.Player.Guid.Full)
                 wo.Close(session.Player);
         }
     }

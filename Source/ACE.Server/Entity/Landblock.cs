@@ -99,7 +99,7 @@ namespace ACE.Server.Entity
         public Landblock(LandblockId id)
         {
             Id = id;
-            Console.WriteLine("Landblock contructor(" + (id.Raw | 0xFFFF).ToString("X8") + ")");
+            //Console.WriteLine("Landblock constructor(" + (id.Raw | 0xFFFF).ToString("X8") + ")");
 
             UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
 
@@ -1041,7 +1041,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Unload()
         {
-            Console.WriteLine("Landblock.Unload(" + (Id.Raw | 0xFFFF).ToString("X8") + ")");
+            //Console.WriteLine("Landblock.Unload(" + (Id.Raw | 0xFFFF).ToString("X8") + ")");
             SaveDB();
 
             // dungeon landblocks do not handle adjacents

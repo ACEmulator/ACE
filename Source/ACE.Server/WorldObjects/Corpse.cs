@@ -18,6 +18,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static readonly double DefaultDecayTime = 120.0;
 
+        /// <summary>
+        /// Flag indicates if a corpse is from a monster of a player
+        /// </summary>
         public bool IsMonster = false;
 
         /// <summary>
@@ -48,13 +51,12 @@ namespace ACE.Server.WorldObjects
             ItemCapacity = 120;
 
             var timeToRot = GetProperty(PropertyFloat.TimeToRot);
-            Console.WriteLine("Corpse.TimeToRot: " + timeToRot);
+            //Console.WriteLine("Corpse.TimeToRot: " + timeToRot);
         }
 
         /// <summary>
         /// Sets the object description for a corpse
         /// </summary>
-        /// <returns></returns>
         public override ObjDesc CalculateObjDesc()
         {
             if (Biota.BiotaPropertiesAnimPart.Count == 0 && Biota.BiotaPropertiesPalette.Count == 0 && Biota.BiotaPropertiesTextureMap.Count == 0)
@@ -87,6 +89,12 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// The maximum number of seconds
+        /// for an empty corpse to stick around
+        /// </summary>
+        public static readonly double EmptyDecayTime = 15.0;
+
+        /// <summary>
         /// Handles corpse decay and removal
         /// </summary>
         public override void HeartBeat()
@@ -94,7 +102,8 @@ namespace ACE.Server.WorldObjects
             TimeToRot -= HeartbeatInterval ?? 5;
 
             // empty corpses decay faster?
-            if (Inventory.Count == 0) TimeToRot = 0;
+            if (Inventory.Count == 0 && TimeToRot > EmptyDecayTime)
+                TimeToRot = EmptyDecayTime;
 
             if (TimeToRot <= 0)
             {
