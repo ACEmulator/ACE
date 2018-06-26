@@ -362,13 +362,12 @@ namespace ACE.Server.Network.Handlers
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
                     player.SpecializeSkill(skill, skillCost.SpecializationCost);
-                    // oddly enough, specialized skills don't get any free ranks like trained do
+                    player.GetCreatureSkill(skill).InitLevel = 10;
                 }
                 else if (skillStatus == SkillStatus.Trained)
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
-                    player.GetCreatureSkill(skill).Ranks = 5;
-                    player.GetCreatureSkill(skill).ExperienceSpent = 526;
+                    player.GetCreatureSkill(skill).InitLevel = 5;
                 }
                 else if (skillCost != null && skillStatus == SkillStatus.Untrained)
                     player.UntrainSkill(skill, skillCost.TrainingCost);

@@ -269,7 +269,7 @@ namespace ACE.Server.Network.GameEvent.Events
                     if (kvp.Value.Status == SkillStatus.Specialized)
                         Writer.Write(10u);  // init_level, for specialization bonus -- buffs are not part of this message
                     else
-                        Writer.Write(0u); // no init_level
+                        Writer.Write(5u);   // init_level, for trained bonus
                     Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"
                     Writer.Write(0d); // last_time_used
                 }

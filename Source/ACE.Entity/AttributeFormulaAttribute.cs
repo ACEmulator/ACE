@@ -81,7 +81,7 @@ namespace ACE.Entity
             if (((uint)AttributeCache & (uint)AttributeCache.Self) != 0)
                 sum += self;
 
-            return (uint)Math.Ceiling((double)(sum * AbilityMultiplier) / Divisor);
+            return (uint)Math.Round((double)(sum * AbilityMultiplier) / Divisor);
         }
     }
 }
