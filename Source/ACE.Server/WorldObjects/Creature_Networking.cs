@@ -8,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,36 +29,8 @@ namespace ACE.Server.WorldObjects
 
         protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature creature, bool success)
         {
-            uint header = 0;
-
-            // TODO: for now, we are always succeeding - will need to set this to 0 header for failure.   Og II
-            if (success)
-                header = 8;
-
-            writer.Write(header);
-            writer.Write(creature.Health.Current);
-            writer.Write(creature.Health.MaxValue);
-            if (header == 0)
-            {
-                for (int i = 0; i < 10; i++)
-                    writer.Write(0u);
-            }
-            else
-            {
-                // TODO: we probably need buffed values here  it may be set my the last flag I don't understand yet. - will need to revisit. Og II
-                writer.Write(creature.Strength.Base);
-                writer.Write(creature.Endurance.Base);
-                writer.Write(creature.Quickness.Base);
-                writer.Write(creature.Coordination.Base);
-                writer.Write(creature.Focus.Base);
-                writer.Write(creature.Self.Base);
-                writer.Write(creature.Stamina.Current);
-                writer.Write(creature.Mana.Current);
-                writer.Write(creature.Stamina.MaxValue);
-                writer.Write(creature.Mana.MaxValue);
-                // this only gets sent if the header can be masked with 1
-                // Writer.Write(0u);
-            }
+            var creatureProfile = new CreatureProfile(creature, success);
+            writer.Write(creatureProfile);
         }
 
         public void HandleActionWorldBroadcast(string message, ChatMessageType messageType)

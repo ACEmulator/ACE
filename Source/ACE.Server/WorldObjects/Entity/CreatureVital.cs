@@ -87,8 +87,8 @@ namespace ACE.Server.WorldObjects.Entity
                     uint end = (uint)((attributeCache & AttributeCache.Endurance) > 0 ? 1 : 0);
                     uint wil = (uint)((attributeCache & AttributeCache.Self) > 0 ? 1 : 0);
 
-                    derivationTotal += end * creature.Endurance.Base;
-                    derivationTotal += wil * creature.Self.Base;
+                    derivationTotal += end * creature.Endurance.Current;
+                    derivationTotal += wil * creature.Self.Current;
 
                     derivationTotal *= formula.AbilityMultiplier;
                     total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
@@ -120,6 +120,19 @@ namespace ACE.Server.WorldObjects.Entity
                         total = (uint)Math.Round(total * player.Vitae);
                 }
                 return total;
+            }
+        }
+
+        public ModifierType ModifierType
+        {
+            get
+            {
+                if (Vital == PropertyAttribute2nd.MaxHealth || Vital == PropertyAttribute2nd.MaxStamina)
+                    return creature.Endurance.ModifierType;
+                else if (Vital == PropertyAttribute2nd.MaxMana)
+                    return creature.Self.ModifierType;
+                else
+                    return ModifierType.None;
             }
         }
 

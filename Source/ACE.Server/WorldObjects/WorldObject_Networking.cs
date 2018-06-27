@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
-
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -17,6 +15,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -389,34 +388,29 @@ namespace ACE.Server.WorldObjects
 
         public virtual void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
         {
+            // TODO: move to GameEventIdentifyObjectResponse
+            // C9 - Item_SetAppraiseInfo
+
             // Excluding some times that are sent later as weapon status Og II
             //var propertiesInt = PropertiesInt.Where(x => x.PropertyId < 9000
             //                                              && x.PropertyId != (uint)PropertyInt.Damage
             //                                              && x.PropertyId != (uint)PropertyInt.DamageType
             //                                              && x.PropertyId != (uint)PropertyInt.WeaponSkill
             //                                              && x.PropertyId != (uint)PropertyInt.WeaponTime).ToList();
+            // TODO: refactor as PackableHashTables
             var propertiesInt = GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
-
             if (propertiesInt.Count > 0)
-            {
                 flags |= IdentifyResponseFlags.IntStatsTable;
-            }
 
             //var propertiesInt64 = PropertiesInt64.Where(x => x.PropertyId < 9000).ToList();
             var propertiesInt64 = GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToList();
-
             if (propertiesInt64.Count > 0)
-            {
                 flags |= IdentifyResponseFlags.Int64StatsTable;
-            }
 
             //var propertiesBool = PropertiesBool.Where(x => x.PropertyId < 9000).ToList();
             var propertiesBool = GetAllPropertyBools().Where(x => ClientProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
-
             if (propertiesBool.Count > 0)
-            {
                 flags |= IdentifyResponseFlags.BoolStatsTable;
-            }
 
             // the float values 13 - 19 + 165 (nether added way later) are armor resistance and is shown in a different list. Og II
             // 21-22, 26, 62-63 are all sent as part of the weapons profile and not duplicated.
@@ -429,71 +423,51 @@ namespace ACE.Server.WorldObjects
             //                                                   && x.PropertyId != (uint)PropertyFloat.WeaponOffense
             //                                                   && x.PropertyId != (uint)PropertyFloat.DamageMod
             //                                                   && x.PropertyId != (uint)PropertyFloat.ArmorModVsNether).ToList();
-
             var propertiesDouble = GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
-
             if (propertiesDouble.Count > 0)
-            {
                 flags |= IdentifyResponseFlags.FloatStatsTable;
-            }
+
+            //var propertiesString = PropertiesString.Where(x => x.PropertyId < 9000).ToList();
+            var propertiesString = GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
+            if (propertiesString.Count > 0)
+                flags |= IdentifyResponseFlags.StringStatsTable;
 
             //var propertiesDid = PropertiesDid.Where(x => x.PropertyId < 9000).ToList();
             var propertiesDid = GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
-
             if (propertiesDid.Count > 0)
-            {
                 flags |= IdentifyResponseFlags.DidStatsTable;
-            }
-
-            //var propertiesString = PropertiesString.Where(x => x.PropertyId < 9000).ToList();
-
-            var propertiesString = GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
-
-            if (propertiesString.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.StringStatsTable;
-            }
 
             var propertiesSpellId = Biota.BiotaPropertiesSpellBook.ToList();
-
+            if (propertiesSpellId.Count > 0)
+                flags |= IdentifyResponseFlags.SpellBook;
             if (SpellDID.HasValue)
                 propertiesSpellId.Insert(0, new Database.Models.Shard.BiotaPropertiesSpellBook { Spell = (int)SpellDID.Value });
 
-            if (propertiesSpellId.Count > 0)
-            {
-                flags |= IdentifyResponseFlags.SpellBook;
-            }
-
-            // TODO: Move to Armor class
             //var propertiesArmor = PropertiesDouble.Where(x => (x.PropertyId < 9000
             //                                             && (x.PropertyId >= (uint)PropertyFloat.ArmorModVsSlash
             //                                             && x.PropertyId <= (uint)PropertyFloat.ArmorModVsElectric))
             //                                             || x.PropertyId == (uint)PropertyFloat.ArmorModVsNether).ToList();
+            //var armorProfile = new ArmorProfile(this);
+            //if (armorProfile.HasModifier)
+            //flags |= IdentifyResponseFlags.ArmorProfile;
 
-            //if (propertiesArmor.Count > 0)
-            //{
-            //    flags |= IdentifyResponseFlags.ArmorProfile;
-            //}
+            // Weapon Profile
 
-            // TODO: Move to Weapon class
-            // Weapons Profile
             //var propertiesWeaponsD = PropertiesDouble.Where(x => x.PropertyId < 9000
             //                                                && (x.PropertyId == (uint)PropertyFloat.WeaponLength
             //                                                || x.PropertyId == (uint)PropertyFloat.DamageVariance
             //                                                || x.PropertyId == (uint)PropertyFloat.MaximumVelocity
             //                                                || x.PropertyId == (uint)PropertyFloat.WeaponOffense
             //                                                || x.PropertyId == (uint)PropertyFloat.DamageMod)).ToList();
-
             //var propertiesWeaponsI = PropertiesInt.Where(x => x.PropertyId < 9000
             //                                             && (x.PropertyId == (uint)PropertyInt.Damage
             //                                             || x.PropertyId == (uint)PropertyInt.DamageType
             //                                             || x.PropertyId == (uint)PropertyInt.WeaponSkill
             //                                             || x.PropertyId == (uint)PropertyInt.WeaponTime)).ToList();
-
             //if (propertiesWeaponsI.Count + propertiesWeaponsD.Count > 0)
             //{
             //    flags |= IdentifyResponseFlags.WeaponProfile;
-            //}            
+            //}
 
             // Ok Down to business - let's identify all of this stuff.
             WriteIdentifyObjectHeader(writer, flags, success);
@@ -504,6 +478,9 @@ namespace ACE.Server.WorldObjects
             WriteIdentifyObjectStringsProperties(writer, flags, propertiesString);
             WriteIdentifyObjectDidProperties(writer, flags, propertiesDid);
             WriteIdentifyObjectSpellIdProperties(writer, flags, propertiesSpellId);
+
+            //if (armorProfile.HasModifier)
+                //armorProfile.Serialize(writer);
 
             // TODO: Move to Weapon class
             //WriteIdentifyObjectWeaponsProfile(writer, flags, propertiesWeaponsD, propertiesWeaponsI);
@@ -1189,20 +1166,23 @@ namespace ACE.Server.WorldObjects
 
         protected static void WriteIdentifyObjectArmorProfile(BinaryWriter writer, WorldObject wo, bool success)
         {
-            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsSlash) ?? 0));
+            /*writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsSlash) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsPierce) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsBludgeon) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsCold) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsFire) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsAcid) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsNether) ?? 0));
-            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsElectric) ?? 0));
+            writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsElectric) ?? 0));*/
+
+            var armorProfile = new ArmorProfile(wo);
+            writer.Write(armorProfile);
         }
 
         protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, WorldObject wo, bool success)
         {
             // if ((flags & IdentifyResponseFlags.WeaponProfile) == 0) return;
-            writer.Write(wo.GetProperty(PropertyInt.DamageType) ?? 0);
+            /*writer.Write(wo.GetProperty(PropertyInt.DamageType) ?? 0);
             writer.Write(wo.GetProperty(PropertyInt.WeaponTime) ?? 0);
             writer.Write(wo.GetProperty(PropertyInt.WeaponSkill) ?? -1);
             writer.Write(wo.GetProperty(PropertyInt.Damage) ?? 0);
@@ -1212,7 +1192,10 @@ namespace ACE.Server.WorldObjects
             writer.Write(wo.GetProperty(PropertyFloat.MaximumVelocity) ?? 0);
             writer.Write(wo.GetProperty(PropertyFloat.WeaponOffense) ?? 0);
             // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
-            writer.Write(0u);
+            writer.Write(0u);*/
+
+            var weaponProfile = new WeaponProfile(wo);
+            writer.Write(weaponProfile);
         }
 
 
