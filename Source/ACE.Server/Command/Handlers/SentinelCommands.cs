@@ -174,33 +174,22 @@ namespace ACE.Server.Command.Handlers
             + "This command buffs your fellowship (or the fellowship of the specified character).")]
         public static void HandleFellowBuff(Session session, params string[] parameters)
         {
-            var p = ResolvePlayer_OptionalSingleParameter(session, parameters);
-            if (p == null) return;
-            if (p.Fellowship == null)
+            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
             {
-                BuffPlayers(new Player[] { p }, p == session.Player);
+                new CommandParameterHelpers.ACECommandParameter() {
+                    Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                    Required = false,
+                    DefaultValue = session.Player
+                }
+            };
+            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
+            if (aceParams[0].AsPlayer.Fellowship == null)
+            {
+                BuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
                 return;
             }
-            BuffPlayers(p.Fellowship.FellowshipMembers, p.Fellowship.FellowshipMembers.Count == 1 && p.Fellowship.FellowshipMembers[0] == session.Player);
-        }
-
-        public static Player ResolvePlayer_OptionalSingleParameter(Session session, string[] parameters)
-        {
-            Player targetPlayer = null;
-            if (parameters.Length > 0)
-            {
-                var playerName = parameters.Aggregate((a, b) => a + " " + b);
-                var targetPlayerSession = WorldManager.FindByPlayerName(playerName);
-                if (targetPlayerSession == null)
-                {
-                    ChatPacket.SendServerMessage(session, $"Unable to find player {playerName}", ChatMessageType.Broadcast);
-                    return null;
-                }
-                targetPlayer = targetPlayerSession.Player;
-            }
-            else
-                targetPlayer = session.Player;
-            return targetPlayer;
+            BuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers,
+                aceParams[0].AsPlayer.Fellowship.FellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipMembers[0] == session.Player);
         }
 
         // buff [name]
@@ -210,10 +199,16 @@ namespace ACE.Server.Command.Handlers
             + "This command buffs yourself (or the specified character).")]
         public static void HandleBuff(Session session, params string[] parameters)
         {
-            List<Player> targetPlayers = new List<Player>();
-            var p = ResolvePlayer_OptionalSingleParameter(session, parameters);
-            if (p == null) return;
-            BuffPlayers(new Player[] { p }, p == session.Player);
+            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
+            {
+                new CommandParameterHelpers.ACECommandParameter() {
+                    Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                    Required = false,
+                    DefaultValue = session.Player
+                }
+            };
+            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
+            BuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
         }
 
         public static void BuffPlayers(IEnumerable<Player> players, bool self = false)
