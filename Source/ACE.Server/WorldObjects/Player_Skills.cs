@@ -162,8 +162,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RaiseSkillGameAction(Skill skill, uint amount, bool usage = false)
         {
-            uint baseValue = 0;
-
             var creatureSkill = GetCreatureSkill(skill);
 
             var prevRank = creatureSkill.Ranks;
@@ -187,14 +185,14 @@ namespace ACE.Server.WorldObjects
                 {
                     messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base}!";
                 }
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, creatureSkill.InitLevel, result));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {
                 // skill usage
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, baseValue, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, creatureSkill.InitLevel, result));
             }
             else
             {

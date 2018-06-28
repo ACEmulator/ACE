@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateSkill : GameMessage
     {
-        public GameMessagePrivateUpdateSkill(WorldObject worldObject, Skill skill, SkillStatus status, uint ranks, uint baseValue, uint totalInvestment)
+        public GameMessagePrivateUpdateSkill(WorldObject worldObject, Skill skill, SkillStatus status, uint ranks, uint bonus, uint totalInvestment)
             : base(GameMessageOpcode.PrivateUpdateSkill, GameMessageGroup.UIQueue)
         {
             // TODO Why is baseValue being passed to this function even though it's not used?
@@ -174,17 +174,19 @@ namespace ACE.Server.Network.GameMessages.Messages
                     break;
             }
 
+            ushort adjustPP = 1;            // If this is not 0, it appears to trigger the initLevel to be treated as extra XP applied to the skill
+            uint resistanceOfLastCheck = 0; // last use difficulty;
+            double lastUsedTime = 0;        // time skill was last used;
+
             Writer.Write((uint)skill);
             Writer.Write(Convert.ToUInt16(ranks));
-            Writer.Write(Convert.ToUInt16(1)); // no clue, but this makes it work.
+            Writer.Write(adjustPP);
             Writer.Write((uint)status);
             Writer.Write(totalInvestment);
 
-            // not sure what's in these, but anything in the first DWORD gets added to your current skill value - augmentations perhaps?
-            Writer.Write(0u);
-            Writer.Write(0u);
-            Writer.Write(0u);
-            Writer.Write(0u);
+            Writer.Write(bonus);            // starting point for advancement of the skill (eg bonus points)
+            Writer.Write(resistanceOfLastCheck);
+            Writer.Write(lastUsedTime);
         }
     }
 }

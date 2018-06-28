@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects.Entity
                         total = formula.CalcBase(creature.Strength.Base, creature.Endurance.Base, creature.Coordination.Base, creature.Quickness.Base, creature.Focus.Base, creature.Self.Base);
                 }
 
-                total += Ranks;
+                total += InitLevel + Ranks;
 
                 // TODO: augs
 
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects.Entity
                         total = formula.CalcBase(creature.Strength.Current, creature.Endurance.Current, creature.Coordination.Current, creature.Quickness.Current, creature.Focus.Current, creature.Self.Current);
                 }
 
-                total += Ranks;
+                total += InitLevel + Ranks;
 
                 var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
                 total += (uint)skillMod;    // can be negative?
@@ -92,10 +92,6 @@ namespace ACE.Server.WorldObjects.Entity
                     if (player.HasVitae)
                         total = (uint)Math.Round(total * player.Vitae);
                 }
-
-                // handle monster skills
-                if (!(creature is Player) && InitLevel != 0)
-                    total += InitLevel;
 
                 return total;
             }
@@ -115,7 +111,7 @@ namespace ACE.Server.WorldObjects.Entity
         }
 
         /// <summary>
-        /// The initial skill level for a creature
+        /// A bonus from character creation: +5 for trained, +10 for specialized
         /// </summary>
         public uint InitLevel
         {

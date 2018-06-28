@@ -261,15 +261,14 @@ namespace ACE.Server.Network.GameEvent.Events
 
                 foreach (var kvp in Session.Player.Skills)
                 {
+                    // TODO: Network.Structure.Skill
+
                     Writer.Write((uint)kvp.Key); // skill id
-                    Writer.Write((ushort)kvp.Value.Ranks); // points raised
+                    Writer.Write(kvp.Value.Ranks); // points raised
                     Writer.Write((ushort)1u);
                     Writer.Write((uint)kvp.Value.Status); // skill state
-                    Writer.Write((uint)kvp.Value.ExperienceSpent); // xp spent on this skill
-                    if (kvp.Value.Status == SkillStatus.Specialized)
-                        Writer.Write(10u);  // init_level, for specialization bonus -- buffs are not part of this message
-                    else
-                        Writer.Write(0u); // no init_level
+                    Writer.Write(kvp.Value.ExperienceSpent); // xp spent on this skill
+                    Writer.Write(kvp.Value.InitLevel);  // init_level, for training/specialized bonus from character creation
                     Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"
                     Writer.Write(0d); // last_time_used
                 }
