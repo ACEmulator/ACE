@@ -273,19 +273,15 @@ namespace ACE.Server.WorldObjects
                     wo = interactiveWorldObjects[examinationId];
             }
 
-            // if its local examine it
+            // if local, examine it
             if (wo != null)
-            {
                 wo.Examine(Session);
-            }
             else
             {
-                // examine item on land block
+                // examine item on landblock
                 wo = CurrentLandblock.GetObject(examinationId);
-                if(wo != null)
-                {
-                    CurrentLandblock.GetObject(examinationId).Examine(Session);
-                }
+                if (wo != null)
+                    wo.Examine(Session);
             }
 
             RequestedAppraisalTarget = examinationId.Full;

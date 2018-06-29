@@ -30,15 +30,6 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            flags |= IdentifyResponseFlags.WeaponProfile;
-
-            base.SerializeIdentifyObjectResponse(writer, success, flags);
-
-            WriteIdentifyObjectWeaponsProfile(writer, this, success);
-        }
-
         public override void OnCollideObject(WorldObject target)
         {
             if (!PhysicsObj.is_active()) return;

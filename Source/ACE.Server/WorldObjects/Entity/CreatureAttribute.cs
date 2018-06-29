@@ -1,5 +1,6 @@
 using System;
 using ACE.Database.Models.Shard;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects.Entity
@@ -89,6 +90,21 @@ namespace ACE.Server.WorldObjects.Entity
                         total = (uint)Math.Round(total * player.Vitae);
                 }
                 return total;
+            }
+        }
+
+        public ModifierType ModifierType
+        {
+            get
+            {
+                var attrMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
+
+                if (attrMod > 0)
+                    return ModifierType.Buffed;
+                else if (attrMod < 0)
+                    return ModifierType.Debuffed;
+                else
+                    return ModifierType.None;
             }
         }
     }

@@ -145,14 +145,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, AllegianceOfficerLevel> officers)
         {
-            // uint uint uint - packedSize - write: (buckets) | (count & 0xFFFFFF)
-            // uint - buckets - read: 1 << (packedSize >> 24)
-            // uint - count - read: packedSize & 0xFFFFFF
-            var bucketShift = GetNumBits((uint)officers.Count)/* - 1*/;
-            //writer.Write((ushort)bucketShift);
-            //writer.Write((ushort)officers.Count);
-            var packedSize = (bucketShift << 24) | ((uint)officers.Count & 0xFFFFFF);
-            writer.Write(packedSize);
+            PHashTable.WriteHeader(writer, officers.Count);
 
             foreach (var officer in officers)
             {

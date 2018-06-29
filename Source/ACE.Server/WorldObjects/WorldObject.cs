@@ -377,8 +377,8 @@ namespace ACE.Server.WorldObjects
         public void Examine(Session examiner)
         {
             // TODO : calculate if we were successful
-            bool successfulId = true;
-            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this, successfulId);
+            var success = true;
+            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this, success);
             examiner.Network.EnqueueSend(identifyResponse);
 
 #if DEBUG
