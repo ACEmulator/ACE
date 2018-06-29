@@ -65,14 +65,16 @@ namespace ACE.Server.WorldObjects
             {
                 var objDesc = CalculateObjDesc();
 
+                byte i = 0;
                 foreach (var animPartChange in objDesc.AnimPartChanges)
-                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex });
+                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
 
                 foreach (var subPalette in objDesc.SubPalettes)
                     corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
 
+                i = 0;
                 foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture });
+                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
             //corpse.Location = Location;
@@ -99,8 +101,32 @@ namespace ACE.Server.WorldObjects
             if (Killer.HasValue)
                 corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
 
-            // Transfer of generated treasure from creature to corpse here
+            var player = this as Player;
+            if (player != null)
+            {
+                corpse.SetPosition(PositionType.Location, corpse.Location);
+                corpse.SetDecayTime(player);
 
+                player.CalculateDeathItems(corpse);
+            }
+            else
+            {
+                corpse.IsMonster = true;
+                GenerateTreasure(corpse);
+            }
+
+            corpse.RemoveProperty(PropertyInt.Value);
+            LandblockManager.AddObject(corpse);
+
+            if (player != null)
+                corpse.SaveBiotaToDatabase();
+        }
+
+        /// <summary>
+        /// Transfers generated treasure from creature to corpse
+        /// </summary>
+        private void GenerateTreasure(Corpse corpse)
+        {
             var random = new Random((int)DateTime.UtcNow.Ticks);
             int level = (int)Level;
             int tier;
@@ -140,7 +166,7 @@ namespace ACE.Server.WorldObjects
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
                 if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
-                    // Should there be rolls for each item or one roll to rule them all?
+                                                                                                  // Should there be rolls for each item or one roll to rule them all?
                 {
                     if (trophy.WeenieClassId == 0) // Randomized Loot
                     {
@@ -175,33 +201,32 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-            corpse.RemoveProperty(PropertyInt.Value);
-            LandblockManager.AddObject(corpse);
         }
 
         private ActionChain GetCreateCorpseChain()
         {
             ActionChain createCorpseChain = new ActionChain(this, () =>
             {
-                ////// Create Corspe and set a location on the ground
-                ////// TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-                ////var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                ////// FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
-                ////corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
-                ////corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
+                /*
+                // Create Corpse and set a location on the ground
+                // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
+                var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
+                // FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
+                corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
+                corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
 
-                ////// Corpses stay on the ground for 5 * player level but minimum 1 hour
-                ////// corpse.DespawnTime = Math.Max((int)session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-                ////// corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-                ////float despawnTime = GetCorpseSpawnTime();
+                // Corpses stay on the ground for 5 * player level but minimum 1 hour
+                corpse.DespawnTime = Math.Max((int)Session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
+                 corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
+                float despawnTime = GetCorpseSpawnTime();
 
-                ////// Create corpse
-                ////CurrentLandblock.AddWorldObject(corpse);
-                ////// Create corpse decay
-                ////ActionChain despawnChain = new ActionChain();
-                ////despawnChain.AddDelaySeconds(despawnTime);
-                ////despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
-                ////despawnChain.EnqueueChain();
+                // Create corpse
+                CurrentLandblock.AddWorldObject(corpse);
+                // Create corpse decay
+                ActionChain despawnChain = new ActionChain();
+                despawnChain.AddDelaySeconds(despawnTime);
+                despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
+                despawnChain.EnqueueChain();*/
             });
             return createCorpseChain;
         }
@@ -240,7 +265,8 @@ namespace ACE.Server.WorldObjects
             // Wait, then run kill animation
             ActionChain onKillChain = new ActionChain();
             onKillChain.AddDelaySeconds(2);
-            onKillChain.AddChain(GetCreateCorpseChain());
+            //onKillChain.AddChain(GetCreateCorpseChain());
+            onKillChain.AddAction(this, CreateCorpse);
 
             return onKillChain;
         }

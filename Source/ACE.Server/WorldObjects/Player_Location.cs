@@ -134,5 +134,18 @@ namespace ACE.Server.WorldObjects
             lock (clientObjectList)
                 clientObjectList.Clear();
         }
+
+        public void NotifyLandblocks()
+        {
+            // the original implementations of this were done on landblock heartbeat,
+            // with checks for players in the current landblock, as well as adjacent outdoor landblocks
+
+            // for performance reasons, this is being reimplemented in the reverse manner,
+            // with players notifying landblocks of their activity
+
+            // notify current landblock of player activity
+            if (CurrentLandblock != null)
+                CurrentLandblock.SetActive();
+        }
     }
 }

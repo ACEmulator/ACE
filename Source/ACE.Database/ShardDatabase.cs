@@ -892,5 +892,26 @@ namespace ACE.Database
 
             return items;
         }
+
+        public List<Biota> GetObjectsByLandblock(ushort landblockId)
+        {
+            var decayables = new List<Biota>();
+
+            using (var context = new ShardDbContext())
+            {
+                // TODO: performance concerns, indexing
+                var results = context.BiotaPropertiesPosition.Where(p => p.ObjCellId >> 16 == landblockId);
+
+                foreach (var result in results)
+                {
+                    var biota = GetBiota(context, result.ObjectId, false);
+
+                    if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
+                        decayables.Add(biota);
+                }
+                //Console.WriteLine("GetObjectsByLandblock(" + landblockId.ToString("X4") + "): " + decayables.Count);
+            }
+            return decayables;
+        }
     }
 }

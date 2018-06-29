@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        private bool SpendCurrency(uint amount, WeenieType type)
+        private List<WorldObject> SpendCurrency(uint amount, WeenieType type)
         {
             if (CoinValue - amount >= 0)
             {
@@ -120,6 +120,7 @@ namespace ACE.Server.WorldObjects
                             change = payment - amount;
                             // add new change object.
                             changeobj.StackSize = (ushort)change;
+                            wo.StackSize -= (ushort)change;
                         }
                         break;
                     }
@@ -150,10 +151,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 UpdateCurrencyClientCalculations(WeenieType.Coin);
-                return true;
+                return cost;
             }
-
-            return false;
+            return null;
         }
 
 
@@ -176,7 +176,7 @@ namespace ACE.Server.WorldObjects
             // vendor accepted the transaction
             if (valid)
             {
-                if (SpendCurrency(goldcost, WeenieType.Coin))
+                if (SpendCurrency(goldcost, WeenieType.Coin) != null)
                 {
                     foreach (WorldObject wo in uqlist)
                     {

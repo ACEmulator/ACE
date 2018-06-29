@@ -275,7 +275,7 @@ namespace ACE.Server.Managers
 
             foreach (var enchantment in Enchantments)
             {
-                enchantment.StartTime -= 5;
+                enchantment.StartTime -= WorldObject.HeartbeatInterval ?? 5;
 
                 // StartTime ticks backwards to -Duration
                 if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)

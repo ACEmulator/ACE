@@ -159,6 +159,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void HeartBeat()
         {
+            NotifyLandblocks();
+
             EnchantmentManager.HeartBeat();
             VitalTick();
 

@@ -783,6 +783,10 @@ namespace ACE.Server.WorldObjects
 
                 if (player != null)
                 {
+                    var topDamager = AttackDamage.GetTopDamager(AttackList);
+                    if (topDamager != null)
+                        monster.Killer = topDamager.Guid.Full;
+
                     var deathMessage = monster.GetDeathMessage(source, crit);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, monster.Name), ChatMessageType.Broadcast));
                     player.EarnXP((long)monster.XpOverride);
@@ -921,6 +925,11 @@ namespace ACE.Server.WorldObjects
                 });
                 destroyChain.EnqueueChain();
             }
+        }
+
+        public string GetPluralName()
+        {
+            return Name + "s";
         }
 
         public int CompareTo(WorldObject wo)

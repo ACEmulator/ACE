@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -10,6 +10,7 @@ namespace ACE.Database.Models.Shard
         public byte Index { get; set; }
         public uint OldId { get; set; }
         public uint NewId { get; set; }
+        public byte Order { get; set; }
 
         public Biota Object { get; set; }
     }
