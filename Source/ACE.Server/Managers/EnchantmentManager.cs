@@ -506,6 +506,11 @@ namespace ACE.Server.Managers
             return GetAdditiveMod(PropertyInt.Damage);
         }
 
+        public float GetDamageModifier()
+        {
+            return GetMultiplicativeMod(PropertyFloat.DamageMod);
+        }
+
         /// <summary>
         /// Returns the attack skill modifier, ie. Heart Seeker
         /// </summary>
@@ -563,6 +568,25 @@ namespace ACE.Server.Managers
                 modifier += enchantment.StatModValue;
 
             return modifier;
+        }
+
+        /// <summary>
+        /// Returns a list of all the active enchantments for a magic school
+        /// </summary>
+        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(MagicSchool magicSchool)
+        {
+            var spells = new List<BiotaPropertiesEnchantmentRegistry>();
+
+            foreach (var enchantment in Enchantments)
+            {
+                var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)enchantment.SpellId];
+                if (spellBase.School == MagicSchool.ItemEnchantment)
+                {
+                    spells.Add(enchantment);
+                    Console.WriteLine(spellBase.Name + ": " + (EnchantmentTypeFlags)enchantment.StatModKey);
+                }
+            }
+            return spells;
         }
     }
 }

@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
@@ -15,16 +17,36 @@ namespace ACE.Server.Network.Structure
         public float NetherProtection;
         public float LightningProtection;
 
-        public ArmorProfile(WorldObject wo)
+        public ArmorProfile(WorldObject armor, WorldObject wielder)
         {
-            SlashingProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsSlash) ?? 0);
-            PiercingProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsPierce) ?? 0);
-            BludgeoningProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsBludgeon) ?? 0);
-            ColdProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsCold) ?? 0);
-            FireProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsFire) ?? 0);
-            AcidProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsAcid) ?? 0);
-            NetherProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsNether) ?? 0);
-            LightningProtection = (float)(wo.GetProperty(PropertyFloat.ArmorModVsElectric) ?? 0);
+            SlashingProtection = GetArmorMod(armor, wielder, DamageType.Slash);
+            PiercingProtection = GetArmorMod(armor, wielder, DamageType.Pierce);
+            BludgeoningProtection = GetArmorMod(armor, wielder, DamageType.Bludgeon);
+            ColdProtection = GetArmorMod(armor, wielder, DamageType.Cold);
+            FireProtection = GetArmorMod(armor, wielder, DamageType.Fire);
+            AcidProtection = GetArmorMod(armor, wielder, DamageType.Acid);
+            NetherProtection = GetArmorMod(armor, wielder, DamageType.Nether);
+            LightningProtection = GetArmorMod(armor, wielder, DamageType.Electric);
+        }
+
+        public float GetArmorMod(WorldObject armor, WorldObject wielder, DamageType damageType)
+        {
+            var type = armor.EnchantmentManager.GetImpenBaneKey(damageType);
+            var baseResistance = armor.GetProperty(type) ?? 1.0f;
+
+            if (wielder == null)
+                return (float)baseResistance;
+
+            // banes/lures
+            var resistanceMod = wielder != null ? wielder.EnchantmentManager.GetArmorModVsType(damageType) : 0.0f;
+
+            var effectiveRL = (float)(baseResistance + resistanceMod);
+
+            // resistance cap
+            if (effectiveRL > 2.0f)
+                effectiveRL = 2.0f;
+
+            return effectiveRL;
         }
 
         public bool HasModifier

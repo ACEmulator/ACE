@@ -5,6 +5,7 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.WorldObjects;
 
@@ -45,23 +46,26 @@ namespace ACE.Server.Network.Structure
             if (!Success)
                 return;
 
-            BuildProperties(wo);
+            // get wielder, if applicable
+            var wielder = GetWielder(wo);
+
+            BuildProperties(wo, wielder);
             BuildSpells(wo);
 
             // armor / clothing
             if (wo is Clothing)
-                BuildArmor(wo);
+                BuildArmor(wo, wielder);
 
             if (wo is Creature creature)
                 BuildCreature(creature);
 
             if (wo is Ammunition || wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is SpellProjectile)
-                BuildWeapon(wo);
+                BuildWeapon(wo, wielder);
 
             BuildFlags();
         }
 
-        public void BuildProperties(WorldObject wo)
+        public void BuildProperties(WorldObject wo, WorldObject wielder)
         {
             PropertiesInt = wo.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesInt64 = wo.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
@@ -69,7 +73,31 @@ namespace ACE.Server.Network.Structure
             PropertiesFloat = wo.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
+
+            AddPropertyEnchantments(wo, wielder);
         }
+
+        public void AddPropertyEnchantments(WorldObject wo, WorldObject wielder)
+        {
+            if (wielder == null) return;
+
+            if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
+                PropertiesInt[PropertyInt.ArmorLevel] += wielder.EnchantmentManager.GetArmorMod();
+        }
+
+        public void AddSpells(List<BiotaPropertiesSpellBook> activeSpells, WorldObject wielder)
+        {
+            if (wielder == null) return;
+
+            // get all currently active item enchantments
+            var enchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+
+            // item enchantments can also be on wielder currently
+            // get any spells from wielder that should be shown in this item's appraise panel
+            foreach (var enchantment in enchantments)
+                activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
+        }
+
 
         public void BuildSpells(WorldObject wo)
         {
@@ -82,11 +110,14 @@ namespace ACE.Server.Network.Structure
             SpellBook.AddRange(wo.Biota.BiotaPropertiesSpellBook);
         }
 
-        public void BuildArmor(WorldObject wo)
+        public void BuildArmor(WorldObject wo, WorldObject wielder)
         {
-            ArmorProfile = new ArmorProfile(wo);
-            ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo);
-            ArmorColor = ArmorMaskHelper.GetColorMask(wo);
+            ArmorProfile = new ArmorProfile(wo, wielder);
+            ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo, wielder);
+            ArmorColor = ArmorMaskHelper.GetColorMask(wo, wielder);
+
+            // item enchantments can also be on wielder currently
+            AddSpells(SpellBook, wielder);
         }
 
         public void BuildCreature(Creature creature)
@@ -100,11 +131,22 @@ namespace ACE.Server.Network.Structure
             ArmorLevels = new ArmorLevel(creature);
         }
 
-        public void BuildWeapon(WorldObject wo)
+        public void BuildWeapon(WorldObject weapon, WorldObject wielder)
         {
-            WeaponProfile = new WeaponProfile(wo);
-            WeaponHighlight = WeaponMaskHelper.GetHighlightMask(wo);
-            WeaponColor = WeaponMaskHelper.GetColorMask(wo);
+            WeaponProfile = new WeaponProfile(weapon, wielder);
+            WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weapon, wielder);
+            WeaponColor = WeaponMaskHelper.GetColorMask(weapon, wielder);
+
+            // item enchantments can also be on wielder currently
+            AddSpells(SpellBook, wielder);
+        }
+
+        public WorldObject GetWielder(WorldObject weapon)
+        {
+            if (weapon.WielderId == null)
+                return null;
+
+            return WorldManager.GetPlayerByGuidId(weapon.WielderId.Value);
         }
 
         public void BuildFlags()

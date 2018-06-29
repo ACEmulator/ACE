@@ -1175,8 +1175,8 @@ namespace ACE.Server.WorldObjects
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsNether) ?? 0));
             writer.Write((float)(wo.GetProperty(PropertyFloat.ArmorModVsElectric) ?? 0));*/
 
-            var armorProfile = new ArmorProfile(wo);
-            writer.Write(armorProfile);
+            //var armorProfile = new ArmorProfile(wo);
+            //writer.Write(armorProfile);
         }
 
         protected static void WriteIdentifyObjectWeaponsProfile(BinaryWriter writer, WorldObject wo, bool success)
@@ -1194,8 +1194,8 @@ namespace ACE.Server.WorldObjects
             // This one looks to be 0 - I did not find one with this calculated.   It is called Max Velocity Calculated
             writer.Write(0u);*/
 
-            var weaponProfile = new WeaponProfile(wo);
-            writer.Write(weaponProfile);
+            //var weaponProfile = new WeaponProfile(wo);
+            //writer.Write(weaponProfile);
         }
 
 
