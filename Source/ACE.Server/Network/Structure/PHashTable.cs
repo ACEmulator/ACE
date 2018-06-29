@@ -3,13 +3,12 @@ using System.IO;
 
 namespace ACE.Server.Network.Structure
 {
-    /// <summary>
-    /// is this really different from PackableHashTable?
-    /// </summary>
     public static class PHashTable
     {
-        // seems to be a different header format -
-        // the main difference seems to be the maxSize sent as # of bits to shift?
+        /// <summary>
+        /// Writes a PHashTable header to the network stream
+        /// </summary>
+        /// <param name="count">The number of entries in the HashTable</param>
         public static void WriteHeader(BinaryWriter writer, int count)
         {
             // uint uint uint - packedSize - write: (buckets) | (count & 0xFFFFFF)
@@ -17,8 +16,6 @@ namespace ACE.Server.Network.Structure
             // uint - count - read: packedSize & 0xFFFFFF
             var bucketShift = GetNumBits((uint)count)/* - 1*/;
             //var maxSize = 1 << ((int)bucketShift - 1);
-            //writer.Write((ushort)bucketShift);
-            //writer.Write((ushort)count);
             var packedSize = (bucketShift << 24) | ((uint)count & 0xFFFFFF);
             //var packedSize = ((uint)maxSize << 24) | ((uint)count & 0xFFFFFF);
             writer.Write(packedSize);

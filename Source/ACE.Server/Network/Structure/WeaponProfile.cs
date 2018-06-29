@@ -1,17 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using ACE.Database.Models.Shard;
-using ACE.DatLoader;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
+    /// <summary>
+    /// Handles the info for weapon appraisal panel
+    /// </summary>
     public class WeaponProfile
     {
         public DamageType DamageType;
@@ -96,6 +93,9 @@ namespace ACE.Server.Network.Structure
 
     public static class WeaponProfileExtensions
     {
+        /// <summary>
+        /// Writes the weapon appraisal info to the network stream
+        /// </summary>
         public static void Write(this BinaryWriter writer, WeaponProfile profile)
         {
             writer.Write((uint)profile.DamageType);

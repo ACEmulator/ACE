@@ -581,10 +581,7 @@ namespace ACE.Server.Managers
             {
                 var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)enchantment.SpellId];
                 if (spellBase.School == MagicSchool.ItemEnchantment)
-                {
                     spells.Add(enchantment);
-                    Console.WriteLine(spellBase.Name + ": " + (EnchantmentTypeFlags)enchantment.StatModKey);
-                }
             }
             return spells;
         }

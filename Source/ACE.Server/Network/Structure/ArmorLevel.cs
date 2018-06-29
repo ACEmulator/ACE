@@ -1,12 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
+    /// <summary>
+    /// Handles the per-body part AL display for the character panel
+    /// </summary>
     public class ArmorLevel
     {
         public uint Head;
@@ -21,7 +25,7 @@ namespace ACE.Server.Network.Structure
 
         public ArmorLevel(Creature creature)
         {
-            // get all body parts
+            // get base + enchanted AL per body part
             Head = GetArmorLevel(creature, BodyPart.Head);
             Chest = GetArmorLevel(creature, BodyPart.Chest);
             Abdomen = GetArmorLevel(creature, BodyPart.Abdomen);
@@ -31,34 +35,35 @@ namespace ACE.Server.Network.Structure
             UpperLeg = GetArmorLevel(creature, BodyPart.UpperLeg);
             LowerLeg = GetArmorLevel(creature, BodyPart.LowerLeg);
             Foot = GetArmorLevel(creature, BodyPart.Foot);
-
         }
 
         public uint GetArmorLevel(Creature creature, BodyPart bodyPart)
         {
             // get armor pieces covering this body part
-            var layers = GetArmor(creature, bodyPart);
+            var layers = GetArmorClothing(creature, bodyPart);
             if (layers == null) return 0;
 
-            // get total AL?
+            // get total AL
             var totalAL = 0;
 
             foreach (var layer in layers)
             {
-                var armorLevel = layer.GetProperty(PropertyInt.ArmorLevel) ?? 0;
-                totalAL += armorLevel;
+                var baseAL = layer.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
-                // impen?
-                // body armor / life spells?
+                // impen / brittlemail
+                var modAL = creature.EnchantmentManager.GetArmorMod();
+
+                totalAL += baseAL + modAL;
             }
+
             // doesn't handle negatives?
-            return (uint)totalAL;
+            return (uint)Math.Max(0, totalAL);
         }
 
         /// <summary>
-        /// Returns the player armor for a body part
+        /// Returns the armor + clothing for a body part
         /// </summary>
-        public List<WorldObject> GetArmor(Creature creature, BodyPart bodyPart)
+        public List<WorldObject> GetArmorClothing(Creature creature, BodyPart bodyPart)
         {
             var bodyLocation = BodyParts.GetFlags(BodyParts.GetEquipMask(bodyPart));
 

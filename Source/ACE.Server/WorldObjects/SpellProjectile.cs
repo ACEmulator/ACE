@@ -99,25 +99,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            flags |= IdentifyResponseFlags.WeaponProfile;
-
-            base.SerializeIdentifyObjectResponse(writer, success, flags);
-
-            WriteIdentifyObjectWeaponsProfile(writer, this, success);
-        }
-
-        public override void HeartBeat()
-        {
-            // First heartbeat always appears to happen after spell has already traveled its maximum range, already
-            //ProjectileImpact();
-            // TODO: Following line should be removed and previous line uncommented, once projectile movement and collision is server controlled
-            // This is handled in CreateSpellProjectile() for now. Commenting it out since it causes double hits.
-            //HandleOnCollide(targetGuid);
-            //Console.WriteLine("SpellProjectile.HeartBeat()");
-        }
-
         public enum ProjectileSpellType
         {
             Undef,

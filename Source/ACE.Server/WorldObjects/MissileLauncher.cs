@@ -28,14 +28,5 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }
-
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            flags |= IdentifyResponseFlags.WeaponProfile;
-
-            base.SerializeIdentifyObjectResponse(writer, success, flags);
-
-            WriteIdentifyObjectWeaponsProfile(writer, this, success);
-        }
     }
 }

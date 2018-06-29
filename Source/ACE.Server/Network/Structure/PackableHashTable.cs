@@ -42,7 +42,7 @@ namespace ACE.Server.Network.Structure
             // table: vector of length count
             foreach (var kvp in packableHashTable.HashTable)
             {
-                //writer.Write(kvp.Key);    // doh
+                //writer.Write(kvp.Key);    // TODO: serializable
                 //writer.Write(kvp.Value);
             }
         }

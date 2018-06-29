@@ -42,14 +42,5 @@ namespace ACE.Server.WorldObjects
             SetProperty(PropertyInt.PaletteTemplate, palette);
             SetProperty(PropertyFloat.Shade, shade);
         }
-
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            flags |= IdentifyResponseFlags.ArmorProfile;
-
-            base.SerializeIdentifyObjectResponse(writer, success, flags);
-
-            WriteIdentifyObjectArmorProfile(writer, this, success);
-        }        
     }
 }

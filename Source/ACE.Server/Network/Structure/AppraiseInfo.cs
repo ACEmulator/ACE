@@ -11,6 +11,9 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
+    /// <summary>
+    /// Handles calculating and sending all object appraisal info
+    /// </summary>
     public class AppraiseInfo
     {
         public IdentifyResponseFlags Flags;
@@ -40,6 +43,9 @@ namespace ACE.Server.Network.Structure
 
         public ArmorLevel ArmorLevels;
 
+        /// <summary>
+        /// Construct all of the info required for appraising any WorldObject
+        /// </summary>
         public AppraiseInfo(WorldObject wo, bool success = true)
         {
             Success = success;
@@ -85,6 +91,17 @@ namespace ACE.Server.Network.Structure
                 PropertiesInt[PropertyInt.ArmorLevel] += wielder.EnchantmentManager.GetArmorMod();
         }
 
+        public void BuildSpells(WorldObject wo)
+        {
+            SpellBook = new List<BiotaPropertiesSpellBook>();
+
+            // add primary spell, if exists
+            if (wo.SpellDID.HasValue)
+                SpellBook.Add(new BiotaPropertiesSpellBook { Spell = (int)wo.SpellDID.Value });
+
+            SpellBook.AddRange(wo.Biota.BiotaPropertiesSpellBook);
+        }
+
         public void AddSpells(List<BiotaPropertiesSpellBook> activeSpells, WorldObject wielder)
         {
             if (wielder == null) return;
@@ -96,18 +113,6 @@ namespace ACE.Server.Network.Structure
             // get any spells from wielder that should be shown in this item's appraise panel
             foreach (var enchantment in enchantments)
                 activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
-        }
-
-
-        public void BuildSpells(WorldObject wo)
-        {
-            SpellBook = new List<BiotaPropertiesSpellBook>();
-
-            // add primary spell, if exists
-            if (wo.SpellDID.HasValue)
-                SpellBook.Add(new BiotaPropertiesSpellBook { Spell = (int)wo.SpellDID.Value });
-
-            SpellBook.AddRange(wo.Biota.BiotaPropertiesSpellBook);
         }
 
         public void BuildArmor(WorldObject wo, WorldObject wielder)
@@ -149,6 +154,9 @@ namespace ACE.Server.Network.Structure
             return WorldManager.GetPlayerByGuidId(weapon.WielderId.Value);
         }
 
+        /// <summary>
+        /// Constructs the bitflags for appraising a WorldObject
+        /// </summary>
         public void BuildFlags()
         {
             if (PropertiesInt.Count > 0)
@@ -186,6 +194,9 @@ namespace ACE.Server.Network.Structure
 
     public static class AppraiseInfoExtensions
     {
+        /// <summary>
+        /// Writes the AppraiseInfo to the network stream
+        /// </summary>
         public static void Write(this BinaryWriter writer, AppraiseInfo info)
         {
             writer.Write((uint)info.Flags);

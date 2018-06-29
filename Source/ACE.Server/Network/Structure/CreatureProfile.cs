@@ -14,6 +14,10 @@ namespace ACE.Server.Network.Structure
         ShowAttributes  = 0x8
     };
 
+    /// <summary>
+    /// Handles the assessment of creatures
+    /// (monsters / players)
+    /// </summary>
     public class CreatureProfile
     {
         // These flags indicate which members will be available for assessment

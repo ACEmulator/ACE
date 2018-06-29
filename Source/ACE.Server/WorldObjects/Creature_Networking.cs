@@ -14,25 +14,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        {
-            bool hideCreatureProfile = NpcLooksLikeObject ?? false;
-
-            if (!hideCreatureProfile)
-                flags |= IdentifyResponseFlags.CreatureProfile;
-
-            base.SerializeIdentifyObjectResponse(writer, success, flags);
-
-            if (!hideCreatureProfile)
-                WriteIdentifyObjectCreatureProfile(writer, this, success);
-        }
-
-        protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature creature, bool success)
-        {
-            var creatureProfile = new CreatureProfile(creature, success);
-            writer.Write(creatureProfile);
-        }
-
         public void HandleActionWorldBroadcast(string message, ChatMessageType messageType)
         {
             ActionChain chain = new ActionChain();
@@ -185,6 +166,12 @@ namespace ACE.Server.WorldObjects
                 return base.CalculateObjDesc();
 
             return objDesc;
+        }
+
+        protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature creature, bool success)
+        {
+            var creatureProfile = new CreatureProfile(creature, success);
+            writer.Write(creatureProfile);
         }
     }
 }
