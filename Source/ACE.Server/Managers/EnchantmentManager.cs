@@ -56,7 +56,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update zero or more enchantments in this object's registry
         /// </summary>
-        public IEnumerable<StackType> AddRange(IEnumerable<Enchantment> enchantment, bool castByItem)
+        public IEnumerable<StackType> AddRange(IEnumerable<Enchantment> enchantment, string castByItem)
         {
             List<StackType> stacks = new List<StackType>();
             enchantment.ToList().ForEach(k => stacks.Add(Add(k, castByItem)));

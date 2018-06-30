@@ -234,7 +234,7 @@ namespace ACE.Server.Command.Handlers
                 // run client-side effect scripts, omitting duplicates
                 targetPlayer.CurrentLandblock.EnqueueBroadcast(targetPlayer.Location, buffMessages.GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
                 // update server-side enchantments
-                targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), false);
+                targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), null);
             });
         }
 
