@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
                 var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
                 var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
 
-                string castMessage = "The gem casts " + spell.Name + " on you";
+/*
                 ////These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
                 if (spell.MetaSpellId == 3810)
                     castMessage = "The gem casts Asheron's Benediction on you";
@@ -79,16 +79,9 @@ namespace ACE.Server.WorldObjects
                     castMessage = "The gem casts Carraida's Benediction on you";
                 if (spell.MetaSpellId == 4024)
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
-                castMessage += "."; // If not refreshing/surpassing/less than active spell, which I will check for in the very near future when I get the active enchantment list implemented.
+*/
 
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(castMessage, ChatMessageType.Magic));
-                player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
-                const ushort layer = 1; // FIXME: This will be tracked soon, once a list is made to track active enchantments
-                var gem = new Enchantment(player, SpellDID.Value, (double)spell.Duration, layer, spell.Category);
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
-
-                // add to enchantment registry
-                player.EnchantmentManager.Add(gem, false);
+                player.CreateItemSpell(Guid, (uint)SpellDID);
 
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
                 player.SendUseDoneEvent();

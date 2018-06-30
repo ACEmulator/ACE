@@ -111,7 +111,13 @@ namespace ACE.Server.WorldObjects
             WorldObject item = player.GetWieldedItem(guidItem);
 
             if (item == null)
-                return;
+            {
+                item = player.GetInventoryItem(guidItem);
+                if (item == null)
+                    return;
+                if (item.WeenieType != WeenieType.Gem)
+                    return;
+            }
 
             CreatureSkill arcaneLore = player.GetCreatureSkill(Skill.ArcaneLore);
             CreatureSkill meleeDefense = player.GetCreatureSkill(Skill.MeleeDefense);
@@ -164,7 +170,7 @@ namespace ACE.Server.WorldObjects
                         if (IsSpellHarmful(spell))
                             break;
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                        message = CreatureMagic(player, spell, spellStatMod, true);
+                        message = CreatureMagic(player, spell, spellStatMod, item.Name);
                         if (message != "")
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;
@@ -175,13 +181,13 @@ namespace ACE.Server.WorldObjects
                                 break;
                         }
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                        LifeMagic(player, spell, spellStatMod, out message, true);
+                        LifeMagic(player, spell, spellStatMod, out message, item.Name);
                         if (message != null)
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;
                     case MagicSchool.ItemEnchantment:
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(item.Guid, (PlayScript)spell.TargetEffect, scale));
-                        message = ItemMagic(item, spell, spellStatMod, true);
+                        message = ItemMagic(item, spell, spellStatMod, item.Name);
                         if (message != "")
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;

@@ -56,7 +56,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public StackType Add(Enchantment enchantment, bool castByItem)
+        public StackType Add(Enchantment enchantment, string castByItem)
         {
             // check for existing spell in this category
             var entry = GetCategory(enchantment.Spell.Category);
@@ -233,7 +233,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, bool castByItem = false)
+        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, string castByItem = null)
         {
             var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
             var spell = DatabaseManager.World.GetCachedSpell(spellID);
@@ -248,7 +248,7 @@ namespace ACE.Server.Managers
             entry.SpellCategory = (ushort)spell.Category;
             entry.PowerLevel = spell.Power;
 
-            if (castByItem)
+            if (castByItem != null)
             {
                 entry.Duration = -1.0;
                 entry.StartTime = 0;
