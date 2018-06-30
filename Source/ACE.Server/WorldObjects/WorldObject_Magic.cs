@@ -248,7 +248,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="message"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, bool castByItem = false)
+        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, string castByItem = null)
         {
             string srcVital, destVital, action;
             string targetMsg = null;
@@ -514,7 +514,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem = false)
+        protected string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             return CreateEnchantment(target, spell, spellStatMod, castByItem);
         }
@@ -526,7 +526,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
-        protected string ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem = false)
+        protected string ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
@@ -625,10 +625,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, bool castByItem)
+        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             double duration;
-            if (castByItem)
+            if (castByItem == null)
                 duration = -1;
             else
                 duration = spell.Duration;
@@ -658,8 +658,8 @@ namespace ACE.Server.WorldObjects
             var targetName = this == target ? "yourself" : target.Name;
 
             string message;
-            if (castByItem == true)
-                message = $"An item casts {spell.Name} on you";
+            if (castByItem != null)
+                message = $"{castByItem} casts {spell.Name} on you";
             else
                 message = $"You cast {spell.Name} on {targetName}{suffix}";
 
