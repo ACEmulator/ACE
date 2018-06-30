@@ -701,23 +701,41 @@ namespace ACE.Server.Command.Handlers
         // Experience
         // ==================================
 
-        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give XP to yourself.", "ulong\n" + "@grantxp 191226310247 is max level 275")]
+        [CommandHandler("grantxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give XP to yourself (or the specified character).", "ulong\n" + "@grantxp [name] 191226310247 is max level 275")]
         public static void HandleGrantXp(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
             {
-                string xpAmountToParse = parameters[0].Length > 12 ? parameters[0].Substring(0, 12) : parameters[0];
-
-                // 12 characters : xxxxxxxxxxxx : 191,226,310,247 for 275
-
-                if (long.TryParse(xpAmountToParse, out var xp))
+                List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
                 {
-                    session.Player.GrantXP(xp);
-                    return;
+                    new CommandParameterHelpers.ACECommandParameter() {
+                        Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                        Required = false,
+                        DefaultValue = session.Player
+                    },
+                    new CommandParameterHelpers.ACECommandParameter()
+                    {
+                        Type = CommandParameterHelpers.ACECommandParameterType.ULong,
+                        Required = true,
+                        ErrorMessage = "You must specify the amount of xp."
+                    }
+                };
+                if (CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams))
+                {
+                    try
+                    {
+                        var xp = (long)aceParams[1].AsULong;
+                        aceParams[0].AsPlayer.GrantXP(xp);
+                        return;
+                    }
+                    catch
+                    {
+                        //overflow
+                    }
                 }
             }
 
-            ChatPacket.SendServerMessage(session, "Usage: /grantxp 1234 (max 999999999999)", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
 

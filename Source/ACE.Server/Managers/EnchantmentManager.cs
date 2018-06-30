@@ -54,6 +54,16 @@ namespace ACE.Server.Managers
         public Database.Models.World.Spell Surpass; // retval
 
         /// <summary>
+        /// Add/update zero or more enchantments in this object's registry
+        /// </summary>
+        public IEnumerable<StackType> AddRange(IEnumerable<Enchantment> enchantment, bool castByItem)
+        {
+            List<StackType> stacks = new List<StackType>();
+            enchantment.ToList().ForEach(k => stacks.Add(Add(k, castByItem)));
+            return stacks;
+        }
+
+        /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
         public StackType Add(Enchantment enchantment, bool castByItem)
