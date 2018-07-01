@@ -222,7 +222,6 @@ namespace ACE.Server.Physics.Common
         public override void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
         {
             var checkOutside = false;
-            float rad;
 
             var i = 0;
             foreach (var portal in Portals)
@@ -239,7 +238,7 @@ namespace ACE.Server.Physics.Common
                         continue;
 
                     var center = Pos.LocalToGlobal(part.Pos, sphere.Center);
-                    rad = sphere.Radius + PhysicsGlobals.EPSILON;
+                    var rad = sphere.Radius + PhysicsGlobals.EPSILON;
 
                     var dist = Vector3.Dot(center, portalPoly.Plane.Normal) + portalPoly.Plane.D;
                     if (portal.PortalSide)
@@ -254,7 +253,7 @@ namespace ACE.Server.Physics.Common
                     }
 
                     var bbox = part.GetBoundingBox();
-                    BBox box = null;
+                    var box = new BBox();
                     box.LocalToLocal(bbox, part.Pos, Pos);
                     var sidedness = portalPoly.Plane.intersect_box(box);
                     if (sidedness == Sidedness.Positive && !portal.PortalSide || sidedness == Sidedness.Negative && portal.PortalSide)
@@ -274,7 +273,7 @@ namespace ACE.Server.Physics.Common
                         break;
                     }
 
-                    BBox cellBox = null;
+                    var cellBox = new BBox();
                     cellBox.LocalToLocal(bbox, Pos, otherCell.Pos);
                     if (otherCell.CellStructure.box_intersects_cell(cellBox))
                     {

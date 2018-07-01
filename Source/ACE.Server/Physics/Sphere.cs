@@ -37,7 +37,7 @@ namespace ACE.Server.Physics
             Center = new Vector3(sphere.Center.X, sphere.Center.Y, sphere.Center.Z);
             Radius = sphere.Radius;
         }
-        
+
         /// <summary>
         /// Constructs a sphere from a center point and radius
         /// </summary>
@@ -259,96 +259,101 @@ namespace ACE.Server.Physics
                 return TransitionState.OK;
             }
 
-            if (!transition.SpherePath.StepDown)
+            if (transition.SpherePath.StepDown)
             {
-                if (transition.SpherePath.CheckWalkable)
+                if (isCreature)
+                    return TransitionState.OK;
+
+                return StepSphereDown(transition, globSphere, disp, radsum);
+            }
+
+            if (transition.SpherePath.CheckWalkable)
+            {
+                if (CollidesWithSphere(disp, radsum))
+                    return TransitionState.Collided;
+
+                if (transition.SpherePath.NumSphere > 1)
+                {
+                    if (CollidesWithSphere(disp_, radsum))
+                        return TransitionState.Collided;
+                }
+                return TransitionState.OK;
+            }
+
+            if (!transition.SpherePath.Collide)
+            {
+                if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact) || transition.ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
                 {
                     if (CollidesWithSphere(disp, radsum))
-                        return TransitionState.Collided;
+                        return StepSphereUp(transition, globSphere, disp, radsum);
 
                     if (transition.SpherePath.NumSphere > 1)
                     {
                         if (CollidesWithSphere(disp_, radsum))
-                            return TransitionState.Collided;
+                            return SlideSphere(transition, globSphere_, disp_, radsum, 1);
                     }
                     return TransitionState.OK;
                 }
-                if (transition.SpherePath.StepUp)
+                else if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.PathClipped))
                 {
-                    if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact) ||
-                        transition.ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
-                    {
-                        if (CollidesWithSphere(disp, radsum))
-                            return StepSphereUp(transition, globSphere, disp, radsum);
-
-                        if (transition.SpherePath.NumSphere > 1)
-                        {
-                            if (CollidesWithSphere(disp_, radsum))
-                                return SlideSphere(transition, globSphere_, disp_, radsum, 1);
-                        }
-                    }
-                    else if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.PathClipped))
-                    {
-                        if (CollidesWithSphere(disp, radsum))
-                            return CollideWithPoint(transition, globSphere, disp, radsum, 0);
-                    }
-                    else
-                    {
-                        if (CollidesWithSphere(disp, radsum))
-                            return LandOnSphere(transition, globSphere, disp, radsum);
-
-                        if (transition.SpherePath.NumSphere > 1)
-                        {
-                            if (CollidesWithSphere(disp_, radsum))
-                                return CollideWithPoint(transition, globSphere_, disp_, radsum, 1);
-                        }
-                    }
-                    return TransitionState.OK;
+                    if (CollidesWithSphere(disp, radsum))
+                        return CollideWithPoint(transition, globSphere, disp, radsum, 0);
                 }
-
-                if (isCreature)
-                    return TransitionState.OK;
-
-                // handles movement interpolation
-                if (CollidesWithSphere(disp, radsum) || (transition.SpherePath.NumSphere > 1 && CollidesWithSphere(disp_, radsum)))
+                else
                 {
-                    var blockOffset = transition.SpherePath.GetCurPosCheckPosBlockOffset();
-                    var movement = transition.SpherePath.GlobalCurrCenter[0].Center - globSphere.Center - blockOffset;
-                    radsum += PhysicsGlobals.EPSILON;
-                    var lenSq = movement.LengthSquared();
-                    var diff = -Vector3.Dot(movement, disp);
-                    if (Math.Abs(lenSq) < PhysicsGlobals.EPSILON)
-                        return TransitionState.Collided;
+                    if (CollidesWithSphere(disp, radsum))
+                        return LandOnSphere(transition, globSphere, disp, radsum);
 
-                    var t = Math.Sqrt(diff * diff - (disp.LengthSquared() - radsum * radsum) * lenSq) + diff;   // solve for t
-                    if (t > 1)
-                        t = diff * 2 - diff;
-                    var time = diff / lenSq;
-                    var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
-                    if (timecheck < transition.SpherePath.WalkableAllowance && timecheck < -0.1f)
-                        return TransitionState.Collided;
-
-                    movement *= time;
-                    disp = (disp + movement) / radsum;
-
-                    //if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
-                        //return TransitionState.OK;  // ??
-
-                    var contactPlane = new Plane(disp, -Vector3.Dot(disp, disp_));
-                    transition.CollisionInfo.SetContactPlane(contactPlane, true);
-                    transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
-                    transition.SpherePath.WalkInterp = timecheck;
-                    transition.SpherePath.AddOffsetToCheckPos(movement, globSphere.Radius);
-                    return TransitionState.Adjusted;
+                    if (transition.SpherePath.NumSphere > 1)
+                    {
+                        if (CollidesWithSphere(disp_, radsum))
+                            return CollideWithPoint(transition, globSphere_, disp_, radsum, 1);
+                    }
                 }
-
                 return TransitionState.OK;
             }
 
             if (!isCreature)
-                return StepSphereDown(transition, globSphere, disp, radsum);
+                return TransitionState.OK;
 
-            return TransitionState.OK;
+            if (!CollidesWithSphere(disp, radsum))
+            {
+                if (transition.SpherePath.NumSphere > 1)
+                {
+                    if (!CollidesWithSphere(disp_, radsum))
+                        return TransitionState.OK;
+                }
+            }
+
+            var blockOffset = transition.SpherePath.GetCurPosCheckPosBlockOffset();
+            var movement = transition.SpherePath.GlobalCurrCenter[0].Center - globSphere.Center - blockOffset;
+            radsum += PhysicsGlobals.EPSILON;
+            var lenSq = movement.LengthSquared();
+            var diff = -Vector3.Dot(movement, disp);
+            if (Math.Abs(lenSq) < PhysicsGlobals.EPSILON)
+                return TransitionState.Collided;
+
+            var t = Math.Sqrt(diff * diff - (disp.LengthSquared() - radsum * radsum) * lenSq) + diff;   // solve for t
+            if (t > 1)
+                t = diff * 2 - diff;
+            var time = diff / lenSq;
+            var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
+            if (timecheck < transition.SpherePath.WalkableAllowance && timecheck < -0.1f)
+                return TransitionState.Collided;
+
+            movement *= time;
+            disp = (disp + movement) / radsum;
+
+            if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
+                return TransitionState.OK;
+
+            var contactPlane = new Plane(disp, -Vector3.Dot(disp, disp_));
+            transition.CollisionInfo.SetContactPlane(contactPlane, true);
+            transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
+            transition.SpherePath.WalkInterp = timecheck;
+            transition.SpherePath.AddOffsetToCheckPos(movement, globSphere.Radius);
+
+            return TransitionState.Adjusted;
         }
 
         /// <summary>

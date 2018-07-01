@@ -716,10 +716,9 @@ namespace ACE.Server.WorldObjects
             objDescChain.EnqueueChain();
         }
 
-        protected override void SendUpdatePosition()
+        protected override void SendUpdatePosition(bool forcePos = false)
         {
-            
-            GameMessage msg = new GameMessageUpdatePosition(this);
+            GameMessage msg = new GameMessageUpdatePosition(this, forcePos);
             Session.Network.EnqueueSend(msg);
             base.SendUpdatePosition();
         }
