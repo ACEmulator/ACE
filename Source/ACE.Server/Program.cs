@@ -21,9 +21,11 @@ namespace ACE.Server
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
+            // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
-
 
             log.Info("Starting ACEmulator...");
             Console.Title = @"ACEmulator";
@@ -34,10 +36,8 @@ namespace ACE.Server
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
-
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory);
-
 
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
@@ -47,7 +47,6 @@ namespace ACE.Server
 
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
-
 
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
@@ -63,7 +62,6 @@ namespace ACE.Server
 
             log.Info("Starting PropertyManager...");
             PropertyManager.Initialize();
-
 
             // This should be last
             log.Info("Initializing CommandManager...");
