@@ -64,7 +64,7 @@ namespace ACE.DatLoader.FileTypes
                     thirdSpellWord = comps.SpellComponents[formula[i]].Text;
             }
 
-            string result = $"{firstSpellWord} {secondSpellWord}{thirdSpellWord}";
+            string result = $"{firstSpellWord} {secondSpellWord}{thirdSpellWord.ToLower()}";
             return result;
         }
     }
