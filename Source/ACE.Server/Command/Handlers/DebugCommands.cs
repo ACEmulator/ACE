@@ -933,12 +933,6 @@ namespace ACE.Server.Command.Handlers
         // Spells
         // ==================================
 
-        [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
-        public static void HandleAddSpell(Session session, params string[] parameters)
-        {
-            AdminCommands.HandleAdd(session, parameters);
-        }
-
         // addallspells
         [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
         public static void HandleAddAllSpells(Session session, params string[] parameters)

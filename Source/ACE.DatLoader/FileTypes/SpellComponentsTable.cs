@@ -37,9 +37,11 @@ namespace ACE.DatLoader.FileTypes
 
         public static string GetSpellWords(SpellComponentsTable comps, List<uint> formula)
         {
-            string firstSpellWord = null;
-            string secondSpellWord = null;
-            string thirdSpellWord = null;
+            string firstSpellWord = "";
+            string secondSpellWord = "";
+            string thirdSpellWord = "";
+
+            if (formula == null) return "";
 
             // Locate the herb component in the Spell formula
             for (int i = 0; i < formula.Count; i++)
@@ -62,7 +64,7 @@ namespace ACE.DatLoader.FileTypes
                     thirdSpellWord = comps.SpellComponents[formula[i]].Text;
             }
 
-            string result = $"{firstSpellWord} {secondSpellWord}{thirdSpellWord.ToLower()}";
+            string result = $"{firstSpellWord} {secondSpellWord}{thirdSpellWord}";
             return result;
         }
     }
