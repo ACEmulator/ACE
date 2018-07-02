@@ -325,6 +325,7 @@ namespace ACE.Server.Physics
                 }
             }
 
+            // handles movement interpolation
             var blockOffset = transition.SpherePath.GetCurPosCheckPosBlockOffset();
             var movement = transition.SpherePath.GlobalCurrCenter[0].Center - globSphere.Center - blockOffset;
             radsum += PhysicsGlobals.EPSILON;
