@@ -27,16 +27,6 @@ namespace ACE.Server.Physics.Animation
             set_animation_id(animData.AnimID);
         }
 
-        public AnimSequenceNode GetNext()
-        {
-            return null;
-        }
-
-        public AnimSequenceNode GetPev()
-        {
-            return null;
-        }
-
         public float get_ending_frame()
         {
             if (Framerate > 0.0f)

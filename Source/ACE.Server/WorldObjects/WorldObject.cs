@@ -140,6 +140,10 @@ namespace ACE.Server.WorldObjects
             var physicsState = GetProperty(PropertyInt.PhysicsState);
             if (physicsState != null)
                 PhysicsObj.State = (Physics.PhysicsState)physicsState;
+
+            var creature = this as Creature;
+            if (creature != null)
+                PhysicsObj.State |= Physics.PhysicsState.EdgeSlide;
         }
 
         private void SetEphemeralValues()

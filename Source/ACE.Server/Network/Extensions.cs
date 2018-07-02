@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using ACE.Entity;
 
@@ -11,7 +11,7 @@ namespace ACE.Server.Network
         public static void WriteString16L(this BinaryWriter writer, string data)
         {
             writer.Write((ushort)data.Length);
-            writer.Write(data.ToCharArray());
+            writer.Write(System.Text.Encoding.GetEncoding(1252).GetBytes(data));
 
             // client expects string length to be a multiple of 4 including the 2 bytes for length
             writer.Pad(CalculatePadMultiple(sizeof(ushort) + (uint)data.Length, 4u));

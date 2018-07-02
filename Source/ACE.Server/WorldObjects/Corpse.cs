@@ -129,7 +129,7 @@ namespace ACE.Server.WorldObjects
             if (Name != null && Name.StartsWith("Corpse of "))
             {
                 var corpseName = Name.Replace("Corpse of ", "");
-                if (!player.Name.Equals(corpseName) && player.Guid.Full != AllowedActivator)
+                if (!player.Name.Equals(corpseName) && AllowedActivator != null && player.Guid.Full != AllowedActivator)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
                     return;

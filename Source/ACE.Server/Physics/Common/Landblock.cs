@@ -464,7 +464,7 @@ namespace ACE.Server.Physics.Common
                         return isDungeon.Value;
                     }
                 }
-                isDungeon = Info != null && Info.NumCells > 0 && Info.Buildings != null && Info.Buildings.Count > 0;
+                isDungeon = Info != null && Info.NumCells > 0 && Info.Buildings != null && Info.Buildings.Count == 0;
                 return isDungeon.Value;
             }
         }
