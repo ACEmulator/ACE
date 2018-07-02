@@ -169,7 +169,7 @@ namespace ACE.Server.Tests.Physics
                 transition.SpherePath.NumSphere = 2;
                 SetCenter(transition);
                 var transitionState = sphere.IntersectsSphere(transition, false);
-                Assert.AreEqual(transitionState, interp ? TransitionState.Collided : TransitionState.Collided);
+                Assert.AreEqual(transitionState, interp ? TransitionState.OK : TransitionState.Collided);
             }
         }
 

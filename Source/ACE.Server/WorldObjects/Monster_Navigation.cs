@@ -22,7 +22,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if a monster is within melee range of target
         /// </summary>
-        public static readonly float MaxMeleeRange = 1.0f;
+        public static readonly float MaxMeleeRange = 0.5f;
 
         /// <summary>
         /// The maximum range for a monster missile attack
@@ -214,7 +214,7 @@ namespace ACE.Server.WorldObjects
             var velocity = movement / deltaTime;
             PhysicsObj.CachedVelocity = velocity;
 
-            SendUpdatePosition();
+            SendUpdatePosition(false);
         }
 
         public void UpdatePosition_Inner(Vector3 newPos, Vector3 dir)
@@ -248,6 +248,14 @@ namespace ACE.Server.WorldObjects
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             if (PhysicsObj.CurCell != null && PhysicsObj.CurCell.ID != Location.Cell)
                 Location.LandblockId = new LandblockId(PhysicsObj.CurCell.ID);
+
+            //DebugDistance();
+        }
+
+        public void DebugDistance()
+        {
+            var dist = GetDistanceToTarget();
+            Console.WriteLine("Dist: " + dist);
         }
 
         public void UpdateIndoorCells(Vector3 newPos)

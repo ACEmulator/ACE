@@ -458,13 +458,9 @@ namespace ACE.Server.Physics.Animation
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
             var defaultStyle = motionTable.DefaultStyle;
-            uint styleDefault;
-            motionTable.StyleDefaults.TryGetValue(defaultStyle, out styleDefault);
-            var motionID = styleDefault & 0xFFFFFF;
+            var motionID = motion & 0xFFFFFF;
             var key = defaultStyle << 16 | motionID;
-            motionTable.Links.TryGetValue(key, out var links);
-            if (links == null) return null;
-            links.TryGetValue(motion, out var motionData);
+            motionTable.Cycles.TryGetValue(key, out var motionData);
             return motionData;
         }
 
@@ -487,7 +483,7 @@ namespace ACE.Server.Physics.Animation
             }
             var dist = offset.Length();
             if (dist == 0.0f) return 0.0f;
-            return dist / totalFrames * 30;
+            return dist / totalFrames * motionData.Anims[0].Framerate;
         }
     }
 }
