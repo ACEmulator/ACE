@@ -176,7 +176,13 @@ namespace ACE.Server.WorldObjects
                 if (invTarget != null)
                 {
                     // inventory on inventory, we can do this now
-                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
+                    if (invSource.WeenieType == WeenieType.ManaStone)
+                    {
+                        var stone = invSource as ManaStone;
+                        stone.HandleActionUseOnTarget(this, invTarget);
+                    }
+                    else
+                        RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
                 }
                 else if (invSource.WeenieType == WeenieType.Healer)
                 {
@@ -199,7 +205,13 @@ namespace ACE.Server.WorldObjects
                 else if (targetObjectId == Guid)
                 {
                     // using something on ourselves
-                    RecipeManager.UseObjectOnTarget(this, invSource, this);
+                    if (invSource.WeenieType == WeenieType.ManaStone)
+                    {
+                        var stone = invSource as ManaStone;
+                        stone.HandleActionUseOnTarget(this, this);
+                    }
+                    else
+                        RecipeManager.UseObjectOnTarget(this, invSource, this);
                 }
                 else
                 {

@@ -180,6 +180,8 @@ namespace ACE.Server.Factories
                     return new Caster(biota);
                 case WeenieType.HotSpot:
                     return new Hotspot(biota);
+                case WeenieType.ManaStone:
+                    return new ManaStone(biota);
                 default:
                     return new GenericObject(biota);
             }

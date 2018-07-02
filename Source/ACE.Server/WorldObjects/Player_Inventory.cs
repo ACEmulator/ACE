@@ -500,6 +500,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     UnwieldItemWithNetworking(container, item, placement);
+                    item.IsActivated = false;
                     return;
                 }
 
@@ -643,10 +644,13 @@ namespace ACE.Server.WorldObjects
                         // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
                         if (item.ItemCurMana > 1 || item.ItemCurMana == null)
                         {
+                            bool spellCreated = false;
                             for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
                             {
-                                CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                                if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell))
+                                    spellCreated = true;
                             }
+                            item.IsActivated = spellCreated;
                         }
                     }
 

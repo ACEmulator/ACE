@@ -13937,7 +13937,7 @@ namespace ACE.Server.Factories
         {
             Random r = new Random();
             double manaRate = 1.0 / (double)(r.Next(10, 31));
-            return manaRate;
+            return -manaRate;
         }
 
         public static int GetNumSpells(int tier)
