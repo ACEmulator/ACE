@@ -975,13 +975,50 @@ namespace ACE.Server.Command.Handlers
             SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
 
             Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name);
+            Console.WriteLine(spellTable.Spells[spellid].Desc);
 
             var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
 
             for (int i = 0; i < formula.Count; i++)
-                Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
+            {
+                if (comps.SpellComponents.ContainsKey(formula[i])) {
+                    Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
+                }
+                else
+                {
+                    Console.WriteLine("Comp " + i + " : Unknown Component " + formula[i].ToString());
+                }
+            }
 
             Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Debug console command to test the GetSpellFormula function.
+        /// </summary>
+        [CommandHandler("getallspellformula", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests spell formula calculation")]
+        public static void GetAllSpellFormula(Session session, params string[] parameters)
+        {
+            if (parameters?.Length != 1)
+            {
+                Console.WriteLine("getallspellformula <accountname>");
+                return;
+            }
+
+            SpellTable spellTable = DatManager.PortalDat.SpellTable;
+            SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
+
+            foreach (KeyValuePair<uint, DatLoader.Entity.SpellBase> entry in spellTable.Spells)
+            {
+                uint spellid = entry.Key;
+                Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name + " (" + spellid.ToString() + ")");
+                var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
+                for (int i = 0; i < formula.Count; i++)
+                    Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
+
+                Console.WriteLine();
+            }
+
         }
 
 
