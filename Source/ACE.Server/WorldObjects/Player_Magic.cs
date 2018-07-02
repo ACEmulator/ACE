@@ -84,17 +84,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void LearnSpellsInBulk(uint magicSchool, uint spellLevel)
         {
-            var spells = DatManager.PortalDat.SpellTable.Spells;
+            var spellTable = DatManager.PortalDat.SpellTable;
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
-            if (Enum.IsDefined(typeof(SpellLevel), (int)WorldObject.CalculateSpellLevel(spellLevel)))
+            for (uint x = 0; x < PlayerSpellID.Length; x++)
             {
-                foreach (var spell in spells)
+                if (spellTable.Spells.ContainsKey(PlayerSpellID[x]))
                 {
-                    if ((magicSchool == (uint)spell.Value.School) & ((uint)WorldObject.CalculateSpellLevel(spellLevel) == spell.Value.Power))
+                    SpellBase spell = spellTable.Spells[PlayerSpellID[x]];
+                    if ((uint)spell.School == magicSchool)
                     {
-                        if (Enum.IsDefined(typeof(Network.Enum.Spell), spell.Key))
-                            player.LearnSpellWithNetworking((uint)spell.Key, false);
+                        if ((uint)CalculateSpellLevel(spell.Power) == spellLevel)
+                            player.LearnSpellWithNetworking(spell.MetaSpellId, false);
                     }
                 }
             }
@@ -302,15 +303,26 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // Ensure that a harmful spell isn't being cast on a player target that doesn't have the same PK status
-            if (target.WeenieClassId == 1 && player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK)
+            bool isSpellHarmful = IsSpellHarmful(spell);
+            if (isSpellHarmful)
             {
-                bool isSpellHarmful = IsSpellHarmful(spell);
-                if (player.PlayerKillerStatus != target.PlayerKillerStatus && isSpellHarmful)
+                // Ensure that a non-PK cannot cast harmful spells on another player
+                if ((target.WeenieClassId == 1) && (player.PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.NPK))
                 {
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
                     player.IsBusy = false;
                     return;
+                }
+
+                // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
+                if ((target.WeenieClassId == 1) && (player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK))
+                {
+                    if (player.PlayerKillerStatus != target.PlayerKillerStatus)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
+                        player.IsBusy = false;
+                        return;
+                    }
                 }
             }
 
@@ -430,10 +442,12 @@ namespace ACE.Server.WorldObjects
                 });
             }
 
+
             spellChain.AddAction(this, () =>
             {
-                CurrentLandblock.EnqueueBroadcast(Location, new GameMessageCreatureMessage(SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable,
-                    formula), Name, Guid.Full, ChatMessageType.Magic));
+                string spellWords = SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable, formula);
+                if (spellWords != null)
+                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
             });
 
             spellChain.AddAction(this, () =>

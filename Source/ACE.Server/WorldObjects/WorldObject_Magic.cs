@@ -162,11 +162,11 @@ namespace ACE.Server.WorldObjects
                 return true;
 
             // Life Magic spells that don't have bit three of their bitfield property set are harmful
-            if (spell.School == MagicSchool.LifeMagic && (spell.Bitfield & 0x4) == 0)
+            if (spell.School == MagicSchool.LifeMagic && (spell.Bitfield & (uint)SpellBitfield.Beneficial) == 0)
                 return true;
 
             // Creature Magic spells that don't have bit three of their bitfield property set are harmful
-            if (spell.School == MagicSchool.CreatureEnchantment && (spell.Bitfield & 0x4) == 0)
+            if (spell.School == MagicSchool.CreatureEnchantment && (spell.Bitfield & (uint)SpellBitfield.Beneficial) == 0)
                 return true;
 
             return false;
