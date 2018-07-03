@@ -344,8 +344,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public double LastMovementBroadcastTicks { get; set; }
 
-        public void WriteUpdatePositionPayload(BinaryWriter writer)
+        public void WriteUpdatePositionPayload(BinaryWriter writer, bool forcePos = false)
         {
+            if (forcePos)
+                PositionFlag |= UpdatePositionFlag.Contact;
+
             writer.WriteGuid(Guid);
             Location.Serialize(writer, PositionFlag, (int)(Placement ?? ACE.Entity.Enum.Placement.Default));
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
@@ -357,10 +360,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Alerts clients of change in position
         /// </summary>
-        protected virtual void SendUpdatePosition()
+        protected virtual void SendUpdatePosition(bool forcePos = false)
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-            GameMessage msg = new GameMessageUpdatePosition(this);
+            GameMessage msg = new GameMessageUpdatePosition(this, forcePos);
 
             if (CurrentLandblock != null)
                 CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);

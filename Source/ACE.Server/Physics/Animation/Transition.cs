@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Collision;
@@ -166,7 +167,8 @@ namespace ACE.Server.Physics.Animation
             ObjCell newCell = new ObjCell();    // null check?
             ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
-            foreach (var cell in CellArray.Cells.Values)
+            var checkCells = CellArray.Cells.Values.ToList();
+            foreach (var cell in checkCells)
             {
                 if (cell == null || cell.Equals(currCell)) continue;
                 var collides = cell.FindCollisions(this);

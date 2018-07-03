@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-01
+[OptimShi]
+* Added CP1252 text encoding. Fixes some issues with Spell Formulas when spells used non ANSI characters as well as in sending strings to the client.
+
 ### 2018-06-23
 [OptimShi]
 * Fixed a bug that left Undead player characters naked, as well as Penumbrean 

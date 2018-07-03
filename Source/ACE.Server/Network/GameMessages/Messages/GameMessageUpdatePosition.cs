@@ -4,10 +4,10 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageUpdatePosition : GameMessage
     {
-        public GameMessageUpdatePosition(WorldObject worldObject)
+        public GameMessageUpdatePosition(WorldObject worldObject, bool forcePos = false)
             : base(GameMessageOpcode.UpdatePosition, GameMessageGroup.SmartboxQueue)
         {
-            worldObject.WriteUpdatePositionPayload(Writer);
+            worldObject.WriteUpdatePositionPayload(Writer, forcePos);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if a monster is within melee range of target
         /// </summary>
-        public static readonly float MaxMeleeRange = 1.0f;
+        public static readonly float MaxMeleeRange = 0.5f;
 
         /// <summary>
         /// The maximum range for a monster missile attack
@@ -123,7 +123,13 @@ namespace ACE.Server.WorldObjects
         public float EstimateTurnTo()
         {
             var angle = GetAngle(AttackTarget);
-            var rotateTime = Math.PI / (360.0f / angle) / MoveSpeed;
+
+            var turnSpeed = MotionTable.GetTurnSpeed(MotionTableId);
+
+            if (turnSpeed == 0.0f) return 0.0f;
+
+            var rotateTime = Math.PI / turnSpeed / 180.0f * angle;
+
             return (float)rotateTime;
         }
 
@@ -214,7 +220,7 @@ namespace ACE.Server.WorldObjects
             var velocity = movement / deltaTime;
             PhysicsObj.CachedVelocity = velocity;
 
-            SendUpdatePosition();
+            SendUpdatePosition(false);
         }
 
         public void UpdatePosition_Inner(Vector3 newPos, Vector3 dir)
@@ -248,6 +254,14 @@ namespace ACE.Server.WorldObjects
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             if (PhysicsObj.CurCell != null && PhysicsObj.CurCell.ID != Location.Cell)
                 Location.LandblockId = new LandblockId(PhysicsObj.CurCell.ID);
+
+            //DebugDistance();
+        }
+
+        public void DebugDistance()
+        {
+            var dist = GetDistanceToTarget();
+            Console.WriteLine("Dist: " + dist);
         }
 
         public void UpdateIndoorCells(Vector3 newPos)
@@ -257,7 +271,7 @@ namespace ACE.Server.WorldObjects
             var newCell = adjustCell.GetCell(newPos);
             if (newCell == null) return;
             if (newCell.Value == Location.LandblockId.Raw) return;
-            Location.LandblockId = new ACE.Entity.LandblockId(newCell.Value);
+            Location.LandblockId = new LandblockId(newCell.Value);
             //Console.WriteLine("Moving " + Name + " to indoor cell " + newCell.Value.ToString("X8"));
         }
 
@@ -289,7 +303,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void UpdateCell()
         {
-            var curCell = Physics.Common.LScape.get_landcell(Location.LandblockId.Raw);
+            var curCell = LScape.get_landcell(Location.LandblockId.Raw);
             //Console.WriteLine("Moving " + Name + " to " + curCell.ID.ToString("X8"));
             PhysicsObj.change_cell_server(curCell);
             //PhysicsObj.remove_shadows_from_cells();

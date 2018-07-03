@@ -128,7 +128,7 @@ namespace ACE.Server.Physics.Animation
         public void Subtract(AFrame frame)
         {
             Origin -= Vector3.Transform(frame.Origin, frame.Orientation);
-            Orientation = Quaternion.Multiply(Orientation, frame.Orientation);
+            Orientation = Quaternion.Multiply(Orientation, frame.Orientation);  // transpose?
         }
 
         public bool close_rotation(AFrame a, AFrame b)
