@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -15,6 +15,7 @@ namespace ACE.Database.Models.Shard
         public int TotalLogins { get; set; }
         public int CharacterOptions1 { get; set; }
         public int CharacterOptions2 { get; set; }
+        public byte[] GameplayOptions { get; set; }
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 

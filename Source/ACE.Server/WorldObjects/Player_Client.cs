@@ -76,6 +76,16 @@ namespace ACE.Server.WorldObjects
             SetProperty(PropertyInt.CharacterOptions2, value);
         }
 
+        private byte[] GameplayOptions;
+        public void SetGameplayOptions(byte[] value)
+        {
+            GameplayOptions = value;
+        }
+        public byte[] GetGameplayOptions()
+        {
+            return GameplayOptions;
+        }
+
 
         // =====================================
         // 1-9 Shortcuts
