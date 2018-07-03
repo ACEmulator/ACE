@@ -97,6 +97,8 @@ namespace ACE.Server.Factories
                     return new SpellProjectile(weenie, guid);
                 case WeenieType.HotSpot:
                     return new Hotspot(weenie, guid);
+                case WeenieType.ManaStone:
+                    return new ManaStone(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }

@@ -1,5 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -45,12 +46,20 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaStoneDestroyChance); else SetProperty(PropertyFloat.ManaStoneDestroyChance, value.Value); }
         }
 
+        public void SetUiEffect(Player player, UiEffects effect)
+        {
+            player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
+            UiEffects = effect;
+        }
+
         public void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             var useResult = WeenieError.None;
             if (!ItemCurMana.HasValue)
             {
-                if (target.ItemCurMana > 0)
+                if (target == player)
+                    useResult = WeenieError.ActionCancelled;
+                else if (target.ItemCurMana.HasValue && target.ItemCurMana.Value > 0)
                 {
                     // suck up the mana
                     if (target.Retained ?? false)
@@ -60,14 +69,13 @@ namespace ACE.Server.WorldObjects
                         var sourceMana = target.ItemCurMana.Value;
                         if (!player.TryRemoveFromInventoryWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
                         ItemCurMana = (int)(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} absorbs {ItemCurMana} mana.  The {target.Name} is destroyed.", ChatMessageType.Broadcast));
-                        // TODO: set icon to charged
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
                 else
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                    return;
+                    useResult = WeenieError.ItemDoesntHaveEnoughMana;
                 }
             }
             else if (ItemCurMana.Value > 0)
@@ -77,9 +85,10 @@ namespace ACE.Server.WorldObjects
                     // dump mana into equipped items
                     if (player.EquippedObjectsLoaded)
                     {
-                        var puddles = new Dictionary<ObjectGuid, int>();
+                        var puddles = new Dictionary<WorldObject, int>();
                         var manaAvailable = ItemCurMana.Value;
                         var continuePouring = true;
+
 
                         while (manaAvailable > 0 && continuePouring)
                         {
@@ -94,14 +103,13 @@ namespace ACE.Server.WorldObjects
                                 {
                                     k.Value.ItemCurMana += manaToPour;
                                     manaAvailable -= manaToPour;
-                                    if (puddles.ContainsKey(k.Key))
-                                        puddles[k.Key] += manaToPour;
+                                    if (puddles.Any(c => c.Key.Guid == k.Key))
+                                        puddles[k.Value] += manaToPour;
                                     else
-                                        puddles[k.Key] = manaToPour;
+                                        puddles[k.Value] = manaToPour;
                                 }
                             });
                         }
-                        puddles.ToList().ForEach(k => player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} gives {player.EquippedObjects[k.Key].Name} {k.Value} mana.", ChatMessageType.Broadcast)));
                         if (puddles.Count < 1)
                         {
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have no items equipped that need mana.", ChatMessageType.Broadcast));
@@ -109,7 +117,12 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
-                            // TODO: set icon to discharged
+                            var itemsNeedingMana = player.EquippedObjects.Where(k => k.Value.ItemCurMana.HasValue && k.Value.ItemMaxMana.HasValue && k.Value.ItemCurMana.Value < k.Value.ItemMaxMana.Value).ToList();
+                            var additionalManaNeeded = itemsNeedingMana.Sum(k => k.Value.ItemMaxMana.Value - k.Value.ItemCurMana.Value);
+                            var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded} more mana to fully charge your items." : string.Empty;
+                            var msg = $"The {Name} gives {puddles.Sum(k => k.Value).ToString("n0")} points of mana to the following items: {puddles.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}{additionalManaText}";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                            SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
                             ItemCurMana = null;
                             Destroy(player, true);
                         }
@@ -117,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (target.ItemMaxMana.HasValue)
                 {
-                    if (target.ItemCurMana.Value == target.ItemMaxMana.Value)
+                    if (target.ItemCurMana.Value >= target.ItemMaxMana.Value)
                     {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {target.Name} is already full of mana.", ChatMessageType.Broadcast));
                     }
@@ -126,9 +139,12 @@ namespace ACE.Server.WorldObjects
                         var targetManaNeeded = target.ItemCurMana.HasValue ? (target.ItemMaxMana.Value - target.ItemCurMana.Value) : target.ItemMaxMana.Value;
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
                         target.ItemCurMana += manaToPour;
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} gives {target.Name} {manaToPour} mana.", ChatMessageType.Broadcast));
+                        var additionalManaNeeded = targetManaNeeded - manaToPour;
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded} more mana to fully charge your {target.Name}." : string.Empty;
+                        var msg = $"The {Name} gives {manaToPour} points of mana to the {target.Name}.{additionalManaText}";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                         Destroy(player, true);
-                        // TODO: set icon to discharged
+                        SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
                     }
                 }
             }
@@ -143,7 +159,7 @@ namespace ACE.Server.WorldObjects
             bool destroy = false;
             if (!rollTheDice) destroy = true;
             var dice = Physics.Common.Random.RollDice(0.0f, 1.0f);
-            if (dice > DestroyChance) destroy = true;
+            if (dice < DestroyChance) destroy = true;
             if (destroy)
             {
                 player.TryRemoveFromInventoryWithNetworking(this);
