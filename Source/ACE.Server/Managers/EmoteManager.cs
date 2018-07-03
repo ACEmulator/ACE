@@ -1,5 +1,7 @@
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -995,10 +997,29 @@ namespace ACE.Server.Managers
                     });
                     break;
 
+                case EmoteType.CastSpellInstant:
+                    var creature2 = sourceObject is Creature ? (Creature)sourceObject : null;
+                    SpellTable spellTable = DatManager.PortalDat.SpellTable;
+                    SpellBase spell = spellTable.Spells[(uint)emoteAction.SpellId];
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        if (spell.TargetEffect > 0)
+                        {
+                            Console.WriteLine("Should be casting " + (uint)emoteAction.SpellId + " here. TargetEffect was greater than 0");
+                            creature2.CreateCreatureSpell(targetObject.Guid, (uint)emoteAction.SpellId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Target effect was equal to 0");
+                            creature2.CreateCreatureSpell((uint)emoteAction.SpellId);
+                        }
+                    });
+                    break;
+
                 case EmoteType.Turn:
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     creature = sourceObject is Creature ? (Creature)sourceObject : null;
-                    var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
+                    var pos = new ACE.Entity.Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
                     actionChain.AddAction(sourceObject, () =>
                     {
                         creature.TurnTo(pos);
