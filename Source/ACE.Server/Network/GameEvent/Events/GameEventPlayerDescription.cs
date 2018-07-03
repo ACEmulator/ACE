@@ -299,7 +299,7 @@ namespace ACE.Server.Network.GameEvent.Events
             if (shortcuts.Count > 0)
                 optionFlags |= CharacterOptionDataFlag.Shortcut;
 
-            if (Session.Character.GameplayOptions.Length > 0)
+            if (Session.Character.GameplayOptions != null && Session.Character.GameplayOptions.Length > 0)
                 optionFlags |= CharacterOptionDataFlag.GameplayOptions;
 
             Writer.Write((uint)optionFlags);
