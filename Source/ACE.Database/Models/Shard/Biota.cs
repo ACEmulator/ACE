@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -26,6 +26,7 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesInt64 = new HashSet<BiotaPropertiesInt64>();
             BiotaPropertiesPalette = new HashSet<BiotaPropertiesPalette>();
             BiotaPropertiesPosition = new HashSet<BiotaPropertiesPosition>();
+            BiotaPropertiesQuestRegistry = new HashSet<BiotaPropertiesQuestRegistry>();
             BiotaPropertiesSkill = new HashSet<BiotaPropertiesSkill>();
             BiotaPropertiesSpellBook = new HashSet<BiotaPropertiesSpellBook>();
             BiotaPropertiesString = new HashSet<BiotaPropertiesString>();
@@ -70,6 +71,7 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
         public ICollection<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
         public ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
+        public ICollection<BiotaPropertiesQuestRegistry> BiotaPropertiesQuestRegistry { get; set; }
         public ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
         public ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
         public ICollection<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
