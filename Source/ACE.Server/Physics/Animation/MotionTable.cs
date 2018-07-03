@@ -20,11 +20,13 @@ namespace ACE.Server.Physics.Animation
 
         public static Dictionary<uint, float> WalkSpeed;
         public static Dictionary<uint, float> RunSpeed;
+        public static Dictionary<uint, float> TurnSpeed;
 
         static MotionTable()
         {
             WalkSpeed = new Dictionary<uint, float>();
             RunSpeed = new Dictionary<uint, float>();
+            TurnSpeed = new Dictionary<uint, float>();
         }
 
         public MotionTable()
@@ -448,6 +450,24 @@ namespace ACE.Server.Physics.Animation
 
             var speed = GetAnimDist(motionData);
             RunSpeed.Add(motionTableID, speed);
+            return speed;
+        }
+
+        /// <summary>
+        /// Returns the rotational velocity / omega for a turning animation
+        /// </summary>
+        public static float GetTurnSpeed(uint motionTableID)
+        {
+            if (TurnSpeed.TryGetValue(motionTableID, out float turnSpeed))
+                return turnSpeed;
+
+            uint turnMotion = 0x6500000d;
+            var motionData = GetMotionData(motionTableID, turnMotion);
+            if (motionData == null)
+                return 0.0f;
+
+            var speed = Math.Abs(motionData.Omega.Z);
+            TurnSpeed.Add(motionTableID, speed);
             return speed;
         }
 

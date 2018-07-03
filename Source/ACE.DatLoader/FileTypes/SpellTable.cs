@@ -13,14 +13,17 @@ namespace ACE.DatLoader.FileTypes
 
         public Dictionary<uint, SpellBase> Spells { get; } = new Dictionary<uint, SpellBase>();
 
+        /// <summary>
+        /// the key uint refers to the SpellSetID, set in PropInt.EquipmentSetId
+        /// </summary>
+        public Dictionary<uint, SpellSet> SpellSet { get; } = new Dictionary<uint, SpellSet>();
+
         public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
             Spells.UnpackPackedHashTable(reader);
-
-            // TODO: I don't know why, but the reader doesn't align properly with the length here
-            reader.BaseStream.Position = reader.BaseStream.Length;
+            SpellSet.UnpackPackedHashTable(reader);
         }
 
         /// <summary>

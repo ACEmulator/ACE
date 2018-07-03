@@ -1311,6 +1311,11 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.GameplayOptions)
+                    .HasColumnName("gameplay_Options")
+                    .HasColumnType("blob")
+                    .HasDefaultValueSql(null);
+
                 entity.Property(e => e.DefaultHairTexture)
                     .HasColumnName("default_Hair_Texture")
                     .HasDefaultValueSql("'0'");

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
+using ACE.Server.Network.Enum;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -118,15 +120,64 @@ namespace ACE.Server.Network.GameAction.Actions
                 message.Payload.ReadString16L(); // TODO: verify this is correct
             }
 
-            // TODO: Not sure on the order of the next 3 or how to parse them
-
+            // SquelchList doesn't get used by the client, so should never be set.
             // if ((flags & (uint)CharacterOptionDataFlag.SquelchList) != 0) { }
 
-            // if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0) { }
+            // TODO: Read these properly and do something with the values
+            // This functionality taken from aclogview.
+            if ((flags & (uint)CharacterOptionDataFlag.GenericQualitiesData) != 0)
+            {
+                // GenericQualitiesData m_pPlayerOptionsData
 
-            // if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0) { }
+                // We're not going to use these just yet...
+                uint genericQualitiesHeader = message.Payload.ReadUInt32();
+                if ((genericQualitiesHeader & (uint)GenericQualitiesPackHeader.Packed_IntStats) != 0)
+                {
+                    uint sizeInfo = message.Payload.ReadUInt32();
+                    uint _currNum = sizeInfo & 0xFFFF;
+                    for (int i = 0; i < _currNum; ++i)
+                        message.Payload.Skip(8); // 4 bytes for key, 4 for value
+                }
+                if ((genericQualitiesHeader & (uint)GenericQualitiesPackHeader.Packed_BoolStats) != 0)
+                {
+                    uint sizeInfo = message.Payload.ReadUInt32();
+                    uint _currNum = sizeInfo & 0xFFFF;
+                    for (int i = 0; i < _currNum; ++i)
+                        message.Payload.Skip(8); // 4 bytes for key, 4 for value
+                }
+                if ((genericQualitiesHeader & (uint)GenericQualitiesPackHeader.Packed_FloatStats) != 0)
+                {
+                    uint sizeInfo = message.Payload.ReadUInt32();
+                    uint _currNum = sizeInfo & 0xFFFF;
+                    for (int i = 0; i < _currNum; ++i)
+                    {
+                        message.Payload.Skip(4); // 4 bytes for key
+                        message.Payload.ReadString16L(); // read the PStringChar
+                    }
+                }
+                if ((genericQualitiesHeader & (uint)GenericQualitiesPackHeader.Packed_StringStats) != 0)
+                {
+                    uint sizeInfo = message.Payload.ReadUInt32();
+                    uint _currNum = sizeInfo & 0xFFFF;
+                    for (int i = 0; i < _currNum; ++i)
+                        message.Payload.Skip(8); // 4 bytes for key, 4 for value
+                }
+            }
 
-            // TODO: Set other options from the packet
+            // Window / UI Layout, Opacity, etc
+            if ((flags & (uint)CharacterOptionDataFlag.GameplayOptions) != 0)
+            {
+                // This is the  last message... So it should be all that is left.
+                int size = (int)(message.Payload.BaseStream.Length - message.Payload.BaseStream.Position);
+
+                byte[] gameplayOptions = new byte[size];
+                gameplayOptions = message.Payload.ReadBytes(size);
+                session.Character.GameplayOptions = gameplayOptions;
+
+                // Not sure if this is the best way to do this, but only way it saves.
+                // Is this thread safe?
+                ACE.Database.DatabaseManager.Shard.SaveCharacter(session.Character, null);
+            }
 
             // Save the options
             session.Player.SaveBiotaToDatabase();
