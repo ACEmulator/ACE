@@ -170,6 +170,7 @@ namespace ACE.Server.WorldObjects
             {
                 var invSource = GetInventoryItem(sourceObjectId);
                 var invTarget = GetInventoryItem(targetObjectId);
+                var invWielded = GetWieldedItem(targetObjectId);
 
                 var worldTarget = (invTarget == null) ? CurrentLandblock.GetObject(targetObjectId) : null;
 
@@ -212,6 +213,14 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                         RecipeManager.UseObjectOnTarget(this, invSource, this);
+                }
+                else if (invWielded != null)
+                {
+                    if (invSource.WeenieType == WeenieType.ManaStone)
+                    {
+                        var stone = invSource as ManaStone;
+                        stone.HandleActionUseOnTarget(this, invWielded);
+                    }
                 }
                 else
                 {

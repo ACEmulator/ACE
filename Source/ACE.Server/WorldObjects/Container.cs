@@ -121,7 +121,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This method will check all containers in our possession. Inventory in main or any packs or equipped.
+        /// This method will check all containers in our possession. Inventory in main or any packs,
         /// </summary>
         public bool HasInventoryItem(ObjectGuid objectGuid)
         {
@@ -129,7 +129,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This method is used to get anything in our posession. Inventory in main or any packs or equipped.
+        /// This method is used to get anything in our posession. Inventory in main or any packs,
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
@@ -137,19 +137,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This method is used to get anything in our posession. Inventory in main or any packs or equipped.
+        /// This method is used to get anything in our posession. Inventory in main or any packs,
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid, out Container container)
         {
-            // First search my wielded items..
-            var wielded = (this as Player)?.GetWieldedItem(objectGuid);
-            if (wielded != null)
-            {
-                container = this;
-                return wielded;
-            }
-
-            // Next search my main pack for this item..
+            // First search my main pack for this item..
             if (Inventory.TryGetValue(objectGuid, out var value))
             {
                 container = this;
