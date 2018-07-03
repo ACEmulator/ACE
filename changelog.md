@@ -2,6 +2,7 @@
 
 ### 2018-07-02
 [OptimShi]
+* Added UI Window/Saving. Note this requires an SQL update in \Database\Updates\Shard\
 * Finished parsing the DatLoader.SpellTable and added in Spell Sets.
 
 ### 2018-07-01

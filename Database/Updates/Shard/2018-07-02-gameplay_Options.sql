@@ -1,0 +1,1 @@
+ALTER TABLE `character` ADD `gameplay_Options` BLOB NULL DEFAULT NULL AFTER `character_Options_2`; 
