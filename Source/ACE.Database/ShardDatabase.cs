@@ -335,7 +335,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesPalette)
                 .Include(r => r.BiotaPropertiesPosition)
                 .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.BiotaPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
                 .Include(r => r.BiotaPropertiesSkill)
                 .Include(r => r.CharacterPropertiesSpellBar)
                 .Include(r => r.BiotaPropertiesSpellBook)
@@ -377,7 +377,7 @@ namespace ACE.Database
                     .Include(r => r.BiotaPropertiesInt64)
                     //.Include(r => r.BiotaPropertiesPalette)
                     .Include(r => r.BiotaPropertiesPosition)
-                    .Include(r => r.BiotaPropertiesQuestRegistry)
+                    .Include(r => r.CharacterPropertiesQuestRegistry)
                     .Include(r => r.CharacterPropertiesShortcutBar)       // Player Only
                     .Include(r => r.BiotaPropertiesSkill)
                     .Include(r => r.CharacterPropertiesSpellBar)                // Player Only
@@ -434,7 +434,7 @@ namespace ACE.Database
                 biota.BiotaPropertiesEmoteAction = context.BiotaPropertiesEmoteAction.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesQuestRegistry = context.BiotaPropertiesQuestRegistry.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.CharacterPropertiesQuestRegistry = context.CharacterPropertiesQuestRegistry.Where(r => r.ObjectId == biota.Id).ToList();
             // Player only
             //biota.BiotaPropertiesFillCompBook = context.BiotaPropertiesFillCompBook.Where(r => r.ObjectId == biota.Id).ToList();
             //biota.BiotaPropertiesFriendListFriend = context.BiotaPropertiesFriendList.Where(r => r.FriendId == biota.Id).ToList();

@@ -22,7 +22,7 @@ namespace ACE.Server.Managers
     public class QuestManager
     {
         public WorldObject WorldObject { get; }
-        public ICollection<BiotaPropertiesQuestRegistry> Quests { get; }
+        public ICollection<CharacterPropertiesQuestRegistry> Quests { get; }
 
         /// <summary>
         /// Constructs a new QuestManager for a WorldObject
@@ -30,7 +30,7 @@ namespace ACE.Server.Managers
         public QuestManager(WorldObject obj)
         {
             WorldObject = obj;
-            Quests = WorldObject.Biota.BiotaPropertiesQuestRegistry;
+            Quests = WorldObject.Biota.CharacterPropertiesQuestRegistry;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public void Add(String qName, WorldObject wo)
         {
-            var result = (wo.Biota.BiotaPropertiesQuestRegistry.Where(quest => quest.QuestName == qName));
+            var result = (wo.Biota.CharacterPropertiesQuestRegistry.Where(quest => quest.QuestName == qName));
             if (result.Count() != 0)
             {
                 result.FirstOrDefault().NumTimesCompleted += 1;
@@ -46,7 +46,7 @@ namespace ACE.Server.Managers
             }
             else
             {
-                BiotaPropertiesQuestRegistry quest2 = new BiotaPropertiesQuestRegistry
+                CharacterPropertiesQuestRegistry quest2 = new CharacterPropertiesQuestRegistry
                 {
                     QuestName = qName,
                     ObjectId = (uint)wo.Guid.Full,
@@ -54,7 +54,7 @@ namespace ACE.Server.Managers
                     NumTimesCompleted = 1
                 };
                 Console.WriteLine("Adding quest to DB");
-                wo.Biota.BiotaPropertiesQuestRegistry.Add(quest2);
+                wo.Biota.CharacterPropertiesQuestRegistry.Add(quest2);
                 SaveDatabase(wo);
             }
         }
@@ -77,11 +77,11 @@ namespace ACE.Server.Managers
         public void Erase(String qName, WorldObject wo)
         {
 
-            foreach(BiotaPropertiesQuestRegistry q in wo.Biota.BiotaPropertiesQuestRegistry.ToList())
+            foreach(CharacterPropertiesQuestRegistry q in wo.Biota.CharacterPropertiesQuestRegistry.ToList())
             {
                 if (q.QuestName.Equals(qName))
                 {
-                    wo.Biota.BiotaPropertiesQuestRegistry.Remove(q);
+                    wo.Biota.CharacterPropertiesQuestRegistry.Remove(q);
                 }
             }
 
@@ -91,17 +91,17 @@ namespace ACE.Server.Managers
         public static void PrintQuests(Player player)
         {
             Console.WriteLine("inside print quests");
-            if (player.Biota.BiotaPropertiesQuestRegistry.Count() == 0)
+            if (player.Biota.CharacterPropertiesQuestRegistry.Count() == 0)
             {
                 Console.WriteLine("Quests are empty for " + player.Name);
             }
-            for (int i = 0; i < player.Biota.BiotaPropertiesQuestRegistry.Count(); i++)
+            for (int i = 0; i < player.Biota.CharacterPropertiesQuestRegistry.Count(); i++)
             {
-                Console.WriteLine("Quest Name: " + player.Biota.BiotaPropertiesQuestRegistry.ElementAt(i).QuestName);
-                Console.WriteLine("Times Completed" + player.Biota.BiotaPropertiesQuestRegistry.ElementAt(i).NumTimesCompleted);
-                Console.WriteLine("Last Time Completed" + player.Biota.BiotaPropertiesQuestRegistry.ElementAt(i).LastTimeCompleted);
-                Console.WriteLine("ID" + player.Biota.BiotaPropertiesQuestRegistry.ElementAt(i).Id);
-                Console.WriteLine("Object ID" + player.Biota.BiotaPropertiesQuestRegistry.ElementAt(i).ObjectId);
+                Console.WriteLine("Quest Name: " + player.Biota.CharacterPropertiesQuestRegistry.ElementAt(i).QuestName);
+                Console.WriteLine("Times Completed" + player.Biota.CharacterPropertiesQuestRegistry.ElementAt(i).NumTimesCompleted);
+                Console.WriteLine("Last Time Completed" + player.Biota.CharacterPropertiesQuestRegistry.ElementAt(i).LastTimeCompleted);
+                Console.WriteLine("ID" + player.Biota.CharacterPropertiesQuestRegistry.ElementAt(i).Id);
+                Console.WriteLine("Object ID" + player.Biota.CharacterPropertiesQuestRegistry.ElementAt(i).ObjectId);
             }
         }
 
@@ -109,7 +109,7 @@ namespace ACE.Server.Managers
         {
             Console.WriteLine("Looking for quest name: " + qName + "  inside of " + wo.Name);
 
-            var quest = (wo.Biota.BiotaPropertiesQuestRegistry.Where(quest2 => quest2.QuestName.Equals(qName)));
+            var quest = (wo.Biota.CharacterPropertiesQuestRegistry.Where(quest2 => quest2.QuestName.Equals(qName)));
             Console.WriteLine("Quest count: " + quest.Count());
             if (quest.Count() == 0)
             {
