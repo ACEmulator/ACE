@@ -35,7 +35,8 @@ namespace ACE.DatLoader.FileTypes
 
             if (strToHash.Length > 0)
             {
-                byte[] str = Encoding.Default.GetBytes(strToHash);
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                byte[] str = Encoding.GetEncoding(1252).GetBytes(strToHash);
 
                 foreach (byte c in str)                
                 {

@@ -103,7 +103,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (AnimList.First != null)
             {
-                update_internal(quantum, CurrAnim.Value, FrameNumber, ref offsetFrame);
+                update_internal(quantum, ref CurrAnim, ref FrameNumber, ref offsetFrame);
                 apricot();
             }
             else if (offsetFrame != null)
@@ -112,42 +112,61 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public void advance_to_next_animation(float timeElapsed, AnimSequenceNode currAnim, ref float frameNum, AFrame frame)
+        public void advance_to_next_animation(float timeElapsed, ref LinkedListNode<AnimSequenceNode> animNode, ref float frameNum, ref AFrame frame)
         {
-            var firstFrame = currAnim.Framerate >= 0.0f;
-            var secondFrame = currAnim.Framerate < 0.0f;
+            var currAnim = animNode.Value;
 
-            if (timeElapsed >= 0.0)
+            if (timeElapsed >= 0.0f)
             {
-                firstFrame = currAnim.Framerate < 0.0f;
-                secondFrame = currAnim.Framerate > 0.0f;
-            }
-            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, firstFrame, true);
-
-            if (currAnim.GetNext() != null)
-                currAnim = currAnim.GetNext();
-            else
-                currAnim = FirstCyclic.Value;
-
-            // ref?
-            frameNum = currAnim.get_starting_frame();
-
-            advance_to_next_animation_inner(timeElapsed, currAnim, frameNum, frame, secondFrame, false);
-        }
-
-        public void advance_to_next_animation_inner(float timeElapsed, AnimSequenceNode currAnim, double frameNum, AFrame frame, bool checkFrame, bool firstCheck)
-        {
-            if (frame != null && checkFrame)
-            {
-                if (currAnim.Anim.PosFrames.Count > 0)
+                if (frame != null && currAnim.Framerate < 0.0f)
                 {
-                    if (firstCheck)
-                        frame.Subtract(currAnim.get_pos_frame((int)Math.Floor(frameNum)));
-                    else
-                        frame = AFrame.Combine(frame, currAnim.get_pos_frame((int)Math.Floor(frameNum)));
+                    if (currAnim.Anim.PosFrames.Count > 0)
+                        frame.Subtract(currAnim.get_pos_frame((int)frameNum));
+                    if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
+                        apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
                 }
-                if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
-                    apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
+                if (animNode.Next != null)
+                    animNode = animNode.Next;
+                else
+                    animNode = FirstCyclic;
+
+                //currAnim = animNode.Value;
+
+                frameNum = currAnim.get_starting_frame();
+
+                if (frame != null && currAnim.Framerate > 0.0f)
+                {
+                    if (currAnim.Anim.PosFrames.Count > 0)
+                        frame = AFrame.Combine(frame, currAnim.get_pos_frame((int)frameNum));
+                    if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
+                        apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
+                }
+            }
+            else
+            {
+                if (frame != null && currAnim.Framerate >= 0.0f)
+                {
+                    if (currAnim.Anim.PosFrames.Count > 0)
+                        frame.Subtract(currAnim.get_pos_frame((int)frameNum));
+                    if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
+                        apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
+                }
+                if (animNode.Previous != null)
+                    animNode = animNode.Previous;
+                else
+                    animNode = animNode.List.Last;
+
+                //currAnim = animNode.Value;
+
+                frameNum = currAnim.get_ending_frame();
+
+                if (frame != null && currAnim.Framerate < 0.0f)
+                {
+                    if (currAnim.Anim.PosFrames.Count > 0)
+                        frame = AFrame.Combine(frame, currAnim.get_pos_frame((int)frameNum));
+                    if (Math.Abs(currAnim.Framerate) > PhysicsGlobals.EPSILON)
+                        apply_physics(frame, 1.0f / currAnim.Framerate, timeElapsed);
+                }
             }
         }
 
@@ -299,14 +318,15 @@ namespace ACE.Server.Physics.Animation
             Omega -= omega;
         }
 
-        public void update_internal(float timeElapsed, AnimSequenceNode currAnim, float frameNum, ref AFrame frame)
+        public void update_internal(float timeElapsed, ref LinkedListNode<AnimSequenceNode> animNode, ref float frameNum, ref AFrame frame)
         {
+            var currAnim = animNode.Value;
+
             var framerate = currAnim.Framerate;
             var frametime = framerate * timeElapsed;
 
             var lastFrame = (int)Math.Floor(frameNum);
 
-            // ref?
             frameNum += frametime;
             var frameTimeElapsed = 0.0f;
             var animDone = false;
@@ -359,7 +379,7 @@ namespace ACE.Server.Physics.Animation
                     if (frame != null)
                     {
                         if (currAnim.Anim.PosFrames != null)
-                            frame = AFrame.Combine(frame, currAnim.get_pos_frame(lastFrame));
+                            frame.Subtract(currAnim.get_pos_frame(lastFrame));
 
                         if (Math.Abs(framerate) > PhysicsGlobals.EPSILON)
                             apply_physics(frame, 1.0f / framerate, timeElapsed);
@@ -387,11 +407,11 @@ namespace ACE.Server.Physics.Animation
                     HookObj.add_anim_hook(animHook);
                 }
             }
-            advance_to_next_animation(timeElapsed, currAnim, ref frameNum, frame);
+            advance_to_next_animation(timeElapsed, ref animNode, ref frameNum, ref frame);
             timeElapsed = frameTimeElapsed;
 
             // loop to next anim
-            update_internal(timeElapsed, currAnim, frameNum, ref frame);    
+            update_internal(timeElapsed, ref animNode, ref frameNum, ref frame);    
         }
     }
 }
