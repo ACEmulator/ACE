@@ -121,6 +121,12 @@ namespace ACE.Server.Entity.Actions
 
         public ActionChain AddDelaySeconds(double timeInSeconds)
         {
+            if (Double.IsNaN(timeInSeconds))
+            {
+                Console.WriteLine("WARNING: ActionChain.AddDelaySeconds(" + timeInSeconds + ")");
+                return this;
+            }
+
             AddAction(WorldManager.DelayManager, new DelayAction(WorldManager.SecondsToTicks(timeInSeconds)));
 
             return this;
@@ -128,6 +134,12 @@ namespace ACE.Server.Entity.Actions
 
         public ActionChain AddDelayTicks(double timeInTicks)
         {
+            if (Double.IsNaN(timeInTicks))
+            {
+                Console.WriteLine("WARNING: ActionChain.AddDelayTicks(" + timeInTicks + ")");
+                return this;
+            }
+
             AddAction(WorldManager.DelayManager, new DelayAction(timeInTicks));
 
             return this;
