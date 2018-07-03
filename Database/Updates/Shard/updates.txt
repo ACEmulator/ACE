@@ -9,3 +9,6 @@
 6/17/2017
 --------
 - Added 01-2017-07-06-LoginTimestamp - This adds the `loginTimestamp` field to the `vw_ace_character` view.
+
+07/02/2018
+- Added 2018-07-02-gameplay_Options - This field saves GameplayOptions (UI Window Placement & Options)

@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-02
+[OptimShi]
+* Added UI Window/Saving. Note this requires an SQL update in \Database\Updates\Shard\
+
 ### 2018-07-01
 [OptimShi]
 * Added CP1252 text encoding. Fixes some issues with Spell Formulas when spells used non ANSI characters as well as in sending strings to the client.

@@ -172,7 +172,11 @@ namespace ACE.Server.Network.GameAction.Actions
 
                 byte[] gameplayOptions = new byte[size];
                 gameplayOptions = message.Payload.ReadBytes(size);
-                session.Player.SetGameplayOptions(gameplayOptions);
+                session.Character.GameplayOptions = gameplayOptions;
+
+                // Not sure if this is the best way to do this, but only way it saves.
+                // Is this thread safe?
+                ACE.Database.DatabaseManager.Shard.SaveCharacter(session.Character, null);
             }
 
             // Save the options

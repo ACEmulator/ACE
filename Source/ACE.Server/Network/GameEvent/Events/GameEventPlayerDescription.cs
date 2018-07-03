@@ -299,6 +299,9 @@ namespace ACE.Server.Network.GameEvent.Events
             if (shortcuts.Count > 0)
                 optionFlags |= CharacterOptionDataFlag.Shortcut;
 
+            if (Session.Character.GameplayOptions.Length > 0)
+                optionFlags |= CharacterOptionDataFlag.GameplayOptions;
+
             Writer.Write((uint)optionFlags);
             Writer.Write((int)(Session.Player.GetProperty(PropertyInt.CharacterOptions1) ?? 0));
 
@@ -335,9 +338,8 @@ namespace ACE.Server.Network.GameEvent.Events
             {
             }*/
 
-            /*if ((optionFlags & DescriptionOptionFlag.WindowLayout) != 0)
-            {
-            }*/
+            if ((optionFlags & CharacterOptionDataFlag.GameplayOptions) != 0)
+                Writer.Write(Session.Character.GameplayOptions);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk400) != 0)
             {
