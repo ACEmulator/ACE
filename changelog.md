@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-02
+[OptimShi]
+* Finished parsing the DatLoader.SpellTable and added in Spell Sets.
+
 ### 2018-07-01
 [OptimShi]
 * Added CP1252 text encoding. Fixes some issues with Spell Formulas when spells used non ANSI characters as well as in sending strings to the client.
