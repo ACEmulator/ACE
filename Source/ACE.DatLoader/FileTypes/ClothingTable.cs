@@ -20,7 +20,7 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public Dictionary<uint, ClothingBaseEffect> ClothingBaseEffects { get; } = new Dictionary<uint, ClothingBaseEffect>();
         /// <summary>
-        /// Key is ?
+        /// Key is PaletteTemplate
         /// </summary>
         public Dictionary<uint, CloSubPalEffect> ClothingSubPalEffects { get; } = new Dictionary<uint, CloSubPalEffect>();
 
