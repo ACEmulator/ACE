@@ -97,6 +97,8 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)creature.Health.Current / creature.Health.MaxValue));
             }
+
+            OnAttackMonster(creature);
             return damage;
         }
 
