@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-04
+* Fixed an issue with the Replace AnimationHook
+* Added SoundTable (0x20...) parsing from the client_portal.dat.
+
 ### 2018-07-02
 [OptimShi]
 * Added UI Window/Saving. Note this requires an SQL update in \Database\Updates\Shard\
