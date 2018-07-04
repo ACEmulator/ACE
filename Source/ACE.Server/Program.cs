@@ -66,6 +66,8 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+
+            DatLoader.FileTypes.Animation item = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(0x0300055b);
         }
 
         private static void OnProcessExit(object sender, EventArgs e)
