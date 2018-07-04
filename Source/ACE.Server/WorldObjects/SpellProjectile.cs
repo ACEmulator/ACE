@@ -235,6 +235,8 @@ namespace ACE.Server.WorldObjects
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
+            var player = projectileCaster as Player;
+
             // Ensure target still exist before proceeding to handle collision
             //Creature target = CurrentLandblock.GetObject(guidTarget) as Creature;
             var target = _target as Creature;
@@ -253,6 +255,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
             }
+            var targetPlayer = target as Player;
 
             // Collision registered against a valid target that was not the intended target
             if (!target.Guid.Equals(targetGuid))
@@ -273,16 +276,12 @@ namespace ACE.Server.WorldObjects
             if (MagicDefenseCheck(casterMagicSkill, targetMagicDefenseSkill))
             {
                 CurrentLandblock.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
-                if (ParentWorldObject.WeenieClassId == 1)
-                {
-                    Player player = (Player)ParentWorldObject;
+
+                if (player != null)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));
-                }
-                if (target.WeenieClassId == 1)
-                {
-                    Player targetPlayer = (Player)target;
+
+                if (targetPlayer != null)
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
-                }
             }
             else
             {
@@ -294,10 +293,9 @@ namespace ACE.Server.WorldObjects
                 var targetVital = "";
                 if (spell.School == MagicSchool.LifeMagic)
                 {
-                    if (target.WeenieClassId == 1)
+                    if (targetPlayer != null)
                     {
                         // Player as the target
-                        Player targetPlayer = (Player)target;
                         if (spell.Name.Contains("Blight"))
                         {
                             targetVital = "mana";
@@ -329,19 +327,17 @@ namespace ACE.Server.WorldObjects
                                 targetPlayer.UpdateVital(targetPlayer.Health, (uint)newSpellTargetVital);
                         }
 
-                        var player = projectileCaster as Player;
                         string verb = null, plural = null;
                         Strings.GetAttackVerb(DamageType.Base, percent, ref verb, ref plural);
-                        if (projectileCaster.WeenieClassId == 1)
-                        {
+                        if (player != null)
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of damage!", ChatMessageType.Magic));
-                        }
+
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {damage} points of damage!", ChatMessageType.Magic));
 
                         if (targetPlayer.Health.Current <= 0)
                         {
                             targetPlayer.Die();
-                            if (projectileCaster.WeenieClassId == 1)
+                            if (player != null)
                             {
                                 Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
@@ -355,7 +351,6 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         // Creature as the target
-                        Player player = (Player)projectileCaster;
                         string verb = null, plural = null;
 
                         Creature targetCreature = (Creature)target;
@@ -449,10 +444,9 @@ namespace ACE.Server.WorldObjects
                     }
                     Strings.DeathMessages.TryGetValue(damageType, out var messages);
 
-                    if (target.WeenieClassId == 1)
+                    if (targetPlayer != null)
                     {
                         // Player as the target
-                        Player targetPlayer = (Player)target;
                         damage = (uint)Math.Round(damage * targetPlayer.GetNaturalResistence(resistanceType));
 
                         newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
@@ -465,20 +459,17 @@ namespace ACE.Server.WorldObjects
                         percent = (float)damage / targetPlayer.Health.MaxValue;
                         Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
                         var type = damageType.GetName().ToLower();
-                        var player = (Player)projectileCaster;
-                        if (projectileCaster.WeenieClassId == 1)
-                        {
+                        if (player != null)
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of {type} damage!", ChatMessageType.Magic));
-                        }
+
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {damage} points of {type} damage!", ChatMessageType.Magic));
 
                         if (targetPlayer.Health.Current <= 0)
                         {
                             targetPlayer.Die();
-                            if (projectileCaster.WeenieClassId == 1)
-                            {
+                            if (player != null)
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
-                            }
+
                             // TODO: death message to the player target
                         }
 
@@ -488,7 +479,6 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         // Creature as the target
-                        Player player = (Player)projectileCaster;
                         string verb = null, plural = null;
 
                         Creature targetCreature = (Creature)target;
@@ -517,6 +507,10 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
+
+            // also called on resist
+            if (player != null && targetPlayer == null)
+                player.OnAttackMonster(target);
         }
 
 
