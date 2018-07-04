@@ -655,6 +655,11 @@ namespace ACE.Server.WorldObjects
                             spellCreated = true;
                     }
                     item.IsActivated = spellCreated;
+                    if (item.IsActivated)
+                    {
+                        if (item.ItemCurMana.HasValue)
+                            item.ItemCurMana--;
+                    }
                 }
             }
             return spellCreated;

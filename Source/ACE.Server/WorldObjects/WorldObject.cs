@@ -82,6 +82,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public int ManaGiven { get; set; }
+
         public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
 
