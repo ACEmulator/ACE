@@ -13,8 +13,10 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
+
 using PhysicsState = ACE.Server.Physics.PhysicsState;
 
 namespace ACE.Server.WorldObjects
@@ -289,6 +291,7 @@ namespace ACE.Server.WorldObjects
 
                 int newSpellTargetVital;
 
+                var targetVital = "";
                 if (spell.School == MagicSchool.LifeMagic)
                 {
                     if (target.WeenieClassId == 1)
@@ -297,6 +300,7 @@ namespace ACE.Server.WorldObjects
                         Player targetPlayer = (Player)target;
                         if (spell.Name.Contains("Blight"))
                         {
+                            targetVital = "mana";
                             newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
                             percent = (float)damage / targetPlayer.Mana.MaxValue;
                             if (newSpellTargetVital <= 0)
@@ -306,6 +310,7 @@ namespace ACE.Server.WorldObjects
                         }
                         else if (spell.Name.Contains("Tenacity"))
                         {
+                            targetVital = "stamina";
                             newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
                             percent = (float)damage / targetPlayer.Stamina.MaxValue;
                             if (newSpellTargetVital <= 0)
@@ -315,6 +320,7 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
+                            targetVital = "health";
                             newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
                             percent = (float)damage / targetPlayer.Health.MaxValue;
                             if (newSpellTargetVital <= 0)
@@ -323,11 +329,11 @@ namespace ACE.Server.WorldObjects
                                 targetPlayer.UpdateVital(targetPlayer.Health, (uint)newSpellTargetVital);
                         }
 
+                        var player = projectileCaster as Player;
                         string verb = null, plural = null;
                         Strings.GetAttackVerb(DamageType.Base, percent, ref verb, ref plural);
                         if (projectileCaster.WeenieClassId == 1)
                         {
-                            Player player = (Player)projectileCaster;
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of damage!", ChatMessageType.Magic));
                         }
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {damage} points of damage!", ChatMessageType.Magic));
@@ -337,12 +343,14 @@ namespace ACE.Server.WorldObjects
                             targetPlayer.Die();
                             if (projectileCaster.WeenieClassId == 1)
                             {
-                                Player player = (Player)projectileCaster;
                                 Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
                             }
                             // TODO: death message to the player target
                         }
+
+                        if (player != null && targetVital != null && targetVital.Equals("health"))
+                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                     }
                     else
                     {
@@ -353,6 +361,7 @@ namespace ACE.Server.WorldObjects
                         Creature targetCreature = (Creature)target;
                         if (spell.Name.Contains("Blight"))
                         {
+                            targetVital = "mana";
                             newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
                             percent = (float)damage / targetCreature.Mana.MaxValue;
                             if (newSpellTargetVital <= 0)
@@ -362,6 +371,7 @@ namespace ACE.Server.WorldObjects
                         }
                         else if (spell.Name.Contains("Blight"))
                         {
+                            targetVital = "stamina";
                             newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
                             percent = (float)damage / targetCreature.Stamina.MaxValue;
                             if (newSpellTargetVital <= 0)
@@ -371,6 +381,7 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
+                            targetVital = "health";
                             newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
                             percent = (float)damage / targetCreature.Health.MaxValue;
                             if (newSpellTargetVital <= 0)
@@ -390,6 +401,9 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
                             player.EarnXP((long)targetCreature.XpOverride);
                         }
+
+                        if (player != null && targetVital != null && targetVital.Equals("health"))
+                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                     }
                 }
                 else
@@ -451,9 +465,9 @@ namespace ACE.Server.WorldObjects
                         percent = (float)damage / targetPlayer.Health.MaxValue;
                         Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
                         var type = damageType.GetName().ToLower();
+                        var player = (Player)projectileCaster;
                         if (projectileCaster.WeenieClassId == 1)
                         {
-                            Player player = (Player)projectileCaster;
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of {type} damage!", ChatMessageType.Magic));
                         }
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {damage} points of {type} damage!", ChatMessageType.Magic));
@@ -463,11 +477,13 @@ namespace ACE.Server.WorldObjects
                             targetPlayer.Die();
                             if (projectileCaster.WeenieClassId == 1)
                             {
-                                Player player = (Player)projectileCaster;
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
                             }
                             // TODO: death message to the player target
                         }
+
+                        if (player != null)
+                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                     }
                     else
                     {
@@ -495,6 +511,9 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
                             player.EarnXP((long)targetCreature.XpOverride);
                         }
+
+                        if (player != null)
+                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                     }
                 }
             }
