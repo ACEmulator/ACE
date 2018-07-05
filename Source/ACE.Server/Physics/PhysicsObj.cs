@@ -29,7 +29,7 @@ namespace ACE.Server.Physics
         public Vector3 PlayerVector;
         public float PlayerDistance;
         public float CYpt;
-        public SoundTable SoundTable;
+        public Sound.SoundTable SoundTable;
         public bool ExaminationObject;
         public ScriptManager ScriptManager;
         public PhysicsScriptTable PhysicsScriptTable;
@@ -2903,7 +2903,7 @@ namespace ACE.Server.Physics
             if (desc.STableID != 0)
             {
                 var qdid = new QualifiedDataID(desc.STableID, 0x22);
-                SoundTable = (SoundTable)DBObj.Get(qdid);
+                SoundTable = (Sound.SoundTable)DBObj.Get(qdid);
             }
 
             if (desc.PhsTableID != 0)

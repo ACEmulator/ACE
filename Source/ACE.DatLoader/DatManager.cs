@@ -15,6 +15,8 @@ namespace ACE.DatLoader
         public static CellDatDatabase CellDat { get; private set; }
 
         public static PortalDatDatabase PortalDat { get; private set; }
+        public static PortalDatDatabase HighResDat { get; private set; }
+        public static PortalDatDatabase LanguageDat { get; private set; }
 
         public static void Initialize(string datFileDirectory)
         {
@@ -45,6 +47,35 @@ namespace ACE.DatLoader
                 log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
                 log.Info($"Exception: {ex.Message}");
             }
+
+            try
+            {
+                datFile = Path.Combine(datDir, "client_highres.dat");
+                HighResDat = new PortalDatDatabase(datFile);
+                count = HighResDat.AllFiles.Count;
+                log.Info($"Successfully opened {datFile} file, containing {count} records");
+            }
+            catch (FileNotFoundException ex)
+            {
+                // We don't care if this file isn't loaded -- it's not needed for Server operations
+                // log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
+                // log.Info($"Exception: {ex.Message}");
+            }
+
+            try
+            {
+                datFile = Path.Combine(datDir, "client_local_English.dat");
+                LanguageDat = new PortalDatDatabase(datFile);
+                count = LanguageDat.AllFiles.Count;
+                log.Info($"Successfully opened {datFile} file, containing {count} records");
+            }
+            catch (FileNotFoundException ex)
+            {
+                // We don't care if this file isn't loaded -- it's not needed for Server operations
+                // log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
+                // log.Info($"Exception: {ex.Message}");
+            }
+
         }
     }
 }

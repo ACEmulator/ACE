@@ -112,14 +112,6 @@ namespace ACE.DatLoader.Tests
                 Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
 
                 // These file types aren't converted yet
-                if (fileType == DatFileType.RenderSurface) continue;
-                if (fileType == DatFileType.SecondaryAttributeTable) continue;
-                if (fileType == DatFileType.SkillTable) continue;
-                if (fileType == DatFileType.ChatPoseTable) continue;
-                if (fileType == DatFileType.BadData) continue;
-                if (fileType == DatFileType.NameFilterTable) continue;
-                if (fileType == DatFileType.QualityFilter) continue;
-                if (fileType == DatFileType.STable) continue;
                 if (fileType == DatFileType.EnumMapper) continue;
                 if (fileType == DatFileType.String) continue;
                 if (fileType == DatFileType.KeyMap) continue;
@@ -133,9 +125,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.Font) continue;
                 if (fileType == DatFileType.MasterProperty) continue;
                 if (fileType == DatFileType.DbProperties) continue;
-
-                // These have bugs
-                if (fileType == DatFileType.Animation && kvp.Value.ObjectId == 0x0300055b) continue; // This one seems corrupt
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new {m, a})
@@ -166,7 +155,6 @@ namespace ACE.DatLoader.Tests
                 }
             }
         }
-
 
         // uncomment if you want to run this
         // [TestMethod]
