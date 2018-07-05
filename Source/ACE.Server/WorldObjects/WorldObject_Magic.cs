@@ -8,14 +8,12 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
 using ACE.Server.Factories;
 using ACE.Server.Physics;
-using System.Diagnostics.Contracts;
 
 namespace ACE.Server.WorldObjects
 {
@@ -249,24 +247,24 @@ namespace ACE.Server.WorldObjects
         /// <param name="message"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out uint damage, out bool critical, out string message, string castByItem = null)
+        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out uint damage, out bool critical, out GameMessageSystemChat message, string castByItem = null)
         {
             critical = false;
-            string srcVital, destVital, action;
-            string targetMsg = null;
+            string srcVital, destVital;
+            GameMessageSystemChat targetMsg = null;
 
             Player player = null;
             Creature creature = null;
-            if (WeenieClassId == 1)
-                player = (Player)this;
-            else if (WeenieType == WeenieType.Creature)
-                creature = (Creature)this;
+            if (this is Player)
+                player = this as Player;
+            else if (this is Creature)
+                creature = this as Creature;
 
             Creature spellTarget;
-            if (spell.BaseRangeConstant == 0)
-                spellTarget = (Creature)this;
+            if (spell.BaseRangeConstant > 0)
+                spellTarget = target as Creature;
             else
-                spellTarget = (Creature)target;
+                spellTarget = this as Creature;
 
             int newSpellTargetVital;
             switch (spell.MetaSpellType)
@@ -284,16 +282,11 @@ namespace ACE.Server.WorldObjects
                         maxBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                     }
                     int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
-                    if (boost < 0)
-                    {
-                        action = "drain";
+                    if (boost <= 0)
                         damage = (uint)Math.Abs(boost);
-                    }
                     else
-                    {
-                        action = "restore";
                         damage = 0;
-                    }
+
                     switch (spellStatMod.DamageType)
                     {
                         case 512:   // Mana
@@ -338,16 +331,40 @@ namespace ACE.Server.WorldObjects
                     }
                     if (this is Player)
                     {
-                        if (spell.BaseRangeConstant == 0)
-                            message = $"You {action} {Math.Abs(boost).ToString()} {srcVital}";
+                        if (spell.BaseRangeConstant > 0)
+                        {
+                            string msg;
+                            if (boost <= 0)
+                            {
+                                msg = $"You drain {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
+                                message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                            }
+                            else
+                            {
+                                msg = $"You restore {Math.Abs(boost).ToString()} points of {srcVital} to {spellTarget.Name}";
+                                message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                            }
+                        }
                         else
-                            message = $"You {action} {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
+                            message = new GameMessageSystemChat($"You restore {Math.Abs(boost).ToString()} {srcVital}", ChatMessageType.Magic);
                     }
                     else
                         message = null;
 
                     if (target is Player && spell.BaseRangeConstant > 0)
-                        targetMsg = $"{Name} casts {spell.Name} and {action}s {Math.Abs(boost)} points of your {srcVital}.";
+                    {
+                        string msg;
+                        if (boost <= 0)
+                        {
+                            msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost).ToString()} points of your {srcVital}";
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                        }
+                        else
+                        {
+                            msg = $"{Name} casts {spell.Name} and restores {Math.Abs(boost).ToString()} points of your {srcVital}";
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                        }
+                    }
 
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
@@ -433,20 +450,20 @@ namespace ACE.Server.WorldObjects
                             break;
                     }
 
-                    if (WeenieClassId == 1)
+                    if (this is Player)
                     {
-                        if (target.Guid == Guid)
+                        if (target.Guid == player.Guid)
                         {
-                            message = $"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself";
+                            message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself", ChatMessageType.Magic);
                         }
                         else
-                            message = $"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself";
+                            message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself", ChatMessageType.Combat);
                     }
                     else
                         message = null;
 
                     if (target is Player && target != this)
-                        targetMsg = $"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you";
+                        targetMsg = new GameMessageSystemChat($"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you", ChatMessageType.Combat);
 
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
@@ -491,7 +508,7 @@ namespace ACE.Server.WorldObjects
                         caster.OnDeath();
                         caster.Die();
 
-                        if (caster.WeenieClassId == 1)
+                        if (caster is Player)
                         {
                             Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have killed yourself", ChatMessageType.Broadcast));
@@ -501,7 +518,7 @@ namespace ACE.Server.WorldObjects
                     break;
                 case SpellType.Dispel:
                     damage = 0;
-                    message = "Spell not implemented, yet!";
+                    message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                     break;
                 case SpellType.Enchantment:
                     damage = 0;
@@ -509,15 +526,12 @@ namespace ACE.Server.WorldObjects
                     break;
                 default:
                     damage = 0;
-                    message = "Spell not implemented, yet!";
+                    message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                     break;
             }
 
             if (targetMsg != null)
-            {
-                var playerTarget = target as Player;
-                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(targetMsg, ChatMessageType.Combat));
-            }
+                (target as Player).Session.Network.EnqueueSend(targetMsg);
 
             if (spellTarget.Health.Current == 0)
                 return true;
@@ -533,7 +547,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        protected GameMessageSystemChat CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             return CreateEnchantment(target, spell, spellStatMod, castByItem);
         }
@@ -545,7 +559,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
-        protected string ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        protected GameMessageSystemChat ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
@@ -593,7 +607,7 @@ namespace ACE.Server.WorldObjects
                 return CreateEnchantment(target, spell, spellStatMod, castByItem);
             }
 
-            return "";
+            return null;
         }
 
         /// <summary>
@@ -644,7 +658,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        private GameMessageSystemChat CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             double duration;
             if (castByItem == null)
@@ -692,7 +706,7 @@ namespace ACE.Server.WorldObjects
                     playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
 
-            return message;
+            return new GameMessageSystemChat(message, ChatMessageType.Magic);
         }
 
         /// <summary>
