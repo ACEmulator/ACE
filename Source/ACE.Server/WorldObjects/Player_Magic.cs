@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
                                 break;
                         }
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                        LifeMagic(player, spell, spellStatMod, out message, item.Name);
+                        LifeMagic(player, spell, spellStatMod, out uint damage, out bool critical, out message, item.Name);
                         if (message != null)
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                         break;
@@ -534,16 +534,29 @@ namespace ACE.Server.WorldObjects
                                     }
                                 }
                             }
+
                             CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                            targetDeath = LifeMagic(target, spell, spellStatMod, out message);
+                            targetDeath = LifeMagic(target, spell, spellStatMod, out uint damage, out bool critical, out message);
+
+                            AttackList.Add(new AttackDamage(player, damage, critical));
+
                             if (message != null)
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                             if (targetDeath == true)
                             {
+                                creatureTarget.UpdateVital(creatureTarget.Health, 0);
+                                creatureTarget.OnDeath();
                                 creatureTarget.Die();
+
                                 Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
-                                player.EarnXP((long)target.XpOverride);
+
+                                var topDamager = AttackDamage.GetTopDamager(AttackList);
+                                if (topDamager != null)
+                                    creatureTarget.Killer = topDamager.Guid.Full;
+
+                                if ((creatureTarget as Player) == null)
+                                    player.EarnXP((long)target.XpOverride);
                             }
                             break;
                         case MagicSchool.ItemEnchantment:

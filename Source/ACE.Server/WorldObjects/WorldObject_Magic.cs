@@ -15,6 +15,7 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
 using ACE.Server.Factories;
 using ACE.Server.Physics;
+using System.Diagnostics.Contracts;
 
 namespace ACE.Server.WorldObjects
 {
@@ -248,8 +249,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="message"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, string castByItem = null)
+        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out uint damage, out bool critical, out string message, string castByItem = null)
         {
+            critical = false;
             string srcVital, destVital, action;
             string targetMsg = null;
 
@@ -283,9 +285,15 @@ namespace ACE.Server.WorldObjects
                     }
                     int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
                     if (boost < 0)
+                    {
                         action = "drain";
+                        damage = (uint)Math.Abs(boost);
+                    }
                     else
+                    {
                         action = "restore";
+                        damage = 0;
+                    }
                     switch (spellStatMod.DamageType)
                     {
                         case 512:   // Mana
@@ -362,6 +370,7 @@ namespace ACE.Server.WorldObjects
                     else
                         resistanceDrain = ResistanceType.HealthDrain;
                     vitalChange = (uint)((spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion) * spellTarget.GetNaturalResistence(resistanceDrain));
+                    damage = vitalChange;
                     if (spellStatMod.TransferCap != 0)
                     {
                         if (vitalChange > spellStatMod.TransferCap)
@@ -446,7 +455,6 @@ namespace ACE.Server.WorldObjects
 
                 case SpellType.LifeProjectile:
                     caster = (Creature)this;
-                    uint damage;
                     if (spell.Name.Contains("Blight"))
                     {
                         damage = (uint)(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetNaturalResistence(ResistanceType.ManaDrain));
@@ -479,6 +487,8 @@ namespace ACE.Server.WorldObjects
 
                     if (caster.Health.Current <= 0)
                     {
+                        caster.UpdateVital(caster.Health, 0);
+                        caster.OnDeath();
                         caster.Die();
 
                         if (caster.WeenieClassId == 1)
@@ -490,12 +500,15 @@ namespace ACE.Server.WorldObjects
                     message = null;
                     break;
                 case SpellType.Dispel:
+                    damage = 0;
                     message = "Spell not implemented, yet!";
                     break;
                 case SpellType.Enchantment:
+                    damage = 0;
                     message = CreateEnchantment(target, spell, spellStatMod, castByItem);
                     break;
                 default:
+                    damage = 0;
                     message = "Spell not implemented, yet!";
                     break;
             }
@@ -508,8 +521,8 @@ namespace ACE.Server.WorldObjects
 
             if (spellTarget.Health.Current == 0)
                 return true;
-            else
-                return false;
+
+            return false;
         }
 
         /// <summary>
@@ -795,6 +808,129 @@ namespace ACE.Server.WorldObjects
             Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, targetVelocity, gravity, out Vector3 velocity, out time, out var impactPoint);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);
+        }
+
+        private static void GetDamageResistType(uint? eType, out DamageType damageType, out ResistanceType resistanceType)
+        {
+            switch (eType)
+            {
+                case null:
+                    damageType = DamageType.Undef;
+                    resistanceType = ResistanceType.Undef;
+                    break;
+                case (uint)DamageType.Acid:
+                    damageType = DamageType.Acid;
+                    resistanceType = ResistanceType.Acid;
+                    break;
+                case (uint)DamageType.Fire:
+                    damageType = DamageType.Fire;
+                    resistanceType = ResistanceType.Fire;
+                    break;
+                case (uint)DamageType.Cold:
+                    damageType = DamageType.Cold;
+                    resistanceType = ResistanceType.Cold;
+                    break;
+                case (uint)DamageType.Electric:
+                    damageType = DamageType.Electric;
+                    resistanceType = ResistanceType.Electric;
+                    break;
+                case (uint)DamageType.Nether:
+                    damageType = DamageType.Nether;
+                    resistanceType = ResistanceType.Nether;
+                    break;
+                case (uint)DamageType.Bludgeon:
+                    damageType = DamageType.Bludgeon;
+                    resistanceType = ResistanceType.Bludgeon;
+                    break;
+                case (uint)DamageType.Pierce:
+                    damageType = DamageType.Pierce;
+                    resistanceType = ResistanceType.Pierce;
+                    break;
+                case (uint)DamageType.Health:
+                    damageType = DamageType.Health;
+                    resistanceType = ResistanceType.HealthDrain;
+                    break;
+                case (uint)DamageType.Stamina:
+                    damageType = DamageType.Stamina;
+                    resistanceType = ResistanceType.StaminaDrain;
+                    break;
+                case (uint)DamageType.Mana:
+                    damageType = DamageType.Mana;
+                    resistanceType = ResistanceType.ManaDrain;
+                    break;
+                default:
+                    damageType = DamageType.Slash;
+                    resistanceType = ResistanceType.Slash;
+                    break;
+            }
+
+            return;
+        }
+
+        private enum MagicCritType
+        {
+            NoCrit,
+            PvPCrit,
+            PvECrit
+        }
+
+        public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
+        {
+            double damageBonus = 0.0f, minDamageBonus = 0, maxDamageBonus = 0, attonmentBonus = 0.0f, finalDamage = 0.0f;
+            MagicCritType magicCritType;
+
+            GetDamageResistType(spellStatMod.EType, out damageType, out ResistanceType resistanceType);
+
+            if (MagicDefenseCheck(source.GetCreatureSkill(spell.School).Current, target.GetCreatureSkill(Skill.MagicDefense).Current))
+                return null;
+
+            // critical hit
+            var critical = 0.2f;
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
+                criticalHit = true;
+
+            if (criticalHit == true)
+            {
+                if (((source as Player) != null) && ((target as Player) != null)) // PvP
+                    magicCritType = MagicCritType.PvPCrit;
+                else if ((((source as Player) != null) && ((target as Player) == null))) // PvE
+                    magicCritType = MagicCritType.PvECrit;
+                else
+                    magicCritType = MagicCritType.NoCrit;
+            }
+            else
+                magicCritType = MagicCritType.NoCrit;
+
+            if (spell.School == MagicSchool.LifeMagic)
+            {
+                if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage
+                    damageBonus = lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f) * 0.5f;
+
+                if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage
+                    damageBonus = lifeMagicDamage * 0.5f;
+
+                finalDamage = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f)) + damageBonus;
+            }
+            else
+            {
+                if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage roll
+                    maxDamageBonus = ((spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) * 0.5f;
+                else if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage roll
+                    minDamageBonus = (spellStatMod.BaseIntensity ?? 0) * 0.5f;
+
+                if (((source as Player) != null) && (spell.School == MagicSchool.WarMagic))
+                {
+                    if (source.GetCreatureSkill(spell.School).Current > spell.Power)
+                    {
+                        var percentageBonus = ((source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f) + 1.0f;
+                        attonmentBonus = (spellStatMod.BaseIntensity ?? 0) * percentageBonus;
+                    }
+                }
+
+                finalDamage = Physics.Common.Random.RollDice((spellStatMod.BaseIntensity ?? 0), (spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) + minDamageBonus + maxDamageBonus + attonmentBonus;
+            }
+
+            return finalDamage * target.GetNaturalResistence(resistanceType);
         }
     }
 }

@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
                         var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
                         var msg = string.Empty;
                         player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
-                        LifeMagic(player, spellBase, spell, out msg);
+                        LifeMagic(player, spellBase, spell, out uint damage, out bool critical, out msg);
                         //player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
                         player.SendUseDoneEvent();
                         return;
