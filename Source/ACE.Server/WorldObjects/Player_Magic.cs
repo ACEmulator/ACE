@@ -541,7 +541,7 @@ namespace ACE.Server.WorldObjects
                             AttackList.Add(new AttackDamage(player, damage, critical));
 
                             if (message != null)
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Combat));
                             if (targetDeath == true)
                             {
                                 creatureTarget.UpdateVital(creatureTarget.Health, 0);

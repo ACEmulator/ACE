@@ -516,7 +516,7 @@ namespace ACE.Server.WorldObjects
             if (targetMsg != null)
             {
                 var playerTarget = target as Player;
-                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(targetMsg, ChatMessageType.Magic));
+                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(targetMsg, ChatMessageType.Combat));
             }
 
             if (spellTarget.Health.Current == 0)
@@ -876,7 +876,7 @@ namespace ACE.Server.WorldObjects
 
         public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
         {
-            double damageBonus = 0.0f, minDamageBonus = 0, maxDamageBonus = 0, attonmentBonus = 0.0f, finalDamage = 0.0f;
+            double damageBonus = 0.0f, minDamageBonus = 0, maxDamageBonus = 0, warSkillBonus = 0.0f, finalDamage = 0.0f;
             MagicCritType magicCritType;
 
             GetDamageResistType(spellStatMod.EType, out damageType, out ResistanceType resistanceType);
@@ -885,7 +885,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // critical hit
-            var critical = 0.2f;
+            var critical = 0.02f;
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
                 criticalHit = true;
 
@@ -918,16 +918,19 @@ namespace ACE.Server.WorldObjects
                 else if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage roll
                     minDamageBonus = (spellStatMod.BaseIntensity ?? 0) * 0.5f;
 
+                /* War Magic skill-based damage bonus
+                 * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
+                 */
                 if (((source as Player) != null) && (spell.School == MagicSchool.WarMagic))
                 {
                     if (source.GetCreatureSkill(spell.School).Current > spell.Power)
                     {
                         var percentageBonus = ((source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f) + 1.0f;
-                        attonmentBonus = (spellStatMod.BaseIntensity ?? 0) * percentageBonus;
+                        warSkillBonus = (spellStatMod.BaseIntensity ?? 0) * percentageBonus;
                     }
                 }
 
-                finalDamage = Physics.Common.Random.RollDice((spellStatMod.BaseIntensity ?? 0), (spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) + minDamageBonus + maxDamageBonus + attonmentBonus;
+                finalDamage = Physics.Common.Random.RollDice((spellStatMod.BaseIntensity ?? 0), (spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) + minDamageBonus + maxDamageBonus + warSkillBonus;
             }
 
             return finalDamage * target.GetNaturalResistence(resistanceType);
