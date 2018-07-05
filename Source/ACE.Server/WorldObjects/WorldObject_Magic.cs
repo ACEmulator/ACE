@@ -939,7 +939,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (source.GetCreatureSkill(spell.School).Current > spell.Power)
                     {
-                        var percentageBonus = ((source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f) + 1.0f;
+                        var percentageBonus = (source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f;
                         warSkillBonus = (spellStatMod.BaseIntensity ?? 0) * percentageBonus;
                     }
                 }
