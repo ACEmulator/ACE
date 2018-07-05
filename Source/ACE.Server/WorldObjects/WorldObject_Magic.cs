@@ -939,7 +939,8 @@ namespace ACE.Server.WorldObjects
                 {
                     if (source.GetCreatureSkill(spell.School).Current > spell.Power)
                     {
-                        var percentageBonus = (source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f;
+                        // Bonus clamped to a maximum of 50%
+                        var percentageBonus = Math.Clamp((source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f, 0.0f, 0.5f);
                         warSkillBonus = (spellStatMod.BaseIntensity ?? 0) * percentageBonus;
                     }
                 }
