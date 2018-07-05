@@ -249,6 +249,7 @@ namespace ACE.Server.WorldObjects
                 targetCategory = TargetCategory.UnDef;
                 return;
             }
+            var creatureTarget = target as Creature;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
@@ -484,6 +485,10 @@ namespace ACE.Server.WorldObjects
                             VoidMagic(target, spell, spellStatMod);
                             break;
                         case MagicSchool.CreatureEnchantment:
+
+                            if (player != null && !(target is Player))
+                                player.OnAttackMonster(creatureTarget);
+
                             if (IsSpellHarmful(spell))
                             {
                                 // Retrieve player's skill level in the Magic School
@@ -506,6 +511,10 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                             break;
                         case MagicSchool.LifeMagic:
+
+                            if (player != null && !(target is Player))
+                                player.OnAttackMonster(creatureTarget);
+
                             if (spell.MetaSpellType != SpellType.LifeProjectile)
                             {
                                 if (IsSpellHarmful(spell))
@@ -531,7 +540,6 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Magic));
                             if (targetDeath == true)
                             {
-                                Creature creatureTarget = (Creature)target;
                                 creatureTarget.Die();
                                 Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));

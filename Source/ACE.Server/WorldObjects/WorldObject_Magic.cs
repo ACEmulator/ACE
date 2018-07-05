@@ -341,6 +341,9 @@ namespace ACE.Server.WorldObjects
                     if (target is Player && spell.BaseRangeConstant > 0)
                         targetMsg = $"{Name} casts {spell.Name} and {action}s {Math.Abs(boost)} points of your {srcVital}.";
 
+                    if (player != null && srcVital != null && srcVital.Equals("health"))
+                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
+
                     break;
 
                 case SpellType.Transfer:
@@ -435,6 +438,9 @@ namespace ACE.Server.WorldObjects
 
                     if (target is Player && target != this)
                         targetMsg = $"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you";
+
+                    if (player != null && srcVital != null && srcVital.Equals("health"))
+                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     break;
 
