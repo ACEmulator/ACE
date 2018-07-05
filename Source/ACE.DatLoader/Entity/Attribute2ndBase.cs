@@ -7,7 +7,7 @@ namespace ACE.DatLoader.Entity
 {
     public class Attribute2ndBase : IUnpackable
     {
-        public SkillBase Formula { get; private set; } = new SkillBase();
+        public SkillFormula Formula { get; private set; } = new SkillFormula();
 
         public void Unpack(BinaryReader reader)
         {
