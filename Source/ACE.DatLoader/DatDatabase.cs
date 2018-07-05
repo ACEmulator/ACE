@@ -14,9 +14,7 @@ namespace ACE.DatLoader
 
         private static readonly uint DAT_HEADER_OFFSET = 0x140;
 
-
         public string FilePath { get; }
-
 
         public DatDatabaseHeader Header { get; } = new DatDatabaseHeader();
 
@@ -24,9 +22,7 @@ namespace ACE.DatLoader
 
         public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
 
-
         public Dictionary<uint, FileType> FileCache { get; } = new Dictionary<uint, FileType>();
-
 
         public DatDatabase(string filePath)
         {
@@ -57,7 +53,26 @@ namespace ACE.DatLoader
             if (FileCache.TryGetValue(fileId, out FileType result))
                 return (T)result;
 
-            var datReader = GetReaderForFile(fileId);
+            DatReader datReader = null;
+            if (AllFiles.ContainsKey(fileId))
+                datReader = GetReaderForFile(fileId);
+            else
+            {
+                // This file doesn't exist in this dat... We will now check to see if it's applicable to check Language & Highres
+
+                // If it's a PortalDatDatabase, we can check the others to see if it exists in there.
+                // We will still store these in the PortalDat.FileCache so there is a single point to access all of these files
+                if (GetType() == typeof(PortalDatDatabase))
+                {
+                    if (DatManager.HighResDat != null && DatManager.HighResDat.AllFiles.ContainsKey(fileId))
+                        datReader = DatManager.HighResDat.GetReaderForFile(fileId);
+                    else if (DatManager.LanguageDat != null && DatManager.LanguageDat.AllFiles.ContainsKey(fileId))
+                        datReader = DatManager.LanguageDat.GetReaderForFile(fileId);
+                }
+            }
+            //  We couldn't find a file with this fileId
+            if (datReader == null)
+                return null;
 
             var obj = new T();
 

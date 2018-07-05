@@ -26,9 +26,6 @@ namespace ACE.DatLoader.FileTypes
             Unknown = reader.ReadUInt32();
             SoundHash.Unpack(reader);
             Data.UnpackPackedHashTable(reader);
-
-            if (reader.BaseStream.Length > reader.BaseStream.Position)
-                Console.WriteLine("SoundTable file not completely read: " + Id.ToString("X8"));
         }
     }
 }

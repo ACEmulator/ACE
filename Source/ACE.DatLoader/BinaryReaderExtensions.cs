@@ -84,6 +84,17 @@ namespace ACE.DatLoader
             return System.Text.Encoding.GetEncoding(1252).GetString(thestring);
         }
 
+        public static string ReadUnicodeString(this BinaryReader reader)
+        {
+            int stringLength = reader.ReadByte();
+            string thestring = "";
+            for (int i = 0; i < stringLength; i++)
+            {
+                ushort myChar = reader.ReadUInt16();
+                thestring += System.Convert.ToChar(myChar);
+            }
+            return thestring;
+        }
         /// <summary>
         /// Returns a Vector3 object read out as 3 floats, x y z
         /// </summary>

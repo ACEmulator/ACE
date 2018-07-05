@@ -1,8 +1,18 @@
 # ACEmulator Change Log
 
 ### 2018-07-04
-* Fixed an issue with the Replace AnimationHook
+[OptimShi]
+* Fixed an issue with the Replace DatLoader.Entity.AnimationHook
 * Added SoundTable (0x20...) parsing from the client_portal.dat.
+* Added support for client_highres.dat and client_local_English.dat to the DatManager, however these files are not required for server operation.
+* Renamed DatLoader.Entity.Texture to DatLoader.FileType.RenderSurface and adjusted some structure to be consistent with the client.
+* Adjusted DatLoader.FileType.SurfaceTexture to be consistent with the client.
+* Added BadData (0x0E00001A) parsing from client_portal.dat
+* Added ChatPoseTable (0x0E000007) parsing from client_portal.dat
+* Added NameFilterTable (0x0E000020) parsing from client_portal.dat
+* Added QualityFilter (0x0E01...) parsing from client_portal.dat
+* Added SecondaryAttributeTable (0x0E000003) parsing from client_portal.dat
+* Added SkillTable (0x0E000004) parsing from client_portal.dat
 
 ### 2018-07-02
 [OptimShi]

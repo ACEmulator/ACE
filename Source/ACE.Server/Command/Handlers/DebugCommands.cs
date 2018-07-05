@@ -1016,20 +1016,51 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Debug console command to test reading the client_portal.dat
+        /// Debug console command for testing reading the client_portal.dat
         /// </summary>
         [CommandHandler("readdat", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests reading the client_portal.dat")]
         public static void ReadDat(Session session, params string[] parameters)
         {
             int total = 0;
-            foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles) {
-                if (entry.Value.ObjectId > 0x20000000 && entry.Value.ObjectId < 0x2000FFFF)
+            uint min = 0x0E010000;
+            uint max = 0x0E01FFFF;
+
+            var test = DatManager.PortalDat.SkillTable;
+            return;
+            foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
+            {
+                if (entry.Value.ObjectId >= min && entry.Value.ObjectId <= max)
                 {
                     // Console.WriteLine("Reading " + entry.Value.ObjectId.ToString("X8"));
-                    SoundTable item = DatManager.PortalDat.ReadFromDat<SoundTable>(entry.Value.ObjectId);
+                    QualityFilter item = DatManager.PortalDat.ReadFromDat<QualityFilter>(entry.Value.ObjectId);
                     total++;
                 }
             }
+            if (DatManager.HighResDat != null)
+            {
+                foreach (KeyValuePair<uint, DatFile> entry in DatManager.HighResDat.AllFiles)
+                {
+                    if (entry.Value.ObjectId >= min && entry.Value.ObjectId <= max)
+                    {
+                        // Console.WriteLine("Reading " + entry.Value.ObjectId.ToString("X8"));
+                        QualityFilter item = DatManager.PortalDat.ReadFromDat<QualityFilter>(entry.Value.ObjectId);
+                        total++;
+                    }
+                }
+            }
+            if(DatManager.LanguageDat != null)
+            {
+                foreach (KeyValuePair<uint, DatFile> entry in DatManager.LanguageDat.AllFiles)
+                {
+                    if (entry.Value.ObjectId >= min && entry.Value.ObjectId <= max)
+                    {
+                        // Console.WriteLine("Reading " + entry.Value.ObjectId.ToString("X8"));
+                        QualityFilter item = DatManager.PortalDat.ReadFromDat<QualityFilter>(entry.Value.ObjectId);
+                        total++;
+                    }
+                }
+            }
+
             Console.WriteLine(total.ToString() + " files read.");
         }
 
