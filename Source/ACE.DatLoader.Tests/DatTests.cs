@@ -29,6 +29,9 @@ namespace ACE.DatLoader.Tests
         [TestMethod]
         public void LoadPortalDat_NoExceptions()
         {
+            // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
             DatDatabase dat = new DatDatabase(portalDatLocation);
             int count = dat.AllFiles.Count;
             //Assert.AreEqual(expectedPortalDatFileCount, count);

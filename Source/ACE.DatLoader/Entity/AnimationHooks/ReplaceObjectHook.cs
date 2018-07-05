@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace ACE.DatLoader.Entity.AnimationHooks
@@ -10,7 +11,10 @@ namespace ACE.DatLoader.Entity.AnimationHooks
         {
             base.Unpack(reader);
 
-            APChange.Unpack(reader);
+            // The structure of AnimationPartChange here is slightly different for some reason than the other imeplementations.
+            // So we'll read in the 2-byte PartIndex and send that to our other implementation of the Unpack function.
+            ushort apChangePartIndex = reader.ReadUInt16();
+            APChange.Unpack(reader, apChangePartIndex);
         }
     }
 }

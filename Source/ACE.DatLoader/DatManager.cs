@@ -48,32 +48,22 @@ namespace ACE.DatLoader
                 log.Info($"Exception: {ex.Message}");
             }
 
-            try
-            {
-                datFile = Path.Combine(datDir, "client_highres.dat");
+            // Load the client_highres.dat file. This is not required for ACE operation, so no exception needs to be generated.
+            datFile = Path.Combine(datDir, "client_highres.dat");
+            if (File.Exists(datFile))
+            { 
                 HighResDat = new PortalDatDatabase(datFile);
                 count = HighResDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
-            catch (FileNotFoundException ex)
-            {
-                // We don't care if this file isn't loaded -- it's not needed for Server operations
-                // log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
-                // log.Info($"Exception: {ex.Message}");
-            }
 
-            try
+            // Load the client_local_English.dat file. This is not required for ACE operation, so no exception needs to be generated.
+            datFile = Path.Combine(datDir, "client_local_English.dat");
+            if (File.Exists(datFile))
             {
-                datFile = Path.Combine(datDir, "client_local_English.dat");
                 LanguageDat = new PortalDatDatabase(datFile);
                 count = LanguageDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
-            }
-            catch (FileNotFoundException ex)
-            {
-                // We don't care if this file isn't loaded -- it's not needed for Server operations
-                // log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
-                // log.Info($"Exception: {ex.Message}");
             }
 
         }

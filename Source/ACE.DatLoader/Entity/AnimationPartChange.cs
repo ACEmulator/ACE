@@ -4,13 +4,19 @@ namespace ACE.DatLoader.Entity
 {
     public class AnimationPartChange : IUnpackable
     {
-        public ushort PartIndex { get; private set; }
+        public byte PartIndex { get; private set; }
         public uint PartID { get; private set; }
 
         public void Unpack(BinaryReader reader)
         {
-            PartIndex   = reader.ReadUInt16();
-            PartID      = reader.ReadAsDataIDOfKnownType(0x01000000);
+            PartIndex = reader.ReadByte();
+            PartID    = reader.ReadAsDataIDOfKnownType(0x01000000);
+        }
+
+        public void Unpack(BinaryReader reader, ushort partIndex)
+        {
+            PartIndex = (byte)(partIndex & 255);
+            PartID    = reader.ReadAsDataIDOfKnownType(0x01000000);
         }
     }
 }
