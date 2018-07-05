@@ -13,6 +13,7 @@
 * Added QualityFilter (0x0E01...) parsing from client_portal.dat
 * Added SecondaryAttributeTable (0x0E000003) parsing from client_portal.dat
 * Added SkillTable (0x0E000004) parsing from client_portal.dat
+* Added highres-export and language-export console commands to dump the contents of client_highres.dat and client_local_English.dat respectively.
 
 ### 2018-07-02
 [OptimShi]

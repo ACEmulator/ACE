@@ -37,6 +37,42 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
+        [CommandHandler("highres-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of client_highres.dat file.", "<export-directory-without-spaces>")]
+        public static void ExportHighresDatContents(Session session, params string[] parameters)
+        {
+            if (DatManager.HighResDat == null)
+            {
+                Console.WriteLine("client_highres.dat file was not loaded.");
+                return;
+            }
+            if (parameters?.Length != 1)
+                Console.WriteLine("highres-export <export-directory-without-spaces>");
+
+            string exportDir = parameters[0];
+
+            Console.WriteLine($"Exporting client_highres.dat contents to {exportDir}.  This will take a while.");
+            DatManager.HighResDat.ExtractCategorizedContents(exportDir);
+            Console.WriteLine($"Export of client_highres.dat to {exportDir} complete.");
+        }
+
+        [CommandHandler("language-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of client_local_English.dat file.", "<export-directory-without-spaces>")]
+        public static void ExportLanguageDatContents(Session session, params string[] parameters)
+        {
+            if (DatManager.LanguageDat == null)
+            {
+                Console.WriteLine("client_highres.dat file was not loaded.");
+                return;
+            }
+            if (parameters?.Length != 1)
+                Console.WriteLine("language-export <export-directory-without-spaces>");
+
+            string exportDir = parameters[0];
+
+            Console.WriteLine($"Exporting client_local_English.dat contents to {exportDir}.  This will take a while.");
+            DatManager.LanguageDat.ExtractCategorizedContents(exportDir);
+            Console.WriteLine($"Export of client_local_English.dat to {exportDir} complete.");
+        }
+
         /// <summary>
         /// Export all wav files to a specific directory.
         /// </summary>

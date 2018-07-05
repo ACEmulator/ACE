@@ -15,8 +15,8 @@ namespace ACE.DatLoader
         public static CellDatDatabase CellDat { get; private set; }
 
         public static PortalDatDatabase PortalDat { get; private set; }
-        public static DatDatabase HighResDat { get; private set; }
-        public static DatDatabase LanguageDat { get; private set; }
+        public static PortalDatDatabase HighResDat { get; private set; }
+        public static PortalDatDatabase LanguageDat { get; private set; }
 
         public static void Initialize(string datFileDirectory)
         {
@@ -51,7 +51,7 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_highres.dat");
-                HighResDat = new DatDatabase(datFile);
+                HighResDat = new PortalDatDatabase(datFile);
                 count = HighResDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -65,7 +65,7 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_local_English.dat");
-                LanguageDat = new DatDatabase(datFile);
+                LanguageDat = new PortalDatDatabase(datFile);
                 count = LanguageDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }

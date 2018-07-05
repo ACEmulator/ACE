@@ -334,7 +334,7 @@ namespace ACE.DatLoader
         /// <summary>
         /// This is in the Language dat (client_local_English.dat)
         /// </summary>
-        [DatDatabaseType(DatDatabaseType.Language)]
+        [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("uil")]
         [DatFileTypeIdRange(0x21000000, 0x21FFFFFF)]
         UiLayout                = 35, // DB_TYPE_UI_LAYOUT
@@ -350,7 +350,7 @@ namespace ACE.DatLoader
         /// <summary>
         /// This is in the Language dat (client_local_English.dat)
         /// </summary>
-        [DatDatabaseType(DatDatabaseType.Language)]
+        [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("stt")]
         [DatFileTypeIdRange(0x23000000, 0x24FFFFFF)]
         StringTable             = 37, // DB_TYPE_STRING_TABLE 
@@ -427,7 +427,7 @@ namespace ACE.DatLoader
         /// This is located in the Language dat (client_local_English.dat)
         /// "stringtable" in the client
         /// </summary>
-        [DatDatabaseType(DatDatabaseType.Language)]
+        [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("sti")]
         [DatFileTypeIdRange(0x41000000, 0x41FFFFFF)]
         StringState = 48, // DB_TYPE_STRING_STATE
