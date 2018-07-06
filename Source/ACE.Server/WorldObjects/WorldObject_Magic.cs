@@ -8,7 +8,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -248,23 +247,24 @@ namespace ACE.Server.WorldObjects
         /// <param name="message"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out string message, string castByItem = null)
+        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out uint damage, out bool critical, out GameMessageSystemChat message, string castByItem = null)
         {
-            string srcVital, destVital, action;
-            string targetMsg = null;
+            critical = false;
+            string srcVital, destVital;
+            GameMessageSystemChat targetMsg = null;
 
             Player player = null;
             Creature creature = null;
-            if (WeenieClassId == 1)
-                player = (Player)this;
-            else if (WeenieType == WeenieType.Creature)
-                creature = (Creature)this;
+            if (this is Player)
+                player = this as Player;
+            else if (this is Creature)
+                creature = this as Creature;
 
             Creature spellTarget;
-            if (spell.BaseRangeConstant == 0)
-                spellTarget = (Creature)this;
+            if (spell.BaseRangeConstant > 0)
+                spellTarget = target as Creature;
             else
-                spellTarget = (Creature)target;
+                spellTarget = this as Creature;
 
             int newSpellTargetVital;
             switch (spell.MetaSpellType)
@@ -282,10 +282,11 @@ namespace ACE.Server.WorldObjects
                         maxBoostValue = (int)(spellStatMod.BoostVariance + spellStatMod.Boost);
                     }
                     int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
-                    if (boost < 0)
-                        action = "drain";
+                    if (boost <= 0)
+                        damage = (uint)Math.Abs(boost);
                     else
-                        action = "restore";
+                        damage = 0;
+
                     switch (spellStatMod.DamageType)
                     {
                         case 512:   // Mana
@@ -330,16 +331,43 @@ namespace ACE.Server.WorldObjects
                     }
                     if (this is Player)
                     {
-                        if (spell.BaseRangeConstant == 0)
-                            message = $"You {action} {Math.Abs(boost).ToString()} {srcVital}";
+                        if (spell.BaseRangeConstant > 0)
+                        {
+                            string msg;
+                            if (boost <= 0)
+                            {
+                                msg = $"You drain {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
+                                message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                            }
+                            else
+                            {
+                                msg = $"You restore {Math.Abs(boost).ToString()} points of {srcVital} to {spellTarget.Name}";
+                                message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                            }
+                        }
                         else
-                            message = $"You {action} {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
+                            message = new GameMessageSystemChat($"You restore {Math.Abs(boost).ToString()} {srcVital}", ChatMessageType.Magic);
                     }
                     else
                         message = null;
 
                     if (target is Player && spell.BaseRangeConstant > 0)
-                        targetMsg = $"{Name} casts {spell.Name} and {action}s {Math.Abs(boost)} points of your {srcVital}.";
+                    {
+                        string msg;
+                        if (boost <= 0)
+                        {
+                            msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost).ToString()} points of your {srcVital}";
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                        }
+                        else
+                        {
+                            msg = $"{Name} casts {spell.Name} and restores {Math.Abs(boost).ToString()} points of your {srcVital}";
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                        }
+                    }
+
+                    if (player != null && srcVital != null && srcVital.Equals("health"))
+                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     break;
 
@@ -359,6 +387,7 @@ namespace ACE.Server.WorldObjects
                     else
                         resistanceDrain = ResistanceType.HealthDrain;
                     vitalChange = (uint)((spellTarget.GetCurrentCreatureVital((PropertyAttribute2nd)spellStatMod.Source) * spellStatMod.Proportion) * spellTarget.GetNaturalResistence(resistanceDrain));
+                    damage = vitalChange;
                     if (spellStatMod.TransferCap != 0)
                     {
                         if (vitalChange > spellStatMod.TransferCap)
@@ -421,26 +450,28 @@ namespace ACE.Server.WorldObjects
                             break;
                     }
 
-                    if (WeenieClassId == 1)
+                    if (this is Player)
                     {
-                        if (target.Guid == Guid)
+                        if (target.Guid == player.Guid)
                         {
-                            message = $"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself";
+                            message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself", ChatMessageType.Magic);
                         }
                         else
-                            message = $"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself";
+                            message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself", ChatMessageType.Combat);
                     }
                     else
                         message = null;
 
                     if (target is Player && target != this)
-                        targetMsg = $"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you";
+                        targetMsg = new GameMessageSystemChat($"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you", ChatMessageType.Combat);
+
+                    if (player != null && srcVital != null && srcVital.Equals("health"))
+                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     break;
 
                 case SpellType.LifeProjectile:
                     caster = (Creature)this;
-                    uint damage;
                     if (spell.Name.Contains("Blight"))
                     {
                         damage = (uint)(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetNaturalResistence(ResistanceType.ManaDrain));
@@ -473,9 +504,11 @@ namespace ACE.Server.WorldObjects
 
                     if (caster.Health.Current <= 0)
                     {
+                        caster.UpdateVital(caster.Health, 0);
+                        caster.OnDeath();
                         caster.Die();
 
-                        if (caster.WeenieClassId == 1)
+                        if (caster is Player)
                         {
                             Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have killed yourself", ChatMessageType.Broadcast));
@@ -484,26 +517,26 @@ namespace ACE.Server.WorldObjects
                     message = null;
                     break;
                 case SpellType.Dispel:
-                    message = "Spell not implemented, yet!";
+                    damage = 0;
+                    message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                     break;
                 case SpellType.Enchantment:
+                    damage = 0;
                     message = CreateEnchantment(target, spell, spellStatMod, castByItem);
                     break;
                 default:
-                    message = "Spell not implemented, yet!";
+                    damage = 0;
+                    message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                     break;
             }
 
             if (targetMsg != null)
-            {
-                var playerTarget = target as Player;
-                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(targetMsg, ChatMessageType.Magic));
-            }
+                (target as Player).Session.Network.EnqueueSend(targetMsg);
 
             if (spellTarget.Health.Current == 0)
                 return true;
-            else
-                return false;
+
+            return false;
         }
 
         /// <summary>
@@ -514,7 +547,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        protected string CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        protected GameMessageSystemChat CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             return CreateEnchantment(target, spell, spellStatMod, castByItem);
         }
@@ -526,7 +559,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
-        protected string ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        protected GameMessageSystemChat ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
@@ -574,7 +607,7 @@ namespace ACE.Server.WorldObjects
                 return CreateEnchantment(target, spell, spellStatMod, castByItem);
             }
 
-            return "";
+            return null;
         }
 
         /// <summary>
@@ -625,7 +658,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellStatMod"></param>
         /// <param name="castByItem"></param>
         /// <returns></returns>
-        private string CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        private GameMessageSystemChat CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
             double duration;
             if (castByItem == null)
@@ -673,7 +706,7 @@ namespace ACE.Server.WorldObjects
                     playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
 
-            return message;
+            return new GameMessageSystemChat(message, ChatMessageType.Magic);
         }
 
         /// <summary>
@@ -789,6 +822,133 @@ namespace ACE.Server.WorldObjects
             Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, targetVelocity, gravity, out Vector3 velocity, out time, out var impactPoint);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);
+        }
+
+        private static void GetDamageResistType(uint? eType, out DamageType damageType, out ResistanceType resistanceType)
+        {
+            switch (eType)
+            {
+                case null:
+                    damageType = DamageType.Undef;
+                    resistanceType = ResistanceType.Undef;
+                    break;
+                case (uint)DamageType.Acid:
+                    damageType = DamageType.Acid;
+                    resistanceType = ResistanceType.Acid;
+                    break;
+                case (uint)DamageType.Fire:
+                    damageType = DamageType.Fire;
+                    resistanceType = ResistanceType.Fire;
+                    break;
+                case (uint)DamageType.Cold:
+                    damageType = DamageType.Cold;
+                    resistanceType = ResistanceType.Cold;
+                    break;
+                case (uint)DamageType.Electric:
+                    damageType = DamageType.Electric;
+                    resistanceType = ResistanceType.Electric;
+                    break;
+                case (uint)DamageType.Nether:
+                    damageType = DamageType.Nether;
+                    resistanceType = ResistanceType.Nether;
+                    break;
+                case (uint)DamageType.Bludgeon:
+                    damageType = DamageType.Bludgeon;
+                    resistanceType = ResistanceType.Bludgeon;
+                    break;
+                case (uint)DamageType.Pierce:
+                    damageType = DamageType.Pierce;
+                    resistanceType = ResistanceType.Pierce;
+                    break;
+                case (uint)DamageType.Health:
+                    damageType = DamageType.Health;
+                    resistanceType = ResistanceType.HealthDrain;
+                    break;
+                case (uint)DamageType.Stamina:
+                    damageType = DamageType.Stamina;
+                    resistanceType = ResistanceType.StaminaDrain;
+                    break;
+                case (uint)DamageType.Mana:
+                    damageType = DamageType.Mana;
+                    resistanceType = ResistanceType.ManaDrain;
+                    break;
+                default:
+                    damageType = DamageType.Slash;
+                    resistanceType = ResistanceType.Slash;
+                    break;
+            }
+
+            return;
+        }
+
+        private enum MagicCritType
+        {
+            NoCrit,
+            PvPCrit,
+            PvECrit
+        }
+
+        public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
+        {
+            double damageBonus = 0.0f, minDamageBonus = 0, maxDamageBonus = 0, warSkillBonus = 0.0f, finalDamage = 0.0f;
+            MagicCritType magicCritType;
+
+            GetDamageResistType(spellStatMod.EType, out damageType, out ResistanceType resistanceType);
+
+            if (MagicDefenseCheck(source.GetCreatureSkill(spell.School).Current, target.GetCreatureSkill(Skill.MagicDefense).Current))
+                return null;
+
+            // critical hit
+            var critical = 0.02f;
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
+                criticalHit = true;
+
+            if (criticalHit == true)
+            {
+                if (((source as Player) != null) && ((target as Player) != null)) // PvP
+                    magicCritType = MagicCritType.PvPCrit;
+                else if ((((source as Player) != null) && ((target as Player) == null))) // PvE
+                    magicCritType = MagicCritType.PvECrit;
+                else
+                    magicCritType = MagicCritType.NoCrit;
+            }
+            else
+                magicCritType = MagicCritType.NoCrit;
+
+            if (spell.School == MagicSchool.LifeMagic)
+            {
+                if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage
+                    damageBonus = lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f) * 0.5f;
+
+                if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage
+                    damageBonus = lifeMagicDamage * 0.5f;
+
+                finalDamage = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f)) + damageBonus;
+            }
+            else
+            {
+                if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage roll
+                    maxDamageBonus = ((spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) * 0.5f;
+                else if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage roll
+                    minDamageBonus = (spellStatMod.BaseIntensity ?? 0) * 0.5f;
+
+                /* War Magic skill-based damage bonus
+                 * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
+                 */
+                if (((source as Player) != null) && (spell.School == MagicSchool.WarMagic))
+                {
+                    if (source.GetCreatureSkill(spell.School).Current > spell.Power)
+                    {
+                        // Bonus clamped to a maximum of 50%
+                        var percentageBonus = Math.Clamp((source.GetCreatureSkill(spell.School).Current - spell.Power) / 100.0f, 0.0f, 0.5f);
+                        warSkillBonus = (spellStatMod.BaseIntensity ?? 0) * percentageBonus;
+                    }
+                }
+
+                finalDamage = Physics.Common.Random.RollDice((spellStatMod.BaseIntensity ?? 0), (spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) + minDamageBonus + maxDamageBonus + warSkillBonus;
+            }
+
+            return finalDamage * target.GetNaturalResistence(resistanceType);
         }
     }
 }

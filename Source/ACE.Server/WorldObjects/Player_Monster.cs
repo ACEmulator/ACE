@@ -90,5 +90,26 @@ namespace ACE.Server.WorldObjects
             }
             return false;
         }
+
+        /// <summary>
+        /// Called when this player attacks a monster
+        /// </summary>
+        public void OnAttackMonster(Creature monster)
+        {
+            var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
+            var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
+            var hasTolerance = monster.GetProperty(PropertyInt.Tolerance).HasValue;
+
+            /*Console.WriteLine("OnAttackMonster(" + monster.Name + ")");
+            Console.WriteLine("Attackable: " + attackable);
+            Console.WriteLine("Tolerance: " + tolerance);
+            Console.WriteLine("HasTolerance: " + hasTolerance);*/
+
+            if (monster.MonsterState == State.Idle && !tolerance.HasFlag(Tolerance.NoAttack))
+            {
+                monster.AttackTarget = this;
+                monster.WakeUp();
+            }
+        }
     }
 }

@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.LifeMagic:
 
                     if (!targetSelf && ResistSpell(Skill.LifeMagic))break;
-                    LifeMagic(target, spellBase, spell, out var msg);
+                    LifeMagic(target, spellBase, spell, out uint damage, out bool critical, out var msg);
                     if (CurrentLandblock != null) CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
 

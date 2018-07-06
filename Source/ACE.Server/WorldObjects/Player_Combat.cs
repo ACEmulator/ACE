@@ -94,7 +94,11 @@ namespace ACE.Server.WorldObjects
                 }
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
+
+                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)creature.Health.Current / creature.Health.MaxValue));
             }
+
+            OnAttackMonster(creature);
             return damage;
         }
 

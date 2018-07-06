@@ -11,21 +11,18 @@ namespace ACE.DatLoader
         {
         }
 
-
-        public ContractTable ContractTable => ReadFromDat<ContractTable>(ContractTable.FILE_ID);
-
+        public BadData BadData => ReadFromDat<BadData>(BadData.FILE_ID);
+        public ChatPoseTable ChatPoseTable => ReadFromDat<ChatPoseTable>(ChatPoseTable.FILE_ID);
         public CharGen CharGen => ReadFromDat<CharGen>(CharGen.FILE_ID);
-
+        public ContractTable ContractTable => ReadFromDat<ContractTable>(ContractTable.FILE_ID);
         public GeneratorTable GeneratorTable => ReadFromDat<GeneratorTable>(GeneratorTable.FILE_ID);
-
+        public NameFilterTable NameFilterTable => ReadFromDat<NameFilterTable>(NameFilterTable.FILE_ID);
         public RegionDesc RegionDesc => ReadFromDat<RegionDesc>(RegionDesc.FILE_ID);
-
+        public SecondaryAttributeTable SecondaryAttributeTable => ReadFromDat<SecondaryAttributeTable>(SecondaryAttributeTable.FILE_ID);
+        public SkillTable SkillTable => ReadFromDat<SkillTable>(SkillTable.FILE_ID);
         public SpellComponentsTable SpellComponentsTable => ReadFromDat<SpellComponentsTable>(SpellComponentsTable.FILE_ID);
-
         public SpellTable SpellTable => ReadFromDat<SpellTable>(SpellTable.FILE_ID);
-
         public XpTable XpTable => ReadFromDat<XpTable>(XpTable.FILE_ID);
-
 
         public void ExtractCategorizedContents(string path)
         {

@@ -14,9 +14,7 @@ namespace ACE.DatLoader
 
         private static readonly uint DAT_HEADER_OFFSET = 0x140;
 
-
         public string FilePath { get; }
-
 
         public DatDatabaseHeader Header { get; } = new DatDatabaseHeader();
 
@@ -24,9 +22,7 @@ namespace ACE.DatLoader
 
         public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
 
-
         public Dictionary<uint, FileType> FileCache { get; } = new Dictionary<uint, FileType>();
-
 
         public DatDatabase(string filePath)
         {
