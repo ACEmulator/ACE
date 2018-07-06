@@ -1,5 +1,7 @@
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -12,6 +14,7 @@ using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects;
 using log4net;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -874,6 +877,7 @@ namespace ACE.Server.Managers
         public void ExecuteEmote(BiotaPropertiesEmote emote, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject = null, WorldObject targetObject = null)
         {
             var player = targetObject as Player;
+            QuestManager qManager = new QuestManager(sourceObject);
             switch ((EmoteType)emoteAction.Type)
             {
                 case EmoteType.Say:
@@ -993,14 +997,29 @@ namespace ACE.Server.Managers
                     });
                     break;
 
-                case EmoteType.UpdateQuest:
-                    //This is for the quest NPC's. This will be filled out when quests are added.
+                case EmoteType.CastSpellInstant:
+                    var creature2 = sourceObject is Creature ? (Creature)sourceObject : null;
+                    SpellTable spellTable = DatManager.PortalDat.SpellTable;
+                    SpellBase spell = spellTable.Spells[(uint)emoteAction.SpellId];
+                    actionChain.AddAction(sourceObject, () =>
+                    {
+                        if (spell.TargetEffect > 0)
+                        {
+                            Console.WriteLine("Should be casting " + (uint)emoteAction.SpellId + " here. TargetEffect was greater than 0");
+                            creature2.CreateCreatureSpell(targetObject.Guid, (uint)emoteAction.SpellId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Target effect was equal to 0");
+                            creature2.CreateCreatureSpell((uint)emoteAction.SpellId);
+                        }
+                    });
                     break;
 
                 case EmoteType.Turn:
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     creature = sourceObject is Creature ? (Creature)sourceObject : null;
-                    var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
+                    var pos = new ACE.Entity.Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
                     actionChain.AddAction(sourceObject, () =>
                     {
                         creature.TurnTo(pos);
@@ -1019,6 +1038,178 @@ namespace ACE.Server.Managers
                             activationTarget.ActOnUse(creature);
                         }
                     });
+                    break;
+
+                case EmoteType.StampQuest:
+                    Console.WriteLine("Added this quest: " + emoteAction.Message);
+                    qManager.Add(emoteAction.Message, player);
+                    break;
+
+                case EmoteType.UpdateQuest:
+                    qManager.Add(emoteAction.Message, player);
+                    break;
+
+                case EmoteType.InqQuest:
+
+                    if (qManager.Inquiry(emoteAction.Message, player))
+                    {
+                        Console.WriteLine("Inside of InqQuest in emoteManager");
+                        var result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 12 && emote2.Quest == emoteAction.Message);
+                        if (result == null)
+                        {
+                            Console.WriteLine("Result is null");
+                        }
+                        Console.WriteLine("Result EmoteSetID is : " + result.FirstOrDefault().EmoteSetId);
+                        if (result.Count() < 1)
+                        {
+                            result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 12 && emote2.Quest == emoteAction.Message);
+                        }
+                        if (result.Count() > 0)
+                        {
+                            Console.WriteLine("Should be queueing emoteAactions from InqQuest success.");
+                            Console.WriteLine("Emoteset ID is : " + result.FirstOrDefault().EmoteSetId);
+                            Console.WriteLine("Emote Category  is : " + result.FirstOrDefault().Category);
+                            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.FirstOrDefault().EmoteSetId && action.EmoteCategory == result.FirstOrDefault().Category);
+
+                            foreach (var action in actions)
+                            {
+                                actionChain.AddAction(player, () =>
+                                {
+                                    ExecuteEmote(result.FirstOrDefault(), action, actionChain, sourceObject, player);
+                                    Console.WriteLine("This action is being added (from inqQuest success): " + action.Message);
+                                });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("You do not have this quest, from emoteManager");
+                        var result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 13 && emote2.Quest == emoteAction.Message);
+                        if (result.Count() > 0)
+                        {
+                            Console.WriteLine("NPC has a QuestFailure Message.");
+                            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.FirstOrDefault().EmoteSetId && action.EmoteCategory == result.FirstOrDefault().Category);
+
+                            foreach (var action in actions)
+                            {
+                                actionChain.AddAction(player, () =>
+                                {
+                                    ExecuteEmote(result.FirstOrDefault(), action, actionChain, sourceObject, player);
+                                    Console.WriteLine("This action is being added (from inqQuest failure): " + action.Message);
+                                });
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("NPC does not have a QuestFailure Message.");
+                        }
+                        //actionChain.EnqueueChain();
+
+                    }
+                    break;
+
+                case EmoteType.InqQuestSolves:
+
+                    if (qManager.Inquiry(emoteAction.Message, player))
+                    {
+                        Console.WriteLine("Inside of InqQuestb -- emoteManager");
+                        var result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 12 && emote2.Quest == emoteAction.Message);
+                        if (result == null)
+                        {
+                            Console.WriteLine("Result is null");
+                        }
+                        Console.WriteLine("Result EmoteSetID is : " + result.FirstOrDefault().EmoteSetId);
+                        if (result.Count() < 1)
+                        {
+                            result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 12 && emote2.Quest == emoteAction.Message);
+                        }
+                        if (result.Count() > 0)
+                        {
+                            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.FirstOrDefault().EmoteSetId && action.EmoteCategory == result.FirstOrDefault().Category);
+
+                            foreach (var action in actions)
+                            {
+                                actionChain.AddAction(player, () =>
+                                {
+                                    ExecuteEmote(result.FirstOrDefault(), action, actionChain, sourceObject, player);
+                                    Console.WriteLine("This action is being added (from inqQuestSolves true): " + action.Message);
+                                });
+                            }
+                        }
+                        //actionChain.EnqueueChain();
+                    }
+                    else
+                    {
+                        Console.WriteLine("You do not have this quest, from emoteManager");
+                        var result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 13 && emote2.Quest == emoteAction.Message);
+                        if (result.Count() > 0)
+                        {
+                            Console.WriteLine("NPC has a QuestFailure Message.");
+                            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.FirstOrDefault().EmoteSetId && action.EmoteCategory == result.FirstOrDefault().Category);
+
+                            foreach (var action in actions)
+                            {
+                                actionChain.AddAction(player, () =>
+                                {
+                                    ExecuteEmote(result.FirstOrDefault(), action, actionChain, sourceObject, player);
+                                    Console.WriteLine("This action is being added (from inqQuestSolves false): " + action.Message);
+                                });
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("NPC does not have a QuestFailure Message.");
+                        }
+                        //actionChain.EnqueueChain();
+
+                    }
+                    break;
+
+                case EmoteType.EraseQuest:
+                    qManager.Erase(emoteAction.Message, player);
+                    break;
+
+                case EmoteType.InqIntStat:
+                    if (emoteAction.Stat == 25)
+                    {
+
+                        if (player.Level >= emoteAction.Min && player.Level <= emoteAction.Max)
+                        {
+                            Console.WriteLine("There is a quest Success from InqIntStat.");
+                            ////Test Success Emote Category
+                            var result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 22 && emote2.Quest == emoteAction.Message);
+                            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.FirstOrDefault().EmoteSetId && action.EmoteCategory == result.FirstOrDefault().Category);
+
+                            foreach (var action in actions)
+                            {
+                                actionChain.AddAction(player, () =>
+                                {
+                                    ExecuteEmote(result.FirstOrDefault(), action, actionChain, sourceObject, player);
+                                    Console.WriteLine("This action is being added (from inqIntStat success): " + action.Message);
+                                });
+                            }
+                            //actionChain.EnqueueChain();
+                        }
+                        else
+                        {
+                            /////Test Failure Emote Category
+                            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                            var result = sourceObject.Biota.BiotaPropertiesEmote.Where(emote2 => emote2.Category == 23 && rng <= emote2.Probability);
+                            Console.WriteLine("The emote set ID is: " + result.FirstOrDefault().EmoteSetId);  ///Got a null value form this line
+                            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.FirstOrDefault().EmoteSetId && action.EmoteCategory == result.FirstOrDefault().Category);
+                            Console.WriteLine("There is a quest Failure from InqIntStat.");
+                            Console.WriteLine("The rng value was: " + rng);
+                            foreach (var action in actions)
+                            {
+                                actionChain.AddAction(player, () =>
+                                {
+                                    ExecuteEmote(result.FirstOrDefault(), action, actionChain, sourceObject, player);
+                                    Console.WriteLine("This action is being added (from inqIntStat failure): " + action.Message);
+                                });
+                            }
+                            //actionChain.EnqueueChain();
+                        }
+                    }
                     break;
 
                 default:
