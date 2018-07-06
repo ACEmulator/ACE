@@ -339,7 +339,7 @@ namespace ACE.Server.Entity
             wo.PhysicsObj.Position.Frame.Origin = wo.Location.Pos;
             wo.PhysicsObj.Position.Frame.Orientation = wo.Location.Rotation;
 
-            //wo.AdjustDungeonCells(wo.Location);
+            wo.AdjustDungeonCells(wo.Location);
 
             var cell = LScape.get_landcell(wo.Location.Cell);
             if (cell != null)

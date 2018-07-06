@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
+using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics;
@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
             return GetAngle(currentDir, targetDir);
         }
 
-        public float GetAngle(ACE.Entity.Position position)
+        public float GetAngle(Position position)
         {
             var currentDir = Location.GetCurrentDir();
             var targetDir = position.GetCurrentDir();
@@ -114,9 +114,23 @@ namespace ACE.Server.WorldObjects
 
             if (CurrentLandblock != null)
                 CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+
+            AttackTarget = target;
+            var turnTime = EstimateTurnTo();
+            Console.WriteLine("TurnTime = " + turnTime);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(turnTime);
+            actionChain.AddAction(this, () =>
+            {
+                // fix me: in progress turn
+                var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+                Location.Rotate(targetDir);
+                Console.WriteLine("Finished turning - " + turnTime + "s");
+            });
+            actionChain.EnqueueChain();
         }
 
-        public float TurnTo(ACE.Entity.Position position)
+        public float TurnTo(Position position)
         {
             // execute the TurnToObject motion
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, position);
@@ -126,7 +140,7 @@ namespace ACE.Server.WorldObjects
             return GetTurnToDelay(position);
         }
 
-        public float GetTurnToDelay(ACE.Entity.Position position)
+        public float GetTurnToDelay(Position position)
         {
             // get inner angle between current heading and target
             var angle = GetAngle(position);

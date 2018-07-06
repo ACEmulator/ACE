@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
+using ACE.Server.Physics.Util;
 
 namespace ACE.Server.Physics.Common
 {
@@ -173,6 +174,51 @@ namespace ACE.Server.Physics.Common
         public float heading_diff(Position position)
         {
             return heading(position) - Frame.get_heading();
+        }
+
+        public uint GetCell(uint blockCellID)
+        {
+            // is originating cell indoor or outdoor?
+            if ((blockCellID & 0xFFFF) >= 0x100)
+                return GetIndoorCell(blockCellID);
+            else
+                return GetOutdoorCell(blockCellID);
+        }
+
+        public uint GetOutdoorCell(uint blockCellID)
+        {
+            var cellX = (uint)(Frame.Origin.X / LandDefs.CellLength);
+            var cellY = (uint)(Frame.Origin.Y / LandDefs.CellLength);
+
+            var cellID = (uint)(cellX * LandDefs.BlockSide + cellY + 1);
+
+            var newBlockCellID = blockCellID & 0xFFFF0000 | cellID;
+
+            //return LScape.get_landcell(blockCellID);
+            return newBlockCellID;
+            //return cellID;
+        }
+
+        public uint GetIndoorCell(uint blockCellID)
+        {
+            var dungeonID = blockCellID >> 16;
+
+            var adjustCell = AdjustCell.Get(dungeonID);
+            if (adjustCell == null)
+            {
+                //Console.WriteLine("Position: couldn't find ObjCellID for indoor cell " + blockCellID.ToString("X8"));
+                //return LScape.get_landcell(ObjCellID);
+                return ObjCellID;
+            }
+            var newCell = adjustCell.GetCell(Frame.Origin);
+            if (newCell == null)
+            {
+                //Console.WriteLine("Position: couldn't find new cell for indoor cell " + blockCellID.ToString("X8"));
+                //return LScape.get_landcell(ObjCellID);
+                return ObjCellID;
+            }
+            //return LScape.get_landcell(newCell.Value);
+            return newCell.Value;
         }
 
         public bool Equals(Position pos)

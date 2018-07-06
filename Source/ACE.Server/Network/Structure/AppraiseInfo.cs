@@ -48,6 +48,8 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public AppraiseInfo(WorldObject wo, bool success = true)
         {
+            //Console.WriteLine("Appraise: " + wo.Guid);
+
             Success = success;
             if (!Success)
                 return;

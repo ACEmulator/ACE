@@ -3250,7 +3250,11 @@ namespace ACE.Server.Physics
         {
             RequestPos.Frame.Origin = pos;
             RequestPos.Frame.Orientation = rotation;
-            RequestPos.ObjCellID = cell.ID;
+
+            if (cell == null)
+                RequestPos.ObjCellID = RequestPos.GetCell(CurCell.ID);
+            else
+                RequestPos.ObjCellID = cell.ID;
         }
 
         public void set_sequence_animation(int animID, bool interrupt, int startFrame, float framerate)

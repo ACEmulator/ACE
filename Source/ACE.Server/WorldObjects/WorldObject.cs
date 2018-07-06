@@ -728,9 +728,12 @@ namespace ACE.Server.WorldObjects
 
         public bool AdjustDungeonCells(Position pos)
         {
+            if (pos == null) return false;
+
+            var landblock = LScape.get_landblock(pos.Cell);
+            if (landblock == null || !landblock.IsDungeon) return false;
+
             var dungeonID = pos.Cell >> 16;
-            //if (!AdjustCell.AdjustDungeons.Contains(dungeonID))
-            //    return;
 
             var adjustCell = AdjustCell.Get(dungeonID);
             var cellID = adjustCell.GetCell(pos.Pos);
