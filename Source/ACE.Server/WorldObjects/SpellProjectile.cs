@@ -229,7 +229,6 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject _target)
         {
-            //Console.WriteLine("SpellProjectile.OnCollideObject(" + _target.Guid.Full.ToString("X8") + ")");
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             SpellBase spell = spellTable.Spells[spellId];
 
@@ -260,20 +259,87 @@ namespace ACE.Server.WorldObjects
             // Collision registered against a valid target that was not the intended target
             if (!target.Guid.Equals(targetGuid))
             {
-                //Console.WriteLine("Collided with non-target object " + target.Name + " (" + target.Guid.Full.ToString("X8") + ")");
                 OnCollideEnvironment();
                 return;
             }
 
             ProjectileImpact();
 
-            // Retrieve caster's skill level in the Magic School
-            var casterMagicSkill = ParentWorldObject.GetCreatureSkill(spell.School).Current;
+            var critical = false;
+            var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
 
-            // Retrieve target's Magic Defense Skill
-            var targetMagicDefenseSkill = target.GetCreatureSkill(Skill.MagicDefense).Current;
+            if (damage != null)
+            {
+                int newSpellTargetVital;
+                var percent = 0.0f;
 
-            if (MagicDefenseCheck(casterMagicSkill, targetMagicDefenseSkill))
+                if (spell.School == MagicSchool.LifeMagic && (spell.Name.Contains("Blight") || spell.Name.Contains("Tenacity")))
+                {
+                    if (spell.Name.Contains("Blight"))
+                    {
+                        newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
+                        percent = (float)damage / targetPlayer.Mana.MaxValue;
+                        if (newSpellTargetVital <= 0)
+                            target.UpdateVital(target.Mana, 0);
+                        else
+                            target.UpdateVital(target.Mana, (uint)newSpellTargetVital);
+                    }
+                    else
+                    {
+                        newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
+                        percent = (float)damage / targetPlayer.Stamina.MaxValue;
+                        if (newSpellTargetVital <= 0)
+                            target.UpdateVital(target.Stamina, 0);
+                        else
+                            target.UpdateVital(target.Stamina, (uint)newSpellTargetVital);
+                    }
+                }
+                else
+                {
+                    newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
+                    if (newSpellTargetVital <= 0)
+                        target.UpdateVital(target.Health, 0);
+                    else
+                        target.UpdateVital(target.Health, (uint)newSpellTargetVital);
+                }
+
+                string verb = null, plural = null;
+                percent = (float)damage / target.Health.MaxValue;
+                Strings.DeathMessages.TryGetValue(damageType, out var messages);
+                Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
+                var type = damageType.GetName().ToLower();
+
+                var amount = (uint)Math.Round(damage ?? 0.0f);
+                AttackList.Add(new AttackDamage(projectileCaster, amount, critical));
+
+                if (player != null)
+                {
+                    var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
+                    player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                }
+
+                if (targetPlayer != null)
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                else
+                    player.EarnXP((long)target.XpOverride);
+
+                if (target.Health.Current <= 0)
+                {
+                    target.UpdateVital(target.Health, 0);
+                    target.OnDeath();
+                    target.Die();
+
+                    if (player != null)
+                    {
+                        var topDamager = AttackDamage.GetTopDamager(AttackList);
+                        if (topDamager != null)
+                            target.Killer = topDamager.Guid.Full;
+
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
+                    }
+                }
+            }
+            else
             {
                 CurrentLandblock.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
 
@@ -282,230 +348,6 @@ namespace ACE.Server.WorldObjects
 
                 if (targetPlayer != null)
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
-            }
-            else
-            {
-                var percent = 0.0f;
-                var damage = (uint)Math.Round(LifeProjectileDamage * spellStatMod.DamageRatio ?? 0.0f);
-
-                int newSpellTargetVital;
-
-                var targetVital = "";
-                if (spell.School == MagicSchool.LifeMagic)
-                {
-                    if (targetPlayer != null)
-                    {
-                        // Player as the target
-                        if (spell.Name.Contains("Blight"))
-                        {
-                            targetVital = "mana";
-                            newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
-                            percent = (float)damage / targetPlayer.Mana.MaxValue;
-                            if (newSpellTargetVital <= 0)
-                                targetPlayer.UpdateVital(targetPlayer.Mana, 0);
-                            else
-                                targetPlayer.UpdateVital(targetPlayer.Mana, (uint)newSpellTargetVital);
-                        }
-                        else if (spell.Name.Contains("Tenacity"))
-                        {
-                            targetVital = "stamina";
-                            newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
-                            percent = (float)damage / targetPlayer.Stamina.MaxValue;
-                            if (newSpellTargetVital <= 0)
-                                targetPlayer.UpdateVital(targetPlayer.Stamina, 0);
-                            else
-                                targetPlayer.UpdateVital(targetPlayer.Stamina, (uint)newSpellTargetVital);
-                        }
-                        else
-                        {
-                            targetVital = "health";
-                            newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
-                            percent = (float)damage / targetPlayer.Health.MaxValue;
-                            if (newSpellTargetVital <= 0)
-                                targetPlayer.UpdateVital(targetPlayer.Health, 0);
-                            else
-                                targetPlayer.UpdateVital(targetPlayer.Health, (uint)newSpellTargetVital);
-                        }
-
-                        string verb = null, plural = null;
-                        Strings.GetAttackVerb(DamageType.Base, percent, ref verb, ref plural);
-                        if (player != null)
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of damage!", ChatMessageType.Magic));
-
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {damage} points of damage!", ChatMessageType.Magic));
-
-                        if (targetPlayer.Health.Current <= 0)
-                        {
-                            targetPlayer.Die();
-                            if (player != null)
-                            {
-                                Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
-                            }
-                            // TODO: death message to the player target
-                        }
-
-                        if (player != null && targetVital != null && targetVital.Equals("health"))
-                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                    }
-                    else
-                    {
-                        // Creature as the target
-                        string verb = null, plural = null;
-
-                        Creature targetCreature = (Creature)target;
-                        if (spell.Name.Contains("Blight"))
-                        {
-                            targetVital = "mana";
-                            newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
-                            percent = (float)damage / targetCreature.Mana.MaxValue;
-                            if (newSpellTargetVital <= 0)
-                                targetCreature.Mana.Current = 0;
-                            else
-                                targetCreature.Mana.Current = (uint)newSpellTargetVital;
-                        }
-                        else if (spell.Name.Contains("Blight"))
-                        {
-                            targetVital = "stamina";
-                            newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
-                            percent = (float)damage / targetCreature.Stamina.MaxValue;
-                            if (newSpellTargetVital <= 0)
-                                targetCreature.Stamina.Current = 0;
-                            else
-                                targetCreature.Stamina.Current = (uint)newSpellTargetVital;
-                        }
-                        else
-                        {
-                            targetVital = "health";
-                            newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
-                            percent = (float)damage / targetCreature.Health.MaxValue;
-                            if (newSpellTargetVital <= 0)
-                                targetCreature.Health.Current = 0;
-                            else
-                                targetCreature.Health.Current = (uint)newSpellTargetVital;
-                        }
-
-                        Strings.GetAttackVerb(DamageType.Base, percent, ref verb, ref plural);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetCreature.Name} for {damage} points of damage!", ChatMessageType.Magic));
-
-                        if (targetCreature.Health.Current <= 0)
-                        {
-                            targetCreature.Die();
-
-                            Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
-                            player.EarnXP((long)targetCreature.XpOverride);
-                        }
-
-                        if (player != null && targetVital != null && targetVital.Equals("health"))
-                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                    }
-                }
-                else
-                {
-                    damage = (uint)Physics.Common.Random.RollDice((int)spellStatMod.BaseIntensity, (int)(spellStatMod.Variance + spellStatMod.BaseIntensity));
-
-                    DamageType damageType;
-                    ResistanceType resistanceType;
-                    switch (spellStatMod.EType)
-                    {
-                        case (uint)DamageType.Acid:
-                            damageType = DamageType.Acid;
-                            resistanceType = ResistanceType.Acid;
-                            break;
-                        case (uint)DamageType.Fire:
-                            damageType = DamageType.Fire;
-                            resistanceType = ResistanceType.Fire;
-                            break;
-                        case (uint)DamageType.Cold:
-                            damageType = DamageType.Cold;
-                            resistanceType = ResistanceType.Cold;
-                            break;
-                        case (uint)DamageType.Electric:
-                            damageType = DamageType.Electric;
-                            resistanceType = ResistanceType.Electric;
-                            break;
-                        case (uint)DamageType.Nether:
-                            damageType = DamageType.Nether;
-                            resistanceType = ResistanceType.Nether;
-                            break;
-                        case (uint)DamageType.Bludgeon:
-                            damageType = DamageType.Bludgeon;
-                            resistanceType = ResistanceType.Bludgeon;
-                            break;
-                        case (uint)DamageType.Pierce:
-                            damageType = DamageType.Pierce;
-                            resistanceType = ResistanceType.Pierce;
-                            break;
-                        default:
-                            damageType = DamageType.Slash;
-                            resistanceType = ResistanceType.Slash;
-                            break;
-                    }
-                    Strings.DeathMessages.TryGetValue(damageType, out var messages);
-
-                    if (targetPlayer != null)
-                    {
-                        // Player as the target
-                        damage = (uint)Math.Round(damage * targetPlayer.GetNaturalResistence(resistanceType));
-
-                        newSpellTargetVital = (int)(targetPlayer.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
-                        if (newSpellTargetVital <= 0)
-                            targetPlayer.UpdateVital(targetPlayer.Health, 0);
-                        else
-                            targetPlayer.UpdateVital(targetPlayer.Health, (uint)newSpellTargetVital);
-
-                        string verb = null, plural = null;
-                        percent = (float)damage / targetPlayer.Health.MaxValue;
-                        Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                        var type = damageType.GetName().ToLower();
-                        if (player != null)
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetPlayer.Name} for {damage} points of {type} damage!", ChatMessageType.Magic));
-
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {damage} points of {type} damage!", ChatMessageType.Magic));
-
-                        if (targetPlayer.Health.Current <= 0)
-                        {
-                            targetPlayer.Die();
-                            if (player != null)
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetPlayer.Name), ChatMessageType.Broadcast));
-
-                            // TODO: death message to the player target
-                        }
-
-                        if (player != null)
-                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                    }
-                    else
-                    {
-                        // Creature as the target
-                        string verb = null, plural = null;
-
-                        Creature targetCreature = (Creature)target;
-                        damage = (uint)Math.Round(damage * targetCreature.GetNaturalResistence(resistanceType));
-
-                        newSpellTargetVital = (int)(targetCreature.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
-                        if (newSpellTargetVital <= 0)
-                            targetCreature.Health.Current = 0;
-                        else
-                            targetCreature.Health.Current = (uint)newSpellTargetVital;
-
-                        Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                        var type = damageType.GetName().ToLower();
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You {verb} {targetCreature.Name} for {damage} points of {type} damage!", ChatMessageType.Magic));
-
-                        if (targetCreature.Health.Current <= 0)
-                        {
-                            targetCreature.Die();
-
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], targetCreature.Name), ChatMessageType.Broadcast));
-                            player.EarnXP((long)targetCreature.XpOverride);
-                        }
-
-                        if (player != null)
-                            player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                    }
-                }
             }
 
             // also called on resist

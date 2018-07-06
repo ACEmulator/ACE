@@ -9,6 +9,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -137,9 +138,9 @@ namespace ACE.Server.WorldObjects
                         if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
                         var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
                         var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
-                        var msg = string.Empty;
+                        GameMessageSystemChat msg;
                         player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
-                        LifeMagic(player, spellBase, spell, out msg);
+                        LifeMagic(player, spellBase, spell, out uint damage, out bool critical, out msg);
                         //player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
                         player.SendUseDoneEvent();
                         return;
