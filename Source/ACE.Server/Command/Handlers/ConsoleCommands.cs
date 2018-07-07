@@ -99,5 +99,64 @@ namespace ACE.Server.Command.Handlers
             }
             Console.WriteLine($"Export to {exportDir} complete.");
         }
+
+        /// <summary>
+        /// Export all wav files to a specific directory.
+        /// </summary>
+        [CommandHandler("image-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Export Texture/Image Files")]
+        public static void ExportImageFile(Session session, params string[] parameters)
+        {
+            string syntax = "image-export <export-directory-without-spaces> [id]";
+            if (parameters?.Length < 1)
+            {
+                Console.WriteLine(syntax);
+                return;
+            }
+
+            string exportDir = parameters[0];
+            if(exportDir.Length == 0 || !System.IO.Directory.Exists(exportDir))
+            {
+                Console.WriteLine(syntax);
+                return;
+            }
+
+            if (parameters.Length > 1)
+            {
+                uint imageId;
+                if (parameters[1].StartsWith("0x"))
+                {
+                    string hex = parameters[1].Substring(2);
+                    if(!uint.TryParse(hex, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out imageId))
+                    {
+                        Console.WriteLine(syntax);
+                        return;
+                    }
+                }
+                else
+                if (!uint.TryParse(parameters[1], out imageId))
+                {
+                    Console.WriteLine(syntax);
+                    return;
+                }
+
+                var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(imageId);
+                image.ExportTexture(exportDir);
+
+                Console.WriteLine($"Exported " + imageId.ToString("X8") + " to " + exportDir + ".");
+            }
+            else
+            {
+                Console.WriteLine($"Exporting client_portal.dat textures and images to {exportDir}.  This may take a while.");
+                foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
+                {
+                    if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
+                    {
+                        var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                        image.ExportTexture(exportDir);
+                    }
+                }
+                Console.WriteLine($"Export to {exportDir} complete.");
+            }
+        }
     }
 }
