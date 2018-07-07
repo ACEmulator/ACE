@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
         {
-            Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
+            Creature creature = CurrentLandblock?.GetObject(Guid) as Creature;
 
             if (creature.IsBusy == true)
                 return;
@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CreateCreatureSpell(uint spellId)
         {
-            Creature creature = CurrentLandblock.GetObject(Guid) as Creature;
+            Creature creature = CurrentLandblock?.GetObject(Guid) as Creature;
 
             if (creature.IsBusy == true)
                 return;

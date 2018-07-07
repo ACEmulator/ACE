@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.Collision, 1.0f));    // todo: landblock broadcast?
             }
 
-            CurrentLandblock.RemoveWorldObject(Guid, false);
+            CurrentLandblock?.RemoveWorldObject(Guid, false);
             PhysicsObj.set_active(false);
         }
 
@@ -63,7 +63,7 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine("Projectile.OnCollideEnvironment(" + Guid.Full.ToString("X8") + ")");
 
-            CurrentLandblock.RemoveWorldObject(Guid, false);
+            CurrentLandblock?.RemoveWorldObject(Guid, false);
             PhysicsObj.set_active(false);
 
             var player = ProjectileSource as Player;

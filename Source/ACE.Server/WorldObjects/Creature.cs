@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects
                 if (ammo != null)
                 {
                     ammo.Location = null;
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(ammo));
+                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePickupEvent(ammo));
                 }
             }
         }
@@ -283,14 +283,14 @@ namespace ACE.Server.WorldObjects
             // FIXME: (Og II)<this is a hack for now to be removed.> Placement has an issue we have not figured out.   It has to do with animation frame. Og II
             PositionFlag &= ~UpdatePositionFlag.Placement;
             // End hack
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
             UniversalMotion mm = new UniversalMotion(MotionStance.Standing);
             mm.MovementData.CurrentStyle = (uint)MotionStance.Standing;
             SetMotionState(this, mm);
             var mEquipedAmmo = EquippedObjects.FirstOrDefault(s => s.Value.CurrentWieldedLocation == EquipMask.MissileAmmo).Value;
             var player = this as Player;
             if (mEquipedAmmo != null)
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectGhostRange, new GameMessagePickupEvent(mEquipedAmmo));
             if (player != null)
             {
                 player.stance = MotionStance.Standing;
@@ -340,14 +340,14 @@ namespace ACE.Server.WorldObjects
                 UniversalMotion mm = new UniversalMotion(ms);
                 mm.MovementData.CurrentStyle = (ushort)ms;
 
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                 SetMotionState(this, mm);
 
                 if (mEquipedAmmo != null)
                 {
                     mm.MovementData.ForwardCommand = (uint)MotionCommand.Reload;
                     SetMotionState(this, mm);
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
                     // FIXME: (Og II)<this is a hack for now to be removed. Need to pull delay from dat file
                     combatModeChain.AddDelaySeconds(0.25);
                     mm.MovementData.ForwardCommand = (ushort)MotionCommand.Invalid;
@@ -356,10 +356,10 @@ namespace ACE.Server.WorldObjects
                     combatModeChain.AddDelaySeconds(0.40);
 
                     // add to player tracking
-                    var wielder = CurrentLandblock.GetObject(new ObjectGuid(mEquipedAmmo.WielderId.Value));
-                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(wielder)));
+                    var wielder = CurrentLandblock?.GetObject(new ObjectGuid(mEquipedAmmo.WielderId.Value));
+                    combatModeChain.AddAction(this, () => CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(wielder)));
 
-                    combatModeChain.AddAction(this, () => CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
+                    combatModeChain.AddAction(this, () => CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageParentEvent(this, mEquipedAmmo, 1, 1)));
                 }
 
                 var player = this as Player;
@@ -537,7 +537,7 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motionState;
             motionState.IsAutonomous = false;
             GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), obj.Sequences, motionState);
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, updateMotion);
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, updateMotion);
         }
 
 
@@ -555,8 +555,8 @@ namespace ACE.Server.WorldObjects
             UniversalMotion newMotion = new UniversalMotion(MotionStance.Standing, worldObjectPosition, targetGuid);
             newMotion.DistanceFrom = 0.60f;
             newMotion.MovementTypes = movementType;
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
-            CurrentLandblock.EnqueueBroadcastMotion(this, newMotion);
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+            CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
         }
 
         /// <summary>

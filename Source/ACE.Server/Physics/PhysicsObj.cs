@@ -80,15 +80,10 @@ namespace ACE.Server.Physics
         public Position RequestPos;
 
         public CellArray CellArray;
-        public static ObjectMaint ObjMaint;
+        public ObjectMaint ObjMaint;
         public static PhysicsObj PlayerObject;
 
         public static readonly int UpdateTimeLength = 9;
-
-        static PhysicsObj()
-        {
-            ObjMaint = new ObjectMaint();
-        }
 
         public PhysicsObj()
         {
@@ -117,6 +112,7 @@ namespace ACE.Server.Physics
             UpdateTime = Timer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
             WeenieObj = new WeenieObject();
+            ObjMaint = new ObjectMaint();
 
             if (PhysicsEngine.Instance != null && PhysicsEngine.Instance.Server)
             {
@@ -927,7 +923,7 @@ namespace ACE.Server.Physics
                 PartArray.SetNoDrawInternal(noDraw);
         }
 
-        public static void SetObjectMaintainer(ObjectMaint objMaint)
+        public void SetObjectMaintainer(ObjectMaint objMaint)
         {
             ObjMaint = objMaint;
         }
@@ -2801,7 +2797,7 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint != null)
             {
-                //var collision = WeenieObj.WorldObject.CurrentLandblock.GetObject(new ObjectGuid(objectID));//not PhysicsObj
+                //var collision = WeenieObj.WorldObject.CurrentLandblock?.GetObject(new ObjectGuid(objectID));//not PhysicsObj
                 var collision = ObjMaint.GetObjectA(objectID);
                 if (collision != null)
                 {

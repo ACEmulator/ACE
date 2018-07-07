@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var objectGuid = new ObjectGuid(message.Payload.ReadUInt32());
 
-            var wo = session.Player.CurrentLandblock.GetObject(objectGuid) as Container;
+            var wo = session.Player.CurrentLandblock?.GetObject(objectGuid) as Container;
 
             if (wo != null && wo.Viewer == session.Player.Guid.Full)
                 wo.Close(session.Player);

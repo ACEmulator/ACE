@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
 
         public void SetUiEffect(Player player, UiEffects effect)
         {
-            player.CurrentLandblock.EnqueueBroadcast(player.Location, new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
+            player.CurrentLandblock?.EnqueueBroadcast(player.Location, new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
             UiEffects = effect;
         }
 

@@ -23,11 +23,11 @@ namespace ACE.Server.Network.GameAction.Actions
                     break;
                 case CharacterOption.ShowYourCloak:
                     session.Player.SetCharacterOption(CharacterOption.ShowYourCloak, optionValue);
-                    session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageObjDescEvent(session.Player));
+                    session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageObjDescEvent(session.Player));
                     break;
                 case CharacterOption.ShowYourHelmOrHeadGear:
                     session.Player.SetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear, optionValue);
-                    session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageObjDescEvent(session.Player));
+                    session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageObjDescEvent(session.Player));
                     break;
 
                 default:

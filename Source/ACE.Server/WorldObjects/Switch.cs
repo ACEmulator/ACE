@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
         //public override void HandleActionOnCollide(ObjectGuid playerId)
         //{
         //    if (!playerId.IsPlayer()) return;
-        //    var player = CurrentLandblock.GetObject(playerId) as Player;
+        //    var player = CurrentLandblock?.GetObject(playerId) as Player;
         //    if (player == null) return;
 
         //    if (ResetTime.HasValue && ResetTime > 0)
@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
         //    //spell traps
         //    if (Spell.HasValue && SpellDID.HasValue)
         //    {
-        //        CurrentLandblock.EnqueueBroadcastSound(player, Sound.TriggerActivated);
+        //        CurrentLandblock?.EnqueueBroadcastSound(player, Sound.TriggerActivated);
         //        var spellTable = DatManager.PortalDat.SpellTable;
         //        if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
         //        var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
@@ -102,14 +102,14 @@ namespace ACE.Server.WorldObjects
             var switchTimer = new ActionChain();
             var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-            switchTimer.AddAction(this, () => worldObject.CurrentLandblock.EnqueueBroadcastMotion(worldObject, turnToMotion));
+            switchTimer.AddAction(this, () => worldObject.CurrentLandblock?.EnqueueBroadcastMotion(worldObject, turnToMotion));
             switchTimer.AddDelaySeconds(1);
             switchTimer.AddAction(worldObject, () =>
             {
                 if (UseTargetAnimation.HasValue)
-                    CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetAnimation)));
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetAnimation)));
                 else
-                    CurrentLandblock.EnqueueBroadcastMotion(this, twitch);
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
             });
             if (UseTargetAnimation.HasValue)
                 switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetAnimation));
@@ -119,7 +119,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (ActivationTarget > 0)
                 {
-                    var target = CurrentLandblock.GetObject(new ObjectGuid(ActivationTarget.Value));
+                    var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget.Value));
 
                     target.ActOnUse(worldObject);
                 }
@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
 
                         wo.ActivationTarget = Guid.Full;
 
-                        CurrentLandblock.AddWorldObject(wo);
+                        CurrentLandblock?.AddWorldObject(wo);
                     }
                 }
             }
