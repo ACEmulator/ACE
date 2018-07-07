@@ -146,16 +146,29 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
+                int totalFiles = 0;
                 Console.WriteLine($"Exporting client_portal.dat textures and images to {exportDir}.  This may take a while.");
                 foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
                 {
                     if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
                     {
                         var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                        Console.WriteLine(entry.Value.ObjectId.ToString("X8"));
                         image.ExportTexture(exportDir);
+                        totalFiles++;
                     }
                 }
-                Console.WriteLine($"Export to {exportDir} complete.");
+                if(DatManager.HighResDat != null)
+                    foreach (KeyValuePair<uint, DatFile> entry in DatManager.HighResDat.AllFiles)
+                    {
+                        if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
+                        {
+                            var image = DatManager.HighResDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                            image.ExportTexture(exportDir);
+                            totalFiles++;
+                        }
+                    }
+                Console.WriteLine($"Exported {totalFiles} total files to {exportDir}.");
             }
         }
     }
