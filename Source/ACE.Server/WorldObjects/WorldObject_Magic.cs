@@ -662,9 +662,10 @@ namespace ACE.Server.WorldObjects
         {
             double duration;
             if (castByItem == null)
-                duration = -1;
-            else
                 duration = spell.Duration;
+            else
+                duration = -1;
+
             // create enchantment
             var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
             var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
@@ -692,7 +693,12 @@ namespace ACE.Server.WorldObjects
 
             string message;
             if (castByItem != null)
-                message = $"{castByItem} casts {spell.Name} on you";
+            {
+                if (target.Name != castByItem)
+                    message = $"{castByItem} casts {spell.Name} on you";
+                else
+                    message = null;
+            }
             else
                 message = $"You cast {spell.Name} on {targetName}{suffix}";
 
@@ -705,6 +711,9 @@ namespace ACE.Server.WorldObjects
                 if (playerTarget != this)
                     playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
+
+            if (message == null)
+                return null;
 
             return new GameMessageSystemChat(message, ChatMessageType.Magic);
         }
