@@ -3246,10 +3246,17 @@ namespace ACE.Server.Physics
         /// Sets the requested position to the AutonomousPosition
         /// received from the client
         /// </summary>
-        public void set_request_pos(Vector3 pos, Quaternion rotation, ObjCell cell)
+        public void set_request_pos(Vector3 pos, Quaternion rotation, ObjCell cell, uint blockCellID)
         {
             RequestPos.Frame.Origin = pos;
             RequestPos.Frame.Orientation = rotation;
+
+            if (CurCell == null)
+            {
+                CurCell = LScape.get_landcell(blockCellID);
+                if (CurCell == null)
+                    return;
+            }
 
             if (cell == null)
                 RequestPos.ObjCellID = RequestPos.GetCell(CurCell.ID);

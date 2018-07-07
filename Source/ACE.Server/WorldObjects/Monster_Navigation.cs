@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
 
             var cell = LScape.get_landcell(Location.Cell);
 
-            PhysicsObj.set_request_pos(requestPos, Location.Rotation, null);
+            PhysicsObj.set_request_pos(requestPos, Location.Rotation, null, Location.LandblockId.Raw);
 
             // simulate running forward for this amount of time
             PhysicsObj.update_object_server(false);
