@@ -31,6 +31,9 @@ namespace ACE.Server.WorldObjects
         public int GetArmorVsType(DamageType damageType, int armorVsType)
         {
             var resistance = (float)armorVsType / Biota.BaseArmor;
+            if (double.IsNaN(resistance))
+                resistance = 1.0f;
+
             var mod = EnchantmentManager.GetResistanceMod(damageType);
 
             var baseArmorMod = BaseArmorMod;
