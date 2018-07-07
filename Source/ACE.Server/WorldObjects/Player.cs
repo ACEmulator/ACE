@@ -62,6 +62,13 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
+            PhysicsObj.SetPlayer();
+        }
+
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;

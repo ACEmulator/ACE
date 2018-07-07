@@ -81,9 +81,15 @@ namespace ACE.Server.Physics
 
         public CellArray CellArray;
         public ObjectMaint ObjMaint;
-        public static PhysicsObj PlayerObject;
+        public static List<PhysicsObj> Players;
+        public bool IsPlayer;
 
         public static readonly int UpdateTimeLength = 9;
+
+        static PhysicsObj()
+        {
+            Players = new List<PhysicsObj>();
+        }
 
         public PhysicsObj()
         {
@@ -419,7 +425,7 @@ namespace ACE.Server.Physics
         {
             if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
 
-            return PlayerObject.Equals(this) ? 25.0f : 20.0f;
+            return Players.Contains(this) ? 25.0f : 20.0f;
         }
 
         public BBox GetBoundingBox()
@@ -995,9 +1001,12 @@ namespace ACE.Server.Physics
             return result;
         }
 
-        public static void SetPlayer(PhysicsObj newPlayer)
+        public void SetPlayer()
         {
-            PlayerObject = newPlayer;
+            if (Players.Contains(this))
+                Players.Add(this);
+
+            IsPlayer = true;
         }
 
         public SetPositionError SetPosition(SetPosition setPos)
@@ -1978,9 +1987,34 @@ namespace ACE.Server.Physics
             // handle indoor cell visibility
             if ((newCell.ID & 0xFFFF) >= 0x100)
             {
-                var addUpdateObjs = handle_visible_cells();
-                if (addUpdateObjs == null) return;
-                enqueue_objs(addUpdateObjs);
+                if (IsPlayer)
+                {
+                    // player entering new indoor cell
+                    var addUpdateObjs = handle_visible_cells();
+                    if (addUpdateObjs == null) return;
+                    enqueue_objs(addUpdateObjs);
+                }
+
+                foreach (var player in Players)
+                {
+                    // is other player in same indoor landblock?
+                    if (player.CurCell != null && (player.CurCell.ID & 0xFFFF) >= 0x100 && player.CurCell.ID >> 16 == newCell.ID >> 16)
+                    {
+                        var envCell = player.CurCell as Common.EnvCell;
+                        if (envCell != null)
+                        {
+                            if (envCell.VisibleCells.ContainsKey(newCell.ID & 0xFFFF))
+                            {
+                                //Console.WriteLine($"Informing {player.WeenieObj.WorldObject.Name} about {WeenieObj.WorldObject.Name}");
+
+                                // inform other player about this object
+                                var addUpdateObjs = player.handle_visible_cells();
+                                if (addUpdateObjs == null) return;
+                                player.enqueue_objs(addUpdateObjs);
+                            }
+                        }
+                    }
+                }
             }
 
             //Console.WriteLine("Cell: " + newCell.ID.ToString("X8") + " (" + newCell.ShadowObjectList.Count + ")");
