@@ -51,10 +51,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = false;
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Off);
 
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
 
                     break;
                 case "on":
@@ -68,11 +68,11 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = true;
                     session.Player.Translucency = 0.5f;
 
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
                     //session.Network.EnqueueSend(new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
+                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
 
                     break;
                 case "player":
@@ -86,10 +86,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = false;
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Player);
 
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
 
                     break;
                 case "creature":
@@ -103,10 +103,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = false;
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Creature);
 
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock.AddWorldObject(session.Player);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
+                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
 
                     break;
                 default:
@@ -232,7 +232,7 @@ namespace ACE.Server.Command.Handlers
                 // update client-side enchantments
                 targetPlayer.Session.Network.EnqueueSend(buffMessages.Select(k => k.SessionMessage).ToArray());
                 // run client-side effect scripts, omitting duplicates
-                targetPlayer.CurrentLandblock.EnqueueBroadcast(targetPlayer.Location, buffMessages.GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
+                targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
                 // update server-side enchantments
                 targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), null);
             });
@@ -365,7 +365,7 @@ namespace ACE.Server.Command.Handlers
                 case "on":
                     var runEnchantment = new Enchantment(session.Player, session.Player.Guid, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
                     var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
-                    session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
+                    session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
                     session.Player.EnchantmentManager.Add(runEnchantment, null);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
                     break;

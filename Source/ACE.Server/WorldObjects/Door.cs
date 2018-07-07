@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
                         var player = worldObject as Player;
                         var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
                         player.Session.Network.EnqueueSend(doorIsLocked);
-                        CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                        CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
                     }
                 }
 
@@ -209,12 +209,12 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState == motionOpen)
                 return;
 
-            CurrentLandblock.EnqueueBroadcastMotion(this, motionOpen);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motionOpen);
             CurrentMotionState = motionOpen;
             Ethereal = true;
             IsOpen = true;
-            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
+            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
+            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
             if (opener.Full > 0)
                 UseTimestamp++;
         }
@@ -224,12 +224,12 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState == motionClosed)
                 return;
 
-            CurrentLandblock.EnqueueBroadcastMotion(this, motionClosed);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motionClosed);
             CurrentMotionState = motionClosed;
             Ethereal = false;
             IsOpen = false;
-            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            //CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
+            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
+            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
             if (closer.Full > 0)
                 UseTimestamp++;
         }
@@ -245,8 +245,8 @@ namespace ACE.Server.WorldObjects
                 if (DefaultLocked)
                 {
                     IsLocked = true;
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true));
-                    CurrentLandblock.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
+                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true));
+                    CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
                 }
             }
             else
@@ -286,7 +286,7 @@ namespace ACE.Server.WorldObjects
 
                         wo.ActivationTarget = Guid.Full;
 
-                        CurrentLandblock.AddWorldObject(wo);
+                        CurrentLandblock?.AddWorldObject(wo);
                     }
                 }
             }

@@ -250,7 +250,7 @@ namespace ACE.Server.Command.Handlers
                 else
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
 
-                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
 
                 if (objectId.IsPlayer())
                     return;
@@ -649,7 +649,7 @@ namespace ACE.Server.Command.Handlers
                         if (guid.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
-                        var wo = session.Player.CurrentLandblock.GetObject(guid);
+                        var wo = session.Player.CurrentLandblock?.GetObject(guid);
 
                         if (wo is Creature creature)
                             creature.Smite(session.Player.Guid);
@@ -694,7 +694,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
 
-                    var wo = session.Player.CurrentLandblock.GetObject(objectId) as Creature;
+                    var wo = session.Player.CurrentLandblock?.GetObject(objectId) as Creature;
 
                     if (objectId == session.Player.Guid) // don't kill yourself
                         return;
@@ -1030,7 +1030,7 @@ namespace ACE.Server.Command.Handlers
             if (session.Player.CurrentAppraisalTarget.HasValue)
             {
                 var objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
-                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
                 if (wo is Lock @lock)
                 {
                     var opening = openIt ? $" Opening {wo.WeenieType}." : "";

@@ -606,7 +606,7 @@ namespace ACE.Server.WorldObjects
             {
                 var physicsState = CalculatedPhysicsState();
                 GameMessage msg = new GameMessageSetState(this, physicsState);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
 
@@ -615,7 +615,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 GameMessage msg = new GameMessageUpdateObject(this);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
 
@@ -653,7 +653,7 @@ namespace ACE.Server.WorldObjects
         public void DoMotion(UniversalMotion motion)
         {
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
         }
 
         public void ApplyVisualEffects(PlayScript effect)
@@ -671,7 +671,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 var effectEvent = new GameMessageScript(targetId, effectId);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
             }
         }
 

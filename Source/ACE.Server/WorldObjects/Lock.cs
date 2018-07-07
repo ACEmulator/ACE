@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
                             break;
                         case UnlockResults.PickLockFailed:
-                            target.CurrentLandblock.EnqueueBroadcastSound(target, Sound.PicklockFail);
+                            target.CurrentLandblock?.EnqueueBroadcastSound(target, Sound.PicklockFail);
                             ConsumeUnlocker(player, unlocker);
                             break;
                         case UnlockResults.CannotBePicked:
@@ -135,8 +135,8 @@ namespace ACE.Server.WorldObjects
                     return UnlockResults.AlreadyUnlocked;
 
                 me.IsLocked = false;
-                me.CurrentLandblock.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
-                me.CurrentLandblock.EnqueueBroadcastSound(me, Sound.LockSuccess);
+                me.CurrentLandblock?.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
+                me.CurrentLandblock?.EnqueueBroadcastSound(me, Sound.LockSuccess);
                 return UnlockResults.UnlockSuccess;
             }
             return UnlockResults.IncorrectKey;
@@ -165,8 +165,8 @@ namespace ACE.Server.WorldObjects
                 return UnlockResults.PickLockFailed;
 
             me.IsLocked = false;
-            me.CurrentLandblock.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
-            //me.CurrentLandblock.EnqueueBroadcastSound(me, Sound.Lockpicking);
+            me.CurrentLandblock?.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
+            //me.CurrentLandblock?.EnqueueBroadcastSound(me, Sound.Lockpicking);
             return UnlockResults.UnlockSuccess;
         }
     }

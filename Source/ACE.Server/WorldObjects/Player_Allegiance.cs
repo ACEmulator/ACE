@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{patron.Name} has accepted your oath of Allegiance!", ChatMessageType.Broadcast));
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, new MotionItem(MotionCommand.Kneel));
-            CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
 
             // rebuild allegiance tree structure
             AllegianceManager.OnSwearAllegiance(this);

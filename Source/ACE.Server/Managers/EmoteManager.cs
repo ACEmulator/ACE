@@ -166,7 +166,7 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.DeleteSelf:
 
-                    WorldObject.CurrentLandblock.RemoveWorldObject(WorldObject.Guid, false);
+                    WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, false);
                     break;
 
                 case EmoteType.DirectBroadcast:
@@ -413,7 +413,7 @@ namespace ACE.Server.Managers
                 case EmoteType.LocalBroadcast:
 
                     text = Replace(emote.Message, target, WorldObject);
-                    WorldObject.CurrentLandblock.EnqueueBroadcastSystemChat(WorldObject, text, ChatMessageType.Broadcast);
+                    WorldObject.CurrentLandblock?.EnqueueBroadcastSystemChat(WorldObject, text, ChatMessageType.Broadcast);
                     break;
 
                 case EmoteType.LocalSignal:
@@ -498,7 +498,7 @@ namespace ACE.Server.Managers
 
                     text = Replace(emote.Message, target, WorldObject);
                     if (player != null)
-                        player.CurrentLandblock.EnqueueBroadcastLocalChat(player, text);
+                        player.CurrentLandblock?.EnqueueBroadcastLocalChat(player, text);
                     break;
 
                 case EmoteType.SetAltRacialSkills:
@@ -578,7 +578,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Sound:
-                    target.CurrentLandblock.EnqueueBroadcastSound(target, (Sound)emote.Sound);
+                    target.CurrentLandblock?.EnqueueBroadcastSound(target, (Sound)emote.Sound);
                     break;
 
                 case EmoteType.SpendLuminance:
@@ -881,7 +881,7 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
-                        sourceObject.CurrentLandblock.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
+                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
                     });
                     break;
 
@@ -1015,7 +1015,7 @@ namespace ACE.Server.Managers
                     {
                         if ((creature.ActivationTarget ?? 0) > 0)
                         {
-                            var activationTarget = creature.CurrentLandblock.GetObject(new ObjectGuid(creature.ActivationTarget ?? 0));
+                            var activationTarget = creature.CurrentLandblock?.GetObject(new ObjectGuid(creature.ActivationTarget ?? 0));
                             activationTarget.ActOnUse(creature);
                         }
                     });

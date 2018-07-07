@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             AccuracyLevel = accuracyLevel;
 
             // get world object of target guid
-            var target = CurrentLandblock.GetObject(guid);
+            var target = CurrentLandblock?.GetObject(guid);
             if (target == null)
             {
                 log.Warn("Unknown target guid " + guid.Full.ToString("X8"));
@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
 
             var weapon = GetEquippedWeapon();
             var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
-            CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
+            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
 
             float targetTime = 0.0f;
             var damageSource = LaunchProjectile(target, out targetTime);

@@ -36,12 +36,12 @@ namespace ACE.Server.WorldObjects
 
             moveToChain.AddAction(this, () =>
             {
-                var targetObject = CurrentLandblock.GetObject(target);
+                var targetObject = CurrentLandblock?.GetObject(target);
 
                 if (targetObject == null)
                 {
                     // Is the item we're trying to move to in the container we have open?
-                    var lastUsedContainer = CurrentLandblock.GetObject(lastUsedContainerId) as Container;
+                    var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
 
                     if (lastUsedContainer != null)
                     {
@@ -90,7 +90,8 @@ namespace ACE.Server.WorldObjects
                     return false;
 
                 // Are we within use radius?
-                bool ret = !CurrentLandblock.WithinUseRadius(this, target, out var valid);
+                var valid = false;
+                bool ret = CurrentLandblock != null ? CurrentLandblock.WithinUseRadius(this, target, out valid) : false;
 
                 // If one of the items isn't on a landblock
                 if (!valid)
@@ -138,7 +139,8 @@ namespace ACE.Server.WorldObjects
                     return false;
 
                 // Are we within use radius?
-                bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
+                var valid = false;
+                bool ret = CurrentLandblock != null ? CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
 
                 // If one of the items isn't on a landblock
                 if (!valid)
@@ -172,7 +174,7 @@ namespace ACE.Server.WorldObjects
                 var invTarget = GetInventoryItem(targetObjectId);
                 var invWielded = GetWieldedItem(targetObjectId);
 
-                var worldTarget = (invTarget == null) ? CurrentLandblock.GetObject(targetObjectId) : null;
+                var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
 
                 if (invTarget != null)
                 {
@@ -245,7 +247,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // Search the world second
-                    item = CurrentLandblock.GetObject(usedItemId);
+                    item = CurrentLandblock?.GetObject(usedItemId);
 
                     if (item == null)
                     {

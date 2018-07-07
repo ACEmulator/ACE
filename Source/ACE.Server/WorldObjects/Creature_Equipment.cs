@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
             Value += worldObject.Value;
 
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+                CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
 
             return true;
         }
@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
                 Value -= worldObject.Value;
 
                 if (CurrentLandblock != null)
-                    CurrentLandblock.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+                    CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
 
                 return true;
             }
