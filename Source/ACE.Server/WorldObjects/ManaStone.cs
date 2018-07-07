@@ -118,9 +118,11 @@ namespace ACE.Server.WorldObjects
                             var msg = $"The {Name} gives {itemsGivenMana.Sum(k => k.Value.ManaGiven).ToString("n0")} points of mana to the following items: {itemsGivenMana.Select(c => c.Value.Name).Aggregate((a, b) => a + ", " + b)}{additionalManaText}";
                             itemsGivenMana.ForEach(k => k.Value.ItemCurMana += k.Value.ManaGiven);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
-                            ItemCurMana = null;
                             if (!Destroy(player))
+                            {
+                                ItemCurMana = null;
                                 SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
+                            }
                         }
                     }
                 }
@@ -141,7 +143,10 @@ namespace ACE.Server.WorldObjects
                         var msg = $"The {Name} gives {manaToPour} points of mana to the {target.Name}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                         if (!Destroy(player))
+                        {
+                            ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
+                        }
                     }
                 }
                 else
