@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid, out Container container)
         {
-            // First search me for this item..
+            // First search my main pack for this item..
             if (Inventory.TryGetValue(objectGuid, out var value))
             {
                 container = this;

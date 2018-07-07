@@ -106,7 +106,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="guidItem"></param>
         /// <param name="spellId"></param>
-        public void CreateItemSpell(ObjectGuid guidItem, uint spellId)
+        /// <returns>if the spell was created or not</returns>
+        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
             WorldObject item = player.GetWieldedItem(guidItem);
@@ -115,9 +116,9 @@ namespace ACE.Server.WorldObjects
             {
                 item = player.GetInventoryItem(guidItem);
                 if (item == null)
-                    return;
+                    return false;
                 if (item.WeenieType != WeenieType.Gem)
-                    return;
+                    return false;
             }
 
             CreatureSkill arcaneLore = player.GetCreatureSkill(Skill.ArcaneLore);
@@ -133,15 +134,15 @@ namespace ACE.Server.WorldObjects
                     {
                         case 6:
                             if (meleeDefense.Current < item.ItemSkillLevelLimit)
-                                return;
+                                return false;
                             break;
                         case 7:
                             if (missileDefense.Current < item.ItemSkillLevelLimit)
-                                return;
+                                return false;
                             break;
                         case 8:
                             if (magicDefense.Current < item.ItemSkillLevelLimit)
-                                return;
+                                return false;
                             break;
                     }
                 }
@@ -150,7 +151,7 @@ namespace ACE.Server.WorldObjects
                 if (!spellTable.Spells.ContainsKey(spellId))
                 {
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
-                    return;
+                    return false;
                 }
 
                 SpellBase spell = spellTable.Spells[spellId];
@@ -159,12 +160,13 @@ namespace ACE.Server.WorldObjects
                 if (spellStatMod == null)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                    return;
+                    return false;
                 }
 
                 float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
                 GameMessageSystemChat message;
+                bool created = false;
                 switch (spell.School)
                 {
                     case MagicSchool.CreatureEnchantment:
@@ -172,6 +174,7 @@ namespace ACE.Server.WorldObjects
                             break;
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                         message = CreatureMagic(player, spell, spellStatMod, item.Name);
+                        created = true;
                         if (message != null)
                             player.Session.Network.EnqueueSend(message);
                         break;
@@ -183,19 +186,23 @@ namespace ACE.Server.WorldObjects
                         }
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                         LifeMagic(player, spell, spellStatMod, out uint damage, out bool critical, out message, item.Name);
+                        created = true;
                         if (message != null)
                             player.Session.Network.EnqueueSend(message);
                         break;
                     case MagicSchool.ItemEnchantment:
                         CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(item.Guid, (PlayScript)spell.TargetEffect, scale));
                         message = ItemMagic(item, spell, spellStatMod, item.Name);
+                        created = true;
                         if (message != null)
                             player.Session.Network.EnqueueSend(message);
                         break;
                     default:
                         break;
                 }
+                return created;
             }
+            return false;
         }
 
         /// <summary>

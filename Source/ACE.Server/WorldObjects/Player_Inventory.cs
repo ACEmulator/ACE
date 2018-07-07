@@ -500,6 +500,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     UnwieldItemWithNetworking(container, item, placement);
+                    item.IsActivated = false;
                     return;
                 }
 
@@ -624,6 +625,46 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// used for the login routine and the player initiated item equip action, checks the persistent IsActivated property of the WO, and applies spells
+        /// </summary>
+        public void ApplyEquippedItemSpells()
+        {
+            if (!EquippedObjectsLoaded) throw new Exception("Equipped items aren't loaded yet.  Only call this after the equipped items are loaded.");
+            EquippedObjects.Where(k=>k.Value.IsActivated).ToList().ForEach(k => {
+                CreateEquippedItemSpells(k.Value);
+            });
+        }
+
+        /// <summary>
+        /// create spells by an equipped item
+        /// </summary>
+        /// <param name="item">the equipped item doing the spell creation</param>
+        /// <returns>if any spells were created or not</returns>
+        public bool CreateEquippedItemSpells(WorldObject item)
+        {
+            bool spellCreated = false;
+            if (item.Biota.BiotaPropertiesSpellBook != null)
+            {
+                // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
+                if (item.ItemCurMana > 1 || item.ItemCurMana == null)
+                {
+                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                    {
+                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell))
+                            spellCreated = true;
+                    }
+                    item.IsActivated = spellCreated;
+                    if (item.IsActivated)
+                    {
+                        if (item.ItemCurMana.HasValue)
+                            item.ItemCurMana--;
+                    }
+                }
+            }
+            return spellCreated;
+        }
+
         public void HandleActionGetAndWieldItem(uint itemId, int wieldLocation)
         {
             new ActionChain(this, () =>
@@ -638,17 +679,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    if (item.Biota.BiotaPropertiesSpellBook != null)
-                    {
-                        // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
-                        if (item.ItemCurMana > 1 || item.ItemCurMana == null)
-                        {
-                            for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                            {
-                                CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                            }
-                        }
-                    }
+                    CreateEquippedItemSpells(item);
 
                     if ((EquipMask)wieldLocation == EquipMask.MissileAmmo)
                     {
