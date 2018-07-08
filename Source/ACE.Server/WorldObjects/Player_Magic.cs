@@ -106,10 +106,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="guidItem"></param>
         /// <param name="spellId"></param>
+        /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows</param>
+        /// <param name="ignoreRequirements">disregard item activation requirements</param>
         /// <returns>if the spell was created or not</returns>
-        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId)
+        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
-            Player player = CurrentLandblock.GetObject(Guid) as Player;
+            Player player = CurrentLandblock?.GetObject(Guid) as Player;
+            if (player == null && ((this as Player) != null)) player = this as Player;
             WorldObject item = player.GetWieldedItem(guidItem);
 
             if (item == null)
@@ -126,9 +129,9 @@ namespace ACE.Server.WorldObjects
             CreatureSkill missileDefense = player.GetCreatureSkill(Skill.MissileDefense);
             CreatureSkill magicDefense = player.GetCreatureSkill(Skill.MagicDefense);
 
-            if (arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
+            if (ignoreRequirements || arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
             {
-                if (item.AppraisalItemSkill != 0 || item.AppraisalItemSkill != null)
+                if (!ignoreRequirements && (item.AppraisalItemSkill != 0 || item.AppraisalItemSkill != null))
                 {
                     switch (item.AppraisalItemSkill)
                     {
@@ -172,10 +175,10 @@ namespace ACE.Server.WorldObjects
                     case MagicSchool.CreatureEnchantment:
                         if (IsSpellHarmful(spell))
                             break;
-                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                         message = CreatureMagic(player, spell, spellStatMod, item.Name);
                         created = true;
-                        if (message != null)
+                        if (message != null && !suppressSpellChatText)
                             player.Session.Network.EnqueueSend(message);
                         break;
                     case MagicSchool.LifeMagic:
@@ -184,17 +187,17 @@ namespace ACE.Server.WorldObjects
                             if (IsSpellHarmful(spell))
                                 break;
                         }
-                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                         LifeMagic(player, spell, spellStatMod, out uint damage, out bool critical, out message, item.Name);
                         created = true;
-                        if (message != null)
+                        if (message != null && !suppressSpellChatText)
                             player.Session.Network.EnqueueSend(message);
                         break;
                     case MagicSchool.ItemEnchantment:
-                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(item.Guid, (PlayScript)spell.TargetEffect, scale));
+                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(item.Guid, (PlayScript)spell.TargetEffect, scale));
                         message = ItemMagic(item, spell, spellStatMod, item.Name);
                         created = true;
-                        if (message != null)
+                        if (message != null && !suppressSpellChatText)
                             player.Session.Network.EnqueueSend(message);
                         break;
                     default:

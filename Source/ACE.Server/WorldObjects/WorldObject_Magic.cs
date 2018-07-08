@@ -561,7 +561,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="castByItem"></param>
         protected GameMessageSystemChat ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
         {
-            Player player = CurrentLandblock.GetObject(Guid) as Player;
+            Player player = CurrentLandblock?.GetObject(Guid) as Player;
+            if (player == null && ((this as Player) != null)) player = this as Player;
 
             if ((spell.MetaSpellType == SpellType.PortalLink)
                 || (spell.MetaSpellType == SpellType.PortalRecall)

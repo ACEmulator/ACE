@@ -61,27 +61,6 @@ namespace ACE.Server.WorldObjects
         private bool busyState;
         private bool movingState;
 
-        private bool _IsActivated = false;
-        public bool IsActivated
-        {
-            // TODO: affect this property upon login, the way it is now it's only part of the equip/dequip pipeline
-            get { return _IsActivated; }
-            set
-            {
-                _IsActivated = value;
-                if (!value)
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = null;
-                }
-                else
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = DateTime.Now;
-                }
-            }
-        }
-
         public int ManaGiven { get; set; }
 
         public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
