@@ -191,8 +191,17 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(message);
                         break;
                     case MagicSchool.ItemEnchantment:
-                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(item.Guid, (PlayScript)spell.TargetEffect, scale));
-                        message = ItemMagic(item, spell, spellStatMod, item.Name);
+                        CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.TargetEffect, scale));
+                        if ((spell.Category == 152)
+                            || (spell.Category == 154)
+                            || (spell.Category == 156)
+                            || (spell.Category == 158)
+                            || (spell.Category == 195))
+                        {
+                            message = ItemMagic(player, spell, spellStatMod, item.Name);
+                        }
+                        else
+                            message = ItemMagic(item, spell, spellStatMod, item.Name);
                         created = true;
                         if (message != null)
                             player.Session.Network.EnqueueSend(message);
