@@ -13,6 +13,7 @@ namespace ACE.Server.Network.Structure
     public class Enchantment
     {
         public WorldObject Target;
+        public ACE.Entity.ObjectGuid CasterGuid;
         public SpellBase SpellBase;
         public Spell Spell;
         public ushort Layer;
@@ -21,9 +22,15 @@ namespace ACE.Server.Network.Structure
         public double Duration;
         public float? StatMod;
 
-        public Enchantment(WorldObject target, uint spellId, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, ACE.Entity.ObjectGuid? casterGuid, uint spellId, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
+
+            if (casterGuid == null)
+                CasterGuid = ACE.Entity.ObjectGuid.Invalid;
+            else
+                CasterGuid = (ACE.Entity.ObjectGuid)casterGuid;
+
             SpellBase = DatManager.PortalDat.SpellTable.Spells[spellId];
             Spell = DatabaseManager.World.GetCachedSpell(spellId);
             Layer = layer;
@@ -32,9 +39,15 @@ namespace ACE.Server.Network.Structure
             StatMod = statMod ?? Spell.StatModVal;
         }
 
-        public Enchantment(WorldObject target, SpellBase spellBase, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, ACE.Entity.ObjectGuid? casterGuid, SpellBase spellBase, double duration, ushort layer, uint? enchantmentMask, float? statMod = null)
         {
             Target = target;
+
+            if (casterGuid == null)
+                CasterGuid = ACE.Entity.ObjectGuid.Invalid;
+            else
+                CasterGuid = (ACE.Entity.ObjectGuid)casterGuid;
+
             SpellBase = spellBase;
             Layer = layer;
             Duration = duration;
@@ -45,6 +58,7 @@ namespace ACE.Server.Network.Structure
         public Enchantment(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
         {
             Target = target;
+            CasterGuid = new ACE.Entity.ObjectGuid(entry.CasterObjectId);
             SpellBase = DatManager.PortalDat.SpellTable.Spells[(uint)entry.SpellId];
             Spell = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
             Layer = entry.LayerId;
@@ -83,7 +97,7 @@ namespace ACE.Server.Network.Structure
             writer.Write(enchantment.SpellBase.Power);
             writer.Write(enchantment.StartTime);
             writer.Write(enchantment.Duration);
-            writer.Write(enchantment.Target.Guid.Full);
+            writer.Write(enchantment.CasterGuid.Full);
             writer.Write(enchantment.SpellBase.DegradeModifier);
             writer.Write(enchantment.SpellBase.DegradeLimit);
             writer.Write(LastTimeDegraded);     // always 0 / spell economy?
