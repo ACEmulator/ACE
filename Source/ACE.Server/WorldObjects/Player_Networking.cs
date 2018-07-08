@@ -49,6 +49,9 @@ namespace ACE.Server.WorldObjects
             var offlinePlayer = WorldManager.GetOfflinePlayer(Guid);
             if (offlinePlayer != null)
                 offlinePlayer.AddCPPoolToUnload(true);
+
+            // apply spells from items currectly equipped and affecting
+            ApplyEquippedItemSpells();
         }
 
         /// <summary>

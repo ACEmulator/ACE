@@ -500,7 +500,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     UnwieldItemWithNetworking(container, item, placement);
-                    item.IsActivated = false;
+                    item.IsAffecting = false;
                     return;
                 }
 
@@ -631,8 +631,8 @@ namespace ACE.Server.WorldObjects
         public void ApplyEquippedItemSpells()
         {
             if (!EquippedObjectsLoaded) throw new Exception("Equipped items aren't loaded yet.  Only call this after the equipped items are loaded.");
-            EquippedObjects.Where(k=>k.Value.IsActivated).ToList().ForEach(k => {
-                CreateEquippedItemSpells(k.Value);
+            EquippedObjects.Where(k=> (k.Value.IsAffecting ?? false)).ToList().ForEach(k => {
+                CreateEquippedItemSpells(k.Value, true, true);
             });
         }
 
@@ -640,8 +640,10 @@ namespace ACE.Server.WorldObjects
         /// create spells by an equipped item
         /// </summary>
         /// <param name="item">the equipped item doing the spell creation</param>
+        /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows</param>
+        /// <param name="ignoreRequirements">disregard item activation requirements</param>
         /// <returns>if any spells were created or not</returns>
-        public bool CreateEquippedItemSpells(WorldObject item)
+        public bool CreateEquippedItemSpells(WorldObject item, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
             bool spellCreated = false;
             if (item.Biota.BiotaPropertiesSpellBook != null)
@@ -651,11 +653,11 @@ namespace ACE.Server.WorldObjects
                 {
                     for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
                     {
-                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell))
+                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell, suppressSpellChatText, ignoreRequirements))
                             spellCreated = true;
                     }
-                    item.IsActivated = spellCreated;
-                    if (item.IsActivated)
+                    item.IsAffecting = spellCreated;
+                    if (item.IsAffecting ?? false)
                     {
                         if (item.ItemCurMana.HasValue)
                             item.ItemCurMana--;

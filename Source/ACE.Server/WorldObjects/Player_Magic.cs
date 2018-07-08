@@ -106,10 +106,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="guidItem"></param>
         /// <param name="spellId"></param>
+        /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows</param>
+        /// <param name="ignoreRequirements">disregard item activation requirements</param>
         /// <returns>if the spell was created or not</returns>
-        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId)
+        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
+            if (player == null && ((this as Player) != null)) player = this as Player;
             WorldObject item = player.GetWieldedItem(guidItem);
 
             if (item == null)
@@ -126,9 +129,9 @@ namespace ACE.Server.WorldObjects
             CreatureSkill missileDefense = player.GetCreatureSkill(Skill.MissileDefense);
             CreatureSkill magicDefense = player.GetCreatureSkill(Skill.MagicDefense);
 
-            if (arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
+            if (ignoreRequirements || arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
             {
-                if (item.AppraisalItemSkill != 0 || item.AppraisalItemSkill != null)
+                if (!ignoreRequirements && (item.AppraisalItemSkill != 0 || item.AppraisalItemSkill != null))
                 {
                     switch (item.AppraisalItemSkill)
                     {
@@ -180,6 +183,7 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
+
                     case MagicSchool.LifeMagic:
                         if (spell.MetaSpellType != SpellType.LifeProjectile)
                         {
@@ -214,6 +218,7 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
+
                     default:
                         break;
                 }
