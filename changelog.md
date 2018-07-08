@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-07
+[OptimShi]
+* Add SpellCategory enum
+
 ### 2018-07-04
 [OptimShi]
 * Fixed an issue with the Replace DatLoader.Entity.AnimationHook
