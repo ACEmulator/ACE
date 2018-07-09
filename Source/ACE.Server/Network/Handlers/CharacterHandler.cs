@@ -215,6 +215,8 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (weenie.WeeniePropertiesCreateList.Any())
+                weenie.WeeniePropertiesCreateList.Clear();
 
             var guid = GuidManager.NewPlayerGuid();
 
