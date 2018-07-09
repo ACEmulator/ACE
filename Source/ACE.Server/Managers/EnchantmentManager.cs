@@ -75,7 +75,7 @@ namespace ACE.Server.Managers
             var entries = GetCategory(enchantment.Spell.Category);
 
             // if none, add new record
-            if (!entries.Any())
+            if (entries.Count == 0)
             {
                 var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
                 newEntry.LayerId = enchantment.Layer;
@@ -255,9 +255,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns all of the enchantments for a category
         /// </summary>
-        public IEnumerable<BiotaPropertiesEnchantmentRegistry> GetCategory(uint categoryID)
+        public List<BiotaPropertiesEnchantmentRegistry> GetCategory(uint categoryID)
         {
-            var result = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == categoryID);
+            var result = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == categoryID).ToList();
             return result;
         }
 
