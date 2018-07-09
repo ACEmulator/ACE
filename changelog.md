@@ -4,6 +4,10 @@
 [OptimShi]
 * Add SpellCategory enum
 
+### 2018-07-06
+[OptimShi]
+* Added "image-export" console function to extract textures from client_portal.dat and client_highres.dat. Run the command with no parameters for syntax.
+
 ### 2018-07-04
 [OptimShi]
 * Fixed an issue with the Replace DatLoader.Entity.AnimationHook
