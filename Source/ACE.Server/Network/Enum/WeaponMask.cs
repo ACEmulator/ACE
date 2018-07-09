@@ -24,18 +24,23 @@ namespace ACE.Server.Network.Enum
                 return highlightMask;
 
             // item enchanments are currently being cast on wielder
-            if (wielder.EnchantmentManager.GetAttackMod() != 1.0f)
-                highlightMask |= WeaponMask.AttackSkill;
             if (wielder.EnchantmentManager.GetDefenseMod() != 1.0f)
                 highlightMask |= WeaponMask.MeleeDefense;
-            if (wielder.EnchantmentManager.GetWeaponSpeedMod() != 0)
-                highlightMask |= WeaponMask.Speed;
-            if (wielder.EnchantmentManager.GetDamageMod() != 0)
-                highlightMask |= WeaponMask.Damage;
-            if (wielder.EnchantmentManager.GetVarianceMod() != 1.0f)
-                highlightMask |= WeaponMask.DamageVariance;
-            if (wielder.EnchantmentManager.GetDamageModifier() != 1.0f)
-                highlightMask |= WeaponMask.DamageMod;
+
+            // Following enchants do not apply to caster weapons
+            if (weapon.WeenieType != ACE.Entity.Enum.WeenieType.Caster)
+            {
+                if (wielder.EnchantmentManager.GetAttackMod() != 1.0f)
+                    highlightMask |= WeaponMask.AttackSkill;
+                if (wielder.EnchantmentManager.GetWeaponSpeedMod() != 0)
+                    highlightMask |= WeaponMask.Speed;
+                if (wielder.EnchantmentManager.GetDamageMod() != 0)
+                    highlightMask |= WeaponMask.Damage;
+                if (wielder.EnchantmentManager.GetVarianceMod() != 1.0f)
+                    highlightMask |= WeaponMask.DamageVariance;
+                if (wielder.EnchantmentManager.GetDamageModifier() != 1.0f)
+                    highlightMask |= WeaponMask.DamageMod;
+            }
 
             return highlightMask;
         }

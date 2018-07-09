@@ -132,6 +132,7 @@ namespace ACE.Server.Managers
                 // Previous check didn't return any result
                 if (result == StackType.Undef)
                 {
+                    ushort layerBuffer = 1;
                     // Check for highest existing spell in registry that is inferior
                     foreach (var entry in entries)
                     {
@@ -139,10 +140,11 @@ namespace ACE.Server.Managers
                         {
                             // surpass existing spell
                             Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                            layerBuffer = entry.LayerId;
                         }
                     }
 
-                    enchantment.Layer++;
+                    enchantment.Layer = (ushort)(layerBuffer + 1);
                     var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
                     newEntry.LayerId = enchantment.Layer;
                     WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
