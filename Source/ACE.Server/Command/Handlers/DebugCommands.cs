@@ -1104,7 +1104,7 @@ namespace ACE.Server.Command.Handlers
             var guid = new ObjectGuid(objectID);
             var player = session.Player;
 
-            var obj = player.CurrentLandblock.GetObject(guid);
+            var obj = player.CurrentLandblock?.GetObject(guid);
             if (obj == null)
             {
                 Console.WriteLine("Couldn't find " + guid);
@@ -1124,7 +1124,7 @@ namespace ACE.Server.Command.Handlers
             var guid = new ObjectGuid(objectID);
             var player = session.Player;
 
-            var obj = player.CurrentLandblock.GetObject(guid);
+            var obj = player.CurrentLandblock?.GetObject(guid);
             if (obj == null)
             {
                 Console.WriteLine("Couldn't find " + guid);

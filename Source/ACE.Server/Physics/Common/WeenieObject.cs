@@ -108,9 +108,9 @@ namespace ACE.Server.Physics.Common
 
         public void DoCollisionEnd(ObjectGuid targetGuid)
         {
-            var target = WorldObject.CurrentLandblock.GetObject(targetGuid);
+            var target = WorldObject.CurrentLandblock?.GetObject(targetGuid);
 
-            if (WorldObject != null)
+            if (WorldObject != null && target != null)
                 WorldObject.OnCollideObjectEnd(target);
         }
 

@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var gameId = message.Payload.ReadGuid(); // object id of gameboard
             var whichTeam = message.Payload.ReadUInt32(); // expecting 0xFFFFFFFF here
 
-            Game wo = session.Player.CurrentLandblock.GetObject(gameId) as Game;
+            Game wo = session.Player.CurrentLandblock?.GetObject(gameId) as Game;
             if (wo != null)
             {
                 wo.ActOnJoin(session.Player.Guid);

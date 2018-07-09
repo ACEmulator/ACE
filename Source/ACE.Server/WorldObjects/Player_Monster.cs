@@ -22,7 +22,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsAttackable) return;
 
-            if (CurrentLandblock.Id.MapScope == MapScope.Outdoors)
+            if (CurrentLandblock?.Id.MapScope == MapScope.Outdoors)
                 GetMonstersInRange();
             else
                 GetMonstersInPVS();
@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
         {
             var distSq = range * range;
 
-            var landblocks = CurrentLandblock.GetLandblocksInRange(Location, range);
+            var landblocks = CurrentLandblock?.GetLandblocksInRange(Location, range);
 
             foreach (var landblock in landblocks)
             {
@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
         {
             var distSq = range * range;
 
-            var visibleObjs = Physics.PhysicsObj.ObjMaint.VisibleObjectTable.Values;
+            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
             foreach (var obj in visibleObjs)
             {

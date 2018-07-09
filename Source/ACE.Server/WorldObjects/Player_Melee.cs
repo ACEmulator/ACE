@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
             PowerLevel = powerLevel;
 
             // get world object of target guid
-            var target = CurrentLandblock.GetObject(guid);
+            var target = CurrentLandblock?.GetObject(guid);
             if (target == null)
             {
                 log.Warn("Unknown target guid " + guid.Full.ToString("X8"));

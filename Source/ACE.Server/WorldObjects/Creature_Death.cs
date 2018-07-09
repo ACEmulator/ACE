@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
 
             if (Killer.HasValue && Killer != 0)
             {
-                var killer = CurrentLandblock.GetObject(new ObjectGuid(Killer ?? 0));
+                var killer = CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
 
                 if (killer != null)
                     killerName = killer.Name;
@@ -221,11 +221,11 @@ namespace ACE.Server.WorldObjects
                 float despawnTime = GetCorpseSpawnTime();
 
                 // Create corpse
-                CurrentLandblock.AddWorldObject(corpse);
+                CurrentLandblock?.AddWorldObject(corpse);
                 // Create corpse decay
                 ActionChain despawnChain = new ActionChain();
                 despawnChain.AddDelaySeconds(despawnTime);
-                despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock.RemoveWorldObject(corpse.Guid, false));
+                despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock?.RemoveWorldObject(corpse.Guid, false));
                 despawnChain.EnqueueChain();*/
             });
             return createCorpseChain;
@@ -248,12 +248,12 @@ namespace ACE.Server.WorldObjects
             // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
             // TODO: Check if the duration of the motion can somehow be computed
             UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            CurrentLandblock.EnqueueBroadcastMotion(this, motionDeath);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motionDeath);
 
             // If the object is a creature, Remove it from from Landblock
             if (!isDerivedPlayer)
             {
-                CurrentLandblock.RemoveWorldObject(Guid, false);
+                CurrentLandblock?.RemoveWorldObject(Guid, false);
             }
         }
 
@@ -281,7 +281,7 @@ namespace ACE.Server.WorldObjects
             ActionChain dieChain = new ActionChain();
             dieChain.AddAction(this, () =>
             {
-                CurrentLandblock.EnqueueBroadcastMotion(this, deadMotion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, deadMotion);
             });
             dieChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead));
             dieChain.AddAction(this, () =>

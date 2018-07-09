@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
 
                 ActionChain turnToTimer = new ActionChain();
                 turnToTimer.AddAction(this, () => LoadInventory());
-                turnToTimer.AddAction(player, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                turnToTimer.AddAction(player, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
                 turnToTimer.AddDelaySeconds(1);
                 turnToTimer.AddAction(this, () => ApproachVendor(player));
 

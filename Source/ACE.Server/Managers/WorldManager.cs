@@ -422,7 +422,7 @@ namespace ACE.Server.Managers
                 {
                     // If it was picked up, or moved
                     // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                    if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock.Id)
+                    if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock?.Id)
                     {
                         // NOTE: We are moving the objects on behalf of the physics 
                         LandblockManager.RelocateObjectForPhysics(wo);
@@ -434,7 +434,7 @@ namespace ACE.Server.Managers
                 {
                     // detect all world objects in ghost range
                     List<WorldObject> woproxghost = new List<WorldObject>();
-                    woproxghost.AddRange(mo.CurrentLandblock.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
+                    woproxghost.AddRange(mo.CurrentLandblock?.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
 
                     // for all objects in range of this moving object or in ghost range of moving object update them.
                     Parallel.ForEach(woproxghost, gwo =>
