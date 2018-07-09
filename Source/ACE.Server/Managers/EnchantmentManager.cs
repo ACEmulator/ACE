@@ -110,10 +110,10 @@ namespace ACE.Server.Managers
                             break;
                         }
 
+                        // item cast spell of equal power should override an existing spell, especially one with a duration
                         if ((caster as Creature) == null)
                         {
-                            // item cast spell of equal power should override an existing spell, especially one with a duration
-                            enchantment.Layer++;
+                            enchantment.Layer = entry.LayerId; // Should be a higher layer than existing enchant
                             var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
                             newEntry.LayerId = enchantment.Layer;
                             WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
@@ -144,7 +144,7 @@ namespace ACE.Server.Managers
                         }
                     }
 
-                    enchantment.Layer = (ushort)(layerBuffer + 1);
+                    enchantment.Layer = (ushort)(layerBuffer + 1); // Should be a higher layer than existing enchant
                     var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
                     newEntry.LayerId = enchantment.Layer;
                     WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
