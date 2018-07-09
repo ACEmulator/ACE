@@ -101,6 +101,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Attack()
         {
+            if (DebugMove)
+                Console.WriteLine(Name + " Attack");
+
             switch (CurrentAttack)
             {
                 case AttackType.Melee:
@@ -124,6 +127,9 @@ namespace ACE.Server.WorldObjects
             // wait for missile to strike
             if (CurrentAttack == AttackType.Missile)
                 return;
+
+            IsTurning = false;
+            IsMoving = false;
 
             CurrentAttack = null;
             MaxRange = 0.0f;

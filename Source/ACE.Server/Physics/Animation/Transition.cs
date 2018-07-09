@@ -499,8 +499,13 @@ namespace ACE.Server.Physics.Animation
 
             CalcNumSteps(ref offset, ref offsetPerStep, ref numSteps);  // restructure as retval?
 
-            var maxSteps = 30;
-            if (numSteps > maxSteps) return false;
+            //var maxSteps = 30;
+            var maxSteps = 200; // for debugging
+            if (numSteps > maxSteps)
+            {
+                //Console.WriteLine("NumSteps: " + numSteps);
+                return false;
+            }
 
             if (ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))
                 SpherePath.CurPos.Frame.Rotate(SpherePath.EndPos.Frame.Orientation);

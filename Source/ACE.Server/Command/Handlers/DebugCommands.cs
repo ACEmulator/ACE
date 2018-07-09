@@ -1090,5 +1090,65 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(contractMsg);
             ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
+
+        // ==================================
+        // Monster movement
+        // ==================================
+
+        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Turns the input object to the player", "turnto <object_id>")]
+        public static void HandleRequestTurnTo(Session session, params string[] parameters)
+        {
+            if (parameters.Length < 1) return;
+
+            var objectID = Convert.ToUInt32(parameters[0], 16);
+            var guid = new ObjectGuid(objectID);
+            var player = session.Player;
+
+            var obj = player.CurrentLandblock.GetObject(guid);
+            if (obj == null)
+            {
+                Console.WriteLine("Couldn't find " + guid);
+                return;
+            }
+
+            var creature = obj as Creature;
+            creature.TurnTo(player);
+        }
+
+        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Toggles movement debugging for a monster", "debugmove <object_id> <on/off>")]
+        public static void ToggleMovementDebug(Session session, params string[] parameters)
+        {
+            if (parameters.Length < 1) return;
+
+            var objectID = Convert.ToUInt32(parameters[0], 16);
+            var guid = new ObjectGuid(objectID);
+            var player = session.Player;
+
+            var obj = player.CurrentLandblock.GetObject(guid);
+            if (obj == null)
+            {
+                Console.WriteLine("Couldn't find " + guid);
+                return;
+            }
+
+            bool enabled = true;
+            if (parameters.Length > 1 && parameters[1].Equals("off"))
+                enabled = false;
+
+            var creature = obj as Creature;
+            creature.DebugMove = enabled;
+        }
+
+        [CommandHandler("forcepos", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Toggles server monster position", "forcepos <on/off>")]
+        public static void ToggleForcePos(Session session, params string[] parameters)
+        {
+            bool enabled = true;
+            if (parameters.Length > 0 && parameters[0].Equals("off"))
+                enabled = false;
+
+            Console.WriteLine("Setting forcepos to " + enabled);
+
+            Creature.ForcePos = enabled;
+        }
     }
 }

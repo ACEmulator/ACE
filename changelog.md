@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-07
+[OptimShi]
+* Add SpellCategory enum
+
 ### 2018-07-06
 [OptimShi]
 * Added "image-export" console function to extract textures from client_portal.dat and client_highres.dat. Run the command with no parameters for syntax.
