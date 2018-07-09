@@ -2081,10 +2081,11 @@ namespace ACE.Server.Physics
             cellArray.AddedOutside = false;
             cellArray.add_cell(CurCell.ID, CurCell);
 
-            var checkCells = cellArray.Cells.Values.ToList();
-
-            foreach (var cell in checkCells)
+            for (var i = 0; i < cellArray.Cells.Count; i++)
+            {
+                var cell = cellArray.Cells.Values.ElementAt(i);
                 PartArray.calc_cross_cells_static(cell, cellArray);
+            }
         }
 
         public int get_curr_frame_number()
