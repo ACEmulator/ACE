@@ -19,6 +19,7 @@ namespace ACE.Server.Managers
 {
     public enum StackType
     {
+        Undef,
         None,
         Initial,
         Refresh,
@@ -56,58 +57,103 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update zero or more enchantments in this object's registry
         /// </summary>
-        public IEnumerable<StackType> AddRange(IEnumerable<Enchantment> enchantment, string castByItem)
+        public IEnumerable<StackType> AddRange(IEnumerable<Enchantment> enchantment, WorldObject caster)
         {
             List<StackType> stacks = new List<StackType>();
-            enchantment.ToList().ForEach(k => stacks.Add(Add(k, castByItem)));
+            enchantment.ToList().ForEach(k => stacks.Add(Add(k, caster)));
             return stacks;
         }
 
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public StackType Add(Enchantment enchantment, string castByItem)
+        public StackType Add(Enchantment enchantment, WorldObject caster)
         {
+            StackType result = StackType.Undef;
+
             // check for existing spell in this category
-            var entry = GetCategory(enchantment.Spell.Category);
+            var entries = GetCategory(enchantment.Spell.Category);
 
             // if none, add new record
-            if (entry == null)
+            if (entries.Count == 0)
             {
-                entry = BuildEntry(enchantment.Spell.SpellId, castByItem);
-                entry.LayerId = enchantment.Layer;
-                var type = (EnchantmentTypeFlags)entry.StatModType;
-                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
+                var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
+                newEntry.LayerId = enchantment.Layer;
+                var type = (EnchantmentTypeFlags)newEntry.StatModType;
+                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
 
+                result = StackType.Initial;
                 return StackType.Initial;
             }
 
-            if (enchantment.Spell.Power > entry.PowerLevel)
+            // Check for existing spells in registry that are superior
+            foreach (var entry in entries)
             {
-                // surpass existing spell
-                Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
-                Remove(entry, false);
-                entry = BuildEntry(enchantment.Spell.SpellId, castByItem);
-                entry.LayerId = enchantment.Layer;
-                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(entry);
-
-                return StackType.Surpass;
+                if (enchantment.Spell.Power < entry.PowerLevel)
+                {
+                    // superior existing spell
+                    Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                    result = StackType.Surpassed;
+                }
             }
 
-            if (enchantment.Spell.Power == entry.PowerLevel)
+            if (result != StackType.Surpassed)
             {
-                if (entry.Duration == -1)
-                    return StackType.None;
+                // Check for existing spells in registry that are equal to
+                foreach (var entry in entries)
+                {
+                    if (enchantment.Spell.Power == entry.PowerLevel)
+                    {
+                        if (entry.Duration == -1)
+                        {
+                            result = StackType.None;
+                            break;
+                        }
 
-                // refresh existing spell
-                entry.LayerId++;
-                entry.StartTime = 0;
-                return StackType.Refresh;
+                        // item cast spell of equal power should override an existing spell, especially one with a duration
+                        if ((caster as Creature) == null)
+                        {
+                            enchantment.Layer = entry.LayerId; // Should be a higher layer than existing enchant
+                            var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
+                            newEntry.LayerId = enchantment.Layer;
+                            WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
+
+                            result = StackType.Refresh;
+                            break;
+                        }
+
+                        // refresh existing spell
+                        entry.StartTime = 0;
+                        result = StackType.Refresh;
+                        break;
+                    }
+                }
+
+                // Previous check didn't return any result
+                if (result == StackType.Undef)
+                {
+                    ushort layerBuffer = 1;
+                    // Check for highest existing spell in registry that is inferior
+                    foreach (var entry in entries)
+                    {
+                        if (enchantment.Spell.Power > entry.PowerLevel)
+                        {
+                            // surpass existing spell
+                            Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                            layerBuffer = entry.LayerId;
+                        }
+                    }
+
+                    enchantment.Layer = (ushort)(layerBuffer + 1); // Should be a higher layer than existing enchant
+                    var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
+                    newEntry.LayerId = enchantment.Layer;
+                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
+
+                    result = StackType.Surpass;
+                }
             }
 
-            // superior existing spell
-            Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
-            return StackType.Surpassed;
+            return result;
         }
 
         /// <summary>
@@ -209,9 +255,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns all of the enchantments for a category
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry GetCategory(uint categoryID)
+        public List<BiotaPropertiesEnchantmentRegistry> GetCategory(uint categoryID)
         {
-            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellCategory == categoryID);
+            var result = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == categoryID).ToList();
+            return result;
         }
 
         /// <summary>
@@ -243,7 +290,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, string castByItem = null)
+        public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, WorldObject caster = null)
         {
             var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
             var spell = DatabaseManager.World.GetCachedSpell(spellID);
@@ -258,15 +305,24 @@ namespace ACE.Server.Managers
             entry.SpellCategory = (ushort)spell.Category;
             entry.PowerLevel = spell.Power;
 
-            if (castByItem != null)
-            {
-                entry.Duration = -1.0;
-                entry.StartTime = 0;
-            }
-            else
+            if (caster is Creature)
                 entry.Duration = spell.Duration ?? 0.0;
+            else
+            {
+                if (caster.WeenieType == WeenieType.Gem)
+                    entry.Duration = spell.Duration ?? 0.0;
+                else
+                {
+                    entry.Duration = -1.0;
+                    entry.StartTime = 0;
+                }
+            }
 
-            entry.CasterObjectId = WorldObject.Guid.Full;   // only works for self?
+            if (caster == null)
+                entry.CasterObjectId = WorldObject.Guid.Full;
+            else
+                entry.CasterObjectId = caster.Guid.Full;
+
             entry.DegradeModifier = spell.DegradeModifier ?? 0.0f;
             entry.DegradeLimit = spell.DegradeLimit ?? 0.0f;
             entry.StatModType = spell.StatModType ?? 0;

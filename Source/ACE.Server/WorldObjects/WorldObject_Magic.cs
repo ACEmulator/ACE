@@ -19,6 +19,12 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        public struct EnchantmentStatus
+        {
+            public StackType stackType;
+            public GameMessageSystemChat message;
+        }
+
         public enum SpellLevel
         {
             One = 1,
@@ -245,12 +251,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
         /// <param name="message"></param>
-        /// <param name="castByItem"></param>
+        /// <param name="itemCaster"></param>
         /// <returns></returns>
-        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out uint damage, out bool critical, out GameMessageSystemChat message, string castByItem = null)
+        protected bool LifeMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus, WorldObject itemCaster = null)
         {
             critical = false;
             string srcVital, destVital;
+            enchantmentStatus = default(EnchantmentStatus);
+            enchantmentStatus.stackType = StackType.None;
             GameMessageSystemChat targetMsg = null;
 
             Player player = null;
@@ -337,19 +345,19 @@ namespace ACE.Server.WorldObjects
                             if (boost <= 0)
                             {
                                 msg = $"You drain {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
-                                message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                                enchantmentStatus.message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
                             }
                             else
                             {
                                 msg = $"You restore {Math.Abs(boost).ToString()} points of {srcVital} to {spellTarget.Name}";
-                                message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                                enchantmentStatus.message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                             }
                         }
                         else
-                            message = new GameMessageSystemChat($"You restore {Math.Abs(boost).ToString()} {srcVital}", ChatMessageType.Magic);
+                            enchantmentStatus.message = new GameMessageSystemChat($"You restore {Math.Abs(boost).ToString()} {srcVital}", ChatMessageType.Magic);
                     }
                     else
-                        message = null;
+                        enchantmentStatus.message = null;
 
                     if (target is Player && spell.BaseRangeConstant > 0)
                     {
@@ -454,13 +462,13 @@ namespace ACE.Server.WorldObjects
                     {
                         if (target.Guid == player.Guid)
                         {
-                            message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself", ChatMessageType.Magic);
+                            enchantmentStatus.message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} and apply {casterVitalChange.ToString()} points of {destVital} to yourself", ChatMessageType.Magic);
                         }
                         else
-                            message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself", ChatMessageType.Combat);
+                            enchantmentStatus.message = new GameMessageSystemChat($"You drain {vitalChange.ToString()} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange.ToString()} to yourself", ChatMessageType.Combat);
                     }
                     else
-                        message = null;
+                        enchantmentStatus.message = null;
 
                     if (target is Player && target != this)
                         targetMsg = new GameMessageSystemChat($"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you", ChatMessageType.Combat);
@@ -514,19 +522,22 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have killed yourself", ChatMessageType.Broadcast));
                         }
                     }
-                    message = null;
+                    enchantmentStatus.message = null;
                     break;
                 case SpellType.Dispel:
                     damage = 0;
-                    message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
+                    enchantmentStatus.message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                     break;
                 case SpellType.Enchantment:
                     damage = 0;
-                    message = CreateEnchantment(target, spell, spellStatMod, castByItem);
+                    if (itemCaster != null)
+                        enchantmentStatus = CreateEnchantment(target, itemCaster, spell, spellStatMod);
+                    else
+                        enchantmentStatus = CreateEnchantment(target, this, spell, spellStatMod);
                     break;
                 default:
                     damage = 0;
-                    message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
+                    enchantmentStatus.message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                     break;
             }
 
@@ -545,11 +556,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="target"></param>
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
-        /// <param name="castByItem"></param>
+        /// <param name="itemCaster"></param>
         /// <returns></returns>
-        protected GameMessageSystemChat CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        protected EnchantmentStatus CreatureMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, WorldObject itemCaster = null)
         {
-            return CreateEnchantment(target, spell, spellStatMod, castByItem);
+            if (itemCaster != null)
+                return CreateEnchantment(target, itemCaster, spell, spellStatMod);
+
+            return CreateEnchantment(target, this, spell, spellStatMod);
         }
 
         /// <summary>
@@ -558,8 +572,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="target"></param>
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
-        /// <param name="castByItem"></param>
-        protected GameMessageSystemChat ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        /// <param name="itemCaster"></param>
+        protected EnchantmentStatus ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, WorldObject itemCaster = null)
         {
             Player player = CurrentLandblock.GetObject(Guid) as Player;
 
@@ -604,10 +618,16 @@ namespace ACE.Server.WorldObjects
             }
             else if (spell.MetaSpellType == SpellType.Enchantment)
             {
-                return CreateEnchantment(target, spell, spellStatMod, castByItem);
+                if (itemCaster != null)
+                    return CreateEnchantment(target, itemCaster, spell, spellStatMod);
+
+                return CreateEnchantment(target, this, spell, spellStatMod);
             }
 
-            return null;
+            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
+            enchantmentStatus.message = null;
+            enchantmentStatus.stackType = StackType.None;
+            return enchantmentStatus;
         }
 
         /// <summary>
@@ -654,20 +674,28 @@ namespace ACE.Server.WorldObjects
         /// Used by Life, Creature, Item, and Void magic
         /// </summary>
         /// <param name="target"></param>
+        /// <param name="caster"></param>
         /// <param name="spell"></param>
         /// <param name="spellStatMod"></param>
-        /// <param name="castByItem"></param>
         /// <returns></returns>
-        private GameMessageSystemChat CreateEnchantment(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, string castByItem = null)
+        private EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, SpellBase spell, Database.Models.World.Spell spellStatMod)
         {
+            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
             double duration;
-            if (castByItem == null)
-                duration = -1;
-            else
+
+            if (caster is Creature)
                 duration = spell.Duration;
+            else
+            {
+                if (caster.WeenieType == WeenieType.Gem)
+                    duration = spell.Duration;
+                else
+                    duration = -1;
+            }
+
             // create enchantment
-            var enchantment = new Enchantment(target, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
-            var stackType = target.EnchantmentManager.Add(enchantment, castByItem);
+            var enchantment = new Enchantment(target, caster.Guid, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
+            var stackType = target.EnchantmentManager.Add(enchantment, caster);
 
             var player = this as Player;
             var playerTarget = target as Player;
@@ -691,22 +719,41 @@ namespace ACE.Server.WorldObjects
             var targetName = this == target ? "yourself" : target.Name;
 
             string message;
-            if (castByItem != null)
-                message = $"{castByItem} casts {spell.Name} on you";
+            if (stackType == StackType.Undef)
+                message = null;
             else
-                message = $"You cast {spell.Name} on {targetName}{suffix}";
-
+            {
+                if (stackType == StackType.None)
+                    message = null;
+                else
+                {
+                    if (caster is Creature)
+                        message = $"You cast {spell.Name} on {targetName}{suffix}";
+                    else
+                    {
+                        if (target.Name != caster.Name)
+                            message = $"{caster.Name} casts {spell.Name} on you{suffix}";
+                        else
+                            message = null;
+                    }
+                }
+            }
 
             if (target is Player)
             {
-                if (stackType != StackType.Surpassed)
-                    playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+                if (stackType != StackType.Undef)
+                {
+                    if (stackType != StackType.Surpassed)
+                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
 
-                if (playerTarget != this)
-                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                    if (playerTarget != this)
+                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                }
             }
 
-            return new GameMessageSystemChat(message, ChatMessageType.Magic);
+            enchantmentStatus.message = new GameMessageSystemChat(message, ChatMessageType.Magic);
+            enchantmentStatus.stackType = stackType;
+            return enchantmentStatus;
         }
 
         /// <summary>

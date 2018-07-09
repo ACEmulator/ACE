@@ -319,7 +319,7 @@ namespace ACE.Server.Command.Handlers
             if (spellID < 1) throw new Exception("spell not found");
             buff.SpellBase = DatManager.PortalDat.SpellTable.Spells[spellID]; if (buff.SpellBase == null) return null; // the portal data doesn't have the spell, throw here instead?
             buff.Spell = DatabaseManager.World.GetCachedSpell(spellID); if (buff.Spell == null) return null; // the database doesn't have the spell
-            buff.Enchantment = new Enchantment(null, spellID, (double)buff.Spell.Duration, 1, buff.Spell.StatModType, buff.Spell.StatModVal);
+            buff.Enchantment = new Enchantment(null, null, spellID, (double)buff.Spell.Duration, 1, buff.Spell.StatModType, buff.Spell.StatModVal);
             return buff;
         }
 
@@ -363,7 +363,7 @@ namespace ACE.Server.Command.Handlers
                         session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
                     break;
                 case "on":
-                    var runEnchantment = new Enchantment(session.Player, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
+                    var runEnchantment = new Enchantment(session.Player, session.Player.Guid, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
                     var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
                     session.Player.CurrentLandblock.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
                     session.Player.EnchantmentManager.Add(runEnchantment, null);
