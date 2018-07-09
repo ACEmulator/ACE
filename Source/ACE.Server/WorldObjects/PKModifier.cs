@@ -101,14 +101,14 @@ namespace ACE.Server.WorldObjects
                         var switchTimer = new ActionChain();
                         var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-                        switchTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                        switchTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
                         switchTimer.AddDelaySeconds(1);
                         switchTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
-                                CurrentLandblock.EnqueueBroadcastMotion(this, twitch);
+                                CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
                         });
                         if (UseTargetSuccessAnimation.HasValue)
                             switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
                             else
                                 player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.NPK;
 
-                            player.CurrentLandblock.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+                            player.CurrentLandblock?.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
 
                             Reset();
                         });
@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
                         player.SendUseDoneEvent();
                     }

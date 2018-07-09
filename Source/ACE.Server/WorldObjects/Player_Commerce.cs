@@ -221,7 +221,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="items"></param>
         public void HandleActionBuyItem(ObjectGuid vendorId, List<ItemProfile> items)
         {
-            var vendor = (CurrentLandblock.GetObject(vendorId) as Vendor);
+            var vendor = (CurrentLandblock?.GetObject(vendorId) as Vendor);
 
             if (vendor != null)
                 vendor.BuyValidateTransaction(vendorId, items, this);
@@ -274,7 +274,7 @@ namespace ACE.Server.WorldObjects
                 purchaselist.Add(item);
             }
 
-            var vendor = CurrentLandblock.GetObject(vendorId) as Vendor;
+            var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;
 
             if (vendor != null)
                 vendor.SellItemsValidateTransaction(this, purchaselist);

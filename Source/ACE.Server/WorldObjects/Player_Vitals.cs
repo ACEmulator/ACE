@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState = motion;
                     if (CurrentLandblock != null)
                     {
-                        CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                        CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
                     }
                 }

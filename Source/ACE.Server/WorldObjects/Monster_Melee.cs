@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
 
             return null;
         }

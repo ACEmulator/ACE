@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             active = true;
-            Player player = CurrentLandblock.GetObject(playerId) as Player;
+            Player player = CurrentLandblock?.GetObject(playerId) as Player;
 
             // team is either 0 or 1. -1 means failed to join
             var msgJoinResponse = new GameEventJoinGameResponse(player.Session, Guid.Full, 1);

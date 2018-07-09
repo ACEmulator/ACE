@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             // execute the TurnToObject motion
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-            CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, turnToMotion);
 
             return GetRotateDelay(target);
         }
@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
         }
 
         public void TurnTo(WorldObject target)
@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
 
             AttackTarget = target;
             var turnTime = EstimateTurnTo();
@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
             // execute the TurnToObject motion
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, position);
             turnToMotion.MovementTypes = MovementTypes.TurnToHeading;
-            CurrentLandblock.EnqueueBroadcastMotion(this, turnToMotion);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, turnToMotion);
 
             return GetTurnToDelay(position);
         }

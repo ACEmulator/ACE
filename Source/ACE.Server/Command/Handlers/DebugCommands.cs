@@ -1095,7 +1095,7 @@ namespace ACE.Server.Command.Handlers
         // Monster movement
         // ==================================
 
-        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Turns the input object to the player", "turnto <object_id>")]
+        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Turns the input object to the player", "turnto <object_id>")]
         public static void HandleRequestTurnTo(Session session, params string[] parameters)
         {
             if (parameters.Length < 1) return;
@@ -1104,7 +1104,7 @@ namespace ACE.Server.Command.Handlers
             var guid = new ObjectGuid(objectID);
             var player = session.Player;
 
-            var obj = player.CurrentLandblock.GetObject(guid);
+            var obj = player.CurrentLandblock?.GetObject(guid);
             if (obj == null)
             {
                 Console.WriteLine("Couldn't find " + guid);
@@ -1115,7 +1115,7 @@ namespace ACE.Server.Command.Handlers
             creature.TurnTo(player);
         }
 
-        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Toggles movement debugging for a monster", "debugmove <object_id> <on/off>")]
+        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Toggles movement debugging for a monster", "debugmove <object_id> <on/off>")]
         public static void ToggleMovementDebug(Session session, params string[] parameters)
         {
             if (parameters.Length < 1) return;
@@ -1124,7 +1124,7 @@ namespace ACE.Server.Command.Handlers
             var guid = new ObjectGuid(objectID);
             var player = session.Player;
 
-            var obj = player.CurrentLandblock.GetObject(guid);
+            var obj = player.CurrentLandblock?.GetObject(guid);
             if (obj == null)
             {
                 Console.WriteLine("Couldn't find " + guid);

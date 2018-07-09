@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 // cooldown not being used in network packet?
-                var gem = new Enchantment(player, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ (uint)EnchantmentTypeFlags.Cooldown);
+                var gem = new Enchantment(player, player.Guid, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ (uint)EnchantmentTypeFlags.Cooldown);
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.

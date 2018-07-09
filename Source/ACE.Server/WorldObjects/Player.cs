@@ -62,6 +62,13 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
+            PhysicsObj.SetPlayer();
+        }
+
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
@@ -350,7 +357,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // examine item on landblock
-                wo = CurrentLandblock.GetObject(examinationId);
+                wo = CurrentLandblock?.GetObject(examinationId);
                 if (wo != null)
                     wo.Examine(Session);
             }
@@ -386,7 +393,7 @@ namespace ACE.Server.WorldObjects
             // Remember the selected Target
             selectedTarget = queryId;
             HealthQueryTarget = queryId.Full;
-            var obj = CurrentLandblock.GetObject(queryId);
+            var obj = CurrentLandblock?.GetObject(queryId);
             if (obj != null)
                 obj.QueryHealth(Session);
         }
@@ -428,7 +435,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                CurrentLandblock.GetObject(bookId).ReadBookPage(Session, pageNum);
+                CurrentLandblock?.GetObject(bookId).ReadBookPage(Session, pageNum);
             }
         }
 
@@ -446,7 +453,7 @@ namespace ACE.Server.WorldObjects
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
         }
 
         /// <summary>
@@ -607,7 +614,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 // remove the player from landblock management -- after the animation has run
-                logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
+                logoutChain.AddChain(CurrentLandblock?.GetRemoveWorldObjectChain(Guid, false));
             }
 
             return logoutChain;
@@ -635,7 +642,7 @@ namespace ACE.Server.WorldObjects
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
-                CurrentLandblock.EnqueueBroadcastMotion(this, logout);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, logout);
 
                 EnqueueBroadcastPhysicsState();
 
@@ -680,7 +687,7 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
@@ -760,7 +767,7 @@ namespace ACE.Server.WorldObjects
 
 
             // Broadcast updated character appearance
-            CurrentLandblock.EnqueueBroadcast(
+            CurrentLandblock?.EnqueueBroadcast(
                 Location,
                 Landblock.MaxObjectRange,
                 new GameMessageObjDescEvent(this));
@@ -777,7 +784,7 @@ namespace ACE.Server.WorldObjects
             {
                 WorldObject wo = GetInventoryItem(item);
                 if (wo != null)
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                         new GameMessageObjDescEvent(wo));
                 else
                     log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
@@ -931,7 +938,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoTalk(string message)
         {
-            CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
+            CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
         }
 
         public void HandleActionEmote(string message)
@@ -943,7 +950,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoEmote(string message)
         {
-            CurrentLandblock.EnqueueBroadcastLocalChatEmote(this, message);
+            CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
         }
 
         public void HandleActionSoulEmote(string message)
@@ -955,7 +962,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoSoulEmote(string message)
         {
-            CurrentLandblock.EnqueueBroadcastLocalChatSoulEmote(this, message);
+            CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
 
         /// <summary>
@@ -1066,7 +1073,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (Adminvision)
-                CurrentLandblock.ResendObjectsInRange(this);
+                CurrentLandblock?.ResendObjectsInRange(this);
 
             string state = Adminvision ? "enabled" : "disabled";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));

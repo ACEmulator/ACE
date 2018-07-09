@@ -250,7 +250,7 @@ namespace ACE.Server.Command.Handlers
                 else
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
 
-                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
 
                 if (objectId.IsPlayer())
                     return;
@@ -649,7 +649,7 @@ namespace ACE.Server.Command.Handlers
                         if (guid.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
-                        var wo = session.Player.CurrentLandblock.GetObject(guid);
+                        var wo = session.Player.CurrentLandblock?.GetObject(guid);
 
                         if (wo is Creature creature)
                             creature.Smite(session.Player.Guid);
@@ -694,7 +694,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
 
-                    var wo = session.Player.CurrentLandblock.GetObject(objectId) as Creature;
+                    var wo = session.Player.CurrentLandblock?.GetObject(objectId) as Creature;
 
                     if (objectId == session.Player.Guid) // don't kill yourself
                         return;
@@ -1030,7 +1030,7 @@ namespace ACE.Server.Command.Handlers
             if (session.Player.CurrentAppraisalTarget.HasValue)
             {
                 var objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
-                var wo = session.Player.CurrentLandblock.GetObject(objectId);
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
                 if (wo is Lock @lock)
                 {
                     var opening = openIt ? $" Opening {wo.WeenieType}." : "";
@@ -1679,7 +1679,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // serverstatus
-        [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0)]
+        [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
         public static void HandleServerStatus(Session session, params string[] parameters)
         {
             // This is formatted very similarly to GDL.
@@ -1711,8 +1711,15 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
-            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{sb}", ChatMessageType.System));
+            if (session == null)
+            {
+                Console.WriteLine(sb);
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{sb}", ChatMessageType.System));
+            }
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2,
@@ -1836,7 +1843,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("modifypropertydesc", AccessLevel.Admin, CommandHandlerFlag.None, 3,
-            "Modifies a server properties' description", "modifypropertydesc <STRING|BOOL|DOUBLE|LONG> (string) (string)")]
+            "Modifies a server property's description", "modifypropertydesc <STRING|BOOL|DOUBLE|LONG> (string) (string)")]
         public static void HandleModifyPropertyDescription(Session session, params string[] parameters)
         {
             var isSession = session != null;
