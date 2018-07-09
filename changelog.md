@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-09
+[OptimShi]
+* Fixed a few console commands that either should not run in the console or had no use case if they did.
+
 ### 2018-07-07
 [OptimShi]
 * Add SpellCategory enum

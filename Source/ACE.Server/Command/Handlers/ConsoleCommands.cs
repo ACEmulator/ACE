@@ -101,7 +101,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Export all wav files to a specific directory.
+        /// Export all texture/image files to a specific directory.
         /// </summary>
         [CommandHandler("image-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Export Texture/Image Files")]
         public static void ExportImageFile(Session session, params string[] parameters)
@@ -146,28 +146,34 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                int totalFiles = 0;
+                int portalFiles = 0;
+                int highresFiles = 0;
                 Console.WriteLine($"Exporting client_portal.dat textures and images to {exportDir}.  This may take a while.");
                 foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
                 {
                     if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
                     {
                         var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
-                        Console.WriteLine(entry.Value.ObjectId.ToString("X8"));
                         image.ExportTexture(exportDir);
-                        totalFiles++;
+                        portalFiles++;
                     }
                 }
-                if(DatManager.HighResDat != null)
+                Console.WriteLine($"Exported {portalFiles} total files from client_portal.dat to {exportDir}.");
+
+                if (DatManager.HighResDat != null)
+                {
                     foreach (KeyValuePair<uint, DatFile> entry in DatManager.HighResDat.AllFiles)
                     {
                         if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
                         {
                             var image = DatManager.HighResDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
                             image.ExportTexture(exportDir);
-                            totalFiles++;
+                            highresFiles++;
                         }
                     }
+                    Console.WriteLine($"Exported {highresFiles} total files from client_highres.dat to {exportDir}.");
+                }
+                int totalFiles = portalFiles + highresFiles;
                 Console.WriteLine($"Exported {totalFiles} total files to {exportDir}.");
             }
         }
