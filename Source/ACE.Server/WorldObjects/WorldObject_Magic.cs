@@ -751,7 +751,10 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            enchantmentStatus.message = new GameMessageSystemChat(message, ChatMessageType.Magic);
+            if (message != null)
+                enchantmentStatus.message = new GameMessageSystemChat(message, ChatMessageType.Magic);
+            else
+                enchantmentStatus.message = null;
             enchantmentStatus.stackType = stackType;
             return enchantmentStatus;
         }
