@@ -94,7 +94,8 @@ namespace ACE.Server.Managers
 
                     if (destroyTarget)
                     {
-                        if (target.OwnerId == player.Guid.Full)
+                        // TODO - Check if the target is wielded and handle appropriately
+                        if (target.OwnerId == player.Guid.Full  || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetSuccess.DestroyAmount);
                         }
@@ -112,7 +113,8 @@ namespace ACE.Server.Managers
 
                     if (destroySource)
                     {
-                        if (source.OwnerId == player.Guid.Full)
+                        // TODO - Check if the source is wielded and handle appropriately
+                        if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceSuccess.DestroyAmount);
                         }
@@ -154,7 +156,8 @@ namespace ACE.Server.Managers
 
                     if (destroyTarget)
                     {
-                        if (target.OwnerId == player.Guid.Full)
+                        // TODO - Check if the target is wielded and handle appropriately
+                        if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetFail.DestroyAmount);
                         }
@@ -172,7 +175,8 @@ namespace ACE.Server.Managers
 
                     if (destroySource)
                     {
-                        if (source.OwnerId == player.Guid.Full)
+                        // TODO - Check if the source is wielded and handle appropriately
+                        if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceFail.DestroyAmount);
                         }
