@@ -102,13 +102,13 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Method used for handling items casting spells on the player equiping the item
+        /// Method used for handling items casting spells on the player who is either equiping the item, or using a gem in posessions
         /// </summary>
-        /// <param name="guidItem"></param>
-        /// <param name="spellId"></param>
-        /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows</param>
-        /// <param name="ignoreRequirements">disregard item activation requirements</param>
-        /// <returns>if the spell was created or not</returns>
+        /// <param name="guidItem">the GUID of the item casting the spell(s)</param>
+        /// <param name="spellId">the spell id</param>
+        /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows (used for already affecting items during Player.EnterWorld)</param>
+        /// <param name="ignoreRequirements">disregard item activation requirements (used for already affecting items during Player.EnterWorld)</param>
+        /// <returns>FALSE - the spell was NOT created because the spell is invalid or not implemented yet, the item was not found, the item was not either wielded or a gem, or the player did not meet one or more item activation requirements. <para />TRUE - the spell was created or it is surpassed</returns>
         public bool CreateItemSpell(ObjectGuid guidItem, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
@@ -180,7 +180,8 @@ namespace ACE.Server.WorldObjects
                         if (enchantmentStatus.message != null)
                         {
                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            if (!suppressSpellChatText)
+                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
 
@@ -195,7 +196,8 @@ namespace ACE.Server.WorldObjects
                         if (enchantmentStatus.message != null)
                         {
                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            if (!suppressSpellChatText)
+                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
                     case MagicSchool.ItemEnchantment:
@@ -210,12 +212,12 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                             enchantmentStatus = ItemMagic(item, spell, spellStatMod, item);
-
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
-                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            if (!suppressSpellChatText)
+                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
 
