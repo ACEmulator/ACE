@@ -576,7 +576,6 @@ namespace ACE.Server.WorldObjects
         protected EnchantmentStatus ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, WorldObject itemCaster = null)
         {
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
-            if (player == null && ((this as Player) != null)) player = this as Player;
 
             if ((spell.MetaSpellType == SpellType.PortalLink)
                 || (spell.MetaSpellType == SpellType.PortalRecall)

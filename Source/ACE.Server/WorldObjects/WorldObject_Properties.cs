@@ -679,39 +679,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Value); else SetProperty(PropertyInt.Value, value.Value); }
         }
 
-        /// <summary>
-        /// Persistent boolean value that tracks whether an equipped item is affecting (the item's spells are in effect and its mana is burning) or not.
-        /// </summary>
-        public virtual bool? IsAffecting
-        {
-            get => GetProperty(PropertyBool.IsAffecting);
-            set
-            {
-                if (!value.HasValue)
-                {
-                    if (GetProperty(PropertyBool.IsAffecting).HasValue)
-                        RemoveProperty(PropertyBool.IsAffecting);
-                }
-                else
-                {
-                    var h = GetProperty(PropertyBool.IsAffecting);
-                    if (!h.HasValue || h.HasValue && h.Value != value.Value)
-                        SetProperty(PropertyBool.IsAffecting, value.Value);
-                }
-
-                if (!(value ?? false))
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = null;
-                }
-                else
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = DateTime.Now;
-                }
-            }
-        }
-
         public Usable? Usable
         {
             get => (Usable?)GetProperty(PropertyInt.ItemUseable);

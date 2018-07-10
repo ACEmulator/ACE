@@ -184,7 +184,7 @@ namespace ACE.Server.WorldObjects
             if (EquippedObjectsLoaded)
             {
                 var EquippedManaConsumers = EquippedObjects.Where(k =>
-                    (k.Value.IsAffecting ?? false) &&
+                    k.Value.IsActivated &&
                     k.Value.ManaRate.HasValue &&
                     k.Value.ItemMaxMana.HasValue &&
                     k.Value.ItemCurMana.HasValue &&
@@ -194,7 +194,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var item = k.Value;
                     var rate = item.ManaRate.Value;
-                    if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.Now;
+                    if (!item.ItemManaConsumptionTimestamp.HasValue) throw new Exception("this timestamp should have been set upon activating the item.");
                     DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
 
                     var timePerBurn = -1 / rate;
@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
 
                         if (item.ItemCurMana < 1 || item.ItemCurMana == null)
                         {
-                            item.IsAffecting = false;
+                            item.IsActivated = false;
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is out of mana.", ChatMessageType.Magic));
                             if (item.WielderId != null)
                             {
