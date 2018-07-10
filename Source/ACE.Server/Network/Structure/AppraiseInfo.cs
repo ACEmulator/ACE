@@ -175,7 +175,7 @@ namespace ACE.Server.Network.Structure
             WeaponColor = WeaponMaskHelper.GetColorMask(weapon, wielder);
 
             // item enchantments can also be on wielder currently
-            AddSpells(SpellBook, wielder);
+            AddSpells(SpellBook, wielder, weapon.WeenieType);
         }
 
         public WorldObject GetWielder(WorldObject weapon)
