@@ -41,8 +41,7 @@ namespace ACE.Server.Physics
         /// </summary>
         public static readonly float LandingZ = 0.0871557f;
 
-        //public static readonly float FloorZ = -0.95241298f;
-        public static readonly float FloorZ = 0.66417414618662751f; // ??
+        public static readonly float FloorZ = 0.66417414618662751f;
 
         public static readonly float DummySphereRadius = 0.1f;
 

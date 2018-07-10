@@ -29,8 +29,8 @@ namespace ACE.DatLoader.FileTypes
         public List<Sphere> Spheres { get; } = new List<Sphere>();
         public float Height { get; private set; }
         public float Radius { get; private set; }
-        public float StepDownHeight { get; private set; }
         public float StepUpHeight { get; private set; }
+        public float StepDownHeight { get; private set; }
         public Sphere SortingSphere { get; } = new Sphere();
         public Sphere SelectionSphere { get; } = new Sphere();
         public Dictionary<int, LightInfo> Lights { get; } = new Dictionary<int, LightInfo>();
@@ -85,8 +85,8 @@ namespace ACE.DatLoader.FileTypes
 
             Height          = reader.ReadSingle();
             Radius          = reader.ReadSingle();
-            StepDownHeight  = reader.ReadSingle();
             StepUpHeight    = reader.ReadSingle();
+            StepDownHeight  = reader.ReadSingle();
 
             SortingSphere.Unpack(reader);
             SelectionSphere.Unpack(reader);
