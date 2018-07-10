@@ -102,9 +102,9 @@ namespace ACE.Server.Physics.Common
             cellHasWater = false;
             cellFullyFlooded = true;
 
-            for (var vx = x * LandDefs.VertexPerCell; vx < LandDefs.VertexPerCell * (x + 1); vx++)
+            for (var vx = x * LandDefs.VertexPerCell; vx <= LandDefs.VertexPerCell * (x + 1); vx++)
             {
-                for (var vy = y * LandDefs.VertexPerCell; vy < LandDefs.VertexPerCell * (y + 1); vy++)
+                for (var vy = y * LandDefs.VertexPerCell; vy <= LandDefs.VertexPerCell * (y + 1); vy++)
                 {
                     var terrainIdx = vx * SideVertexCount + vy;
                     if (SurfChar[Terrain[terrainIdx] >> 2 & 0x1F] == 1)
@@ -488,40 +488,26 @@ namespace ACE.Server.Physics.Common
 
         public float calc_water_depth(uint blockCellID, Vector3 point)
         {
-            var cellID = blockCellID & 0xFFFF;
-            var cellOffset = cellID - 1;
-            uint cellX = 0, cellY = cellID;
+            var cellID = ((int)blockCellID & 0xFFFF) - 1;
 
-            if (LandDefs.inbound_valid_cellid(cellID) && cellID < 0x100)
-            {
-                cellX = cellOffset / 8;
-                cellY = cellOffset & 7;
-            }
-            uint terrainIdx;
-            uint surfOffset = 0;
-            // missing fpu instructions
-            if (point.X <= point.Y)
-            {
-                terrainIdx = (cellY + 8 * cellX + cellX + 1);
-                if (point.X == point.Y)
-                    terrainIdx--;
-            }
-            else if (point.X >= point.Y)
-                terrainIdx = cellY + 8 * (cellX + 1) + cellX + 1;
-            else  // ?
-            {
-                terrainIdx = 8 * cellX + 10;
-                surfOffset = (cellX + cellY) * 2;
-            }
-            var column = Terrain[(int)terrainIdx & 0xFF];
-            var hasWater = SurfChar[column + (int)surfOffset& 0x7F];
-            if (hasWater != 0)
-            {
-                if (hasWater == 1)
-                    return 0.44999999f;
-                else
-                    return 0;
-            }
+            var cellX = cellID / 8;
+            var cellY = cellID % 8;
+
+            var terrainIdx = cellX * LandDefs.VertexDim + cellY;
+
+            if (point.X % 24.0f >= 12.0f)
+                terrainIdx += 9;
+
+            if (point.Y % 24.0f >= 12.0f)
+                terrainIdx++;
+
+            var terrain = Terrain[terrainIdx];
+            var surfCharIdx = terrain >> 2 & 0x1F;
+
+            var has_water = SurfChar[surfCharIdx];
+
+            if (has_water != 0)
+                return 0.44999999f;
             else
                 return 0.1f;
         }
