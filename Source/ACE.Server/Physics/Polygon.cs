@@ -222,7 +222,7 @@ namespace ACE.Server.Physics
 
                 if (Vector3.Dot(disp, cross) < 0.0f)
                 {
-                    normal = cross * (1.0f / normal.Length());
+                    normal = cross * (1.0f / cross.Length());
                     return true;
                 }
             }
