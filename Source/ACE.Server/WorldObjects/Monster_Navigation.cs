@@ -55,6 +55,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public double LastMoveTime;
 
+        public bool DebugMove;
+
         /// <summary>
         /// Starts the process of monster turning towards target
         /// </summary>
@@ -75,6 +77,9 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(time);
             actionChain.AddAction(this, () => OnTurnComplete());
             actionChain.EnqueueChain();
+
+            if (DebugMove)
+                Console.WriteLine($"{Name} ({Guid})StartTurn");
         }
 
         /// <summary>
@@ -195,6 +200,8 @@ namespace ACE.Server.WorldObjects
                 Sleep();
         }
 
+        public static bool ForcePos = false;
+
         /// <summary>
         /// Updates monster position and rotation
         /// </summary>
@@ -220,7 +227,11 @@ namespace ACE.Server.WorldObjects
             var velocity = movement / deltaTime;
             PhysicsObj.CachedVelocity = velocity;
 
-            SendUpdatePosition(false);
+            SendUpdatePosition(ForcePos);
+            //MoveTo(AttackTarget, RunRate, true);
+
+            if (DebugMove)
+                Console.WriteLine($"{Name} ({Guid}) UpdatePosition()");
         }
 
         public void UpdatePosition_Inner(Vector3 newPos, Vector3 dir)
@@ -237,24 +248,42 @@ namespace ACE.Server.WorldObjects
                 UpdateCell();
         }
 
-        public void UpdatePosition_PhysicsInner(Vector3 newPos, Vector3 dir)
+        public void UpdatePosition_PhysicsInner(Vector3 requestPos, Vector3 dir)
         {
             Location.Rotate(dir);
             PhysicsObj.Position.Frame.Orientation = Location.Rotation;
 
             var cell = LScape.get_landcell(Location.Cell);
 
-            PhysicsObj.set_request_pos(newPos, Location.Rotation, cell);
+            PhysicsObj.set_request_pos(requestPos, Location.Rotation, null, Location.LandblockId.Raw);
 
             // simulate running forward for this amount of time
             PhysicsObj.update_object_server(false);
 
             // was the position successfully moved to?
             // use the physics position as the source-of-truth?
-            Location.Pos = PhysicsObj.Position.Frame.Origin;
-            if (PhysicsObj.CurCell != null && PhysicsObj.CurCell.ID != Location.Cell)
-                Location.LandblockId = new LandblockId(PhysicsObj.CurCell.ID);
+            var newPos = PhysicsObj.Position.Frame.Origin;
+            if (Location.LandblockId.Raw != PhysicsObj.Position.ObjCellID)
+            {
+                var prevBlock = Location.LandblockId.Raw >> 16;
+                var prevCell = Location.LandblockId.Raw & 0xFFFF;
 
+                var newBlock = PhysicsObj.Position.ObjCellID >> 16;
+                var newCell = PhysicsObj.Position.ObjCellID & 0xFFFF;
+
+                Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
+
+                if (prevBlock != newBlock)
+                {
+                    PreviousLocation = Location;
+                    LandblockManager.RelocateObjectForPhysics(this);
+                    PhysicsObj.Position.Frame.Origin = newPos;
+                    //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
+                }
+                //else
+                    //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
+            }
+            Location.Pos = newPos;
             //DebugDistance();
         }
 
@@ -296,6 +325,7 @@ namespace ACE.Server.WorldObjects
         {
             PreviousLocation = Location;
             LandblockManager.RelocateObjectForPhysics(this);
+            //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId);
         }
 
         /// <summary>

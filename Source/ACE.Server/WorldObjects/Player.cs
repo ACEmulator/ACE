@@ -62,6 +62,13 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
+            PhysicsObj.SetPlayer();
+        }
+
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
@@ -163,11 +170,80 @@ namespace ACE.Server.WorldObjects
 
             EnchantmentManager.HeartBeat();
             VitalTick();
+            ManaConsumersTick();
 
             QueueNextHeartBeat();
         }
 
 
+        /// <summary>
+        /// Called every ~5 secs for equipped mana consuming items
+        /// </summary>
+        public void ManaConsumersTick()
+        {
+            if (EquippedObjectsLoaded)
+            {
+                var EquippedManaConsumers = EquippedObjects.Where(k =>
+                    k.Value.IsActivated &&
+                    k.Value.ManaRate.HasValue &&
+                    k.Value.ItemMaxMana.HasValue &&
+                    k.Value.ItemCurMana.HasValue &&
+                    k.Value.ItemCurMana.Value > 0).ToList();
+
+                EquippedManaConsumers.ForEach(k =>
+                {
+                    var item = k.Value;
+                    var rate = item.ManaRate.Value;
+                    if (!item.ItemManaConsumptionTimestamp.HasValue) throw new Exception("this timestamp should have been set upon activating the item.");
+                    DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
+
+                    var timePerBurn = -1 / rate;
+
+                    var secondsSinceLastBurn = (DateTime.Now - mostRecentBurn).TotalSeconds;
+
+                    var delta = secondsSinceLastBurn / timePerBurn;
+
+                    var deltaChopped = (int)Math.Floor(delta);
+                    var deltaExtra = delta - deltaChopped;
+
+                    if (deltaChopped > 0)
+                    {
+                        var timeToAdd = (int)Math.Floor(deltaChopped * timePerBurn);
+                        item.ItemManaConsumptionTimestamp = mostRecentBurn + new TimeSpan(0, 0, timeToAdd);
+                        var manaToBurn = Math.Min(item.ItemCurMana.Value, deltaChopped);
+                        deltaChopped = Math.Clamp(deltaChopped, 0, 10);
+                        item.ItemCurMana -= deltaChopped;
+
+                        if (item.ItemCurMana < 1 || item.ItemCurMana == null)
+                        {
+                            item.IsActivated = false;
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is out of mana.", ChatMessageType.Magic));
+                            if (item.WielderId != null)
+                            {
+                                if (item.Biota.BiotaPropertiesSpellBook != null)
+                                {
+                                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                                    {
+                                        // TODO: layering
+                                        RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // get time until empty
+                            var secondsUntilEmpty = ((item.ItemCurMana - deltaExtra) * timePerBurn);
+                            if (secondsUntilEmpty <= 30 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.Now - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 30))
+                            {
+                                item.ItemManaDepletionMessageTimestamp = DateTime.Now;
+                                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is almost out of mana.", ChatMessageType.Magic));
+                            }
+                        }
+                    }
+                });
+            }
+        }
 
 
 
@@ -240,7 +316,7 @@ namespace ACE.Server.WorldObjects
 
 
 
-        
+
 
 
 
@@ -281,7 +357,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // examine item on landblock
-                wo = CurrentLandblock.GetObject(examinationId);
+                wo = CurrentLandblock?.GetObject(examinationId);
                 if (wo != null)
                     wo.Examine(Session);
             }
@@ -317,7 +393,7 @@ namespace ACE.Server.WorldObjects
             // Remember the selected Target
             selectedTarget = queryId;
             HealthQueryTarget = queryId.Full;
-            var obj = CurrentLandblock.GetObject(queryId);
+            var obj = CurrentLandblock?.GetObject(queryId);
             if (obj != null)
                 obj.QueryHealth(Session);
         }
@@ -359,11 +435,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                CurrentLandblock.GetObject(bookId).ReadBookPage(Session, pageNum);
+                CurrentLandblock?.GetObject(bookId).ReadBookPage(Session, pageNum);
             }
         }
 
- 
+
         /// <summary>
         /// Sends a death message broadcast all players on the landblock? that a killer has a victim
         /// </summary>
@@ -377,7 +453,7 @@ namespace ACE.Server.WorldObjects
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
         }
 
         /// <summary>
@@ -538,7 +614,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 // remove the player from landblock management -- after the animation has run
-                logoutChain.AddChain(CurrentLandblock.GetRemoveWorldObjectChain(Guid, false));
+                logoutChain.AddChain(CurrentLandblock?.GetRemoveWorldObjectChain(Guid, false));
             }
 
             return logoutChain;
@@ -566,7 +642,7 @@ namespace ACE.Server.WorldObjects
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
-                CurrentLandblock.EnqueueBroadcastMotion(this, logout);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, logout);
 
                 EnqueueBroadcastPhysicsState();
 
@@ -611,7 +687,7 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
@@ -621,7 +697,7 @@ namespace ACE.Server.WorldObjects
             // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
 
- 
+
 
         public void HandleActionFinishBarber(ClientMessage message)
         {
@@ -691,7 +767,7 @@ namespace ACE.Server.WorldObjects
 
 
             // Broadcast updated character appearance
-            CurrentLandblock.EnqueueBroadcast(
+            CurrentLandblock?.EnqueueBroadcast(
                 Location,
                 Landblock.MaxObjectRange,
                 new GameMessageObjDescEvent(this));
@@ -708,7 +784,7 @@ namespace ACE.Server.WorldObjects
             {
                 WorldObject wo = GetInventoryItem(item);
                 if (wo != null)
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                         new GameMessageObjDescEvent(wo));
                 else
                     log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
@@ -723,7 +799,7 @@ namespace ACE.Server.WorldObjects
             base.SendUpdatePosition();
         }
 
- 
+
 
         /// <summary>
         /// This method is part of the contract tracking functions.   This is used to remove or abandon a contract.
@@ -862,7 +938,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoTalk(string message)
         {
-            CurrentLandblock.EnqueueBroadcastLocalChat(this, message);
+            CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
         }
 
         public void HandleActionEmote(string message)
@@ -874,7 +950,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoEmote(string message)
         {
-            CurrentLandblock.EnqueueBroadcastLocalChatEmote(this, message);
+            CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
         }
 
         public void HandleActionSoulEmote(string message)
@@ -886,7 +962,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoSoulEmote(string message)
         {
-            CurrentLandblock.EnqueueBroadcastLocalChatSoulEmote(this, message);
+            CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
 
         /// <summary>
@@ -981,12 +1057,12 @@ namespace ACE.Server.WorldObjects
             {
                 case -1:
                     // Do nothing
-                     break;
+                    break;
                 case 0:
                     Adminvision = false;
                     break;
                 case 1:
-                    Adminvision = true;                    
+                    Adminvision = true;
                     break;
                 case 2:
                     if (Adminvision)
@@ -997,7 +1073,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (Adminvision)
-                CurrentLandblock.ResendObjectsInRange(this);
+                CurrentLandblock?.ResendObjectsInRange(this);
 
             string state = Adminvision ? "enabled" : "disabled";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));

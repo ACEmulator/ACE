@@ -10,13 +10,6 @@ namespace ACE.Server.Physics.Util
         public List<Environment> EnvCells;
         public static Dictionary<uint, AdjustCell> AdjustCells = new Dictionary<uint, AdjustCell>();
 
-        //Maybe it's OK to bypass the whitelist and take the performance hit if the adjustcell test is run after login and after teleport. fartwhif
-        public static List<uint> AdjustDungeons = new List<uint>()
-        {
-            0x18A,   // Hotel Swank
-            0x2AB    // Beyond the Mines of Despair
-        };
-
         public AdjustCell(uint dungeonID)
         {
             uint blockInfoID = dungeonID << 16 | 0xFFFE;

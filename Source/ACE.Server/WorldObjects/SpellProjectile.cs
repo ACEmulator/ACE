@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
                 var spellLevel = CalculateSpellLevel(spellPower);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
 
-                CurrentLandblock.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
+                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
             });
             selfDestructChain.AddDelaySeconds(5.0);
             selfDestructChain.AddAction(this, () => LandblockManager.RemoveObject(this));
@@ -237,7 +237,7 @@ namespace ACE.Server.WorldObjects
             var player = projectileCaster as Player;
 
             // Ensure target still exist before proceeding to handle collision
-            //Creature target = CurrentLandblock.GetObject(guidTarget) as Creature;
+            //Creature target = CurrentLandblock?.GetObject(guidTarget) as Creature;
             var target = _target as Creature;
             if (target == null)
             {
@@ -341,7 +341,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                CurrentLandblock.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
+                CurrentLandblock?.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
 
                 if (player != null)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));

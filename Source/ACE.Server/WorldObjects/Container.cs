@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid, out Container container)
         {
-            // First search me for this item..
+            // First search my main pack for this item..
             if (Inventory.TryGetValue(objectGuid, out var value))
             {
                 container = this;
@@ -350,7 +350,7 @@ namespace ACE.Server.WorldObjects
                     turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                     var turnToTimer = new ActionChain();
-                    turnToTimer.AddAction(this, () => player.CurrentLandblock.EnqueueBroadcastMotion(player, turnToMotion));
+                    turnToTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
                     turnToTimer.AddDelaySeconds(1);
                     turnToTimer.AddAction(this, () => Open(player));
                     turnToTimer.EnqueueChain();

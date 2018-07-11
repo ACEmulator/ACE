@@ -170,7 +170,7 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.DeleteSelf:
 
-                    WorldObject.CurrentLandblock.RemoveWorldObject(WorldObject.Guid, false);
+                    WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, false);
                     break;
 
                 case EmoteType.DirectBroadcast:
@@ -417,7 +417,7 @@ namespace ACE.Server.Managers
                 case EmoteType.LocalBroadcast:
 
                     text = Replace(emote.Message, target, WorldObject);
-                    WorldObject.CurrentLandblock.EnqueueBroadcastSystemChat(WorldObject, text, ChatMessageType.Broadcast);
+                    WorldObject.CurrentLandblock?.EnqueueBroadcastSystemChat(WorldObject, text, ChatMessageType.Broadcast);
                     break;
 
                 case EmoteType.LocalSignal:
@@ -502,7 +502,7 @@ namespace ACE.Server.Managers
 
                     text = Replace(emote.Message, target, WorldObject);
                     if (player != null)
-                        player.CurrentLandblock.EnqueueBroadcastLocalChat(player, text);
+                        player.CurrentLandblock?.EnqueueBroadcastLocalChat(player, text);
                     break;
 
                 case EmoteType.SetAltRacialSkills:
@@ -582,7 +582,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Sound:
-                    target.CurrentLandblock.EnqueueBroadcastSound(target, (Sound)emote.Sound);
+                    target.CurrentLandblock?.EnqueueBroadcastSound(target, (Sound)emote.Sound);
                     break;
 
                 case EmoteType.SpendLuminance:
@@ -802,18 +802,18 @@ namespace ACE.Server.Managers
 
             //if (!(WorldObject is Vendor))
             //{
-                foreach (var emote in Emotes(EmoteCategory.HeartBeat))
+            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
+            {
+                if (rng < emote.Probability)
                 {
-                    if (rng < emote.Probability)
+                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
                     {
-                        foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
-                        {
-                            ExecuteEmote(emote, action, emoteChain, WorldObject);
-                        }
-
-                        break;
+                        ExecuteEmote(emote, action, emoteChain, WorldObject);
                     }
+
+                    break;
                 }
+            }
             //}
             //else
             //{
@@ -889,7 +889,7 @@ namespace ACE.Server.Managers
                     {
                         if ((creature.ActivationTarget ?? 0) > 0)
                         {
-                            var activationTarget = creature.CurrentLandblock.GetObject(new ObjectGuid(creature.ActivationTarget ?? 0));
+                            var activationTarget = creature.CurrentLandblock?.GetObject(new ObjectGuid(creature.ActivationTarget ?? 0));
                             activationTarget.ActOnUse(creature);
                         }
                     });
@@ -904,8 +904,8 @@ namespace ACE.Server.Managers
                 case EmoteType.AddContract:
 
                     //if (player != null)
-                        ////Contracts werent in emote table
-                        ////player.AddContract(emoteAction.Stat);
+                    ////Contracts werent in emote table
+                    ////player.AddContract(emoteAction.Stat);
                     break;
 
                 case EmoteType.AdminSpam:
@@ -1028,7 +1028,7 @@ namespace ACE.Server.Managers
                     ////Used as part of the test drudge for events
                     break;
                 case EmoteType.DeleteSelf:
-                    sourceObject.CurrentLandblock.RemoveWorldObject(sourceObject.Guid, false);
+                    sourceObject.CurrentLandblock?.RemoveWorldObject(sourceObject.Guid, false);
                     break;
 
                 case EmoteType.DirectBroadcast:
@@ -1278,13 +1278,13 @@ namespace ACE.Server.Managers
                 case EmoteType.InqNumCharacterTitles:
 
                     ////if (player != null)
-                       //// InqCategory(player.NumCharacterTitles != 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
+                    //// InqCategory(player.NumCharacterTitles != 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     break;
 
                 case EmoteType.InqOwnsItems:
 
                     ////if (player != null)
-                       //// InqCategory(player.Inventory.Count > 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
+                    //// InqCategory(player.Inventory.Count > 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     break;
 
                 case EmoteType.InqPackSpace:
@@ -1395,7 +1395,7 @@ namespace ACE.Server.Managers
                     {
                         var vital = player.GetCreatureVital((PropertyAttribute2nd)emoteAction.Stat);
                         var success = vital != null && vital.Base >= emoteAction.Min && vital.Base <= emoteAction.Max;
-                       // InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
+                        // InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
                     break;
 
@@ -1467,16 +1467,16 @@ namespace ACE.Server.Managers
                 case EmoteType.LocalBroadcast:
                     if (actionChain == null)
                     {
-                        sourceObject.CurrentLandblock.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                     }
                     ///text = emoteAction.Message;
-                    ///WorldObject.CurrentLandblock.EnqueueBroadcastSystemChat(player, text, ChatMessageType.Broadcast);
+                    ///WorldObject.CurrentLandblock?.EnqueueBroadcastSystemChat(player, text, ChatMessageType.Broadcast);
                     else
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject.CurrentLandblock.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                            sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                         });
                     }
                     break;
@@ -1488,6 +1488,7 @@ namespace ACE.Server.Managers
 
                     if (player != null && player.Fellowship != null)
                         player.HandleActionFellowshipChangeOpenness(false);
+
                     break;
 
                 case EmoteType.Motion:
@@ -1617,7 +1618,7 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
-                        sourceObject.CurrentLandblock.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
+                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
                     });
                     break;
 
@@ -1694,11 +1695,11 @@ namespace ACE.Server.Managers
                 case EmoteType.SetSanctuaryPosition:
 
                     //if (player != null)
-                        //player.Sanctuary = emote.Position;
+                    //player.Sanctuary = emote.Position;
                     break;
 
                 case EmoteType.Sound:
-                    targetObject.CurrentLandblock.EnqueueBroadcastSound(targetObject, (Sound)emoteAction.Sound);
+                    targetObject.CurrentLandblock?.EnqueueBroadcastSound(targetObject, (Sound)emoteAction.Sound);
                     break;
 
                 case EmoteType.SpendLuminance:
@@ -1747,13 +1748,13 @@ namespace ACE.Server.Managers
                 case EmoteType.TeleportSelf:
 
                     //if (WorldObject is Player)
-                        //(WorldObject as Player).Teleport(emote.Position);
+                    //(WorldObject as Player).Teleport(emote.Position);
                     break;
 
                 case EmoteType.TeleportTarget:
 
                     //if (player != null)
-                       // player.Teleport(emote.Position);
+                    // player.Teleport(emote.Position);
                     break;
 
                 case EmoteType.Tell:

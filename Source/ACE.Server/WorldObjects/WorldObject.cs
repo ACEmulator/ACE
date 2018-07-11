@@ -61,6 +61,32 @@ namespace ACE.Server.WorldObjects
         private bool busyState;
         private bool movingState;
 
+        private bool _IsActivated = false;
+        public bool IsActivated
+        {
+            // TODO: affect this property upon login, the way it is now it's only part of the equip/dequip pipeline
+            get { return _IsActivated; }
+            set
+            {
+                _IsActivated = value;
+                if (!value)
+                {
+                    ItemManaDepletionMessageTimestamp = null;
+                    ItemManaConsumptionTimestamp = null;
+                }
+                else
+                {
+                    ItemManaDepletionMessageTimestamp = null;
+                    ItemManaConsumptionTimestamp = DateTime.Now;
+                }
+            }
+        }
+
+        public int ManaGiven { get; set; }
+
+        public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
+        public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
+
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
 
@@ -583,7 +609,7 @@ namespace ACE.Server.WorldObjects
             {
                 var physicsState = CalculatedPhysicsState();
                 GameMessage msg = new GameMessageSetState(this, physicsState);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
 
@@ -592,7 +618,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 GameMessage msg = new GameMessageUpdateObject(this);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
 
@@ -630,7 +656,7 @@ namespace ACE.Server.WorldObjects
         public void DoMotion(UniversalMotion motion)
         {
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
         }
 
         public void ApplyVisualEffects(PlayScript effect)
@@ -648,7 +674,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 var effectEvent = new GameMessageScript(targetId, effectId);
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
             }
         }
 
@@ -731,9 +757,12 @@ namespace ACE.Server.WorldObjects
 
         public bool AdjustDungeonCells(Position pos)
         {
+            if (pos == null) return false;
+
+            var landblock = LScape.get_landblock(pos.Cell);
+            if (landblock == null || !landblock.IsDungeon) return false;
+
             var dungeonID = pos.Cell >> 16;
-            //if (!AdjustCell.AdjustDungeons.Contains(dungeonID))
-            //    return;
 
             var adjustCell = AdjustCell.Get(dungeonID);
             var cellID = adjustCell.GetCell(pos.Pos);

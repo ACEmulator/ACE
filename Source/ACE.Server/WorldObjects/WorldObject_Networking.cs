@@ -366,7 +366,7 @@ namespace ACE.Server.WorldObjects
             GameMessage msg = new GameMessageUpdatePosition(this, forcePos);
 
             if (CurrentLandblock != null)
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
         }
 
 
@@ -992,7 +992,7 @@ namespace ACE.Server.WorldObjects
                         //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
                             //PhysicsObj.change_cell_server(curCell);
 
-                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell);
+                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
                         PhysicsObj.update_object_server();
 
                         if (PhysicsObj.CurCell == null)
@@ -1017,7 +1017,7 @@ namespace ACE.Server.WorldObjects
             SendUpdatePosition();
 
             if (Teleporting)
-                CurrentLandblock.EnqueueBroadcast(PreviousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+                CurrentLandblock?.EnqueueBroadcast(PreviousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
         }
 
         public double lastDist;
@@ -1048,7 +1048,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj.CurCell == null)
             {
                 //Console.WriteLine("CurCell is null");
-                CurrentLandblock.RemoveWorldObject(Guid, false);
+                CurrentLandblock?.RemoveWorldObject(Guid, false);
                 return false;
             }
 

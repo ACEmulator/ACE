@@ -80,14 +80,15 @@ namespace ACE.Server.Physics
         public Position RequestPos;
 
         public CellArray CellArray;
-        public static ObjectMaint ObjMaint;
-        public static PhysicsObj PlayerObject;
+        public ObjectMaint ObjMaint;
+        public static List<PhysicsObj> Players;
+        public bool IsPlayer;
 
         public static readonly int UpdateTimeLength = 9;
 
         static PhysicsObj()
         {
-            ObjMaint = new ObjectMaint();
+            Players = new List<PhysicsObj>();
         }
 
         public PhysicsObj()
@@ -117,6 +118,7 @@ namespace ACE.Server.Physics
             UpdateTime = Timer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
             WeenieObj = new WeenieObject();
+            ObjMaint = new ObjectMaint();
 
             if (PhysicsEngine.Instance != null && PhysicsEngine.Instance.Server)
             {
@@ -423,7 +425,7 @@ namespace ACE.Server.Physics
         {
             if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
 
-            return PlayerObject.Equals(this) ? 25.0f : 20.0f;
+            return Players.Contains(this) ? 25.0f : 20.0f;
         }
 
         public BBox GetBoundingBox()
@@ -927,7 +929,7 @@ namespace ACE.Server.Physics
                 PartArray.SetNoDrawInternal(noDraw);
         }
 
-        public static void SetObjectMaintainer(ObjectMaint objMaint)
+        public void SetObjectMaintainer(ObjectMaint objMaint)
         {
             ObjMaint = objMaint;
         }
@@ -999,9 +1001,12 @@ namespace ACE.Server.Physics
             return result;
         }
 
-        public static void SetPlayer(PhysicsObj newPlayer)
+        public void SetPlayer()
         {
-            PlayerObject = newPlayer;
+            if (Players.Contains(this))
+                Players.Add(this);
+
+            IsPlayer = true;
         }
 
         public SetPositionError SetPosition(SetPosition setPos)
@@ -1982,9 +1987,34 @@ namespace ACE.Server.Physics
             // handle indoor cell visibility
             if ((newCell.ID & 0xFFFF) >= 0x100)
             {
-                var addUpdateObjs = handle_visible_cells();
-                if (addUpdateObjs == null) return;
-                enqueue_objs(addUpdateObjs);
+                if (IsPlayer)
+                {
+                    // player entering new indoor cell
+                    var addUpdateObjs = handle_visible_cells();
+                    if (addUpdateObjs == null) return;
+                    enqueue_objs(addUpdateObjs);
+                }
+
+                foreach (var player in Players)
+                {
+                    // is other player in same indoor landblock?
+                    if (player.CurCell != null && (player.CurCell.ID & 0xFFFF) >= 0x100 && player.CurCell.ID >> 16 == newCell.ID >> 16)
+                    {
+                        var envCell = player.CurCell as Common.EnvCell;
+                        if (envCell != null)
+                        {
+                            if (envCell.VisibleCells.ContainsKey(newCell.ID & 0xFFFF))
+                            {
+                                //Console.WriteLine($"Informing {player.WeenieObj.WorldObject.Name} about {WeenieObj.WorldObject.Name}");
+
+                                // inform other player about this object
+                                var addUpdateObjs = player.handle_visible_cells();
+                                if (addUpdateObjs == null) return;
+                                player.enqueue_objs(addUpdateObjs);
+                            }
+                        }
+                    }
+                }
             }
 
             //Console.WriteLine("Cell: " + newCell.ID.ToString("X8") + " (" + newCell.ShadowObjectList.Count + ")");
@@ -2051,10 +2081,11 @@ namespace ACE.Server.Physics
             cellArray.AddedOutside = false;
             cellArray.add_cell(CurCell.ID, CurCell);
 
-            var checkCells = cellArray.Cells.Values.ToList();
-
-            foreach (var cell in checkCells)
+            for (var i = 0; i < cellArray.Cells.Count; i++)
+            {
+                var cell = cellArray.Cells.Values.ElementAt(i);
                 PartArray.calc_cross_cells_static(cell, cellArray);
+            }
         }
 
         public int get_curr_frame_number()
@@ -2801,7 +2832,7 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint != null)
             {
-                //var collision = WeenieObj.WorldObject.CurrentLandblock.GetObject(new ObjectGuid(objectID));//not PhysicsObj
+                //var collision = WeenieObj.WorldObject.CurrentLandblock?.GetObject(new ObjectGuid(objectID));//not PhysicsObj
                 var collision = ObjMaint.GetObjectA(objectID);
                 if (collision != null)
                 {
@@ -3246,11 +3277,22 @@ namespace ACE.Server.Physics
         /// Sets the requested position to the AutonomousPosition
         /// received from the client
         /// </summary>
-        public void set_request_pos(Vector3 pos, Quaternion rotation, ObjCell cell)
+        public void set_request_pos(Vector3 pos, Quaternion rotation, ObjCell cell, uint blockCellID)
         {
             RequestPos.Frame.Origin = pos;
             RequestPos.Frame.Orientation = rotation;
-            RequestPos.ObjCellID = cell.ID;
+
+            if (CurCell == null)
+            {
+                CurCell = LScape.get_landcell(blockCellID);
+                if (CurCell == null)
+                    return;
+            }
+
+            if (cell == null)
+                RequestPos.ObjCellID = RequestPos.GetCell(CurCell.ID);
+            else
+                RequestPos.ObjCellID = cell.ID;
         }
 
         public void set_sequence_animation(int animID, bool interrupt, int startFrame, float framerate)

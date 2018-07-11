@@ -28,6 +28,10 @@ namespace ACE.Server.WorldObjects
             return attributeBonus;
         }
 
+        /// <summary>
+        /// Converts AL from an additive linear value
+        /// to a scaled damage multiplier
+        /// </summary>
         public static float CalcArmorMod(float armorLevel)
         {
             if (armorLevel > 0)

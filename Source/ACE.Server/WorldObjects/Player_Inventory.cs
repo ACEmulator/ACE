@@ -194,7 +194,7 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                     new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
             });
@@ -205,7 +205,7 @@ namespace ACE.Server.WorldObjects
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
             // Grab a reference to the item before its removed from the CurrentLandblock
-            var item = CurrentLandblock.GetObject(itemGuid);
+            var item = CurrentLandblock?.GetObject(itemGuid);
             var itemWasRestingOnLandblock = false;
 
             if (item != null)
@@ -213,11 +213,11 @@ namespace ACE.Server.WorldObjects
                 itemWasRestingOnLandblock = true;
                 item.NotifyOfEvent(RegenerationType.PickUp);
                 // Queue up an action that wait for the landblock to remove the item. The action that gets queued, when fired, will be run on the landblocks ActionChain, not this players.
-                CurrentLandblock.QueueItemRemove(pickUpItemChain, itemGuid);
+                CurrentLandblock?.QueueItemRemove(pickUpItemChain, itemGuid);
             }
             else
             {
-                var lastUsedContainer = CurrentLandblock.GetObject(lastUsedContainerId) as Container;
+                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
 
                 if (lastUsedContainer != null)
                 {
@@ -315,12 +315,12 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
-                CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
                     new GameMessagePickupEvent(item));
 
                 if (iidPropertyId == PropertyInstanceId.Wielder)
-                    CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
 
                 // TODO: Og II - check this later to see if it is still required.
                 //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
@@ -380,7 +380,7 @@ namespace ACE.Server.WorldObjects
 
             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
-            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
                 new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
@@ -458,11 +458,11 @@ namespace ACE.Server.WorldObjects
 
                 if (container == null) // Destination is a container in the world, not in our possession
                 {
-                    container = CurrentLandblock.GetObject(containerGuid) as Container;
+                    container = CurrentLandblock?.GetObject(containerGuid) as Container;
 
                     if (container == null) // Container is a container within a container in the world....
                     {
-                        var lastUsedContainer = CurrentLandblock.GetObject(lastUsedContainerId) as Container;
+                        var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
 
                         if (lastUsedContainer != null && lastUsedContainer.Inventory.TryGetValue(containerGuid, out var value))
                             container = value as Container;
@@ -500,6 +500,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     UnwieldItemWithNetworking(container, item, placement);
+                    item.IsActivated = false;
                     return;
                 }
 
@@ -559,7 +560,7 @@ namespace ACE.Server.WorldObjects
                         //    new GameMessageObjDescEvent(this),
                         //    new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder));
 
-                        CurrentLandblock.EnqueueBroadcast(Location,
+                        CurrentLandblock?.EnqueueBroadcast(Location,
                             new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
                             new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)));
@@ -583,7 +584,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
                 // Set drop motion
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
 
                 // Now wait for Drop Motion to finish -- use ActionChain
                 var dropChain = new ActionChain();
@@ -598,8 +599,8 @@ namespace ACE.Server.WorldObjects
                 dropChain.AddAction(this, () =>
                 {
                     motion = new UniversalMotion(MotionStance.Standing);
-                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                     Session.Network.EnqueueSend(
                         new GameEventItemServerSaysMoveItem(Session, item),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
@@ -612,16 +613,56 @@ namespace ACE.Server.WorldObjects
                     item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                     item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                    CurrentLandblock.AddWorldObject(item);
+                    CurrentLandblock?.AddWorldObject(item);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageUpdatePosition(item));
+                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageUpdatePosition(item));
                 });
 
                 actionChain.AddChain(dropChain);
             });
 
             actionChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// used for the login routine and the player initiated item equip action, checks the persistent IsActivated property of the WO, and applies spells
+        /// </summary>
+        public void ApplyEquippedItemSpells()
+        {
+            if (!EquippedObjectsLoaded) throw new Exception("Equipped items aren't loaded yet.  Only call this after the equipped items are loaded.");
+            EquippedObjects.Where(k=>k.Value.IsActivated).ToList().ForEach(k => {
+                CreateEquippedItemSpells(k.Value);
+            });
+        }
+
+        /// <summary>
+        /// create spells by an equipped item
+        /// </summary>
+        /// <param name="item">the equipped item doing the spell creation</param>
+        /// <returns>if any spells were created or not</returns>
+        public bool CreateEquippedItemSpells(WorldObject item)
+        {
+            bool spellCreated = false;
+            if (item.Biota.BiotaPropertiesSpellBook != null)
+            {
+                // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
+                if (item.ItemCurMana > 1 || item.ItemCurMana == null)
+                {
+                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                    {
+                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell))
+                            spellCreated = true;
+                    }
+                    item.IsActivated = spellCreated;
+                    if (item.IsActivated)
+                    {
+                        if (item.ItemCurMana.HasValue)
+                            item.ItemCurMana--;
+                    }
+                }
+            }
+            return spellCreated;
         }
 
         public void HandleActionGetAndWieldItem(uint itemId, int wieldLocation)
@@ -638,17 +679,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    if (item.Biota.BiotaPropertiesSpellBook != null)
-                    {
-                        // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
-                        if (item.ItemCurMana > 1 || item.ItemCurMana == null)
-                        {
-                            for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                            {
-                                CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                            }
-                        }
-                    }
+                    CreateEquippedItemSpells(item);
 
                     if ((EquipMask)wieldLocation == EquipMask.MissileAmmo)
                     {
@@ -664,7 +695,7 @@ namespace ACE.Server.WorldObjects
 
                             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
-                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                 new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
                                 new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
@@ -692,7 +723,7 @@ namespace ACE.Server.WorldObjects
                         {
                             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
-                            CurrentLandblock.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
+                            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
                                 new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
@@ -958,7 +989,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
 
-            WorldObject target = CurrentLandblock.GetObject(targetID) as WorldObject;
+            WorldObject target = CurrentLandblock?.GetObject(targetID) as WorldObject;
             WorldObject item = GetInventoryItem(itemGuid) as WorldObject ?? GetWieldedItem(itemGuid) as WorldObject;
             if (item == null)
             {
@@ -1130,7 +1161,7 @@ namespace ACE.Server.WorldObjects
             fromWo.EncumbranceVal = (int)newFromBurden;
 
             // Build the needed messages to the client.
-            CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+            CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                 new GameMessageSetStackSize(fromWo));
         }
 
@@ -1161,10 +1192,10 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             if (missileAmmo)
-                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                     new GameMessageSetStackSize(toWo));
             else
-                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                     new GameEventItemServerSaysContainId(Session, toWo, this),
                     new GameMessageSetStackSize(toWo));
         }
@@ -1240,7 +1271,7 @@ namespace ACE.Server.WorldObjects
 
                 // todo i'm not sure if this is right? Should it be a landblock broadcast if we're splitting items on our own person?
                 // todo Probably only landblock if the container exists on the landscape, but even then... i don't think so
-                CurrentLandblock.EnqueueBroadcast(Location, MaxObjectTrackingRange,
+                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
                     new GameEventItemServerSaysContainId(Session, newStack, container),
                     new GameMessageSetStackSize(stack),
                     new GameMessageCreateObject(newStack));
@@ -1298,7 +1329,7 @@ namespace ACE.Server.WorldObjects
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
 
                 // Set drop motion
-                CurrentLandblock.EnqueueBroadcastMotion(this, motion);
+                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
 
                 // Now wait for Drop Motion to finish -- use ActionChain
                 var dropChain = new ActionChain();
@@ -1317,8 +1348,8 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                     motion = new UniversalMotion(MotionStance.Standing);
-                    CurrentLandblock.EnqueueBroadcastMotion(this, motion);
-                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
 
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
@@ -1329,10 +1360,10 @@ namespace ACE.Server.WorldObjects
                     newStack.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                     newStack.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                    CurrentLandblock.AddWorldObject(newStack);
+                    CurrentLandblock?.AddWorldObject(newStack);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    CurrentLandblock.EnqueueBroadcast(Location, new GameMessageUpdatePosition(newStack));
+                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageUpdatePosition(newStack));
                 });
 
                 actionChain.AddChain(dropChain);

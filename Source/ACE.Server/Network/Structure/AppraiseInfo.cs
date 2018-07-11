@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
@@ -48,6 +50,8 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public AppraiseInfo(WorldObject wo, bool success = true)
         {
+            //Console.WriteLine("Appraise: " + wo.Guid);
+
             Success = success;
             if (!Success)
                 return;
@@ -65,7 +69,7 @@ namespace ACE.Server.Network.Structure
             if (wo is Creature creature)
                 BuildCreature(creature);
 
-            if (wo is Ammunition || wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is SpellProjectile)
+            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Caster)
                 BuildWeapon(wo, wielder);
 
             BuildFlags();
@@ -102,7 +106,7 @@ namespace ACE.Server.Network.Structure
             SpellBook.AddRange(wo.Biota.BiotaPropertiesSpellBook);
         }
 
-        public void AddSpells(List<BiotaPropertiesSpellBook> activeSpells, WorldObject wielder)
+        public void AddSpells(List<BiotaPropertiesSpellBook> activeSpells, WorldObject wielder, WeenieType weenieType = WeenieType.Undef)
         {
             if (wielder == null) return;
 
@@ -112,7 +116,35 @@ namespace ACE.Server.Network.Structure
             // item enchantments can also be on wielder currently
             // get any spells from wielder that should be shown in this item's appraise panel
             foreach (var enchantment in enchantments)
-                activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
+            {
+                if (weenieType == WeenieType.Clothing)
+                {
+                    if ((enchantment.SpellCategory >= (ushort)SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= (ushort)SpellCategory.AcidicResistanceLowering))
+                        activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
+                }
+                else
+                {
+                    if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModRaising)
+                        || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
+                        || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
+                        || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising)
+                        || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceLowering)
+                        || (enchantment.SpellCategory == (uint)SpellCategory.SpellDamageRaising))
+                        activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
+                }
+            }
+        }
+
+        private SpellCategory GetSpellCategory(uint spellId)
+        {
+            uint spellCategory;
+
+            SpellTable spellTable = DatManager.PortalDat.SpellTable;
+            if (!spellTable.Spells.ContainsKey(spellId))
+                return SpellCategory.Undef;
+
+            spellCategory = spellTable.Spells[spellId].Category;
+            return (SpellCategory)spellCategory;
         }
 
         public void BuildArmor(WorldObject wo, WorldObject wielder)
@@ -122,7 +154,7 @@ namespace ACE.Server.Network.Structure
             ArmorColor = ArmorMaskHelper.GetColorMask(wo, wielder);
 
             // item enchantments can also be on wielder currently
-            AddSpells(SpellBook, wielder);
+            AddSpells(SpellBook, wielder, wo.WeenieType);
         }
 
         public void BuildCreature(Creature creature)
@@ -143,7 +175,7 @@ namespace ACE.Server.Network.Structure
             WeaponColor = WeaponMaskHelper.GetColorMask(weapon, wielder);
 
             // item enchantments can also be on wielder currently
-            AddSpells(SpellBook, wielder);
+            AddSpells(SpellBook, wielder, weapon.WeenieType);
         }
 
         public WorldObject GetWielder(WorldObject weapon)

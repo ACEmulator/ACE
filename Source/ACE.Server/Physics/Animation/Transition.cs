@@ -167,9 +167,9 @@ namespace ACE.Server.Physics.Animation
             ObjCell newCell = new ObjCell();    // null check?
             ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
-            var checkCells = CellArray.Cells.Values.ToList();
-            foreach (var cell in checkCells)
+            for (var i = 0; i < CellArray.Cells.Count; i++)
             {
+                var cell = CellArray.Cells.Values.ElementAt(i);
                 if (cell == null || cell.Equals(currCell)) continue;
                 var collides = cell.FindCollisions(this);
                 switch (collides)
@@ -279,61 +279,63 @@ namespace ACE.Server.Physics.Animation
                 transitionState = SetEdgeSlide(true, true, TransitionState.OK);
                 return true;
             }
-            else if (CollisionInfo.ContactPlaneValid && CollisionInfo.ContactPlane.Normal.Z < zval)
+
+            if (CollisionInfo.ContactPlaneValid && CollisionInfo.ContactPlane.Normal.Z < zval)
             {
                 transitionState = SetEdgeSlide(true, false, CliffSlide(CollisionInfo.ContactPlane));
                 return false;
             }
-            else if (SpherePath.Walkable != null)
+
+            if (SpherePath.Walkable != null)
             {
                 transitionState = SetEdgeSlide(false, false, SpherePath.PrecipiceSlide(this));
 
                 return transitionState == TransitionState.Collided;
             }
-            else if (CollisionInfo.ContactPlaneValid)
+
+            if (CollisionInfo.ContactPlaneValid)
             {
                 transitionState = SetEdgeSlide(true, true, TransitionState.OK);
                 return true;
             }
+
+            var offset = SpherePath.GlobalCurrCenter[0].Center - SpherePath.GlobalSphere[0].Center;
+            SpherePath.AddOffsetToCheckPos(offset);
+
+            StepDown(stepDownHeight, zval);
+
+            CollisionInfo.ContactPlaneValid = false;
+            CollisionInfo.ContactPlaneIsWater = false;
+            SpherePath.RestoreCheckPos();
+
+            if (SpherePath.Walkable != null)
+            {
+                SpherePath.CacheLocalSpaceSphere(SpherePath.GetWalkablePos(), SpherePath.WalkableScale);
+                SpherePath.SetWalkableCheckPos(SpherePath.LocalSpaceSphere[0]);
+
+                transitionState = SpherePath.PrecipiceSlide(this);
+                return transitionState == TransitionState.Collided;
+            }
             else
             {
-                var offset = SpherePath.GlobalCurrCenter[0].Center - SpherePath.GlobalSphere[0].Center;
-                SpherePath.AddOffsetToCheckPos(offset);
+                SpherePath.Walkable = null;
+                SpherePath.CellArrayValid = true;
 
-                StepDown(stepDownHeight, zval);
-
-                CollisionInfo.ContactPlaneValid = false;
-                CollisionInfo.ContactPlaneIsWater = false;
-                SpherePath.RestoreCheckPos();
-
-                if (SpherePath.Walkable != null)
-                {
-                    SpherePath.CacheLocalSpaceSphere(SpherePath.GetWalkablePos(), SpherePath.WalkableScale);
-                    SpherePath.SetWalkableCheckPos(SpherePath.LocalSpaceSphere[0]);
-
-                    transitionState = SpherePath.PrecipiceSlide(this);
-                    return transitionState == TransitionState.Collided;
-                }
-                else
-                {
-                    SpherePath.Walkable = null;
-                    SpherePath.CellArrayValid = true;
-
-                    transitionState = TransitionState.Collided;
-                    return true;
-                }
+                transitionState = TransitionState.Collided;
+                return true;
             }
         }
 
         public TransitionState SetEdgeSlide(bool unwalkable, bool validCell, TransitionState transitionState)
         {
-            if (validCell)  SpherePath.CellArrayValid = true;
             if (unwalkable) SpherePath.Walkable = null;
+
+            SpherePath.RestoreCheckPos();
 
             CollisionInfo.ContactPlaneValid = false;
             CollisionInfo.ContactPlaneIsWater = false;
 
-            SpherePath.RestoreCheckPos();
+            if (validCell) SpherePath.CellArrayValid = true;
 
             return transitionState;
         }
@@ -499,8 +501,13 @@ namespace ACE.Server.Physics.Animation
 
             CalcNumSteps(ref offset, ref offsetPerStep, ref numSteps);  // restructure as retval?
 
-            var maxSteps = 30;
-            if (numSteps > maxSteps) return false;
+            //var maxSteps = 30;
+            var maxSteps = 200; // for debugging
+            if (numSteps > maxSteps)
+            {
+                //Console.WriteLine("NumSteps: " + numSteps);
+                return false;
+            }
 
             if (ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))
                 SpherePath.CurPos.Frame.Rotate(SpherePath.EndPos.Frame.Orientation);
@@ -880,7 +887,7 @@ namespace ACE.Server.Physics.Animation
                                 }
                             }
 
-                            if (StepDown(stepDownHeight, zVal))
+                            if (StepDown(stepDownHeight, zVal)) // triple step?
                             {
                                 SpherePath.Walkable = null;
                                 return TransitionState.OK;
@@ -890,47 +897,47 @@ namespace ACE.Server.Physics.Animation
                                 return transitState;
                         }
                     }
-                }
-                else
-                {
-                    var reset = false;
-                    SpherePath.Collide = false;
-                    if (CollisionInfo.ContactPlaneValid && CheckWalkable(PhysicsGlobals.LandingZ))
+                    else
                     {
-                        SpherePath.Backup = SpherePath.InsertType;
-                        SpherePath.InsertType = InsertType.Placement;
-
-                        transitState = TransitionalInsert(num_insertion_attempts);
-
-                        SpherePath.InsertType = SpherePath.Backup;
-
-                        if (transitState != TransitionState.OK)
+                        var reset = false;
+                        SpherePath.Collide = false;
+                        if (CollisionInfo.ContactPlaneValid && CheckWalkable(PhysicsGlobals.LandingZ))
                         {
-                            transitState = TransitionState.OK;
-                            reset = true;
+                            SpherePath.Backup = SpherePath.InsertType;
+                            SpherePath.InsertType = InsertType.Placement;
+
+                            transitState = TransitionalInsert(num_insertion_attempts);
+
+                            SpherePath.InsertType = SpherePath.Backup;
+
+                            if (transitState != TransitionState.OK)
+                            {
+                                transitState = TransitionState.OK;
+                                reset = true;
+                            }
                         }
+                        else
+                            reset = true;
+
+                        SpherePath.Walkable = null;
+
+                        if (!reset) return transitState;
+
+                        SpherePath.RestoreCheckPos();
+
+                        CollisionInfo.ContactPlaneValid = false;
+                        CollisionInfo.ContactPlaneIsWater = false;
+
+                        if (CollisionInfo.LastKnownContactPlaneValid)
+                        {
+                            CollisionInfo.LastKnownContactPlaneValid = false;
+                            ObjectInfo.StopVelocity();
+                        }
+                        else
+                            CollisionInfo.SetCollisionNormal(SpherePath.StepUpNormal);
+
+                        return TransitionState.Collided;
                     }
-                    else
-                        reset = true;
-
-                    SpherePath.Walkable = null;
-
-                    if (!reset) return transitState;
-
-                    SpherePath.RestoreCheckPos();
-
-                    CollisionInfo.ContactPlaneValid = false;
-                    CollisionInfo.ContactPlaneIsWater = false;
-
-                    if (CollisionInfo.LastKnownContactPlaneValid)
-                    {
-                        CollisionInfo.LastKnownContactPlaneValid = false;
-                        ObjectInfo.StopVelocity();
-                    }
-                    else
-                        CollisionInfo.SetCollisionNormal(SpherePath.StepUpNormal);
-
-                    return TransitionState.Collided;
                 }
             }
             return transitState;
