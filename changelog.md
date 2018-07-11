@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-11
+[OptimShi]
+* Updated recipe manager to properly destroy items in packs (as opposed to main backpack). Added in functionality to handle equipped items in recipes, but there are downstream issues related to inventory management (such as enchantments not being removed)
+
 ### 2018-07-09
 [OptimShi]
 * Fixed a few console commands that either should not run in the console or had no use case if they did.
