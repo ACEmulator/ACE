@@ -1040,7 +1040,7 @@ namespace ACE.Server.WorldObjects
                     {
                     var result = target.Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
                     WorldObject player = this;
-                        if (target.HandleReceive(item, amount, target, player))
+                        if (target.HandleReceive(item, amount, target, player, actionChain))
                         {
                         
                             if (result.ElementAt(0).Category == 6)

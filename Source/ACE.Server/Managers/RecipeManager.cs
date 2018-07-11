@@ -94,9 +94,13 @@ namespace ACE.Server.Managers
 
                     if (destroyTarget)
                     {
-                        if (target.OwnerId == player.Guid.Full)
+                        if (target.OwnerId == player.Guid.Full  || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetSuccess.DestroyAmount);
+                        }
+                        else if (target.WielderId == player.Guid.Full)
+                        {
+                            if (!player.TryRemoveItemWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
                         }
                         else
                         {
@@ -112,9 +116,13 @@ namespace ACE.Server.Managers
 
                     if (destroySource)
                     {
-                        if (source.OwnerId == player.Guid.Full)
+                        if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceSuccess.DestroyAmount);
+                        }
+                        else if (source.WielderId == player.Guid.Full)
+                        {
+                            if (!player.TryRemoveItemWithNetworking(source)) throw new Exception($"Failed to remove {source.Name} from player inventory.");
                         }
                         else
                         {
@@ -154,9 +162,13 @@ namespace ACE.Server.Managers
 
                     if (destroyTarget)
                     {
-                        if (target.OwnerId == player.Guid.Full)
+                        if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetFail.DestroyAmount);
+                        }
+                        else if (target.WielderId == player.Guid.Full)
+                        {
+                            if (!player.TryRemoveItemWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
                         }
                         else
                         {
@@ -172,9 +184,13 @@ namespace ACE.Server.Managers
 
                     if (destroySource)
                     {
-                        if (source.OwnerId == player.Guid.Full)
+                        if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
                             player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceFail.DestroyAmount);
+                        }
+                        else if (source.WielderId == player.Guid.Full)
+                        {
+                            if (!player.TryRemoveItemWithNetworking(source)) throw new Exception($"Failed to remove {source.Name} from player inventory.");
                         }
                         else
                         {
