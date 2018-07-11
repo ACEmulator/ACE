@@ -223,6 +223,8 @@ namespace ACE.Server.WorldObjects
                         var stone = invSource as ManaStone;
                         stone.HandleActionUseOnTarget(this, invWielded);
                     }
+                    else
+                        RecipeManager.UseObjectOnTarget(this, invSource, invWielded);
                 }
                 else
                 {
