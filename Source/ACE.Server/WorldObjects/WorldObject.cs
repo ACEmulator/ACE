@@ -303,10 +303,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver)
+        public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver, ActionChain chain)
         {
-            var emoteChain = new ActionChain();
-             
+            if (chain == null)
+            {
+                chain = new ActionChain();
+            }
+
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
             var result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId && rng >= emote.Probability);
             if (result.Count() < 1)
@@ -319,9 +322,9 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var action in actions)
                 {
-                    EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, emoteChain, receiver, giver);
+                    EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, chain, receiver, giver);
                 }
-                emoteChain.EnqueueChain();
+                //chain.EnqueueChain();
                 return true;
 
             }
