@@ -988,7 +988,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
-            // TODO: refactor me
             var target = CurrentLandblock?.GetObject(targetID);
             var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
             if (target == null || item == null) return;
@@ -1007,7 +1006,9 @@ namespace ACE.Server.WorldObjects
                 // NPC accepts any item
                 giveChain.AddAction(this, () =>
                 {
-                    UnwieldItemWithNetworking(this, item, 0);
+                    if (item.CurrentWieldedLocation != null)
+                        UnwieldItemWithNetworking(this, item, 0);
+
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
@@ -1043,7 +1044,9 @@ namespace ACE.Server.WorldObjects
                         // Item accepted by collector/NPC
                         giveChain.AddAction(this, () =>
                         {
-                            UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
+                            if (item.CurrentWieldedLocation != null)
+                                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
+
                             TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
