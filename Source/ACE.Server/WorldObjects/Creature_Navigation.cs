@@ -54,6 +54,8 @@ namespace ACE.Server.WorldObjects
         public static float GetAngle(Vector3 dir)
         {
             var rads = Math.Atan2(dir.Y, dir.X);
+            if (double.IsNaN(rads)) return 0.0f;
+
             var angle = rads * 57.2958f;
             return (float)angle;
         }
@@ -65,6 +67,8 @@ namespace ACE.Server.WorldObjects
         {
             var cosTheta = a.Dot2D(b);
             var rads = Math.Acos(cosTheta);
+            if (double.IsNaN(rads)) return 0.0f;
+
             var angle = rads * (180.0f / Math.PI);
             return (float)angle;
         }
