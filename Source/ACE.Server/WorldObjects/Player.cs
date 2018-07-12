@@ -35,6 +35,8 @@ namespace ACE.Server.WorldObjects
 
         public Session Session { get; }
 
+        public QuestManager QuestManager;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -112,6 +114,8 @@ namespace ACE.Server.WorldObjects
 
             if (Session.IsOnline)
                 AllegianceManager.LoadPlayer(this);
+
+            QuestManager = new QuestManager(this);
 
             IsOnline = true;
 

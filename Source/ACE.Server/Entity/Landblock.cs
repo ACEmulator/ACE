@@ -873,6 +873,11 @@ namespace ACE.Server.Entity
             return null;
         }
 
+        public WorldObject GetObject(uint objectId)
+        {
+            return GetObject(new ObjectGuid(objectId));
+        }
+
         /// <summary>
         /// This will return null if the object was not found in the current or adjacent landblocks.
         /// </summary>

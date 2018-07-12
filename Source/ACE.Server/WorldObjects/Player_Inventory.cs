@@ -988,14 +988,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
+            WorldObject target = CurrentLandblock?.GetObject(targetID);
+            WorldObject item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
+            if (item == null) return;
 
-            WorldObject target = CurrentLandblock?.GetObject(targetID) as WorldObject;
-            WorldObject item = GetInventoryItem(itemGuid) as WorldObject ?? GetWieldedItem(itemGuid) as WorldObject;
-            if (item == null)
-            {
-                return;
-            }
-            Console.WriteLine("The item's name is " + item.Name);
             var actionChain = new ActionChain();
             if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
