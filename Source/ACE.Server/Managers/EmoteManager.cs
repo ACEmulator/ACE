@@ -1114,8 +1114,14 @@ namespace ACE.Server.Managers
                                 stackMsg = stackSize + " ";     // pluralize?
                             }
                             success = player.TryCreateInInventoryWithNetworking(item);
+
+                            // transaction / rollback on failure?
                             if (success)
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.System));
+                            {
+                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.System);
+                                var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
+                                player.Session.Network.EnqueueSend(msg, sound);
+                            }
                         });
                     }
                     break;
