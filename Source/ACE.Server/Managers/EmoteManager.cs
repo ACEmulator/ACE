@@ -1678,7 +1678,7 @@ namespace ACE.Server.Managers
                     {
                         creature.TurnTo(pos);
                     });
-                    actionChain.AddDelaySeconds(creature.GetTurnToDelay(pos));
+                    actionChain.AddDelaySeconds(creature.GetRotateDelay(pos));
                     break;
 
                 case EmoteType.TurnToTarget:

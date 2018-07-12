@@ -127,15 +127,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float EstimateTurnTo()
         {
-            var angle = GetAngle(AttackTarget);
-
-            var turnSpeed = MotionTable.GetTurnSpeed(MotionTableId);
-
-            if (turnSpeed == 0.0f) return 0.0f;
-
-            var rotateTime = Math.PI / turnSpeed / 180.0f * angle;
-
-            return (float)rotateTime;
+            return GetRotateDelay(AttackTarget);
         }
 
         /// <summary>
