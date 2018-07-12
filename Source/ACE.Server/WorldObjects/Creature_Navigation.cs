@@ -64,12 +64,30 @@ namespace ACE.Server.WorldObjects
 
         public float Rotate(WorldObject target)
         {
-            // execute the TurnToObject motion
+            // execute the TurnToObject motion on client(s)
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
             CurrentLandblock?.EnqueueBroadcastMotion(this, turnToMotion);
 
-            return GetRotateDelay(target);
+            var angle = GetAngle(target);
+            //Console.WriteLine("Angle: " + angle);
+
+            // estimate time to rotate to target
+            var rotateTime = GetRotateDelay(target);
+            //Console.WriteLine("RotateTime: " + rotateTime);
+
+            // update server object rotation on completion
+            // TODO: proper incremental rotation
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(rotateTime);
+            actionChain.AddAction(this, () =>
+            {
+                var dir = GetDirection(Location.GlobalPos, target.Location.GlobalPos);
+                Location.Rotate(dir);
+            });
+            actionChain.EnqueueChain();
+
+            return rotateTime;
         }
 
         public float GetRotateDelay(WorldObject target)
@@ -82,7 +100,8 @@ namespace ACE.Server.WorldObjects
             // calculate time to complete the rotation
             var rotateTime = Math.PI / (360.0f / angle);
 
-            var waitTime = 0.25f;
+            //var waitTime = 0.25f;
+            var waitTime = 0.0f;    // this was originally only for archers, fixme
             return (float)rotateTime + waitTime;
         }
 

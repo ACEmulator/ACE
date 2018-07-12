@@ -857,6 +857,8 @@ namespace ACE.Server.Managers
 
         public void DoVendorEmote(VendorType vendorType, WorldObject targetObject)
         {
+            //Console.WriteLine("DoVendorEmote");
+
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
 
             var emoteChain = new ActionChain();
@@ -901,7 +903,7 @@ namespace ACE.Server.Managers
 
             var emoteType = (EmoteType)emoteAction.Type;
             //if (emoteType != EmoteType.Motion && emoteType != EmoteType.Turn && emoteType != EmoteType.Move)
-            //Console.WriteLine($"ExecuteEmote({emoteType})");
+                //Console.WriteLine($"ExecuteEmote({emoteType})");
 
             switch ((EmoteType)emoteAction.Type)
             {
@@ -1680,13 +1682,17 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.TurnToTarget:
-                    actionChain.AddDelaySeconds(emoteAction.Delay);
-                    creature = sourceObject is Creature ? (Creature)sourceObject : null;
-                    actionChain.AddAction(sourceObject, () =>
+
+                    if (creature != null && targetCreature != null)
                     {
-                        creature.Rotate(player);
-                    });
-                    actionChain.AddDelaySeconds(creature.GetRotateDelay(player));
+                        actionChain.AddDelaySeconds(emoteAction.Delay);
+                        actionChain.AddAction(creature, () =>
+                        {
+                            creature.Rotate(targetCreature);
+                        });
+                        var rotateTime = creature.GetRotateDelay(targetCreature);
+                        actionChain.AddDelaySeconds(rotateTime);
+                    }
                     break;
 
                 case EmoteType.UntrainSkill:
