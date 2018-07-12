@@ -990,19 +990,17 @@ namespace ACE.Server.WorldObjects
         {
             // TODO: refactor me
             var target = CurrentLandblock?.GetObject(targetID);
-            var creatureTarget = target as Creature;
             var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
             if (target == null || item == null) return;
 
             //Console.WriteLine("HandleActionGiveObjectRequest(" + item.Name + ")");
 
             var giveChain = new ActionChain();
-            if (creatureTarget != null)
-            {
-                var rotateDelay = creatureTarget.Rotate(this);
-                giveChain.AddDelaySeconds(rotateDelay);
-            }
+            var rotateDelay = Rotate(target);   // giver rotates to receiver
+            giveChain.AddDelaySeconds(rotateDelay);
+
             var receiveChain = new ActionChain();
+            receiveChain.AddDelaySeconds(rotateDelay);
 
             if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
