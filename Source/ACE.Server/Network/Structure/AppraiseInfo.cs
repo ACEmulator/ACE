@@ -132,7 +132,7 @@ namespace ACE.Server.Network.Structure
 
             if (worldObject.WeenieType == WeenieType.Clothing)
             {
-                // Only show Clothing type item emchantments
+                // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
                 {
                     if ((enchantment.SpellCategory >= (ushort)SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= (ushort)SpellCategory.AcidicResistanceLowering))
@@ -141,7 +141,7 @@ namespace ACE.Server.Network.Structure
             }
             else
             {
-                // Show debuff item emchantments on weapons
+                // Show debuff item enchantments on weapons
                 foreach (var enchantment in woEnchantments)
                 {
                     if (worldObject is Caster)
