@@ -70,10 +70,13 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a normalized 3D vector from self to target
+        /// Returns a normalized 2D vector from self to target
         /// </summary>
         public Vector3 GetDirection(Vector3 self, Vector3 target)
         {
+            var target2D = new Vector3(self.X, self.Y, 0);
+            var self2D = new Vector3(target.X, target.Y, 0);
+
             return (target - self).Normalize();
         }
 
@@ -169,7 +172,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the amount of time for this creature to rotate
-        /// towards the rotation from the input position, based on the omega speed form its MotionTable
+        /// towards the rotation from the input position, based on the omega speed from its MotionTable
         /// Used by the emote system, which has the target rotation stored in positions
         /// </summary>
         /// <param name="position">Only the rotation information from this position is used here</param>

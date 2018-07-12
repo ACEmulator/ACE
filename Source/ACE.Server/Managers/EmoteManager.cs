@@ -747,7 +747,7 @@ namespace ACE.Server.Managers
         {
             var rng = useRNG ? Physics.Common.Random.RollDice(0.0f, 1.0f) : 0.0f;
 
-            var result = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)categoryId && e.Quest == emoteAction.Message && rng < e.Probability);
+            var result = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)categoryId && e.Quest == emoteAction.Message && rng <= e.Probability);
             if (result == null) return;
             var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == result.EmoteSetId && a.EmoteCategory == result.Category);
 
