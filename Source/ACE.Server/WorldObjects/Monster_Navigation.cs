@@ -302,12 +302,22 @@ namespace ACE.Server.WorldObjects
             if (moveSpeed == 0) moveSpeed = 2.5f;
             var scale = ObjScale ?? 1.0f;
 
-            var runSkill = GetCreatureSkill(Skill.Run).Current;
+            var RunRate = GetRunRate();
 
-            RunRate = (float)MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
             MoveSpeed = moveSpeed * RunRate * scale;
 
             //Console.WriteLine(Name + " - Run: " + runSkill + " - RunRate: " + RunRate + " - Move: " + MoveSpeed + " - Scale: " + scale);
+        }
+
+        /// <summary>
+        /// Returns the RunRate that is sent to the client as myRunRate
+        /// </summary>
+        public float GetRunRate()
+        {
+            var runSkill = GetCreatureSkill(Skill.Run).Current;
+            var runRate = MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
+
+            return (float)runRate;
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -1438,31 +1439,54 @@ namespace ACE.Server.Managers
 
                 case EmoteType.Move:
 
-                    if (sourceObject != null)
+                    // what is the difference between this and MoveToPos?
+                    // using MoveToPos logic for now...
+                    if (targetCreature != null)
                     {
-                        //var movement = sourceObject.PhysicsObj.MovementManager.MoveToManager;
-                        //movement.MoveToPosition(new Physics.Common.Position(), new MovementParameters());
-                        ////This needs wortk.
+                        var currentPos = targetCreature.Location;
+
+                        var newPos = new Position();
+                        newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
+                        newPos.Pos = new Vector3(emoteAction.OriginX ?? currentPos.Pos.X, emoteAction.OriginY ?? currentPos.Pos.Y, emoteAction.OriginZ ?? currentPos.Pos.Z);
+
+                        if (emoteAction.AnglesX == null || emoteAction.AnglesY == null || emoteAction.AnglesZ == null || emoteAction.AnglesW == null)
+                            newPos.Rotation = new Quaternion(currentPos.Rotation.X, currentPos.Rotation.Y, currentPos.Rotation.Z, currentPos.Rotation.W);
+                        else
+                            newPos.Rotation = new Quaternion(emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 1);
+
+                        if (emoteAction.ObjCellId != null)
+                            newPos.LandblockId = new LandblockId(emoteAction.ObjCellId.Value);
+
+                        targetCreature.MoveTo(newPos, targetCreature.GetRunRate());
                     }
                     break;
 
                 case EmoteType.MoveHome:
-                    //creature = sourceObject as Creature;
-                    //if (creature != null)
-                    //{
-                    //    var movement = creature.PhysicsObj.MovementManager.MoveToManager;
-                    //    movement.MoveToPosition(new Physics.Common.Position(creature.Home), new MovementParameters());
-                    //}
+
+                    if (targetCreature != null)
+                        targetCreature.MoveTo(targetCreature.Home, targetCreature.GetRunRate());
                     break;
 
                 case EmoteType.MoveToPos:
-                    //creature = sourceObject as Creature;
-                    //if (creature != null)
-                    //{
-                    //    Physics.Common.Position pos2 = new Physics.Common.Position((uint)emoteAction.OriginX, (uint)emoteAction.OriginY, (uint)emoteAction.OriginZ);
-                    //    var movement = creature.PhysicsObj.MovementManager.MoveToManager;
-                    //    movement.MoveToPosition(new Physics.Common.Position(emoteAction.Position), new MovementParameters());
-                    //}
+
+                    if (targetCreature != null)
+                    {
+                        var currentPos = targetCreature.Location;
+
+                        var newPos = new Position();
+                        newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
+                        newPos.Pos = new Vector3(emoteAction.OriginX ?? currentPos.Pos.X, emoteAction.OriginY ?? currentPos.Pos.Y, emoteAction.OriginZ ?? currentPos.Pos.Z);
+
+                        if (emoteAction.AnglesX == null || emoteAction.AnglesY == null || emoteAction.AnglesZ == null || emoteAction.AnglesW == null)
+                            newPos.Rotation = new Quaternion(currentPos.Rotation.X, currentPos.Rotation.Y, currentPos.Rotation.Z, currentPos.Rotation.W);
+                        else
+                            newPos.Rotation = new Quaternion(emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 1);
+
+                        if (emoteAction.ObjCellId != null)
+                            newPos.LandblockId = new LandblockId(emoteAction.ObjCellId.Value);
+
+                        targetCreature.MoveTo(newPos, targetCreature.GetRunRate());
+                    }
                     break;
 
                 case EmoteType.OpenMe:

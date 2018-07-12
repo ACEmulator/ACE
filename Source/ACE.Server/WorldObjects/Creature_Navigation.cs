@@ -231,8 +231,24 @@ namespace ACE.Server.WorldObjects
 
             CurrentMotionState = motion;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+        }
+
+        /// <summary>
+        /// Sends a network message for moving a creature to a new position
+        /// </summary>
+        public void MoveTo(Position position, float runRate = 1.0f)
+        {
+            var motion = new UniversalMotion(CurrentMotionState.Stance, position);
+            motion.MovementTypes = MovementTypes.MoveToPosition;
+            //motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
+            motion.WalkRunThreshold = 1.0f;
+            motion.RunRate = runRate;
+
+            // todo: use better movement system
+            Location = position;
+
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
         }
     }
 }
