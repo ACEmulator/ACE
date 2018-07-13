@@ -228,11 +228,14 @@ namespace ACE.Server.Physics.Common
 
             if (visibleCell != null && numSphere != 0)
             {
-                for (var i = 0; i < cellArray.Cells.Count; i++)
+                /*for (var i = 0; i < cellArray.Cells.Count; i++)
                 {
                     var cell = cellArray.Cells.Values.ElementAt(i);
                     cell.find_transit_cells(position, numSphere, sphere, cellArray, path);
-                }
+                }*/
+                var checkCells = cellArray.Cells.Values.ToList();
+                foreach (var cell in checkCells)
+                    cell.find_transit_cells(position, numSphere, sphere, cellArray, path);
 
                 if (currCell != null)
                 {

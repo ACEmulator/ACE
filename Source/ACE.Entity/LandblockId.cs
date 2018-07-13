@@ -87,6 +87,7 @@ namespace ACE.Entity
         {
             if (obj is LandblockId)
                 return ((LandblockId)obj) == this;
+
             return false;
         }
 
@@ -97,7 +98,7 @@ namespace ACE.Entity
 
         public override string ToString()
         {
-            return (Raw | 0xFFFF).ToString("X8");
+            return Raw.ToString("X8");
         }
     }
 }

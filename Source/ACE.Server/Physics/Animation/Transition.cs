@@ -167,9 +167,11 @@ namespace ACE.Server.Physics.Animation
             ObjCell newCell = new ObjCell();    // null check?
             ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
-            for (var i = 0; i < CellArray.Cells.Count; i++)
+            var checkCells = CellArray.Cells.Values.ToList();
+            //for (var i = 0; i < CellArray.Cells.Count; i++)
+            foreach (var cell in checkCells)
             {
-                var cell = CellArray.Cells.Values.ElementAt(i);
+                //var cell = CellArray.Cells.Values.ElementAt(i);
                 if (cell == null || cell.Equals(currCell)) continue;
                 var collides = cell.FindCollisions(this);
                 switch (collides)

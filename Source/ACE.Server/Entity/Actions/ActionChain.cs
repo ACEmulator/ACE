@@ -147,7 +147,8 @@ namespace ACE.Server.Entity.Actions
 
         public void EnqueueChain()
         {
-            FirstElement.Actor.EnqueueAction(FirstElement.Action);
+            if (FirstElement != null)
+                FirstElement.Actor.EnqueueAction(FirstElement.Action);
         }
     }
 }

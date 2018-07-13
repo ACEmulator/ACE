@@ -18,6 +18,12 @@ namespace ACE.Server.WorldObjects
             return new ActionChain(this, SavePlayer);
         }
 
+        public void SaveDatabase()
+        {
+            var saveChain = GetSaveChain();
+            saveChain.EnqueueChain();
+        }
+
         /// <summary>
         /// Internal save character functionality<para  />
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.<para />

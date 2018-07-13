@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Numerics;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -1115,27 +1118,34 @@ namespace ACE.Server.Command.Handlers
             creature.TurnTo(player);
         }
 
-        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Toggles movement debugging for a monster", "debugmove <object_id> <on/off>")]
+        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles movement debugging for the last appraised monster", "debugmove <on/off>")]
         public static void ToggleMovementDebug(Session session, params string[] parameters)
         {
-            if (parameters.Length < 1) return;
-
-            var objectID = Convert.ToUInt32(parameters[0], 16);
-            var guid = new ObjectGuid(objectID);
-            var player = session.Player;
-
-            var obj = player.CurrentLandblock?.GetObject(guid);
-            if (obj == null)
+            // get the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
             {
-                Console.WriteLine("Couldn't find " + guid);
+                Console.WriteLine("ERROR: no appraisal target");
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                Console.WriteLine("Couldn't find " + targetGuid);
+                return;
+            }
+            var creature = target as Creature;
+            if (creature == null)
+            {
+                Console.WriteLine(target.Name + " is not a creature / monster");
                 return;
             }
 
             bool enabled = true;
-            if (parameters.Length > 1 && parameters[1].Equals("off"))
+            if (parameters.Length > 0 && parameters[0].Equals("off"))
                 enabled = false;
 
-            var creature = obj as Creature;
             creature.DebugMove = enabled;
         }
 
@@ -1149,6 +1159,47 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("Setting forcepos to " + enabled);
 
             Creature.ForcePos = enabled;
+        }
+
+        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
+        public static void HandleDebugEmote(Session session, params string[] parameters)
+        {
+            // get the wo emotemanager for the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                Console.WriteLine("ERROR: no appraisal target");
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                Console.WriteLine("ERROR: couldn't find " + targetGuid);
+                return;
+            }
+            var actionChain = new ActionChain();
+
+            // build the emote
+            var emote = new BiotaPropertiesEmote();
+
+            var action = new BiotaPropertiesEmoteAction();
+            action.Type = (uint)EmoteType.MoveToPos;
+
+            // get current position
+            var currentPos = target.Location;
+
+            var newPos = new Position();
+            newPos.LandblockId = new LandblockId(currentPos.Cell);
+            newPos.Pos = new Vector3(currentPos.PositionX - 10, currentPos.PositionY, currentPos.PositionZ);
+            action.OriginX = newPos.PositionX;
+            action.OriginY = newPos.PositionY;
+            action.OriginZ = newPos.PositionZ;
+            action.ObjCellId = newPos.Cell;
+
+            Console.WriteLine($"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
+
+            target.EmoteManager.ExecuteEmote(emote, action, actionChain, target, target);
         }
     }
 }

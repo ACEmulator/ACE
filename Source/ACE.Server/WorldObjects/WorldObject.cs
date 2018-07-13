@@ -284,33 +284,22 @@ namespace ACE.Server.WorldObjects
 
         public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver, ActionChain chain)
         {
-            if (chain == null)
-            {
-                chain = new ActionChain();
-            }
+            if (chain == null) chain = new ActionChain();
 
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-            var result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId && rng >= emote.Probability);
-            if (result.Count() < 1)
-            {
-                result = Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
-            }
-            if (result.Count() > 0)
-            {
-                var actions = Biota.BiotaPropertiesEmoteAction.Where(action => action.EmoteSetId == result.ElementAt(result.Count() - 1).EmoteSetId && action.EmoteCategory == result.ElementAt<BiotaPropertiesEmote>(0).Category);
-
-                foreach (var action in actions)
-                {
-                    EmoteManager.ExecuteEmote(result.ElementAt(result.Count() - 1), action, chain, receiver, giver);
-                }
-                //chain.EnqueueChain();
-                return true;
-
-            }
-            else
-            {
+            // last/first?
+            var emote = Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.WeenieClassId == item.WeenieClassId && rng < e.Probability);
+            if (emote == null)
+                emote = Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.WeenieClassId == item.WeenieClassId);
+            if (emote == null)
                 return false;
-            }
+
+            var actions = Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == emote.EmoteSetId && a.EmoteCategory == emote.Category);
+
+            foreach (var action in actions)
+                EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
+
+            return true;
         }
 
 
