@@ -230,6 +230,32 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Method for handling the removal of an item's spell from the Enchantment registry, silently
+        /// </summary>
+        /// <param name="guidItem"></param>
+        /// <param name="spellId"></param>
+        public void DispelItemSpell(ObjectGuid guidItem, uint spellId)
+        {
+            WorldObject item = GetWieldedItem(guidItem);
+
+            if (item == null)
+                return;
+
+            SpellTable spellTable = DatManager.PortalDat.SpellTable;
+            if (!spellTable.Spells.ContainsKey(spellId))
+            {
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
+                return;
+            }
+
+            SpellBase spell = spellTable.Spells[spellId];
+
+            // Retrieve enchantment
+            if (EnchantmentManager.HasSpell(spellId))
+                EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+        }
+
+        /// <summary>
         /// Method for handling the removal of an item's spell from the Enchantment registry
         /// </summary>
         /// <param name="guidItem"></param>
@@ -252,7 +278,7 @@ namespace ACE.Server.WorldObjects
 
             // Retrieve enchantment
             if (EnchantmentManager.HasSpell(spellId))
-                EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+                EnchantmentManager.Remove(EnchantmentManager.GetSpell(spellId));
         }
 
         /// <summary>
