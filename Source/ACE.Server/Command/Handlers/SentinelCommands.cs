@@ -185,10 +185,10 @@ namespace ACE.Server.Command.Handlers
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
             if (aceParams[0].AsPlayer.Fellowship == null)
             {
-                BuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
+                BuffPlayers(new Player[] { aceParams[0].AsPlayer }, session.Player, aceParams[0].AsPlayer == session.Player);
                 return;
             }
-            BuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers,
+            BuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers, session.Player,
                 aceParams[0].AsPlayer.Fellowship.FellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipMembers[0] == session.Player);
         }
 
@@ -208,10 +208,10 @@ namespace ACE.Server.Command.Handlers
                 }
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
-            BuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
+            BuffPlayers(new Player[] { aceParams[0].AsPlayer }, session.Player, aceParams[0].AsPlayer == session.Player);
         }
 
-        public static void BuffPlayers(IEnumerable<Player> players, bool self = false)
+        public static void BuffPlayers(IEnumerable<Player> players, Player caster, bool self = false)
         {
             var SelfOrOther = self ? "Self" : "Other";
             var maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? "7" : "8";
@@ -234,7 +234,7 @@ namespace ACE.Server.Command.Handlers
                 // run client-side effect scripts, omitting duplicates
                 targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
                 // update server-side enchantments
-                targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), null);
+                targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), caster);
             });
         }
 
