@@ -626,17 +626,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// used for the login routine and the player initiated item equip action, checks the persistent IsActivated property of the WO, and applies spells
-        /// </summary>
-        public void ApplyEquippedItemSpells()
-        {
-            if (!EquippedObjectsLoaded) throw new Exception("Equipped items aren't loaded yet.  Only call this after the equipped items are loaded.");
-            EquippedObjects.Where(k=> (k.Value.IsAffecting ?? false)).ToList().ForEach(k => {
-                CreateEquippedItemSpells(k.Value, true, true);
-            });
-        }
-
-        /// <summary>
         /// create spells by an equipped item
         /// </summary>
         /// <param name="item">the equipped item doing the spell creation</param>
