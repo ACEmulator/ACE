@@ -302,7 +302,7 @@ namespace ACE.Server.WorldObjects
             if (moveSpeed == 0) moveSpeed = 2.5f;
             var scale = ObjScale ?? 1.0f;
 
-            var RunRate = GetRunRate();
+            RunRate = GetRunRate();
 
             MoveSpeed = moveSpeed * RunRate * scale;
 
