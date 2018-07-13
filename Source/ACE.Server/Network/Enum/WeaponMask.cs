@@ -23,7 +23,7 @@ namespace ACE.Server.Network.Enum
             if (wielder == null)
                 return highlightMask;
 
-            // item enchanments are currently being cast on wielder
+            // Enchant applies to all weapons
             if (wielder.EnchantmentManager.GetDefenseMod() != 1.0f)
                 highlightMask |= WeaponMask.MeleeDefense;
 
@@ -52,19 +52,25 @@ namespace ACE.Server.Network.Enum
             if (wielder == null)
                 return colorMask;
 
-            // item enchanments are currently being cast on wielder
-            if (wielder.EnchantmentManager.GetAttackMod() > 1.0f)
-                colorMask |= WeaponMask.AttackSkill;
+            // Enchant applies to all weapons
             if (wielder.EnchantmentManager.GetDefenseMod() > 1.0f)
                 colorMask |= WeaponMask.MeleeDefense;
-            if (wielder.EnchantmentManager.GetWeaponSpeedMod() < 0)
-                colorMask |= WeaponMask.Speed;
-            if (wielder.EnchantmentManager.GetDamageMod() > 0)
-                colorMask |= WeaponMask.Damage;
-            if (wielder.EnchantmentManager.GetVarianceMod() < 1.0f)
-                colorMask |= WeaponMask.DamageVariance;
-            if (wielder.EnchantmentManager.GetDamageModifier() > 1.0f)
-                colorMask |= WeaponMask.DamageMod;
+
+            // Following enchants do not apply to caster weapons
+            if (weapon.WeenieType != ACE.Entity.Enum.WeenieType.Caster)
+            {
+                // item enchanments are currently being cast on wielder
+                if (wielder.EnchantmentManager.GetAttackMod() > 1.0f)
+                    colorMask |= WeaponMask.AttackSkill;
+                if (wielder.EnchantmentManager.GetWeaponSpeedMod() < 0)
+                    colorMask |= WeaponMask.Speed;
+                if (wielder.EnchantmentManager.GetDamageMod() > 0)
+                    colorMask |= WeaponMask.Damage;
+                if (wielder.EnchantmentManager.GetVarianceMod() < 1.0f)
+                    colorMask |= WeaponMask.DamageVariance;
+                if (wielder.EnchantmentManager.GetDamageModifier() > 1.0f)
+                    colorMask |= WeaponMask.DamageMod;
+            }
 
             return colorMask;
         }

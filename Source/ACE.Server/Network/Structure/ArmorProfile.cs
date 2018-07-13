@@ -19,32 +19,32 @@ namespace ACE.Server.Network.Structure
         public float NetherProtection;
         public float LightningProtection;
 
-        public ArmorProfile(WorldObject armor, WorldObject wielder)
+        public ArmorProfile(WorldObject armor)
         {
-            SlashingProtection = GetArmorMod(armor, wielder, DamageType.Slash);
-            PiercingProtection = GetArmorMod(armor, wielder, DamageType.Pierce);
-            BludgeoningProtection = GetArmorMod(armor, wielder, DamageType.Bludgeon);
-            ColdProtection = GetArmorMod(armor, wielder, DamageType.Cold);
-            FireProtection = GetArmorMod(armor, wielder, DamageType.Fire);
-            AcidProtection = GetArmorMod(armor, wielder, DamageType.Acid);
-            NetherProtection = GetArmorMod(armor, wielder, DamageType.Nether);
-            LightningProtection = GetArmorMod(armor, wielder, DamageType.Electric);
+            SlashingProtection = GetArmorMod(armor, DamageType.Slash);
+            PiercingProtection = GetArmorMod(armor, DamageType.Pierce);
+            BludgeoningProtection = GetArmorMod(armor, DamageType.Bludgeon);
+            ColdProtection = GetArmorMod(armor,DamageType.Cold);
+            FireProtection = GetArmorMod(armor, DamageType.Fire);
+            AcidProtection = GetArmorMod(armor, DamageType.Acid);
+            NetherProtection = GetArmorMod(armor, DamageType.Nether);
+            LightningProtection = GetArmorMod(armor, DamageType.Electric);
         }
 
         /// <summary>
         /// Calculates the effective RL for a piece of armor or clothing
         /// against a particular damage type
         /// </summary>
-        public float GetArmorMod(WorldObject armor, WorldObject wielder, DamageType damageType)
+        public float GetArmorMod(WorldObject armor, DamageType damageType)
         {
             var type = armor.EnchantmentManager.GetImpenBaneKey(damageType);
             var baseResistance = armor.GetProperty(type) ?? 1.0f;
 
-            if (wielder == null)
+            if (armor == null)
                 return (float)baseResistance;
 
             // banes/lures
-            var resistanceMod = wielder != null ? wielder.EnchantmentManager.GetArmorModVsType(damageType) : 0.0f;
+            var resistanceMod = armor != null ? armor.EnchantmentManager.GetArmorModVsType(damageType) : 0.0f;
 
             var effectiveRL = (float)(baseResistance + resistanceMod);
 

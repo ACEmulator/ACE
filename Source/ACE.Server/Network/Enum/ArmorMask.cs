@@ -20,29 +20,29 @@ namespace ACE.Server.Network.Enum
         /// <summary>
         /// Determines if there is a highlight for each armor protection vs. damage type
         /// </summary>
-        public static ArmorMask GetHighlightMask(WorldObject armor, WorldObject wielder)
+        public static ArmorMask GetHighlightMask(WorldObject armor)
         {
             ArmorMask highlightMask = 0;
 
-            if (wielder == null)
+            if (armor == null)
                 return highlightMask;
 
             // item enchanments are currently being cast on wielder
-            if (wielder.EnchantmentManager.GetArmorMod() != 0)
+            if (armor.EnchantmentManager.GetArmorMod() != 0)
                 highlightMask |= ArmorMask.ArmorLevel;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Slash) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Slash) != 0)
                 highlightMask |= ArmorMask.SlashingProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Pierce) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Pierce) != 0)
                 highlightMask |= ArmorMask.PiercingProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Bludgeon) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Bludgeon) != 0)
                 highlightMask |= ArmorMask.BludgeoningProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Cold) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Cold) != 0)
                 highlightMask |= ArmorMask.ColdProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Fire) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Fire) != 0)
                 highlightMask |= ArmorMask.FireProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Acid) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Acid) != 0)
                 highlightMask |= ArmorMask.AcidProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Electric) != 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Electric) != 0)
                 highlightMask |= ArmorMask.LightningProtection;
 
             return highlightMask;
@@ -51,28 +51,28 @@ namespace ACE.Server.Network.Enum
         /// <summary>
         /// Determines the red/green color for each armor protection vs. damage type
         /// </summary>
-        public static ArmorMask GetColorMask(WorldObject armor, WorldObject wielder)
+        public static ArmorMask GetColorMask(WorldObject armor)
         {
             ArmorMask colorMask = 0;
 
-            if (wielder == null)
+            if (armor == null)
                 return colorMask;
 
-            if (wielder.EnchantmentManager.GetArmorMod() > 0)
+            if (armor.EnchantmentManager.GetArmorMod() > 0)
                 colorMask |= ArmorMask.ArmorLevel;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Slash) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Slash) > 0)
                 colorMask |= ArmorMask.SlashingProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Pierce) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Pierce) > 0)
                 colorMask |= ArmorMask.PiercingProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Bludgeon) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Bludgeon) > 0)
                 colorMask |= ArmorMask.BludgeoningProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Cold) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Cold) > 0)
                 colorMask |= ArmorMask.ColdProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Fire) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Fire) > 0)
                 colorMask |= ArmorMask.FireProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Acid) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Acid) > 0)
                 colorMask |= ArmorMask.AcidProtection;
-            if (wielder.EnchantmentManager.GetArmorModVsType(DamageType.Electric) > 0)
+            if (armor.EnchantmentManager.GetArmorModVsType(DamageType.Electric) > 0)
                 colorMask |= ArmorMask.LightningProtection;
 
             return colorMask;

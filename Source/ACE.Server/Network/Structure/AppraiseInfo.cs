@@ -13,6 +13,17 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
+    public class AppraisalSpellBook
+    {
+        public enum _EnchantmentState : uint
+        {
+            Off = 0x00000000u,
+            On = 0x80000000u
+        }
+
+        public ushort SpellId { get; set; }
+        public _EnchantmentState EnchantmentState { get; set; }
+    }
     /// <summary>
     /// Handles calculating and sending all object appraisal info
     /// </summary>
@@ -29,7 +40,7 @@ namespace ACE.Server.Network.Structure
         public Dictionary<PropertyString, string> PropertiesString;
         public Dictionary<PropertyDataId, uint> PropertiesDID;
 
-        public List<BiotaPropertiesSpellBook> SpellBook;
+        public List<AppraisalSpellBook> SpellBook;
 
         public ArmorProfile ArmorProfile;
         public CreatureProfile CreatureProfile;
@@ -59,12 +70,12 @@ namespace ACE.Server.Network.Structure
             // get wielder, if applicable
             var wielder = GetWielder(wo);
 
-            BuildProperties(wo, wielder);
+            BuildProperties(wo);
             BuildSpells(wo);
 
             // armor / clothing
             if (wo is Clothing)
-                BuildArmor(wo, wielder);
+                BuildArmor(wo);
 
             if (wo is Creature creature)
                 BuildCreature(creature);
@@ -75,7 +86,7 @@ namespace ACE.Server.Network.Structure
             BuildFlags();
         }
 
-        public void BuildProperties(WorldObject wo, WorldObject wielder)
+        private void BuildProperties(WorldObject wo)
         {
             PropertiesInt = wo.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesInt64 = wo.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
@@ -84,80 +95,128 @@ namespace ACE.Server.Network.Structure
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
 
-            AddPropertyEnchantments(wo, wielder);
+            AddPropertyEnchantments(wo);
         }
 
-        public void AddPropertyEnchantments(WorldObject wo, WorldObject wielder)
+        private void AddPropertyEnchantments(WorldObject wo)
         {
-            if (wielder == null) return;
+            if (wo == null) return;
 
             if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
-                PropertiesInt[PropertyInt.ArmorLevel] += wielder.EnchantmentManager.GetArmorMod();
+                PropertiesInt[PropertyInt.ArmorLevel] += wo.EnchantmentManager.GetArmorMod();
         }
 
-        public void BuildSpells(WorldObject wo)
+        private void BuildSpells(WorldObject wo)
         {
-            SpellBook = new List<BiotaPropertiesSpellBook>();
+            SpellBook = new List<AppraisalSpellBook>();
 
             // add primary spell, if exists
             if (wo.SpellDID.HasValue)
-                SpellBook.Add(new BiotaPropertiesSpellBook { Spell = (int)wo.SpellDID.Value });
+                SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.SpellDID.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
-            SpellBook.AddRange(wo.Biota.BiotaPropertiesSpellBook);
+            foreach ( var biotaPropertiesSpellBook in wo.Biota.BiotaPropertiesSpellBook)
+                SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)biotaPropertiesSpellBook.Spell, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
         }
 
-        public void AddSpells(List<BiotaPropertiesSpellBook> activeSpells, WorldObject wielder, WeenieType weenieType = WeenieType.Undef)
+        private void AddSpells(List<AppraisalSpellBook> activeSpells, WorldObject worldObject, WorldObject wielder = null)
         {
-            if (wielder == null) return;
+            List<BiotaPropertiesEnchantmentRegistry> wielderEnchantments = null;
+            if (worldObject == null) return;
 
-            // get all currently active item enchantments
-            var enchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+            // get all currently active item enchantments on the item
+            var woEnchantments = worldObject.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
 
-            // item enchantments can also be on wielder currently
-            // get any spells from wielder that should be shown in this item's appraise panel
-            foreach (var enchantment in enchantments)
+            // get all currently active item enchantment auras on the player
+            if (wielder != null)
+                wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+
+            if (worldObject.WeenieType == WeenieType.Clothing)
             {
-                if (weenieType == WeenieType.Clothing)
+                // Only show Clothing type item enchantments
+                foreach (var enchantment in woEnchantments)
                 {
                     if ((enchantment.SpellCategory >= (ushort)SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= (ushort)SpellCategory.AcidicResistanceLowering))
-                        activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
+                        activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                 }
-                else
+            }
+            else
+            {
+                // Show debuff item enchantments on weapons
+                foreach (var enchantment in woEnchantments)
                 {
-                    if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModRaising)
-                        || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
-                        || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                        || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising)
-                        || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceLowering)
-                        || (enchantment.SpellCategory == (uint)SpellCategory.SpellDamageRaising))
-                        activeSpells.Add(new BiotaPropertiesSpellBook() { Spell = enchantment.SpellId });
+                    if (worldObject is Caster)
+                    {
+                        // Caster weapon only item Auras
+                        if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
+                            || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceRaising)
+                            || (GetSpellName((uint)enchantment.SpellId).Contains("Spirit"))) // Spirit Loather spells
+                        {
+                            activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                        }
+                    }
+                    else
+                    {
+                        // Other weapon type Auras
+                        if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModLowering)
+                            || (enchantment.SpellCategory == (uint)SpellCategory.DamageLowering)
+                            || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
+                            || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeLowering))
+                        {
+                            activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                        }
+                    }
+                }
+
+                if (wielder != null)
+                {
+                    // Only show reflected Auras from player appropriate for wielded weapons
+                    foreach (var enchantment in wielderEnchantments)
+                    {
+                        if (worldObject is Caster)
+                        {
+                            // Caster weapon only item Auras
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceLowering)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.SpellDamageRaising))
+                            {
+                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                            }
+                        }
+                        else
+                        {
+                            // Other weapon type Auras
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising))
+                            {
+                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        private SpellCategory GetSpellCategory(uint spellId)
+        private string GetSpellName(uint spellId)
         {
-            uint spellCategory;
-
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
-                return SpellCategory.Undef;
+                return null;
 
-            spellCategory = spellTable.Spells[spellId].Category;
-            return (SpellCategory)spellCategory;
+            return spellTable.Spells[spellId].Name;
         }
 
-        public void BuildArmor(WorldObject wo, WorldObject wielder)
+        private void BuildArmor(WorldObject wo)
         {
-            ArmorProfile = new ArmorProfile(wo, wielder);
-            ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo, wielder);
-            ArmorColor = ArmorMaskHelper.GetColorMask(wo, wielder);
+            ArmorProfile = new ArmorProfile(wo);
+            ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo);
+            ArmorColor = ArmorMaskHelper.GetColorMask(wo);
 
-            // item enchantments can also be on wielder currently
-            AddSpells(SpellBook, wielder, wo.WeenieType);
+            AddSpells(SpellBook, wo);
         }
 
-        public void BuildCreature(Creature creature)
+        private void BuildCreature(Creature creature)
         {
             CreatureProfile = new CreatureProfile(creature);
 
@@ -168,17 +227,19 @@ namespace ACE.Server.Network.Structure
             ArmorLevels = new ArmorLevel(creature);
         }
 
-        public void BuildWeapon(WorldObject weapon, WorldObject wielder)
+        private void BuildWeapon(WorldObject weapon, WorldObject wielder)
         {
-            WeaponProfile = new WeaponProfile(weapon, wielder);
+            if ((weapon as Caster) == null)
+                WeaponProfile = new WeaponProfile(weapon, wielder);
+
             WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weapon, wielder);
             WeaponColor = WeaponMaskHelper.GetColorMask(weapon, wielder);
 
             // item enchantments can also be on wielder currently
-            AddSpells(SpellBook, wielder, weapon.WeenieType);
+            AddSpells(SpellBook, weapon, wielder);
         }
 
-        public WorldObject GetWielder(WorldObject weapon)
+        private WorldObject GetWielder(WorldObject weapon)
         {
             if (weapon.WielderId == null)
                 return null;
@@ -189,7 +250,7 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Constructs the bitflags for appraising a WorldObject
         /// </summary>
-        public void BuildFlags()
+        private void BuildFlags()
         {
             if (PropertiesInt.Count > 0)
                 Flags |= IdentifyResponseFlags.IntStatsTable;
@@ -335,13 +396,12 @@ namespace ACE.Server.Network.Structure
             }
         }
 
-        public static void Write(this BinaryWriter writer, List<BiotaPropertiesSpellBook> spells)
+        public static void Write(this BinaryWriter writer, List<AppraisalSpellBook> spells)
         {
             writer.Write((uint)spells.Count);
             foreach (var spell in spells)
             {
-                writer.Write((ushort)spell.Spell);
-                writer.Write((ushort)0);    // layered spell
+                writer.Write((uint)spell.EnchantmentState | spell.SpellId);
             }
         }
     }
