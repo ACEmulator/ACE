@@ -20,7 +20,7 @@ namespace ACE.Server.Network.Enum
         /// <summary>
         /// Determines if there is a highlight for each armor protection vs. damage type
         /// </summary>
-        public static ArmorMask GetHighlightMask(WorldObject armor, WorldObject wielder)
+        public static ArmorMask GetHighlightMask(WorldObject armor)
         {
             ArmorMask highlightMask = 0;
 
@@ -51,7 +51,7 @@ namespace ACE.Server.Network.Enum
         /// <summary>
         /// Determines the red/green color for each armor protection vs. damage type
         /// </summary>
-        public static ArmorMask GetColorMask(WorldObject armor, WorldObject wielder)
+        public static ArmorMask GetColorMask(WorldObject armor)
         {
             ArmorMask colorMask = 0;
 

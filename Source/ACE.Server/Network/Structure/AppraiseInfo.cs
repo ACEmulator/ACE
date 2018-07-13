@@ -70,12 +70,12 @@ namespace ACE.Server.Network.Structure
             // get wielder, if applicable
             var wielder = GetWielder(wo);
 
-            BuildProperties(wo, wielder);
+            BuildProperties(wo);
             BuildSpells(wo);
 
             // armor / clothing
             if (wo is Clothing)
-                BuildArmor(wo, wielder);
+                BuildArmor(wo);
 
             if (wo is Creature creature)
                 BuildCreature(creature);
@@ -86,7 +86,7 @@ namespace ACE.Server.Network.Structure
             BuildFlags();
         }
 
-        private void BuildProperties(WorldObject wo, WorldObject wielder)
+        private void BuildProperties(WorldObject wo)
         {
             PropertiesInt = wo.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesInt64 = wo.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
@@ -95,15 +95,15 @@ namespace ACE.Server.Network.Structure
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
 
-            AddPropertyEnchantments(wo, wielder);
+            AddPropertyEnchantments(wo);
         }
 
-        private void AddPropertyEnchantments(WorldObject wo, WorldObject wielder)
+        private void AddPropertyEnchantments(WorldObject wo)
         {
-            if (wielder == null) return;
+            if (wo == null) return;
 
             if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
-                PropertiesInt[PropertyInt.ArmorLevel] += wielder.EnchantmentManager.GetArmorMod();
+                PropertiesInt[PropertyInt.ArmorLevel] += wo.EnchantmentManager.GetArmorMod();
         }
 
         private void BuildSpells(WorldObject wo)
@@ -207,11 +207,11 @@ namespace ACE.Server.Network.Structure
             return spellTable.Spells[spellId].Name;
         }
 
-        private void BuildArmor(WorldObject wo, WorldObject wielder)
+        private void BuildArmor(WorldObject wo)
         {
-            ArmorProfile = new ArmorProfile(wo, wielder);
-            ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo, wielder);
-            ArmorColor = ArmorMaskHelper.GetColorMask(wo, wielder);
+            ArmorProfile = new ArmorProfile(wo);
+            ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo);
+            ArmorColor = ArmorMaskHelper.GetColorMask(wo);
 
             AddSpells(SpellBook, wo);
         }
