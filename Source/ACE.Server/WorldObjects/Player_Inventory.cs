@@ -351,6 +351,13 @@ namespace ACE.Server.WorldObjects
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
+            // If item has any spells, remove them from the registry on unequip
+            if (item.Biota.BiotaPropertiesSpellBook != null)
+            {
+                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                    DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+            }
+
             if (!TryDequipObject(item.Guid))
             {
                 log.Error("Player_Inventory UnwieldItemWithNetworking TryDequipObject failed");
@@ -490,15 +497,6 @@ namespace ACE.Server.WorldObjects
                 // Was I equiped? If so, lets take care of that and unequip
                 if (item.WielderId != null)
                 {
-                    // If item has any spells, remove them from the registry on unequip
-                    if (item.Biota.BiotaPropertiesSpellBook != null)
-                    {
-                        for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                        {
-                            RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                        }
-                    }
-
                     UnwieldItemWithNetworking(container, item, placement);
                     item.IsAffecting = false;
                     return;
@@ -1001,6 +999,7 @@ namespace ACE.Server.WorldObjects
                         UnwieldItemWithNetworking(this, item, 0);
 
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
+
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
@@ -1039,6 +1038,7 @@ namespace ACE.Server.WorldObjects
                                 UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
 
                             TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
@@ -1415,58 +1415,6 @@ namespace ACE.Server.WorldObjects
                     UpdateFromStack(toItem, amtToFill);
                 }
             }).EnqueueChain();
-        }
-
-
-
-
-
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-
-        /// <summary>
-        /// Adds a new object to the 's inventory of the specified weenie class.  intended use case: giving items to players
-        /// while they are plaplayerying.  this calls all the necessary helper functions to have the item be tracked and sent to the client.
-        /// </summary>
-        /// <returns>the object created</returns>
-        [Obsolete("This needs to be refactored into the new system")]
-        public WorldObject AddNewItemToInventory(uint weenieClassId)
-        {
-            var wo = Factories.WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-            wo.ContainerId = Guid.Full;
-            wo.PlacementPosition = 0;
-            AddToInventory(wo);
-            TrackObject(wo);
-            return wo;
-        }
-
-        /// <summary>
-        /// Add New WorldObject to Inventory
-        /// </summary>
-        [Obsolete("This needs to be refactored into the new system")]
-        private void AddNewWorldObjectToInventory(WorldObject wo)
-        {
-            // Get Next Avalibale Pack Location.
-            // uint packid = GetCreatureInventoryFreePack();
-
-            // default player until I get above code to work!
-            uint packid = Guid.Full;
-
-            if (packid != 0)
-            {
-                wo.ContainerId = packid;
-                AddToInventory(wo);
-                Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                if (wo is Container container)
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
-            }
         }
     }
 }

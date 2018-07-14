@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
             // add money to player inventory.
             foreach (WorldObject wo in payout)
             {
-                AddNewWorldObjectToInventory(wo);
+                TryCreateInInventoryWithNetworking(wo);
             }
             UpdateCurrencyClientCalculations(WeenieType.Coin);
             return true;
@@ -147,7 +147,7 @@ namespace ACE.Server.WorldObjects
                 // if there is change - readd - do this at the end to try to prevent exploiting
                 if (change > 0)
                 {
-                    AddNewWorldObjectToInventory(changeobj);
+                    TryCreateInInventoryWithNetworking(changeobj);
                 }
 
                 UpdateCurrencyClientCalculations(WeenieType.Coin);
@@ -179,17 +179,10 @@ namespace ACE.Server.WorldObjects
                 if (SpendCurrency(goldcost, WeenieType.Coin) != null)
                 {
                     foreach (WorldObject wo in uqlist)
-                    {
-                        wo.ContainerId = Guid.Full;
-                        wo.PlacementPosition = 0;
-                        AddToInventory(wo);
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(wo));
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, wo, this));
-                        Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, Guid));
-                    }
+                        TryCreateInInventoryWithNetworking(wo);
 
                     foreach (var gen in genlist)
-                        AddNewWorldObjectToInventory(gen);
+                        TryCreateInInventoryWithNetworking(gen);
                 }
                 else // not enough cash.
                 {

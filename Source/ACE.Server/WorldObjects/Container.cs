@@ -450,58 +450,5 @@ namespace ACE.Server.WorldObjects
                 TryAddToInventory(wo);
             }
         }
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-
-        // Inventory Management Functions
-        [Obsolete("This needs to be refactored into the new system")]
-        protected void AddToInventory(WorldObject inventoryItem, int placement = 0)
-        {
-            AddToInventoryEx(inventoryItem, placement);
-
-            //Burden += inventoryItem.Burden;
-            log.Debug($"Add {inventoryItem.Name} in inventory, adding {inventoryItem.EncumbranceVal}, current EncumbranceVal = {EncumbranceVal}");
-
-            Value += inventoryItem.Value;
-        }
-
-        /// <summary>
-        /// Adds a new item to the inventory collection AND NOTHING ELSE.  will not send updates to the client.  The
-        /// primary use case here is as a helper function or for adding items prior to login (ie, char gen)
-        /// </summary>
-        [Obsolete("This needs to be refactored into the new system")]
-        private void AddToInventoryEx(WorldObject inventoryItem, int placement = 0)
-        {
-            //if (InventoryObjects.ContainsKey(inventoryItem.Guid))
-            //{
-            //    // if item exists in the list, we are going to shift everything greater than the moving item down 1 to reflect its removal
-            //    if (inventoryItem.UseBackpackSlot)
-            //        InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].PlacementPosition != null &&
-            //                             i.Value.PlacementPosition > (uint)InventoryObjects[inventoryItem.Guid].PlacementPosition &&
-            //                             i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition--);
-            //    else
-            //        InventoryObjects.Where(i => InventoryObjects[inventoryItem.Guid].PlacementPosition != null &&
-            //                             i.Value.PlacementPosition > (uint)InventoryObjects[inventoryItem.Guid].PlacementPosition &&
-            //                             !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition--);
-
-            //    InventoryObjects.Remove(inventoryItem.Guid);
-            //}
-            //// If not going on the very end (next open slot), make a hole.
-            //if (inventoryItem.UseBackpackSlot)
-            //    InventoryObjects.Where(i => i.Value.PlacementPosition >= placement && i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition++);
-            //else
-            //    InventoryObjects.Where(i => i.Value.PlacementPosition >= placement && !i.Value.UseBackpackSlot).ToList().ForEach(i => i.Value.PlacementPosition++);
-
-            inventoryItem.PlacementPosition = placement;
-            inventoryItem.Location = null;
-            Inventory.Add(inventoryItem.Guid, inventoryItem);
-        }
     }
 }
