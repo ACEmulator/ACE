@@ -31,14 +31,14 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         internal static uint ComputeHash(string strToHash)
         {
-            uint result = 0;
+            long result = 0;
 
             if (strToHash.Length > 0)
             {
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 byte[] str = Encoding.GetEncoding(1252).GetBytes(strToHash);
 
-                foreach (byte c in str)                
+                foreach (sbyte c in str)                
                 {
                     result = c + (result << 4);
 
@@ -47,7 +47,7 @@ namespace ACE.DatLoader.FileTypes
                 }
             }
 
-            return result;
+            return (uint)result;
         }
 
         private const uint LOWEST_TAPER_ID = 63; // This is the lowest id in the SpellComponentTable of a taper (Red Taper)
