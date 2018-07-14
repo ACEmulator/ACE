@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-13
+[OptimShi]
+* Fixed remaining issue with Spell Formulas and non-ANSI characters. All spell formulas now appear to be accurate.
+
 ### 2018-07-11
 [OptimShi]
 * Updated recipe manager to properly destroy items in packs (as opposed to main backpack). Added in functionality to handle equipped items in recipes, but there are downstream issues related to inventory management (such as enchantments not being removed)
