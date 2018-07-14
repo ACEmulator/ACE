@@ -351,6 +351,13 @@ namespace ACE.Server.WorldObjects
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;
 
+            // If item has any spells, remove them from the registry on unequip
+            if (item.Biota.BiotaPropertiesSpellBook != null)
+            {
+                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                    DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+            }
+
             if (!TryDequipObject(item.Guid))
             {
                 log.Error("Player_Inventory UnwieldItemWithNetworking TryDequipObject failed");
@@ -490,15 +497,6 @@ namespace ACE.Server.WorldObjects
                 // Was I equiped? If so, lets take care of that and unequip
                 if (item.WielderId != null)
                 {
-                    // If item has any spells, remove them from the registry on unequip
-                    if (item.Biota.BiotaPropertiesSpellBook != null)
-                    {
-                        for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                        {
-                            DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                        }
-                    }
-
                     UnwieldItemWithNetworking(container, item, placement);
                     item.IsAffecting = false;
                     return;
@@ -571,15 +569,6 @@ namespace ACE.Server.WorldObjects
                 {
                     log.Error("Player_Inventory HandleActionDropItem item is null");
                     return;
-                }
-
-                // If item has any spells, remove them from the registry on unequip
-                if (item.Biota.BiotaPropertiesSpellBook != null)
-                {
-                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                    {
-                        DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                    }
                 }
 
                 item.SetPropertiesForWorld(this);
@@ -1010,15 +999,6 @@ namespace ACE.Server.WorldObjects
                         UnwieldItemWithNetworking(this, item, 0);
 
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
-
-                    // If item has any spells, remove them from the registry on unequip
-                    if (item.Biota.BiotaPropertiesSpellBook != null)
-                    {
-                        for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                        {
-                            DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                        }
-                    }
 
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
