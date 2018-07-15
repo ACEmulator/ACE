@@ -29,17 +29,6 @@ namespace ACE.Server.Physics.Extensions
             return v / v.Length();
         }
 
-        public static bool NormalizeCheckSmall(this Vector3 v)
-        {
-            var dist = v.Length();
-            if (dist >= PhysicsGlobals.EPSILON)
-            {
-                v *= 1.0f / dist;
-                return false;
-            }
-            return true;
-        }
-
         public static bool IsMoved(this Vector3 a, Vector3 b)
         {
             return (a.X != b.X || a.Y != b.Y || a.Z != b.Z);

@@ -89,7 +89,7 @@ namespace ACE.Server.Physics
 
             Vector3 collisionNormal;
             var definate = CollisionNormal(transition, checkPos, disp, radsum, sphereNum, out collisionNormal);
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
             if (!obj.State.HasFlag(ObjectInfoState.PerfectClip))
             {
@@ -362,7 +362,7 @@ namespace ACE.Server.Physics
             Vector3 collisionNormal;
             CollisionNormal(transition, checkPos, disp, radsum, 0, out collisionNormal);
 
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
 
             var path = transition.SpherePath;
@@ -379,7 +379,7 @@ namespace ACE.Server.Physics
         {
             Vector3 collisionNormal;
             CollisionNormal(transition, checkPos, disp, radsum, sphereNum, out collisionNormal);
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
 
             return checkPos.SlideSphere(transition, ref collisionNormal, transition.SpherePath.GlobalCurrCenter[sphereNum].Center);
@@ -438,7 +438,7 @@ namespace ACE.Server.Physics
 
             Vector3 collisionNormal;
             CollisionNormal(transition, checkPos, disp, radsum, 0, out collisionNormal);
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
 
             var path = transition.SpherePath;

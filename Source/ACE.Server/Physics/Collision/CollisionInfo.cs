@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Collision
@@ -47,7 +48,7 @@ namespace ACE.Server.Physics.Collision
         {
             CollisionNormalValid = true;
             CollisionNormal = normal;   // use original?
-            if (NormalizeCheckSmall(ref normal))
+            if (Vec.NormalizeCheckSmall(ref normal))
                 CollisionNormal = Vector3.Zero;
         }
 
@@ -55,18 +56,8 @@ namespace ACE.Server.Physics.Collision
         {
             SlidingNormalValid = true;
             SlidingNormal = new Vector3(normal.X, normal.Y, 0.0f);
-            if (NormalizeCheckSmall(ref normal))
+            if (Vec.NormalizeCheckSmall(ref normal))
                 SlidingNormal = Vector3.Zero;
-        }
-
-        public static bool NormalizeCheckSmall(ref Vector3 v)
-        {
-            var dist = v.Length();
-            if (dist < PhysicsGlobals.EPSILON)
-                return true;
-
-            v *= 1.0f / dist;
-            return false;
         }
 
         public void AddObject(PhysicsObj obj, TransitionState state)

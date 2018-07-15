@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
@@ -128,7 +129,7 @@ namespace ACE.Server.Physics.Animation
         public void Subtract(AFrame frame)
         {
             Origin -= Vector3.Transform(frame.Origin, frame.Orientation);
-            Orientation = Quaternion.Multiply(Orientation, frame.Orientation);  // transpose?
+            Orientation *= Quaternion.Conjugate(frame.Orientation);
         }
 
         public bool close_rotation(AFrame a, AFrame b)
@@ -194,20 +195,21 @@ namespace ACE.Server.Physics.Animation
 
         public void set_rotate(Quaternion orientation)
         {
-            Orientation = orientation;
+            Orientation = Quaternion.Normalize(orientation);
         }
 
         public void set_vector_heading(Vector3 heading)
         {
             var normal = new Vector3(heading.X, heading.Y, heading.Z);
-            if (normal.NormalizeCheckSmall()) return;
+            if (Vec.NormalizeCheckSmall(ref normal)) return;
 
             var zDeg = 450.0f - ((float)Math.Atan2(normal.Y, normal.X)).ToDegrees();
-            var zRot = (zDeg % 360.0f).ToRadians();
+            var zRot = -(zDeg % 360.0f).ToRadians();
 
             var xRot = (float)Math.Asin(normal.Z);
 
-            Orientation = Quaternion.CreateFromYawPitchRoll(xRot, 0, zRot) * Quaternion.CreateFromYawPitchRoll(0, 0, -(float)Math.PI / 2.0f);
+            var rotate = Quaternion.CreateFromYawPitchRoll(xRot, 0, zRot);
+            set_rotate(rotate);
         }
 
         public override string ToString()

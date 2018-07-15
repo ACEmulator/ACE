@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
@@ -83,7 +84,7 @@ namespace ACE.Server.Physics.Animation
 
         public void adjust_offset(AFrame offset, double quantum)
         {
-            if (TargetID == 0 || !Initialized)
+            if (PhysicsObj == null || TargetID == 0 || !Initialized)
                 return;
 
             var target = PhysicsObj.GetObjectA(TargetID);
@@ -95,12 +96,17 @@ namespace ACE.Server.Physics.Animation
 
             var radius = PhysicsObj.GetRadius();
             var dist = Position.CylinderDistanceNoZ(radius, PhysicsObj.Position, TargetRadius, targetPosition) - StickyRadius;
-            CollisionInfo.NormalizeCheckSmall(ref offset.Origin);
+
+            if (Vec.NormalizeCheckSmall(ref offset.Origin))
+                offset.Origin = Vector3.Zero;
 
             var speed = 0.0f;
             var minterp = PhysicsObj.get_minterp();
             if (minterp != null)
                 speed = minterp.get_max_speed() * 5.0f;
+
+            if (speed < PhysicsGlobals.EPSILON)
+                speed = 15.0f;
 
             var delta = speed * (float)quantum;
             if (delta >= Math.Abs(dist))
@@ -108,12 +114,15 @@ namespace ACE.Server.Physics.Animation
 
             offset.Origin *= delta;
 
-            var heading = PhysicsObj.Position.heading(targetPosition) - PhysicsObj.Position.Frame.get_heading();
+            var curHeading = PhysicsObj.Position.Frame.get_heading();
+            var targetHeading = PhysicsObj.Position.heading(targetPosition);
+            var heading = targetHeading - curHeading;
             if (Math.Abs(heading) < PhysicsGlobals.EPSILON)
                 heading = 0.0f;
             if (heading < -PhysicsGlobals.EPSILON)
                 heading += 360.0f;
 
+            //Console.WriteLine($"StickyManager.AdjustOffset(targetHeading={targetHeading}, curHeading={curHeading}, setHeading={heading})");
             offset.set_heading(heading);
         }
     }

@@ -121,7 +121,7 @@ namespace ACE.Server.Physics.Combat
             TargetInfo.LastUpdateTime = Timer.CurrentTime;
             TargetInfo.InterpolatedHeading = PhysicsObj.Position.GetOffset(TargetInfo.InterpolatedPosition);
 
-            if (TargetInfo.InterpolatedHeading.NormalizeCheckSmall())
+            if (Vec.NormalizeCheckSmall(ref TargetInfo.InterpolatedHeading))
                 TargetInfo.InterpolatedHeading = Vector3.UnitZ;
 
             PhysicsObj.HandleUpdateTarget(new TargetInfo(TargetInfo));  // ref?

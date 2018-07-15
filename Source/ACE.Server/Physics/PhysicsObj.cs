@@ -1146,7 +1146,7 @@ namespace ACE.Server.Physics
                 return ForceIntoCell(newCell, pos);
 
             //if (setPos.Flags.HasFlag(SetPositionFlags.DontCreateCells))
-            //transition.CellArray.DoNotLoadCells = true;
+                //transition.CellArray.DoNotLoadCells = true;
 
             if (!CheckPositionInternal(newCell, pos, transition, setPos))
                 return handle_all_collisions(transition.CollisionInfo, false, false) ?
@@ -1398,11 +1398,8 @@ namespace ACE.Server.Physics
                 set_ethereal(false, false);
 
             JumpedThisFrame = false;
-            var offset = new Position(Position.ObjCellID);
-            UpdatePositionInternal(quantum, ref offset.Frame);
-
-            // added: is this supposed to be offset?
-            var newPos = new Position(offset.ObjCellID, AFrame.Combine(Position.Frame, offset.Frame));
+            var newPos = new Position(Position.ObjCellID);
+            UpdatePositionInternal(quantum, ref newPos.Frame);
 
             if (PartArray != null && PartArray.GetNumSphere() != 0)
             {
@@ -1423,8 +1420,8 @@ namespace ACE.Server.Physics
                 }
 
                 var transitPos = new Position(newPos);
-                //transitPos.Frame.Orientation = Quaternion.Identity;
-                transitPos.Frame.Orientation = offset.Frame.Orientation;
+                transitPos.Frame.Orientation = newPos.Frame.Orientation * Quaternion.Conjugate(Position.Frame.Orientation);
+
                 var transit = transition(Position, transitPos, false);
                 if (transit != null)
                 {
@@ -1433,14 +1430,20 @@ namespace ACE.Server.Physics
                     SetPositionInternal(transit);
                 }
                 else
-                    _UpdateObjectInternal(ref newPos);
+                {
+                    newPos.Frame.Origin = Position.Frame.Origin;
+                    set_initial_frame(newPos.Frame);
+                    CachedVelocity = Vector3.Zero;
+                }
             }
             else
             {
                 if (MovementManager == null && TransientState.HasFlag(TransientStateFlags.OnWalkable))
                     TransientState &= ~TransientStateFlags.Active;
 
-                _UpdateObjectInternal(ref newPos);
+                newPos.Frame.Origin = Position.Frame.Origin;
+                set_frame(newPos.Frame);
+                CachedVelocity = Vector3.Zero;
             }
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
@@ -1466,13 +1469,6 @@ namespace ACE.Server.Physics
                 CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                 SetPositionInternal(transit);
             }
-        }
-
-        public void _UpdateObjectInternal(ref Position newPos)
-        {
-            newPos.Frame.Origin = Position.Frame.Origin;
-            set_initial_frame(newPos.Frame);
-            CachedVelocity = Vector3.Zero;
         }
 
         public void UpdatePartsInternal()
@@ -1513,8 +1509,10 @@ namespace ACE.Server.Physics
             frameOffset.GRotate(Omega * quantum);
         }
 
-        public void UpdatePositionInternal(double quantum, ref AFrame offsetFrame)
+        public void UpdatePositionInternal(double quantum, ref AFrame newFrame)
         {
+            var offsetFrame = new AFrame();
+
             if (!State.HasFlag(PhysicsState.Hidden))
             {
                 if (PartArray != null) PartArray.Update(quantum, ref offsetFrame);
@@ -1527,10 +1525,10 @@ namespace ACE.Server.Physics
             if (PositionManager != null)
                 PositionManager.AdjustOffset(offsetFrame, quantum);
 
-            //var newFrame = AFrame.Combine(Position.Frame, offsetFrame);
+            newFrame = AFrame.Combine(Position.Frame, offsetFrame);
 
             if (!State.HasFlag(PhysicsState.Hidden))
-                UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+                UpdatePhysicsInternal((float)quantum, ref newFrame);
 
             process_hooks();
         }
@@ -3037,12 +3035,12 @@ namespace ACE.Server.Physics
         /// </summary>
         public void set_frame(AFrame frame)
         {
-            // set position?
-            Position.Frame.Origin = frame.Origin;
-            Position.Frame.Orientation = frame.Orientation;
-
             if (!frame.IsValid() && frame.IsValidExceptForHeading())
-                frame = null;
+                frame.Orientation = new Quaternion(0, 0, 0, 0);
+
+            Position.Frame = new AFrame(frame);
+            //Position.Frame.Origin = frame.Origin;
+            //Position.Frame.Orientation = frame.Orientation;
 
             if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
                 PartArray.SetFrame(frame);
