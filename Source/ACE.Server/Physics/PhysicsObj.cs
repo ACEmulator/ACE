@@ -59,7 +59,7 @@ namespace ACE.Server.Physics
         public Vector3 Acceleration;
         public Vector3 Omega;
         public LinkedList<PhysicsObjHook> Hooks;
-        public LinkedList<DatLoader.Entity.AnimationHook> AnimHooks;
+        public LinkedList<AnimHook> AnimHooks;
         public float Scale;
         public float AttackRadius;
         public DetectionManager DetectionManager;
@@ -110,7 +110,7 @@ namespace ACE.Server.Physics
             SlidingNormal = Vector3.Zero;
             CachedVelocity = Vector3.Zero;
             Hooks = new LinkedList<PhysicsObjHook>();
-            AnimHooks = new LinkedList<DatLoader.Entity.AnimationHook>();
+            AnimHooks = new LinkedList<AnimHook>();
             Children = new ChildList();
             ShadowObjects = new Dictionary<uint, ShadowObj>();
             CollisionTable = new Dictionary<uint, CollisionRecord>();
@@ -148,6 +148,7 @@ namespace ACE.Server.Physics
             // PartArray.SetCellID ?
 
             State = PhysicsGlobals.DefaultState;
+            ObjectMaint.RemoveServerObject(this);
         }
 
         public void AddObjectToSingleCell(ObjCell objCell)
@@ -453,8 +454,7 @@ namespace ACE.Server.Physics
 
         public PhysicsObj GetObjectA(uint objectID)
         {
-            if (ObjMaint == null) return null;
-            return ObjMaint.GetObjectA(objectID);
+            return ObjectMaint.GetObjectA(objectID);
         }
 
         public float GetRadius()
@@ -498,7 +498,7 @@ namespace ACE.Server.Physics
 
         public void HandleUpdateTarget(TargetInfo targetInfo)
         {
-            if (targetInfo.ContextID == 0) return;
+            if (targetInfo.ContextID != 0) return;
 
             if (MovementManager != null)
                 MovementManager.HandleUpdateTarget(targetInfo);
@@ -795,7 +795,7 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public void MoveToObject(uint objectID, MovementParameters movementParams)
+        public void MoveToObject(PhysicsObj obj, MovementParameters movementParams)
         {
             if (MovementManager == null)
             {
@@ -810,18 +810,14 @@ namespace ACE.Server.Physics
                 }
             }
 
-            if (ObjMaint == null) return;
-            var obj = ObjMaint.GetObjectA(objectID);
-            if (obj == null)
-                return;
             var height = PartArray != null ? PartArray.GetHeight() : 0;
             var radius = PartArray != null ? PartArray.GetRadius() : 0;
             var parent = obj.Parent != null ? obj.Parent : obj;
 
-            MoveToObject_Internal(objectID, parent.ID, radius, height, movementParams);
+            MoveToObject_Internal(obj, parent.ID, radius, height, movementParams);
         }
 
-        public void MoveToObject_Internal(uint objectID, uint topLevelID, float objRadius, float objHeight, MovementParameters movementParams)
+        public void MoveToObject_Internal(PhysicsObj obj, uint topLevelID, float objRadius, float objHeight, MovementParameters movementParams)
         {
             if (MovementManager == null)
             {
@@ -839,7 +835,7 @@ namespace ACE.Server.Physics
             // packobj vtable
             mvs.TopLevelId = topLevelID;
             mvs.Radius = objRadius;
-            mvs.ObjectId = objectID;
+            mvs.ObjectId = obj.ID;
             mvs.Params = movementParams;
             mvs.Type = MovementType.MoveToObject;
             mvs.Height = objHeight;
@@ -1128,7 +1124,6 @@ namespace ACE.Server.Physics
                     return SetPositionError.GeneralFailure;
                 }
             }
-
             return SetPositionError.OK;
         }
 
@@ -1346,7 +1341,7 @@ namespace ACE.Server.Physics
         public void TurnToObject(uint objectID, MovementParameters movementParams)
         {
             if (ObjMaint == null) return;
-            var obj = ObjMaint.GetObjectA(objectID);
+            var obj = ObjectMaint.GetObjectA(objectID);
             if (obj == null) return;
             var parent = obj.Parent != null ? obj.Parent : obj;
 
@@ -1427,10 +1422,14 @@ namespace ACE.Server.Physics
                         newPos.Frame.set_vector_heading(Velocity.Normalize());
                 }
 
-                var transit = transition(Position, newPos, false);
+                var transitPos = new Position(newPos);
+                //transitPos.Frame.Orientation = Quaternion.Identity;
+                transitPos.Frame.Orientation = offset.Frame.Orientation;
+                var transit = transition(Position, transitPos, false);
                 if (transit != null)
                 {
                     CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
+
                     SetPositionInternal(transit);
                 }
                 else
@@ -1572,7 +1571,7 @@ namespace ACE.Server.Physics
                 child.UpdateViewerDistanceRecursive();
         }
 
-        public void add_anim_hook(DatLoader.Entity.AnimationHook hook)
+        public void add_anim_hook(AnimHook hook)
         {
             AnimHooks.AddLast(hook);
         }
@@ -1666,7 +1665,7 @@ namespace ACE.Server.Physics
                 PartArray.AddPartsShadow(cell, NumShadowObjects);
         }
 
-        public void add_voyeur(int objectID, float radius, float quantum)
+        public void add_voyeur(uint objectID, float radius, double quantum)
         {
             if (TargetManager == null) TargetManager = new TargetManager(this);
             TargetManager.AddVoyeur(objectID, radius, quantum);
@@ -2621,8 +2620,8 @@ namespace ACE.Server.Physics
 
             Hooks.Clear();
 
-            /*foreach (var animHook in AnimHooks)
-                animHook.Execute(this);*/
+            foreach (var animHook in AnimHooks)
+                animHook.Execute(this);
 
             AnimHooks.Clear();
         }
@@ -2705,7 +2704,7 @@ namespace ACE.Server.Physics
             ObjMaint.RemoveObject(this);
         }
 
-        public bool remove_voyeur(int objectID)
+        public bool remove_voyeur(uint objectID)
         {
             if (TargetManager == null) return false;
             return TargetManager.RemoveVoyeur(objectID);
@@ -2759,7 +2758,7 @@ namespace ACE.Server.Physics
 
             foreach (var objectID in CollisionTable.Keys)
             {
-                var obj = ObjMaint.GetObjectA(objectID);
+                var obj = ObjectMaint.GetObjectA(objectID);
                 if (obj != null)
                     report_object_collision(obj, TransientState.HasFlag(TransientStateFlags.Contact));
             }
@@ -2808,7 +2807,6 @@ namespace ACE.Server.Physics
                         CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = Timer.CurrentTime });
                     else
                         CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = Timer.CurrentTime };
-                    ObjMaint.AddObject(obj);
                 }
 
                 if (State.HasFlag(PhysicsState.Missile))
@@ -2825,7 +2823,6 @@ namespace ACE.Server.Physics
                     CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = Timer.CurrentTime });
                 else
                     CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = Timer.CurrentTime };
-                ObjMaint.AddObject(obj);
             }
             return collided;
         }
@@ -2834,8 +2831,7 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint != null)
             {
-                //var collision = WeenieObj.WorldObject.CurrentLandblock?.GetObject(new ObjectGuid(objectID));//not PhysicsObj
-                var collision = ObjMaint.GetObjectA(objectID);
+                var collision = ObjectMaint.GetObjectA(objectID);
                 if (collision != null)
                 {
                     if (!collision.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
@@ -3043,6 +3039,7 @@ namespace ACE.Server.Physics
         {
             // set position?
             Position.Frame.Origin = frame.Origin;
+            Position.Frame.Orientation = frame.Orientation;
 
             if (!frame.IsValid() && frame.IsValidExceptForHeading())
                 frame = null;
@@ -3175,6 +3172,8 @@ namespace ACE.Server.Physics
         {
             ObjID = guid;
             ID = guid.Full;
+
+            ObjectMaint.AddServerObject(this);
         }
 
         /// <summary>
@@ -3201,10 +3200,16 @@ namespace ACE.Server.Physics
 
             if (MovementManager != null)
             {
-                if (!isOnWalkable)
-                    MovementManager.LeaveGround();
+                if (prevOnWalkable)
+                {
+                    if (!isOnWalkable)
+                        MovementManager.LeaveGround();
+                }
                 else
-                    MovementManager.HitGround();
+                {
+                    if (isOnWalkable)
+                        MovementManager.HitGround();
+                }
             }
             calc_acceleration();
         }
@@ -3336,10 +3341,10 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public void set_target(int contextID, uint objectID, float radius, double quantum)
+        public void set_target(uint contextID, uint objectID, float radius, double quantum)
         {
             if (TargetManager == null)
-                TargetManager = new TargetManager();
+                TargetManager = new TargetManager(this);
 
             TargetManager.SetTarget(contextID, objectID, radius, quantum);
         }
@@ -3393,7 +3398,7 @@ namespace ACE.Server.Physics
             MakePositionManager();
             if (ObjMaint == null) return;
 
-            var objectA = ObjMaint.GetObjectA(objectID);
+            var objectA = ObjectMaint.GetObjectA(objectID);
             if (objectA == null) return;
             if (objectA.Parent != null)
                 objectA = Parent;
@@ -3606,6 +3611,17 @@ namespace ACE.Server.Physics
             }
             else
                 UpdateTime = Timer.CurrentTime;
+        }
+
+        public bool Equals(PhysicsObj obj)
+        {
+            if (obj == null) return false;
+            return ID == obj.ID;
+        }
+
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode();
         }
     }
 }

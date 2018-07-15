@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 
@@ -32,6 +33,7 @@ namespace ACE.Server.Physics.Animation
 
         public MoveToManager()
         {
+            Init();
             InitializeLocalVars();
         }
 
@@ -39,7 +41,13 @@ namespace ACE.Server.Physics.Animation
         {
             PhysicsObj = obj;
             WeenieObj = wobj;
+            Init();
             InitializeLocalVars();
+        }
+
+        public void Init()
+        {
+            PendingActions = new List<MovementNode>();
         }
 
         public void AddMoveToPositionNode()
@@ -84,7 +92,7 @@ namespace ACE.Server.Physics.Animation
             movementParams.Speed = MovementParams.Speed;
 
             var sequence = _DoMotion(motion, movementParams);
-            if (sequence.ID != 0)
+            if (sequence != null && sequence.ID != 0)
             {
                 CancelMoveTo(sequence.ID);
                 return;
@@ -100,16 +108,10 @@ namespace ACE.Server.Physics.Animation
 
         public void BeginNextNode()
         {
-            if (PendingActions.Count > 1)
+            if (PendingActions.Count > 0) 
             {
-                CleanUpAndCallWeenie(0);
+                var pendingAction = PendingActions.First();
 
-                if (MovementParams.Sticky)
-                    PhysicsObj.get_position_manager().StickTo(TopLevelObjectID, SoughtObjectRadius, SoughtObjectHeight);
-            }
-
-            foreach (var pendingAction in PendingActions)
-            {
                 switch (pendingAction.Type)
                 {
                     case MovementType.MoveToPosition:
@@ -119,6 +121,24 @@ namespace ACE.Server.Physics.Animation
                         BeginTurnToHeading();
                         break;
                 }
+            }
+            else
+            {
+                if (MovementParams.Sticky)
+                {
+                    var soughtObjectRadius = SoughtObjectRadius;
+                    var soughtObjectHeight = SoughtObjectHeight;
+                    var topLevelObjectID = TopLevelObjectID;
+                    
+                    // unsets sticky flag
+                    CleanUpAndCallWeenie(0);
+
+                    if (PhysicsObj != null)
+                        PhysicsObj.get_position_manager().StickTo(topLevelObjectID, soughtObjectRadius, soughtObjectHeight);
+                }
+                else
+                    CleanUpAndCallWeenie(0);
+
             }
         }
 
@@ -163,7 +183,7 @@ namespace ACE.Server.Physics.Animation
 
             var sequence = _DoMotion(motionID, movementParams);
 
-            if (sequence.ID != 0)
+            if (sequence != null && sequence.ID != 0)
             {
                 CancelMoveTo(sequence.ID);
                 return;
@@ -188,15 +208,17 @@ namespace ACE.Server.Physics.Animation
 
             if (deltaTime > 1.0f)
             {
-                var leftdist = MovingAway ? currDistance - PreviousDistance : PreviousDistance - currDistance;
+                var diffDist = MovingAway ? currDistance - PreviousDistance : PreviousDistance - currDistance;
 
-                if (leftdist / deltaTime < 0.25f)
+                if (diffDist / deltaTime < 0.25f)
                     return false;
 
                 PreviousDistance = currDistance;
                 PreviousDistanceTime = Timer.CurrentTime;
 
-                if (leftdist / (Timer.CurrentTime - OriginalDistanceTime) < 0.25f)
+                var dOrigDist = MovingAway ? currDistance - OriginalDistance : OriginalDistance - currDistance;
+
+                if (dOrigDist / (Timer.CurrentTime - OriginalDistanceTime) < 0.25f)
                     return false;
             }
             return true;
@@ -454,7 +476,7 @@ namespace ACE.Server.Physics.Animation
             MovementType = MovementType.MoveToObject;
             MovementParams = movementParams;
             TopLevelObjectID = topLevelID;
-            Initialized = true;
+            Initialized = false;
             if (PhysicsObj.ID != topLevelID)
             {
                 PhysicsObj.set_target(0, TopLevelObjectID, 0.5f, 0.0f);
@@ -641,7 +663,11 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            var heading = PhysicsObj.Position.heading(CurrentTargetPosition) + SoughtPosition.Frame.get_heading() % 360.0f;
+            CurrentTargetPosition = targetPosition; // ref?
+
+            var targetHeading = PhysicsObj.Position.heading(CurrentTargetPosition);
+            var soughtHeading = SoughtPosition.Frame.get_heading();
+            var heading = (targetHeading + soughtHeading) % 360.0f;
             SoughtPosition.Frame.set_heading(heading);
 
             PendingActions.Add(new MovementNode(MovementType.TurnToHeading, heading));
@@ -655,20 +681,19 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null || !PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact))
                 return;
 
-            if (TopLevelObjectID == 0 || MovementType == MovementType.Invalid || !Initialized)
+            if (TopLevelObjectID == 0 || MovementType == MovementType.Invalid || !Initialized || PendingActions.Count == 0)
                 return;
 
-            foreach (var pendingAction in PendingActions)
+            var pendingAction = PendingActions.First();
+
+            switch (pendingAction.Type)
             {
-                switch (pendingAction.Type)
-                {
-                    case MovementType.MoveToPosition:
-                        HandleMoveToPosition();
-                        break;
-                    case MovementType.TurnToHeading:
-                        HandleTurnToHeading();
-                        break;
-                }
+                case MovementType.MoveToPosition:
+                    HandleMoveToPosition();
+                    break;
+                case MovementType.TurnToHeading:
+                    HandleTurnToHeading();
+                    break;
             }
         }
 
@@ -681,7 +706,7 @@ namespace ACE.Server.Physics.Animation
             if (minterp == null)
                 return new Sequence(11);
 
-            minterp.adjust_motion(motion, movementParams.Speed, movementParams.HoldKeyToApply);
+            minterp.adjust_motion(ref motion, ref movementParams.Speed, movementParams.HoldKeyToApply);
 
             return minterp.DoInterpretedMotion(motion, movementParams);
         }
@@ -695,7 +720,7 @@ namespace ACE.Server.Physics.Animation
             if (minterp == null)
                 return new Sequence(11);
 
-            minterp.adjust_motion(motion, movementParams.Speed, movementParams.HoldKeyToApply);
+            minterp.adjust_motion(ref motion, ref movementParams.Speed, movementParams.HoldKeyToApply);
 
             return minterp.StopInterpretedMotion(motion, movementParams);
         }
@@ -715,10 +740,31 @@ namespace ACE.Server.Physics.Animation
 
         public static bool heading_greater(float x, float y, uint motion)
         {
-            var less = Math.Abs(x - y) <= 180.0f ? x < y : y < x;
+            /*var less = Math.Abs(x - y) <= 180.0f ? x < y : y < x;
             var result = (less || x == y) == false;
             if (motion != 0x6500000D)
                 result = !result;
+            return result;*/
+            var diff = Math.Abs(x - y);
+
+            float v1, v2;
+
+            if (diff <= 180.0f)
+            {
+                v1 = y;
+                v2 = x;
+            }
+            else
+            {
+                v1 = x;
+                v2 = y;
+            }
+
+            var result = (v2 > v1) ? true : false;
+
+            if (motion != 0x6500000d)
+                result = !result;
+
             return result;
         }
 

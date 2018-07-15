@@ -17,10 +17,17 @@ namespace ACE.Server.Physics.Common
         public Dictionary<uint, int> ObjectInventoryTable;
         public Queue<double> ObjectDestructionQueue;
 
+        public static Dictionary<uint, PhysicsObj> ServerObjects;
+
         /// <summary>
         /// Objects are removed from the client after this amount of time
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
+
+        static ObjectMaint()
+        {
+            ServerObjects = new Dictionary<uint, PhysicsObj>();
+        }
 
         public ObjectMaint()
         {
@@ -129,15 +136,13 @@ namespace ACE.Server.Physics.Common
 
         public LostCell GetLostCell(uint cellID)
         {
-            LostCell lostCell = null;
-            LostCellTable.TryGetValue(cellID, out lostCell);
+            LostCellTable.TryGetValue(cellID, out var lostCell);
             return lostCell;
         }
 
-        public PhysicsObj GetObjectA(uint objectID)
+        public static PhysicsObj GetObjectA(uint objectID)
         {
-            PhysicsObj obj = null;
-            ObjectTable.TryGetValue(objectID, out obj);
+            ServerObjects.TryGetValue(objectID, out var obj);
             return obj;
         }
 
@@ -243,6 +248,30 @@ namespace ACE.Server.Physics.Common
         {
             foreach (var obj in objs)
                 RemoveObjectToBeDestroyed(obj);
+        }
+
+        /// <summary>
+        /// Adds a PhysicsObj to the static list of server-wide objjects
+        /// </summary>
+        public static void AddServerObject(PhysicsObj obj)
+        {
+            if (obj == null) return;
+
+            if (ServerObjects.ContainsKey(obj.ID))
+                ServerObjects[obj.ID] = obj;
+            else
+                ServerObjects.Add(obj.ID, obj);
+        }
+
+        /// <summary>
+        /// Removes a PhysicsObj from the static list of server-wide objects
+        /// </summary>
+        public static void RemoveServerObject(PhysicsObj obj)
+        {
+            if (obj == null) return;
+
+            if (ServerObjects.ContainsKey(obj.ID))
+                ServerObjects.Remove(obj.ID);
         }
     }
 }

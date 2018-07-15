@@ -35,9 +35,9 @@ namespace ACE.Server.Physics.Extensions
             if (dist >= PhysicsGlobals.EPSILON)
             {
                 v *= 1.0f / dist;
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
         public static bool IsMoved(this Vector3 a, Vector3 b)

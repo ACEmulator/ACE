@@ -25,7 +25,7 @@ namespace ACE.Server.Physics.Animation
 
         public void ClearTarget()
         {
-            if (TargetID != 0) return;
+            if (TargetID == 0) return;
 
             TargetID = 0;
             Initialized = false;
