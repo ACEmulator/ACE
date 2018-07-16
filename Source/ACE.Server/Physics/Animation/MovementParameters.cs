@@ -35,7 +35,8 @@ namespace ACE.Server.Physics.Animation
         public static readonly float Default_FailDistance = float.MaxValue;
         public static readonly float Default_MinDistance = 0.0f;
         public static readonly float Default_Speed = 1.0f;
-        public static readonly float Default_WalkRunThreshold = 15.0f;
+        //public static readonly float Default_WalkRunThreshold = 15.0f;
+        public static readonly float Default_WalkRunThreshold = 1.0f;
 
         public MovementParameters()
         {

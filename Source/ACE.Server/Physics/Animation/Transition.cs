@@ -66,7 +66,7 @@ namespace ACE.Server.Physics.Animation
 
             if (checkSlide)
             {
-                if (CollisionInfo.NormalizeCheckSmall(ref slideOffset))
+                if (Vec.NormalizeCheckSmall(ref slideOffset))
                     offset = Vector3.Zero;
                 else
                     offset = slideOffset = Vector3.Dot(slideOffset, offset) * slideOffset;
@@ -254,7 +254,7 @@ namespace ACE.Server.Physics.Animation
             contactNormal.Z = 0.0f;
 
             var collideNormal = new Vector3(contactNormal.Z - contactNormal.Y, contactNormal.X - contactNormal.Z, 0.0f);
-            if (CollisionInfo.NormalizeCheckSmall(ref collideNormal))
+            if (Vec.NormalizeCheckSmall(ref collideNormal))
                 return TransitionState.OK;
 
             var blockOffset = LandDefs.GetBlockOffset(SpherePath.CurPos.ObjCellID, SpherePath.CheckPos.ObjCellID);
@@ -644,7 +644,7 @@ namespace ACE.Server.Physics.Animation
             CollisionInfo.SlidingNormalValid = true;
             CollisionInfo.SlidingNormal = new Vector3(normal.X, normal.Y, normal.Z);
 
-            if (CollisionInfo.NormalizeCheckSmall(ref CollisionInfo.SlidingNormal))
+            if (Vec.NormalizeCheckSmall(ref CollisionInfo.SlidingNormal))
                 CollisionInfo.SlidingNormal = Vector3.Zero;
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
@@ -128,7 +129,7 @@ namespace ACE.Server.Physics.Animation
         public void Subtract(AFrame frame)
         {
             Origin -= Vector3.Transform(frame.Origin, frame.Orientation);
-            Orientation = Quaternion.Multiply(Orientation, frame.Orientation);  // transpose?
+            Orientation *= Quaternion.Conjugate(frame.Orientation);
         }
 
         public bool close_rotation(AFrame a, AFrame b)
@@ -145,7 +146,7 @@ namespace ACE.Server.Physics.Animation
         public float get_heading()
         {
             var matrix = Matrix4x4.CreateFromQuaternion(Orientation);
-            var heading = (float)Math.Atan2(matrix.M21, matrix.M22);
+            var heading = (float)Math.Atan2(matrix.M22, matrix.M21);
             return (450.0f - heading.ToDegrees()) % 360.0f;
         }
 
@@ -174,11 +175,16 @@ namespace ACE.Server.Physics.Animation
 
         public void set_heading(float degrees)
         {
+            //Console.WriteLine($"set_heading({degrees})");
+
             var rads = degrees.ToRadians();
 
             var matrix = Matrix4x4.CreateFromQuaternion(Orientation);
             var heading = new Vector3((float)Math.Sin(rads), (float)Math.Cos(rads), matrix.M23 + matrix.M13);
             set_vector_heading(heading);
+
+            var newHeading = get_heading();
+            //Console.WriteLine("new_heading: " + newHeading);
         }
 
         public void set_position(AFrame frame)
@@ -189,14 +195,21 @@ namespace ACE.Server.Physics.Animation
 
         public void set_rotate(Quaternion orientation)
         {
-            Orientation = orientation;
+            Orientation = Quaternion.Normalize(orientation);
         }
 
         public void set_vector_heading(Vector3 heading)
         {
-            // copy constructor?
-            if (heading.NormalizeCheckSmall()) return;
-            Orientation = Quaternion.CreateFromYawPitchRoll(heading.Z, heading.X, heading.Y);
+            var normal = new Vector3(heading.X, heading.Y, heading.Z);
+            if (Vec.NormalizeCheckSmall(ref normal)) return;
+
+            var zDeg = 450.0f - ((float)Math.Atan2(normal.Y, normal.X)).ToDegrees();
+            var zRot = -(zDeg % 360.0f).ToRadians();
+
+            var xRot = (float)Math.Asin(normal.Z);
+
+            var rotate = Quaternion.CreateFromYawPitchRoll(xRot, 0, zRot);
+            set_rotate(rotate);
         }
 
         public override string ToString()

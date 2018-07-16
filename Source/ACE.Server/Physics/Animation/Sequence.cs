@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using ACE.Entity.Enum;
 using ACE.DatLoader.Entity;
+using ACE.Server.Physics.Hooks;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -235,7 +236,7 @@ namespace ACE.Server.Physics.Animation
             foreach (var hook in animFrame.Hooks)
             {
                 if (hook.Direction == AnimationHookDir.Both || hook.Direction == dir)
-                    HookObj.add_anim_hook(hook);
+                    HookObj.add_anim_hook(new AnimHook(hook));
             }
         }
 
@@ -289,6 +290,8 @@ namespace ACE.Server.Physics.Animation
                 AnimList.Remove(node.Value);
                 node = next;
             }
+
+            FirstCyclic = AnimList.Last;
         }
 
         public void remove_link_animations(uint amount)
@@ -403,10 +406,11 @@ namespace ACE.Server.Physics.Animation
                 var node = AnimList.First;
                 if (!node.Equals(FirstCyclic))
                 {
-                    var animHook = new AnimationHook();
+                    var animHook = new AnimHook();
                     HookObj.add_anim_hook(animHook);
                 }
             }
+
             advance_to_next_animation(timeElapsed, ref animNode, ref frameNum, ref frame);
             timeElapsed = frameTimeElapsed;
 

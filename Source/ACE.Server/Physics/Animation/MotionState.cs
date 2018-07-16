@@ -18,6 +18,21 @@ namespace ACE.Server.Physics.Animation
             Actions = new LinkedList<Motion>();
         }
 
+        public MotionState(MotionState state)
+        {
+            Style = state.Style;
+            Substate = state.Substate;
+            SubstateMod = state.SubstateMod;
+
+            Modifiers = new LinkedList<Motion>();
+            foreach (var modifier in state.Modifiers)
+                Modifiers.AddLast(modifier);
+
+            Actions = new LinkedList<Motion>();
+            foreach (var action in state.Actions)
+                Actions.AddLast(action);
+        }
+
         public void add_action(uint action, float speedMod)
         {
             Actions.AddLast(new Motion(action, speedMod));
@@ -57,8 +72,10 @@ namespace ACE.Server.Physics.Animation
             Actions.RemoveFirst();
         }
 
-        public void remove_modifier(Motion modifier)
+        public void remove_modifier(LinkedListNode<Motion> modifier)
         {
+            if (modifier == null) return;
+
             Modifiers.Remove(modifier);
         }
     }

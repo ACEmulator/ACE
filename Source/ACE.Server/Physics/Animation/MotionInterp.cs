@@ -370,7 +370,7 @@ namespace ACE.Server.Physics.Animation
             if (movementParams.CancelMoveTo)
                 PhysicsObj.cancel_moveto();
 
-            adjust_motion(motion, movementParams.Speed, movementParams.HoldKeyToApply);
+            adjust_motion(ref motion, ref movementParams.Speed, movementParams.HoldKeyToApply);
 
             var newMotion = StopInterpretedMotion(motion, movementParams);
 
@@ -385,7 +385,7 @@ namespace ACE.Server.Physics.Animation
             PendingMotions.Add(new MotionNode(contextID, motion, jumpErrorCode));
         }
 
-        public void adjust_motion(uint motion, float speed, HoldKey holdKey)
+        public void adjust_motion(ref uint motion, ref float speed, HoldKey holdKey)
         {
             if (WeenieObj != null && !WeenieObj.IsCreature())
                 return;
@@ -400,7 +400,7 @@ namespace ACE.Server.Physics.Animation
                     speed *= -BackwardsFactor;
                     break;
 
-                case 0x6400000E:
+                case 0x6500000E:
                     motion = 0x6500000D;
                     speed *= -1.0f;
                     break;
@@ -419,7 +419,7 @@ namespace ACE.Server.Physics.Animation
                 holdKey = RawState.CurrentHoldKey;
 
             if (holdKey == HoldKey.Run)
-                apply_run_to_command(motion, speed);
+                apply_run_to_command(motion, ref speed);
         }
 
         public void apply_current_movement(bool cancelMoveTo, bool allowJump)
@@ -507,14 +507,14 @@ namespace ACE.Server.Physics.Animation
             InterpretedState.TurnCommand = RawState.TurnCommand;
             InterpretedState.TurnSpeed = RawState.TurnSpeed;
 
-            adjust_motion(InterpretedState.ForwardCommand, InterpretedState.ForwardSpeed, RawState.ForwardHoldKey);
-            adjust_motion(InterpretedState.SideStepCommand, InterpretedState.SideStepSpeed, RawState.SideStepHoldKey);
-            adjust_motion(InterpretedState.TurnCommand, InterpretedState.TurnSpeed, RawState.TurnHoldKey);
+            adjust_motion(ref InterpretedState.ForwardCommand, ref InterpretedState.ForwardSpeed, RawState.ForwardHoldKey);
+            adjust_motion(ref InterpretedState.SideStepCommand, ref InterpretedState.SideStepSpeed, RawState.SideStepHoldKey);
+            adjust_motion(ref InterpretedState.TurnCommand, ref InterpretedState.TurnSpeed, RawState.TurnHoldKey);
 
             apply_interpreted_movement(cancelMoveTo, allowJump);
         }
 
-        public void apply_run_to_command(uint motion, float speed)
+        public void apply_run_to_command(uint motion, ref float speed)
         {
             var speedMod = 1.0f;
 

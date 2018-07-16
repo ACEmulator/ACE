@@ -188,6 +188,7 @@ namespace ACE.Server.Physics.Animation
         public bool motions_pending()
         {
             if (MotionInterpreter == null) return false;
+
             return MotionInterpreter.motions_pending();
         }
 

@@ -231,11 +231,12 @@ namespace ACE.Server.Physics.Animation
             {
                 var styleKey = currState.Style << 16;
                 Cycles.TryGetValue(styleKey | (currState.Substate & 0xFFFFFF), out cycles);
-                if (cycles != null && (motionData.Bitfield & 1) == 0)
+                if (cycles != null && (cycles.Bitfield & 1) == 0)
                 {
                     Modifiers.TryGetValue(styleKey | motion, out motionData);
-                    Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData_);
-                    if (motionData != null || motionData_ != null)
+                    if (motionData == null)
+                        Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData);
+                    if (motionData != null)
                     {
                         StopSequenceMotion(motion, 1.0f, currState, sequence, ref numAnims);
                         if (!currState.add_modifier(motion, speedMod))
@@ -320,21 +321,24 @@ namespace ACE.Server.Physics.Animation
             if ((motion & 0x20000000) == 0)
                 return false;
 
-            Motion lastMod = null;
-            foreach (var modifier in currState.Modifiers)
+            var modifier = currState.Modifiers.First;
+            LinkedListNode<Motion> prevMod = null;
+
+            while (modifier != null)
             {
-                if (modifier.ID == motion)
+                if (modifier.Value.ID == motion)
                 {
-                    var key = (modifier.ID << 16) | (motion & 0xFFFFFF);
+                    var key = (modifier.Value.ID << 16) | (motion & 0xFFFFFF);
                     MotionData motionData = null;
                     if (!Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData))
                         return false;
 
-                    subtract_motion(sequence, motionData, modifier.SpeedMod);
+                    subtract_motion(sequence, motionData, modifier.Value.SpeedMod);
                     currState.remove_modifier(modifier);
                     return true;
                 }
-                lastMod = modifier;
+                prevMod = modifier;
+                modifier = modifier.Next;
             }
             return false;
         }
@@ -361,18 +365,16 @@ namespace ACE.Server.Physics.Animation
 
         public void combine_motion(Sequence sequence, MotionData motionData, float speed)
         {
-            if (motionData == null)
-                return;
-            sequence.CombinePhysics(motionData.Velocity * speed,
-                motionData.Omega * speed);
+            if (motionData == null) return;
+
+            sequence.CombinePhysics(motionData.Velocity * speed, motionData.Omega * speed);
         }
 
         public void subtract_motion(Sequence sequence, MotionData motionData, float speed)
         {
-            if (motionData == null)
-                return;
-            sequence.subtract_physics(motionData.Velocity * speed,
-                motionData.Omega * speed);
+            if (motionData == null) return;
+
+            sequence.subtract_physics(motionData.Velocity * speed, motionData.Omega * speed);
         }
 
         public MotionData get_link(uint style, uint substate, float substateSpeed, uint motion, float speed)
@@ -418,14 +420,23 @@ namespace ACE.Server.Physics.Animation
             return style == state.Substate;
         }
 
-        public void re_modify(Sequence sequence, MotionState state)
+        public void re_modify(Sequence sequence, MotionState pstate)
         {
-            uint numAnims = 0;
-            while (state.Modifiers.Count > 0)
+            if (pstate.Modifiers.First == null)
+                return;
+
+            var state = new MotionState(pstate);
+
+            while (state.Modifiers.First != null)
             {
-                var modifier = state.Modifiers.First();
-                state.remove_modifier(modifier);
-                GetObjectSequence(modifier.ID, state, sequence, modifier.SpeedMod, ref numAnims, false);
+                var speedMod = pstate.Modifiers.First.Value.SpeedMod;
+                var motion = pstate.Modifiers.First.Value.ID;
+
+                pstate.remove_modifier(pstate.Modifiers.First); // second param null?
+                state.remove_modifier(state.Modifiers.First);
+
+                uint numAnims = 0;
+                GetObjectSequence(motion, pstate, sequence, speedMod, ref numAnims, false);
             }
         }
 

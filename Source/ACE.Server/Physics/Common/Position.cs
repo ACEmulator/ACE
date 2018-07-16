@@ -165,7 +165,7 @@ namespace ACE.Server.Physics.Common
             var dir = GetOffset(position);
             dir.Z = 0.0f;
 
-            if (dir.NormalizeCheckSmall())
+            if (Vec.NormalizeCheckSmall(ref dir))
                 return 0.0f;
 
             return (450.0f - ((float)Math.Atan2(dir.Y, dir.X)).ToDegrees()) % 360.0f;

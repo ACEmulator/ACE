@@ -158,7 +158,7 @@ namespace ACE.Server.Physics
             }
             else
             {
-                if (!CollisionInfo.NormalizeCheckSmall(ref globalOffset))
+                if (!Vec.NormalizeCheckSmall(ref globalOffset))
                     collisions.SetCollisionNormal(globalOffset);
 
                 return TransitionState.Collided;
@@ -366,7 +366,7 @@ namespace ACE.Server.Physics
 
             var collisionNormal = path.GlobalCurrCenter[0].Center - Center;
 
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
             else
             {
@@ -387,7 +387,7 @@ namespace ACE.Server.Physics
             var globSphere = path.GlobalSphere[sphereNum];
 
             var collisionNormal = path.GlobalCurrCenter[sphereNum].Center - Center;
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
 
             collisions.SetCollisionNormal(collisionNormal);
@@ -434,7 +434,7 @@ namespace ACE.Server.Physics
 
             var collisionNormal = globalCenter - Center;
 
-            if (CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (Vec.NormalizeCheckSmall(ref collisionNormal))
                 return TransitionState.Collided;
             else
                 return checkPos.SlideSphere(transition, ref collisionNormal, globalCenter);
@@ -482,7 +482,7 @@ namespace ACE.Server.Physics
             }
 
             collisionNormal = -gDelta;
-            if (!CollisionInfo.NormalizeCheckSmall(ref collisionNormal))
+            if (!Vec.NormalizeCheckSmall(ref collisionNormal))
                 collisions.SetCollisionNormal(collisionNormal);
 
             return TransitionState.OK;

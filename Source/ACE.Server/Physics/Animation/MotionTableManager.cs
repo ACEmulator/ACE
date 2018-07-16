@@ -9,7 +9,7 @@ namespace ACE.Server.Physics.Animation
         public MotionTable Table;
         public MotionState State;
         public uint AnimationCounter;
-        public List<AnimNode> PendingAnimations;    // AnimSequenceNode?
+        public LinkedList<AnimNode> PendingAnimations;
 
         public MotionTableManager()
         {
@@ -26,29 +26,31 @@ namespace ACE.Server.Physics.Animation
 
         public void AnimationDone(bool success)
         {
-            var node = PendingAnimations.FirstOrDefault();
+            var node = PendingAnimations.First;
             while (node != null)
             {
                 AnimationCounter++;
                 do
                 {
-                    if (node.NumAnims > AnimationCounter)
+                    var entry = node.Value;
+
+                    if (entry.NumAnims > AnimationCounter)
                         break;
 
-                    if ((node.Motion & 0x10000000) != 0)
+                    if ((entry.Motion & 0x10000000) != 0)
                         State.remove_action_head();
 
-                    var motionID = node.Motion;
+                    var motionID = entry.Motion;
                     PhysicsObj.MotionDone(motionID, success);
-                    AnimationCounter -= node.NumAnims;
+                    AnimationCounter -= entry.NumAnims;
 
-                    if (PendingAnimations.Count > 0)
-                        PendingAnimations.RemoveAt(0);
+                    if (PendingAnimations.First != null)
+                        PendingAnimations.RemoveFirst();
 
                     if (PhysicsObj.WeenieObj != null)
                         PhysicsObj.WeenieObj.OnMotionDone(motionID, success);
 
-                    node = PendingAnimations.FirstOrDefault();
+                    node = PendingAnimations.First;
                 }
                 while (node != null);
 
@@ -59,22 +61,22 @@ namespace ACE.Server.Physics.Animation
 
         public void CheckForCompletedMotions()
         {
-            while (PendingAnimations.Count > 0)
+            while (PendingAnimations.First != null)
             {
-                var pendingAnimation = PendingAnimations[0];
+                var pendingAnimation = PendingAnimations.First;
 
-                if (pendingAnimation == null)
+                if (pendingAnimation.Value.NumAnims != 0)
                     return;
 
-                var motionID = pendingAnimation.Motion;
+                var motionID = pendingAnimation.Value.Motion;
 
                 if ((motionID & 0x10000000) != 0)
                     State.remove_action_head();
 
                 PhysicsObj.MotionDone(motionID, true);
 
-                if (PendingAnimations.Count > 0)
-                    PendingAnimations.RemoveAt(0);
+                if (PendingAnimations.First != null)
+                    PendingAnimations.RemoveFirst();
 
                 if (PhysicsObj.WeenieObj != null)
                     PhysicsObj.WeenieObj.OnMotionDone(motionID, true);
@@ -93,7 +95,7 @@ namespace ACE.Server.Physics.Animation
 
         public void Init()
         {
-            PendingAnimations = new List<AnimNode>();
+            PendingAnimations = new LinkedList<AnimNode>();
         }
 
         public void HandleEnterWorld(Sequence sequence)
@@ -158,7 +160,7 @@ namespace ACE.Server.Physics.Animation
 
         public void add_to_queue(uint motion, uint num_anims, Sequence sequence)
         {
-            PendingAnimations.Add(new AnimNode(motion, num_anims));
+            PendingAnimations.AddLast(new AnimNode(motion, num_anims));
             remove_redundant_links(sequence);
         }
 
@@ -175,60 +177,72 @@ namespace ACE.Server.Physics.Animation
 
         public void remove_redundant_links(Sequence sequence)
         {
-            for (var i = PendingAnimations.Count - 1; i >= 0; --i)
+            var node = PendingAnimations.Last;
+
+            while (node != null)
             {
-                var entry = PendingAnimations.ElementAt(i);
-                if (entry == null)
-                    break;
+                var entry = node.Value;
 
-                if (entry.NumAnims == 0)
-                    continue;
-
-                if ((entry.Motion & 0x40000000) != 0 || (entry.Motion & 0x20000000) != 0)
+                if (entry.NumAnims != 0)
                 {
-                    if ((entry.Motion & 0x80000000) != 0)
-                        return;
+                    if ((entry.Motion & 0x40000000) != 0 || (entry.Motion & 0x20000000) != 0)
+                    {
+                        if ((entry.Motion & 0x80000000) != 0)
+                            return;
 
-                    if (remove_redundant_links_inner(sequence, entry, i))
-                        return;
+                        if (remove_redundant_links_inner(node, sequence, true))
+                            return;
+                    }
+                    else
+                    {
+                        if (remove_redundant_links_inner(node, sequence, false))
+                            return;
+                    }
                 }
-                else
-                    if (remove_redundant_links_inner(sequence, entry, i))
-                        return;
+                node = node.Previous;
             }
         }
 
-        public bool remove_redundant_links_inner(Sequence sequence, AnimNode entry, int i)
+        public bool remove_redundant_links_inner(LinkedListNode<AnimNode> node, Sequence sequence, bool first)
         {
-            for (var j = i - 1; j >= 0; --j)
-            {
-                var prev = PendingAnimations.ElementAt(j);      // linked?
-                if (prev == null)
-                    break;
+            var entry = node.Value;
+            var prev = node.Previous;
 
-                if (prev.Motion == entry.Motion)
+            var motion = first ? 0x70000000 : 0xB0000000;
+
+            while (prev != null)
+            {
+                var prevEntry = prev.Value;
+
+                if (entry.Motion == prevEntry.Motion && (first || prevEntry.NumAnims != 0))
                 {
                     trancuate_animation_list(prev, sequence);
                     return true;
                 }
-                if (prev.NumAnims > 0 && (prev.Motion & 0x70000000) != 0)
+
+                if (prevEntry.NumAnims != 0 && (prevEntry.Motion & motion) != 0)
                     return true;
+
+                prev = prev.Previous;
             }
+
             return false;
         }
 
-        public void trancuate_animation_list(AnimNode node, Sequence sequence)
+        public void trancuate_animation_list(LinkedListNode<AnimNode> node, Sequence sequence)
         {
             if (node == null) return;
 
             uint totalAnims = 0;
-            for (var i = PendingAnimations.Count - 1; i >= 0; --i)
-            {
-                var entry = PendingAnimations.ElementAt(i);
-                if (entry == node) break;
+            var entry = PendingAnimations.Last;
 
-                totalAnims += entry.NumAnims;
-                entry.NumAnims = 0;
+            while (entry != node)
+            {
+                if (entry == null) return;
+
+                totalAnims += entry.Value.NumAnims;
+                entry.Value.NumAnims = 0;
+                entry = entry.Previous;
             }
             sequence.remove_link_animations(totalAnims);
         }
