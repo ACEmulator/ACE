@@ -57,7 +57,7 @@ namespace ACE.Server.Physics.Common
 
             EnvironmentID = envCell.EnvironmentId;
             Environment = (DatLoader.FileTypes.Environment)DBObj.Get(new QualifiedDataID(16, EnvironmentID));
-            CellStructureID = envCell.CellStructure;
+            CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
         }
@@ -223,16 +223,9 @@ namespace ACE.Server.Physics.Common
         {
             var checkOutside = false;
 
-            var i = 0;
             foreach (var portal in Portals)
             {
-                if (i >= CellStructure.Portals.Count)
-                {
-                    //Console.WriteLine($"WARNING: portals.count={Portals.Count}, CellStructure.Portals.Count={CellStructure.Portals.Count} for EnvCell {ID.ToString("X8")}");
-                    break;
-                }
-
-                var portalPoly = CellStructure.Portals[i++];
+                var portalPoly = CellStructure.Polygons[portal.PolygonId];
 
                 foreach (var part in parts)
                 {
@@ -296,16 +289,9 @@ namespace ACE.Server.Physics.Common
         {
             var checkOutside = false;
 
-            var i = 0;
             foreach (var portal in Portals)
             {
-                if (i >= CellStructure.Portals.Count)
-                {
-                    //Console.WriteLine($"WARNING: portals.count={Portals.Count}, CellStructure.Portals.Count={CellStructure.Portals.Count} for EnvCell {ID.ToString("X8")}");
-                    break;
-                }
-
-                var portalPoly = CellStructure.Portals[i++];
+                var portalPoly = CellStructure.Polygons[portal.PolygonId];
 
                 if (portal.OtherCellId == ushort.MaxValue)
                 {
