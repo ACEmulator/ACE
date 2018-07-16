@@ -226,6 +226,12 @@ namespace ACE.Server.Physics.Common
             var i = 0;
             foreach (var portal in Portals)
             {
+                if (i >= CellStructure.Portals.Count)
+                {
+                    //Console.WriteLine($"WARNING: portals.count={Portals.Count}, CellStructure.Portals.Count={CellStructure.Portals.Count} for EnvCell {ID.ToString("X8")}");
+                    break;
+                }
+
                 var portalPoly = CellStructure.Portals[i++];
 
                 foreach (var part in parts)
@@ -293,6 +299,12 @@ namespace ACE.Server.Physics.Common
             var i = 0;
             foreach (var portal in Portals)
             {
+                if (i >= CellStructure.Portals.Count)
+                {
+                    //Console.WriteLine($"WARNING: portals.count={Portals.Count}, CellStructure.Portals.Count={CellStructure.Portals.Count} for EnvCell {ID.ToString("X8")}");
+                    break;
+                }
+
                 var portalPoly = CellStructure.Portals[i++];
 
                 if (portal.OtherCellId == ushort.MaxValue)
