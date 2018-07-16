@@ -57,7 +57,7 @@ namespace ACE.Server.Physics.Common
 
             EnvironmentID = envCell.EnvironmentId;
             Environment = (DatLoader.FileTypes.Environment)DBObj.Get(new QualifiedDataID(16, EnvironmentID));
-            CellStructureID = envCell.CellStructure;
+            CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
         }
@@ -223,10 +223,9 @@ namespace ACE.Server.Physics.Common
         {
             var checkOutside = false;
 
-            var i = 0;
             foreach (var portal in Portals)
             {
-                var portalPoly = CellStructure.Portals[i];
+                var portalPoly = CellStructure.Polygons[portal.PolygonId];
 
                 foreach (var part in parts)
                 {
@@ -290,10 +289,9 @@ namespace ACE.Server.Physics.Common
         {
             var checkOutside = false;
 
-            var i = 0;
             foreach (var portal in Portals)
             {
-                var portalPoly = CellStructure.Portals[i];
+                var portalPoly = CellStructure.Polygons[portal.PolygonId];
 
                 if (portal.OtherCellId == ushort.MaxValue)
                 {
@@ -303,7 +301,7 @@ namespace ACE.Server.Physics.Common
                         var center = Pos.Frame.GlobalToLocal(sphere.Center);
 
                         var dist = Vector3.Dot(center, portalPoly.Plane.Normal) + portalPoly.Plane.D;
-                        if (dist > -rad && dist < -rad)
+                        if (dist > -rad && dist < rad)
                         {
                             checkOutside = true;
                             break;

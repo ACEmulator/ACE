@@ -1419,10 +1419,8 @@ namespace ACE.Server.Physics
                         newPos.Frame.set_vector_heading(Velocity.Normalize());
                 }
 
-                var transitPos = new Position(newPos);
-                transitPos.Frame.Orientation = newPos.Frame.Orientation * Quaternion.Conjugate(Position.Frame.Orientation);
+                var transit = transition(Position, newPos, false);
 
-                var transit = transition(Position, transitPos, false);
                 if (transit != null)
                 {
                     CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
@@ -2078,11 +2076,11 @@ namespace ACE.Server.Physics
             cellArray.AddedOutside = false;
             cellArray.add_cell(CurCell.ID, CurCell);
 
-            var checkCells = cellArray.Cells.Values.ToList();
-            //for (var i = 0; i < cellArray.Cells.Count; i++)
-            foreach (var cell in checkCells)
+            //var checkCells = cellArray.Cells.Values.ToList();
+            for (var i = 0; i < cellArray.Cells.Count; i++)
+            //foreach (var cell in checkCells)
             {
-                //var cell = cellArray.Cells.Values.ElementAt(i);
+                var cell = cellArray.Cells.Values.ElementAt(i);
                 PartArray.calc_cross_cells_static(cell, cellArray);
             }
         }

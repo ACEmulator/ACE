@@ -131,7 +131,7 @@ namespace ACE.Server.Physics.Animation
                 else
                     animNode = FirstCyclic;
 
-                //currAnim = animNode.Value;
+                currAnim = animNode.Value;
 
                 frameNum = currAnim.get_starting_frame();
 
@@ -157,7 +157,7 @@ namespace ACE.Server.Physics.Animation
                 else
                     animNode = animNode.List.Last;
 
-                //currAnim = animNode.Value;
+                currAnim = animNode.Value;
 
                 frameNum = currAnim.get_ending_frame();
 

@@ -167,11 +167,11 @@ namespace ACE.Server.Physics.Animation
             ObjCell newCell = new ObjCell();    // null check?
             ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
-            var checkCells = CellArray.Cells.Values.ToList();
-            //for (var i = 0; i < CellArray.Cells.Count; i++)
-            foreach (var cell in checkCells)
+            //var checkCells = CellArray.Cells.Values.ToList();
+            for (var i = 0; i < CellArray.Cells.Count; i++)
+            //foreach (var cell in checkCells)
             {
-                //var cell = CellArray.Cells.Values.ElementAt(i);
+                var cell = CellArray.Cells.Values.ElementAt(i);
                 if (cell == null || cell.Equals(currCell)) continue;
                 var collides = cell.FindCollisions(this);
                 switch (collides)
@@ -512,7 +512,7 @@ namespace ACE.Server.Physics.Animation
             }
 
             if (ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))
-                SpherePath.CurPos.Frame.Rotate(SpherePath.EndPos.Frame.Orientation);
+                SpherePath.CurPos.Frame.set_rotate(SpherePath.EndPos.Frame.Orientation);
 
             SpherePath.SetCheckPos(SpherePath.CurPos, SpherePath.CurCell);
 
@@ -520,7 +520,7 @@ namespace ACE.Server.Physics.Animation
             if (numSteps <= 0)
             {
                 if (!ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))  // ?
-                    SpherePath.CurPos.Frame.Rotate(SpherePath.EndPos.Frame.Orientation);
+                    SpherePath.CurPos.Frame.set_rotate(SpherePath.EndPos.Frame.Orientation);
 
                 SpherePath.CellArrayValid = true;
                 SpherePath.HitsInteriorCell = false;
