@@ -618,13 +618,31 @@ namespace ACE.Server.WorldObjects
                             }
                             break;
                         case MagicSchool.ItemEnchantment:
-                            enchantmentStatus = ItemMagic(target, spell, spellStatMod);
-                            if (guidTarget == Guid)
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                            if ((target as Player) == null)
+                            {
+                                enchantmentStatus = ItemMagic(target, spell, spellStatMod);
+                                if (guidTarget == Guid)
+                                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                else
+                                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                if (enchantmentStatus.message != null)
+                                    player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            }
                             else
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                            if (enchantmentStatus.message != null)
-                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            {
+                                var items = (target as Player).GetAllWieldedItems();
+
+                                foreach (var item in items)
+                                {
+                                    if (item.WeenieType == WeenieType.Clothing)
+                                    {
+                                        enchantmentStatus = ItemMagic(item, spell, spellStatMod);
+                                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                        if (enchantmentStatus.message != null)
+                                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                    }
+                                }
+                            }
                             break;
                         default:
                             break;
