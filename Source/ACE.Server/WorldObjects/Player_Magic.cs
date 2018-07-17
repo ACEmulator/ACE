@@ -599,8 +599,9 @@ namespace ACE.Server.WorldObjects
                             }
                             break;
                         case MagicSchool.ItemEnchantment:
-                            if ((target as Player) == null)
+                            if (((spell.Category >= (ushort)SpellCategory.ArmorValueRaising) && (spell.Category <= (ushort)SpellCategory.AcidicResistanceLowering)) == false)
                             {
+                                // Non-impen/bane spells
                                 enchantmentStatus = ItemMagic(target, spell, spellStatMod);
                                 if (guidTarget == Guid)
                                     CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
@@ -611,15 +612,30 @@ namespace ACE.Server.WorldObjects
                             }
                             else
                             {
-                                var items = (target as Player).GetAllWieldedItems();
-                                foreach (var item in items)
+                                if ((target as Player) == null)
                                 {
-                                    if (item.WeenieType == WeenieType.Clothing)
-                                    {
-                                        enchantmentStatus = ItemMagic(item, spell, spellStatMod);
+                                    // Individual impen/bane WeenieType.Clothing target
+                                    enchantmentStatus = ItemMagic(target, spell, spellStatMod);
+                                    if (guidTarget == Guid)
+                                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                    else
                                         CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                                        if (enchantmentStatus.message != null)
-                                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                    if (enchantmentStatus.message != null)
+                                        player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                }
+                                else
+                                {
+                                    // Impen/bane targeted at a player
+                                    var items = (target as Player).GetAllWieldedItems();
+                                    foreach (var item in items)
+                                    {
+                                        if (item.WeenieType == WeenieType.Clothing)
+                                        {
+                                            enchantmentStatus = ItemMagic(item, spell, spellStatMod);
+                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                            if (enchantmentStatus.message != null)
+                                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                        }
                                     }
                                 }
                             }
