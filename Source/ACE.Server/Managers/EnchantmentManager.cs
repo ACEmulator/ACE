@@ -372,9 +372,10 @@ namespace ACE.Server.Managers
             }
             else
             {
-                if (WorldObject.WielderId != null)
+                var ownerID = WorldObject.OwnerId ?? WorldObject.WielderId ?? null;
+                if (ownerID != null)
                 {
-                    var owner = WorldManager.GetPlayerByGuidId((uint)WorldObject.WielderId);
+                    var owner = WorldManager.GetPlayerByGuidId((uint)ownerID);
                     if (owner != null)
                     {
                         owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} has expired on {WorldObject.Name}", ChatMessageType.Magic));
