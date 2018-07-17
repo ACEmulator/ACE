@@ -378,7 +378,7 @@ namespace ACE.Server.Managers
                     var owner = WorldManager.GetPlayerByGuidId((uint)ownerID);
                     if (owner != null)
                     {
-                        owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} has expired on {WorldObject.Name}", ChatMessageType.Magic));
+                        owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"The spell {spell.Name} on {WorldObject.Name} has expired.", ChatMessageType.Magic));
 
                         if (sound)
                             owner.Session.Network.EnqueueSend(new GameMessageSound(owner.Guid, Sound.SpellExpire, 1.0f));
