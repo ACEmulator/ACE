@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-16
+[OptimShi]
+* Fixed proper case of certain spell words and change how they are loaded for efficiency/ease of use.
+
 ### 2018-07-13
 [OptimShi]
 * Fixed remaining issue with Spell Formulas and non-ANSI characters. All spell formulas now appear to be accurate.
