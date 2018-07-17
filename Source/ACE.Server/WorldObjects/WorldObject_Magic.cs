@@ -224,7 +224,8 @@ namespace ACE.Server.WorldObjects
                     || (target.WeenieType == WeenieType.MissileLauncher)
                     || (target.WeenieType == WeenieType.Missile)
                     || (target.WeenieType == WeenieType.Door)
-                    || (target.WeenieType == WeenieType.Chest))
+                    || (target.WeenieType == WeenieType.Chest)
+                    || (target.CombatUse != null && target.CombatUse == ACE.Entity.Enum.CombatUse.Shield))
                     return false;
                 else
                     return true;

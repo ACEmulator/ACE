@@ -45,6 +45,18 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        /// <summary>
+        /// Returns all wielded items.
+        /// </summary>
+        public List<WorldObject> GetAllWieldedItems()
+        {
+            var results = new List<WorldObject>();
+
+            results.AddRange(EquippedObjects.Values);
+
+            return results;
+        }
+
         public int GetEncumbranceCapacity()
         {
             return int.MaxValue; // fix

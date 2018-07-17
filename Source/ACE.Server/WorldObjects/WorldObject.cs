@@ -698,6 +698,8 @@ namespace ACE.Server.WorldObjects
 
             EmoteManager.HeartBeat();
 
+            EnchantmentManager.HeartBeat();
+
             if (!(GeneratorDisabled ?? false))
             {
                 if (GeneratorRegistry.Count < InitGeneratedObjects)

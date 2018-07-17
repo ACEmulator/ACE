@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var modSL = EnchantmentManager.GetArmorMod();
+            var modSL = shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;
 
             // get shield RL against damage type
@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
 
             // shield RL item enchantment additives:
             // banes, lures
-            var modRL = EnchantmentManager.GetArmorModVsType(damageType);
+            var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
             var effectiveRL = (float)(baseRL + modRL);
 
             // resistance cap

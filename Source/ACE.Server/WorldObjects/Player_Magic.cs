@@ -392,27 +392,8 @@ namespace ACE.Server.WorldObjects
 
             // Calculating mana usage
             #region
-            CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
-            double z = mc.Current;
-            double baseManaPercent = 1;
-            if (z > spell.Power)
-            {
-                baseManaPercent = spell.Power / z;
-            }
-            double preCost;
-            uint manaUsed;
-            if ((int)Math.Floor(baseManaPercent) == 1)
-            {
-                preCost = spell.BaseMana;
-                manaUsed = (uint)preCost;
-            }
-            else
-            {
-                preCost = spell.BaseMana * baseManaPercent;
-                if (preCost < 1)
-                    preCost = 1;
-                manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
-            }
+            uint manaUsed = CalculateManaUsage(player, spell, target);
+
             if (spell.MetaSpellType == SpellType.Transfer)
             {
                 uint vitalChange, casterVitalChange;
@@ -618,13 +599,30 @@ namespace ACE.Server.WorldObjects
                             }
                             break;
                         case MagicSchool.ItemEnchantment:
-                            enchantmentStatus = ItemMagic(target, spell, spellStatMod);
-                            if (guidTarget == Guid)
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                            if ((target as Player) == null)
+                            {
+                                enchantmentStatus = ItemMagic(target, spell, spellStatMod);
+                                if (guidTarget == Guid)
+                                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                else
+                                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                if (enchantmentStatus.message != null)
+                                    player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            }
                             else
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
-                            if (enchantmentStatus.message != null)
-                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            {
+                                var items = (target as Player).GetAllWieldedItems();
+                                foreach (var item in items)
+                                {
+                                    if (item.WeenieType == WeenieType.Clothing)
+                                    {
+                                        enchantmentStatus = ItemMagic(item, spell, spellStatMod);
+                                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                        if (enchantmentStatus.message != null)
+                                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                    }
+                                }
+                            }
                             break;
                         default:
                             break;

@@ -175,10 +175,20 @@ namespace ACE.Server.WorldObjects
             EnchantmentManager.HeartBeat();
             VitalTick();
             ManaConsumersTick();
+            ItemEnchantmentTick();
 
             QueueNextHeartBeat();
         }
 
+        /// <summary>
+        /// Called every ~5 secs for inventory item enchantments
+        /// </summary>
+        public void ItemEnchantmentTick()
+        {
+            var allItems = GetAllPossessions();
+            foreach (var item in allItems)
+                item.EnchantmentManager.HeartBeat();
+        }
 
         /// <summary>
         /// Called every ~5 secs for equipped mana consuming items

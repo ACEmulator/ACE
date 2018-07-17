@@ -73,8 +73,9 @@ namespace ACE.Server.Network.Structure
             BuildProperties(wo);
             BuildSpells(wo);
 
-            // armor / clothing
-            if (wo is Clothing)
+            // armor / clothing / shield
+            var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
+            if (wo is Clothing || isShield)
                 BuildArmor(wo);
 
             if (wo is Creature creature)
@@ -130,7 +131,8 @@ namespace ACE.Server.Network.Structure
             if (wielder != null)
                 wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
 
-            if (worldObject.WeenieType == WeenieType.Clothing)
+            var isShield = worldObject.CombatUse != null && worldObject.CombatUse == CombatUse.Shield;
+            if (worldObject.WeenieType == WeenieType.Clothing || isShield)
             {
                 // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
