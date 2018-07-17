@@ -372,15 +372,15 @@ namespace ACE.Server.Managers
             }
             else
             {
-                if (WorldObject.OwnerId != null)
+                if (WorldObject.WielderId != null)
                 {
-                    var owner = WorldManager.GetPlayerByGuidId((uint)WorldObject.OwnerId);
+                    var owner = WorldManager.GetPlayerByGuidId((uint)WorldObject.WielderId);
                     if (owner != null)
                     {
                         owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} has expired on {WorldObject.Name}", ChatMessageType.Magic));
 
                         if (sound)
-                            Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
+                            owner.Session.Network.EnqueueSend(new GameMessageSound(owner.Guid, Sound.SpellExpire, 1.0f));
                     }
                 }
             }
