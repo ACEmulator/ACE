@@ -281,13 +281,13 @@ namespace ACE.Server.WorldObjects
 
             // armor level additives
             var player = AttackTarget as Player;
-            var armorMod = player.EnchantmentManager.GetArmorMod();
-            //Console.WriteLine("Impen: " + armorMod);
+            var armorMod = armor.EnchantmentManager.GetArmorMod();
+            // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
 
             // resistance additives
-            var armorBane = player.EnchantmentManager.GetArmorModVsType(damageType);
-            //Console.WriteLine("Bane: " + armorBane);
+            var armorBane = armor.EnchantmentManager.GetArmorModVsType(damageType);
+            // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 
             // resistance cap

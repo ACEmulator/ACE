@@ -392,27 +392,8 @@ namespace ACE.Server.WorldObjects
 
             // Calculating mana usage
             #region
-            CreatureSkill mc = player.GetCreatureSkill(Skill.ManaConversion);
-            double z = mc.Current;
-            double baseManaPercent = 1;
-            if (z > spell.Power)
-            {
-                baseManaPercent = spell.Power / z;
-            }
-            double preCost;
-            uint manaUsed;
-            if ((int)Math.Floor(baseManaPercent) == 1)
-            {
-                preCost = spell.BaseMana;
-                manaUsed = (uint)preCost;
-            }
-            else
-            {
-                preCost = spell.BaseMana * baseManaPercent;
-                if (preCost < 1)
-                    preCost = 1;
-                manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
-            }
+            uint manaUsed = CalculateManaUsage(player, spell, target);
+
             if (spell.MetaSpellType == SpellType.Transfer)
             {
                 uint vitalChange, casterVitalChange;
@@ -631,7 +612,6 @@ namespace ACE.Server.WorldObjects
                             else
                             {
                                 var items = (target as Player).GetAllWieldedItems();
-
                                 foreach (var item in items)
                                 {
                                     if (item.WeenieType == WeenieType.Clothing)
