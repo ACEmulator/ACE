@@ -972,6 +972,7 @@ namespace ACE.Server.Command.Handlers
             SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
 
             Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name);
+            Console.WriteLine("Spell Words: " + spellTable.Spells[spellid].SpellWords);
             Console.WriteLine(spellTable.Spells[spellid].Desc);
 
             var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
