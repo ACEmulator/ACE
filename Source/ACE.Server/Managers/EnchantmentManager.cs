@@ -30,6 +30,7 @@ namespace ACE.Server.Managers
     public class EnchantmentManager
     {
         public WorldObject WorldObject { get; }
+        public Player Player { get; }
 
         public ICollection<BiotaPropertiesEnchantmentRegistry> Enchantments { get; }
 
@@ -49,6 +50,7 @@ namespace ACE.Server.Managers
         public EnchantmentManager(WorldObject obj)
         {
             WorldObject = obj;
+            Player = obj as Player;
             Enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry;
         }
 
@@ -161,8 +163,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SendRegistry(BinaryWriter writer)
         {
-            var player = WorldObject as Player;
-            var enchantmentRegistry = new EnchantmentRegistry(player);
+            if (Player == null) return;
+            var enchantmentRegistry = new EnchantmentRegistry(Player);
             writer.Write(enchantmentRegistry);
         }
 
@@ -171,9 +173,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SendUpdateVitae()
         {
-            var player = WorldObject as Player;
-            var vitae = new Enchantment(player, GetVitae());
-            player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, vitae));
+            if (Player == null) return;
+            var vitae = new Enchantment(Player, GetVitae());
+            Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
         }
 
         /// <summary>
@@ -181,6 +183,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public float UpdateVitae()
         {
+            if (Player == null) return 0;
             BiotaPropertiesEnchantmentRegistry vitae = null;
 
             if (!HasVitae)
@@ -200,8 +203,7 @@ namespace ACE.Server.Managers
                 vitae.StatModValue -= (float)PropertyManager.GetDouble("vitae_penalty").Item;
             }
 
-            var player = WorldObject as Player;
-            var minVitae = GetMinVitae((uint)player.Level);
+            var minVitae = GetMinVitae((uint)Player.Level);
             if (vitae.StatModValue < minVitae)
                 vitae.StatModValue = minVitae;
 
@@ -219,8 +221,6 @@ namespace ACE.Server.Managers
             vitae.StatModValue += 0.01f;
             //SaveDatabase();
 
-            var player = WorldObject as Player;
-
             if (Math.Abs(vitae.StatModValue - 1.0f) < PhysicsGlobals.EPSILON)
                 return 1.0f;
 
@@ -232,14 +232,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public void RemoveVitae()
         {
+            if (Player == null) return;
             WorldObject.RemoveEnchantment((int)Spell.Vitae);
-            var player = WorldObject as Player;
+
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(2.0f);
-            actionChain.AddAction(player, () =>
+            actionChain.AddAction(Player, () =>
             {
-                player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(player.Session, (ushort)Spell.Vitae, 0));
-                player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f));
+                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)Spell.Vitae, 0));
+                Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
             });
             actionChain.EnqueueChain();
         }
@@ -282,8 +283,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SaveDatabase()
         {
-            var player = WorldObject as Player;
-            var saveChain = player.GetSaveChain();
+            if (Player == null) return;
+            var saveChain = Player.GetSaveChain();
             saveChain.EnqueueChain();
         }
 
@@ -361,11 +362,28 @@ namespace ACE.Server.Managers
             var spellID = entry.SpellId;
             var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
             WorldObject.RemoveEnchantment(spellID);
-            var player = WorldObject as Player;
-            player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId));
 
-            if (sound)
-                player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.SpellExpire, 1.0f));
+            if (Player != null)
+            {
+                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+
+                if (sound)
+                    Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
+            }
+            else
+            {
+                if (WorldObject.OwnerId != null)
+                {
+                    var owner = WorldManager.GetPlayerByGuidId((uint)WorldObject.OwnerId);
+                    if (owner != null)
+                    {
+                        owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} has expired on {WorldObject.Name}", ChatMessageType.Magic));
+
+                        if (sound)
+                            Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -377,9 +395,9 @@ namespace ACE.Server.Managers
             var spellID = entry.SpellId;
             var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
             WorldObject.RemoveEnchantment(spellID);
-            var player = WorldObject as Player;
-            player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(player.Session, (ushort)entry.SpellId, entry.LayerId));
 
+            if (Player != null)
+                Player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
         }
 
         /// <summary>
