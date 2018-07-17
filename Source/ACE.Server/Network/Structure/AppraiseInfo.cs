@@ -74,7 +74,8 @@ namespace ACE.Server.Network.Structure
             BuildSpells(wo);
 
             // armor / clothing
-            if (wo is Clothing)
+            var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
+            if (wo is Clothing || isShield)
                 BuildArmor(wo);
 
             if (wo is Creature creature)
