@@ -2,9 +2,9 @@ namespace ACE.Entity.Enum
 {
     public enum AttackHeight
     {
-        High = 1,
-        Medium = 2,
-        Low = 3
+        High    = 1,
+        Medium  = 2,
+        Low     = 3
     }
 
     public static class AttackHeightExtensions

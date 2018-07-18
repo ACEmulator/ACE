@@ -1,5 +1,8 @@
+using System;
+
 namespace ACE.Entity.Enum
 {
+    [Flags]
     public enum RegenerationType : uint
     {
         Undef       = 0x0,

@@ -1,5 +1,8 @@
+using System;
+
 namespace ACE.Entity.Enum
 {
+    [Flags]
     public enum RegenLocationType : uint
     {
         Undef               = 0x00,

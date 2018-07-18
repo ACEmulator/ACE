@@ -1,8 +1,11 @@
-﻿namespace ACE.Entity.Enum
+using System;
+
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// exported from the decompiled client.
     /// </summary>
+    [Flags]
     public enum CombatStyle
     {
         Undef               = 0x00000,
