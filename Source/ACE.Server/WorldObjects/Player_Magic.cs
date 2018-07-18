@@ -484,7 +484,7 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                string spellWords = SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable, formula);
+                string spellWords = spell.SpellWords;
                 if (spellWords != null)
                     CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
             });
@@ -808,8 +808,7 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable,
-                    formula), Name, Guid.Full, ChatMessageType.Magic));
+                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spell.SpellWords, Name, Guid.Full, ChatMessageType.Magic));
             });
 
             spellChain.AddAction(this, () =>

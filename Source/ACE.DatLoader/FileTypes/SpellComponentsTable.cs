@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-
 using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
@@ -64,8 +63,18 @@ namespace ACE.DatLoader.FileTypes
                     thirdSpellWord = comps.SpellComponents[formula[i]].Text;
             }
 
-            string result = $"{firstSpellWord} {secondSpellWord}{thirdSpellWord.ToLower()}";
-            return result;
+            // We need to make sure our second spell word, if any, is capitalized
+            // Some spell words have no "secondSpellWord", so we're basically making sure the third word is capitalized.
+            string secondSpellWordSet = (secondSpellWord + thirdSpellWord.ToLower());
+            if(secondSpellWordSet != "")
+            {
+                string firstLetter = secondSpellWordSet.Substring(0, 1).ToUpper();
+                secondSpellWordSet = firstLetter + secondSpellWordSet.Substring(1);
+
+            }
+
+            string result = $"{firstSpellWord} {secondSpellWordSet}";
+            return result.Trim();
         }
     }
 }
