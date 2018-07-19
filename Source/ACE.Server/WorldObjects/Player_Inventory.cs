@@ -683,7 +683,6 @@ namespace ACE.Server.WorldObjects
 
                         if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
                         {
-                            var playerId = Guid;
                             var containerId = (uint)item.ContainerId;
                             var container = GetInventoryItem(new ObjectGuid(containerId));
                             if (container == null)
