@@ -108,8 +108,8 @@ namespace ACE.Server.Physics.Common
             if (pos.X < radius || pos.Y < radius)
                 return false;
 
-            var dist = pos.Length2D() - radius;
-            return pos.X < dist && pos.Y < dist;
+            var blockRadius = LandDefs.BlockLength - radius;
+            return pos.X < blockRadius && pos.Y < blockRadius;
         }
 
         public static Vector2? blockid_to_lcoord(uint cellID)

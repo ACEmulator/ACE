@@ -17,9 +17,20 @@ namespace ACE.DatLoader.Entity
 
         public Frame(ACE.Entity.Position position)
         {
-            Origin = new Vector3(position.PositionX, position.PositionY, position.PositionZ);
-            Orientation = new Quaternion(position.RotationX, position.RotationY, position.RotationZ, position.RotationW);
+            Init(position.Pos, position.Rotation);
         }
+
+        public Frame(Vector3 origin, Quaternion orientation)
+        {
+            Init(origin, orientation);
+        }
+
+        public void Init(Vector3 origin, Quaternion orientation)
+        {
+            Origin = new Vector3(origin.X, origin.Y, origin.Z);
+            Orientation = new Quaternion(orientation.X, orientation.Y, orientation.Z, orientation.W);
+        }
+
 
         public void Unpack(BinaryReader reader)
         {
