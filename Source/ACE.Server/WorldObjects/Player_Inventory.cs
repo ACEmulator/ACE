@@ -672,8 +672,31 @@ namespace ACE.Server.WorldObjects
             {
                 var itemGuid = new ObjectGuid(itemId);
 
-                if (TryRemoveFromInventory(itemGuid, out WorldObject item))
+                var item = GetInventoryItem(itemGuid);
+                if (item != null)
                 {
+                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+
+                    if (itemSkillReq != Skill.None)
+                    {
+                        var playerSkill = GetCreatureSkill(itemSkillReq).Current;
+
+                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                        {
+                            var containerId = (uint)item.ContainerId;
+                            var container = GetInventoryItem(new ObjectGuid(containerId));
+                            if (container == null)
+                            {
+                                container = this;
+                            }
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: WeenieError.SkillTooLow));
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
+                            return;
+                        }
+                    }
+
+                    TryRemoveFromInventory(itemGuid, out item);
+
                     if (!TryEquipObject(item, wieldLocation))
                     {
                         log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
