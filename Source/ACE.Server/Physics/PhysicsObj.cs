@@ -2458,20 +2458,35 @@ namespace ACE.Server.Physics
 
             if (State.HasFlag(PhysicsState.HasPhysicsBSP))
             {
-                var radius = sortingSphere.Radius - PhysicsGlobals.EPSILON;
-                return globCenter.LengthSquared() >= radius * radius;  // verify
+                if (globCenter.X >= sortingSphere.Radius && globCenter.Y >= sortingSphere.Radius)
+                {
+                    var blockRadius = LandDefs.BlockLength - sortingSphere.Radius;
+                    if (globCenter.X < blockRadius)
+                    {
+                        if (globCenter.Y >= blockRadius)
+                            return false;
+                        return true;
+                    }
+                }
+                return false;
             }
+
             if (PartArray != null && PartArray.GetNumCylsphere() > 0)
             {
                 for (var i = 0; i < PartArray.GetNumCylsphere(); i++)
                 {
                     var cylSphere = PartArray.GetCylSphere()[i];
-                    var diff = Vector3.Dot(Position.Frame.Origin, cylSphere.LowPoint);
-                    if (diff < cylSphere.Radius) return false;
-                    if (globCenter.LengthSquared() >= cylSphere.Radius * cylSphere.Radius) return false;
+                    globCenter = Position.Frame.LocalToGlobal(cylSphere.LowPoint);
+                    if (globCenter.X < cylSphere.Radius || globCenter.Y < cylSphere.Radius)
+                        return false;
+
+                    var blockRadius = LandDefs.BlockLength - cylSphere.Radius;
+                    if (globCenter.X >= blockRadius || globCenter.Y >= blockRadius)
+                        return false;
                 }
                 return true;
             }
+
             if (PartArray != null && PartArray.GetNumSphere() > 0)
                 return LandDefs.InBlock(globCenter, sortingSphere.Radius);
             else

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.BSP;
@@ -42,6 +41,7 @@ namespace ACE.Server.Physics.Common
             Init();
 
             ID = landblock.Id;
+            //Console.WriteLine("Loading landblock " + ID.ToString("X8"));
             BlockInfoExists = landblock.HasObjects;
             if (BlockInfoExists)
                 Info = (LandblockInfo)DBObj.Get(new QualifiedDataID(2, ID - 1));
@@ -150,6 +150,8 @@ namespace ACE.Server.Physics.Common
 
         public void get_land_scenes()
         {
+            //Console.WriteLine("Loading scenery for " + ID.ToString("X8"));
+            
             // ported from Scenery
             Scenery = new List<PhysicsObj>();
 
@@ -157,7 +159,7 @@ namespace ACE.Server.Physics.Common
             var blockX = (ID >> 24) * 8;
             var blockY = (ID >> 16 & 0xFF) * 8;
 
-            for (var i = 0; i < Terrain.Count; i++)
+            for (uint i = 0; i < Terrain.Count; i++)
             {
                 var terrain = Terrain[(int)i];
 
@@ -194,31 +196,50 @@ namespace ACE.Server.Physics.Common
 
                     if (noise < obj.Freq && obj.WeenieObj == 0)
                     {
-                        var position = Displace(obj, globalCellX, globalCellY, j);
+                        // pseudo-randomized placement
+                        var position = ObjectDesc.Displace(obj, globalCellX, globalCellY, j);
 
-                        // ensure within landblock range, and not near road
                         var lx = cellX * LandDefs.CellLength + position.X;
                         var ly = cellY * LandDefs.CellLength + position.Y;
+                        var loc = new Vector3(lx, ly, position.Z);
 
-                        // TODO: ensure walkable slope
-                        if (lx < 0 || ly < 0 || lx >= LandDefs.BlockLength || ly >= LandDefs.BlockLength || OnRoad(obj, lx, ly)) continue;
+                        // ensure within landblock range, and not near road
+                        if (lx < 0 || ly < 0 || lx >= LandDefs.BlockLength || ly >= LandDefs.BlockLength || OnRoad(loc)) continue;
 
                         // load scenery
                         var pos = new Position(ID);
-                        pos.Frame.Origin = new Vector3(lx, ly, 0);
-                        pos.Frame.Orientation = Quaternion.CreateFromYawPitchRoll(0, 0, RotateObj(obj, globalCellX, globalCellY, j));
+                        pos.Frame.Origin = loc;
                         var outside = LandDefs.AdjustToOutside(pos);
                         var cell = get_landcell(pos.ObjCellID);
-                        //if (cell == null) continue;
+                        if (cell == null) continue;
+
+                        // check for buildings
+                        var sortCell = (SortCell)cell;
+                        if (sortCell != null && sortCell.has_building()) continue;
 
                         Polygon walkable = null;
                         var terrainPoly = cell.find_terrain_poly(pos.Frame.Origin, ref walkable);
+                        if (walkable == null) continue;
+
+                        // ensure walkable slope
+                        if (!ObjectDesc.CheckSlope(obj, walkable.Plane.Normal.Z)) continue;
+
                         walkable.Plane.set_height(ref pos.Frame.Origin);
 
-                        // todo: collision detection
+                        // rotation
+                        if (obj.Align != 0)
+                            pos.Frame = ObjectDesc.ObjAlign(obj, walkable.Plane, pos.Frame.Origin);
+                        else
+                            pos.Frame = ObjectDesc.RotateObj(obj, globalCellX, globalCellY, j, pos.Frame.Origin);
+
+                        // build object
                         var physicsObj = PhysicsObj.makeObject(obj.ObjId, 0, false);
-                        //physicsObj.set_initial_frame(pos.Frame);
+                        physicsObj.set_initial_frame(pos.Frame);
+                        if (!physicsObj.obj_within_block()) continue;
+
                         physicsObj.add_obj_to_cell(cell, pos.Frame);
+                        var scale = ObjectDesc.ScaleObj(obj, globalCellX, globalCellY, j);
+                        physicsObj.SetScaleStatic(scale);
                         Scenery.Add(physicsObj);
                     }
                 }
@@ -226,85 +247,125 @@ namespace ACE.Server.Physics.Common
             //Console.WriteLine("Landblock " + ID.ToString("X8") + " scenery count: " + Scenery.Count);
         }
 
-        /// <summary>
-        /// Displaces a scenery object into a pseudo-randomized location
-        /// </summary>
-        /// <param name="obj">The object description</param>
-        /// <param name="ix">The global cell X-offset</param>
-        /// <param name="iy">The global cell Y-offset</param>
-        /// <param name="iq">The scene index of the object</param>
-        /// <returns>The new location of the object</returns>
-        public static Vector2 Displace(ObjectDesc obj, uint ix, uint iy, uint iq)
-        {
-            float x;
-            float y;
-
-            var loc = obj.BaseLoc.Origin;
-
-            if (obj.DisplaceX <= 0)
-                x = loc.X;
-            else
-                x = (float)((1813693831 * iy - (iq + 45773) * (1360117743 * iy * ix + 1888038839) - 1109124029 * ix)
-                    * 2.3283064e-10 * obj.DisplaceX + loc.X);
-
-            if (obj.DisplaceY <= 0)
-                y = loc.Y;
-            else
-                y = (float)((1813693831 * iy - (iq + 72719) * (1360117743 * iy * ix + 1888038839) - 1109124029 * ix)
-                    * 2.3283064e-10 * obj.DisplaceY + loc.Y);
-
-            var quadrant = (1813693831 * iy - ix * (1870387557 * iy + 1109124029) - 402451965) * 2.3283064e-10;
-
-            if (quadrant >= 0.75) return new Vector2(y, -x);
-            if (quadrant >= 0.5) return new Vector2(-x, -y);
-            if (quadrant >= 0.25) return new Vector2(-y, x);
-
-            return new Vector2(x, y);
-        }
-
-        /// <summary>
-        /// Returns the scale for a scenery object
-        /// </summary>
-        /// <param name="obj">The object decription</param>
-        /// <param name="x">The global cell X-offset</param>
-        /// <param name="y">The global cell Y-offset</param>
-        /// <param name="k">The scene index of the object</param>
-        public static float ScaleObj(ObjectDesc obj, uint x, uint y, uint k)
-        {
-            var scale = 1.0f;
-
-            var minScale = obj.MinScale;
-            var maxScale = obj.MaxScale;
-
-            if (minScale == maxScale)
-                scale = maxScale;
-            else
-                scale = (float)(Math.Pow(maxScale / minScale,
-                    (1813693831 * y - (k + 32593) * (1360117743 * y * x + 1888038839) - 1109124029 * x) * 2.3283064e-10) * minScale);
-
-            return scale;
-        }
-
-        /// <summary>
-        /// Returns the rotation for a scenery object
-        /// </summary>
-        public static float RotateObj(ObjectDesc obj, uint x, uint y, uint k)
-        {
-            if (obj.MaxRotation <= 0.0f)
-                return 0.0f;
-
-            return (float)((1813693831 * y - (k + 63127) * (1360117743 * y * x + 1888038839) - 1109124029 * x) * 2.3283064e-10 * obj.MaxRotation * -0.0174533f);
-        }
+        public static float RoadWidth = 5.0f;
+        public static float TileLength = 24.0f;
 
         /// <summary>
         /// Returns TRUE if x,y is located on a road cell
         /// </summary>
-        public bool OnRoad(ObjectDesc obj, float x, float y)
+        public bool IsRoad(DatLoader.Entity.ObjectDesc obj, float x, float y)
         {
             var cellX = (int)Math.Floor(x / LandDefs.CellLength);
             var cellY = (int)Math.Floor(y / LandDefs.CellLength);
             var terrain = Terrain[cellX * LandDefs.BlockSide + cellY];     // ensure within bounds?
             return (terrain & 0x3) != 0;    // TODO: more complicated check for within road range
+        }
+
+        public bool OnRoad(Vector3 obj)
+        {
+            int x = (int)(obj.X / TileLength);
+            int y = (int)(obj.Y / TileLength);
+
+            float rMin = RoadWidth;
+            float rMax = TileLength - RoadWidth;
+
+            int x0 = x;
+            int x1 = x0 + 1;
+            int y0 = y;
+            int y1 = y0 + 1;
+
+            uint r0 = GetRoad(x0, y0);
+            uint r1 = GetRoad(x0, y1);
+            uint r2 = GetRoad(x1, y0);
+            uint r3 = GetRoad(x1, y1);
+
+            if (r0 == 0 && r1 == 0 && r2 == 0 && r3 == 0)
+                return false;
+
+            float dx = obj.X - x * TileLength;
+            float dy = obj.Y - y * TileLength;
+
+            if (r0 > 0)
+            {
+                if (r1 > 0)
+                {
+                    if (r2 > 0)
+                    {
+                        if (r3 > 0)
+                            return true;
+                        else
+                            return (dx < rMin || dy < rMin);
+                    }
+                    else
+                    {
+                        if (r3 > 0)
+                            return (dx < rMin || dy > rMax);
+                        else
+                            return (dx < rMin);
+                    }
+                }
+                else
+                {
+                    if (r2 > 0)
+                    {
+                        if (r3 > 0)
+                            return (dx > rMax || dy < rMin);
+                        else
+                            return (dy < rMin);
+                    }
+                    else
+                    {
+                        if (r3 > 0)
+                            return (Math.Abs(dx - dy) < rMin);
+                        else
+                            return (dx + dy < rMin);
+                    }
+                }
+            }
+            else
+            {
+                if (r1 > 0)
+                {
+                    if (r2 > 0)
+                    {
+                        if (r3 > 0)
+                            return (dx > rMax || dy > rMax);
+                        else
+                            return (Math.Abs(dx + dy - TileLength) < rMin);
+                    }
+                    else
+                    {
+                        if (r3 > 0)
+                            return (dy > rMax);
+                        else
+                            return (TileLength + dx - dy < rMin);
+                    }
+                }
+                else
+                {
+                    if (r2 > 0)
+                    {
+                        if (r3 > 0)
+                            return (dx > rMax);
+                        else
+                            return (TileLength - dx + dy < rMin);
+                    }
+                    else
+                    {
+                        if (r3 > 0)
+                            return (TileLength * 2f - dx - dy < rMin);
+                        else
+                            return false;
+                    }
+                }
+            }
+        }
+
+        public uint GetRoad(int x, int y)
+        {
+            ushort t0 = Terrain[x * 9 + y];
+            t0 = (ushort)(t0 & ((1 << 2) - 1));
+            return t0;
         }
 
         public LandCell get_landcell(uint cellID)
@@ -400,9 +461,9 @@ namespace ACE.Server.Physics.Common
                     obj.add_obj_to_cell(cell, position.Frame);
                     add_static_object(obj);
                 }
-                if (UseSceneFiles)
-                    get_land_scenes();
             }
+            if (UseSceneFiles)
+                get_land_scenes();
         }
 
         public void notify_change_size()
