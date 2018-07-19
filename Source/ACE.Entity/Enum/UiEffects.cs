@@ -1,5 +1,8 @@
-﻿namespace ACE.Entity.Enum
+using System;
+
+namespace ACE.Entity.Enum
 {
+    [Flags]
     public enum UiEffects : uint
     {
         Undef           = 0x0000,

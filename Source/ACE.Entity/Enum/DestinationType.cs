@@ -1,5 +1,8 @@
+using System;
+
 namespace ACE.Entity.Enum
 {
+    [Flags]
     public enum DestinationType
     { 
         Undef           = 0,
