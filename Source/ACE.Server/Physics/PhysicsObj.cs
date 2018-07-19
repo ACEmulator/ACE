@@ -2456,7 +2456,7 @@ namespace ACE.Server.Physics
             var sortingSphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
             var globCenter = Position.Frame.LocalToGlobal(sortingSphere.Center);
 
-            if (!State.HasFlag(PhysicsState.HasPhysicsBSP))
+            if (State.HasFlag(PhysicsState.HasPhysicsBSP))
             {
                 if (globCenter.X >= sortingSphere.Radius && globCenter.Y >= sortingSphere.Radius)
                 {
