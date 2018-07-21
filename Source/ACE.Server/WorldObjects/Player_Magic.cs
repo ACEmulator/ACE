@@ -184,7 +184,6 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
-
                     case MagicSchool.LifeMagic:
                         if (spell.MetaSpellType != SpellType.LifeProjectile)
                         {
@@ -250,9 +249,32 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            // Retrieve enchantment
-            if (EnchantmentManager.HasSpell(spellId))
-                EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+            if (spell.School == MagicSchool.ItemEnchantment)
+            {
+                if ((spell.Category == (uint)SpellCategory.AttackModRaising)
+                    || (spell.Category == (uint)SpellCategory.DamageRaising)
+                    || (spell.Category == (uint)SpellCategory.DefenseModRaising)
+                    || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
+                    || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
+                    || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
+                {
+                    // Retrieve enchantment on player and dispel it, if present
+                    if (EnchantmentManager.HasSpell(spellId))
+                        EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+                }
+                else
+                {
+                    // Retrieve enchantment on item and dispel it, if present
+                    if (item.EnchantmentManager.HasSpell(spellId))
+                        item.EnchantmentManager.Dispel(item.EnchantmentManager.GetSpell(spellId));
+                }
+            }
+            else
+            {
+                // Retrieve enchantment on player and dispel it, if present
+                if (EnchantmentManager.HasSpell(spellId))
+                    EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+            }
         }
 
         /// <summary>
@@ -276,9 +298,32 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            // Retrieve enchantment
-            if (EnchantmentManager.HasSpell(spellId))
-                EnchantmentManager.Remove(EnchantmentManager.GetSpell(spellId));
+            if (spell.School == MagicSchool.ItemEnchantment)
+            {
+                if ((spell.Category == (uint)SpellCategory.AttackModRaising)
+                    || (spell.Category == (uint)SpellCategory.DamageRaising)
+                    || (spell.Category == (uint)SpellCategory.DefenseModRaising)
+                    || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
+                    || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
+                    || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
+                {
+                    // Retrieve enchantment on player and remove it, if present
+                    if (EnchantmentManager.HasSpell(spellId))
+                        EnchantmentManager.Remove(EnchantmentManager.GetSpell(spellId));
+                }
+                else
+                {
+                    // Retrieve enchantment on item and remove it, if present
+                    if (item.EnchantmentManager.HasSpell(spellId))
+                        item.EnchantmentManager.Remove(item.EnchantmentManager.GetSpell(spellId));
+                }
+            }
+            else
+            {
+                // Retrieve enchantment on player and remove it, if present
+                if (EnchantmentManager.HasSpell(spellId))
+                    EnchantmentManager.Remove(EnchantmentManager.GetSpell(spellId));
+            }
         }
 
         /// <summary>
