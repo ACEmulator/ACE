@@ -604,6 +604,68 @@ CREATE TABLE `spell` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `treasure_death`
+--
+
+DROP TABLE IF EXISTS `treasure_death`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `treasure_death` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Treasure',
+  `treasure_Type` int(10) unsigned NOT NULL COMMENT 'Type of Treasure for this instance',
+  `tier` int(10) NOT NULL,
+  `unknown_1` float NOT NULL,
+  `unknown_2` int(10) NOT NULL,
+  `unknown_3` int(10) NOT NULL,
+  `unknown_4` int(10) NOT NULL,
+  `unknown_5` int(10) NOT NULL,
+  `unknown_6` int(10) NOT NULL,
+  `unknown_7` int(10) NOT NULL,
+  `unknown_8` int(10) NOT NULL,
+  `unknown_9` int(10) NOT NULL,
+  `unknown_10` int(10) NOT NULL,
+  `unknown_11` int(10) NOT NULL,
+  `unknown_12` int(10) NOT NULL,
+  `unknown_13` int(10) NOT NULL,
+  `unknown_14` int(10) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `treasureType_idx` (`treasure_Type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Death Treasure';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `treasure_wielded`
+--
+
+DROP TABLE IF EXISTS `treasure_wielded`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `treasure_wielded` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Treasure',
+  `treasure_Type` int(10) unsigned NOT NULL COMMENT 'Type of Treasure for this instance',
+  `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of Treasure to Generate',
+  `palette_Id` int(10) unsigned NOT NULL COMMENT 'Palette Color of Object Generated',
+  `unknown_1` int(10) unsigned NOT NULL,
+  `shade` float NOT NULL COMMENT 'Shade of Object generated''s Palette',
+  `stack_Size` int(10) NOT NULL DEFAULT '1' COMMENT 'Stack Size of object to create (-1 = infinite)',
+  `unknown_2` float NOT NULL,
+  `probability` float NOT NULL,
+  `unknown_3` int(10) unsigned NOT NULL,
+  `unknown_4` int(10) unsigned NOT NULL,
+  `unknown_5` int(10) unsigned NOT NULL,
+  `unknown_6` bit(1) NOT NULL,
+  `unknown_7` bit(1) NOT NULL,
+  `unknown_8` bit(1) NOT NULL,
+  `unknown_9` int(10) unsigned NOT NULL,
+  `unknown_10` int(10) unsigned NOT NULL,
+  `unknown_11` int(10) unsigned NOT NULL,
+  `unknown_12` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `treasureType_idx` (`treasure_Type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Wielded Treasure';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `weenie`
 --
 
@@ -839,7 +901,7 @@ CREATE TABLE `weenie_properties_emote` (
   `category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
   `probability` float NOT NULL DEFAULT '1' COMMENT 'Probability of this EmoteSet being chosen',
   `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
-  `weenie_Class_Id` int(10) DEFAULT NULL,
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL,
   `style` int(10) unsigned DEFAULT NULL,
   `substyle` int(10) unsigned DEFAULT NULL,
   `quest` text,
@@ -1183,4 +1245,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-20 17:36:22
+-- Dump completed on 2018-07-22 12:56:06
