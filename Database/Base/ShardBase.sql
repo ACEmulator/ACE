@@ -52,8 +52,9 @@ CREATE TABLE `biota_properties_anim_part` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `index` tinyint(3) unsigned NOT NULL,
   `animation_Id` int(10) unsigned NOT NULL,
+  `order` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `object_Id_index_uidx` (`object_Id`,`index`),
+  UNIQUE KEY `object_Id_index_uidx` (`object_Id`,`index`,`animation_Id`),
   CONSTRAINT `wcid_animpart` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Animation Part Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -260,7 +261,7 @@ CREATE TABLE `biota_properties_emote` (
   `category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
   `probability` float NOT NULL DEFAULT '1' COMMENT 'Probability of this EmoteSet being chosen',
   `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
-  `weenie_Class_Id` int(10) DEFAULT NULL,
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL,
   `style` int(10) unsigned DEFAULT NULL,
   `substyle` int(10) unsigned DEFAULT NULL,
   `quest` text,
@@ -314,7 +315,7 @@ CREATE TABLE `biota_properties_emote_action` (
   `p_Script` int(10) DEFAULT NULL,
   `sound` int(10) DEFAULT NULL,
   `destination_Type` tinyint(5) DEFAULT NULL COMMENT 'Type of Destination the value applies to (DestinationType.????)',
-  `weenie_Class_Id` int(10) DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
   `stack_Size` int(10) DEFAULT NULL COMMENT 'Stack Size of object to create (-1 = infinite)',
   `palette` int(10) DEFAULT NULL COMMENT 'Palette Color of Object',
   `shade` float DEFAULT NULL COMMENT 'Shade of Object''s Palette',
@@ -622,8 +623,9 @@ CREATE TABLE `biota_properties_texture_map` (
   `index` tinyint(3) unsigned NOT NULL,
   `old_Id` int(10) unsigned NOT NULL,
   `new_Id` int(10) unsigned NOT NULL,
+  `order` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `object_Id_index_oldId_uidx` (`object_Id`,`index`,`old_Id`),
+  UNIQUE KEY `object_Id_index_oldId_uidx` (`object_Id`,`index`,`old_Id`,`new_Id`),
   CONSTRAINT `wcid_texturemap` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Texture Map Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -646,6 +648,7 @@ CREATE TABLE `character` (
   `total_Logins` int(10) NOT NULL DEFAULT '0',
   `character_Options_1` int(10) NOT NULL DEFAULT '0',
   `character_Options_2` int(10) NOT NULL DEFAULT '0',
+  `gameplay_Options` blob,
   `hair_Texture` int(10) unsigned NOT NULL DEFAULT '0',
   `default_Hair_Texture` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -795,6 +798,66 @@ CREATE TABLE `character_properties_title_book` (
   CONSTRAINT `wcid_titlebook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='TitleBook Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `config_properties_boolean`
+--
+
+DROP TABLE IF EXISTS `config_properties_boolean`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `config_properties_boolean` (
+  `key` varchar(255) NOT NULL,
+  `value` bit(1) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `config_properties_double`
+--
+
+DROP TABLE IF EXISTS `config_properties_double`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `config_properties_double` (
+  `key` varchar(255) NOT NULL,
+  `value` double NOT NULL,
+  `description` text,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `config_properties_long`
+--
+
+DROP TABLE IF EXISTS `config_properties_long`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `config_properties_long` (
+  `key` varchar(255) NOT NULL,
+  `value` bigint(20) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `config_properties_string`
+--
+
+DROP TABLE IF EXISTS `config_properties_string`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `config_properties_string` (
+  `key` varchar(255) NOT NULL,
+  `value` text NOT NULL,
+  `description` text,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -805,4 +868,4 @@ CREATE TABLE `character_properties_title_book` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-20 19:33:15
+-- Dump completed on 2018-07-22 13:10:09
