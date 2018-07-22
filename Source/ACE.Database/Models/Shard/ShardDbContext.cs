@@ -81,11 +81,11 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Index).HasColumnName("index");
 
-                entity.Property(e => e.Order).HasColumnName("order");
-
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Order).HasColumnName("order");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesAnimPart)
@@ -1311,11 +1311,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.GameplayOptions)
-                    .HasColumnName("gameplay_Options")
-                    .HasColumnType("blob")
-                    .HasDefaultValueSql(null);
-
                 entity.Property(e => e.DefaultHairTexture)
                     .HasColumnName("default_Hair_Texture")
                     .HasDefaultValueSql("'0'");
@@ -1323,6 +1318,10 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.DeleteTime)
                     .HasColumnName("delete_Time")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.GameplayOptions)
+                    .HasColumnName("gameplay_Options")
+                    .HasColumnType("blob");
 
                 entity.Property(e => e.HairTexture)
                     .HasColumnName("hair_Texture")
