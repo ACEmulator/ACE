@@ -666,6 +666,14 @@ namespace ACE.Server.WorldObjects
             return spellCreated;
         }
 
+        private enum WieldRequirements
+        {
+            None        = 0,
+            Skill       = 2,
+            Attribute   = 3,
+            Level       = 7
+        }
+
         public void HandleActionGetAndWieldItem(uint itemId, int wieldLocation)
         {
             new ActionChain(this, () =>
@@ -675,24 +683,67 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItem(itemGuid);
                 if (item != null)
                 {
-                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+                    bool wieldReqCheckFailed = false;
+                    WeenieError weenieError = WeenieError.None;
 
-                    if (itemSkillReq != Skill.None)
+                    var itemWieldReq = (item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
+                    switch (itemWieldReq)
                     {
-                        var playerSkill = GetCreatureSkill(itemSkillReq).Current;
+                        case (int)WieldRequirements.Skill:
+                            // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
+                            var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
 
-                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                        {
-                            var containerId = (uint)item.ContainerId;
-                            var container = GetInventoryItem(new ObjectGuid(containerId));
-                            if (container == null)
+                            if (itemSkillReq != Skill.None)
                             {
-                                container = this;
+                                var playerSkill = GetCreatureSkill(itemSkillReq).Current;
+
+                                if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                                {
+                                    wieldReqCheckFailed = true;
+                                    weenieError = WeenieError.SkillTooLow;
+                                }
                             }
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: WeenieError.SkillTooLow));
-                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
-                            return;
+                            break;
+                        case (int)WieldRequirements.Level:
+                            // Check WieldDifficulty property against player's level
+                            if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                            {
+                                wieldReqCheckFailed = true;
+                                weenieError = WeenieError.LevelTooLow;
+                            }
+                            break;
+                        case (int)WieldRequirements.Attribute:
+                            // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
+                            var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+
+                            if (itemAttributeReq != PropertyAttribute.Undef)
+                            {
+                                var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+
+                                if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                                {
+                                    wieldReqCheckFailed = true;
+                                    weenieError = WeenieError.SkillTooLow;
+                                }
+                            }
+                            break;
+                        default:
+                            wieldReqCheckFailed = false;
+                            weenieError = WeenieError.None;
+                            break;
+                    }
+
+                    if (wieldReqCheckFailed)
+                    {
+                        var containerId = (uint)item.ContainerId;
+                        var container = GetInventoryItem(new ObjectGuid(containerId));
+                        if (container == null)
+                        {
+                            container = this;
                         }
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: weenieError));
+                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
+                        return;
                     }
 
                     TryRemoveFromInventory(itemGuid, out item);
