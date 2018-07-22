@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.World
@@ -11,7 +11,7 @@ namespace ACE.Database.Models.World
         public string Description { get; set; }
         public int School { get; set; }
         public uint IconId { get; set; }
-        public uint Category { get; set; } // SpellCategory enum
+        public uint Category { get; set; }
         public uint Bitfield { get; set; }
         public uint Mana { get; set; }
         public float RangeConstant { get; set; }

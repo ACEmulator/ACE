@@ -15,7 +15,7 @@ namespace ACE.Database.Models.World
         public uint Category { get; set; }
         public float Probability { get; set; }
         public uint EmoteSetId { get; set; }
-        public int? WeenieClassId { get; set; }
+        public uint? WeenieClassId { get; set; }
         public uint? Style { get; set; }
         public uint? Substyle { get; set; }
         public string Quest { get; set; }

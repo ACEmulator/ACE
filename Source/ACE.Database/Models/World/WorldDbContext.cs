@@ -1925,9 +1925,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("vendor_Type")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.WeenieClassId)
-                    .HasColumnName("weenie_Class_Id")
-                    .HasColumnType("int(10)");
+                entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesEmote)
