@@ -11,7 +11,7 @@ namespace ACE.Server.Physics.Hooks
 
         public AnimHook(AnimationHook animHook)
         {
-            HookType = (HookType)animHook.HookType;
+            HookType = (PhysicsHookType)animHook.HookType;
             Direction = animHook.Direction;
         }
 

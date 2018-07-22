@@ -232,7 +232,7 @@ namespace ACE.Server.Physics
             }
             var upperBound = (float)delta;
             var randp = Common.Random.RollDice(0.0f, upperBound);
-            var hook = new FPHook(HookType.Velocity | HookType.MotionTable | HookType.Setup, PhysicsTimer.CurrentTime, randp, 0.0f, 1.0f, pes);
+            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer.CurrentTime, randp, 0.0f, 1.0f, pes);
             Hooks.AddLast(hook);
         }
 
@@ -904,7 +904,7 @@ namespace ACE.Server.Physics
                     PartArray.SetLuminosityInternal(end);
                 return;
             }
-            var hook = new FPHook(HookType.MotionTable | HookType.Setup, PhysicsTimer.CurrentTime, delta, start, end, 0);
+            var hook = new FPHook(PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, start, end, 0);
             Hooks.AddLast(hook);
         }
 
@@ -938,7 +938,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartDiffusionInternal(part, end);
                 return;
             }
-            var hook = new FPHook(HookType.Velocity | HookType.MotionTable, PhysicsTimer.CurrentTime, delta, start, end, part);
+            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable, PhysicsTimer.CurrentTime, delta, start, end, part);
             Hooks.AddLast(hook);
         }
 
@@ -958,7 +958,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartLuminosityInternal(part, end);
                 return;
             }
-            var hook = new FPHook(HookType.Velocity | HookType.Setup, PhysicsTimer.CurrentTime, delta, start, end, part);
+            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, start, end, part);
             Hooks.AddLast(hook);
         }
 
@@ -976,7 +976,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartTranslucencyInternal(partIdx, endTrans);
                 return;
             }
-            var hook = new FPHook(HookType.MotionTable, PhysicsTimer.CurrentTime, delta, startTrans, endTrans, partIdx);
+            var hook = new FPHook(PhysicsHookType.MotionTable, PhysicsTimer.CurrentTime, delta, startTrans, endTrans, partIdx);
             Hooks.AddLast(hook);
         }
 
@@ -1191,7 +1191,7 @@ namespace ACE.Server.Physics
                     PartArray.SetScaleInternal(new Vector3(scale, scale, scale));
                 return;
             }
-            var hook = new FPHook((HookType)0, PhysicsTimer.CurrentTime, delta, Scale, scale, 0);
+            var hook = new FPHook((PhysicsHookType)0, PhysicsTimer.CurrentTime, delta, Scale, scale, 0);
             Hooks.AddLast(hook);
         }
 
@@ -1237,7 +1237,7 @@ namespace ACE.Server.Physics
                 if (PartArray != null) PartArray.SetTranslucencyInternal(Translucency);
                 return;
             }
-            var hook = new FPHook(HookType.Setup, PhysicsTimer.CurrentTime, delta, 0.0f, translucency, 0);
+            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, 0.0f, translucency, 0);
             Hooks.AddLast(hook);
         }
 
@@ -1250,7 +1250,7 @@ namespace ACE.Server.Physics
                 if (PartArray != null) PartArray.SetTranslucencyInternal(startTrans);
                 return;
             }
-            var hook = new FPHook(HookType.Setup, PhysicsTimer.CurrentTime, delta, startTrans, endTrans, 0);
+            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, startTrans, endTrans, 0);
             Hooks.AddLast(hook);
         }
 

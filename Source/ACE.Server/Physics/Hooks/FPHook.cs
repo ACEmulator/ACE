@@ -5,7 +5,7 @@ namespace ACE.Server.Physics.Hooks
         public float StartValue;
         public float EndValue;
 
-        public FPHook(HookType type, double timeCreated, double delta, float startValue, float endValue, object userData)
+        public FPHook(PhysicsHookType type, double timeCreated, double delta, float startValue, float endValue, object userData)
         {
             HookType = type;
             TimeCreated = timeCreated;
