@@ -261,7 +261,7 @@ CREATE TABLE `biota_properties_emote` (
   `category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'EmoteCategory',
   `probability` float NOT NULL DEFAULT '1' COMMENT 'Probability of this EmoteSet being chosen',
   `emote_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Emote Set Id',
-  `weenie_Class_Id` int(10) DEFAULT NULL,
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL,
   `style` int(10) unsigned DEFAULT NULL,
   `substyle` int(10) unsigned DEFAULT NULL,
   `quest` text,
@@ -315,7 +315,7 @@ CREATE TABLE `biota_properties_emote_action` (
   `p_Script` int(10) DEFAULT NULL,
   `sound` int(10) DEFAULT NULL,
   `destination_Type` tinyint(5) DEFAULT NULL COMMENT 'Type of Destination the value applies to (DestinationType.????)',
-  `weenie_Class_Id` int(10) DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
   `stack_Size` int(10) DEFAULT NULL COMMENT 'Stack Size of object to create (-1 = infinite)',
   `palette` int(10) DEFAULT NULL COMMENT 'Palette Color of Object',
   `shade` float DEFAULT NULL COMMENT 'Shade of Object''s Palette',
@@ -868,4 +868,4 @@ CREATE TABLE `config_properties_string` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-22 12:55:02
+-- Dump completed on 2018-07-22 13:10:09

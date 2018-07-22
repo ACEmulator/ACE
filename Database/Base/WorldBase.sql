@@ -955,7 +955,7 @@ CREATE TABLE `weenie_properties_emote_action` (
   `p_Script` int(10) DEFAULT NULL,
   `sound` int(10) DEFAULT NULL,
   `destination_Type` tinyint(5) DEFAULT NULL COMMENT 'Type of Destination the value applies to (DestinationType.????)',
-  `weenie_Class_Id` int(10) DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
   `stack_Size` int(10) DEFAULT NULL COMMENT 'Stack Size of object to create (-1 = infinite)',
   `palette` int(10) DEFAULT NULL COMMENT 'Palette Color of Object',
   `shade` float DEFAULT NULL COMMENT 'Shade of Object''s Palette',
@@ -1245,4 +1245,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-22 12:56:06
+-- Dump completed on 2018-07-22 13:10:11
