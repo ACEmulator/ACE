@@ -35,7 +35,7 @@ namespace ACE.Database.Models.World
         public int? PScript { get; set; }
         public int? Sound { get; set; }
         public sbyte? DestinationType { get; set; }
-        public int? WeenieClassId { get; set; }
+        public uint? WeenieClassId { get; set; }
         public int? StackSize { get; set; }
         public int? Palette { get; set; }
         public float? Shade { get; set; }
