@@ -9,6 +9,10 @@
 * Rescaffolded databases.
   - You may need to drop both Shard and World DB and re-create.
 
+[Mag-nus]
+* Added some more client enums ACE.Entity.Enum
+* Reworked Ripleys SQL writer code and added it to ACE.Database.SQLFormatters
+
 ### 2018-07-16
 [OptimShi]
 * Fixed proper case of certain spell words and change how they are loaded for efficiency/ease of use.
