@@ -30,7 +30,7 @@ namespace ACE.Entity.Enum
         Tentacle        = 23,
         UpperTentacle   = 24,
         LowerTentacle   = 25,
-        Claok           = 26,
+        Cloak           = 26,
         Num             = 27
     }
 }
