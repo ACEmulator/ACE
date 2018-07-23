@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Combat;
 
@@ -21,10 +24,10 @@ namespace ACE.Server.Physics.Animation
             MoveToManager = new MoveToManager(obj, wobj);
         }
 
-        public void CancelMoveTo(int err)
+        public void CancelMoveTo(WeenieError error)
         {
             if (MoveToManager != null)
-                MoveToManager.CancelMoveTo(err);
+                MoveToManager.CancelMoveTo(error);
         }
 
         public static MovementManager Create(PhysicsObj obj, WeenieObject wobj)
@@ -118,7 +121,7 @@ namespace ACE.Server.Physics.Animation
                 MotionInterpreter.MotionDone(success);
         }
 
-        public Sequence PerformMovement(MovementStruct mvs)
+        public WeenieError PerformMovement(MovementStruct mvs)
         {
             PhysicsObj.set_active(true);
             switch (mvs.Type)
@@ -148,7 +151,7 @@ namespace ACE.Server.Physics.Animation
                     return MoveToManager.PerformMovement(mvs);
 
                 default:
-                    return new Sequence(71);
+                    return WeenieError.GeneralMovementFailure;
             }
         }
 

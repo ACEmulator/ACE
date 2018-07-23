@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Entity.Enum;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -27,7 +30,7 @@ namespace ACE.Server.Physics.Animation
         public void AnimationDone(bool success)
         {
             var node = PendingAnimations.First;
-            while (node != null)
+            if (node != null)
             {
                 AnimationCounter++;
                 do
@@ -76,7 +79,7 @@ namespace ACE.Server.Physics.Animation
                 PhysicsObj.MotionDone(motionID, true);
 
                 if (PendingAnimations.First != null)
-                    PendingAnimations.RemoveFirst();
+                    PendingAnimations.Remove(pendingAnimation);
 
                 if (PhysicsObj.WeenieObj != null)
                     PhysicsObj.WeenieObj.OnMotionDone(motionID, true);
@@ -95,6 +98,7 @@ namespace ACE.Server.Physics.Animation
 
         public void Init()
         {
+            State = new MotionState();
             PendingAnimations = new LinkedList<AnimNode>();
         }
 
@@ -111,34 +115,34 @@ namespace ACE.Server.Physics.Animation
                 AnimationDone(false);
         }
 
-        public Sequence PerformMovement(MovementStruct mvs, Sequence seq)
+        public WeenieError PerformMovement(MovementStruct mvs, Sequence seq)
         {
-            if (Table == null) return new Sequence(0x7);
+            if (Table == null) return WeenieError.NoAnimationTable;
 
             uint counter = 0;
             switch (mvs.Type)
             {
                 case MovementType.InterpretedCommand:
                     if (!Table.DoObjectMotion(mvs.Motion, State, seq, mvs.Params.Speed, ref counter))
-                        return new Sequence(0x43);
+                        return WeenieError.NoMtableData;
 
                     add_to_queue(mvs.Motion, counter, seq);
-                    return null;
+                    return WeenieError.None;
 
                 case MovementType.StopInterpretedCommand:
                     if (!Table.StopObjectMotion(mvs.Motion, mvs.Params.Speed, State, seq, ref counter))
-                        return new Sequence(0x43);
+                        return WeenieError.NoMtableData;
 
-                    add_to_queue(0x41000003, counter, seq);
-                    return null;
+                    add_to_queue((uint)MotionCommand.Ready, counter, seq);
+                    return WeenieError.None;
 
                 case MovementType.StopCompletely:
                     Table.StopObjectCompletely(State, seq, ref counter);
-                    add_to_queue(0x41000003, counter, seq);
-                    return null;
+                    add_to_queue((uint)MotionCommand.Ready, counter, seq);
+                    return WeenieError.None;
 
                 default:
-                    return seq;
+                    return WeenieError.None;    // ??
             }
         }
 
@@ -168,11 +172,10 @@ namespace ACE.Server.Physics.Animation
         {
             uint numAnims = 0;
 
-            State = new MotionState();
             if (Table != null)
                 Table.SetDefaultState(State, sequence, ref numAnims);
 
-            add_to_queue(0x41000003, numAnims, sequence);   // hardcoded motion?
+            add_to_queue((uint)MotionCommand.Ready, numAnims, sequence);
         }
 
         public void remove_redundant_links(Sequence sequence)
@@ -185,9 +188,9 @@ namespace ACE.Server.Physics.Animation
 
                 if (entry.NumAnims != 0)
                 {
-                    if ((entry.Motion & 0x40000000) != 0 || (entry.Motion & 0x20000000) != 0)
+                    if ((entry.Motion & 0x40000000) == 0 || (entry.Motion & 0x20000000) != 0)
                     {
-                        if ((entry.Motion & 0x80000000) != 0)
+                        if ((entry.Motion & 0x80000000) == 0)
                             return;
 
                         if (remove_redundant_links_inner(node, sequence, true))

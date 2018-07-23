@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -32,8 +33,8 @@ namespace ACE.Server.Physics.Animation
         {
             switch (motion)
             {
-                case 0x6500000D:
-                case 0x6500000E:
+                case (uint)MotionCommand.TurnRight:
+                case (uint)MotionCommand.TurnLeft:
                     TurnCommand = motion;
                     if (movementParams.SetHoldKey)
                     {
@@ -47,8 +48,8 @@ namespace ACE.Server.Physics.Animation
                     }
                     break;
 
-                case 0x6500000F:
-                case 0x65000010:
+                case (uint)MotionCommand.SideStepRight:
+                case (uint)MotionCommand.SideStepLeft:
                     SideStepCommand = motion;
                     if (movementParams.SetHoldKey)
                     {
@@ -65,7 +66,7 @@ namespace ACE.Server.Physics.Animation
                 default:
                     if ((motion & 0x40000000) != 0)
                     {
-                        if (motion != 0x44000007)
+                        if (motion != (uint)MotionCommand.RunForward)
                         {
                             ForwardCommand = motion;
                             if (movementParams.SetHoldKey)
@@ -84,7 +85,7 @@ namespace ACE.Server.Physics.Animation
                     {
                         if (CurrentStyle != motion)
                         {
-                            ForwardCommand = 0x41000003;
+                            ForwardCommand = (uint)MotionCommand.Ready;
                             CurrentStyle = motion;
                         }
                     }
@@ -101,8 +102,8 @@ namespace ACE.Server.Physics.Animation
             Actions = new List<ActionNode>();
 
             CurrentHoldKey = HoldKey.None;
-            CurrentStyle = 0x8000003D;
-            ForwardCommand = 0x41000003;
+            CurrentStyle = (uint)MotionCommand.NonCombat;
+            ForwardCommand = (uint)MotionCommand.Ready;
             ForwardHoldKey = HoldKey.Invalid;
             ForwardSpeed = 1.0f;
             SideStepCommand = 0;
@@ -127,13 +128,13 @@ namespace ACE.Server.Physics.Animation
         {
             switch (motion)
             {
-                case 0x6500000D:
-                case 0x6500000E:
+                case (uint)MotionCommand.TurnRight:
+                case (uint)MotionCommand.TurnLeft:
                     TurnCommand = 0;
                     break;
 
-                case 0x6500000F:
-                case 0x65000010:
+                case (uint)MotionCommand.SideStepRight:
+                case (uint)MotionCommand.SideStepLeft:
                     SideStepCommand = 0;
                     break;
 
@@ -142,14 +143,14 @@ namespace ACE.Server.Physics.Animation
                     {
                         if (motion == ForwardCommand)
                         {
-                            ForwardCommand = 0x41000003;
+                            ForwardCommand = (uint)MotionCommand.Ready;
                             ForwardSpeed = 1.0f;
                         }
                     }
                     else if ((motion & 0x80000000) != 0)
                     {
                         if (motion == CurrentStyle)
-                            CurrentStyle = 0x8000003D;
+                            CurrentStyle = (uint)MotionCommand.NonCombat;
                     }
                     break;
             }

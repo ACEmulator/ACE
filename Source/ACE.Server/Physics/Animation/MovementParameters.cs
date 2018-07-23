@@ -1,3 +1,5 @@
+using ACE.Entity.Enum;
+
 namespace ACE.Server.Physics.Animation
 {
     public class MovementParameters
@@ -46,7 +48,7 @@ namespace ACE.Server.Physics.Animation
             Speed = Default_Speed;
             WalkRunThreshold = Default_WalkRunThreshold;
             HoldKeyToApply = HoldKey.Invalid;
-            StopCompletely = true;
+            /*StopCompletely = true;
             CancelMoveTo = true;
             ModifyInterpretedState = true;
             ModifyRawState = true;
@@ -56,7 +58,7 @@ namespace ACE.Server.Physics.Animation
             CanWalkBackwards = true;
             CanSidestep = true;
             CanRun = true;
-            CanWalk = true;
+            CanWalk = true;*/
             Bitfield = 0x1EE0F;     // todo: union of bools
         }
 
@@ -70,7 +72,7 @@ namespace ACE.Server.Physics.Animation
                 {
                     if (dist > DistanceToObject)
                     {
-                        motion = 0x45000005;
+                        motion = (uint)MotionCommand.WalkForward;
                         movingAway = false;
                     }
                     else
@@ -81,7 +83,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (dist < MinDistance)
                 {
-                    motion = 0x45000005;
+                    motion = (uint)MotionCommand.WalkForward;
                     movingAway = true;
                 }
                 else
@@ -98,10 +100,10 @@ namespace ACE.Server.Physics.Animation
         {
             switch (motion)
             {
-                case 0x44000007:
-                case 0x45000005:
+                case (uint)MotionCommand.RunForward:
+                case (uint)MotionCommand.WalkForward:
                     return movingAway ? 180.0f : 0.0f;
-                case 0x45000006:
+                case (uint)MotionCommand.WalkBackwards:
                     return movingAway ? 0.0f : 180.0f;
                 default:
                     return 0.0f;
@@ -112,12 +114,12 @@ namespace ACE.Server.Physics.Animation
         {
             if (dist > DistanceToObject)
             {
-                command = 0x45000005;
+                command = (uint)MotionCommand.WalkForward;
                 movingAway = false;
             }
             else if (dist - MinDistance < PhysicsGlobals.EPSILON)
             {
-                command = 0x45000006;
+                command = (uint)MotionCommand.WalkBackwards;
                 movingAway = true;
             }
             else

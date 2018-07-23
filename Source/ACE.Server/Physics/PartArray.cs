@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
@@ -126,10 +127,9 @@ namespace ACE.Server.Physics
             Setup = null;
         }
 
-        public Sequence DoInterpretedMotion(uint motion, MovementParameters movementParameters)
+        public WeenieError DoInterpretedMotion(uint motion, MovementParameters movementParameters)
         {
-            if (MotionTableManager == null)
-                return new Sequence(7);
+            if (MotionTableManager == null) return WeenieError.NoAnimationTable;
 
             var mvs = new MovementStruct(MovementType.InterpretedCommand, motion, movementParameters);
             return MotionTableManager.PerformMovement(mvs, Sequence);
@@ -567,16 +567,16 @@ namespace ACE.Server.Physics
             // gfx omitted from server
         }
 
-        public Sequence StopCompletelyInternal()
+        public WeenieError StopCompletelyInternal()
         {
-            if (MotionTableManager == null) return new Sequence(7);
+            if (MotionTableManager == null) return WeenieError.NoAnimationTable;
             var mvs = new MovementStruct(MovementType.StopCompletely);
             return MotionTableManager.PerformMovement(mvs, Sequence);
         }
 
-        public Sequence StopInterpretedMotion(uint motion, MovementParameters movementParameters)
+        public WeenieError StopInterpretedMotion(uint motion, MovementParameters movementParameters)
         {
-            if (MotionTableManager == null) return new Sequence(7);
+            if (MotionTableManager == null) return WeenieError.NoAnimationTable;
             var mvs = new MovementStruct(MovementType.StopInterpretedCommand);
             mvs.Motion = motion;
             mvs.Params = movementParameters;

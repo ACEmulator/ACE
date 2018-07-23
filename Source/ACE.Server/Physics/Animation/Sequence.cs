@@ -406,8 +406,8 @@ namespace ACE.Server.Physics.Animation
                 var node = AnimList.First;
                 if (!node.Equals(FirstCyclic))
                 {
-                    var animHook = new AnimHook();
-                    HookObj.add_anim_hook(animHook);
+                    var animDoneHook = new AnimDoneHook();  // static?
+                    HookObj.add_anim_hook(animDoneHook);
                 }
             }
 

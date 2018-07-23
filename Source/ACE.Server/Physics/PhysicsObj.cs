@@ -272,16 +272,18 @@ namespace ACE.Server.Physics
                 PositionManager.ConstrainTo(pos, startDistance, maxDistance);
         }
 
-        public Sequence DoInterpretedMotion(uint motion, MovementParameters movementParams)
+        public WeenieError DoInterpretedMotion(uint motion, MovementParameters movementParams)
         {
-            if (PartArray == null) return null;
+            if (PartArray == null)
+                return WeenieError.GeneralMovementFailure;
+
             return PartArray.DoInterpretedMotion(motion, movementParams);
         }
 
-        public Sequence DoMotion(uint motion, MovementParameters movementParams)
+        public WeenieError DoMotion(uint motion, MovementParameters movementParams)
         {
             LastMoveWasAutonomous = true;
-            if (MovementManager == null) return new Sequence(7);
+            if (MovementManager == null) return WeenieError.NoAnimationTable;
             var mvs = new MovementStruct(MovementType.RawCommand, motion, movementParams);
             return MovementManager.PerformMovement(mvs);
         }
@@ -1300,18 +1302,16 @@ namespace ACE.Server.Physics
                 PositionManager.StopInterpolating();
         }
 
-        public Sequence StopInterpretedMotion(uint motion, MovementParameters movementParams)
+        public WeenieError StopInterpretedMotion(uint motion, MovementParameters movementParams)
         {
-            var sequence = new Sequence();
-            if (PartArray != null)
-                sequence = PartArray.StopInterpretedMotion(motion, movementParams);
-            return sequence;
+            if (PartArray == null) return WeenieError.GeneralMovementFailure;
+            return PartArray.StopInterpretedMotion(motion, movementParams);
         }
 
-        public Sequence StopMotion(uint motion, MovementParameters movementParams, bool sendEvent)
+        public WeenieError StopMotion(uint motion, MovementParameters movementParams, bool sendEvent)
         {
             LastMoveWasAutonomous = true;
-            if (MovementManager == null) return new Sequence(7);
+            if (MovementManager == null) return WeenieError.NoAnimationTable;
             var mvs = new MovementStruct(MovementType.StopRawCommand);
             mvs.Motion = motion;
             mvs.Params = movementParams;
@@ -1821,7 +1821,7 @@ namespace ACE.Server.Physics
         public void cancel_moveto()
         {
             if (MovementManager != null)
-                MovementManager.CancelMoveTo(0x36);
+                MovementManager.CancelMoveTo(WeenieError.ActionCancelled);
         }
 
         public void change_cell(ObjCell newCell)
@@ -3439,7 +3439,7 @@ namespace ACE.Server.Physics
         public void teleport_hook(bool hide)
         {
             if (MovementManager != null)
-                MovementManager.CancelMoveTo(0x3C);
+                MovementManager.CancelMoveTo(WeenieError.ITeleported);
 
             if (PositionManager != null)
             {
@@ -3622,6 +3622,16 @@ namespace ACE.Server.Physics
             }
             else
                 UpdateTime = Timer.CurrentTime;
+        }
+
+        public void add_listener(Action listener)
+        {
+            MovementManager.MoveToManager.add_listener(listener);
+        }
+
+        public void remove_listener(Action listener)
+        {
+            MovementManager.MoveToManager.remove_listener(listener);
         }
 
         public bool Equals(PhysicsObj obj)

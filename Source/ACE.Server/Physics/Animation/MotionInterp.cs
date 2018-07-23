@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
@@ -29,7 +30,7 @@ namespace ACE.Server.Physics.Animation
         public float JumpExtent;
         public int ServerActionStamp;
         public float MyRunRate;
-        public List<MotionNode> PendingMotions;
+        public LinkedList<MotionNode> PendingMotions;
 
         public static readonly float BackwardsFactor = 6.4999998e-1f;
         public static readonly float MaxSidestepAnimRate = 3.0f;
@@ -56,33 +57,32 @@ namespace ACE.Server.Physics.Animation
             return motionInterp;
         }
 
-        public Sequence DoInterpretedMotion(uint motion, MovementParameters movementParams)
+        public WeenieError DoInterpretedMotion(uint motion, MovementParameters movementParams)
         {
-            if (PhysicsObj == null)
-                return new Sequence(8);
+            if (PhysicsObj == null) return WeenieError.NoPhysicsObject;
 
-            var sequence = new Sequence();
+            var result = WeenieError.None;
 
             if (contact_allows_move(motion))
             {
-                if (StandingLongJump && (motion == 0x45000005 || motion == 0x44000007 || motion == 0x6500000F))
+                if (StandingLongJump && (motion == (uint)MotionCommand.WalkForward || motion == (uint)MotionCommand.RunForward || motion == (uint)MotionCommand.SideStepRight))
                 {
                     if (movementParams.ModifyInterpretedState)
                         InterpretedState.ApplyMotion(motion, movementParams);
                 }
                 else
                 {
-                    if (motion == 0x40000011)
+                    if (motion == (uint)MotionCommand.Dead)
                         PhysicsObj.RemoveLinkAnimations();
 
-                    sequence = PhysicsObj.DoInterpretedMotion(motion, movementParams);
+                    result = PhysicsObj.DoInterpretedMotion(motion, movementParams);
 
-                    if (sequence == null)
+                    if (result == WeenieError.None)
                     {
-                        var jump_error_code = 0;
+                        var jump_error_code = WeenieError.None;
 
                         if (movementParams.DisableJumpDuringLink)
-                            jump_error_code = 0x48;
+                            jump_error_code = WeenieError.YouCantJumpFromThisPosition;
                         else
                         {
                             jump_error_code = motion_allows_jump(motion);
@@ -101,22 +101,27 @@ namespace ACE.Server.Physics.Animation
             else
             {
                 if ((motion & 0x10000000) != 0)
-                    sequence.ID = 0x24;
+                    result = WeenieError.YouCantJumpWhileInTheAir;
 
-                else if (movementParams.ModifyInterpretedState)
-                    InterpretedState.ApplyMotion(motion, movementParams);
+                else
+                {
+                    if (movementParams.ModifyInterpretedState)
+                        InterpretedState.ApplyMotion(motion, movementParams);
+
+                    result = WeenieError.None;
+                }
             }
 
             if (PhysicsObj != null && PhysicsObj.CurCell == null)
                 PhysicsObj.RemoveLinkAnimations();
 
-            return sequence;
+            return result;
         }
 
-        public Sequence DoMotion(uint motion, MovementParameters movementParams)
+        public WeenieError DoMotion(uint motion, MovementParameters movementParams)
         {
             if (PhysicsObj == null)
-                return new Sequence(8);
+                return WeenieError.NoPhysicsObject;
 
             if (movementParams.CancelMoveTo)
                 PhysicsObj.cancel_moveto();
@@ -124,44 +129,33 @@ namespace ACE.Server.Physics.Animation
             if (movementParams.SetHoldKey)
                 SetHoldKey(movementParams.HoldKeyToApply, movementParams.CancelMoveTo);
 
-            var sequence = new Sequence();
-
-            if (InterpretedState.CurrentStyle != 0x8000003D)
+            if (InterpretedState.CurrentStyle != (uint)MotionCommand.NonCombat)
             {
                 switch (motion)
                 {
-                    case 0x41000012:
-                        sequence.ID = 0x3F;
-                        return sequence;
-                    case 0x41000013:
-                        sequence.ID = 0x40;
-                        return sequence;
-                    case 0x41000014:
-                        sequence.ID = 0x41;
-                        return sequence;
+                    case (uint)MotionCommand.Crouch:
+                        return WeenieError.CantCrouchInCombat;
+                    case (uint)MotionCommand.Sitting:
+                        return WeenieError.CantSitInCombat;
+                    case (uint)MotionCommand.Sleeping:
+                        return WeenieError.CantLieDownInCombat;
                 }
 
                 if ((motion & 0x2000000) != 0)
-                {
-                    sequence.ID = 0x42;
-                    return sequence;
-                }
+                    return WeenieError.CantChatEmoteInCombat;
             }
 
             if ((motion & 0x10000000) != 0)
             {
                 if (InterpretedState.GetNumActions() >= 6)
-                {
-                    sequence.ID = 0x45;
-                    return sequence;
-                }
+                    return WeenieError.TooManyActions;
             }
-            var newMotion = DoInterpretedMotion(motion, movementParams);
+            var result = DoInterpretedMotion(motion, movementParams);
 
-            if (newMotion == null && movementParams.ModifyRawState)
+            if (result == WeenieError.None && movementParams.ModifyRawState)
                 RawState.ApplyMotion(motion, movementParams);
 
-            return newMotion;
+            return result;
         }
 
         public void HandleExitWorld()
@@ -217,45 +211,50 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return;
 
-            foreach (var pendingMotion in PendingMotions)
+            var motionData = PendingMotions.First;
+
+            if (motionData != null)
             {
+                var pendingMotion = motionData.Value;
                 if ((pendingMotion.Motion & 0x10000000) != 0)
                 {
                     PhysicsObj.unstick_from_object();
                     InterpretedState.RemoveAction();
                     RawState.RemoveAction();
                 }
+
+                motionData = PendingMotions.First;
+                if (motionData != null)
+                    PendingMotions.Remove(motionData);
             }
-            PendingMotions.Clear();     // remove last motion?
         }
 
-        public Sequence PerformMovement(MovementStruct mvs)
+        public WeenieError PerformMovement(MovementStruct mvs)
         {
-            Sequence sequence = null;
+            var result = WeenieError.None;
 
             switch (mvs.Type)
             {
                 case MovementType.RawCommand:
-                    sequence = DoMotion(mvs.Motion, mvs.Params);
+                    result = DoMotion(mvs.Motion, mvs.Params);
                     break;
                 case MovementType.InterpretedCommand:
-                    sequence = DoInterpretedMotion(mvs.Motion, mvs.Params);
+                    result = DoInterpretedMotion(mvs.Motion, mvs.Params);
                     break;
                 case MovementType.StopRawCommand:
-                    sequence = StopMotion(mvs.Motion, mvs.Params);
+                    result = StopMotion(mvs.Motion, mvs.Params);
                     break;
                 case MovementType.StopInterpretedCommand:
-                    sequence = StopInterpretedMotion(mvs.Motion, mvs.Params);
+                    result = StopInterpretedMotion(mvs.Motion, mvs.Params);
                     break;
                 case MovementType.StopCompletely:
-                    sequence = StopCompletely();
+                    result = StopCompletely();
                     break;
                 default:
-                    sequence.ID = 71;
-                    return sequence;
+                    return WeenieError.GeneralMovementFailure;
             }
             PhysicsObj.CheckForCompletedMotions();
-            return sequence;
+            return result;
         }
 
         public void ReportExhaustion()
@@ -295,56 +294,54 @@ namespace ACE.Server.Physics.Animation
             apply_current_movement(true, true);
         }
 
-        public Sequence StopCompletely()
+        public WeenieError StopCompletely()
         {
-            if (PhysicsObj == null)
-                return new Sequence(8);
+            if (PhysicsObj == null) return WeenieError.NoPhysicsObject;
 
             PhysicsObj.cancel_moveto();
 
             var jump = motion_allows_jump(InterpretedState.ForwardCommand);
 
-            RawState.ForwardCommand = 0x41000003;
+            RawState.ForwardCommand = (uint)MotionCommand.Ready;
             RawState.ForwardSpeed = 1.0f;
             RawState.SideStepCommand = 0;
             RawState.TurnCommand = 0;
 
-            InterpretedState.ForwardCommand = 0x41000003;
+            InterpretedState.ForwardCommand = (uint)MotionCommand.Ready;
             InterpretedState.ForwardSpeed = 1.0f;
             InterpretedState.SideStepCommand = 0;
             InterpretedState.TurnCommand = 0;
 
             PhysicsObj.StopCompletely_Internal();
 
-            add_to_queue(0, 0x41000003, jump);
+            add_to_queue(0, (uint)MotionCommand.Ready, jump);
 
             if (PhysicsObj.CurCell != null)
                 PhysicsObj.RemoveLinkAnimations();
 
-            return new Sequence(0);
+            return WeenieError.None;
         }
 
-        public Sequence StopInterpretedMotion(uint motion, MovementParameters movementParams)
+        public WeenieError StopInterpretedMotion(uint motion, MovementParameters movementParams)
         {
-            if (PhysicsObj == null)
-                return new Sequence(8);
+            if (PhysicsObj == null) return WeenieError.NoPhysicsObject;
 
-            var sequence = new Sequence();
+            var result = WeenieError.None;
 
             if (contact_allows_move(motion))
             {
-                if (StandingLongJump && (motion == 0x45000005 || motion == 0x44000007 || motion == 0x6500000F))
+                if (StandingLongJump && (motion == (uint)MotionCommand.WalkForward || motion == (uint)MotionCommand.RunForward || motion == (uint)MotionCommand.SideStepRight))
                 {
                     if (movementParams.ModifyInterpretedState)
                         InterpretedState.RemoveMotion(motion);
                 }
                 else
                 {
-                    sequence = PhysicsObj.StopInterpretedMotion(motion, movementParams);
+                    result = PhysicsObj.StopInterpretedMotion(motion, movementParams);
 
-                    if (sequence == null)
+                    if (result == WeenieError.None)
                     {
-                        add_to_queue(movementParams.ContextID, 0x41000003, 0);
+                        add_to_queue(movementParams.ContextID, (uint)MotionCommand.Ready, WeenieError.None);
 
                         if (movementParams.ModifyInterpretedState)
                             InterpretedState.RemoveMotion(motion);
@@ -360,29 +357,29 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj.CurCell == null)
                 PhysicsObj.RemoveLinkAnimations();
 
-            return sequence;
+            return result;
         }
 
-        public Sequence StopMotion(uint motion, MovementParameters movementParams)
+        public WeenieError StopMotion(uint motion, MovementParameters movementParams)
         {
-            if (PhysicsObj == null) return new Sequence(8);
+            if (PhysicsObj == null) return WeenieError.NoPhysicsObject;
 
             if (movementParams.CancelMoveTo)
                 PhysicsObj.cancel_moveto();
 
             adjust_motion(ref motion, ref movementParams.Speed, movementParams.HoldKeyToApply);
 
-            var newMotion = StopInterpretedMotion(motion, movementParams);
+            var result = StopInterpretedMotion(motion, movementParams);
 
-            if (newMotion == null && movementParams.ModifyRawState)
+            if (result == WeenieError.None && movementParams.ModifyRawState)
                 RawState.RemoveMotion(motion);
 
-            return newMotion;
+            return result;
         }
 
-        public void add_to_queue(int contextID, uint motion, int jumpErrorCode)
+        public void add_to_queue(int contextID, uint motion, WeenieError jumpErrorCode)
         {
-            PendingMotions.Add(new MotionNode(contextID, motion, jumpErrorCode));
+            PendingMotions.AddLast(new MotionNode(contextID, motion, jumpErrorCode));
         }
 
         public void adjust_motion(ref uint motion, ref float speed, HoldKey holdKey)
@@ -392,25 +389,25 @@ namespace ACE.Server.Physics.Animation
 
             switch (motion)
             {
-                case 0x44000007:
+                case (uint)MotionCommand.RunForward:
                     return;
 
-                case 0x45000006:
-                    motion = 0x45000005;
+                case (uint)MotionCommand.WalkBackwards:
+                    motion = (uint)MotionCommand.WalkForward;
                     speed *= -BackwardsFactor;
                     break;
 
-                case 0x6500000E:
-                    motion = 0x6500000D;
+                case (uint)MotionCommand.TurnLeft:
+                    motion = (uint)MotionCommand.TurnRight;
                     speed *= -1.0f;
                     break;
 
-                case 0x65000010:
-                    motion = 0x6500000F;
+                case (uint)MotionCommand.SideStepLeft:
+                    motion = (uint)MotionCommand.SideStepRight;
                     speed *= -1.0f;
                     break;
 
-                case 0x6500000F:
+                case (uint)MotionCommand.SideStepRight:
                     speed = speed * SidestepFactor * (WalkAnimSpeed / SidestepAnimSpeed);
                     break;
             }
@@ -442,7 +439,7 @@ namespace ACE.Server.Physics.Animation
             if (!allowJump)
                 movementParams.DisableJumpDuringLink = true;
 
-            if (InterpretedState.ForwardCommand == 0x44000007)
+            if (InterpretedState.ForwardCommand == (uint)MotionCommand.RunForward)
                 MyRunRate = InterpretedState.ForwardSpeed;
 
             DoInterpretedMotion(InterpretedState.CurrentStyle, movementParams);
@@ -460,19 +457,19 @@ namespace ACE.Server.Physics.Animation
                         DoInterpretedMotion(InterpretedState.SideStepCommand, movementParams);
                     }
                     else
-                        StopInterpretedMotion(0x6500000F, movementParams);
+                        StopInterpretedMotion((uint)MotionCommand.SideStepRight, movementParams);
                 }
                 else
                 {
                     movementParams.Speed = 1.0f;
-                    DoInterpretedMotion(0x41000003, movementParams);
-                    StopInterpretedMotion(0x6500000F, movementParams);
+                    DoInterpretedMotion((uint)MotionCommand.Ready, movementParams);
+                    StopInterpretedMotion((uint)MotionCommand.SideStepRight, movementParams);
                 }
             }
             else
             {
                 movementParams.Speed = 1.0f;
-                DoInterpretedMotion(0x40000015, movementParams);
+                DoInterpretedMotion((uint)MotionCommand.Falling, movementParams);
             }
 
             if (InterpretedState.TurnCommand != 0)
@@ -482,12 +479,14 @@ namespace ACE.Server.Physics.Animation
             }
             else
             {
-                if (StopInterpretedMotion(0x6500000D, movementParams) != null)
+                var result = StopInterpretedMotion((uint)MotionCommand.TurnRight, movementParams);
+
+                if (result == WeenieError.None)
                 {
-                    add_to_queue(movementParams.ContextID, 0x41000003, 0);
+                    add_to_queue(movementParams.ContextID, (uint)MotionCommand.Ready, WeenieError.None);
 
                     if (movementParams.ModifyInterpretedState)
-                        InterpretedState.RemoveMotion(0x6500000D);
+                        InterpretedState.RemoveMotion((uint)MotionCommand.TurnRight);
                 }
 
                 if (PhysicsObj.CurCell == null)
@@ -528,18 +527,18 @@ namespace ACE.Server.Physics.Animation
             }
             switch (motion)
             {
-                case 0x45000005:
+                case (uint)MotionCommand.WalkForward:
                     if (speed > 0.0f)
-                        motion = 0x44000007;
+                        motion = (uint)MotionCommand.RunForward;
 
                     speed *= speedMod;
                     break;
 
-                case 0x6500000D:
+                case (uint)MotionCommand.TurnRight:
                     speed *= RunTurnFactor;
                     break;
 
-                case 0x6500000F:
+                case (uint)MotionCommand.SideStepRight:
                     speed *= speedMod;
 
                     if (MaxSidestepAnimRate < Math.Abs(speed))
@@ -560,11 +559,11 @@ namespace ACE.Server.Physics.Animation
 
             var forward = InterpretedState.ForwardCommand;
 
-            if (forward == 0x40000008 || forward > 0x41000011 && forward < 0x41000014)
+            if (forward == (uint)MotionCommand.Falling || forward >= (uint)MotionCommand.Crouch && forward < (uint)MotionCommand.Sleeping)
                 return 0x48;
             else
             {
-                if (PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact | TransientStateFlags.OnWalkable) && forward == 0x41000003 &&
+                if (PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact | TransientStateFlags.OnWalkable) && forward == (uint)MotionCommand.Ready &&
                     InterpretedState.SideStepCommand == 0 && InterpretedState.TurnCommand == 0)
                 {
                     StandingLongJump = true;
@@ -577,7 +576,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return false;
 
-            if (motion == 0x40000011 || motion == 0x40000015 || motion >= 0x6500000D && motion <= 0x6500000E)
+            if (motion == (uint)MotionCommand.Dead || motion == (uint)MotionCommand.Falling || motion >= (uint)MotionCommand.TurnRight && motion <= (uint)MotionCommand.TurnLeft)
                 return true;
 
             if (WeenieObj != null && !WeenieObj.IsCreature())
@@ -599,9 +598,9 @@ namespace ACE.Server.Physics.Animation
             InterpretedState = new InterpretedMotionState();
 
             PhysicsObj.InitializeMotionTables();
-            PendingMotions = new List<MotionNode>();
+            PendingMotions = new LinkedList<MotionNode>();
 
-            add_to_queue(0, 0x41000003, 0);     // hardcoded default state?
+            add_to_queue(0, (uint)MotionCommand.Ready, 0);
 
             Initted = true;
             LeaveGround();
@@ -617,7 +616,7 @@ namespace ACE.Server.Physics.Animation
                     rate = MyRunRate;
             }
 
-            if (InterpretedState.ForwardCommand == 0x44000007)
+            if (InterpretedState.ForwardCommand == (uint)MotionCommand.RunForward)
                 rate = InterpretedState.ForwardSpeed / CurrentSpeedFactor;
 
             return rate * 4.0f;
@@ -659,8 +658,10 @@ namespace ACE.Server.Physics.Animation
             var rate = 1.0f;
 
             if (WeenieObj != null)
+            {
                 if (!WeenieObj.InqRunRate(ref rate))
                     rate = MyRunRate;
+            }
 
             return RunAnimSpeed * rate;
         }
@@ -669,11 +670,11 @@ namespace ACE.Server.Physics.Animation
         {
             var velocity = Vector3.Zero;
 
-            if (InterpretedState.SideStepCommand == 0x6500000F)
+            if (InterpretedState.SideStepCommand == (uint)MotionCommand.SideStepRight)
                 velocity.X = SidestepAnimSpeed * InterpretedState.SideStepSpeed;
-            if (InterpretedState.ForwardCommand == 0x45000005)
+            if (InterpretedState.ForwardCommand == (uint)MotionCommand.WalkForward)
                 velocity.Y = WalkAnimSpeed * InterpretedState.ForwardSpeed;
-            else if (InterpretedState.ForwardCommand == 0x44000007)
+            else if (InterpretedState.ForwardCommand == (uint)MotionCommand.RunForward)
                 velocity.Y = RunAnimSpeed * InterpretedState.ForwardSpeed;
 
             var rate = MyRunRate;
@@ -692,79 +693,80 @@ namespace ACE.Server.Physics.Animation
         public bool is_standing_still()
         {
             return PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact | TransientStateFlags.OnWalkable) &&
-                InterpretedState.ForwardCommand == 0x41000003 &&
+                InterpretedState.ForwardCommand == (uint)MotionCommand.Ready &&
                 InterpretedState.SideStepCommand == 0 &&
                 InterpretedState.TurnCommand == 0;
         }
 
-        public Sequence jump(float extent, int adjustStamina)
+        public WeenieError jump(float extent, int adjustStamina)
         {
-            if (PhysicsObj == null) return new Sequence(8);
+            if (PhysicsObj == null) return WeenieError.NoPhysicsObject;
 
             PhysicsObj.cancel_moveto();
 
-            var jump = jump_is_allowed(extent, adjustStamina);
+            var result = jump_is_allowed(extent, adjustStamina);
 
-            if (jump.ID != 0)
-                StandingLongJump = false;
-            else
+            if (result == WeenieError.None)
             {
                 JumpExtent = extent;
                 PhysicsObj.set_on_walkable(false);
             }
-            return jump;
+            else
+                StandingLongJump = false;
+
+            return result;
         }
 
-        public Sequence jump_charge_is_allowed()
+        public WeenieError jump_charge_is_allowed()
         {
             if (WeenieObj != null && !WeenieObj.CanJump(JumpExtent))
-                return new Sequence(0x49);
+                return WeenieError.CantJumpLoadedDown;
 
             var forward = InterpretedState.ForwardCommand;
 
-            if (forward == 0x4000008 || forward > 0x41000011 && forward <= 0x41000014)
-                return new Sequence(0x72);
+            if (forward == (uint)MotionCommand.Fallen || forward >= (uint)MotionCommand.Crouch && forward <= (uint)MotionCommand.Sleeping)
+                return WeenieError.YouCantJumpFromThisPosition;
 
-            return new Sequence(0);
+            return WeenieError.None;
         }
 
-        public Sequence jump_is_allowed(float extent, int staminaCost)
+        public WeenieError jump_is_allowed(float extent, int staminaCost)
         {
             if (PhysicsObj == null)
-                return new Sequence(0x24);
+                return WeenieError.NoPhysicsObject;
 
             if (WeenieObj == null && !WeenieObj.IsCreature() || !PhysicsObj.State.HasFlag(PhysicsState.Gravity) ||
                 PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact | TransientStateFlags.OnWalkable))
             {
                 if (PhysicsObj.IsFullyConstrained())
-                    return new Sequence(0x47);
+                    return WeenieError.GeneralMovementFailure;
 
-                if (PendingMotions.Count > 1 && PendingMotions[0].JumpErrorCode != 0)
-                    return new Sequence(PendingMotions[0].JumpErrorCode);
+                if (PendingMotions.Count > 1 && PendingMotions.First.Value.JumpErrorCode != 0)
+                    return PendingMotions.First.Value.JumpErrorCode;
 
                 var jumpError = jump_charge_is_allowed();
 
-                if (jumpError.ID == 0)
+                if (jumpError == WeenieError.None)
                 {
-                    jumpError.ID = motion_allows_jump(InterpretedState.ForwardCommand);
+                    jumpError = motion_allows_jump(InterpretedState.ForwardCommand);
 
-                    if (jumpError.ID == 0 && WeenieObj != null && WeenieObj.JumpStaminaCost(extent, staminaCost) != 0)
-                        jumpError.ID = 0x47;
+                    if (jumpError == WeenieError.None && WeenieObj != null && WeenieObj.JumpStaminaCost(extent, staminaCost) == 0)
+                        jumpError = WeenieError.GeneralMovementFailure;
                 }
                 return jumpError;
             }
-            return new Sequence(0x24);
+            return WeenieError.YouCantJumpWhileInTheAir;
         }
 
-        public int motion_allows_jump(uint substate)
+        public WeenieError motion_allows_jump(uint substate)
         {
-            if (substate >= 0x40000016 && substate <= 0x40000018 || substate >= 0x10000128 && substate <= 0x10000131 ||
-                substate >= 0x1000006F && substate <= 0x10000078 || substate >= 0x41000012 && substate <= 0x41000014 ||
-                substate >= 0x4000001E && substate <= 0x40000039 || substate == 0x40000008)
+            if (substate >= (uint)MotionCommand.Reload && substate <= (uint)MotionCommand.Pickup || substate >= (uint)MotionCommand.TripleThrustLow && substate <= (uint)MotionCommand.MagicPowerUp07Purple ||
+                substate >= (uint)MotionCommand.MagicPowerUp01 && substate <= (uint)MotionCommand.MagicPowerUp10 || substate >= (uint)MotionCommand.Crouch && substate <= (uint)MotionCommand.Sleeping ||
+                substate >= (uint)MotionCommand.AimLevel && substate <= (uint)MotionCommand.MagicPray || substate == (uint)MotionCommand.Falling)
             {
-                return 0x48;
+                return WeenieError.YouCantJumpFromThisPosition;
             }
-            return 0;
+            return WeenieError.None;
         }
 
         public bool motions_pending()
