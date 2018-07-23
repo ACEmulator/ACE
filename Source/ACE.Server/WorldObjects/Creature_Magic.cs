@@ -6,7 +6,9 @@ using ACE.Entity.Enum;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
+using ACE.Database;
 using ACE.Server.WorldObjects.Entity;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -21,8 +23,8 @@ namespace ACE.Server.WorldObjects
 
             if (creature.IsBusy == true)
                 return;
-            else
-                creature.IsBusy = true;
+
+            creature.IsBusy = true;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
@@ -33,7 +35,35 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
+            bool targetSelf = false || (int)Math.Floor(spell.BaseRangeConstant) == 0;
+            var target = targetSelf ? this : CurrentLandblock?.GetObject(guidTarget);
+
+            Database.Models.World.Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
+            if (spellStatMod == null)
+            {
+                creature.IsBusy = false;
+                return;
+            }
+
             float scale = SpellAttributes(null, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+
+            switch (spell.School)
+            {
+                case MagicSchool.ItemEnchantment:
+                    // if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
+                    ItemMagic(target, spell, spellStatMod);
+                    if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                    break;
+                case MagicSchool.LifeMagic:
+
+                    break;
+                case MagicSchool.CreatureEnchantment:
+
+                    break;
+                case MagicSchool.WarMagic:
+
+                    break;
+            }
 
             creature.IsBusy = false;
             return;

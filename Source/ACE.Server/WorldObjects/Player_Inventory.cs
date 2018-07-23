@@ -1087,7 +1087,7 @@ namespace ACE.Server.WorldObjects
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
 
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
                     Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                 });
@@ -1126,7 +1126,7 @@ namespace ACE.Server.WorldObjects
                             TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
 
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.System));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
                             Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                         });
