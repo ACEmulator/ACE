@@ -1023,10 +1023,7 @@ namespace ACE.Server.Managers
                     actionChain.AddAction(sourceObject, () =>
                     {
                         if (spell.TargetEffect > 0)
-                        {
-                            Console.WriteLine($"EmoteManager.ExecuteEmote - EmoteType.CastSpellInstant - Should be casting {emoteAction.SpellId} here. TargetEffect was greater than 0 (This has yet to be added from a magic standpoint)");
                             creature.CreateCreatureSpell(targetObject.Guid, (uint)emoteAction.SpellId);
-                        }
                         else
                             creature.CreateCreatureSpell((uint)emoteAction.SpellId);
                     });
@@ -1119,7 +1116,7 @@ namespace ACE.Server.Managers
                             // transaction / rollback on failure?
                             if (success)
                             {
-                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.System);
+                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
                                 var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
                                 player.Session.Network.EnqueueSend(msg, sound);
                             }

@@ -12,6 +12,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Physics;
 
@@ -576,6 +577,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="itemCaster"></param>
         protected EnchantmentStatus ItemMagic(WorldObject target, SpellBase spell, Database.Models.World.Spell spellStatMod, WorldObject itemCaster = null)
         {
+            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
+            enchantmentStatus.message = null;
+            enchantmentStatus.stackType = StackType.None;
+
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
             if (player == null && ((this as Player) != null)) player = this as Player;
 
@@ -584,37 +589,108 @@ namespace ACE.Server.WorldObjects
                 || (spell.MetaSpellType == SpellType.PortalSending)
                 || (spell.MetaSpellType == SpellType.PortalSummon))
             {
-                switch (spell.MetaSpellId)
+                var targetPlayer = target as Player;
+
+                switch (spell.MetaSpellType)
                 {
-                    case 2645: // Portal Recall
-                        if (!player.TeleToPosition(PositionType.LastPortal))
+                    case SpellType.PortalRecall:
+                        switch (spell.MetaSpellId)
                         {
-                            // You must link to a portal to recall it!
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                            case 2645: // Portal Recall
+                                if (!player.TeleToPosition(PositionType.LastPortal))
+                                {
+                                    // You must link to a portal to recall it!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                }
+                                break;
+                            case 1635: // Lifestone Recall
+                                if (!player.TeleToPosition(PositionType.LinkedLifestone))
+                                {
+                                    // You must link to a lifestone to recall it!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                                }
+                                break;
+                            case 48: // Primary Portal Recall
+                                if (!player.TeleToPosition(PositionType.LinkedPortalOne))
+                                {
+                                    // You must link to a portal to recall it!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                }
+                                break;
+                            case 2647: // Secondary Portal Recall
+                                if (!player.TeleToPosition(PositionType.LinkedPortalTwo))
+                                {
+                                    // You must link to a portal to recall it!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                }
+                                break;
                         }
                         break;
-                    case 1635: // Lifestone Recall
-                        if (!player.TeleToPosition(PositionType.LinkedLifestone))
+                    case SpellType.PortalSending:
+                        if (targetPlayer != null)
                         {
-                            // You must link to a lifestone to recall it!
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                            var destination = new ACE.Entity.Position((uint)spellStatMod.PositionObjCellId, (float)spellStatMod.PositionOriginX,
+                                (float)spellStatMod.PositionOriginY, (float)spellStatMod.PositionOriginZ, (float)spellStatMod.PositionAnglesX,
+                                (float)spellStatMod.PositionAnglesY, (float)spellStatMod.PositionAnglesZ, (float)spellStatMod.PositionAnglesW);
+                            if (destination != null)
+                                targetPlayer.Teleport(destination);
                         }
                         break;
-                    case 48: // Primary Portal Recall
-                        if (!player.TeleToPosition(PositionType.LinkedPortalOne))
+                    case SpellType.PortalLink:
+                        if (targetPlayer != null)
+                            enchantmentStatus.message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
+                        break;
+                    case SpellType.PortalSummon:
+                        uint portalId = 0;
+                        ACE.Entity.Position linkedPortal = null;
+                        if (itemCaster != null)
                         {
-                            // You must link to a portal to recall it!
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                            portalId = itemCaster.GetProperty(PropertyDataId.LinkedPortalOne) ?? 0;
+                        }
+                        else
+                        {
+                            if (spell.Name.Contains("Summon Primary"))
+                            {
+                                linkedPortal = GetPosition(PositionType.LinkedPortalOne);
+                            }
+                            if (spell.Name.Contains("Summon Secondary"))
+                            {
+                                linkedPortal = GetPosition(PositionType.LinkedPortalTwo);
+                            }
+
+                            if (linkedPortal != null)
+                                portalId = 1955;
+                        }
+
+                        if (portalId != 0)
+                        {
+                            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
+                            portal.SetupTableId = 33556212;
+                            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
+                            portal.Name = "Gateway";
+                            portal.Location = Location.InFrontOf((portal.UseRadius ?? 2) > 2 ? portal.UseRadius.Value : 2);
+
+                            if (portalId == 1955)
+                                portal.Destination = linkedPortal;
+
+                            portal.EnterWorld();
+
+                            // Create portal decay
+                            double portalDespawnTime = spellStatMod.PortalLifetime ?? 15.0f;
+                            ActionChain despawnChain = new ActionChain();
+                            despawnChain.AddDelaySeconds(portalDespawnTime);
+                            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+                            despawnChain.EnqueueChain();
+                        }
+                        else
+                        {
+                            // You must link to a portal to summon it!
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
                         }
                         break;
-                    case 2647: // Secondary Portal Recall
-                        if (!player.TeleToPosition(PositionType.LinkedPortalTwo))
-                        {
-                            // You must link to a portal to recall it!
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
-                        }
-                        break;
-                    default:
+                    case SpellType.FellowPortalSending:
+                        if (targetPlayer != null)
+                            enchantmentStatus.message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                         break;
                 }
             }
@@ -626,9 +702,6 @@ namespace ACE.Server.WorldObjects
                 return CreateEnchantment(target, this, spell, spellStatMod);
             }
 
-            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
-            enchantmentStatus.message = null;
-            enchantmentStatus.stackType = StackType.None;
             return enchantmentStatus;
         }
 

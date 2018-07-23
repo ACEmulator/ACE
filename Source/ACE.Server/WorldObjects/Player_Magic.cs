@@ -200,17 +200,27 @@ namespace ACE.Server.WorldObjects
                         }
                         break;
                     case MagicSchool.ItemEnchantment:
-                        if ((spell.Category == (uint)SpellCategory.AttackModRaising)
-                            || (spell.Category == (uint)SpellCategory.DamageRaising)
-                            || (spell.Category == (uint)SpellCategory.DefenseModRaising)
-                            || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
-                            || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
-                            || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
+                        if ((spell.MetaSpellType == SpellType.PortalLink)
+                            || (spell.MetaSpellType == SpellType.PortalRecall)
+                            || (spell.MetaSpellType == SpellType.PortalSending)
+                            || (spell.MetaSpellType == SpellType.PortalSummon))
                         {
                             enchantmentStatus = ItemMagic(player, spell, spellStatMod, item);
                         }
                         else
-                            enchantmentStatus = ItemMagic(item, spell, spellStatMod, item);
+                        {
+                            if ((spell.Category == (uint)SpellCategory.AttackModRaising)
+                                || (spell.Category == (uint)SpellCategory.DamageRaising)
+                                || (spell.Category == (uint)SpellCategory.DefenseModRaising)
+                                || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
+                                || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
+                                || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
+                            {
+                                enchantmentStatus = ItemMagic(player, spell, spellStatMod, item);
+                            }
+                            else
+                                enchantmentStatus = ItemMagic(item, spell, spellStatMod, item);
+                        }
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
