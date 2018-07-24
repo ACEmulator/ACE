@@ -65,18 +65,22 @@ namespace ACE.Server.Managers
             Cancel();
         }
 
-        public string Replace(string message, WorldObject target, WorldObject source)
+        public string Replace(string message, WorldObject source, WorldObject target)
         {
             var result = message;
 
-            result = result.Replace("%s", target.Name);
-            result = result.Replace("%tn", target.Name);
-            result = result.Replace("%n", source.Name);
-            result = result.Replace("%mn", source.Name);
+            var sourceName = source != null ? source.Name : "";
+            var targetName = target != null ? target.Name : "";
+
+            result = result.Replace("%n", sourceName);
+            result = result.Replace("%mn", sourceName);
+            result = result.Replace("%s", targetName);
+            result = result.Replace("%tn", targetName);
             result = result.Replace("%tqt", "some amount of time");
 
             return result;
         }
+
 
         public void InqCategory(EmoteCategory categoryId, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject, WorldObject targetObject, bool useRNG = false)
         {
@@ -246,7 +250,8 @@ namespace ACE.Server.Managers
             {
                 case EmoteType.Act:
                     // Short for Acting...
-                    sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageSystemChat(text.Replace("%n", sourceObject.Name), ChatMessageType.Broadcast));
+                    var message = Replace(text, sourceObject, targetObject);
+                    sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.Activate:
@@ -842,7 +847,7 @@ namespace ACE.Server.Managers
                     if (sourceObject != null)
                         sourceObject.PhysicsObj.play_script((PlayScript)emoteAction.PScript, 1.0f);
                     break;
-                    
+
                 case EmoteType.PopUp:
                     ConfirmationManager.AddConfirmation(new Confirmation((ConfirmationType)emoteAction.Stat, emoteAction.Message, sourceObject.Guid.Full, targetObject.Guid.Full));
                     break;
