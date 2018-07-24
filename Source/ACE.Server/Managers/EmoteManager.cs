@@ -838,9 +838,11 @@ namespace ACE.Server.Managers
 
                 case EmoteType.PhysScript:
 
-                    sourceObject.PhysicsObj.play_script((PlayScript)emoteAction.PScript, 1.0f);
+                    // TODO: landblock broadcast
+                    if (sourceObject != null)
+                        sourceObject.PhysicsObj.play_script((PlayScript)emoteAction.PScript, 1.0f);
                     break;
-
+                    
                 case EmoteType.PopUp:
                     ConfirmationManager.AddConfirmation(new Confirmation((ConfirmationType)emoteAction.Stat, emoteAction.Message, sourceObject.Guid.Full, targetObject.Guid.Full));
                     break;
