@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -16,14 +15,12 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects;
-
 using log4net;
-
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
-    public class EmoteManager
+    public partial class EmoteManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -36,204 +33,6 @@ namespace ACE.Server.Managers
             WorldObject = worldObject;
         }
 
-        public void Cancel()
-        {
-            EmoteQueue.Clear();
-        }
-
-        // Thanks to the original pioneers in the emulator community for help decoding these structures!
-        public void ExecuteSet(EmoteSet emoteSet, WorldObject target)
-        {
-            if (EndTime < Timer.CurrentTime)
-                EndTime = Timer.CurrentTime;
-
-            double queueTime = 0.0;
-            foreach (var emote in emoteSet.Emotes)
-            {
-                queueTime += emote.Delay;
-                EmoteQueue.Enqueue(new QueuedEmote(emote, target, Timer.CurrentTime + queueTime));
-            }
-        }
-
-        public bool InProgress()
-        {
-            return EmoteQueue.Count > 0;
-        }
-
-        public void OnDeath(uint sourceID)
-        {
-            Cancel();
-        }
-
-        public string Replace(string message, WorldObject source, WorldObject target)
-        {
-            var result = message;
-
-            var sourceName = source != null ? source.Name : "";
-            var targetName = target != null ? target.Name : "";
-
-            result = result.Replace("%n", sourceName);
-            result = result.Replace("%mn", sourceName);
-            result = result.Replace("%s", targetName);
-            result = result.Replace("%tn", targetName);
-            result = result.Replace("%tqt", "some amount of time");
-
-            return result;
-        }
-
-
-        public void InqCategory(EmoteCategory categoryId, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject, WorldObject targetObject, bool useRNG = false)
-        {
-            var rng = useRNG ? Physics.Common.Random.RollDice(0.0f, 1.0f) : 0.0f;
-
-            var result = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)categoryId && e.Quest == emoteAction.Message && rng <= e.Probability);
-            if (result == null) return;
-            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == result.EmoteSetId && a.EmoteCategory == result.Category);
-
-            foreach (var action in actions)
-            {
-                actionChain.AddAction(sourceObject, () =>
-                {
-                    ExecuteEmote(result, action, actionChain, sourceObject, targetObject);
-                });
-            }
-        }
-
-        public void InqCategory(EmoteCategory categoryId, Emote emote)
-        {
-            var category = WorldObject.Biota.GetEmotes((uint)categoryId);
-            if (category == null) return;
-            foreach (var entry in category)
-            {
-                if (!emote.Message.Equals(entry.Quest))
-                    continue;
-                //ExecuteSet(entry, target);
-                break;
-            }
-        }
-
-        public void InqProperty(bool? prop, Emote emote)
-        {
-            if (prop == null) return;
-            InqPropertyInner(emote, true);
-        }
-
-        public void InqProperty(long? prop, Emote emote)
-        {
-            if (prop == null) return;
-            var inRange = prop.Value >= (int)emote.Min && prop.Value <= (int)emote.Max;
-            InqPropertyInner(emote, inRange);
-        }
-
-        public void InqProperty(double? prop, Emote emote)
-        {
-            if (prop == null) return;
-            var inRange = prop.Value >= (int)emote.MinFloat && prop.Value <= (int)emote.MaxFloat;
-            InqPropertyInner(emote, inRange);
-        }
-
-        public void InqProperty(string prop, Emote emote)
-        {
-            if (prop == null) return;
-            InqPropertyInner(emote, true);
-        }
-
-        public void InqPropertyInner(Emote emote, bool inRange)
-        {
-            var category = WorldObject.Biota.GetEmotes(inRange ? (uint)EmoteCategory.TestSuccess : (uint)EmoteCategory.TestFailure);
-            if (category == null) return;
-            foreach (var entry in category)
-            {
-                if (!emote.Message.Equals(entry.Quest))
-                    continue;
-                //ExecuteSet(entry, target);
-                break;
-            }
-        }
-
-        public void HeartBeat()
-        {
-            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-
-            var emoteChain = new ActionChain();
-
-            //if (!(WorldObject is Vendor))
-            //{
-            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
-            {
-                if (rng < emote.Probability)
-                {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
-                    {
-                        ExecuteEmote(emote, action, emoteChain, WorldObject);
-                    }
-
-                    break;
-                }
-            }
-            //}
-            //else
-            //{
-            //    foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)VendorType.Heartbeat))
-            //    {
-            //        if (rng < emote.Probability)
-            //        {
-            //            foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
-            //            {
-            //                ExecuteEmote(emote, action, emoteChain, WorldObject);
-            //            }
-
-            //            break;
-            //        }
-            //    }
-            //}
-
-            if (emoteChain != null && emoteChain.FirstElement != null)
-            {
-                emoteChain.EnqueueChain();
-            }
-        }
-
-        public void DoVendorEmote(VendorType vendorType, WorldObject targetObject)
-        {
-            //Console.WriteLine("DoVendorEmote");
-
-            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-
-            var emoteChain = new ActionChain();
-
-            foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)vendorType))
-            {
-                if (rng < emote.Probability)
-                {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
-                    {
-                        ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
-                    }
-
-                    break;
-                }
-            }
-
-            foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)VendorType.Heartbeat))
-            {
-                if (rng < emote.Probability)
-                {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
-                    {
-                        ExecuteEmote(emote, action, emoteChain, WorldObject);
-                    }
-
-                    break;
-                }
-            }
-
-            if (emoteChain != null && emoteChain.FirstElement != null)
-            {
-                emoteChain.EnqueueChain();
-            }
-        }
-
         public void ExecuteEmote(BiotaPropertiesEmote emote, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject = null, WorldObject targetObject = null)
         {
             var player = targetObject as Player;
@@ -241,15 +40,15 @@ namespace ACE.Server.Managers
             var targetCreature = targetObject as Creature;
 
             var emoteType = (EmoteType)emoteAction.Type;
+
             //if (emoteType != EmoteType.Motion && emoteType != EmoteType.Turn && emoteType != EmoteType.Move)
-            //Console.WriteLine($"ExecuteEmote({emoteType})");
+                //Console.WriteLine($"ExecuteEmote({emoteType})");
 
             var text = emoteAction.Message;
 
             switch ((EmoteType)emoteAction.Type)
             {
                 case EmoteType.Act:
-                    // Short for Acting...
                     var message = Replace(text, sourceObject, targetObject);
                     sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     break;
@@ -275,8 +74,8 @@ namespace ACE.Server.Managers
                 case EmoteType.AddContract:
 
                     //if (player != null)
-                    ////Contracts werent in emote table
-                    ////player.AddContract(emoteAction.Stat);
+                        //Contracts werent in emote table
+                        //player.AddContract(emoteAction.Stat);
                     break;
 
                 case EmoteType.AdminSpam:
@@ -305,6 +104,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.AwardNoShareXP:
+
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
@@ -335,6 +135,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.AwardXP:
+
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
@@ -347,7 +148,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.BLog:
-                    ////Only one test drudge used this emoteAction.
+                    // only one test drudge used this emoteAction.
                     break;
 
                 case EmoteType.CastSpell:
@@ -391,7 +192,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.DecrementQuest:
-                    ////Used as part of the test drudge for events
+                    // Used as part of the test drudge for events
                     break;
 
                 case EmoteType.DeleteSelf:
@@ -399,7 +200,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.DirectBroadcast:
-                    text = Replace(emoteAction.Message, targetObject, WorldObject);
+                    text = Replace(emoteAction.Message, WorldObject, targetObject);
                     if (player != null)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
                     break;
@@ -501,7 +302,6 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InflictVitaePenalty:
-
                     if (player != null) player.VitaeCpPool++;   // TODO: full path
                     break;
 
@@ -516,11 +316,12 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InqBoolStat:
-                    ///This only is used with npc's 24944 and 6386, which are dev tester npc's. Not worth the current effort.
+                    // This is only used with NPC's 24944 and 6386, which are dev tester npc's. Not worth the current effort.
+                    // Could also be post-ToD
                     break;
 
                 case EmoteType.InqContractsFull:
-                    ////Not part of the game at PY16?
+                    // not part of the game at PY16?
                     //if (player != null)
                     //{
                     //    var contracts = player.TrackedContracts;
@@ -539,7 +340,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InqFellowQuest:
-                    //focusing on 1 person quests to begin with
+                    // focusing on 1 person quests to begin with
                     break;
 
                 case EmoteType.InqFloatStat:
@@ -572,14 +373,14 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.InqNumCharacterTitles:
 
-                    ////if (player != null)
-                    //// InqCategory(player.NumCharacterTitles != 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
+                    //if (player != null)
+                        //InqCategory(player.NumCharacterTitles != 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     break;
 
                 case EmoteType.InqOwnsItems:
 
-                    ////if (player != null)
-                    //// InqCategory(player.Inventory.Count > 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
+                    //if (player != null)
+                        //InqCategory(player.Inventory.Count > 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     break;
 
                 case EmoteType.InqPackSpace:
@@ -684,7 +485,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.InqStringStat:
 
-                    ///InqProperty(targetCreature.GetProperty((PropertyString)emoteAction.Stat), emote);
+                    //InqProperty(targetCreature.GetProperty((PropertyString)emoteAction.Stat), emote);
                     break;
 
                 case EmoteType.InqYesNo:
@@ -864,6 +665,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.ResetHomePosition:
+
                     //creature = sourceObject as Creature;
                     //if (creature != null)
                     //    creature.Home = emoteAction.Position;
@@ -948,7 +750,7 @@ namespace ACE.Server.Managers
                 case EmoteType.SetSanctuaryPosition:
 
                     //if (player != null)
-                    //player.Sanctuary = emote.Position;
+                        //player.Sanctuary = emote.Position;
                     break;
 
                 case EmoteType.Sound:
@@ -1004,13 +806,13 @@ namespace ACE.Server.Managers
                 case EmoteType.TeleportSelf:
 
                     //if (WorldObject is Player)
-                    //(WorldObject as Player).Teleport(emote.Position);
+                        //(WorldObject as Player).Teleport(emote.Position);
                     break;
 
                 case EmoteType.TeleportTarget:
 
                     //if (player != null)
-                    // player.Teleport(emote.Position);
+                        //player.Teleport(emote.Position);
                     break;
 
                 case EmoteType.Tell:
@@ -1045,6 +847,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Turn:
+
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
                     actionChain.AddAction(sourceObject, () =>
@@ -1103,6 +906,124 @@ namespace ACE.Server.Managers
             }
         }
 
+        public void ExecuteSet(EmoteSet emoteSet, WorldObject target)
+        {
+            if (EndTime < Timer.CurrentTime)
+                EndTime = Timer.CurrentTime;
+
+            double queueTime = 0.0;
+            foreach (var emote in emoteSet.Emotes)
+            {
+                queueTime += emote.Delay;
+                EmoteQueue.Enqueue(new QueuedEmote(emote, target, Timer.CurrentTime + queueTime));
+            }
+        }
+
+        public void InqCategory(EmoteCategory categoryId, BiotaPropertiesEmoteAction emoteAction, ActionChain actionChain, WorldObject sourceObject, WorldObject targetObject, bool useRNG = false)
+        {
+            var rng = useRNG ? Physics.Common.Random.RollDice(0.0f, 1.0f) : 0.0f;
+
+            var result = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)categoryId && e.Quest == emoteAction.Message && rng <= e.Probability);
+            if (result == null) return;
+            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == result.EmoteSetId && a.EmoteCategory == result.Category);
+
+            foreach (var action in actions)
+            {
+                actionChain.AddAction(sourceObject, () =>
+                {
+                    ExecuteEmote(result, action, actionChain, sourceObject, targetObject);
+                });
+            }
+        }
+
+        public void InqCategory(EmoteCategory categoryId, Emote emote)
+        {
+            var category = WorldObject.Biota.GetEmotes((uint)categoryId);
+            if (category == null) return;
+            foreach (var entry in category)
+            {
+                if (!emote.Message.Equals(entry.Quest))
+                    continue;
+                //ExecuteSet(entry, target);
+                break;
+            }
+        }
+
+        public void InqProperty(bool? prop, Emote emote)
+        {
+            if (prop == null) return;
+            InqPropertyInner(emote, true);
+        }
+
+        public void InqProperty(long? prop, Emote emote)
+        {
+            if (prop == null) return;
+            var inRange = prop.Value >= (int)emote.Min && prop.Value <= (int)emote.Max;
+            InqPropertyInner(emote, inRange);
+        }
+
+        public void InqProperty(double? prop, Emote emote)
+        {
+            if (prop == null) return;
+            var inRange = prop.Value >= (int)emote.MinFloat && prop.Value <= (int)emote.MaxFloat;
+            InqPropertyInner(emote, inRange);
+        }
+
+        public void InqProperty(string prop, Emote emote)
+        {
+            if (prop == null) return;
+            InqPropertyInner(emote, true);
+        }
+
+        public void InqPropertyInner(Emote emote, bool inRange)
+        {
+            var category = WorldObject.Biota.GetEmotes(inRange ? (uint)EmoteCategory.TestSuccess : (uint)EmoteCategory.TestFailure);
+            if (category == null) return;
+            foreach (var entry in category)
+            {
+                if (!emote.Message.Equals(entry.Quest))
+                    continue;
+                //ExecuteSet(entry, target);
+                break;
+            }
+        }
+
+        public void DoVendorEmote(VendorType vendorType, WorldObject targetObject)
+        {
+            //Console.WriteLine("DoVendorEmote");
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
+            var emoteChain = new ActionChain();
+
+            foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)vendorType))
+            {
+                if (rng < emote.Probability)
+                {
+                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    {
+                        ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
+                    }
+
+                    break;
+                }
+            }
+
+            foreach (var emote in Emotes(EmoteCategory.Vendor).Where(x => x.VendorType == (int)VendorType.Heartbeat))
+            {
+                if (rng < emote.Probability)
+                {
+                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    {
+                        ExecuteEmote(emote, action, emoteChain, WorldObject);
+                    }
+
+                    break;
+                }
+            }
+            emoteChain.EnqueueChain();
+        }
+
         public IEnumerable<BiotaPropertiesEmoteAction> EmoteSet(uint emoteCategory, uint emoteSetId)
         {
             return WorldObject.Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == emoteCategory && x.EmoteSetId == emoteSetId);
@@ -1111,6 +1032,47 @@ namespace ACE.Server.Managers
         public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)
         {
             return WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)emoteCategory);
+        }
+
+        public string Replace(string message, WorldObject source, WorldObject target)
+        {
+            var result = message;
+
+            var sourceName = source != null ? source.Name : "";
+            var targetName = target != null ? target.Name : "";
+
+            result = result.Replace("%n", sourceName);
+            result = result.Replace("%mn", sourceName);
+            result = result.Replace("%s", targetName);
+            result = result.Replace("%tn", targetName);
+            result = result.Replace("%tqt", "some amount of time");
+
+            return result;
+        }
+
+        public bool InProgress()
+        {
+            return EmoteQueue.Count > 0;
+        }
+
+        public void Cancel()
+        {
+            EmoteQueue.Clear();
+        }
+
+        public void OnDeath(uint sourceID)
+        {
+            Cancel();
+        }
+
+        /// <summary>
+        /// Sets the execute time for the next item in the queue
+        /// </summary>
+        public void AddTime()
+        {
+            if (EmoteQueue.Count == 0) return;
+            var emote = EmoteQueue.Peek();
+            emote.ExecuteTime = Timer.CurrentTime + emote.Data.Delay;
         }
 
         /// <summary>
@@ -1131,14 +1093,23 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// Sets the execute time for the next item in the queue
-        /// </summary>
-        public void AddTime()
+        public void HeartBeat()
         {
-            if (EmoteQueue.Count == 0) return;
-            var emote = EmoteQueue.Peek();
-            emote.ExecuteTime = Timer.CurrentTime + emote.Data.Delay;
+            var emoteChain = new ActionChain();
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
+            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
+            {
+                if (rng < emote.Probability)
+                {
+                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                        ExecuteEmote(emote, action, emoteChain, WorldObject);
+
+                    break;
+                }
+            }
+            emoteChain.EnqueueChain();
         }
     }
 }
