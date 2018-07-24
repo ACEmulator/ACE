@@ -23,7 +23,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
-    public class EmoteManager
+    public partial class EmoteManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -238,7 +238,7 @@ namespace ACE.Server.Managers
 
             var emoteType = (EmoteType)emoteAction.Type;
             //if (emoteType != EmoteType.Motion && emoteType != EmoteType.Turn && emoteType != EmoteType.Move)
-            //Console.WriteLine($"ExecuteEmote({emoteType})");
+                //Console.WriteLine($"ExecuteEmote({emoteType})");
 
             var text = emoteAction.Message;
 
