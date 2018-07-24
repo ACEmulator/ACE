@@ -8,6 +8,9 @@ namespace ACE.Database.SQLFormatters.World
 {
     public class HousePortalSQLWriter : SQLWriter
     {
+        /// <summary>
+        /// Default is formed from: input.HouseId.ToString("00000")
+        /// </summary>
         public string GetDefaultFileName(HousePortal input)
         {
             string fileName = input.HouseId.ToString("00000");

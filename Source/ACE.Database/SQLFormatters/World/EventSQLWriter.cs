@@ -8,6 +8,9 @@ namespace ACE.Database.SQLFormatters.World
 {
     public class EventSQLWriter : SQLWriter
     {
+        /// <summary>
+        /// Default is formed from: input.name
+        /// </summary>
         public string GetDefaultFileName(Event input)
         {
             string fileName = input.Name;

@@ -11,9 +11,26 @@ namespace ACE.Database.SQLFormatters
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
+        /// </summary>
+        public Dictionary<uint, string> WeenieClassNames;
+
+        /// <summary>
+        /// Set this to enable auto commenting when creating SQL statements.<para />
         /// If a weenie id is found in the dictionary, the name will be added in the form of a /* Friendly Weenie Name */
         /// </summary>
         public Dictionary<uint, string> WeenieNames;
+
+        /// <summary>
+        /// Set this to enable auto commenting when creating SQL statements.<para />
+        /// If a spell id is found in the dictionary, the name will be added in the form of a /* Friendly Spell Name */
+        /// </summary>
+        public Dictionary<uint, string> SpellNames;
+
+        /// <summary>
+        /// Set this to enable auto commenting when creating SQL statements.<para />
+        /// If a opcode is found in the dictionary, the name will be added in the form of a /* Friendly Opcode Name */
+        /// </summary>
+        public Dictionary<uint, string> PacketOpCodes;
 
         /// <summary>
         /// lineGenerator should generate the entire line after the first (. It should include the trailing ) and any comments after.<para />
@@ -59,6 +76,9 @@ namespace ACE.Database.SQLFormatters
             // Fix cases where the last field might be null
             input = input.Replace(", )", ", NULL)");
             input = input.Replace(", '')", ", NULL)");
+
+            // Remove empty comments
+            input = input.Replace(" /*  */", "");
 
             return input;
         }

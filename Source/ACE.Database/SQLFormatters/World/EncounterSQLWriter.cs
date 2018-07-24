@@ -8,6 +8,9 @@ namespace ACE.Database.SQLFormatters.World
 {
     public class EncounterSQLWriter : SQLWriter
     {
+        /// <summary>
+        /// Default is formed from: input.Landblock.ToString("X4")
+        /// </summary>
         public string GetDefaultFileName(Encounter input)
         {
             string fileName = input.Landblock.ToString("X4");
@@ -30,8 +33,8 @@ namespace ACE.Database.SQLFormatters.World
             {
                 string label = null;
 
-                    if (WeenieNames != null)
-                WeenieNames.TryGetValue(input[i].WeenieClassId, out label);
+                if (WeenieNames != null)
+                    WeenieNames.TryGetValue(input[i].WeenieClassId, out label);
 
                 return $"{input[i].Landblock}, {input[i].WeenieClassId}, {input[i].CellX}, {input[i].CellY}) /* {label} */";
             });

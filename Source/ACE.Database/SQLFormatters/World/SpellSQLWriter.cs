@@ -9,6 +9,9 @@ namespace ACE.Database.SQLFormatters.World
 {
     public class SpellSQLWriter : SQLWriter
     {
+        /// <summary>
+        /// Default is formed from: input.SpellId.ToString("00000") + " " + input.Name
+        /// </summary>
         public string GetDefaultFileName(Spell input)
         {
             string fileName = input.SpellId.ToString("00000") + " " + input.Name;
@@ -20,7 +23,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Spell input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteLine($"DELETE FROM `spell` WHERE `spell_Id` = {input.SpellId};");
         }
 
         public void CreateSQLINSERTStatement(Spell input, StreamWriter writer)

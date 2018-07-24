@@ -6,6 +6,9 @@ namespace ACE.Database.SQLFormatters.World
 {
     public class QuestSQLWriter : SQLWriter
     {
+        /// <summary>
+        /// Default is formed from: input.Name
+        /// </summary>
         public string GetDefaultFileName(Quest input)
         {
             string fileName = input.Name;
