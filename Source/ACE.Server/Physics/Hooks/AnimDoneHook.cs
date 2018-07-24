@@ -1,19 +1,13 @@
 ﻿using ACE.DatLoader.Entity;
-using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Hooks
 {
-    public class AnimHook: PhysicsObjHook
+    public class AnimDoneHook: AnimHook
     {
-        public AnimationHookDir Direction;
+        public AnimDoneHook() { }
 
-        public AnimHook() { }
-
-        public AnimHook(AnimationHook animHook)
-        {
-            HookType = (PhysicsHookType)animHook.HookType;
-            Direction = animHook.Direction;
-        }
+        public AnimDoneHook(AnimationHook animHook)
+            : base(animHook) { }
 
         public override bool Execute(PhysicsObj obj)
         {

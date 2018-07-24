@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -28,13 +29,13 @@ namespace ACE.Server.Physics.Animation
         {
             switch (motion)
             {
-                case 0x6500000D:
-                    TurnCommand = 0x6500000D;
+                case (uint)MotionCommand.TurnRight:
+                    TurnCommand = (uint)MotionCommand.TurnRight;
                     TurnSpeed = movementParams.Speed;
                     break;
 
-                case 0x6500000F:
-                    SideStepCommand = 0x6500000F;
+                case (uint)MotionCommand.SideStepRight:
+                    SideStepCommand = (uint)MotionCommand.SideStepRight;
                     SideStepSpeed = movementParams.Speed;
                     break;
 
@@ -46,7 +47,7 @@ namespace ACE.Server.Physics.Animation
                     }
                     else if ((motion & 0x80000000) != 0)
                     {
-                        ForwardCommand = 0x41000003;
+                        ForwardCommand = (uint)MotionCommand.Ready;
                         CurrentStyle = motion;
                     }
                     else if ((motion & 0x10000000) != 0)
@@ -60,8 +61,8 @@ namespace ACE.Server.Physics.Animation
         public void InitDefaults()
         {
             Actions = new List<ActionNode>();
-            CurrentStyle = 0x8000003D;
-            ForwardCommand = 0x41000003;
+            CurrentStyle = (uint)MotionCommand.NonCombat;
+            ForwardCommand = (uint)MotionCommand.Ready;
             ForwardSpeed = 1.0f;
             SideStepCommand = 0;
             SideStepSpeed = 1.0f;
@@ -88,10 +89,10 @@ namespace ACE.Server.Physics.Animation
         {
             switch (motion)
             {
-                case 0x6500000D:
+                case (uint)MotionCommand.TurnRight:
                     TurnCommand = 0;
                     break;
-                case 0x6500000F:
+                case (uint)MotionCommand.SideStepRight:
                     SideStepCommand = 0;
                     break;
 
@@ -100,14 +101,14 @@ namespace ACE.Server.Physics.Animation
                     {
                         if (ForwardCommand == motion)
                         {
-                            ForwardCommand = 0x41000003;
+                            ForwardCommand = (uint)MotionCommand.Ready;
                             ForwardSpeed = 1.0f;
                         }
                     }
-                    else if ((motion & 0x80000000) != 0 )
+                    else if ((motion & 0x80000000) != 0)
                     {
                         if (CurrentStyle == motion)
-                            CurrentStyle = 0x8000003D;
+                            CurrentStyle = (uint)MotionCommand.NonCombat;
                     }
                     break;
             }

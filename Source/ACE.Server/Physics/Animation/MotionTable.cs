@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -108,7 +107,7 @@ namespace ACE.Server.Physics.Animation
                         re_modify(sequence, currState);
 
                         numAnims = (uint)((motionData != null ? motionData.Anims.Count : 0) + (link != null ? link.Anims.Count : 0) +
-                            (motionData_ != null ? motionData_.Anims.Count : 0) + (cycles != null ? cycles.Anims.Count : 0));
+                            (motionData_ != null ? motionData_.Anims.Count : 0) + (cycles != null ? cycles.Anims.Count : 0) - 1);
 
                         return true;
                     }
@@ -176,7 +175,7 @@ namespace ACE.Server.Physics.Animation
                         re_modify(sequence, currState);
 
                         numAnims = (uint)((motionData == null ? 0 : motionData.Anims.Count) + (link == null ? 0 : link.Anims.Count) +
-                            (motionData_ == null ? 0 : motionData_.Anims.Count));
+                            (motionData_ == null ? 0 : motionData_.Anims.Count) - 1);
 
                         return true;
                     }
@@ -271,7 +270,7 @@ namespace ACE.Server.Physics.Animation
             if (!Cycles.TryGetValue(cycle, out motionData))
                 return false;
 
-            numAnims = (uint)motionData.Anims.Count;    // - 1?
+            numAnims = (uint)motionData.Anims.Count - 1;
             state.Style = DefaultStyle;
             state.Substate = defaultSubstate;
             state.SubstateMod = 1.0f;
@@ -351,7 +350,10 @@ namespace ACE.Server.Physics.Animation
             sequence.SetOmega(motionData.Omega * speed);
 
             for (var i = 0; i < motionData.Anims.Count; i++)
-                sequence.append_animation(new AnimData(motionData.Anims[i], speed));
+            {
+                var animData = new AnimData(motionData.Anims[i], speed);
+                sequence.append_animation(animData);
+            }
         }
 
         public void change_cycle_speed(Sequence sequence, MotionData motionData, float substateMod, float speedMod)
@@ -454,7 +456,7 @@ namespace ACE.Server.Physics.Animation
             if (RunSpeed.TryGetValue(motionTableID, out float runSpeed))
                 return runSpeed;
 
-            uint runMotion = 0x44000007;
+            uint runMotion = (uint)MotionCommand.RunForward;
             var motionData = GetMotionData(motionTableID, runMotion);
             if (motionData == null)
                 return 0.0f;
@@ -472,7 +474,7 @@ namespace ACE.Server.Physics.Animation
             if (TurnSpeed.TryGetValue(motionTableID, out float turnSpeed))
                 return turnSpeed;
 
-            uint turnMotion = 0x6500000d;
+            uint turnMotion = (uint)MotionCommand.TurnRight;
             var motionData = GetMotionData(motionTableID, turnMotion);
             if (motionData == null)
                 return 0.0f;
