@@ -205,6 +205,12 @@ namespace ACE.Server.WorldObjects
                             || (spell.MetaSpellType == SpellType.PortalSending)
                             || (spell.MetaSpellType == SpellType.PortalSummon))
                         {
+                            PlayScript playScript;
+                            if (spell.CasterEffect > 0)
+                                playScript = (PlayScript)spell.CasterEffect;
+                            else
+                                playScript = (PlayScript)spell.TargetEffect;
+                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, playScript, scale));
                             enchantmentStatus = ItemMagic(player, spell, spellStatMod, item);
                         }
                         else
@@ -220,11 +226,12 @@ namespace ACE.Server.WorldObjects
                             }
                             else
                                 enchantmentStatus = ItemMagic(item, spell, spellStatMod, item);
+
+                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                         }
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                             if (!suppressSpellChatText)
                                 player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }

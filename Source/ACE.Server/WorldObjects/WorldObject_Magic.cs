@@ -594,36 +594,53 @@ namespace ACE.Server.WorldObjects
                 switch (spell.MetaSpellType)
                 {
                     case SpellType.PortalRecall:
+                        PositionType recall = PositionType.Undef;
                         switch (spell.MetaSpellId)
                         {
                             case 2645: // Portal Recall
-                                if (!player.TeleToPosition(PositionType.LastPortal))
+                                if (!player.Positions.ContainsKey(PositionType.LastPortal))
                                 {
                                     // You must link to a portal to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
+                                else
+                                    recall = PositionType.LastPortal;
                                 break;
                             case 1635: // Lifestone Recall
-                                if (!player.TeleToPosition(PositionType.LinkedLifestone))
+                                if (!player.Positions.ContainsKey(PositionType.LinkedLifestone))
                                 {
                                     // You must link to a lifestone to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
                                 }
+                                else
+                                    recall = PositionType.LastPortal;
                                 break;
                             case 48: // Primary Portal Recall
-                                if (!player.TeleToPosition(PositionType.LinkedPortalOne))
+                                if (!player.Positions.ContainsKey(PositionType.LinkedPortalOne))
                                 {
                                     // You must link to a portal to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
+                                else
+                                    recall = PositionType.LastPortal;
                                 break;
                             case 2647: // Secondary Portal Recall
-                                if (!player.TeleToPosition(PositionType.LinkedPortalTwo))
+                                if (!player.Positions.ContainsKey(PositionType.LinkedPortalTwo))
                                 {
                                     // You must link to a portal to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
+                                else
+                                    recall = PositionType.LastPortal;
                                 break;
+                        }
+
+                        if (recall != PositionType.Undef)
+                        {
+                            ActionChain portalRecallChain = new ActionChain();
+                            portalRecallChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            portalRecallChain.AddAction(targetPlayer, () => player.TeleToPosition(recall));
+                            portalRecallChain.EnqueueChain();
                         }
                         break;
                     case SpellType.PortalSending:
@@ -633,7 +650,12 @@ namespace ACE.Server.WorldObjects
                                 (float)spellStatMod.PositionOriginY, (float)spellStatMod.PositionOriginZ, (float)spellStatMod.PositionAnglesX,
                                 (float)spellStatMod.PositionAnglesY, (float)spellStatMod.PositionAnglesZ, (float)spellStatMod.PositionAnglesW);
                             if (destination != null)
-                                targetPlayer.Teleport(destination);
+                            {
+                                ActionChain portalSendingChain = new ActionChain();
+                                portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.Teleport(destination));
+                                portalSendingChain.EnqueueChain();
+                            }
                         }
                         break;
                     case SpellType.PortalLink:
