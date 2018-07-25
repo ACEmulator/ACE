@@ -79,7 +79,12 @@ namespace ACE.Database.SQLFormatters.World
                 WeenieClassNames.TryGetValue(input.ClassId, out className);
 
             writer.WriteLine("INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`)");
-            writer.WriteLine($"VALUES ('{input.ClassId}', '{className}', {input.Type}) /* {Enum.GetName(typeof(WeenieType), input.Type)} */;");
+
+            var output = $"VALUES ('{input.ClassId}', '{className}', {input.Type}) /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
+
+            output = FixNullFields(output);
+
+            writer.WriteLine(output);
 
             if (input.WeeniePropertiesInt != null && input.WeeniePropertiesInt.Count > 0)
             {

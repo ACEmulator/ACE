@@ -27,7 +27,11 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `quest` (`name`, `min_Delta`, `max_Solves`, `message`)");
 
-            writer.WriteLine($"VALUES ('{input.Name.Replace("'", "''")}', {input.MinDelta}, {input.MaxSolves}, '{input.Message.Replace("'", "''")}');");
+            var output = $"VALUES ('{input.Name.Replace("'", "''")}', {input.MinDelta}, {input.MaxSolves}, '{input.Message.Replace("'", "''")}');";
+
+            output = FixNullFields(output);
+
+            writer.WriteLine(output);
         }
     }
 }

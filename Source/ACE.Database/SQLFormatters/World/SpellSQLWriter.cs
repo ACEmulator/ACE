@@ -418,6 +418,8 @@ namespace ACE.Database.SQLFormatters.World
             spellLineHdr += ")";
             spellLine += ");";
 
+            spellLine = FixNullFields(spellLine);
+
             writer.WriteLine(spellLineHdr);
             writer.WriteLine(spellLine);
         }

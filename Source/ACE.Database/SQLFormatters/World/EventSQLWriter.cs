@@ -29,12 +29,16 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `event` (`name`, `start_Time`, `end_Time`, `state`)");
 
-            writer.WriteLine("VALUES (" +
+            var output = "VALUES (" +
                              $"'{input.Name.Replace("'", "''")}', " +
                              $"{(input.StartTime == -1 ? $"{input.StartTime}" : $"{input.StartTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.StartTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{(input.EndTime == -1 ? $"{input.EndTime}" : $"{input.EndTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.EndTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{input.State}" +
-                             ");");
+                             ");";
+
+            output = FixNullFields(output);
+
+            writer.WriteLine(output);
         }
     }
 }

@@ -62,7 +62,8 @@ namespace ACE.Database.SQLFormatters
         /// <summary>
         /// This will find values that were not output to a values line, for example, if a property is a (int?), and it has no value, you might see ", ," in the sql.<para />
         /// This function will replace that ", ," with ", NULL,".<para />
-        /// It will do the same thing for strings that were output as ", '',"
+        /// It will do the same thing for strings that were output as ", '',"<para />
+        /// It also removes empty comments like the folliwng: " /*  */"
         /// </summary>
         protected static string FixNullFields(string input)
         {
