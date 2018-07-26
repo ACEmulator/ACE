@@ -17,7 +17,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The delay between melee attacks (todo: find actual value)
         /// </summary>
-        public static readonly float MeleeDelay = 3.0f;
+        public static readonly float MeleeDelay = 2.0f;
 
         /// <summary>
         /// Returns TRUE if creature can perform a melee attack
@@ -30,17 +30,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Performs a melee attack for the monster
         /// </summary>
-        public void MeleeAttack()
+        /// <returns>The length in seconds for the attack animation</returns>
+        public float MeleeAttack()
         {
-            NextAttackTime = Timer.CurrentTime + MeleeDelay;
-
             var player = AttackTarget as Player;
-            if (player.Health.Current <= 0) return;
+            if (player.Health.Current <= 0) return 0.0f;
 
             // select random body part @ current attack height
             var bodyPart = GetBodyPart();
 
             DoSwingMotion(AttackTarget, out float animLength);
+            PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength / 2.0f);
@@ -56,6 +56,10 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {Name}!", ChatMessageType.CombatEnemy));
             });
             actionChain.EnqueueChain();
+
+            // TODO: figure out exact speed / delay formula
+            NextAttackTime = Timer.CurrentTime + animLength + MeleeDelay;
+            return animLength;
         }
 
         /// <summary>

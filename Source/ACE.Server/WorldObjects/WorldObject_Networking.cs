@@ -442,10 +442,10 @@ namespace ACE.Server.WorldObjects
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (PhysicsObj.DefaultScript != null && PhysicsObj.DefaultScript != 0)
+            if (PhysicsObj != null && PhysicsObj.DefaultScript != null && PhysicsObj.DefaultScript != 0)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (PhysicsObj.DefaultScriptIntensity != null)
+            if (PhysicsObj != null && PhysicsObj.DefaultScriptIntensity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
@@ -605,12 +605,12 @@ namespace ACE.Server.WorldObjects
             else
                 physicsState &= ~PhysicsState.Inelastic;
             ////HasDefaultAnim              = 0x00040000,
-            if (PhysicsObj.HasDefaultAnimation && CSetup.DefaultAnimation > 0)
+            if (PhysicsObj != null && PhysicsObj.HasDefaultAnimation && CSetup.DefaultAnimation > 0)
                 physicsState |= PhysicsState.HasDefaultAnim;
             else
                 physicsState &= ~PhysicsState.HasDefaultAnim;
             ////HasDefaultScript            = 0x00080000,
-            if (PhysicsObj.HasDefaultScript && CSetup.DefaultScript > 0)
+            if (PhysicsObj != null && PhysicsObj.HasDefaultScript && CSetup.DefaultScript > 0)
                 physicsState |= PhysicsState.HasDefaultScript;
             else
                 physicsState &= ~PhysicsState.HasDefaultScript;
@@ -1022,18 +1022,29 @@ namespace ACE.Server.WorldObjects
 
         public double lastDist;
 
+        public static double ProjectileTimeout = 30.0f;
+
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
         public bool UpdateObjectPhysics()
         {
-            if (PhysicsObj == null)
+            if (PhysicsObj == null || !PhysicsObj.is_active())
                 return false;
+
+            if (CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)
+            {
+                // only for projectiles?
+                //Console.WriteLine("Timeout reached - destroying " + Name);
+                PhysicsObj.set_active(false);
+                Destroy();
+                return false;
+            }
 
             // get position before
             var pos = PhysicsObj.Position.Frame.Origin;
             var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
-            var cellBefore = PhysicsObj.CurCell.ID;
+            var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
             PhysicsObj.update_object();
 
@@ -1048,7 +1059,8 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj.CurCell == null)
             {
                 //Console.WriteLine("CurCell is null");
-                CurrentLandblock?.RemoveWorldObject(Guid, false);
+                PhysicsObj.set_active(false);
+                Destroy();
                 return false;
             }
 
@@ -1062,6 +1074,10 @@ namespace ACE.Server.WorldObjects
                 if (landblockUpdate)
                     WorldManager.UpdateLandblock.Add(this);
             }
+
+            //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
+            //Console.WriteLine("Dist: " + dist);
+            //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
 
             // return position change?
             return false;

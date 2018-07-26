@@ -344,8 +344,9 @@ namespace ACE.Server.Entity
             var cell = LScape.get_landcell(wo.Location.Cell);
             if (cell != null)
             {
-                wo.PhysicsObj.enter_cell(cell);
-                wo.PhysicsObj.add_shadows_to_cell(cell);
+                wo.PhysicsObj.Position.ObjCellID = cell.ID;
+
+                wo.PhysicsObj.add_obj_to_cell(cell, wo.PhysicsObj.Position.Frame);
             }
 
             // var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);

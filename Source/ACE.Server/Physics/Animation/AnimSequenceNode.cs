@@ -70,7 +70,7 @@ namespace ACE.Server.Physics.Animation
 
         public float get_starting_frame()
         {
-            if (Framerate > 0.0f)
+            if (Framerate >= 0.0f)
                 return LowFrame;
             else
                 return HighFrame + 1 - PhysicsGlobals.EPSILON;

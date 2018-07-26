@@ -201,6 +201,9 @@ namespace ACE.Server.WorldObjects
                 Cloaked = true;
                 LightsStatus = false;
 
+                PhysicsObj.State |= PhysicsState.Ethereal | PhysicsState.IgnoreCollisions | PhysicsState.NoDraw | PhysicsState.Cloaked;
+                PhysicsObj.State &= ~(PhysicsState.ReportCollisions | PhysicsState.LightingOn);
+
                 PhysicsObj.set_active(false);
 
                 EnqueueBroadcastPhysicsState();
@@ -229,6 +232,8 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject _target)
         {
+            //Console.WriteLine("SpellProjectile.OnCollideObject(" + _target.Name + ")");
+
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             SpellBase spell = spellTable.Spells[spellId];
 
@@ -326,7 +331,7 @@ namespace ACE.Server.WorldObjects
                 if (target.Health.Current <= 0)
                 {
                     target.UpdateVital(target.Health, 0);
-                    target.OnDeath();
+                    //target.OnDeath();
                     target.Die();
 
                     if (player != null)

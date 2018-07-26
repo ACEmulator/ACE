@@ -236,7 +236,7 @@ namespace ACE.Server.Physics.Common
                     if (sphere == null)
                         continue;
 
-                    var center = Pos.LocalToGlobal(part.Pos, sphere.Center);
+                    var center = Pos.LocalToLocal(part.Pos, sphere.Center);
                     var rad = sphere.Radius + PhysicsGlobals.EPSILON;
 
                     var dist = Vector3.Dot(center, portalPoly.Plane.Normal) + portalPoly.Plane.D;

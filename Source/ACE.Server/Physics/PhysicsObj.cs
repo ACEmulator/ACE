@@ -75,6 +75,7 @@ namespace ACE.Server.Physics
         public bool CollidingWithEnvironment;
         public int[] UpdateTimes;
         public PhysicsObj ProjectileTarget;
+        public PhysicsTimer PhysicsTimer;
 
         // server
         public Position RequestPos;
@@ -117,6 +118,7 @@ namespace ACE.Server.Physics
             CellArray = new CellArray();
             UpdateTime = Timer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
+            PhysicsTimer = new PhysicsTimer();
             WeenieObj = new WeenieObject();
             ObjMaint = new ObjectMaint();
 
@@ -204,7 +206,7 @@ namespace ACE.Server.Physics
                 position.ObjCellID = child.ID;
                 return child;
             }
-            if (!visibleCell.SeenOutside) return null;
+            if (!visibleCell.SeenOutside) return visibleCell;
             position.adjust_to_outside();
             return ObjCell.GetVisible(cellID);
         }
@@ -1467,6 +1469,20 @@ namespace ACE.Server.Physics
                 CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                 SetPositionInternal(transit);
             }
+
+            if (DetectionManager != null) DetectionManager.CheckDetection();
+
+            if (TargetManager != null) TargetManager.HandleTargetting();
+
+            if (MovementManager != null) MovementManager.UseTime();
+
+            if (PartArray != null) PartArray.HandleMovement();
+
+            if (PositionManager != null) PositionManager.UseTime();
+
+            if (ParticleManager != null) ParticleManager.UpdateParticles();
+
+            if (ScriptManager != null) ScriptManager.UpdateScripts();
         }
 
         public void UpdatePartsInternal()
@@ -3545,7 +3561,7 @@ namespace ACE.Server.Physics
                 PositionManager.Unstick();
         }
 
-        public static float TickRate = 1.0f / 60.0f;
+        public static float TickRate = 1.0f / 30.0f;
 
         public void update_object()
         {
@@ -3569,6 +3585,8 @@ namespace ACE.Server.Physics
             if (deltaTime < TickRate)
                 return;
 
+            //Console.WriteLine("deltaTime: " + deltaTime);
+
             PhysicsTimer.CurrentTime = UpdateTime;
             if (deltaTime <= PhysicsGlobals.EPSILON /*|| deltaTime > 2.0f */)   // commented out for debugging
             {
@@ -3585,8 +3603,8 @@ namespace ACE.Server.Physics
             {
                 PhysicsTimer.CurrentTime += deltaTime;
                 UpdateObjectInternal(deltaTime);
-                UpdateTime = Timer.CurrentTime;
             }
+            UpdateTime = Timer.CurrentTime;
         }
 
         public void update_object_server(bool forcePos = true)
@@ -3624,14 +3642,37 @@ namespace ACE.Server.Physics
                 UpdateTime = Timer.CurrentTime;
         }
 
-        public void add_listener(Action listener)
+        public void add_moveto_listener(Action listener)
         {
             MovementManager.MoveToManager.add_listener(listener);
         }
 
-        public void remove_listener(Action listener)
+        public void remove_moveto_listener(Action listener)
         {
             MovementManager.MoveToManager.remove_listener(listener);
+        }
+
+        public void add_sticky_listener(Action listener)
+        {
+            MakePositionManager();
+            PositionManager.MakeStickyManager();
+
+            PositionManager.StickyManager.add_sticky_listener(listener);
+        }
+
+        public void remove_sticky_listener(Action listener)
+        {
+            PositionManager.StickyManager.remove_sticky_listener(listener);
+        }
+
+        public void add_unsticky_listener(Action listener)
+        {
+            PositionManager.StickyManager.add_unsticky_listener(listener);
+        }
+
+        public void remove_unsticky_listener(Action listener)
+        {
+            PositionManager.StickyManager.remove_unsticky_listener(listener);
         }
 
         public bool Equals(PhysicsObj obj)

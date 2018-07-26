@@ -1,11 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics
 {
-    public static class PhysicsTimer
+    public class PhysicsTimer
     {
-        public static double CurrentTime;
+        public double CurrentTime;
+
+        public PhysicsTimer()
+        {
+            CurrentTime = Timer.CurrentTime;
+        }
     }
 }
