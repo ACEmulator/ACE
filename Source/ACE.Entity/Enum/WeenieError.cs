@@ -132,9 +132,9 @@ namespace ACE.Entity.Enum
         CantGetThere = 0x0039,
 
         /// <summary>
-        /// You can't do that... you're dead!
+        /// You can't do that... you're dead! or You can't do that... its dead!
         /// </summary>
-        YouCantDoThatYoureDead = 0x003A,
+        Dead = 0x003A,
 
         ILeftTheWorld = 0x003B,
         ITeleported = 0x003C,

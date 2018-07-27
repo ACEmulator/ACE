@@ -529,12 +529,12 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                var containerIsDeadPlayer = container as Corpse;
-                if (containerIsDeadPlayer != null)
+                var corpse = container as Corpse;
+                if (corpse != null)
                 {
-                    if (containerIsDeadPlayer.IsMonster == false)
+                    if (corpse.IsMonster == false)
                     {
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouCantDoThatYoureDead));
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.Dead));
                         return;
                     }
                 }

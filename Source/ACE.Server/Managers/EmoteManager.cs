@@ -111,7 +111,7 @@ namespace ACE.Server.Managers
                         if (player != null)
                         {
                             player.EarnXP((long)emoteAction.Amount64);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.System));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.Broadcast));
                         }
                     });
                     break;
@@ -142,7 +142,7 @@ namespace ACE.Server.Managers
                         if (player != null)
                         {
                             player.EarnXP((long)emoteAction.Amount64);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.System));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.Broadcast));
                         }
                     });
                     break;
