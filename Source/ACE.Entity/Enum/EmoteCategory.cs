@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// exported from the decompiled client.  actual usage of these is 100% speculative.
@@ -6,6 +6,10 @@
     public enum EmoteCategory
     {
         Invalid                   = 0,
+        /// <summary>
+        /// Not used as a direct refusal to accept item but as a mechanism to "examine" item but allow player to keep
+        /// Supported by pcap data
+        /// </summary>
         Refuse                    = 1,
         Vendor                    = 2,
         Death                     = 3,

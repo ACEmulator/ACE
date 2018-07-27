@@ -454,6 +454,25 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
         }
 
+        private bool IsAttuned(ObjectGuid itemGuid, out bool isAttuned)
+        {
+            WorldObject item = GetInventoryItem(itemGuid);
+            if (item == null)
+            {
+                isAttuned = false;
+                return false;
+            }
+
+            int attunedProperty = (item.GetProperty(PropertyInt.Attuned) ?? 0);
+            if (attunedProperty == 1)
+            {
+                isAttuned = true;
+                return true;
+            }
+
+            isAttuned = false;
+            return true;
+        }
 
         // =========================================
         // Game Action Handlers - Inventory Movement 
@@ -468,6 +487,8 @@ namespace ACE.Server.WorldObjects
         {
             new ActionChain(this, () =>
             {
+                bool containerOwnedByPlayer = true;
+
                 Container container;
 
                 if (containerGuid == Guid)
@@ -477,6 +498,7 @@ namespace ACE.Server.WorldObjects
 
                 if (container == null) // Destination is a container in the world, not in our possession
                 {
+                    containerOwnedByPlayer = false;
                     container = CurrentLandblock?.GetObject(containerGuid) as Container;
 
                     if (container == null) // Container is a container within a container in the world....
@@ -495,6 +517,27 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
+
+                if (item != null)
+                {
+                    IsAttuned(itemGuid, out bool isAttuned);
+                    if (isAttuned == true && containerOwnedByPlayer == false)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
+                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                        return;
+                    }
+                }
+
+                var corpse = container as Corpse;
+                if (corpse != null)
+                {
+                    if (corpse.IsMonster == false)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.Dead));
+                        return;
+                    }
+                }
 
                 // Is this something I already have? If not, it has to be a pickup - do the pickup and out.
                 if (item == null)
@@ -519,26 +562,6 @@ namespace ACE.Server.WorldObjects
             }).EnqueueChain();
         }
 
-        private bool IsAttuned(ObjectGuid itemGuid, out bool isAttuned)
-        {
-            WorldObject item = GetInventoryItem(itemGuid);
-            if (item == null)
-            {
-                isAttuned = false;
-                return false;
-            }
-
-            int attunedProperty = (item.GetProperty(PropertyInt.Attuned) ?? 0);
-            if (attunedProperty == 1)
-            {
-                isAttuned = true;
-                return true;
-            }
-
-            isAttuned = false;
-            return true;
-        }
-
         /// <summary>
         /// This is raised when we drop an item. It can be a wielded item, or an item in our inventory.
         /// </summary>
@@ -547,7 +570,8 @@ namespace ACE.Server.WorldObjects
             IsAttuned(itemGuid, out bool isAttuned);
             if (isAttuned == true)
             {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot drop that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
                 return;
             }
 
@@ -1086,8 +1110,8 @@ namespace ACE.Server.WorldObjects
 
                     TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
 
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
                     Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                 });
@@ -1096,17 +1120,17 @@ namespace ACE.Server.WorldObjects
             {
                 giveChain.AddAction(this, () =>
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow , ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow , ChatMessageType.Broadcast));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
-            else if (item.GetProperty(PropertyBool.Retained) ?? false)
+            else if ((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1)
             {
-                // should be attuned?
                 giveChain.AddAction(this, () =>
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You can't give this item away. (Retained)", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem)); // Second message appears in PCAPs
                 });
             }
             else
@@ -1125,8 +1149,8 @@ namespace ACE.Server.WorldObjects
 
                             TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
 
-                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
                             Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                         });
@@ -1136,8 +1160,8 @@ namespace ACE.Server.WorldObjects
                         // Item rejected by npc
                         giveChain.AddAction(this, () =>
                         {
-                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
-                            Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + " does not accept this item.", ChatMessageType.System));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.Name}.", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.TradeAiRefuseEmote));
                         });
                     }
                 }
@@ -1145,8 +1169,8 @@ namespace ACE.Server.WorldObjects
                 {
                     giveChain.AddAction(this, () =>
                     {
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
-                        Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + " does not accept this item.", ChatMessageType.System));
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.TradeAiDoesntWant));
+                        Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                     });
                 }
             }
