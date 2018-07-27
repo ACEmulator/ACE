@@ -524,6 +524,8 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouHaveUsedAllTheHooks = 0x0469,
 
+        TradeAiDoesntWant = 0x046A,
+
         HookHouseNotOwned = 0x046B,
 
         /// <summary>
