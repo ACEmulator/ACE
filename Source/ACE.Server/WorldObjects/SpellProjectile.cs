@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
             Wall
         }
 
-        public ProjectileSpellType GetProjectileSpellType(uint SpellId)
+        public static ProjectileSpellType GetProjectileSpellType(uint SpellId)
         {
             var WeenieClassId = DatabaseManager.World.GetCachedSpell(SpellId).Wcid;
             if (WeenieClassId == null)
