@@ -1114,12 +1114,11 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
-            else if (item.GetProperty(PropertyBool.Retained) ?? false)
+            else if ((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1)
             {
-                // should be attuned?
                 giveChain.AddAction(this, () =>
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You can't give this item away. (Retained)", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
