@@ -71,7 +71,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Removes an exisitng quest from the Player's registry
+        /// Removes an existing quest from the Player's registry
         /// </summary>
         public void Erase(string questName)
         {

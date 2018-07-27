@@ -537,14 +537,14 @@ namespace ACE.Server.Physics
             {
                 //var qdid = new QualifiedDataID(0x22, setup.DefaultSTableID);
                 //SoundTable = (SoundTable)DBObj.Get(qdid);
-                log.Warn($"PhysicsObj has DefaultSTableID, (SoundTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x22, {setup.DefaultSTableID});");
+                //log.Warn($"PhysicsObj has DefaultSTableID, (SoundTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x22, {setup.DefaultSTableID});");
             }
 
             if (setup.DefaultPhsTableID != 0)
             {
                 //    var qdid = new QualifiedDataID(0x2C, setup.DefaultPhsTableID);
                 //    PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
-                log.Warn($"PhysicsObj has DefaultPhsTableID, (PhysicsScriptTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x2C, {setup.DefaultPhsTableID});");
+                //log.Warn($"PhysicsObj has DefaultPhsTableID, (PhysicsScriptTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x2C, {setup.DefaultPhsTableID});");
             }
 
             if (State.HasFlag(PhysicsState.Static))

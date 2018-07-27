@@ -1,5 +1,5 @@
 using System;
-
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -684,6 +684,114 @@ namespace ACE.Server.Managers
                     foreach (var _player in players)
                         _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.WorldBroadcast));
                     break;
+            }
+        }
+
+        public void ExecuteSet(EmoteSet emoteSet, WorldObject target)
+        {
+            if (EndTime < Timer.CurrentTime)
+                EndTime = Timer.CurrentTime;
+
+            double queueTime = 0.0;
+            foreach (var emote in emoteSet.Emotes)
+            {
+                queueTime += emote.Delay;
+                EmoteQueue.Enqueue(new QueuedEmote(emote, target, Timer.CurrentTime + queueTime));
+            }
+        }
+
+        public void InqCategory(EmoteCategory categoryId, Emote emote)
+        {
+            var category = WorldObject.Biota.GetEmotes((uint)categoryId);
+            if (category == null) return;
+            foreach (var entry in category)
+            {
+                if (!emote.Message.Equals(entry.Quest))
+                    continue;
+                //ExecuteSet(entry, target);
+                break;
+            }
+        }
+
+        public void InqProperty(bool? prop, Emote emote)
+        {
+            if (prop == null) return;
+            InqPropertyInner(emote, true);
+        }
+
+        public void InqProperty(long? prop, Emote emote)
+        {
+            if (prop == null) return;
+            var inRange = prop.Value >= (int)emote.Min && prop.Value <= (int)emote.Max;
+            InqPropertyInner(emote, inRange);
+        }
+
+        public void InqProperty(double? prop, Emote emote)
+        {
+            if (prop == null) return;
+            var inRange = prop.Value >= (int)emote.MinFloat && prop.Value <= (int)emote.MaxFloat;
+            InqPropertyInner(emote, inRange);
+        }
+
+        public void InqProperty(string prop, Emote emote)
+        {
+            if (prop == null) return;
+            InqPropertyInner(emote, true);
+        }
+
+        public void InqPropertyInner(Emote emote, bool inRange)
+        {
+            var category = WorldObject.Biota.GetEmotes(inRange ? (uint)EmoteCategory.TestSuccess : (uint)EmoteCategory.TestFailure);
+            if (category == null) return;
+            foreach (var entry in category)
+            {
+                if (!emote.Message.Equals(entry.Quest))
+                    continue;
+                //ExecuteSet(entry, target);
+                break;
+            }
+        }
+
+        public bool InProgress()
+        {
+            return EmoteQueue.Count > 0;
+        }
+
+        public void Cancel()
+        {
+            EmoteQueue.Clear();
+        }
+
+        public void OnDeath(uint sourceID)
+        {
+            Cancel();
+        }
+
+        /// <summary>
+        /// Sets the execute time for the next item in the queue
+        /// </summary>
+        public void AddTime()
+        {
+            if (EmoteQueue.Count == 0) return;
+            var emote = EmoteQueue.Peek();
+            emote.ExecuteTime = Timer.CurrentTime + emote.Data.Delay;
+        }
+
+        /// <summary>
+        /// Processes the emote queue
+        /// </summary>
+        public void ProcessQueue()
+        {
+            while (EmoteQueue.Count > 0)
+            {
+                var emote = EmoteQueue.Peek();
+
+                if (emote.ExecuteTime > Timer.CurrentTime || WorldObject.IsBusy || WorldObject.IsMovingTo)
+                    break;
+
+                EmoteQueue.Dequeue();
+
+                AddTime();
             }
         }
     }
