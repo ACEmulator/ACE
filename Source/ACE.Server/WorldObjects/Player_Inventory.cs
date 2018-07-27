@@ -1120,6 +1120,7 @@ namespace ACE.Server.WorldObjects
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem)); // Second message appears in PCAPs
                 });
             }
             else
