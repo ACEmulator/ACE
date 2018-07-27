@@ -907,15 +907,15 @@ namespace ACE.Server.WorldObjects
             float speed = 15f;
             if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Bolt)
             {
-                speed = GetStationaryVelocity(15f, dist);
+                speed = GetStationarySpeed(15f, dist);
             }
             else if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Streak)
             {
-                speed = GetStationaryVelocity(45f, dist);
+                speed = GetStationarySpeed(45f, dist);
             }
             else if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
             {
-                speed = GetStationaryVelocity(40f, dist);
+                speed = GetStationarySpeed(40f, dist);
             }
 
             // TODO: Implement target leading for non arc spells
@@ -962,18 +962,18 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the velocity of a spell projectile based on distance to the target (assuming it is stationary)
         /// </summary>
-        /// <param name="defaultVelocity"></param>
+        /// <param name="defaultSpeed"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        private float GetStationaryVelocity(float defaultVelocity, float distance)
+        private float GetStationarySpeed(float defaultSpeed, float distance)
         {
-            var velocity = (float)((defaultVelocity * .9998363f) - (defaultVelocity * .62034f) / distance +
-                                   (defaultVelocity * .44868f) / Math.Pow(distance, 2f) - (defaultVelocity * .25256f)
+            var speed = (float)((defaultSpeed * .9998363f) - (defaultSpeed * .62034f) / distance +
+                                   (defaultSpeed * .44868f) / Math.Pow(distance, 2f) - (defaultSpeed * .25256f)
                                    / Math.Pow(distance, 3f));
 
-            velocity = Math.Clamp(velocity, 1, 50);
+            speed = Math.Clamp(speed, 1, 50);
 
-            return velocity;
+            return speed;
         }
 
         /// <summary>
