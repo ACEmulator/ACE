@@ -529,6 +529,13 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
+                var containerIsDeadPlayer = container as Corpse;
+                if (containerIsDeadPlayer != null)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouCantDoThatYoureDead));
+                    return;
+                }
+
                 // Is this something I already have? If not, it has to be a pickup - do the pickup and out.
                 if (item == null)
                 {
