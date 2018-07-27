@@ -5,24 +5,50 @@ using System.Linq;
 
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database.SQLFormatters.World
 {
     public class RecipeSQLWriter : SQLWriter
     {
         /// <summary>
-        /// Default is formed from: input.RecipeId.ToString("00000") + " " + SuccessWeenieName
+        /// Default is formed from: input.RecipeId.ToString("00000") + " " + [SuccessWeenieName or Cook Book Source]
         /// </summary>
-        public string GetDefaultFileName(Recipe input)
+        public string GetDefaultFileName(Recipe input, IList<CookBook> cookBooks)
         {
-            string fileName = input.RecipeId.ToString("00000");
+            string description = null;
 
             if (WeenieNames != null)
             {
                 if (WeenieNames.TryGetValue(input.SuccessWCID, out var weenieName))
-                    fileName += " " + weenieName;
+                    description = weenieName;
             }
 
+            string alternateDescription = null;
+
+            if (cookBooks != null && cookBooks.Count > 0 && WeenieNames != null)
+            {
+                WeenieNames.TryGetValue(cookBooks[0].SourceWCID, out alternateDescription);
+
+                for (int i = 1; i < cookBooks.Count; i++)
+                {
+                    if (WeenieNames.TryGetValue(cookBooks[i].SourceWCID, out var sourceWeenieName) && sourceWeenieName != alternateDescription)
+                    {
+                        alternateDescription = null;
+                        break;
+                    }
+                }
+            }
+
+            if (String.IsNullOrEmpty(description) && !String.IsNullOrEmpty(alternateDescription))
+                description = alternateDescription;
+
+            if (description == "Cooking Pot" && !String.IsNullOrEmpty(alternateDescription))
+                description = alternateDescription;
+
+            string fileName = input.RecipeId.ToString("00000");
+            if (!String.IsNullOrEmpty(description))
+                fileName += " " + description;
             fileName = IllegalInFileName.Replace(fileName, "_");
             fileName += ".sql";
 
@@ -38,7 +64,9 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe` (`recipe_Id`, `unknown_1`, `skill`, `difficulty`, `salvage_Type`, `success_W_C_I_D`, `success_Amount`, `success_Message`, `fail_W_C_I_D`, `fail_Amount`, `fail_Message`, `data_Id`)");
 
-            string skillLabel = Enum.GetName(typeof(Skill), input.Skill);
+            string skillLabel = null;
+            if (input.Skill != 0)
+                skillLabel = Enum.GetName(typeof(Skill), input.Skill);
 
             string successWeenieLabel = null;
             if (WeenieNames != null)
@@ -56,10 +84,10 @@ namespace ACE.Database.SQLFormatters.World
                              $"{input.SalvageType}, " +
                              $"{input.SuccessWCID} /* {successWeenieLabel} */, " +
                              $"{input.SuccessAmount}, " +
-                             $"'{(input.SuccessMessage != null ? input.SuccessMessage.Replace("'", "''") : "")}', " +
+                             $"{GetSQLString(input.SuccessMessage)}, " +
                              $"{input.FailWCID} /* {failWeenieLabel} */, " +
                              $"{input.FailAmount}, " +
-                             $"'{(input.FailMessage != null ? input.FailMessage.Replace("'", "''") : "")}', " +
+                             $"{GetSQLString(input.FailMessage)}, " +
                              $"{input.DataId}" +
                              ");";
 
@@ -145,7 +173,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_component` (`recipe_Id`, `destroy_Chance`, `destroy_Amount`, `destroy_Message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].DestroyChance}, {input[i].DestroyAmount}, {input[i].DestroyMessage})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].DestroyChance}, {input[i].DestroyAmount}, {GetSQLString(input[i].DestroyMessage)})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -154,7 +182,16 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_requirements_int` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Message})");
+            var lineGenerator = new Func<int, string>(i =>
+            {
+                string propertyValueDescription = GetIntPropertyDescription((PropertyInt)input[i].Stat, input[i].Value);
+
+                var comment = Enum.GetName(typeof(PropertyInt), input[i].Stat);
+                if (propertyValueDescription != null)
+                    comment += " - " + propertyValueDescription;
+
+                return $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {comment} */";
+            });
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -163,7 +200,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_requirements_d_i_d` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Message})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyDataId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -172,7 +209,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_requirements_i_i_d` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Message})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -181,7 +218,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_requirements_float` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Message})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -190,7 +227,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_requirements_string` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Message})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyString), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -199,7 +236,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_requirements_bool` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Message})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyBool), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -217,7 +254,16 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_mods_int` (`recipe_Id`, `mod_Set_Id`, `stat`, `value`, `enum`, `unknown_1`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1})");
+            var lineGenerator = new Func<int, string>(i =>
+            {
+                string propertyValueDescription = GetIntPropertyDescription((PropertyInt)input[i].Stat, input[i].Value);
+
+                var comment = Enum.GetName(typeof(PropertyInt), input[i].Stat);
+                if (propertyValueDescription != null)
+                    comment += " - " + propertyValueDescription;
+
+                return $"{recipeId}, {input[i].ModSetId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1}) /* {comment} */";
+            });
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -226,7 +272,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_mods_d_i_d` (`recipe_Id`, `mod_Set_Id`, `stat`, `value`, `enum`, `unknown_1`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1}) /* {Enum.GetName(typeof(PropertyDataId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -235,7 +281,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_mods_i_i_d` (`recipe_Id`, `mod_Set_Id`, `stat`, `value`, `enum`, `unknown_1`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -244,7 +290,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_mods_float` (`recipe_Id`, `mod_Set_Id`, `stat`, `value`, `enum`, `unknown_1`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -253,7 +299,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_mods_string` (`recipe_Id`, `mod_Set_Id`, `stat`, `value`, `enum`, `unknown_1`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}, {input[i].Enum}, {input[i].Unknown1}) /* {Enum.GetName(typeof(PropertyString), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -262,7 +308,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `recipe_mods_bool` (`recipe_Id`, `mod_Set_Id`, `stat`, `value`, `enum`, `unknown_1`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1})");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].ModSetId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Unknown1}) /* {Enum.GetName(typeof(PropertyBool), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

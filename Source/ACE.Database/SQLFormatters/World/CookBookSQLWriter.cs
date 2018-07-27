@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 using ACE.Database.Models.World;
@@ -18,28 +20,30 @@ namespace ACE.Database.SQLFormatters.World
             return fileName;
         }
 
-        public void CreateSQLDELETEStatement(CookBook input, StreamWriter writer)
+        public void CreateSQLDELETEStatement(IList<CookBook> input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `cook_book` WHERE `recipe_Id` = {input.RecipeId};");
+            foreach (var value in input)
+                writer.WriteLine($"DELETE FROM `cook_book` WHERE `recipe_Id` = {value.RecipeId};");
         }
 
-        public void CreateSQLINSERTStatement(CookBook input, StreamWriter writer)
+        public void CreateSQLINSERTStatement(IList<CookBook> input, StreamWriter writer)
         {
             writer.WriteLine("INSERT INTO `cook_book` (`recipe_Id`, `source_W_C_I_D`, `target_W_C_I_D`)");
 
-            string sourceLabel = null;
-            if (WeenieNames != null)
-                WeenieNames.TryGetValue(input.SourceWCID, out sourceLabel);
+            var lineGenerator = new Func<int, string>(i =>
+            {
+                string sourceLabel = null;
+                if (WeenieNames != null)
+                    WeenieNames.TryGetValue(input[i].SourceWCID, out sourceLabel);
 
-            string targetLabel = null;
-            if (WeenieNames != null)
-                WeenieNames.TryGetValue(input.TargetWCID, out targetLabel);
+                string targetLabel = null;
+                if (WeenieNames != null)
+                    WeenieNames.TryGetValue(input[i].TargetWCID, out targetLabel);
 
-            var output = $"VALUES ({input.RecipeId}, {input.SourceWCID} /* {sourceLabel} */, {input.TargetWCID} /* {targetLabel} */);";
+                return $"{input[i].RecipeId}, {input[i].SourceWCID} /* {sourceLabel} */, {input[i].TargetWCID.ToString().PadLeft(5)} /* {targetLabel} */)";
+            });
 
-            output = FixNullFields(output);
-
-            writer.WriteLine(output);
+            ValuesWriter(input.Count, lineGenerator, writer);
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -221,171 +220,11 @@ namespace ACE.Database.SQLFormatters.World
 
             var lineGenerator = new Func<int, string>(i =>
             {
-                string propertyValueDescription = null;
-
-                switch ((PropertyInt)input[i].Type)
-                {
-                    case PropertyInt.AmmoType:
-                        propertyValueDescription = Enum.GetName(typeof(AmmoType), input[i].Value);
-                        break;
-                    case PropertyInt.BoosterEnum:
-                        propertyValueDescription = Enum.GetName(typeof(PropertyAttribute2nd), input[i].Value);
-                        break;
-                    case PropertyInt.ClothingPriority:
-                        propertyValueDescription = ((CoverageMask)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.CombatMode:
-                        propertyValueDescription = Enum.GetName(typeof(CombatMode), input[i].Value);
-                        break;
-                    case PropertyInt.CombatUse:
-                        propertyValueDescription = Enum.GetName(typeof(CombatUse), input[i].Value);
-                        break;
-                    case PropertyInt.CreatureType:
-                    case PropertyInt.SlayerCreatureType:
-                    case PropertyInt.FoeType:
-                    case PropertyInt.FriendType:
-                        propertyValueDescription = Enum.GetName(typeof(CreatureType), input[i].Value);
-                        break;
-                    case PropertyInt.CurrentWieldedLocation:
-                    case PropertyInt.ValidLocations:
-                        propertyValueDescription = ((EquipMask)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.DamageType:
-                        propertyValueDescription = ((DamageType)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.DefaultCombatStyle:
-                    case PropertyInt.AiAllowedCombatStyle:
-                        propertyValueDescription = Enum.GetName(typeof(CombatStyle), input[i].Value);
-                        break;
-                    case PropertyInt.Gender:
-                        propertyValueDescription = Enum.GetName(typeof(Gender), input[i].Value);
-                        break;
-                    case PropertyInt.GeneratorDestructionType:
-                    case PropertyInt.GeneratorEndDestructionType:
-                        propertyValueDescription = Enum.GetName(typeof(GeneratorDestruct), input[i].Value);
-                        break;
-                    case PropertyInt.GeneratorTimeType:
-                        propertyValueDescription = Enum.GetName(typeof(GeneratorTimeType), input[i].Value);
-                        break;
-                    case PropertyInt.GeneratorType:
-                        propertyValueDescription = Enum.GetName(typeof(GeneratorType), input[i].Value);
-                        break;
-                    case PropertyInt.HeritageGroup:
-                        propertyValueDescription = Enum.GetName(typeof(HeritageGroup), input[i].Value);
-                        break;
-                    case PropertyInt.HookItemType:
-                    case PropertyInt.ItemType:
-                    case PropertyInt.MerchandiseItemTypes:
-                    case PropertyInt.TargetType:
-                        propertyValueDescription = Enum.GetName(typeof(ItemType), input[i].Value);
-                        break;
-                    case PropertyInt.HookPlacement:
-                    case PropertyInt.Placement:
-                        propertyValueDescription = Enum.GetName(typeof(Placement), input[i].Value);
-                        break;
-                    case PropertyInt.HookType:
-                        propertyValueDescription = ((HookType)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.HouseType:
-                        propertyValueDescription = Enum.GetName(typeof(HouseType), input[i].Value);
-                        break;
-                    case PropertyInt.ItemUseable:
-                        propertyValueDescription = ((Usable)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.ItemXpStyle:
-                        propertyValueDescription = Enum.GetName(typeof(ItemXpStyle), input[i].Value);
-                        break;
-                    case PropertyInt.MaterialType:
-                        propertyValueDescription = Enum.GetName(typeof(Material), input[i].Value);
-                        break;
-                    case PropertyInt.PaletteTemplate:
-                        propertyValueDescription = Enum.GetName(typeof(PaletteTemplate), input[i].Value);
-                        break;
-                    case PropertyInt.PhysicsState:
-                        propertyValueDescription = ((PhysicsState)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.PlayerKillerStatus:
-                        propertyValueDescription = Enum.GetName(typeof(PlayerKillerStatus), input[i].Value);
-                        break;
-                    case PropertyInt.PortalBitmask:
-                        propertyValueDescription = Enum.GetName(typeof(PortalBitmask), input[i].Value);
-                        break;
-                    case PropertyInt.RadarBlipColor:
-                        propertyValueDescription = Enum.GetName(typeof(RadarColor), input[i].Value);
-                        break;
-                    case PropertyInt.ShowableOnRadar:
-                        propertyValueDescription = Enum.GetName(typeof(RadarBehavior), input[i].Value);
-                        break;
-                    case PropertyInt.SummoningMastery:
-                        propertyValueDescription = Enum.GetName(typeof(SummoningMastery), input[i].Value);
-                        break;
-                    case PropertyInt.UiEffects:
-                        propertyValueDescription = Enum.GetName(typeof(UiEffects), input[i].Value);
-                        break;
-                    case PropertyInt.WeaponSkill:
-                    case PropertyInt.WieldSkilltype2:
-                    case PropertyInt.WieldSkilltype3:
-                    case PropertyInt.WieldSkilltype4:
-                    case PropertyInt.WieldSkilltype:
-                        propertyValueDescription = Enum.GetName(typeof(Skill), input[i].Value);
-                        break;
-                    case PropertyInt.WeaponType:
-                        propertyValueDescription = Enum.GetName(typeof(WeaponType), input[i].Value);
-                        break;
-                    case PropertyInt.ActivationCreateClass:
-                        if (WeenieNames != null)
-                            WeenieNames.TryGetValue((uint)input[i].Value, out propertyValueDescription);
-                        break;
-                    case PropertyInt.ActivationResponse:
-                        propertyValueDescription = Enum.GetName(typeof(ActivationResponse), input[i].Value);
-                        break;
-                    case PropertyInt.Attuned:
-                        propertyValueDescription = Enum.GetName(typeof(AttunedStatus), input[i].Value);
-                        break;
-                    case PropertyInt.AttackHeight:
-                        propertyValueDescription = Enum.GetName(typeof(AttackHeight), input[i].Value);
-                        break;
-                    case PropertyInt.AttackType:
-                        propertyValueDescription = ((AttackType)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.Bonded:
-                        propertyValueDescription = Enum.GetName(typeof(BondedStatus), input[i].Value);
-                        break;
-                    case PropertyInt.ChannelsActive:
-                    case PropertyInt.ChannelsAllowed:
-                        propertyValueDescription = ((Channel)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.AccountRequirements:
-                        propertyValueDescription = Enum.GetName(typeof(SubscriptionStatus), input[i].Value);
-                        break;
-                    case PropertyInt.AetheriaBitfield:
-                        propertyValueDescription = ((AetheriaBitfield)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.EquipmentSetId:
-                        propertyValueDescription = Enum.GetName(typeof(EquipmentSet), input[i].Value);
-                        break;
-                    case PropertyInt.WieldRequirements2:
-                    case PropertyInt.WieldRequirements3:
-                    case PropertyInt.WieldRequirements4:
-                    case PropertyInt.WieldRequirements:
-                        propertyValueDescription = ((WieldRequirement)input[i].Value).ToString();
-                        break;
-                    case PropertyInt.GeneratorStartTime:
-                    case PropertyInt.GeneratorEndTime:
-                        propertyValueDescription = DateTimeOffset.FromUnixTimeSeconds(input[i].Value).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
-                        break;
-                    case PropertyInt.ImbuedEffect2:
-                    case PropertyInt.ImbuedEffect3:
-                    case PropertyInt.ImbuedEffect4:
-                    case PropertyInt.ImbuedEffect5:
-                    case PropertyInt.ImbuedEffect:
-                        propertyValueDescription = ((ImbuedEffectType)input[i].Value).ToString();
-                        break;
-                }
+                string propertyValueDescription = GetIntPropertyDescription((PropertyInt)input[i].Type, input[i].Value);
 
                 var comment = Enum.GetName(typeof(PropertyInt), input[i].Type);
                 if (propertyValueDescription != null)
-                    comment = (comment != null ? comment.PadRight(40) : "") + " " + propertyValueDescription;
+                    comment += " - " + propertyValueDescription;
 
                 return $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString().PadLeft(10)}) /* {comment} */";
             });
@@ -424,7 +263,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, '{input[i].Value.Replace("'", "''")}') /* {Enum.GetName(typeof(PropertyString), input[i].Type)} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}) /* {Enum.GetName(typeof(PropertyString), input[i].Type)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -435,55 +274,11 @@ namespace ACE.Database.SQLFormatters.World
 
             var lineGenerator = new Func<int, string>(i =>
             {
-                string propertyValueDescription = null;
-
-                switch ((PropertyDataId)input[i].Type)
-                {
-                    case PropertyDataId.ActivationAnimation:
-                    case PropertyDataId.InitMotion:
-                    case PropertyDataId.UseTargetAnimation:
-                    case PropertyDataId.UseTargetFailureAnimation:
-                    case PropertyDataId.UseTargetSuccessAnimation:
-                    case PropertyDataId.UseUserAnimation:
-                        propertyValueDescription = ((MotionCommand)input[i].Value).ToString();
-                        break;
-                    case PropertyDataId.ActivationSound:
-                    case PropertyDataId.UseSound:
-                        propertyValueDescription = ((Sound)input[i].Value).ToString();
-                        break;
-                    case PropertyDataId.AlternateCurrency:
-                    case PropertyDataId.AugmentationCreateItem:
-                    case PropertyDataId.LastPortal:
-                    case PropertyDataId.LinkedPortalOne:
-                    case PropertyDataId.LinkedPortalTwo:
-                    case PropertyDataId.OriginalPortal:
-                    case PropertyDataId.UseCreateItem:
-                    case PropertyDataId.VendorsClassId:
-                        if (WeenieNames != null)
-                            WeenieNames.TryGetValue(input[i].Value, out propertyValueDescription);
-                        break;
-                    case PropertyDataId.BlueSurgeSpell:
-                    case PropertyDataId.DeathSpell:
-                    case PropertyDataId.ProcSpell:
-                    case PropertyDataId.RedSurgeSpell:
-                    case PropertyDataId.Spell:
-                    case PropertyDataId.YellowSurgeSpell:
-                        if (SpellNames != null)
-                            SpellNames.TryGetValue(input[i].Value, out propertyValueDescription);
-                        break;
-                    case PropertyDataId.PhysicsScript:
-                    case PropertyDataId.RestrictionEffect:
-                        propertyValueDescription = ((PlayScript)input[i].Value).ToString();
-                        break;
-                    case PropertyDataId.WieldedTreasureType:
-                    case PropertyDataId.DeathTreasureType:
-                        // todo
-                        break;
-                }
+                string propertyValueDescription = GetIntPropertyDescription((PropertyDataId)input[i].Type, input[i].Value);
 
                 var comment = Enum.GetName(typeof(PropertyDataId), input[i].Type);
                 if (propertyValueDescription != null)
-                    comment = (comment != null ? comment.PadRight(25) : "") + " " + propertyValueDescription;
+                    comment += " - " + propertyValueDescription;
 
                 return $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString().PadLeft(10)}) /* {comment} */";
             });
@@ -670,7 +465,7 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].WeenieClassId}{weenieClassIdLabel}, " +
                     $"{input[i].Style}{styleLabel}, " +
                     $"{input[i].Substyle}{substyleLabel}, " +
-                    $"'{(input[i].Quest ?? "").Replace("'", "''")}', " +
+                    $"{GetSQLString(input[i].Quest)}, " +
                     $"{input[i].VendorType}{vendorTypeLabel}, " +
                     $"{input[i].MinHealth}, " +
                     $"{input[i].MaxHealth})";
@@ -744,8 +539,8 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Delay.ToString("0.0")}, " +
                     $"{input[i].Extent}, " +
                     $"{input[i].Motion}{motionLabel}, " +
-                    $"'{(input[i].Message ?? "").Replace("'", "''")}', " +
-                    $"'{(input[i].TestString ?? "").Replace("'", "''")}', " +
+                    $"{GetSQLString(input[i].Message)}, " +
+                    $"{GetSQLString(input[i].TestString)}, " +
                     $"{input[i].Min}, " +
                     $"{input[i].Max}, " +
                     $"{input[i].Min64}, " +
@@ -756,6 +551,7 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Display}, " +
                     $"{input[i].Amount}, " +
                     $"{input[i].Amount64}, " +
+                    $"{input[i].HeroXP64}, " +
                     $"{input[i].Percent}, " +
                     $"{input[i].SpellId}{spellIdLabel}, " +
                     $"{input[i].WealthRating}, " +
@@ -810,7 +606,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_book_page_data` (`object_Id`, `page_Id`, `author_Id`, `author_Name`, `author_Account`, `ignore_Author`, `page_Text`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].PageId}, {input[i].AuthorId}, '{input[i].AuthorName.Replace("'", "''")}', '{input[i].AuthorAccount.Replace("'", "''")}', {input[i].IgnoreAuthor}, '{input[i].PageText.Replace("'", "''")}')");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].PageId}, {input[i].AuthorId}, {GetSQLString(input[i].AuthorName)}, {GetSQLString(input[i].AuthorAccount)}, {input[i].IgnoreAuthor}, {GetSQLString(input[i].PageText)})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

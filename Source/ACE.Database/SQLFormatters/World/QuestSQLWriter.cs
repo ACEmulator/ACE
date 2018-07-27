@@ -20,14 +20,14 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Quest input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `quest` WHERE `name` = '{input.Name.Replace("'", "''")}';");
+            writer.WriteLine($"DELETE FROM `quest` WHERE `name` = {GetSQLString(input.Name)};");
         }
 
         public void CreateSQLINSERTStatement(Quest input, StreamWriter writer)
         {
             writer.WriteLine("INSERT INTO `quest` (`name`, `min_Delta`, `max_Solves`, `message`)");
 
-            var output = $"VALUES ('{input.Name.Replace("'", "''")}', {input.MinDelta}, {input.MaxSolves}, '{input.Message.Replace("'", "''")}');";
+            var output = $"VALUES ({GetSQLString(input.Name)}, {input.MinDelta}, {input.MaxSolves}, {GetSQLString(input.Message)});";
 
             output = FixNullFields(output);
 

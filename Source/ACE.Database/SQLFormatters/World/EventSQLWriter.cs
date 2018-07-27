@@ -22,7 +22,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Event input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `event` WHERE `name` = '{input.Name.Replace("'", "''")}';");
+            writer.WriteLine($"DELETE FROM `event` WHERE `name` = {GetSQLString(input.Name)};");
         }
 
         public void CreateSQLINSERTStatement(Event input, StreamWriter writer)
@@ -30,7 +30,7 @@ namespace ACE.Database.SQLFormatters.World
             writer.WriteLine("INSERT INTO `event` (`name`, `start_Time`, `end_Time`, `state`)");
 
             var output = "VALUES (" +
-                             $"'{input.Name.Replace("'", "''")}', " +
+                             $"{GetSQLString(input.Name)}, " +
                              $"{(input.StartTime == -1 ? $"{input.StartTime}" : $"{input.StartTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.StartTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{(input.EndTime == -1 ? $"{input.EndTime}" : $"{input.EndTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.EndTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{input.State}" +
