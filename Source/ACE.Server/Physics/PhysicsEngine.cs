@@ -86,8 +86,6 @@ namespace ACE.Server.Physics
             ObjMaint = objMaint;
             SmartBox = smartBox;
 
-            PhysicsTimer.CurrentTime = Timer.CurrentTime;
-
             SmartBox.Physics = this;
             Instance = this;
         }

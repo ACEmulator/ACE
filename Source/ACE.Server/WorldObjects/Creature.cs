@@ -502,8 +502,8 @@ namespace ACE.Server.WorldObjects
         public void SetCombatMode(CombatMode newCombatMode)
         {
             var player = this as Player;
-            if (player != null)
-                log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
+            //if (player != null)
+                //log.InfoFormat("Changing combat mode for {0} to {1}", Guid, newCombatMode);
 
             ActionChain combatModeChain = new ActionChain();
             combatModeChain.AddAction(this, () =>
@@ -618,7 +618,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public static readonly float TickInterval = 1.0f;
+        public static readonly float TickInterval = 0.2f;
 
         public void QueueNextTick()
         {

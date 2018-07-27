@@ -416,7 +416,7 @@ namespace ACE.Server.Physics.Animation
                 holdKey = RawState.CurrentHoldKey;
 
             if (holdKey == HoldKey.Run)
-                apply_run_to_command(motion, ref speed);
+                apply_run_to_command(ref motion, ref speed);
         }
 
         public void apply_current_movement(bool cancelMoveTo, bool allowJump)
@@ -513,7 +513,7 @@ namespace ACE.Server.Physics.Animation
             apply_interpreted_movement(cancelMoveTo, allowJump);
         }
 
-        public void apply_run_to_command(uint motion, ref float speed)
+        public void apply_run_to_command(ref uint motion, ref float speed)
         {
             var speedMod = 1.0f;
 

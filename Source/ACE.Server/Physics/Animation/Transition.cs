@@ -25,16 +25,6 @@ namespace ACE.Server.Physics.Animation
         public CellArray CellArray;
         public ObjCell NewCellPtr;
 
-        public static int TransitionLevel;
-        public static List<Transition> Transitions;
-
-        public static readonly int MaxTransitionLevel = 10;
-
-        static Transition()
-        {
-            Transitions = new List<Transition>();
-        }
-
         public Transition()
         {
             Init();
@@ -245,7 +235,7 @@ namespace ACE.Server.Physics.Animation
 
         public void CleanupTransition()
         {
-            --TransitionLevel;
+            // removed static transitions
         }
 
         public TransitionState CliffSlide(Plane contactPlane)
@@ -693,19 +683,8 @@ namespace ACE.Server.Physics.Animation
         /// <returns></returns>
         public static Transition MakeTransition()
         {
-            if (TransitionLevel >= MaxTransitionLevel) return null;
-
             var transition = new Transition();
             transition.Init();
-
-            // verify correct transition indices
-            while (Transitions.Count <= TransitionLevel)
-                Transitions.Add(null);
-
-            Transitions[TransitionLevel] = transition;
-
-            TransitionLevel++;
-
             return transition;
         }
 

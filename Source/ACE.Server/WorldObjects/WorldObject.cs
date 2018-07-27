@@ -101,6 +101,11 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public virtual void PostInit()
+        {
+            InitPhysicsObj();
+        }
+
         /// <summary>
         /// Initializes a new default physics object
         /// </summary>
@@ -113,18 +118,24 @@ namespace ACE.Server.WorldObjects
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
 
-            PhysicsObj.makeAnimObject(SetupTableId, true);
+            var creature = this as Creature;
+            if (creature == null)
+            {
+                var isDynamic = Static == null || !Static.Value;
+                //Console.WriteLine($"Making object for {Name} (isDynamic={isDynamic})");
+                PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
+                PhysicsObj.set_weenie_obj(new WeenieObject(this));
+            }
+            else
+                PhysicsObj.makeAnimObject(SetupTableId, true);
+
             PhysicsObj.SetMotionTableID(MotionTableId);
 
-            PhysicsObj.SetScale(ObjScale ?? 1.0f);
+            PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
 
             var physicsState = GetProperty(PropertyInt.PhysicsState);
             if (physicsState != null)
-                PhysicsObj.State = (Physics.PhysicsState)physicsState;
-
-            var creature = this as Creature;
-            if (creature != null)
-                PhysicsObj.State |= Physics.PhysicsState.EdgeSlide;
+                PhysicsObj.State |= (Physics.PhysicsState)physicsState;
         }
 
         private void SetEphemeralValues()
@@ -262,12 +273,12 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
-            InitPhysicsObj();
-
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManager(this);
+
+            CreationTimestamp = Server.Entity.Timer.CurrentTime;
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;

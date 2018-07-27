@@ -32,9 +32,11 @@ namespace ACE.Server.Physics
 
         public static readonly float SmallVelocitySquared = SmallVelocity * SmallVelocity;
 
-        public static readonly float MinQuantum = 1.0f / 30.0f;
+        public static readonly float MinQuantum = 1.0f / 30.0f;     // 0.0333... 30fps
 
-        public static readonly float MaxQuantum = 0.2f;
+        public static readonly float MaxQuantum = 0.2f;     // 5fps
+
+        public static readonly float HugeQuantum = 2.0f;    // 0.5fps
 
         /// <summary>
         /// The walkable allowance when landing on the ground

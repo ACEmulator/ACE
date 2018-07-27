@@ -295,6 +295,7 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Smite(ObjectGuid smiter)
         {
+            Health.Current = 0;
             Killer = smiter.Full;
             Die();
         }

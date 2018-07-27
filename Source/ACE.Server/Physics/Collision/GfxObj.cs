@@ -58,7 +58,7 @@ namespace ACE.Server.Physics.Collision
             Init();
         }
 
-        public TransitionState FindObjCollisions(GfxObj gfxObj, Transition transition, float scaleZ)
+        public TransitionState FindObjCollisions(Transition transition, float scaleZ)
         {
             var path = transition.SpherePath;
 

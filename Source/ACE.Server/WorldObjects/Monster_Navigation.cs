@@ -22,7 +22,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if a monster is within melee range of target
         /// </summary>
-        public static readonly float MaxMeleeRange = 0.5f;
+        //public static readonly float MaxMeleeRange = 0.5f;
+        public static readonly float MaxMeleeRange = 1.5f;
 
         /// <summary>
         /// The maximum range for a monster missile attack
@@ -57,29 +58,100 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugMove;
 
+        public static bool SimpleMovement = false;
+
+        public bool InitSticky;
+        public bool Sticky;
+
         /// <summary>
         /// Starts the process of monster turning towards target
         /// </summary>
         public void StartTurn()
         {
-            if (MoveSpeed == 0.0f)
-                GetMovementSpeed();
+            if (SimpleMovement)
+            {
+                StartTurnSimple();
+                return;
+            }
 
-            IsTurning = true;
+            StartTurnCommon();
+
+            if (IsRanged) return;
+
+            // need turning listener?
+            IsTurning = false;
+            IsMoving = true;
+
+            var mvp = GetMovementParameters();
+
+            PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
+            PhysicsObj.add_moveto_listener(OnMoveComplete);
+
+            if (!InitSticky)
+            {
+                PhysicsObj.add_sticky_listener(OnSticky);
+                PhysicsObj.add_unsticky_listener(OnUnsticky);
+                InitSticky = true;
+            }
+        }
+
+        public MovementParameters GetMovementParameters()
+        {
+            var mvp = new MovementParameters();
+
+            mvp.CanWalk = false;
+            mvp.CanRun = true;
+            mvp.CanSidestep = false;
+            mvp.CanWalkBackwards = false;
+            mvp.MoveAway = true;
+            mvp.CanCharge = true;
+            mvp.FailWalk = true;
+            //mvp.UseFinalHeading = true;
+            mvp.Sticky = true;
+
+            mvp.MinDistance = 0.1f;
+            mvp.DistanceToObject = 0.5f;
+            mvp.Speed = 1.0f;
+
+            mvp.SetHoldKey = true;
+            mvp.HoldKeyToApply = HoldKey.Run;
+
+            return mvp;
+        }
+
+        /// <summary>
+        /// Starts the process of monster turning towards target
+        /// using the simplified method
+        /// </summary>
+        public void StartTurnSimple()
+        {
+            StartTurnCommon();
+
             var time = EstimateTurnTo();
-
-            if (IsRanged)
-                TurnTo(AttackTarget);
-            else
-                MoveTo(AttackTarget, RunRate);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(time);
             actionChain.AddAction(this, () => OnTurnComplete());
             actionChain.EnqueueChain();
+        }
 
+        /// <summary>
+        /// Starts the process of monster turning towards target
+        /// for both simplified and standard movement
+        public void StartTurnCommon()
+        {
             if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid})StartTurn");
+                Console.WriteLine($"{Name} ({Guid}) - StartTurn");
+
+            if (MoveSpeed == 0.0f)
+                GetMovementSpeed();
+
+            IsTurning = true;
+
+            if (IsRanged)
+                TurnTo(AttackTarget);
+            else
+                MoveTo(AttackTarget, RunRate);
         }
 
         /// <summary>
@@ -110,6 +182,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnMoveComplete()
         {
+            //if (DebugMove)
+                //Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete");
+
             PhysicsObj.CachedVelocity = Vector3.Zero;
             IsMoving = false;
         }
@@ -179,6 +254,21 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Movement()
         {
+            if (SimpleMovement)
+            {
+                MovementSimple();
+                return;
+            }
+
+            if (!IsRanged)
+                UpdatePosition();
+
+            if (GetDistanceToTarget() >= MaxChaseRange)
+                Sleep();
+        }
+
+        public void MovementSimple()
+        {
             if (!IsRanged)
             {
                 UpdatePosition();
@@ -192,12 +282,26 @@ namespace ACE.Server.WorldObjects
                 Sleep();
         }
 
-        public static bool ForcePos = false;
+        public static bool ForcePos = true;
+
+        public void UpdatePosition()
+        {
+            if (SimpleMovement)
+            {
+                UpdatePositionSimple();
+                return;
+            }
+
+            PhysicsObj.update_object();
+            UpdatePosition_SyncLocation();
+
+            SendUpdatePosition(ForcePos);
+        }
 
         /// <summary>
         /// Updates monster position and rotation
         /// </summary>
-        public void UpdatePosition()
+        public void UpdatePositionSimple()
         {
             // determine the time interval for this movement
             var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
@@ -223,7 +327,7 @@ namespace ACE.Server.WorldObjects
             //MoveTo(AttackTarget, RunRate, true);
 
             if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid}) UpdatePosition()");
+                Console.WriteLine($"{Name} ({Guid}) - UpdatePositionSimple");
         }
 
         public void UpdatePosition_Inner(Vector3 newPos, Vector3 dir)
@@ -240,6 +344,9 @@ namespace ACE.Server.WorldObjects
                 UpdateCell();
         }
 
+        /// <summary>
+        /// Updates the position using the simple physics method
+        /// </summary>
         public void UpdatePosition_PhysicsInner(Vector3 requestPos, Vector3 dir)
         {
             Location.Rotate(dir);
@@ -252,6 +359,14 @@ namespace ACE.Server.WorldObjects
             // simulate running forward for this amount of time
             PhysicsObj.update_object_server(false);
 
+            UpdatePosition_SyncLocation();
+        }
+
+        /// <summary>
+        /// Synchronizes the WorldObject Location with the Physics Location
+        /// </summary>
+        public void UpdatePosition_SyncLocation()
+        {
             // was the position successfully moved to?
             // use the physics position as the source-of-truth?
             var newPos = PhysicsObj.Position.Frame.Origin;
@@ -273,16 +388,17 @@ namespace ACE.Server.WorldObjects
                     //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
                 }
                 //else
-                    //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
+                //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
             }
             Location.Pos = newPos;
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
             //DebugDistance();
         }
 
         public void DebugDistance()
         {
             var dist = GetDistanceToTarget();
-            Console.WriteLine("Dist: " + dist);
+            //Console.WriteLine("Dist: " + dist);
         }
 
         public void UpdateIndoorCells(Vector3 newPos)
@@ -374,6 +490,18 @@ namespace ACE.Server.WorldObjects
                 threshold += (minDist - dist) * 2.0f;
 
             return angle < threshold;
+        }
+
+        public void OnSticky()
+        {
+            //Console.WriteLine($"{Name} ({Guid}) - OnSticky");
+            Sticky = true;
+        }
+
+        public void OnUnsticky()
+        {
+            //Console.WriteLine($"{Name} ({Guid}) - OnUnsticky");
+            Sticky = false;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace ACE.Server.Physics.Hooks
 
         public override bool Execute(PhysicsObj obj)
         {
-            var deltaTime = PhysicsTimer.CurrentTime - TimeCreated;
+            var deltaTime = obj.PhysicsTimer.CurrentTime - TimeCreated;
             var scale = 0.0;
             if (deltaTime > 0.0)
             {

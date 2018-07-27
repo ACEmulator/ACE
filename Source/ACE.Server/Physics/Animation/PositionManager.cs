@@ -73,6 +73,12 @@ namespace ACE.Server.Physics.Animation
             return InterpolationManager != null && InterpolationManager.IsInterpolating();
         }
 
+        public void MakeStickyManager()
+        {
+            if (StickyManager == null)
+                StickyManager = StickyManager.Create(PhysicsObj);
+        }
+
         public void SetPhysicsObject(PhysicsObj obj)
         {
             PhysicsObj = obj;
@@ -87,7 +93,7 @@ namespace ACE.Server.Physics.Animation
         public void StickTo(uint objectID, float radius, float height)
         {
             if (StickyManager == null)
-                StickyManager = StickyManager.Create(PhysicsObj);
+                MakeStickyManager();
 
             StickyManager.StickTo(objectID, radius, height);
         }

@@ -1,5 +1,6 @@
 using System;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Collision;
@@ -34,7 +35,14 @@ namespace ACE.Server.Physics.Common
         public bool InqRunRate(ref float rate)
         {
             // get run skill from WorldObject
-            rate = (float)MovementSystem.GetRunRate(0.0f, 300, 1.0f);
+            uint runSkill = 0;
+            var creature = WorldObject as Creature;
+            if (creature != null)
+                runSkill = creature.GetCreatureSkill(Skill.Run).Current;
+
+            //rate = (float)MovementSystem.GetRunRate(0.0f, 300, 1.0f);
+            rate = (float)MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
+            //Console.WriteLine($"{WorldObject.Name} ({WorldObject.Guid}) - WeenieObject.InqRunRate: runSkill = {runSkill}, rate = {rate}");
             return true;
         }
 
@@ -65,7 +73,11 @@ namespace ACE.Server.Physics.Common
 
         public bool IsCreature()
         {
-            return true;
+            if (WorldObject == null) return false;
+            var creature = WorldObject as Creature;
+            return creature != null;
+
+            //return true;
         }
 
         public bool IsStorage()

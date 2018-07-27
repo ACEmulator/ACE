@@ -49,6 +49,10 @@ namespace ACE.Server.WorldObjects
 
             // get distance to target
             var targetDist = GetDistanceToTarget();
+            //Console.WriteLine($"{Name} ({Guid}) - Dist: {targetDist}");
+
+            if (Sticky)
+                UpdatePosition();
 
             if (CurrentAttack != AttackType.Missile)
             {

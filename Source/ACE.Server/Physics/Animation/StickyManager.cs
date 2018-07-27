@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -15,13 +17,28 @@ namespace ACE.Server.Physics.Animation
         public bool Initialized;
         public double StickyTimeoutTime;
 
+        public List<Action> StickyCallbacks;
+        public List<Action> UnstickyCallbacks;
+
         public static readonly float StickyRadius = 0.3f;
 
-        public StickyManager() { }
+        public static readonly float StickyTime = 1.0f;
+
+        public StickyManager()
+        {
+            Init();
+        }
 
         public StickyManager(PhysicsObj obj)
         {
+            Init();
             SetPhysicsObject(obj);
+        }
+
+        public void Init()
+        {
+            StickyCallbacks = new List<Action>();
+            UnstickyCallbacks = new List<Action>();
         }
 
         public void ClearTarget()
@@ -33,6 +50,9 @@ namespace ACE.Server.Physics.Animation
 
             PhysicsObj.clear_target();
             PhysicsObj.cancel_moveto();
+
+            foreach (var unstickyCallback in UnstickyCallbacks.ToList())
+                unstickyCallback();
         }
 
         public static StickyManager Create(PhysicsObj obj)
@@ -72,8 +92,11 @@ namespace ACE.Server.Physics.Animation
             TargetID = objectID;
             Initialized = false;
             TargetRadius = targetRadius;
-            StickyTimeoutTime = Timer.CurrentTime + 1.0f;
+            StickyTimeoutTime = Timer.CurrentTime + StickyTime;
             PhysicsObj.set_target(0, objectID, 0.5f, 0.5f);
+
+            foreach (var stickyCallback in StickyCallbacks.ToList())
+                stickyCallback();
         }
 
         public void UseTime()
@@ -124,6 +147,26 @@ namespace ACE.Server.Physics.Animation
 
             //Console.WriteLine($"StickyManager.AdjustOffset(targetHeading={targetHeading}, curHeading={curHeading}, setHeading={heading})");
             offset.set_heading(heading);
+        }
+
+        public void add_sticky_listener(Action listener)
+        {
+            StickyCallbacks.Add(listener);
+        }
+
+        public void remove_sticky_listener(Action listener)
+        {
+            StickyCallbacks.Remove(listener);
+        }
+
+        public void add_unsticky_listener(Action listener)
+        {
+            UnstickyCallbacks.Add(listener);
+        }
+
+        public void remove_unsticky_listener(Action listener)
+        {
+            UnstickyCallbacks.Remove(listener);
         }
     }
 }

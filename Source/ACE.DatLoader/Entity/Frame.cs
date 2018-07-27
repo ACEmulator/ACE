@@ -13,6 +13,8 @@ namespace ACE.DatLoader.Entity
 
         public Frame()
         {
+            Origin = Vector3.Zero;
+            Orientation = Quaternion.Identity;
         }
 
         public Frame(ACE.Entity.Position position)

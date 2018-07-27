@@ -9,6 +9,7 @@ namespace ACE.Server.Physics.Animation
         public bool CanRun;
         public bool CanSidestep;
         public bool CanWalkBackwards;
+        public bool CanCharge;
         public bool FailWalk;
         public bool UseFinalHeading;
         public bool Sticky;
@@ -37,8 +38,7 @@ namespace ACE.Server.Physics.Animation
         public static readonly float Default_FailDistance = float.MaxValue;
         public static readonly float Default_MinDistance = 0.0f;
         public static readonly float Default_Speed = 1.0f;
-        //public static readonly float Default_WalkRunThreshold = 15.0f;
-        public static readonly float Default_WalkRunThreshold = 1.0f;
+        public static readonly float Default_WalkRunThreshold = 15.0f;
 
         public MovementParameters()
         {
@@ -48,9 +48,9 @@ namespace ACE.Server.Physics.Animation
             Speed = Default_Speed;
             WalkRunThreshold = Default_WalkRunThreshold;
             HoldKeyToApply = HoldKey.Invalid;
-            /*StopCompletely = true;
+            StopCompletely = true;
             CancelMoveTo = true;
-            ModifyInterpretedState = true;
+            ModifyInterpretedState = false;
             ModifyRawState = true;
             SetHoldKey = true;
             UseSpheres = true;
@@ -58,7 +58,8 @@ namespace ACE.Server.Physics.Animation
             CanWalkBackwards = true;
             CanSidestep = true;
             CanRun = true;
-            CanWalk = true;*/
+            CanWalk = true;
+            CanCharge = true;
             Bitfield = 0x1EE0F;     // todo: union of bools
         }
 
