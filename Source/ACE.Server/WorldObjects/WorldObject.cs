@@ -101,11 +101,6 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
-        public virtual void PostInit()
-        {
-            InitPhysicsObj();
-        }
-
         /// <summary>
         /// Initializes a new default physics object
         /// </summary>
