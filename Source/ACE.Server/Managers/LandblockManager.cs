@@ -62,7 +62,6 @@ namespace ACE.Server.Managers
                     player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
 
                 player.Name = session.Character.Name;
-                player.PostInit();
 
                 session.SetPlayer(player);
                 session.Player.PlayerEnterWorld();
