@@ -220,7 +220,7 @@ namespace ACE.Database.SQLFormatters.World
 
             var lineGenerator = new Func<int, string>(i =>
             {
-                string propertyValueDescription = GetIntPropertyDescription((PropertyInt)input[i].Type, input[i].Value);
+                string propertyValueDescription = GetValueEnumName((PropertyInt)input[i].Type, input[i].Value);
 
                 var comment = Enum.GetName(typeof(PropertyInt), input[i].Type);
                 if (propertyValueDescription != null)
@@ -274,7 +274,7 @@ namespace ACE.Database.SQLFormatters.World
 
             var lineGenerator = new Func<int, string>(i =>
             {
-                string propertyValueDescription = GetIntPropertyDescription((PropertyDataId)input[i].Type, input[i].Value);
+                string propertyValueDescription = GetValueEnumName((PropertyDataId)input[i].Type, input[i].Value);
 
                 var comment = Enum.GetName(typeof(PropertyDataId), input[i].Type);
                 if (propertyValueDescription != null)
