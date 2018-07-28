@@ -25,83 +25,88 @@ namespace ACE.Server.Factories
         {
             var objWeenieType = (WeenieType)weenie.Type;
 
+            WorldObject wo = null;
+
             switch (objWeenieType)
             {
                 case WeenieType.Undef:
                     return null;
                 case WeenieType.LifeStone:
-                    return new Lifestone(weenie, guid);
+                    wo = new Lifestone(weenie, guid); break;
                 case WeenieType.Door:
-                    return new Door(weenie, guid);
+                    wo = new Door(weenie, guid); break;
                 case WeenieType.Portal:
-                    return new Portal(weenie, guid);
+                    wo = new Portal(weenie, guid); break;
                 case WeenieType.Book:
-                    return new Book(weenie, guid);
+                    wo = new Book(weenie, guid); break;
                 case WeenieType.PKModifier:
-                    return new PKModifier(weenie, guid);
+                    wo = new PKModifier(weenie, guid); break;
                 case WeenieType.Cow:
-                    return new Cow(weenie, guid);
+                    wo = new Cow(weenie, guid); break;
                 case WeenieType.Creature:
-                    return new Creature(weenie, guid);
+                    wo = new Creature(weenie, guid); break;
                 case WeenieType.Container:
-                    return new Container(weenie, guid);
+                    wo = new Container(weenie, guid); break;
                 case WeenieType.Scroll:
-                    return new Scroll(weenie, guid);
+                    wo = new Scroll(weenie, guid); break;
                 case WeenieType.Vendor:
-                    return new Vendor(weenie, guid);
+                    wo = new Vendor(weenie, guid); break;
                 case WeenieType.Coin:
-                    return new Coin(weenie, guid);
+                    wo = new Coin(weenie, guid); break;
                 case WeenieType.Key:
-                    return new Key(weenie, guid);
+                    wo = new Key(weenie, guid); break;
                 case WeenieType.Food:
-                    return new Food(weenie, guid);
+                    wo = new Food(weenie, guid); break;
                 case WeenieType.Gem:
-                    return new Gem(weenie, guid);
+                    wo = new Gem(weenie, guid); break;
                 case WeenieType.Game:
-                    return new Game(weenie, guid);
+                    wo = new Game(weenie, guid); break;
                 case WeenieType.GamePiece:
-                    return new GamePiece(weenie, guid);
+                    wo = new GamePiece(weenie, guid); break;
                 case WeenieType.AllegianceBindstone:
-                    return new Bindstone(weenie, guid);
+                    wo = new Bindstone(weenie, guid); break;
                 case WeenieType.Clothing:
-                    return new Clothing(weenie, guid);
+                    wo = new Clothing(weenie, guid); break;
                 case WeenieType.MeleeWeapon:
-                    return new MeleeWeapon(weenie, guid);
+                    wo = new MeleeWeapon(weenie, guid); break;
                 case WeenieType.MissileLauncher:
-                    return new MissileLauncher(weenie, guid);
+                    wo = new MissileLauncher(weenie, guid); break;
                 case WeenieType.Ammunition:
-                    return new Ammunition(weenie, guid);
+                    wo = new Ammunition(weenie, guid); break;
                 case WeenieType.Missile:
-                    return new Missile(weenie, guid);
+                    wo = new Missile(weenie, guid); break;
                 case WeenieType.Corpse:
-                    return new Corpse(weenie, guid);
+                    wo = new Corpse(weenie, guid); break;
                 case WeenieType.Chest:
-                    return new Chest(weenie, guid);
+                    wo = new Chest(weenie, guid); break;
                 case WeenieType.Stackable:
-                    return new Stackable(weenie, guid);
+                    wo = new Stackable(weenie, guid); break;
                 case WeenieType.SpellComponent:
-                    return new SpellComponent(weenie, guid);
+                    wo = new SpellComponent(weenie, guid); break;
                 case WeenieType.Switch:
-                    return new Switch(weenie, guid);
+                    wo = new Switch(weenie, guid); break;
                 case WeenieType.AdvocateFane:
-                    return new AdvocateFane(weenie, guid);
+                    wo = new AdvocateFane(weenie, guid); break;
                 case WeenieType.AdvocateItem:
-                    return new AdvocateItem(weenie, guid);
+                    wo = new AdvocateItem(weenie, guid); break;
                 case WeenieType.Healer:
-                    return new Healer(weenie, guid);
+                    wo = new Healer(weenie, guid); break;
                 case WeenieType.Lockpick:
-                    return new Lockpick(weenie, guid);
+                    wo = new Lockpick(weenie, guid); break;
                 case WeenieType.Caster:
-                    return new Caster(weenie, guid);
+                    wo = new Caster(weenie, guid); break;
                 case WeenieType.ProjectileSpell:
-                    return new SpellProjectile(weenie, guid);
+                    wo = new SpellProjectile(weenie, guid); break;
                 case WeenieType.HotSpot:
-                    return new Hotspot(weenie, guid);
+                    wo = new Hotspot(weenie, guid); break;
                 case WeenieType.ManaStone:
-                    return new ManaStone(weenie, guid);
+                    wo = new ManaStone(weenie, guid); break;
                 default:
-                    return new GenericObject(weenie, guid);
+                    wo = new GenericObject(weenie, guid); break;
             }
+
+            wo.InitPhysicsObj();
+            return wo;
         }
 
         /// <summary>
@@ -112,81 +117,86 @@ namespace ACE.Server.Factories
         {
             var objWeenieType = (WeenieType)biota.WeenieType;
 
+            WorldObject wo = null;
+
             switch (objWeenieType)
             {
                 case WeenieType.Undef:
                     return null;
                 case WeenieType.LifeStone:
-                    return new Lifestone(biota);
+                    wo = new Lifestone(biota); break;
                 case WeenieType.Door:
-                    return new Door(biota);
+                    wo = new Door(biota); break;
                 case WeenieType.Portal:
-                    return new Portal(biota);
+                    wo = new Portal(biota); break;
                 case WeenieType.Book:
-                    return new Book(biota);
+                    wo = new Book(biota); break;
                 case WeenieType.PKModifier:
-                    return new PKModifier(biota);
+                    wo = new PKModifier(biota); break;
                 case WeenieType.Cow:
-                    return new Cow(biota);
+                    wo = new Cow(biota); break;
                 case WeenieType.Creature:
-                    return new Creature(biota);
+                    wo = new Creature(biota); break;
                 case WeenieType.Container:
-                    return new Container(biota);
+                    wo = new Container(biota); break;
                 case WeenieType.Scroll:
-                    return new Scroll(biota);
+                    wo = new Scroll(biota); break;
                 case WeenieType.Vendor:
-                    return new Vendor(biota);
+                    wo = new Vendor(biota); break;
                 case WeenieType.Coin:
-                    return new Coin(biota);
+                    wo = new Coin(biota); break;
                 case WeenieType.Key:
-                    return new Key(biota);
+                    wo = new Key(biota); break;
                 case WeenieType.Food:
-                    return new Food(biota);
+                    wo = new Food(biota); break;
                 case WeenieType.Gem:
-                    return new Gem(biota);
+                    wo = new Gem(biota); break;
                 case WeenieType.Game:
-                    return new Game(biota);
+                    wo = new Game(biota); break;
                 case WeenieType.GamePiece:
-                    return new GamePiece(biota);
+                    wo = new GamePiece(biota); break;
                 case WeenieType.AllegianceBindstone:
-                    return new Bindstone(biota);
+                    wo = new Bindstone(biota); break;
                 case WeenieType.Clothing:
-                    return new Clothing(biota);
+                    wo = new Clothing(biota); break;
                 case WeenieType.MeleeWeapon:
-                    return new MeleeWeapon(biota);
+                    wo = new MeleeWeapon(biota); break;
                 case WeenieType.MissileLauncher:
-                    return new MissileLauncher(biota);
+                    wo = new MissileLauncher(biota); break;
                 case WeenieType.Ammunition:
-                    return new Ammunition(biota);
+                    wo = new Ammunition(biota); break;
                 case WeenieType.Missile:
-                    return new Missile(biota);
+                    wo = new Missile(biota); break;
                 case WeenieType.Corpse:
-                    return new Corpse(biota);
+                    wo = new Corpse(biota); break;
                 case WeenieType.Chest:
-                    return new Chest(biota);
+                    wo = new Chest(biota); break;
                 case WeenieType.Stackable:
-                    return new Stackable(biota);
+                    wo = new Stackable(biota); break;
                 case WeenieType.SpellComponent:
-                    return new SpellComponent(biota);
+                    wo = new SpellComponent(biota); break;
                 case WeenieType.Switch:
-                    return new Switch(biota);
+                    wo = new Switch(biota); break;
                 case WeenieType.AdvocateFane:
-                    return new AdvocateFane(biota);
+                    wo = new AdvocateFane(biota); break;
                 case WeenieType.AdvocateItem:
-                    return new AdvocateItem(biota);
+                    wo = new AdvocateItem(biota); break;
                 case WeenieType.Healer:
-                    return new Healer(biota);
+                    wo = new Healer(biota); break;
                 case WeenieType.Lockpick:
-                    return new Lockpick(biota);
+                    wo = new Lockpick(biota); break;
                 case WeenieType.Caster:
-                    return new Caster(biota);
+                    wo = new Caster(biota); break;
                 case WeenieType.HotSpot:
-                    return new Hotspot(biota);
+                    wo = new Hotspot(biota); break;
                 case WeenieType.ManaStone:
-                    return new ManaStone(biota);
+                    wo = new ManaStone(biota); break;
                 default:
-                    return new GenericObject(biota);
+                    wo = new GenericObject(biota); break;
             }
+
+            wo.InitPhysicsObj();
+            return wo;
         }
 
         /// <summary>
