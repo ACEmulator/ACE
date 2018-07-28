@@ -377,11 +377,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            PhysicsObj.State |= PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
+            // TODO: Right now WorldObjects have two fields for physics states: one under the root object and another
+            // under PhysicsObj. These should be combined into one field to eliminate the duplicaiton.
+            // Also: the physics state should be set on object creation so some of this code may need to be removed
+            // once the field duplication is done.
+            PhysicsObj.State = PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
             PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
 
-            if (!useGravity)
-                PhysicsObj.State &= ~PhysicsState.Gravity;
+            if (useGravity)
+                PhysicsObj.State |= PhysicsState.Gravity;
 
             var pos = Location.Pos;
             var rotation = Location.Rotation;
