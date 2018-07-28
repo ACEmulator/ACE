@@ -959,7 +959,7 @@ namespace ACE.Server.WorldObjects
                 spellProjectile.ProjectileTarget = null;
             else
                 spellProjectile.ProjectileTarget = target;
-            spellProjectile.SetProjectilePhysicsState(target, useGravity);
+            spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
 
             LandblockManager.AddObject(spellProjectile);
             CurrentLandblock?.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, spellProjectile.PlayscriptIntensity));
