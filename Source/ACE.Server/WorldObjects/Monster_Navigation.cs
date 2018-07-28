@@ -2,13 +2,9 @@ using System;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Util;
-using Timer = ACE.Server.Entity.Timer;
 
 namespace ACE.Server.WorldObjects
 {
@@ -58,8 +54,6 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugMove;
 
-        public static bool SimpleMovement = false;
-
         public bool InitSticky;
         public bool Sticky;
 
@@ -68,13 +62,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartTurn()
         {
-            if (SimpleMovement)
-            {
-                StartTurnSimple();
-                return;
-            }
+            if (DebugMove)
+                Console.WriteLine($"{Name} ({Guid}) - StartTurn");
 
-            StartTurnCommon();
+            if (MoveSpeed == 0.0f)
+                GetMovementSpeed();
+
+            IsTurning = true;
+
+            if (IsRanged)
+                TurnTo(AttackTarget);
+            else
+                MoveTo(AttackTarget, RunRate);
 
             if (IsRanged) return;
 
@@ -93,65 +92,6 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.add_unsticky_listener(OnUnsticky);
                 InitSticky = true;
             }
-        }
-
-        public MovementParameters GetMovementParameters()
-        {
-            var mvp = new MovementParameters();
-
-            mvp.CanWalk = false;
-            mvp.CanRun = true;
-            mvp.CanSidestep = false;
-            mvp.CanWalkBackwards = false;
-            mvp.MoveAway = true;
-            mvp.CanCharge = true;
-            mvp.FailWalk = true;
-            //mvp.UseFinalHeading = true;
-            mvp.Sticky = true;
-
-            mvp.MinDistance = 0.1f;
-            mvp.DistanceToObject = 0.5f;
-            mvp.Speed = 1.0f;
-
-            mvp.SetHoldKey = true;
-            mvp.HoldKeyToApply = HoldKey.Run;
-
-            return mvp;
-        }
-
-        /// <summary>
-        /// Starts the process of monster turning towards target
-        /// using the simplified method
-        /// </summary>
-        public void StartTurnSimple()
-        {
-            StartTurnCommon();
-
-            var time = EstimateTurnTo();
-
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(time);
-            actionChain.AddAction(this, () => OnTurnComplete());
-            actionChain.EnqueueChain();
-        }
-
-        /// <summary>
-        /// Starts the process of monster turning towards target
-        /// for both simplified and standard movement
-        public void StartTurnCommon()
-        {
-            if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid}) - StartTurn");
-
-            if (MoveSpeed == 0.0f)
-                GetMovementSpeed();
-
-            IsTurning = true;
-
-            if (IsRanged)
-                TurnTo(AttackTarget);
-            else
-                MoveTo(AttackTarget, RunRate);
         }
 
         /// <summary>
@@ -254,29 +194,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Movement()
         {
-            if (SimpleMovement)
-            {
-                MovementSimple();
-                return;
-            }
-
             if (!IsRanged)
                 UpdatePosition();
-
-            if (GetDistanceToTarget() >= MaxChaseRange)
-                Sleep();
-        }
-
-        public void MovementSimple()
-        {
-            if (!IsRanged)
-            {
-                UpdatePosition();
-                LastMoveTime = Timer.CurrentTime;
-            }
-
-            if (IsAttackRange())
-                OnMoveComplete();
 
             if (GetDistanceToTarget() >= MaxChaseRange)
                 Sleep();
@@ -286,80 +205,13 @@ namespace ACE.Server.WorldObjects
 
         public void UpdatePosition()
         {
-            if (SimpleMovement)
-            {
-                UpdatePositionSimple();
-                return;
-            }
-
             PhysicsObj.update_object();
             UpdatePosition_SyncLocation();
 
             SendUpdatePosition(ForcePos);
-        }
-
-        /// <summary>
-        /// Updates monster position and rotation
-        /// </summary>
-        public void UpdatePositionSimple()
-        {
-            // determine the time interval for this movement
-            var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
-            if (deltaTime > 2.0f) return;   // FIXME: state persist?
-
-            var dir = Vector3.Normalize(AttackTarget.Location.GlobalPos - Location.GlobalPos);
-            var movement = dir * deltaTime * MoveSpeed;
-            var newPos = Location.Pos + movement;
-
-            // stop at destination
-            var dist = GetDistanceToTarget();
-            if (movement.Length() > dist)
-                newPos = GetDestination();
-
-            //UpdatePosition_Inner(newPos, dir);
-            UpdatePosition_PhysicsInner(newPos, dir);
-
-            // set cached velocity
-            var velocity = movement / deltaTime;
-            PhysicsObj.CachedVelocity = velocity;
-
-            SendUpdatePosition(ForcePos);
-            //MoveTo(AttackTarget, RunRate, true);
 
             if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid}) - UpdatePositionSimple");
-        }
-
-        public void UpdatePosition_Inner(Vector3 newPos, Vector3 dir)
-        {
-            // update position, and landblock if required
-            Location.Rotate(dir);
-            var blockCellUpdate = Location.SetPosition(newPos);
-            if (Location.Indoors)
-                UpdateIndoorCells(newPos);
-            PhysicsObj.Position.Frame.Origin = newPos;
-            if (blockCellUpdate.Item1)
-                UpdateLandblock();
-            if (blockCellUpdate.Item1 || blockCellUpdate.Item2)
-                UpdateCell();
-        }
-
-        /// <summary>
-        /// Updates the position using the simple physics method
-        /// </summary>
-        public void UpdatePosition_PhysicsInner(Vector3 requestPos, Vector3 dir)
-        {
-            Location.Rotate(dir);
-            PhysicsObj.Position.Frame.Orientation = Location.Rotation;
-
-            var cell = LScape.get_landcell(Location.Cell);
-
-            PhysicsObj.set_request_pos(requestPos, Location.Rotation, null, Location.LandblockId.Raw);
-
-            // simulate running forward for this amount of time
-            PhysicsObj.update_object_server(false);
-
-            UpdatePosition_SyncLocation();
+                Console.WriteLine($"{Name} ({Guid}) - UpdatePosition");
         }
 
         /// <summary>
@@ -369,47 +221,40 @@ namespace ACE.Server.WorldObjects
         {
             // was the position successfully moved to?
             // use the physics position as the source-of-truth?
-            var newPos = PhysicsObj.Position.Frame.Origin;
-            if (Location.LandblockId.Raw != PhysicsObj.Position.ObjCellID)
+            var newPos = PhysicsObj.Position;
+            if (Location.LandblockId.Raw != newPos.ObjCellID)
             {
                 var prevBlock = Location.LandblockId.Raw >> 16;
                 var prevCell = Location.LandblockId.Raw & 0xFFFF;
 
-                var newBlock = PhysicsObj.Position.ObjCellID >> 16;
-                var newCell = PhysicsObj.Position.ObjCellID & 0xFFFF;
+                var newBlock = newPos.ObjCellID >> 16;
+                var newCell = newPos.ObjCellID & 0xFFFF;
 
-                Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
+                Location.LandblockId = new LandblockId(newPos.ObjCellID);
 
                 if (prevBlock != newBlock)
                 {
                     PreviousLocation = Location;
                     LandblockManager.RelocateObjectForPhysics(this);
-                    PhysicsObj.Position.Frame.Origin = newPos;
+                    //PhysicsObj.Position.Frame.Origin = newPos;
                     //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
                 }
                 //else
                 //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
             }
-            Location.Pos = newPos;
-            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
-            //DebugDistance();
+            Location.Pos = newPos.Frame.Origin;
+            Location.Rotation = newPos.Frame.Orientation;
+
+            //if (DebugMove)
+                //DebugDistance();
         }
 
         public void DebugDistance()
         {
             var dist = GetDistanceToTarget();
-            //Console.WriteLine("Dist: " + dist);
-        }
-
-        public void UpdateIndoorCells(Vector3 newPos)
-        {
-            var adjustCell = AdjustCell.Get(Location.LandblockId.Raw >> 16);
-            if (adjustCell == null) return;
-            var newCell = adjustCell.GetCell(newPos);
-            if (newCell == null) return;
-            if (newCell.Value == Location.LandblockId.Raw) return;
-            Location.LandblockId = new LandblockId(newCell.Value);
-            //Console.WriteLine("Moving " + Name + " to indoor cell " + newCell.Value.ToString("X8"));
+            var angle = GetAngle(AttackTarget);
+            Console.WriteLine("Dist: " + dist);
+            Console.WriteLine("Angle: " + angle);
         }
 
         public void GetMovementSpeed()
@@ -434,28 +279,6 @@ namespace ACE.Server.WorldObjects
             var runRate = MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
 
             return (float)runRate;
-        }
-
-        /// <summary>
-        /// Called when a monster changes landblocks
-        /// </summary>
-        public void UpdateLandblock()
-        {
-            PreviousLocation = Location;
-            LandblockManager.RelocateObjectForPhysics(this);
-            //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId);
-        }
-
-        /// <summary>
-        /// Called when a monster changes cells
-        /// </summary>
-        public void UpdateCell()
-        {
-            var curCell = LScape.get_landcell(Location.LandblockId.Raw);
-            //Console.WriteLine("Moving " + Name + " to " + curCell.ID.ToString("X8"));
-            PhysicsObj.change_cell_server(curCell);
-            //PhysicsObj.remove_shadows_from_cells();
-            PhysicsObj.add_shadows_to_cell(curCell);
         }
 
         /// <summary>
@@ -490,6 +313,30 @@ namespace ACE.Server.WorldObjects
                 threshold += (minDist - dist) * 2.0f;
 
             return angle < threshold;
+        }
+
+        public MovementParameters GetMovementParameters()
+        {
+            var mvp = new MovementParameters();
+
+            mvp.CanWalk = false;
+            mvp.CanRun = true;
+            mvp.CanSidestep = false;
+            mvp.CanWalkBackwards = false;
+            mvp.MoveAway = true;
+            mvp.CanCharge = true;
+            mvp.FailWalk = true;
+            //mvp.UseFinalHeading = true;
+            mvp.Sticky = true;
+
+            mvp.MinDistance = 0.1f;
+            mvp.DistanceToObject = 0.5f;
+            mvp.Speed = 1.0f;
+
+            mvp.SetHoldKey = true;
+            mvp.HoldKeyToApply = HoldKey.Run;
+
+            return mvp;
         }
 
         public void OnSticky()
