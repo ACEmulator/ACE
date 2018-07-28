@@ -1124,7 +1124,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
-            else if ((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1)
+            else if (((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1) && ((target as Player) != null))
             {
                 giveChain.AddAction(this, () =>
                 {
