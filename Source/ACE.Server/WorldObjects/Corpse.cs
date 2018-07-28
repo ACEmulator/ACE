@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
         public static readonly double DefaultDecayTime = 120.0;
 
         /// <summary>
-        /// Flag indicates if a corpse is from a monster of a player
+        /// Flag indicates if a corpse is from a monster or a player
         /// </summary>
         public bool IsMonster = false;
 

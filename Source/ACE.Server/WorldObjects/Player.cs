@@ -22,6 +22,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics;
 
@@ -977,6 +978,11 @@ namespace ACE.Server.WorldObjects
         public void DoSoulEmote(string message)
         {
             CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
+        }
+
+        public void HandleActionJump(JumpPack jump)
+        {
+            //Console.WriteLine(jump);
         }
 
         /// <summary>
