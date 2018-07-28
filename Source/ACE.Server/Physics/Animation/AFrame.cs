@@ -224,8 +224,7 @@ namespace ACE.Server.Physics.Animation
                 Math.Abs(frame.Origin.Z - Origin.Z) <= PhysicsGlobals.EPSILON;
 
             if (!originEpsilonEqual) return false;
-            
-            // compare orientation?
+
             var orientationEpsilonEqual = Math.Abs(frame.Orientation.X - frame.Orientation.X) <= PhysicsGlobals.EPSILON &&
                 Math.Abs(frame.Orientation.Y - frame.Orientation.Y) <= PhysicsGlobals.EPSILON &&
                 Math.Abs(frame.Orientation.Z - frame.Orientation.Z) <= PhysicsGlobals.EPSILON &&

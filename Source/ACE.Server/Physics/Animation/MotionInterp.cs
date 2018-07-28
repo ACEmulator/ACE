@@ -379,6 +379,14 @@ namespace ACE.Server.Physics.Animation
 
         public void add_to_queue(int contextID, uint motion, WeenieError jumpErrorCode)
         {
+            // pending motion queue bug?
+            if (PendingMotions.Count > 0)
+            {
+                var prevMotion = PendingMotions.Last;
+                if (motion == prevMotion.Value.Motion)
+                    return;
+            }
+
             PendingMotions.AddLast(new MotionNode(contextID, motion, jumpErrorCode));
         }
 
