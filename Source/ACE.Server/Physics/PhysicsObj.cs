@@ -2248,7 +2248,7 @@ namespace ACE.Server.Physics
 
         public bool handle_all_collisions(CollisionInfo collisions, bool prev_has_contact, bool prev_on_walkable)
         {
-            var apply_bounce = !prev_on_walkable || !TransientState.HasFlag(TransientStateFlags.OnWalkable) || !!TransientState.HasFlag(TransientStateFlags.Sliding);
+            var apply_bounce = !prev_on_walkable || !TransientState.HasFlag(TransientStateFlags.OnWalkable) || State.HasFlag(PhysicsState.Sledding);
             var retval = false;
             foreach (var collideObject in collisions.CollideObject)
             {

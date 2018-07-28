@@ -296,6 +296,8 @@ namespace ACE.Server.Physics.Animation
 
                 node = currState.Modifiers.First;
             }
+            speed = currState.SubstateMod;
+
             if (!StopSequenceMotion(currState.Substate, speed, currState, sequence, ref numAnims))
                 return success;
             else
@@ -328,8 +330,11 @@ namespace ACE.Server.Physics.Animation
                 if (modifier.Value.ID == motion)
                 {
                     var key = (modifier.Value.ID << 16) | (motion & 0xFFFFFF);
-                    MotionData motionData = null;
-                    if (!Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData))
+
+                    Modifiers.TryGetValue(key, out var motionData);
+                    if (motionData == null)
+                        Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData);
+                    if (motionData == null)
                         return false;
 
                     subtract_motion(sequence, motionData, modifier.Value.SpeedMod);

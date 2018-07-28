@@ -219,10 +219,19 @@ namespace ACE.Server.Physics.Animation
 
         public bool Equals(AFrame frame)
         {
-            return Math.Abs(frame.Origin.X - Origin.X) < PhysicsGlobals.EPSILON &&
-                Math.Abs(frame.Origin.Y - Origin.Y) < PhysicsGlobals.EPSILON &&
-                Math.Abs(frame.Origin.Z - Origin.Z) < PhysicsGlobals.EPSILON;
+            var originEpsilonEqual = Math.Abs(frame.Origin.X - Origin.X) <= PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Origin.Y - Origin.Y) <= PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Origin.Z - Origin.Z) <= PhysicsGlobals.EPSILON;
+
+            if (!originEpsilonEqual) return false;
+            
             // compare orientation?
+            var orientationEpsilonEqual = Math.Abs(frame.Orientation.X - frame.Orientation.X) <= PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Orientation.Y - frame.Orientation.Y) <= PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Orientation.Z - frame.Orientation.Z) <= PhysicsGlobals.EPSILON &&
+                Math.Abs(frame.Orientation.W - frame.Orientation.W) <= PhysicsGlobals.EPSILON;
+
+            return orientationEpsilonEqual;
         }
     }
 }
