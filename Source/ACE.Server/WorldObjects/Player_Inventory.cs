@@ -647,6 +647,9 @@ namespace ACE.Server.WorldObjects
                     item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                     item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
+                    if (item.PhysicsObj == null)
+                        item.PostInit();
+
                     CurrentLandblock?.AddWorldObject(item);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
