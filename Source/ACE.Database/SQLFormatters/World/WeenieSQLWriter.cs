@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -254,7 +255,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString("0.00").PadLeft(7)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Type)} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString(CultureInfo.InvariantCulture).PadLeft(7)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Type)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -353,7 +354,7 @@ namespace ACE.Database.SQLFormatters.World
                 $"{input[i].Key.ToString().PadLeft(2)}, " +
                 $"{input[i].DType.ToString().PadLeft(2)}, " +
                 $"{input[i].DVal.ToString().PadLeft(2)}, " +
-                $"{input[i].DVar.ToString("0.00").PadLeft(4)}, " +
+                $"{input[i].DVar.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
                 $"{input[i].BaseArmor.ToString().PadLeft(4)}, " +
                 $"{input[i].ArmorVsSlash.ToString().PadLeft(4)}, " +
                 $"{input[i].ArmorVsPierce.ToString().PadLeft(4)}, " +
@@ -364,18 +365,18 @@ namespace ACE.Database.SQLFormatters.World
                 $"{input[i].ArmorVsElectric.ToString().PadLeft(4)}, " +
                 $"{input[i].ArmorVsNether.ToString().PadLeft(4)}, " +
                 $"{input[i].BH}, " +
-                $"{input[i].HLF.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].MLF.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].LLF.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].HRF.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].MRF.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].LRF.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].HLB.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].MLB.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].LLB.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].HRB.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].MRB.ToString("0.00").PadLeft(4)}, " +
-                $"{input[i].LRB.ToString("0.00").PadLeft(4)}) " +
+                $"{input[i].HLF.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].MLF.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].LLF.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].HRF.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].MRF.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].LRF.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].HLB.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].MLB.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].LLB.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].HRB.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].MRB.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
+                $"{input[i].LRB.ToString(CultureInfo.InvariantCulture).PadLeft(4)}) " +
                 $"/* {Enum.GetName(typeof(CombatBodyPart), input[i].Key)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -392,7 +393,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (SpellNames != null)
                     SpellNames.TryGetValue((uint)input[i].Spell, out label);
 
-                return $"{weenieClassID}, {input[i].Spell.ToString().PadLeft(5)}, {input[i].Probability.ToString("0.000").PadLeft(6)})  /* {label} */";
+                return $"{weenieClassID}, {input[i].Spell.ToString().PadLeft(5)}, {input[i].Probability.ToString(CultureInfo.InvariantCulture).PadLeft(6)})  /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -461,7 +462,7 @@ namespace ACE.Database.SQLFormatters.World
                     $"{weenieClassID}, " +
                     $"{input[i].EmoteSetId}, " +
                     $"{input[i].Category.ToString().PadLeft(2)}{categoryLabel}, " +
-                    $"{input[i].Probability.ToString("0.0000").PadLeft(6)}, " +
+                    $"{input[i].Probability.ToString(CultureInfo.InvariantCulture).PadLeft(6)}, " +
                     $"{input[i].WeenieClassId}{weenieClassIdLabel}, " +
                     $"{input[i].Style}{styleLabel}, " +
                     $"{input[i].Substyle}{substyleLabel}, " +
@@ -536,7 +537,7 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].EmoteCategory.ToString().PadLeft(2)}{categoryLabel}, " +
                     $"{input[i].Order.ToString().PadLeft(2)}, " +
                     $"{input[i].Type.ToString().PadLeft(3)}{typeLabel}, " +
-                    $"{input[i].Delay.ToString("0.0")}, " +
+                    $"{input[i].Delay}, " +
                     $"{input[i].Extent}, " +
                     $"{input[i].Motion}{motionLabel}, " +
                     $"{GetSQLString(input[i].Message)}, " +
