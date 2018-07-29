@@ -76,26 +76,95 @@ namespace ACE.Server.WorldObjects
             if (vital.Current >= vital.MaxValue)
                 return;
 
-            // TODO: attributeMod - the natural regen bonus is increased by strength and endurance
-            var stanceMod = 1.0f;
-            if (CombatMode != CombatMode.NonCombat)
-                stanceMod = 0.5f;
-            else if (CurrentMotionCommand == (uint)MotionCommand.Crouch || CurrentMotionCommand == (uint)MotionCommand.Sitting)
-                stanceMod = 1.5f;
-            else if (CurrentMotionCommand == (uint)MotionCommand.Sleeping)
-                stanceMod = 2.0f;
+            if (vital.RegenRate == 0.0) return;
+
+            // take attributes into consideration (strength, endurance)
+            var attributeMod = GetAttributeMod(vital);
+
+            // take stance into consideration (combat, crouch, sitting, sleeping)
+            var stanceMod = GetStanceMod(vital);
 
             // take enchantments into consideration:
-            // (regeneration / rejuvenation / mana renewal)
-            var regenMod = EnchantmentManager.GetRegenerationMod(vital);
+            // (regeneration / rejuvenation / mana renewal / etc.)
+            var enchantmentMod = EnchantmentManager.GetRegenerationMod(vital);
 
-            var totalRate = vital.RegenRate * 0.01f * stanceMod * regenMod;
             // cap rate?
+            var currentTick = vital.RegenRate * attributeMod * stanceMod * enchantmentMod;
 
-            //Console.WriteLine("StanceMod: " + stanceMod + ", CombatMode: " + CombatMode + ", MotionCommand: " + (MotionCommand)CurrentMotionCommand + ", RegenMod: " + regenMod);
-            var amount = (uint)Math.Ceiling(totalRate * vital.MaxValue);
+            // add in partially accumulated / rounded vitals from previous tick(s)
+            var totalTick = currentTick + vital.PartialRegen;
 
-            UpdateVitalDelta(vital, amount);
+            // accumulate partial vital rates between ticks
+            var intTick = (int)totalTick;
+            vital.PartialRegen = totalTick - intTick;
+
+            if (intTick > 0)
+                UpdateVitalDelta(vital, intTick);
+
+            //Console.WriteLine($"VitalTick({vital.Vital.ToSentence()}): attributeMod={attributeMod}, stanceMod={stanceMod}, enchantmentMod={enchantmentMod}, regenRate={vital.RegenRate}, currentTick={currentTick}, totalTick={totalTick}, accumulated={vital.PartialRegen}");
+        }
+
+        /// <summary>
+        /// Returns the vital regeneration modifier based on attributes
+        /// (strength, endurance for health, stamina)
+        /// </summary>
+        public float GetAttributeMod(CreatureVital vital)
+        {
+            // only applies to players
+            if ((this as Player) == null) return 1.0f;
+
+            // only applies for health?
+            if (vital.Vital != PropertyAttribute2nd.MaxHealth) return 1.0f;
+
+            // The combination of strength and endurance (with endurance being more important) allows one to regenerate hit points 
+            // at a faster rate the higher one's endurance is. This bonus is in addition to any regeneration spells one may have placed upon themselves.
+            // This regeneration bonus caps at around 110%.
+
+            var strength = GetCreatureAttribute(PropertyAttribute.Strength).Base;
+            var endurance = GetCreatureAttribute(PropertyAttribute.Endurance).Base;
+
+            var strAndEnd = strength + (endurance * 2);
+
+            var modifier = 1.0 + (0.0494 * Math.Pow(strAndEnd, 1.179) / 100.0f);    // formula deduced from values present in the client pdb
+            var attributeMod = Math.Clamp(modifier, 1.0, 2.1);      // cap between + 0-110%
+
+            return (float)attributeMod;
+        }
+
+        /// <summary>
+        /// Returns the vital regeneration modifier based on player stance
+        /// (combat, crouch, sitting, sleeping)
+        /// </summary>
+        public float GetStanceMod(CreatureVital vital)
+        {
+            // only applies to players
+            if ((this as Player) == null) return 1.0f;
+
+            // does not apply for mana?
+            if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
+
+            var stanceMod = 1.0f;
+            if (CombatMode == CombatMode.NonCombat)
+            {
+                switch (CurrentMotionCommand)
+                {
+                    // TODO: verify values
+                    case (uint)MotionCommand.Crouch:
+                        stanceMod = 2.0f;
+                        break;
+                    case (uint)MotionCommand.Sitting:
+                        stanceMod = 2.5f;
+                        break;
+                    case (uint)MotionCommand.Sleeping:
+                        stanceMod = 3.0f;
+                        break;
+                }
+            }
+            // TODO: if (combat || running)
+            else
+                stanceMod = 0.5f;   // in-combat regen
+
+            return stanceMod;
         }
     }
 }

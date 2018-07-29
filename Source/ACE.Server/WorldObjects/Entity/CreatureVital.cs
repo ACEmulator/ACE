@@ -139,53 +139,10 @@ namespace ACE.Server.WorldObjects.Entity
 
         public double RegenRate { set; get; }
 
-        private double lastTick = double.NegativeInfinity;
-
-        public double NextTickTime
-        {
-            get
-            {
-                if (lastTick == double.NegativeInfinity)
-                    return double.NegativeInfinity;
-
-                return lastTick + RegenRate;
-            }
-        }
-
         /// <summary>
-        /// Used to determine if health/stamina/mana updates need to be sent periodically
-        /// Returns the "last time" the vitals were updated
-        /// Takes the vital to update, the lastTime it was updated, and the update rate
+        /// For tracking partial regeneration between ticks
         /// </summary>
-        public void Tick(double tickTime)
-        {
-            if (lastTick == double.NegativeInfinity)
-            {
-                lastTick = tickTime;
-                return;
-            }
-
-            // This shouldn't happen?  maybe?
-            if (tickTime <= lastTick)
-                return;
-
-            double timeDiff = tickTime - lastTick;
-
-            uint numTicks = (uint)(timeDiff * RegenRate);
-
-            if (numTicks > 0)
-            {
-                // lastTime is the time at which the last tick would have happened
-                lastTick = lastTick + numTicks / RegenRate;
-
-                // Now, update our value
-                Current = Math.Min(MaxValue, Current + numTicks);
-
-                // Reset last tick, so when we resume we start ticking properly
-                if (Current == MaxValue)
-                    lastTick = double.NegativeInfinity;
-            }
-        }
+        public double PartialRegen { get; set; }
 
         public Vital ToEnum()
         {

@@ -622,6 +622,18 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Called every ~5 seconds for Creatures
+        /// </summary>
+        public override void HeartBeat()
+        {
+            EnchantmentManager.HeartBeat();
+            VitalTick();
+            // item enchantment ticks?
+
+            QueueNextHeartBeat();
+        }
+
         public static readonly float TickInterval = 0.2f;
 
         public void QueueNextTick()
