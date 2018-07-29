@@ -336,7 +336,7 @@ namespace ACE.Server.WorldObjects
                     if (player != null)
                     {
                         if ((target as Player) == null)
-                            player.EarnXP((long)target.XpOverride);
+                            player.EarnXP((long)target.XpOverride, true);
 
                         var topDamager = AttackDamage.GetTopDamager(AttackList);
                         if (topDamager != null)

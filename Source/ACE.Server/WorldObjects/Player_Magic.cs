@@ -658,7 +658,7 @@ namespace ACE.Server.WorldObjects
                                     creatureTarget.Killer = topDamager.Guid.Full;
 
                                 if ((creatureTarget as Player) == null)
-                                    player.EarnXP((long)target.XpOverride);
+                                    player.EarnXP((long)target.XpOverride, true);
                             }
                             break;
                         case MagicSchool.ItemEnchantment:
