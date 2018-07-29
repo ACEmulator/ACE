@@ -639,7 +639,8 @@ namespace ACE.Server.WorldObjects
                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                             targetDeath = LifeMagic(target, spell, spellStatMod, out uint damage, out bool critical, out enchantmentStatus);
 
-                            AttackList.Add(new AttackDamage(player, damage, critical));
+                            if (damage != 0)
+                                AttackList.Add(new AttackDamage(player, damage, critical));
 
                             if (enchantmentStatus.message != null)
                                 player.Session.Network.EnqueueSend(enchantmentStatus.message);
