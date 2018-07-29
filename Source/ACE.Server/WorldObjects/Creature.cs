@@ -34,6 +34,8 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
 
             InitPhysics = true;
+
+            CombatMode = CombatMode.NonCombat;
         }
 
         /// <summary>
@@ -44,6 +46,8 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
 
             InitPhysics = true;
+
+            CombatMode = CombatMode.NonCombat;
         }
 
         private void SetEphemeralValues()

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -78,7 +76,24 @@ namespace ACE.Server.WorldObjects
             if (vital.Current >= vital.MaxValue)
                 return;
 
-            var amount = (uint)Math.Ceiling(vital.RegenRate * 0.01f * vital.MaxValue);
+            // TODO: attributeMod - the natural regen bonus is increased by strength and endurance
+            var stanceMod = 1.0f;
+            if (CombatMode != CombatMode.NonCombat)
+                stanceMod = 0.5f;
+            else if (CurrentMotionCommand == (uint)MotionCommand.Crouch || CurrentMotionCommand == (uint)MotionCommand.Sitting)
+                stanceMod = 1.5f;
+            else if (CurrentMotionCommand == (uint)MotionCommand.Sleeping)
+                stanceMod = 2.0f;
+
+            // take enchantments into consideration:
+            // (regeneration / rejuvenation / mana renewal)
+            var regenMod = EnchantmentManager.GetRegenerationMod(vital);
+
+            var totalRate = vital.RegenRate * 0.01f * stanceMod * regenMod;
+            // cap rate?
+
+            //Console.WriteLine("StanceMod: " + stanceMod + ", CombatMode: " + CombatMode + ", MotionCommand: " + (MotionCommand)CurrentMotionCommand + ", RegenMod: " + regenMod);
+            var amount = (uint)Math.Ceiling(totalRate * vital.MaxValue);
 
             UpdateVitalDelta(vital, amount);
         }

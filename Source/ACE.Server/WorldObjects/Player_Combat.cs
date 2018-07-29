@@ -7,6 +7,7 @@ using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -117,6 +118,41 @@ namespace ACE.Server.WorldObjects
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill.Current, (int)difficulty);
             return (float)evadeChance;
+        }
+
+        /// <summary>
+        /// Called when player successfully avoids an attack
+        /// </summary>
+        public void OnEvade(WorldObject attacker, AttackType attackType)
+        {
+            // http://asheron.wikia.com/wiki/Attributes
+
+            // Endurance will also make it less likely that you use a point of stamina to successfully evade a missile or melee attack.
+            // A player is required to have Melee Defense for melee attacks or Missile Defense for missile attacks trained or specialized
+            // in order for this specific ability to work. This benefit is tied to Endurance only, and it caps out at around a 75% chance
+            // to avoid losing a point of stamina per successful evasion.
+
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                var defenseSkillType = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+                var defenseSkill = GetCreatureSkill(defenseSkillType);
+                if (defenseSkill.Status >= SkillStatus.Trained)
+                {
+                    var enduranceBase = Endurance.Base;
+                    // TODO: find exact formula / where it caps out at 75%
+                    var enduranceCap = 400;
+                    var effective = Math.Min(enduranceBase, enduranceCap);
+                    var noStaminaUseChance = effective / enduranceCap * 0.75f;
+                    if (noStaminaUseChance < Physics.Common.Random.RollDice(0.0f, 1.0f))
+                        UpdateVitalDelta(Stamina, -1);
+                }
+                else
+                    UpdateVitalDelta(Stamina, -1);
+            }
+            else
+                UpdateVitalDelta(Stamina, -1);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
         }
 
         public override Range GetBaseDamage()

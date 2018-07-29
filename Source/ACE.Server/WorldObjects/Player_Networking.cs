@@ -190,6 +190,11 @@ namespace ACE.Server.WorldObjects
                 // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
                 newMotion.Commands.AddRange(commands);
                 CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
+
+                // TODO: use real motion / animation system from physics
+                if (md.ForwardCommand != 0)
+                    CurrentMotionCommand = 0x41000000 | md.ForwardCommand;
+
             }).EnqueueChain();
         }
 
