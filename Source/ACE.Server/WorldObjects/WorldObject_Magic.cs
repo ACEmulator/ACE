@@ -276,7 +276,7 @@ namespace ACE.Server.WorldObjects
             else
                 spellTarget = this as Creature;
 
-            if (spellTarget.Health.Current <=0)
+            if (spellTarget.Health.Current <= 0)
             {
                 enchantmentStatus.message = null;
                 damage = 0;
@@ -335,7 +335,7 @@ namespace ACE.Server.WorldObjects
                             break;
                         default:   // Health
                             srcVital = "health";
-                            if ((spellTarget.Health.Current < 1) && (boost < 0))
+                            if ((spellTarget.Health.Current <= 0) && (boost < 0))
                             {
                                 boost = 0;
                                 break;
@@ -446,7 +446,7 @@ namespace ACE.Server.WorldObjects
                             break;
                         default:   // Health
                             srcVital = "health";
-                            if (spellTarget.Health.Current < 1)
+                            if (spellTarget.Health.Current <= 0)
                             {
                                 casterVitalChange = 0;
                                 vitalChange = 0;
@@ -1057,7 +1057,7 @@ namespace ACE.Server.WorldObjects
 
         public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
         {
-            if (target.Health.Current < 1)
+            if (target.Health.Current <= 0)
             {
                 // Target already dead
                 damageType = DamageType.Undef;
