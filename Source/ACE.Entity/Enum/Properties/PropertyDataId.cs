@@ -147,5 +147,31 @@ namespace ACE.Entity.Enum.Properties
             var description = prop.GetAttributeOfType<DescriptionAttribute>();
             return description?.Description ?? prop.ToString();
         }
+
+        public static string GetValueEnumName(this PropertyDataId property, uint value)
+        {
+            switch (property)
+            {
+                case PropertyDataId.ActivationAnimation:
+                case PropertyDataId.InitMotion:
+                case PropertyDataId.UseTargetAnimation:
+                case PropertyDataId.UseTargetFailureAnimation:
+                case PropertyDataId.UseTargetSuccessAnimation:
+                case PropertyDataId.UseUserAnimation:
+                    return System.Enum.GetName(typeof(MotionCommand), value);
+                case PropertyDataId.PhysicsScript:
+                case PropertyDataId.RestrictionEffect:
+                    return System.Enum.GetName(typeof(PlayScript), value);
+                case PropertyDataId.ActivationSound:
+                case PropertyDataId.UseSound:
+                    return System.Enum.GetName(typeof(Sound), value);
+                case PropertyDataId.WieldedTreasureType:
+                case PropertyDataId.DeathTreasureType:
+                    // todo
+                    break;
+            }
+
+            return null;
+        }
     }
 }
