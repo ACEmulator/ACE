@@ -143,28 +143,22 @@ namespace ACE.Server.WorldObjects
             // does not apply for mana?
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
-            var stanceMod = 1.0f;
-            if (CombatMode == CombatMode.NonCombat)
-            {
-                switch (CurrentMotionCommand)
-                {
-                    // TODO: verify values
-                    case (uint)MotionCommand.Crouch:
-                        stanceMod = 2.0f;
-                        break;
-                    case (uint)MotionCommand.Sitting:
-                        stanceMod = 2.5f;
-                        break;
-                    case (uint)MotionCommand.Sleeping:
-                        stanceMod = 3.0f;
-                        break;
-                }
-            }
-            // TODO: if (combat || running)
-            else
-                stanceMod = 0.5f;   // in-combat regen
+            // combat mode / running
+            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == (uint)MotionCommand.RunForward)
+                return 0.5f;
 
-            return stanceMod;
+            switch (CurrentMotionCommand)
+            {
+                // TODO: verify multipliers
+                default:
+                    return 1.0f;
+                case 0x12:  // MotionCommand.Crouch
+                    return 2.0f;
+                case 0x13:  // MotionCommand.Sitting
+                    return 2.5f;
+                case 0x14:  // MotionCommand.Sleeping
+                    return 3.0f;
+            }
         }
     }
 }

@@ -1006,6 +1006,29 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Called when the Player's stamina has recently changed to 0
+        /// </summary>
+        public void OnExhausted()
+        {
+            // adjust player speed if running
+            if (CurrentMotionCommand == (uint)MotionCommand.RunForward)
+            {
+                var motion = new UniversalMotion(CurrentMotionState.Stance);
+                // this should be autonomous, like retail, but if it's set to autonomous here, the desired effect doesn't happen
+                // motion.IsAutonomous = true;
+                motion.MovementData = new MovementData()
+                {
+                    CurrentStyle = (uint)CurrentMotionState.Stance,
+                    ForwardCommand = (uint)MotionCommand.RunForward
+                };
+                CurrentMotionState = motion;
+                if (CurrentLandblock != null)
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            }
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
+        }
+
+        /// <summary>
         /// Method used to perform the animation, sound, and vital update on consumption of food or potions
         /// </summary>
         /// <param name="consumableName">Name of the consumable</param>

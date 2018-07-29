@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -192,8 +193,7 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
 
                 // TODO: use real motion / animation system from physics
-                if (md.ForwardCommand != 0)
-                    CurrentMotionCommand = 0x41000000 | md.ForwardCommand;
+                CurrentMotionCommand = md.ForwardCommand;
 
             }).EnqueueChain();
         }
