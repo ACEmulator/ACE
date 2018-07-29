@@ -548,7 +548,7 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Max64}, " +
                     $"{input[i].MinDbl}, " +
                     $"{input[i].MaxDbl}, " +
-                    $"{input[i].StackSize}, " +
+                    $"{input[i].Stat}, " +
                     $"{input[i].Display}, " +
                     $"{input[i].Amount}, " +
                     $"{input[i].Amount64}, " +
