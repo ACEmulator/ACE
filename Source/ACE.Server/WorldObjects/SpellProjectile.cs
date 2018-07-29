@@ -318,15 +318,6 @@ namespace ACE.Server.WorldObjects
                 var amount = (uint)Math.Round(damage ?? 0.0f);
                 AttackList.Add(new AttackDamage(projectileCaster, amount, critical));
 
-                if (player != null)
-                {
-                    var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
-                    player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                }
-
-                if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
-
                 if (target.Health.Current <= 0)
                 {
                     target.UpdateVital(target.Health, 0);
@@ -343,7 +334,21 @@ namespace ACE.Server.WorldObjects
                             target.Killer = topDamager.Guid.Full;
 
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
+
+                        if (targetPlayer != null)
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} has killed you!", ChatMessageType.Broadcast));
                     }
+                }
+                else
+                {
+                    if (player != null)
+                    {
+                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
+                        player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                    }
+
+                    if (targetPlayer != null)
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                 }
             }
             else

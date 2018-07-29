@@ -474,16 +474,12 @@ namespace ACE.Server.WorldObjects
 
                     resourceCheckChain.AddAction(this, () =>
                     {
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
                         CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
                     });
 
-                    resourceCheckChain.AddDelaySeconds(2.0f);
-                    resourceCheckChain.AddAction(this, () =>
-                    {
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast));
-                        player.IsBusy = false;
-                    });
-
+                    resourceCheckChain.AddDelaySeconds(1.0f);
+                    resourceCheckChain.AddAction(this, () => player.IsBusy = false);
                     resourceCheckChain.EnqueueChain();
 
                     return;
