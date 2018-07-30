@@ -92,7 +92,7 @@ namespace ACE.Server.Managers
             // Check for existing spells in registry that are superior
             foreach (var entry in entries)
             {
-                if (enchantment.Spell.Power < entry.PowerLevel)
+                if (enchantment.SpellBase.Power < entry.PowerLevel)
                 {
                     // superior existing spell
                     Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
@@ -105,7 +105,7 @@ namespace ACE.Server.Managers
                 // Check for existing spells in registry that are equal to
                 foreach (var entry in entries)
                 {
-                    if (enchantment.Spell.Power == entry.PowerLevel)
+                    if (enchantment.SpellBase.Power == entry.PowerLevel)
                     {
                         if (entry.Duration == -1)
                         {
