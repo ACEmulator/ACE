@@ -14,6 +14,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Managers
 {
@@ -74,7 +75,7 @@ namespace ACE.Server.Managers
             StackType result = StackType.Undef;
 
             // check for existing spell in this category
-            var entries = GetCategory(enchantment.Spell.Category);
+            var entries = GetCategory(enchantment.SpellBase.Category);
 
             // if none, add new record
             if (entries.Count == 0)
@@ -138,7 +139,7 @@ namespace ACE.Server.Managers
                     // Check for highest existing spell in registry that is inferior
                     foreach (var entry in entries)
                     {
-                        if (enchantment.Spell.Power > entry.PowerLevel)
+                        if (enchantment.SpellBase.Power > entry.PowerLevel)
                         {
                             // surpass existing spell
                             Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
@@ -298,20 +299,20 @@ namespace ACE.Server.Managers
 
             var entry = new BiotaPropertiesEnchantmentRegistry();
 
-            entry.EnchantmentCategory = (uint)spell.MetaSpellType;
+            entry.EnchantmentCategory = (uint)spellBase.MetaSpellType;
             var enchantmentType = (EnchantmentTypeFlags)entry.EnchantmentCategory;
             entry.ObjectId = WorldObject.Guid.Full;
             entry.Object = WorldObject.Biota;
             entry.SpellId = (int)spell.SpellId;
-            entry.SpellCategory = (ushort)spell.Category;
-            entry.PowerLevel = spell.Power;
+            entry.SpellCategory = (ushort)spellBase.Category;
+            entry.PowerLevel = spellBase.Power;
 
             if (caster is Creature)
-                entry.Duration = spell.Duration ?? 0.0;
+                entry.Duration = spellBase.Duration;
             else
             {
                 if (caster.WeenieType == WeenieType.Gem)
-                    entry.Duration = spell.Duration ?? 0.0;
+                    entry.Duration = spellBase.Duration;
                 else
                 {
                     entry.Duration = -1.0;
@@ -324,8 +325,8 @@ namespace ACE.Server.Managers
             else
                 entry.CasterObjectId = caster.Guid.Full;
 
-            entry.DegradeModifier = spell.DegradeModifier ?? 0.0f;
-            entry.DegradeLimit = spell.DegradeLimit ?? 0.0f;
+            entry.DegradeModifier = spellBase.DegradeModifier;
+            entry.DegradeLimit = spellBase.DegradeLimit;
             entry.StatModType = spell.StatModType ?? 0;
             entry.StatModKey = spell.StatModKey ?? 0;
             entry.StatModValue = spell.StatModVal ?? 0.0f;
@@ -422,13 +423,37 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the top layers in each spell category for a StatMod type
+        /// </summary>
+        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType)
+        {
+            var enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
+                               where ((EnchantmentTypeFlags)e.StatModType).HasFlag(statModType)
+                               group e by e.SpellCategory into categories
+                               select categories.OrderByDescending(c => c.LayerId).First();
+
+            return enchantments.ToList();
+        }
+
+        /// <summary>
+        /// Returns the top layers in each spell category for a StatMod type + key
+        /// </summary>
+        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType, uint statModKey)
+        {
+            var enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
+                               where ((EnchantmentTypeFlags)e.StatModType).HasFlag(statModType) && e.StatModKey == statModKey
+                               group e by e.SpellCategory into categories
+                               select categories.OrderByDescending(c => c.LayerId).First();
+
+            return enchantments.ToList();
+        }
+
+        /// <summary>
         /// Returns the bonus to a skill from enchantments
         /// </summary>
         public int GetSkillMod(Skill skill)
         {
-            var typeFlags = EnchantmentTypeFlags.Skill;
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (uint)skill);
-            if (enchantments == null) return 0;
+            var enchantments = GetEnchantments(EnchantmentTypeFlags.Skill, (uint)skill);
 
             var skillMod = 0;
             foreach (var enchantment in enchantments)
@@ -442,9 +467,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public int GetAttributeMod(PropertyAttribute attribute)
         {
-            var typeFlags = EnchantmentTypeFlags.Attribute;
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (uint)attribute);
-            if (enchantments == null) return 0;
+            var enchantments = GetEnchantments(EnchantmentTypeFlags.Attribute, (uint)attribute);
 
             var attributeMod = 0;
             foreach (var enchantment in enchantments)
@@ -467,8 +490,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public int GetModifier(EnchantmentTypeFlags type)
         {
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(type));
-            if (enchantments == null) return 0;
+            var enchantments = GetEnchantments(type);
 
             var modifier = 0;
             foreach (var enchantment in enchantments)
@@ -482,14 +504,24 @@ namespace ACE.Server.Managers
         /// </summary>
         public int GetAdditiveMod(PropertyInt statModKey)
         {
-            var type = EnchantmentTypeFlags.Additive;
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(type) && e.StatModKey == (int)statModKey);
-            if (enchantments == null) return 0;
+            var enchantments = GetEnchantments(EnchantmentTypeFlags.Additive, (uint)statModKey);
 
-            // additive
             var modifier = 0;
             foreach (var enchantment in enchantments)
                 modifier += (int)enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        public float GetAdditiveMod(PropertyFloat statModKey)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+
+            var enchantments = GetEnchantments(typeFlags, (uint)statModKey);
+
+            var modifier = 0.0f;
+            foreach (var enchantment in enchantments)
+                modifier += enchantment.StatModValue;
 
             return modifier;
         }
@@ -499,9 +531,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetMultiplicativeMod(PropertyFloat statModKey)
         {
-            var type = EnchantmentTypeFlags.Multiplicative;
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(type) && e.StatModKey == (int)statModKey);
-            if (enchantments == null) return 1.0f;
+            var enchantments = GetEnchantments(EnchantmentTypeFlags.Multiplicative, (uint)statModKey);
 
             // multiplicative
             var modifier = 1.0f;
@@ -518,8 +548,8 @@ namespace ACE.Server.Managers
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
             var resistance = GetResistanceKey(damageType);
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (int)resistance);
-            if (enchantments == null) return 1.0f;
+
+            var enchantments = GetEnchantments(typeFlags, (uint)resistance);
 
             // multiplicative
             var modifier = 1.0f;
@@ -527,6 +557,42 @@ namespace ACE.Server.Managers
                 modifier *= enchantment.StatModValue;
 
             return modifier;
+        }
+
+        /// <summary>
+        /// Gets the regeneration modifier for a vital type
+        /// (regeneration / rejuvenation / mana renewal)
+        /// </summary>
+        public float GetRegenerationMod(CreatureVital vital)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var vitalKey = GetVitalKey(vital);
+
+            var enchantments = GetEnchantments(typeFlags, (uint)vitalKey);
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+                modifier *= enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Gets the VitalRate key for a CreatureVital
+        /// </summary>
+        public PropertyFloat GetVitalKey(CreatureVital vital)
+        {
+            switch (vital.Vital)
+            {
+                case PropertyAttribute2nd.MaxHealth:
+                    return PropertyFloat.HealthRate;
+                case PropertyAttribute2nd.MaxStamina:
+                    return PropertyFloat.StaminaRate;
+                case PropertyAttribute2nd.MaxMana:
+                    return PropertyFloat.ManaRate;
+            }
+            return 0;
         }
 
         /// <summary>
@@ -601,7 +667,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetAttackMod()
         {
-            return GetMultiplicativeMod(PropertyFloat.WeaponOffense);
+            return GetAdditiveMod(PropertyFloat.WeaponOffense);
         }
 
         /// <summary>
@@ -617,7 +683,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetDefenseMod()
         {
-            return GetMultiplicativeMod(PropertyFloat.WeaponDefense);
+            return GetAdditiveMod(PropertyFloat.WeaponDefense);
         }
 
         /// <summary>
@@ -644,8 +710,8 @@ namespace ACE.Server.Managers
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var key = GetImpenBaneKey(damageType);
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => ((EnchantmentTypeFlags)e.StatModType).HasFlag(typeFlags) && e.StatModKey == (int)key);
-            if (enchantments == null) return 0.0f;
+
+            var enchantments = GetEnchantments(typeFlags, (uint)key);
 
             // additive
             var modifier = 0.0f;
@@ -665,7 +731,7 @@ namespace ACE.Server.Managers
             foreach (var enchantment in Enchantments)
             {
                 var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)enchantment.SpellId];
-                if (spellBase.School == MagicSchool.ItemEnchantment)
+                if (spellBase.School == magicSchool)
                     spells.Add(enchantment);
             }
             return spells;

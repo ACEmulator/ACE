@@ -34,6 +34,8 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
 
             InitPhysics = true;
+
+            CombatMode = CombatMode.NonCombat;
         }
 
         /// <summary>
@@ -44,6 +46,8 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
 
             InitPhysics = true;
+
+            CombatMode = CombatMode.NonCombat;
         }
 
         private void SetEphemeralValues()
@@ -616,6 +620,18 @@ namespace ACE.Server.WorldObjects
                     player.SendUseDoneEvent();
                 }
             }
+        }
+
+        /// <summary>
+        /// Called every ~5 seconds for Creatures
+        /// </summary>
+        public override void HeartBeat()
+        {
+            EnchantmentManager.HeartBeat();
+            VitalTick();
+            // item enchantment ticks?
+
+            QueueNextHeartBeat();
         }
 
         public static readonly float TickInterval = 0.2f;

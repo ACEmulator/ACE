@@ -409,6 +409,7 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // used in CalculatedPhysicsDescriptionFlag()
         public UniversalMotion CurrentMotionState { get; set; }
+        public uint CurrentMotionCommand { get; set; }
 
         public Placement? Placement // Sometimes known as AnimationFrame
         {

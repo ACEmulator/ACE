@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
         public void DoHealing(Player healer, Player target)
         {
             var remainingMsg = $"Your {Name} has {--UsesLeft} uses left.";
-            var stackSize = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.StackSize, UsesLeft.Value);
+            var stackSize = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, UsesLeft.Value);
             var targetName = healer == target ? "yourself" : target.Name;
 
             // skill check
@@ -90,15 +90,10 @@ namespace ACE.Server.WorldObjects
             }
 
             // heal up
-            var healAmount = GetHealAmount(healer, out var critical);
-            var newHealth = target.Health.Current + healAmount;
-            var maxHealth = target.Health.MaxValue;
-            if (newHealth > maxHealth)
-            {
-                healAmount = target.Health.MaxValue - target.Health.Current;
-                newHealth = maxHealth;
-            }
-            target.Health.Current = newHealth;
+            var healAmount = GetHealAmount(healer, target, out var critical, out var staminaCost);
+
+            healer.UpdateVitalDelta(healer.Stamina, -staminaCost);
+            target.UpdateVitalDelta(target.Health, healAmount);
 
             var updateHealth = new GameMessagePrivateUpdateAttribute2ndLevel(target, Vital.Health, target.Health.Current);
             var crit = critical ? "expertly " : "";
@@ -125,20 +120,24 @@ namespace ACE.Server.WorldObjects
         public bool DoSkillCheck(Player healer, Player target)
         {
             // skill check:
-            // (healing skill + healing kit boost) * combatMod
-            // vs. damage * 2
-            var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.3f : 1.1f;
-            var healingSkill = (int)Math.Round((healer.GetCreatureSkill(Skill.Healing).Current + Boost ?? 0) * combatMod);
-            var difficulty = (int)(target.Health.MaxValue - target.Health.Current) * 2;
+            // (healing skill + healing kit boost) * trainedMod
+            // vs. damage * 2 * combatMod
+            var healingSkill = healer.GetCreatureSkill(Skill.Healing);
+            var trainedMod = healingSkill.Status == SkillStatus.Specialized ? 1.5f : 1.1f;
 
-            var skillCheck = SkillCheck.GetSkillChance(healingSkill, difficulty);
+            var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
+
+            var effectiveSkill = (int)Math.Round(healingSkill.Current + (Boost ?? 0) * trainedMod);
+            var difficulty = (int)Math.Round((target.Health.MaxValue - target.Health.Current) * 2 * combatMod);
+
+            var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
             return skillCheck >= Physics.Common.Random.RollDice(0.0f, 1.0f);
         }
 
         /// <summary>
         /// Returns the healing amount for this attempt
         /// </summary>
-        public uint GetHealAmount(Player healer, out bool criticalHeal)
+        public uint GetHealAmount(Player healer, Player target, out bool criticalHeal, out uint staminaCost)
         {
             // factors: healing skill, healing kit bonus, stamina, critical chance
             var healingSkill = healer.GetCreatureSkill(Skill.Healing).Current;
@@ -153,11 +152,21 @@ namespace ACE.Server.WorldObjects
             criticalHeal = Physics.Common.Random.RollDice(0.0f, 1.0f) < 0.1f;
             if (criticalHeal) healAmount *= 2;
 
+            // cap to missing health
+            var missingHealth = target.Health.MaxValue - target.Health.Current;
+            if (healAmount > missingHealth)
+                healAmount = missingHealth;
+
             // stamina check? On the Q&A board a dev posted that stamina directly effects the amount of damage you can heal
             // low stam = less health healed. I don't have exact numbers for it. Working through forum archive.
-            var staminaMod = (float)healer.Stamina.Current / healer.Stamina.MaxValue;
-            healAmount = (uint)Math.Round(healAmount * staminaMod);
 
+            // stamina cost: 1 stamina per 5 health
+            staminaCost = (uint)Math.Round(healAmount / 5.0f);
+            if (staminaCost > healer.Stamina.Current)
+            {
+                staminaCost = healer.Stamina.Current;
+                healAmount = staminaCost * 5;
+            }
             return healAmount;
         }
     }

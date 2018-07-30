@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
 
                 // Are we within use radius?
                 var valid = false;
-                bool ret = CurrentLandblock != null ? CurrentLandblock.WithinUseRadius(this, target, out valid) : false;
+                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target, out valid) : false;
 
                 // If one of the items isn't on a landblock
                 if (!valid)
@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
 
                 // Are we within use radius?
                 var valid = false;
-                bool ret = CurrentLandblock != null ? CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
+                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
 
                 // If one of the items isn't on a landblock
                 if (!valid)

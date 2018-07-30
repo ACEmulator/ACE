@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects
                 if (damage > 0.0f)
                     player.TakeDamage(this, damageType, damage, bodyPart, critical);
                 else
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {Name}!", ChatMessageType.CombatEnemy));
+                    player.OnEvade(this, AttackType.Melee);
             });
             actionChain.EnqueueChain();
 
