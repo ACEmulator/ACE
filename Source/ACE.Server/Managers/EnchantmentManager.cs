@@ -75,7 +75,7 @@ namespace ACE.Server.Managers
             StackType result = StackType.Undef;
 
             // check for existing spell in this category
-            var entries = GetCategory(enchantment.Spell.Category);
+            var entries = GetCategory(enchantment.SpellBase.Category);
 
             // if none, add new record
             if (entries.Count == 0)
@@ -139,7 +139,7 @@ namespace ACE.Server.Managers
                     // Check for highest existing spell in registry that is inferior
                     foreach (var entry in entries)
                     {
-                        if (enchantment.Spell.Power > entry.PowerLevel)
+                        if (enchantment.SpellBase.Power > entry.PowerLevel)
                         {
                             // surpass existing spell
                             Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
@@ -299,20 +299,20 @@ namespace ACE.Server.Managers
 
             var entry = new BiotaPropertiesEnchantmentRegistry();
 
-            entry.EnchantmentCategory = (uint)spell.MetaSpellType;
+            entry.EnchantmentCategory = (uint)spellBase.MetaSpellType;
             var enchantmentType = (EnchantmentTypeFlags)entry.EnchantmentCategory;
             entry.ObjectId = WorldObject.Guid.Full;
             entry.Object = WorldObject.Biota;
             entry.SpellId = (int)spell.SpellId;
-            entry.SpellCategory = (ushort)spell.Category;
-            entry.PowerLevel = spell.Power;
+            entry.SpellCategory = (ushort)spellBase.Category;
+            entry.PowerLevel = spellBase.Power;
 
             if (caster is Creature)
-                entry.Duration = spell.Duration ?? 0.0;
+                entry.Duration = spellBase.Duration;
             else
             {
                 if (caster.WeenieType == WeenieType.Gem)
-                    entry.Duration = spell.Duration ?? 0.0;
+                    entry.Duration = spellBase.Duration;
                 else
                 {
                     entry.Duration = -1.0;
@@ -325,8 +325,8 @@ namespace ACE.Server.Managers
             else
                 entry.CasterObjectId = caster.Guid.Full;
 
-            entry.DegradeModifier = spell.DegradeModifier ?? 0.0f;
-            entry.DegradeLimit = spell.DegradeLimit ?? 0.0f;
+            entry.DegradeModifier = spellBase.DegradeModifier;
+            entry.DegradeLimit = spellBase.DegradeLimit;
             entry.StatModType = spell.StatModType ?? 0;
             entry.StatModKey = spell.StatModKey ?? 0;
             entry.StatModValue = spell.StatModVal ?? 0.0f;
