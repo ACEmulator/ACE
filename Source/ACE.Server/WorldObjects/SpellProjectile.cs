@@ -273,7 +273,8 @@ namespace ACE.Server.WorldObjects
             var critical = false;
             var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
 
-            if (damage != null)
+            // null damage -> target resisted; damage of -1 -> target already dead
+            if (damage != null || damage == -1)
             {
                 int newSpellTargetVital;
                 var percent = 0.0f;
@@ -317,17 +318,6 @@ namespace ACE.Server.WorldObjects
                 var amount = (uint)Math.Round(damage ?? 0.0f);
                 AttackList.Add(new AttackDamage(projectileCaster, amount, critical));
 
-                if (player != null)
-                {
-                    var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
-                    player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                }
-
-                if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
-                else
-                    player.EarnXP((long)target.XpOverride);
-
                 if (target.Health.Current <= 0)
                 {
                     target.UpdateVital(target.Health, 0);
@@ -336,16 +326,36 @@ namespace ACE.Server.WorldObjects
 
                     if (player != null)
                     {
+                        if ((target as Player) == null)
+                            player.EarnXP((long)target.XpOverride, true);
+
                         var topDamager = AttackDamage.GetTopDamager(AttackList);
                         if (topDamager != null)
                             target.Killer = topDamager.Guid.Full;
 
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
+
+                        if (targetPlayer != null)
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} has killed you!", ChatMessageType.Broadcast));
                     }
+                }
+                else
+                {
+                    if (player != null)
+                    {
+                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
+                        player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                    }
+
+                    if (targetPlayer != null)
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                 }
             }
             else
             {
+                if (damage == -1)
+                    return;
+
                 CurrentLandblock?.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
 
                 if (player != null)
@@ -353,6 +363,7 @@ namespace ACE.Server.WorldObjects
 
                 if (targetPlayer != null)
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
+
             }
 
             // also called on resist
