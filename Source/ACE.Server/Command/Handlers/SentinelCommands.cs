@@ -2,6 +2,7 @@ using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -220,27 +221,60 @@ namespace ACE.Server.Command.Handlers
             // prepare messages
             foreach (var spell in Buffs)
             {
-                uint spellID = (uint)Enum.Parse(tySpell, spell + SelfOrOther + maxSpellLevel);
+                var spellNamPrefix = spell;
+                bool isBane = false;
+                if (spellNamPrefix.StartsWith("@"))
+                {
+                    isBane = true;
+                    spellNamPrefix = spellNamPrefix.Substring(1);
+                }
+                uint spellID = (uint)Enum.Parse(tySpell, spellNamPrefix + ((isBane) ? string.Empty : SelfOrOther) + maxSpellLevel);
                 var buffMsg = BuildBuffMessage(spellID);
-                if (buffMsg != null) buffMessages.Add(buffMsg);
+                if (buffMsg != null)
+                {
+                    buffMsg.Bane = isBane;
+                    buffMessages.Add(buffMsg);
+                }
             }
             // buff each player
             players.ToList().ForEach(targetPlayer =>
             {
-                // bake player into the messages
-                buffMessages.ForEach(k => k.SetTargetPlayer(targetPlayer));
-                // update client-side enchantments
-                targetPlayer.Session.Network.EnqueueSend(buffMessages.Select(k => k.SessionMessage).ToArray());
-                // run client-side effect scripts, omitting duplicates
-                targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
-                // update server-side enchantments
-                targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), caster);
+                if (buffMessages.Any(k => !k.Bane))
+                {
+                    // bake player into the messages
+                    buffMessages.Where(k => !k.Bane).ToList().ForEach(k => k.SetTargetPlayer(targetPlayer));
+                    // update client-side enchantments
+                    targetPlayer.Session.Network.EnqueueSend(buffMessages.Where(k => !k.Bane).ToList().Select(k => k.SessionMessage).ToArray());
+                    // run client-side effect scripts, omitting duplicates
+                    targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.Where(k => !k.Bane).ToList().GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
+                    // update server-side enchantments
+                    targetPlayer.EnchantmentManager.AddRange(buffMessages.Where(k => !k.Bane).ToList().Select(k => k.Enchantment), caster);
+                }
+                if (buffMessages.Any(k => k.Bane))
+                {
+                    // Impen/bane targeted at a player
+                    var items = (targetPlayer as Player).GetAllWieldedItems();
+                    var itembuffs = buffMessages.Where(k => k.Bane).ToList();
+                    foreach (var itemBuff in itembuffs)
+                    {
+                        foreach (var item in items)
+                        {
+                            if (item.WeenieType == WeenieType.Clothing || item.IsShield)
+                            {
+                                itemBuff.SetLandblockMessage(item.Guid);
+                                var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.SpellBase, itemBuff.Spell, caster);
+                                targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, itemBuff.LandblockMessage);
+                                //if (enchantmentStatus.message != null)
+                                //    targetPlayer.Session.Network.EnqueueSend(enchantmentStatus.message);
+                            }
+                        }
+                    }
+                }
             });
         }
-
         private static string[] Buffs = new string[] {
 #region spells
-            // TODO: Item Aura buffs
+            // @ indicates impenetrability or a bane
             "Strength",
             "Invulnerability",
             "FireProtection",
@@ -294,12 +328,27 @@ namespace ACE.Server.Command.Handlers
             "FletchingMastery",
             "AlchemyMastery",
             "VoidMagicMastery",
-            "SummoningMastery"
+            "SummoningMastery",
+            "SwiftKiller",
+            "Defender",
+            "BloodDrinker",
+            "HeartSeeker",
+            "TrueValue", // aura of mystic's blessing
+            "SpiritDrinker",
+            "@Impenetrability",
+            "@PiercingBane",
+            "@BludgeonBane",
+            "@BladeBane",
+            "@AcidBane",
+            "@FlameBane",
+            "@FrostBane",
+            "@LightningBane",
 #endregion
             };
 
         public class BuffMessage
         {
+            public bool Bane { get; set; } = false;
             public GameEventMagicUpdateEnchantment SessionMessage { get; set; } = null;
             public GameMessageScript LandblockMessage { get; set; } = null;
             public SpellBase SpellBase { get; set; } = null;
@@ -309,7 +358,11 @@ namespace ACE.Server.Command.Handlers
             {
                 Enchantment.Target = p;
                 SessionMessage = new GameEventMagicUpdateEnchantment(p.Session, Enchantment);
-                LandblockMessage = new GameMessageScript(p.Guid, (PlayScript)SpellBase.TargetEffect, 1f);
+                SetLandblockMessage(p.Guid);
+            }
+            public void SetLandblockMessage(ObjectGuid target)
+            {
+                LandblockMessage = new GameMessageScript(target, (PlayScript)SpellBase.TargetEffect, 1f);
             }
         }
 

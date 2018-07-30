@@ -691,7 +691,7 @@ namespace ACE.Server.WorldObjects
                                     var items = (target as Player).GetAllWieldedItems();
                                     foreach (var item in items)
                                     {
-                                        if (item.WeenieType == WeenieType.Clothing)
+                                        if (item.WeenieType == WeenieType.Clothing || item.IsShield)
                                         {
                                             enchantmentStatus = ItemMagic(item, spell, spellStatMod);
                                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));

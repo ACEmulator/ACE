@@ -68,6 +68,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
+        public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
 
         public EmoteManager EmoteManager;
         public EnchantmentManager EnchantmentManager;
