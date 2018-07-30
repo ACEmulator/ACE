@@ -345,7 +345,6 @@ namespace ACE.Server.WorldObjects
 
         private enum CastingPreCheckStatus
         {
-            Untrained,
             OutOfMana,
             OutOfOtherVital,
             CastFailed,
