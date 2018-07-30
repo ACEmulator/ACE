@@ -417,15 +417,6 @@ namespace ACE.Server.WorldObjects
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
-            // No cheating with an unusable skill...
-            if (magicSkill == 0)
-            {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Casting this spell is beyond you capabilites!"));
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.SkillTooLow));
-                player.IsBusy = false;
-                return;
-            }
-
             if (targetCategory == TargetCategory.WorldObject)
             {
                 if (guidTarget != Guid)
