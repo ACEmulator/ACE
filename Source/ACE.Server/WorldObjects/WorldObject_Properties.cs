@@ -891,9 +891,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlay); else SetProperty(PropertyDataId.IconOverlay, value.Value); }
         }
 
-        public Material? MaterialType
+        public MaterialType? MaterialType
         {
-            get => (Material?)GetProperty(PropertyInt.MaterialType);
+            get => (MaterialType?)GetProperty(PropertyInt.MaterialType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaterialType); else SetProperty(PropertyInt.MaterialType, (int)value.Value); }
         }
 
