@@ -276,6 +276,14 @@ namespace ACE.Server.WorldObjects
             else
                 spellTarget = this as Creature;
 
+            if (spellTarget.Health.Current <= 0)
+            {
+                enchantmentStatus.message = null;
+                damage = 0;
+                return false;
+            }
+
+
             int newSpellTargetVital;
             switch (spell.MetaSpellType)
             {
@@ -326,8 +334,13 @@ namespace ACE.Server.WorldObjects
                                 spellTarget.UpdateVital(spellTarget.Stamina, spellTarget.Stamina.MaxValue);
                             break;
                         default:   // Health
-                            newSpellTargetVital = (int)(spellTarget.Health.Current + boost);
                             srcVital = "health";
+                            if ((spellTarget.Health.Current <= 0) && (boost < 0))
+                            {
+                                boost = 0;
+                                break;
+                            }
+                            newSpellTargetVital = (int)(spellTarget.Health.Current + boost);
                             if (newSpellTargetVital < spellTarget.Health.MaxValue)
                             {
                                 if (newSpellTargetVital <= 0)
@@ -339,6 +352,7 @@ namespace ACE.Server.WorldObjects
                                 spellTarget.UpdateVital(spellTarget.Health, spellTarget.Health.MaxValue);
                             break;
                     }
+
                     if (this is Player)
                     {
                         if (spell.BaseRangeConstant > 0)
@@ -432,6 +446,12 @@ namespace ACE.Server.WorldObjects
                             break;
                         default:   // Health
                             srcVital = "health";
+                            if (spellTarget.Health.Current <= 0)
+                            {
+                                casterVitalChange = 0;
+                                vitalChange = 0;
+                                break;
+                            }
                             if (newSpellTargetVital <= 0)
                                 spellTarget.UpdateVital(spellTarget.Health, 0);
                             else
@@ -1037,6 +1057,13 @@ namespace ACE.Server.WorldObjects
 
         public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
         {
+            if (target.Health.Current <= 0)
+            {
+                // Target already dead
+                damageType = DamageType.Undef;
+                return -1;
+            }
+
             double damageBonus = 0.0f, minDamageBonus = 0, maxDamageBonus = 0, warSkillBonus = 0.0f, finalDamage = 0.0f;
             MagicCritType magicCritType;
 
