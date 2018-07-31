@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -68,8 +66,16 @@ namespace ACE.Server.Managers
                 session.Player.PlayerEnterWorld();
 
                 // check the value of the welcome message. Only display it if it is not empty
+                string welcomeHeader;
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-                    session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+                    welcomeHeader = ConfigManager.Config.Server.Welcome;
+                else
+                    welcomeHeader = "Welcome to Asheron's Call!";
+
+                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
+
+                if (player.TotalLogins <= 1)
+                    session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
                 Landblock block = GetLandblock(location.LandblockId, true);

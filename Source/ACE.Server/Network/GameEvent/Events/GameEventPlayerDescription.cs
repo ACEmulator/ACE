@@ -266,7 +266,7 @@ namespace ACE.Server.Network.GameEvent.Events
                     Writer.Write((uint)kvp.Key); // skill id
                     Writer.Write(kvp.Value.Ranks); // points raised
                     Writer.Write((ushort)1u);
-                    Writer.Write((uint)kvp.Value.Status); // skill state
+                    Writer.Write((uint)kvp.Value.AdvancementClass); // skill state
                     Writer.Write(kvp.Value.ExperienceSpent); // xp spent on this skill
                     Writer.Write(kvp.Value.InitLevel);  // init_level, for training/specialized bonus from character creation
                     Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"

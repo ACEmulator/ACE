@@ -11,6 +11,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
@@ -476,7 +477,7 @@ namespace ACE.Server.Managers
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emoteAction.Stat);
                         // TestNoQuality?
-                        InqProperty(skill.Status == SkillStatus.Trained || skill.Status == SkillStatus.Specialized, emoteAction, sourceObject, targetObject, actionChain);
+                        InqProperty(skill.AdvancementClass == SkillAdvancementClass.Trained || skill.AdvancementClass == SkillAdvancementClass.Specialized, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
 
@@ -649,7 +650,17 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.PopUp:
-                    ConfirmationManager.AddConfirmation(new Confirmation((ConfirmationType)emoteAction.Stat, emoteAction.Message, sourceObject.Guid.Full, targetObject.Guid.Full));
+                    if (player != null)
+                    {
+                        if ((ConfirmationType)emoteAction.Stat == ConfirmationType.Undefined)
+                            player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emoteAction.Message));
+                        else
+                        {
+                            Confirmation confirm = new Confirmation((ConfirmationType)emoteAction.Stat, emoteAction.Message, sourceObject.Guid.Full, targetObject.Guid.Full);
+                            ConfirmationManager.AddConfirmation(confirm);
+                            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emoteAction.Stat, confirm.ConfirmationID, confirm.Message));
+                        }
+                    }
                     break;
 
                 case EmoteType.RemoveContract:

@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
             // (healing skill + healing kit boost) * trainedMod
             // vs. damage * 2 * combatMod
             var healingSkill = healer.GetCreatureSkill(Skill.Healing);
-            var trainedMod = healingSkill.Status == SkillStatus.Specialized ? 1.5f : 1.1f;
+            var trainedMod = healingSkill.AdvancementClass == SkillAdvancementClass.Specialized ? 1.5f : 1.1f;
 
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 

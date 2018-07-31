@@ -3,6 +3,7 @@
 ### 2018-07-30
 [Mag-nus]
 * GroupChatType enum removed. It duplicated Channel enum.
+* Renamed SkillStatus to SkillAdvancementClass
 
 ### 2018-07-22
 **ACE-World-16PY world db release v0.0.16+ required with this update**

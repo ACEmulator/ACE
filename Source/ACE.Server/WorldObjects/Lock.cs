@@ -42,8 +42,8 @@ namespace ACE.Server.WorldObjects
             chain.AddAction(player, () =>
             {
                 if (unlocker.WeenieType == WeenieType.Lockpick &&
-                    player.Skills[Skill.Lockpick].Status != SkillStatus.Trained &&
-                    player.Skills[Skill.Lockpick].Status != SkillStatus.Specialized)
+                    player.Skills[Skill.Lockpick].AdvancementClass != SkillAdvancementClass.Trained &&
+                    player.Skills[Skill.Lockpick].AdvancementClass != SkillAdvancementClass.Specialized)
                 {
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
                     return;
