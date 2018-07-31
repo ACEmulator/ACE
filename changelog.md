@@ -2,6 +2,7 @@
 
 ### 2018-07-30
 [Mag-nus]
+* GroupChatType enum removed. It duplicated Channel enum.
 * Renamed SkillStatus to SkillAdvancementClass
 
 ### 2018-07-22
