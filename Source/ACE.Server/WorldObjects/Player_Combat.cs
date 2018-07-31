@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
             {
                 var defenseSkillType = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
                 var defenseSkill = GetCreatureSkill(defenseSkillType);
-                if (defenseSkill.Status >= SkillStatus.Trained)
+                if (defenseSkill.AdvancementClass >= SkillAdvancementClass.Trained)
                 {
                     var enduranceBase = Endurance.Base;
                     // TODO: find exact formula / where it caps out at 75%

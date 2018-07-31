@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
             // SL cap is applied *after* item enchantments
             var shieldSkill = GetCreatureSkill(Skill.Shield);
             var shieldCap = shieldSkill.Current;
-            if (shieldSkill.Status != SkillStatus.Specialized)
+            if (shieldSkill.AdvancementClass != SkillAdvancementClass.Specialized)
                 shieldCap = (uint)Math.Round(shieldCap / 2.0f);
 
             effectiveLevel = Math.Min(effectiveLevel, shieldCap);

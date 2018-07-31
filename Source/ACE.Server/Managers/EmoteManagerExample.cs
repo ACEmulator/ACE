@@ -355,7 +355,7 @@ namespace ACE.Server.Managers
                     if (creature != null)
                     {
                         var skill = creature.GetCreatureSkill((Skill)emote.Stat);
-                        InqProperty(skill.Status == SkillStatus.Specialized, emote);
+                        InqProperty(skill.AdvancementClass == SkillAdvancementClass.Specialized, emote);
                     }
                     break;
 
@@ -374,7 +374,7 @@ namespace ACE.Server.Managers
                     if (creature != null)
                     {
                         var skill = creature.GetCreatureSkill((Skill)emote.Stat);
-                        InqProperty(skill.Status == SkillStatus.Trained || skill.Status == SkillStatus.Specialized, emote);
+                        InqProperty(skill.AdvancementClass == SkillAdvancementClass.Trained || skill.AdvancementClass == SkillAdvancementClass.Specialized, emote);
                     }
                     break;
 

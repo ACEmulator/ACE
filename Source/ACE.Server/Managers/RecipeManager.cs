@@ -68,7 +68,7 @@ namespace ACE.Server.Managers
 
                 if (skill != null)
                 {
-                    if (skill.Status == SkillStatus.Untrained)
+                    if (skill.AdvancementClass == SkillAdvancementClass.Untrained)
                     {
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.Network.EnqueueSend(message);

@@ -355,24 +355,24 @@ namespace ACE.Server.Network.Handlers
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             player.SetProperty(PropertyInt.AvailableSkillCredits, (int)cg.HeritageGroups[characterCreateInfo.Heritage].SkillCredits);
 
-            for (int i = 0; i < characterCreateInfo.SkillStatuses.Count; i++)
+            for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
             {
                 var skill = (Skill)i;
                 var skillCost = skill.GetCost();
-                var skillStatus = characterCreateInfo.SkillStatuses[i];
+                var sac = characterCreateInfo.SkillAdvancementClasses[i];
 
-                if (skillStatus == SkillStatus.Specialized)
+                if (sac == SkillAdvancementClass.Specialized)
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
                     player.SpecializeSkill(skill, skillCost.SpecializationCost);
                     player.GetCreatureSkill(skill).InitLevel = 10;
                 }
-                else if (skillStatus == SkillStatus.Trained)
+                else if (sac == SkillAdvancementClass.Trained)
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
                     player.GetCreatureSkill(skill).InitLevel = 5;
                 }
-                else if (skillCost != null && skillStatus == SkillStatus.Untrained)
+                else if (skillCost != null && sac == SkillAdvancementClass.Untrained)
                     player.UntrainSkill(skill, skillCost.TrainingCost);
             }
 
@@ -383,7 +383,7 @@ namespace ACE.Server.Network.Handlers
             foreach (var skillGear in starterGearConfig.Skills)
             {
                 var charSkill = player.Skills[(Skill)skillGear.SkillId];
-                if (charSkill.Status == SkillStatus.Trained || charSkill.Status == SkillStatus.Specialized)
+                if (charSkill.AdvancementClass == SkillAdvancementClass.Trained || charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
                     foreach (var item in skillGear.Gear)
                     {
@@ -450,9 +450,9 @@ namespace ACE.Server.Network.Handlers
                             continue;
                         }
 
-                        if (charSkill.Status == SkillStatus.Trained && spell.SpecializedOnly == false)
+                        if (charSkill.AdvancementClass == SkillAdvancementClass.Trained && spell.SpecializedOnly == false)
                             player.AddKnownSpell(spell.SpellId);
-                        else if (charSkill.Status == SkillStatus.Specialized)
+                        else if (charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
                             player.AddKnownSpell(spell.SpellId);
                     }
                 }
