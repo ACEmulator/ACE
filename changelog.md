@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-07-30
+[Mag-nus]
+* GroupChatType enum removed. It duplicated Channel enum.
+
 ### 2018-07-22
 **ACE-World-16PY world db release v0.0.16+ required with this update**
 
