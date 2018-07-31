@@ -311,7 +311,7 @@ namespace ACE.Server.Managers
                 entry.Duration = spellBase.Duration;
             else
             {
-                if (caster.WeenieType == WeenieType.Gem)
+                if (caster?.WeenieType == WeenieType.Gem)
                     entry.Duration = spellBase.Duration;
                 else
                 {
