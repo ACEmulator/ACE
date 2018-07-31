@@ -32,11 +32,11 @@ namespace ACE.Server.WorldObjects
         {
             var cs = GetCreatureSkill(skill);
 
-            if (cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            if (cs.AdvancementClass != SkillAdvancementClass.Trained && cs.AdvancementClass != SkillAdvancementClass.Specialized)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    cs.Status = SkillStatus.Trained;
+                    cs.AdvancementClass = SkillAdvancementClass.Trained;
                     cs.Ranks = 0;
                     cs.ExperienceSpent = 0;
                     AvailableSkillCredits -= creditsSpent;
@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
 
                 // as long as the skill is sent, the train new triangle button on the client will not lock up.
                 // Sending Skill.None with status untrained worked in test
-                var trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, Skill.None, SkillStatus.Untrained, 0, 0, 0);
+                var trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, Skill.None, SkillAdvancementClass.Untrained, 0, 0, 0);
                 // create a string placeholder for the correct after
                 string trainSkillMessageText;
 
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
                 if (trainNewSkill)
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
-                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, skill, SkillStatus.Trained, 0, 0, 0);
+                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, skill, SkillAdvancementClass.Trained, 0, 0, 0);
                     trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {AvailableSkillCredits} credits available.";
                 }
                 else
@@ -94,11 +94,11 @@ namespace ACE.Server.WorldObjects
         {
             var cs = GetCreatureSkill(skill);
 
-            if (cs.Status == SkillStatus.Trained)
+            if (cs.AdvancementClass == SkillAdvancementClass.Trained)
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
-                    cs.Status = SkillStatus.Specialized;
+                    cs.AdvancementClass = SkillAdvancementClass.Specialized;
                     cs.Ranks = 0;
                     cs.ExperienceSpent = 0;
                     AvailableSkillCredits -= creditsSpent;
@@ -116,17 +116,17 @@ namespace ACE.Server.WorldObjects
         {
             var cs = GetCreatureSkill(skill);
 
-            if (cs.Status != SkillStatus.Trained && cs.Status != SkillStatus.Specialized)
+            if (cs.AdvancementClass != SkillAdvancementClass.Trained && cs.AdvancementClass != SkillAdvancementClass.Specialized)
             {
-                cs.Status = SkillStatus.Untrained;
+                cs.AdvancementClass = SkillAdvancementClass.Untrained;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
                 return true;
             }
 
-            if (cs.Status == SkillStatus.Trained)
+            if (cs.AdvancementClass == SkillAdvancementClass.Trained)
             {
-                cs.Status = SkillStatus.Untrained;
+                cs.AdvancementClass = SkillAdvancementClass.Untrained;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
                 AvailableSkillCredits += creditsSpent;
@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects
 
             for (var i = 0; i < amount; i++)
             {
-                if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.Status))
+                if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.AdvancementClass))
                     return;
 
                 // get skill xp required for next rank
@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             {
                 // if the skill ranks out at the top of our xp chart
                 // then we will start fireworks effects and have special text!
-                if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.Status))
+                if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.AdvancementClass))
                 {
                     // fireworks on rank up is 0x8D
                     PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
@@ -185,14 +185,14 @@ namespace ACE.Server.WorldObjects
                 {
                     messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base}!";
                 }
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, creatureSkill.InitLevel, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {
                 // skill usage
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.Status, creatureSkill.Ranks, creatureSkill.InitLevel, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
             }
             else
             {
@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
         {
             uint result = 0u;
 
-            List<uint> xpList = GetXPTable(skill.Status);
+            List<uint> xpList = GetXPTable(skill.AdvancementClass);
             if (xpList == null) return result;
 
             // do not advance if we cannot spend xp to rank up our skill by 1 point
@@ -266,10 +266,10 @@ namespace ACE.Server.WorldObjects
         public void GrantLevelProportionalSkillXP(Skill skill, double percent, ulong max)
         {
             var creatureSkill = GetCreatureSkill(skill);
-            if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.Status))
+            if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.AdvancementClass))
                 return;
 
-            var nextLevelXP = GetXPBetweenSkillLevels(creatureSkill.Status, creatureSkill.Ranks, creatureSkill.Ranks + 1).Value;
+            var nextLevelXP = GetXPBetweenSkillLevels(creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.Ranks + 1).Value;
             var amount = (uint)Math.Min(nextLevelXP * percent, max);
 
             RaiseSkillGameAction(skill, amount, true);
@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public uint GetXpToNextRank(CreatureSkill skill)
         {
-            var xpList = GetXPTable(skill.Status);
+            var xpList = GetXPTable(skill.AdvancementClass);
             if (xpList != null)
                 return xpList[Convert.ToInt32(skill.Ranks) + 1] - skill.ExperienceSpent;
             else
@@ -290,12 +290,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the XP curve table based on trained or specialized skill
         /// </summary>
-        public List<uint> GetXPTable(SkillStatus status)
+        public List<uint> GetXPTable(SkillAdvancementClass status)
         {
             var xpTable = DatManager.PortalDat.XpTable;
-            if (status == SkillStatus.Trained)
+            if (status == SkillAdvancementClass.Trained)
                 return xpTable.TrainedSkillXpList;
-            else if (status == SkillStatus.Specialized)
+            else if (status == SkillAdvancementClass.Specialized)
                 return xpTable.SpecializedSkillXpList;
             else
                 return null;
@@ -304,7 +304,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the XP required to go between skill level A and skill level B
         /// </summary>
-        public ulong? GetXPBetweenSkillLevels(SkillStatus status, int levelA, int levelB)
+        public ulong? GetXPBetweenSkillLevels(SkillAdvancementClass status, int levelA, int levelB)
         {
             var xpTable = GetXPTable(status);
             if (xpTable == null) return null;
@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
         /// Check a rank against the skill charts too determine if the skill is at max
         /// </summary>
         /// <returns>Returns true if skill is max rank; false if skill is below max rank</returns>
-        private bool IsSkillMaxRank(uint rank, SkillStatus status)
+        private bool IsSkillMaxRank(uint rank, SkillAdvancementClass status)
         {
             var xpList = GetXPTable(status);
             if (xpList == null)
@@ -357,7 +357,7 @@ namespace ACE.Server.WorldObjects
                     return false;
             }
 
-            if (creatureSkill.Status >= SkillStatus.Trained && creatureSkill.Current >= (power - magicSkillCheckMargin))
+            if (creatureSkill.AdvancementClass >= SkillAdvancementClass.Trained && creatureSkill.Current >= (power - magicSkillCheckMargin))
                 ret = true;
 
             return ret;

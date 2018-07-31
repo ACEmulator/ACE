@@ -476,7 +476,7 @@ namespace ACE.Server.Managers
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emoteAction.Stat);
                         // TestNoQuality?
-                        InqProperty(skill.Status == SkillStatus.Trained || skill.Status == SkillStatus.Specialized, emoteAction, sourceObject, targetObject, actionChain);
+                        InqProperty(skill.AdvancementClass == SkillAdvancementClass.Trained || skill.AdvancementClass == SkillAdvancementClass.Specialized, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
 

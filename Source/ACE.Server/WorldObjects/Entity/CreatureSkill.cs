@@ -21,9 +21,9 @@ namespace ACE.Server.WorldObjects.Entity
             biotaPropertiesSkill = creature.Biota.GetProperty(skill);
         }
 
-        public SkillStatus Status
+        public SkillAdvancementClass AdvancementClass
         {
-            get => (SkillStatus)biotaPropertiesSkill.SAC;
+            get => (SkillAdvancementClass)biotaPropertiesSkill.SAC;
             set => biotaPropertiesSkill.SAC = (uint)value;
         }
 
@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (formula != null)
                 {
-                    if ((Status == SkillStatus.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
+                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
                         total = formula.CalcBase(creature.Strength.Base, creature.Endurance.Base, creature.Coordination.Base, creature.Quickness.Base, creature.Focus.Base, creature.Self.Base);
                 }
 
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (formula != null)
                 {
-                    if ((Status == SkillStatus.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || Status == SkillStatus.Trained || Status == SkillStatus.Specialized)
+                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
                         total = formula.CalcBase(creature.Strength.Current, creature.Endurance.Current, creature.Coordination.Current, creature.Quickness.Current, creature.Focus.Current, creature.Self.Current);
                 }
 

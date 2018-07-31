@@ -337,7 +337,7 @@ namespace ACE.Database.SQLFormatters.World
                 $"{input[i].ResistanceAtLastCheck}, " +
                 $"{input[i].LastUsedTime}) " +
                 // ReSharper disable once PossibleNullReferenceException
-                $"/* {Enum.GetName(typeof(Skill), input[i].Type).PadRight(19)} {((SkillStatus)input[i].SAC).ToString()} */");
+                $"/* {Enum.GetName(typeof(Skill), input[i].Type).PadRight(19)} {((SkillAdvancementClass)input[i].SAC).ToString()} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
