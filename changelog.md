@@ -5,6 +5,60 @@
 * GroupChatType enum removed. It duplicated Channel enum.
 * Renamed SkillStatus to SkillAdvancementClass
 
+### 2018-07-29
+[Jyrus]
+* Added GameEventPopupString message to EmoteType.PopUp, when no confirmation is requested, and finish the Confirmation functionality
+* Adjust the Welcome message to match retail (with a twist!)
+* Added GameEventCommunicationTransientString to Chests, when chests are in the locked state
+
+[gmriggs]
+* Improved vital regeneration, stamina usage
+* Updated EnchantmentManager queries to use the top layer for each SpellCategory
+* Updated WeaponDefense and WeaponOffense enchantments to be additive floats
+* Improved vital regeneration formulas / ticking
+* Improved healing formulas
+* Added player stance and enchantments to vital regeneration (regeneration/rejuvenation/mana renewal)
+* Added basic stamina usage on evasion / jumping
+* Fixed a bug in Player_Use not picking up or using items correctly
+
+### 2018-07-28
+[Mag-nus + Ripley]
+* Added Ripley's .sql file generation code to ACE.Database. This will help us import data from any source into ACE EntityFramework objects, and then use these SQLWriters to create a unified output.
+* Added and tested TreasureDeath and TreasureWielded SQL writers
+
+[gmriggs]
+* Added jump packet to network parsing, EmoteManager cleanup and refactoring
+* Fixed a bug with PendingMotions that would cause monsters to run away from some players
+
+[Jyrus]
+* Added the ability to give Attuned items to appropriate NPCs
+
+### 2018-07-27
+[gmriggs]
+* Added full monster movement physics
+* Added MoveToManager, PositionManager, and StickyManager integration with ACE
+* Enabled /forcepos as default setting
+* Improved projectile physics. Projectiles should hit targets much more consistently now
+* Fixed a bug in the animation system where objects were jumping to the last frame
+* Fixed a bug with some doors not blocking monster movement
+
+[Jyrus]
+* Adjusted Emote and Attuned item handling according to PCAP data findings
+* Prevent players from unloading on other players' corpses in PVP
+
+### 2018-07-24
+[Jyrus]
+* Added new EmoteTypes to EmoteManager: PhysScript and Act
+* Added a 2-second delay to Recall spells from the monthly patch 'Thorns of the Hopeslayer'
+
+[gmriggs]
+* Updated physics system to use proper enums for MotionCommand and WeenieError
+
+### 2018-07-23
+[Jyrus]
+* Added PortalSending and PortalSummon functionality
+* Allow for non-players casting gateways
+
 ### 2018-07-22
 **ACE-World-16PY world db release v0.0.16+ required with this update**
 
@@ -18,7 +72,36 @@
 * Added some more client enums ACE.Entity.Enum
 * Reworked Ripleys SQL writer code and added it to ACE.Database.SQLFormatters
 
+### 2018-07-21
+[Jyrus]
+* Added more scenarios for different wield requirements
+
+### 2018-07-19
+[gmriggs]
+* Fixed a bug with projectile velocity direction
+* Fixed multiple issues with Scenery generation. Semi-random scenery objects should be matched up almost exactly to client now
+
+[Jyrus]
+* Added item wield requirement enforcement
+
+### 2018-07-17
+[Jyrus]
+* Redirect impen/banes from player to equipped armor and clothing
+* Added proper mana usage for impen/banes cast on player
+* Added EnchantmentManager.HeartBeat() for WorldObjects in the landblock ticking
+* Added Item Enchantment ticks
+* Fixed redirection for some Aura spells
+
+[gmriggs]
+* Added shields to acceptable targets for impen/bane
+* Added ArmorProfile to Shield appraisal
+* Added Spells to Shield appraisal panel
+* Update ShieldMod to use shield.EnchantmentManaager
+
 ### 2018-07-16
+[gmriggs]
+* Added TargetManager for server tracking of monster attack targets
+
 [OptimShi]
 * Fixed proper case of certain spell words and change how they are loaded for efficiency/ease of use.
 
@@ -26,23 +109,79 @@
 [OptimShi]
 * Fixed remaining issue with Spell Formulas and non-ANSI characters. All spell formulas now appear to be accurate.
 
+[Jyrus]
+* Fixed a player bug with buying some items from vendors
+* Updated Enchantment removal when items run out of mana from dispel to RemoveEnchantment
+
+### 2018-07-12
+[fartwhif]
+* Added magic item persistence tracking
+
+[gmriggs]
+* EmoteManager refactoring for giving items to NPCs, receiving quest items in return
+
+[Jyrus]
+* Enchantments applied to armor affecting armor stats fixed to display correctly
+* Rework AppraisalInfo to differentiate between intrinsic and applied spells
+* Wielded weapon debuffs now taken into consideration
+
 ### 2018-07-11
 [OptimShi]
 * Updated recipe manager to properly destroy items in packs (as opposed to main backpack). Added in functionality to handle equipped items in recipes, but there are downstream issues related to inventory management (such as enchantments not being removed)
+
+[dgatewood]
+* Added QuestManager saving and loading to the database
+* Further integration of the EventManager into EmoteManager
+* Added a lot of new emotes to facilitate working quests
+
+### 2018-07-10
+[Jyrus]
+* Updated Item Appraisal to list all the correct spells, and Auras redirected from the player
+
+[gmriggs]
+* Updated physics system to calculate accurate water depth
+* Fixed a bug with players and monsters sliding along the edge of cliffs
 
 ### 2018-07-09
 [OptimShi]
 * Fixed a few console commands that either should not run in the console or had no use case if they did.
 
+[Jyrus]
+* Removed the unused start items on new player creation
+* Fixed Enchantment registry duration and redirection of Aura spells
+* Added spell layering to the Enchantment registry
+
+[gmriggs]
+* Updated the Object Maintenance system from a server-wide instance to per-player. This should fix the disappearing monsters in dungeons for multiplayer
+* Added a call to handle_visible_cells() when an object enters the PVS for a player. This fixes a bug when players/creatures travel long distances to reach a player that has been standing in the same cell for awhile. It should also make the PVS system more consistent in general.
+* Added a null check to all references to CurrentLandblock. This should fix a lot of null crashes from the ActionQueue
+
 ### 2018-07-07
+[gmriggs]
+* Fixed various bugs with monsters crossing between landblock and cell boundaries. Monsters should be able to chase the player through dungeons and indoor areas more consistently
+* Added monster movement debug commands
+* Fixed the missing portals in Hotel Swank
+* Fixed a bug with some dungeons having black screens on portal entry
+
 [OptimShi]
 * Add SpellCategory enum
 
 ### 2018-07-06
+[fartwhif]
+* Added mana stone usage system
+
 [OptimShi]
 * Added "image-export" console function to extract textures from client_portal.dat and client_highres.dat. Run the command with no parameters for syntax.
 
+### 2018-07-05
+[Mag-nus]
+* Fixed a bug with loading highres and language files from the .dat
+
 ### 2018-07-04
+[Jyrus]
+* Refactoring and improvements to the magic system code
+* Added criticals and bonus damage to War magic, as per the 'Atonement' update
+
 [OptimShi]
 * Fixed an issue with the Replace DatLoader.Entity.AnimationHook
 * Added SoundTable (0x20...) parsing from the client_portal.dat.
@@ -57,23 +196,71 @@
 * Added SkillTable (0x0E000004) parsing from client_portal.dat
 * Added highres-export and language-export console commands to dump the contents of client_highres.dat and client_local_English.dat respectively.
 
+[gmriggs]
+* Added instant updates to the monster health bars
+* Updated the monster aggro / tolerance system
+
 ### 2018-07-02
 [OptimShi]
 * Added UI Window/Saving. Note this requires an SQL update in \Database\Updates\Shard\
 * Finished parsing the DatLoader.SpellTable and added in Spell Sets.
 
 ### 2018-07-01
+[gmriggs]
+* Added /forcepos debug command to force the server monster positioning to the client
+* Added dungeon landblock detection system
+* Improved monster movement: turning, walking, and running speeds from the MotionTable / animation subsystem
+* Fixed various bugs in the physics and animation subsystems
+
 [OptimShi]
 * Added CP1252 text encoding. Fixes some issues with Spell Formulas when spells used non ANSI characters as well as in sending strings to the client.
+
+[Jyrus]
+* Added better detection and handling for harmful spells
+* Updated /addallspells to only add spells that are learnable by the player
+
+### 2018-06-29
+[fartwhif]
+* Added sentinel command /buff [name]
+
+[gmriggs]
+* Rebuilt the Appraisal system from the ground up
+* Added initial landblock unloading system.
+* Added player corpses and death items. Players now lose items when they are killed, with formulas accurate to retail
+
+### 2018-06-28
+[gmriggs]
+* Fixed a bug with specialized skill calcs
 
 ### 2018-06-23
 [OptimShi]
 * Fixed a bug that left Undead player characters naked, as well as Penumbrean 
 
+### 2018-06-22
+[gmriggs]
+* Added initial Allegiance system
+* Improved Fellowship system
+* Updated friends list functionality for Entity Framework
+
+### 2018-06-18
+[dgatewood]
+* Fixed a bug giving wielded items to NPCs
+
+[fartwhif]
+* Added ability to /tele players to current location by name
+
+### 2018-06-12
+[fartwhif]
+* Added network message fragment grouping by queue
+
 ### 2018-06-08
 [gmriggs]
 * Added monster physics-based movement
 * Added shield combat
+
+### 2018-06-05
+[fartwhif]
+* Added server-side request for retransmission. This should make WAN connections more reliable!
 
 ### 2018-06-04
 [gmriggs]
