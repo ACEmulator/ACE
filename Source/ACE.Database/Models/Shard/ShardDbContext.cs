@@ -6,6 +6,15 @@ namespace ACE.Database.Models.Shard
 {
     public partial class ShardDbContext : DbContext
     {
+        public ShardDbContext()
+        {
+        }
+
+        public ShardDbContext(DbContextOptions<ShardDbContext> options)
+            : base(options)
+        {
+        }
+
         public virtual DbSet<Biota> Biota { get; set; }
         public virtual DbSet<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; }
@@ -360,7 +369,7 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.AuthorAccount)
                     .IsRequired()
                     .HasColumnName("author_Account")
-                    .HasMaxLength(255)
+                    .HasColumnType("varchar(255)")
                     .HasDefaultValueSql("'prewritten'");
 
                 entity.Property(e => e.AuthorId)
@@ -370,7 +379,7 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.AuthorName)
                     .IsRequired()
                     .HasColumnName("author_Name")
-                    .HasMaxLength(255)
+                    .HasColumnType("varchar(255)")
                     .HasDefaultValueSql("''");
 
                 entity.Property(e => e.IgnoreAuthor)
@@ -1334,7 +1343,7 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasColumnName("name")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.Property(e => e.TotalLogins)
                     .HasColumnName("total_Logins")
@@ -1484,7 +1493,7 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.QuestName)
                     .IsRequired()
                     .HasColumnName("quest_Name")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.CharacterPropertiesQuestRegistry)
@@ -1593,7 +1602,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
@@ -1612,7 +1621,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
@@ -1629,7 +1638,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
@@ -1648,7 +1657,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Key)
                     .HasColumnName("key")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
