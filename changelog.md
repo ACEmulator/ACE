@@ -13,6 +13,12 @@
 * Fixed a bug with MaxVital calculation with vitae
 * Updated shield effective angle to match retail
 
+[Jyrus]
+* Updated Life Magic code to properly utilize the DamageHistory for tracking damage through harm/drain/heals
+* Fixed all compiler warnings
+* Refactored spell resistance to common method for all creatures (players / monsters)
+* Spell level now determined by Scarab instead of PowerLevel, as per retail servers and client
+
 ### 2018-07-31
 [Mag-nus]
 * Updated all NuGet packages to latest stable. Most notably EF Core 2.1.
