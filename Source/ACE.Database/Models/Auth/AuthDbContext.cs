@@ -6,6 +6,15 @@ namespace ACE.Database.Models.Auth
 {
     public partial class AuthDbContext : DbContext
     {
+        public AuthDbContext()
+        {
+        }
+
+        public AuthDbContext(DbContextOptions<AuthDbContext> options)
+            : base(options)
+        {
+        }
+
         public virtual DbSet<Accesslevel> Accesslevel { get; set; }
         public virtual DbSet<Account> Account { get; set; }
 
@@ -35,11 +44,11 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasColumnName("name")
-                    .HasMaxLength(45);
+                    .HasColumnType("varchar(45)");
 
                 entity.Property(e => e.Prefix)
                     .HasColumnName("prefix")
-                    .HasMaxLength(45)
+                    .HasColumnType("varchar(45)")
                     .HasDefaultValueSql("''");
             });
 
@@ -63,17 +72,17 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.AccountName)
                     .IsRequired()
                     .HasColumnName("accountName")
-                    .HasMaxLength(50);
+                    .HasColumnType("varchar(50)");
 
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasColumnName("passwordHash")
-                    .HasMaxLength(88);
+                    .HasColumnType("varchar(88)");
 
                 entity.Property(e => e.PasswordSalt)
                     .IsRequired()
                     .HasColumnName("passwordSalt")
-                    .HasMaxLength(88);
+                    .HasColumnType("varchar(88)");
 
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)
