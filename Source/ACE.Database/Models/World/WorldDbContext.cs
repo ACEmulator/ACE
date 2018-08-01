@@ -415,10 +415,6 @@ namespace ACE.Database.Models.World
                 entity.HasIndex(e => e.RecipeId)
                     .HasName("recipe_idx");
 
-                entity.HasIndex(e => new { e.RecipeId, e.ModSetId })
-                    .HasName("recipe_modset_uidx")
-                    .IsUnique();
-
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.DataId)
@@ -439,11 +435,6 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Mana)
                     .HasColumnName("mana")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.RecipeId)
@@ -490,8 +481,8 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe_mods_bool");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                entity.HasIndex(e => e.RecipeModId)
+                    .HasName("recipe_mod_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -500,13 +491,8 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
+                entity.Property(e => e.RecipeModId)
+                    .HasColumnName("recipe_Mod_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Stat)
@@ -523,10 +509,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("value")
                     .HasColumnType("bit(1)");
 
-                entity.HasOne(d => d.Recipe)
+                entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsBool)
-                    .HasPrincipalKey(p => p.RecipeId)
-                    .HasForeignKey(d => d.RecipeId)
+                    .HasForeignKey(d => d.RecipeModId)
                     .HasConstraintName("recipeId_mod_bool");
             });
 
@@ -534,8 +519,8 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe_mods_d_i_d");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                entity.HasIndex(e => e.RecipeModId)
+                    .HasName("recipe_mod_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -544,13 +529,8 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
+                entity.Property(e => e.RecipeModId)
+                    .HasColumnName("recipe_Mod_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Stat)
@@ -567,10 +547,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("value")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Recipe)
+                entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsDID)
-                    .HasPrincipalKey(p => p.RecipeId)
-                    .HasForeignKey(d => d.RecipeId)
+                    .HasForeignKey(d => d.RecipeModId)
                     .HasConstraintName("recipeId_mod_did");
             });
 
@@ -578,8 +557,8 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe_mods_float");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                entity.HasIndex(e => e.RecipeModId)
+                    .HasName("recipe_mod_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -588,13 +567,8 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
+                entity.Property(e => e.RecipeModId)
+                    .HasColumnName("recipe_Mod_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Stat)
@@ -611,10 +585,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("value")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Recipe)
+                entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsFloat)
-                    .HasPrincipalKey(p => p.RecipeId)
-                    .HasForeignKey(d => d.RecipeId)
+                    .HasForeignKey(d => d.RecipeModId)
                     .HasConstraintName("recipeId_mod_float");
             });
 
@@ -622,8 +595,8 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe_mods_i_i_d");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                entity.HasIndex(e => e.RecipeModId)
+                    .HasName("recipe_mod_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -632,13 +605,8 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
+                entity.Property(e => e.RecipeModId)
+                    .HasColumnName("recipe_Mod_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Stat)
@@ -655,10 +623,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("value")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Recipe)
+                entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsIID)
-                    .HasPrincipalKey(p => p.RecipeId)
-                    .HasForeignKey(d => d.RecipeId)
+                    .HasForeignKey(d => d.RecipeModId)
                     .HasConstraintName("recipeId_mod_iid");
             });
 
@@ -666,8 +633,8 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe_mods_int");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                entity.HasIndex(e => e.RecipeModId)
+                    .HasName("recipe_mod_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -676,13 +643,8 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
+                entity.Property(e => e.RecipeModId)
+                    .HasColumnName("recipe_Mod_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Stat)
@@ -700,10 +662,9 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Recipe)
+                entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsInt)
-                    .HasPrincipalKey(p => p.RecipeId)
-                    .HasForeignKey(d => d.RecipeId)
+                    .HasForeignKey(d => d.RecipeModId)
                     .HasConstraintName("recipeId_mod_int");
             });
 
@@ -711,8 +672,8 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe_mods_string");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                entity.HasIndex(e => e.RecipeModId)
+                    .HasName("recipe_mod_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -721,13 +682,8 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ModSetId)
-                    .HasColumnName("mod_Set_Id")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
+                entity.Property(e => e.RecipeModId)
+                    .HasColumnName("recipe_Mod_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Stat)
@@ -745,10 +701,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("value")
                     .HasColumnType("text");
 
-                entity.HasOne(d => d.Recipe)
+                entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsString)
-                    .HasPrincipalKey(p => p.RecipeId)
-                    .HasForeignKey(d => d.RecipeId)
+                    .HasForeignKey(d => d.RecipeModId)
                     .HasConstraintName("recipeId_mod_string");
             });
 

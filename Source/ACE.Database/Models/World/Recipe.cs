@@ -10,12 +10,6 @@ namespace ACE.Database.Models.World
             CookBook = new HashSet<CookBook>();
             RecipeComponent = new HashSet<RecipeComponent>();
             RecipeMod = new HashSet<RecipeMod>();
-            RecipeModsBool = new HashSet<RecipeModsBool>();
-            RecipeModsDID = new HashSet<RecipeModsDID>();
-            RecipeModsFloat = new HashSet<RecipeModsFloat>();
-            RecipeModsIID = new HashSet<RecipeModsIID>();
-            RecipeModsInt = new HashSet<RecipeModsInt>();
-            RecipeModsString = new HashSet<RecipeModsString>();
             RecipeRequirementsBool = new HashSet<RecipeRequirementsBool>();
             RecipeRequirementsDID = new HashSet<RecipeRequirementsDID>();
             RecipeRequirementsFloat = new HashSet<RecipeRequirementsFloat>();
@@ -41,12 +35,6 @@ namespace ACE.Database.Models.World
         public ICollection<CookBook> CookBook { get; set; }
         public ICollection<RecipeComponent> RecipeComponent { get; set; }
         public ICollection<RecipeMod> RecipeMod { get; set; }
-        public ICollection<RecipeModsBool> RecipeModsBool { get; set; }
-        public ICollection<RecipeModsDID> RecipeModsDID { get; set; }
-        public ICollection<RecipeModsFloat> RecipeModsFloat { get; set; }
-        public ICollection<RecipeModsIID> RecipeModsIID { get; set; }
-        public ICollection<RecipeModsInt> RecipeModsInt { get; set; }
-        public ICollection<RecipeModsString> RecipeModsString { get; set; }
         public ICollection<RecipeRequirementsBool> RecipeRequirementsBool { get; set; }
         public ICollection<RecipeRequirementsDID> RecipeRequirementsDID { get; set; }
         public ICollection<RecipeRequirementsFloat> RecipeRequirementsFloat { get; set; }

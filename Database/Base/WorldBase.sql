@@ -226,7 +226,6 @@ DROP TABLE IF EXISTS `recipe_mod`;
 CREATE TABLE `recipe_mod` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
   `health` int(10) NOT NULL DEFAULT '0',
   `unknown_2` int(10) NOT NULL DEFAULT '0',
   `mana` int(10) NOT NULL DEFAULT '0',
@@ -238,7 +237,6 @@ CREATE TABLE `recipe_mod` (
   `unknown_9` int(10) NOT NULL DEFAULT '0',
   `instance_Id` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `recipe_modset_uidx` (`recipe_Id`,`mod_Set_Id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Mods';
@@ -253,15 +251,14 @@ DROP TABLE IF EXISTS `recipe_mods_bool`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe_mods_bool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` bit(1) NOT NULL,
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `recipe_mod_idx` (`recipe_Mod_Id`),
+  CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -274,15 +271,14 @@ DROP TABLE IF EXISTS `recipe_mods_d_i_d`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe_mods_d_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` int(10) unsigned NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `recipe_mod_idx` (`recipe_Mod_Id`),
+  CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -295,15 +291,14 @@ DROP TABLE IF EXISTS `recipe_mods_float`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe_mods_float` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` double NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `recipe_mod_idx` (`recipe_Mod_Id`),
+  CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -316,15 +311,14 @@ DROP TABLE IF EXISTS `recipe_mods_i_i_d`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe_mods_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` int(10) unsigned NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `recipe_mod_idx` (`recipe_Mod_Id`),
+  CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -337,15 +331,14 @@ DROP TABLE IF EXISTS `recipe_mods_int`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe_mods_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` int(10) NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `recipe_mod_idx` (`recipe_Mod_Id`),
+  CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -358,15 +351,14 @@ DROP TABLE IF EXISTS `recipe_mods_string`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe_mods_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `mod_Set_Id` int(5) NOT NULL DEFAULT '0',
+  `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` text NOT NULL,
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `recipe_mod_idx` (`recipe_Mod_Id`),
+  CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
