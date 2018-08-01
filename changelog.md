@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-07-31
+[Mag-nus]
+* Updated all NuGet packages to latest stable. Most notably EF Core 2.1.
+* Fixed an issue in ShardDatabase caused by iterating over lazy loaded results.
+
 ### 2018-07-30
 [Mag-nus]
 * GroupChatType enum removed. It duplicated Channel enum.
