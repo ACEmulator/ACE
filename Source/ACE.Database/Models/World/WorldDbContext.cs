@@ -6,6 +6,15 @@ namespace ACE.Database.Models.World
 {
     public partial class WorldDbContext : DbContext
     {
+        public WorldDbContext()
+        {
+        }
+
+        public WorldDbContext(DbContextOptions<WorldDbContext> options)
+            : base(options)
+        {
+        }
+
         public virtual DbSet<CookBook> CookBook { get; set; }
         public virtual DbSet<Encounter> Encounter { get; set; }
         public virtual DbSet<Event> Event { get; set; }
@@ -151,7 +160,7 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasColumnName("name")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
 
                 entity.Property(e => e.StartTime)
                     .HasColumnName("start_Time")
@@ -302,7 +311,7 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasColumnName("name")
-                    .HasMaxLength(255);
+                    .HasColumnType("varchar(255)");
             });
 
             modelBuilder.Entity<Recipe>(entity =>
@@ -1428,7 +1437,7 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.ClassName)
                     .IsRequired()
                     .HasColumnName("class_Name")
-                    .HasMaxLength(100);
+                    .HasColumnType("varchar(100)");
 
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
@@ -1727,7 +1736,7 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.AuthorAccount)
                     .IsRequired()
                     .HasColumnName("author_Account")
-                    .HasMaxLength(255)
+                    .HasColumnType("varchar(255)")
                     .HasDefaultValueSql("'prewritten'");
 
                 entity.Property(e => e.AuthorId)
@@ -1737,7 +1746,7 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.AuthorName)
                     .IsRequired()
                     .HasColumnName("author_Name")
-                    .HasMaxLength(255)
+                    .HasColumnType("varchar(255)")
                     .HasDefaultValueSql("''");
 
                 entity.Property(e => e.IgnoreAuthor)
