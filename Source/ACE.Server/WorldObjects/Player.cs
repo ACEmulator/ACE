@@ -163,9 +163,9 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }*/
 
-            FirstEnterWorldDone = false;
+            // FirstEnterWorldDone = false;
 
-            IsAlive = true;
+            // IsAlive = true;
         }
 
 
@@ -323,22 +323,7 @@ namespace ACE.Server.WorldObjects
         //public ReadOnlyCollection<Friend> Friends => Friends;
         public ReadOnlyCollection<Friend> Friends { get; set; }
 
-
-        public bool FirstEnterWorldDone = false;
-
-
-
         public MotionStance stance = MotionStance.Standing;
-
-
-
-
-
-
-
-
-
-
 
         public void ExamineObject(ObjectGuid examinationId)
         {
@@ -1085,16 +1070,9 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
 
-                uint updatedVitalAmount = creatureVital.Current + (uint)boostAmount;
+                var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
 
-                if (updatedVitalAmount > creatureVital.MaxValue)
-                    updatedVitalAmount = creatureVital.MaxValue;
-
-                boostAmount = updatedVitalAmount - creatureVital.Current;
-
-                UpdateVital(creatureVital, updatedVitalAmount);
-
-                buffMessage = new GameMessageSystemChat($"You regain {boostAmount} {vitalName}.", ChatMessageType.Craft);
+                buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
             }
 
             Session.Network.EnqueueSend(soundEvent, buffMessage);

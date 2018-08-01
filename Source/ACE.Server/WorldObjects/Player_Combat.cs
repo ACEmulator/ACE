@@ -7,7 +7,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -18,17 +17,18 @@ namespace ACE.Server.WorldObjects
         Magic
     };
 
+    /// <summary>
+    /// Handles combat with a Player as the attacker
+    /// generalized methods for melee / missile
+    /// </summary>
     partial class Player
     {
         public Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
 
-            if (weapon == null)
-                return GetCreatureSkill(Skill.FinesseWeapons).Skill;    // Not sure what skill should be used for bare knuckle melee :: Change if incorrect
-
             // missile weapon
-            if (weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
+            if (weapon != null && weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
 
             // hack for converting pre-MoA skills
@@ -47,22 +47,17 @@ namespace ACE.Server.WorldObjects
 
         public override AttackType GetAttackType()
         {
-            AttackType attackType;
-            if (GetEquippedWeapon() == null)
-            {
-                attackType = AttackType.Melee;
-            }
-            else
-                attackType = GetEquippedWeapon().CurrentWieldedLocation == EquipMask.MeleeWeapon ? AttackType.Melee : AttackType.Missile;
+            var weapon = GetEquippedWeapon();
 
-            return attackType;
+            if (weapon == null || weapon.CurrentWieldedLocation != EquipMask.MissileWeapon)
+                return AttackType.Melee;
+            else
+                return AttackType.Missile;
         }
 
-        public float DamageTarget(WorldObject target, WorldObject damageSource)
+        public float DamageTarget(Creature target, WorldObject damageSource)
         {
-            var creature = target as Creature;
-
-            if (creature.Health.Current <= 0)
+            if (target.Health.Current <= 0)
                 return 0.0f;
 
             var critical = false;
@@ -72,23 +67,23 @@ namespace ACE.Server.WorldObjects
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
 
-            if (damage > 0.0f && creature.Health.Current > 0)
+            if (damage > 0.0f && target.Health.Current > 0)
             {
                 // notify attacker
                 var intDamage = (uint)Math.Round(damage);
                 if (damageSource?.ItemType == ItemType.MissileWeapon)
                 {
                     var damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, new AttackConditions()));
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / creature.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / target.Health.MaxValue, intDamage, critical, new AttackConditions()));
                 }
 
                 // splatter effects
                 Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
-                if (damage >= creature.Health.MaxValue * 0.25f)
+                if (damage >= target.Health.MaxValue * 0.25f)
                 {
                     var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
                     Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
@@ -96,27 +91,32 @@ namespace ACE.Server.WorldObjects
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
 
-                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)creature.Health.Current / creature.Health.MaxValue));
+                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
             }
 
-            OnAttackMonster(creature);
+            OnAttackMonster(target);
             return damage;
         }
 
         public float GetEvadeChance(WorldObject target)
         {
             // get player attack skill
-            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
+
+            if (IsExhausted)
+                attackSkill = GetExhaustedSkill(attackSkill);
 
             // get target defense skill
             var creature = target as Creature;
             var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
             var difficulty = creature.GetCreatureSkill(defenseSkill).Current;
 
-            //Console.WriteLine("Attack skill: " + attackSkill.Current);
+            if (creature.IsExhausted) difficulty = 0;
+
+            //Console.WriteLine("Attack skill: " + attackSkill);
             //Console.WriteLine("Defense skill: " + difficulty);
 
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill.Current, (int)difficulty);
+            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;
         }
 
@@ -177,8 +177,10 @@ namespace ACE.Server.WorldObjects
             var baseDamage = Physics.Common.Random.RollDice(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
+            var attackType = GetAttackType();
+            var attributeMod = GetAttributeMod(attackType);
             var powerAccuracyMod = GetPowerAccuracyMod();
-            var attributeMod = GetAttributeMod();
+
             var damage = baseDamage * attributeMod * powerAccuracyMod;
 
             // critical hit
@@ -190,7 +192,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // get random body part @ attack height
-            var bodyPart = BodyParts.GetBodyPart(AttackHeight);
+            var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
 
             // get target armor
             var armor = GetArmor(target, bodyPart);
@@ -210,17 +212,6 @@ namespace ACE.Server.WorldObjects
             var shieldMod = creature.GetShieldMod(this, damageType);
 
             return damage * armorMod * shieldMod;
-        }
-
-        public float GetAttributeMod()
-        {
-            var attackType = GetAttackType();
-            if (attackType == AttackType.Melee)
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
-            else if (attackType == AttackType.Missile)
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Coordination, (int)Coordination.Current);
-            else
-                return 1.0f;
         }
 
         public float GetPowerAccuracyMod()
@@ -362,24 +353,27 @@ namespace ACE.Server.WorldObjects
             var percent = (float)amount / Health.MaxValue;
 
             // update health
-            Health.Current = (uint)Math.Max(0, (int)Health.Current - amount);
+            var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
+            DamageHistory.Add(source, damageTaken);
+
             if (Health.Current == 0)
             {
-                HandleActionDie();
+                Die();
                 return;
             }
+
+            // update stamina
+            UpdateVitalDelta(Stamina, -1);
 
             var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
 
             // send network messages
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current));
-
             var creature = source as Creature;
             var hotspot = source as Hotspot;
             if (creature != null)
             {
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
-                var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + creature.GetSplatterDir(this)));
+                var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
                 Session.Network.EnqueueSend(text, hitSound, splatter);
             }
@@ -398,21 +392,76 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public string GetSplatterHeight()
-        {
-            switch (AttackHeight)
-            {
-                case AttackHeight.Low: return "Low";
-                case AttackHeight.Medium: return "Mid";
-                case AttackHeight.High: default: return "Up";
-            }
-        }
-
         public string GetArmorType(BodyPart bodyPart)
         {
             // Flesh, Leather, Chain, Plate
             // for hit sounds
             return null;
+        }
+
+        /// <summary>
+        /// Returns the total burden of items held in both hands
+        /// (main hand and offhand)
+        /// </summary>
+        public int GetHandItemBurden()
+        {
+            // get main hand item
+            var weapon = GetEquippedWeapon();
+
+            // get off-hand item
+            var shield = GetEquippedShield();
+
+            var weaponBurden = weapon != null ? (weapon.EncumbranceVal ?? 0) : 0;
+            var shieldBurden = shield != null ? (shield.EncumbranceVal ?? 0) : 0;
+
+            return weaponBurden + shieldBurden;
+        }
+
+        public float GetStaminaMod()
+        {
+            var endurance = GetCreatureAttribute(PropertyAttribute.Endurance).Base;
+
+            var staminaMod = 1.0f - (endurance - 100.0f) / 600.0f;   // guesstimated formula: 50% reduction at 400 base endurance
+            staminaMod = Math.Clamp(staminaMod, 0.5f, 1.0f);
+
+            return staminaMod;
+        }
+
+        /// <summary>
+        /// Calculates the amount of stamina required to perform this attack
+        /// </summary>
+        public int GetAttackStamina(PowerAccuracy powerAccuracy)
+        {
+            // Stamina cost for melee and missile attacks is based on the total burden of what you are holding
+            // in your hands (main hand and offhand), and your power/accuracy bar.
+
+            // Attacking(Low power / accuracy bar)   1 point per 700 burden units
+            //                                       1 point per 1200 burden units
+            //                                       1.5 points per 1600 burden units
+            // Attacking(Mid power / accuracy bar)   1 point per 700 burden units
+            //                                       2 points per 1200 burden units
+            //                                       3 points per 1600 burden units
+            // Attacking(High power / accuracy bar)  2 point per 700 burden units
+            //                                       4 points per 1200 burden units
+            //                                       6 points per 1600 burden units
+
+            // The higher a player's base Endurance, the less stamina one uses while attacking. This benefit is tied to Endurance only,
+            // and caps out at 50% less stamina used per attack. Scaling is similar to other Endurance bonuses. Applies only to players.
+
+            // When stamina drops to 0, your melee and missile defenses also drop to 0 and you will be incapable of attacking.
+            // In addition, you will suffer a 50% penalty to your weapon skill. This applies to players and creatures.
+
+            var burden = GetHandItemBurden();
+
+            var baseCost = StaminaTable.GetStaminaCost(powerAccuracy, burden);
+
+            var staminaMod = GetStaminaMod();
+
+            var staminaCost = Math.Max(baseCost * staminaMod, 1);
+
+            //Console.WriteLine($"GetAttackStamina({powerAccuracy}) - burden: {burden}, baseCost: {baseCost}, staminaMod: {staminaMod}, staminaCost: {staminaCost}");
+
+            return (int)Math.Round(staminaCost);
         }
     }
 }

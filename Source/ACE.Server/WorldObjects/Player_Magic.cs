@@ -94,7 +94,7 @@ namespace ACE.Server.WorldObjects
                     SpellBase spell = spellTable.Spells[PlayerSpellID[x]];
                     if ((uint)spell.School == magicSchool)
                     {
-                        if ((uint)CalculateSpellLevel(spell.Power) == spellLevel)
+                        if ((uint)CalculateSpellLevel(spell) == spellLevel)
                             player.LearnSpellWithNetworking(spell.MetaSpellId, false);
                     }
                 }
@@ -437,7 +437,7 @@ namespace ACE.Server.WorldObjects
             if (isSpellHarmful)
             {
                 // Ensure that a non-PK cannot cast harmful spells on another player
-                if ((target.WeenieClassId == 1) && (player.PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.NPK))
+                if ((target is Player) && (player.PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.NPK))
                 {
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
                     player.IsBusy = false;
@@ -445,7 +445,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
-                if ((target.WeenieClassId == 1) && (player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK))
+                if ((target is Player) && (player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK))
                 {
                     if (player.PlayerKillerStatus != target.PlayerKillerStatus)
                     {
@@ -527,7 +527,7 @@ namespace ACE.Server.WorldObjects
             else
                 spellChain.AddDelaySeconds(castingDelay);
 
-            switch(castingPreCheckStatus)
+            switch (castingPreCheckStatus)
             {
                 case CastingPreCheckStatus.Success:
                     spellChain.AddAction(this, () =>
@@ -550,20 +550,16 @@ namespace ACE.Server.WorldObjects
 
                                 if (IsSpellHarmful(spell))
                                 {
-                                    // Retrieve player's skill level in the Magic School
-                                    var playerMagicSkill = player.GetCreatureSkill(spell.School).Current;
-
-                                    // Retrieve target's Magic Defense Skill
-                                    Creature creature = (Creature)target;
-                                    var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
-
-                                    if (MagicDefenseCheck(playerMagicSkill, targetMagicDefenseSkill))
+                                    var resisted = ResistSpell(target, spell);
+                                    if (resisted == true)
+                                        break;
+                                    if (resisted == null)
                                     {
-                                        CurrentLandblock?.EnqueueBroadcastSound(player, Sound.ResistSpell);
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
+                                        log.Error("Something went wrong with the Magic resistance check");
                                         break;
                                     }
                                 }
+
                                 CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 enchantmentStatus = CreatureMagic(target, spell, spellStatMod);
                                 if (enchantmentStatus.message != null)
@@ -579,17 +575,12 @@ namespace ACE.Server.WorldObjects
                                 {
                                     if (IsSpellHarmful(spell))
                                     {
-                                        // Retrieve player's skill level in the Magic School
-                                        var playerMagicSkill = player.GetCreatureSkill(spell.School).Current;
-
-                                        // Retrieve target's Magic Defense Skill
-                                        Creature creature = (Creature)target;
-                                        var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
-
-                                        if (MagicDefenseCheck(playerMagicSkill, targetMagicDefenseSkill))
+                                        var resisted = ResistSpell(target, spell);
+                                        if (resisted == true)
+                                            break;
+                                        if (resisted == null)
                                         {
-                                            CurrentLandblock?.EnqueueBroadcastSound(player, Sound.ResistSpell);
-                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
+                                            log.Error("Something went wrong with the Magic resistance check");
                                             break;
                                         }
                                     }
@@ -598,28 +589,20 @@ namespace ACE.Server.WorldObjects
                                 CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 targetDeath = LifeMagic(target, spell, spellStatMod, out uint damage, out bool critical, out enchantmentStatus);
 
-                                if (damage != 0)
-                                    AttackList.Add(new AttackDamage(player, damage, critical));
-
                                 if (enchantmentStatus.message != null)
                                     player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                 if (targetDeath == true)
                                 {
-                                    creatureTarget.UpdateVital(creatureTarget.Health, 0);
-                                    creatureTarget.OnDeath();
                                     creatureTarget.Die();
 
                                     Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
                                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
 
-                                    var topDamager = AttackDamage.GetTopDamager(AttackList);
-                                    if (topDamager != null)
-                                        creatureTarget.Killer = topDamager.Guid.Full;
-
                                     if ((creatureTarget as Player) == null)
                                         player.EarnXP((long)target.XpOverride, true);
                                 }
                                 break;
+
                             case MagicSchool.ItemEnchantment:
                                 if (((spell.Category >= (ushort)SpellCategory.ArmorValueRaising) && (spell.Category <= (ushort)SpellCategory.AcidicResistanceLowering)) == false)
                                 {

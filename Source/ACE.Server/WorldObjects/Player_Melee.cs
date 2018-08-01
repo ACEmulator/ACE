@@ -12,22 +12,21 @@ namespace ACE.Server.WorldObjects
     {
         public WorldObject MeleeTarget;
 
-        public AttackHeight AttackHeight;
         public float PowerLevel;
 
-        public override int GetPowerRange()
+        public override PowerAccuracy GetPowerRange()
         {
             if (PowerLevel < 0.33f)
-                return 1;
+                return PowerAccuracy.Low;
             else if (PowerLevel < 0.66f)
-                return 2;
+                return PowerAccuracy.Medium;
             else
-                return 3;
+                return PowerAccuracy.High;
         }
 
         public override string GetAttackHeight()
         {
-            return AttackHeight.GetString();
+            return AttackHeight?.GetString();
         }
 
         public void HandleActionTargetedMeleeAttack(ObjectGuid guid, uint attackHeight, float powerLevel)
@@ -47,9 +46,16 @@ namespace ACE.Server.WorldObjects
             var target = CurrentLandblock?.GetObject(guid);
             if (target == null)
             {
-                log.Warn("Unknown target guid " + guid.Full.ToString("X8"));
+                log.Warn("Unknown target guid " + guid);
                 return;
             }
+            var creatureTarget = target as Creature;
+            if (creatureTarget == null)
+            {
+                log.Warn("Target GUID not creature " + guid);
+                return;
+            }
+
             if (MeleeTarget == null)
                 MeleeTarget = target;
             else
@@ -80,14 +86,19 @@ namespace ACE.Server.WorldObjects
 
         public void Attack(WorldObject target)
         {
-            if (MeleeTarget == null)
+            if (MeleeTarget == null || !IsAlive)
                 return;
 
             var creature = target as Creature;
             var actionChain = DoSwingMotion(target, out float animLength);
 
-            // TODO: Send correct damage source.
-            DamageTarget(target, null);
+            // stamina usage
+            // TODO: ensure enough stamina for attack
+            var staminaCost = GetAttackStamina(GetPowerRange());
+            UpdateVitalDelta(Stamina, -staminaCost);
+
+            // TODO: Send correct damage source (weapon or self?)
+            DamageTarget(creature, null);
 
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             { 
@@ -149,9 +160,9 @@ namespace ACE.Server.WorldObjects
                         // no weapon: power range 1-3
                         // unarmed weapon: power range 1-2
                         if (weapon == null)
-                            Enum.TryParse("Attack" + GetAttackHeight() + GetPowerRange(), out motion);
+                            Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);
                         else
-                            Enum.TryParse("Attack" + GetAttackHeight() + Math.Min(GetPowerRange(), 2), out motion);
+                            Enum.TryParse("Attack" + GetAttackHeight() + Math.Min((int)GetPowerRange(), 2), out motion);
 
                         return motion;
                     }

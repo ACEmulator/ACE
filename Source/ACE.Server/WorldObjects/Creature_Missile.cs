@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
-                    arrow, PropertyInt.PlayerKillerStatus, (int)(player.PlayerKillerStatus ?? ACE.Entity.Enum.PlayerKillerStatus.NPK) ));
+                    arrow, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
             }
             else
             {
