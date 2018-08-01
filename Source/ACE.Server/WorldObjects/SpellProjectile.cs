@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
             var spellPower = DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
-                                                      || SpellType == ProjectileSpellType.Arc)
+                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
