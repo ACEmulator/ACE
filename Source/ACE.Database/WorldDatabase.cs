@@ -53,7 +53,8 @@ namespace ACE.Database
             {
                 var results = context.LandblockInstances
                     .AsNoTracking()
-                    .Where(r => r.Guid >= min && r.Guid <= max);
+                    .Where(r => r.Guid >= min && r.Guid <= max)
+                    .ToList();
 
                 if (!results.Any())
                     return uint.MaxValue;
@@ -255,7 +256,8 @@ namespace ACE.Database
             {
                 var results = context.LandblockInstances
                     .AsNoTracking()
-                    .Where(r => r.Landblock == landblock);
+                    .Where(r => r.Landblock == landblock)
+                    .ToList();
 
                 foreach (var result in results)
                 {
@@ -297,7 +299,8 @@ namespace ACE.Database
             {
                 var results = context.LandblockInstances
                     .AsNoTracking()
-                    .Where(r => r.Landblock == landblock);
+                    .Where(r => r.Landblock == landblock)
+                    .ToList();
 
                 cachedLandblockInstances.TryAdd(landblock, results.OrderBy(x => x.LinkController).ThenBy(x => x.LinkSlot).ToList());
             }
@@ -448,7 +451,8 @@ namespace ACE.Database
             {
                 var results = context.Encounter
                     .AsNoTracking()
-                    .Where(r => r.Landblock == landblock);
+                    .Where(r => r.Landblock == landblock)
+                    .ToList();
 
                 cachedEncounters.TryAdd(landblock, results.ToList());
             }
@@ -561,14 +565,9 @@ namespace ACE.Database
                     .Where(r => r.TreasureType == dataId)
                     .ToList();
 
-                if (results != null)
-                {
-                    cachedWieldedTreasure[dataId] = results;
-                    return results;
-                }
+                cachedWieldedTreasure[dataId] = results;
+                return results;
             }
-
-            return null;
         }
     }
 }

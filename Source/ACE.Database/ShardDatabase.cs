@@ -54,7 +54,8 @@ namespace ACE.Database
             {
                 var results = context.Biota
                     .AsNoTracking()
-                    .Where(r => r.Id >= min && r.Id <= max);
+                    .Where(r => r.Id >= min && r.Id <= max)
+                    .ToList();
 
                 if (!results.Any())
                     return uint.MaxValue;
@@ -78,7 +79,8 @@ namespace ACE.Database
             {
                 var results = context.Character
                     .AsNoTracking()
-                    .Where(r => r.AccountId == accountId && !r.IsDeleted).ToList();
+                    .Where(r => r.AccountId == accountId && !r.IsDeleted)
+                    .ToList();
 
                 return results;
             }
@@ -99,7 +101,8 @@ namespace ACE.Database
             {
                 /*var results = context.Character
                     .AsNoTracking()
-                    .Where(r => r.Biota.BiotaProperties).ToList();
+                    .Where(r => r.Biota.BiotaProperties)
+                    .ToList();
 
                 return results;*/
             }
@@ -130,6 +133,9 @@ namespace ACE.Database
                     .AsNoTracking()
                     .Include(r => r.BiotaPropertiesBool)
                     .FirstOrDefault(r => r.Id == biotaId);
+
+                if (result == null)
+                    return false;
 
                 if (result.GetProperty(PropertyBool.IsAdmin, new ReaderWriterLockSlim()) ?? false)
                     ret = true;
@@ -841,7 +847,8 @@ namespace ACE.Database
             var inventory = new List<Biota>();
 
             var results = context.BiotaPropertiesIID
-                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId);
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId)
+                .ToList();
 
             foreach (var result in results)
             {
@@ -882,7 +889,8 @@ namespace ACE.Database
             var items = new List<Biota>();
 
             var results = context.BiotaPropertiesIID
-                    .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId);
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId)
+                .ToList();
 
             foreach (var result in results)
             {
@@ -902,7 +910,9 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
             {
                 // TODO: performance concerns, indexing
-                var results = context.BiotaPropertiesPosition.Where(p => p.ObjCellId >> 16 == landblockId);
+                var results = context.BiotaPropertiesPosition
+                    .Where(p => p.ObjCellId >> 16 == landblockId)
+                    .ToList();
 
                 foreach (var result in results)
                 {
