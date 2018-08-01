@@ -134,6 +134,9 @@ namespace ACE.Database
                     .Include(r => r.BiotaPropertiesBool)
                     .FirstOrDefault(r => r.Id == biotaId);
 
+                if (result == null)
+                    return false;
+
                 if (result.GetProperty(PropertyBool.IsAdmin, new ReaderWriterLockSlim()) ?? false)
                     ret = true;
                 if (result.GetProperty(PropertyBool.IsArch, new ReaderWriterLockSlim()) ?? false)

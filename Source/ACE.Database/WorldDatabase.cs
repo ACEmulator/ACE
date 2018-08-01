@@ -565,14 +565,9 @@ namespace ACE.Database
                     .Where(r => r.TreasureType == dataId)
                     .ToList();
 
-                if (results != null)
-                {
-                    cachedWieldedTreasure[dataId] = results;
-                    return results;
-                }
+                cachedWieldedTreasure[dataId] = results;
+                return results;
             }
-
-            return null;
         }
     }
 }
