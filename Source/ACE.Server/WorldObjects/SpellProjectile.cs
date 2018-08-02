@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
             var spellPower = DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
-                                                      || SpellType == ProjectileSpellType.Arc)
+                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
             Wall
         }
 
-        public ProjectileSpellType GetProjectileSpellType(uint SpellId)
+        public static ProjectileSpellType GetProjectileSpellType(uint SpellId)
         {
             var WeenieClassId = DatabaseManager.World.GetCachedSpell(SpellId).Wcid;
             if (WeenieClassId == null)
@@ -241,28 +241,10 @@ namespace ACE.Server.WorldObjects
 
             var player = projectileCaster as Player;
 
-            // Ensure target still exist before proceeding to handle collision
-            //Creature target = CurrentLandblock?.GetObject(guidTarget) as Creature;
+            // ensure valid creature target
+            // non-target objects will be excluded beforehand from collision detection
             var target = _target as Creature;
             if (target == null)
-            {
-                OnCollideEnvironment();
-                return;
-            }
-
-            // Projectile struck some target that isn't a player or creature
-            if (target.WeenieType != WeenieType.Creature)
-            {
-                if (target.WeenieClassId != 1)
-                {
-                    OnCollideEnvironment();
-                    return;
-                }
-            }
-            var targetPlayer = target as Player;
-
-            // Collision registered against a valid target that was not the intended target
-            if (!target.Guid.Equals(targetGuid))
             {
                 OnCollideEnvironment();
                 return;
@@ -272,6 +254,8 @@ namespace ACE.Server.WorldObjects
 
             var critical = false;
             var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
+
+            var targetPlayer = target as Player;
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null || damage == -1)
@@ -377,11 +361,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            PhysicsObj.State |= PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
+            // TODO: Right now WorldObjects have two fields for physics states: one under the root object and another
+            // under PhysicsObj. These should be combined into one field to eliminate the duplicaiton.
+            // Also: the physics state should be set on object creation so some of this code may need to be removed
+            // once the field duplication is done.
+            PhysicsObj.State = PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
             PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
 
-            if (!useGravity)
-                PhysicsObj.State &= ~PhysicsState.Gravity;
+            if (useGravity)
+                PhysicsObj.State |= PhysicsState.Gravity;
 
             var pos = Location.Pos;
             var rotation = Location.Rotation;
@@ -391,7 +379,8 @@ namespace ACE.Server.WorldObjects
             var velocity = Velocity.Get();
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
             PhysicsObj.Velocity = velocity;
-            PhysicsObj.ProjectileTarget = target.PhysicsObj;
+            if (target != null)
+                PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             PhysicsObj.set_active(true);
         }
