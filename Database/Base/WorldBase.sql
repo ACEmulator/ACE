@@ -41,7 +41,7 @@ CREATE TABLE `cook_book` (
   UNIQUE KEY `recipe_target_source_uidx` (`recipe_Id`,`target_W_C_I_D`,`source_W_C_I_D`),
   KEY `source_idx` (`source_W_C_I_D`),
   KEY `target_idx` (`target_W_C_I_D`),
-  CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cook Book for Recipes';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -179,8 +179,7 @@ DROP TABLE IF EXISTS `recipe`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `recipe` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `id` int(10) unsigned NOT NULL COMMENT 'Unique Id of this Recipe',
   `unknown_1` int(10) unsigned NOT NULL DEFAULT '0',
   `skill` int(10) unsigned NOT NULL DEFAULT '0',
   `difficulty` int(10) unsigned NOT NULL DEFAULT '0',
@@ -192,8 +191,7 @@ CREATE TABLE `recipe` (
   `fail_Amount` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Amount of objects to create upon failing application of this recipe',
   `fail_Message` text,
   `data_Id` int(10) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `recipe_uidx` (`recipe_Id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipes';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -212,7 +210,7 @@ CREATE TABLE `recipe_component` (
   `destroy_Message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_component` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_component` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Components';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -238,7 +236,7 @@ CREATE TABLE `recipe_mod` (
   `instance_Id` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -378,7 +376,7 @@ CREATE TABLE `recipe_requirements_bool` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -398,7 +396,7 @@ CREATE TABLE `recipe_requirements_d_i_d` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -418,7 +416,7 @@ CREATE TABLE `recipe_requirements_float` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -438,7 +436,7 @@ CREATE TABLE `recipe_requirements_i_i_d` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -458,7 +456,7 @@ CREATE TABLE `recipe_requirements_int` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -478,7 +476,7 @@ CREATE TABLE `recipe_requirements_string` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

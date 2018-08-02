@@ -104,7 +104,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.CookBook)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("cookbook_recipe");
             });
@@ -318,10 +317,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("recipe");
 
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_uidx")
-                    .IsUnique();
-
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.DataId)
@@ -342,10 +337,6 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.FailWCID)
                     .HasColumnName("fail_W_C_I_D")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SalvageType)
@@ -400,7 +391,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeComponent)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_component");
             });
@@ -469,7 +459,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeMod)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_Mod");
             });
@@ -736,7 +725,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsBool)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_bool");
             });
@@ -774,7 +762,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsDID)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_did");
             });
@@ -812,7 +799,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsFloat)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_float");
             });
@@ -850,7 +836,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsIID)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_iid");
             });
@@ -889,7 +874,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsInt)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_int");
             });
@@ -927,7 +911,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsString)
-                    .HasPrincipalKey(p => p.RecipeId)
                     .HasForeignKey(d => d.RecipeId)
                     .HasConstraintName("recipeId_req_string");
             });

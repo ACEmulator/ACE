@@ -46,7 +46,7 @@ namespace ACE.Database.SQLFormatters.World
             if (description == "Cooking Pot" && !String.IsNullOrEmpty(alternateDescription))
                 description = alternateDescription;
 
-            string fileName = input.RecipeId.ToString("00000");
+            string fileName = input.Id.ToString("00000");
             if (!String.IsNullOrEmpty(description))
                 fileName += " " + description;
             fileName = IllegalInFileName.Replace(fileName, "_");
@@ -57,12 +57,12 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Recipe input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `recipe` WHERE `recipe_Id` = {input.RecipeId};");
+            writer.WriteLine($"DELETE FROM `recipe` WHERE `recipe_Id` = {input.Id};");
         }
 
         public void CreateSQLINSERTStatement(Recipe input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe` (`recipe_Id`, `unknown_1`, `skill`, `difficulty`, `salvage_Type`, `success_W_C_I_D`, `success_Amount`, `success_Message`, `fail_W_C_I_D`, `fail_Amount`, `fail_Message`, `data_Id`)");
+            writer.WriteLine("INSERT INTO `recipe` (`id`, `unknown_1`, `skill`, `difficulty`, `salvage_Type`, `success_W_C_I_D`, `success_Amount`, `success_Message`, `fail_W_C_I_D`, `fail_Amount`, `fail_Message`, `data_Id`)");
 
             string skillLabel = null;
             if (input.Skill != 0)
@@ -77,7 +77,7 @@ namespace ACE.Database.SQLFormatters.World
                 WeenieNames.TryGetValue(input.FailWCID, out failWeenieLabel);
 
             var output = "VALUES (" +
-                             $"{input.RecipeId}, " +
+                             $"{input.Id}, " +
                              $"{input.Unknown1}, " +
                              $"{input.Skill} /* {skillLabel} */, " +
                              $"{input.Difficulty}, " +
@@ -98,44 +98,44 @@ namespace ACE.Database.SQLFormatters.World
             if (input.RecipeComponent != null && input.RecipeComponent.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeComponent.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeComponent.ToList(), writer);
             }
 
             if (input.RecipeRequirementsInt != null && input.RecipeRequirementsInt.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeRequirementsInt.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeRequirementsInt.ToList(), writer);
             }
             if (input.RecipeRequirementsDID != null && input.RecipeRequirementsDID.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeRequirementsDID.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeRequirementsDID.ToList(), writer);
             }
             if (input.RecipeRequirementsIID != null && input.RecipeRequirementsIID.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeRequirementsIID.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeRequirementsIID.ToList(), writer);
             }
             if (input.RecipeRequirementsFloat != null && input.RecipeRequirementsFloat.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeRequirementsFloat.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeRequirementsFloat.ToList(), writer);
             }
             if (input.RecipeRequirementsString != null && input.RecipeRequirementsString.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeRequirementsString.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeRequirementsString.ToList(), writer);
             }
             if (input.RecipeRequirementsBool != null && input.RecipeRequirementsBool.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeRequirementsBool.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeRequirementsBool.ToList(), writer);
             }
 
             if (input.RecipeMod != null && input.RecipeMod.Count > 0)
             {
                 //writer.WriteLine(); // This is not needed because CreateSQLINSERTStatement will take care of it for us on each Recipe.
-                CreateSQLINSERTStatement(input.RecipeId, input.RecipeMod.ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.RecipeMod.ToList(), writer);
             }
         }
 
