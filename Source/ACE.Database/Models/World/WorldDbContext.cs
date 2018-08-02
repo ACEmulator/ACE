@@ -23,7 +23,6 @@ namespace ACE.Database.Models.World
         public virtual DbSet<PointsOfInterest> PointsOfInterest { get; set; }
         public virtual DbSet<Quest> Quest { get; set; }
         public virtual DbSet<Recipe> Recipe { get; set; }
-        public virtual DbSet<RecipeComponent> RecipeComponent { get; set; }
         public virtual DbSet<RecipeMod> RecipeMod { get; set; }
         public virtual DbSet<RecipeModsBool> RecipeModsBool { get; set; }
         public virtual DbSet<RecipeModsDID> RecipeModsDID { get; set; }
@@ -331,6 +330,30 @@ namespace ACE.Database.Models.World
                     .HasColumnName("fail_Amount")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.FailDestroySourceAmount)
+                    .HasColumnName("fail_Destroy_Source_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FailDestroySourceChance)
+                    .HasColumnName("fail_Destroy_Source_Chance")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FailDestroySourceMessage)
+                    .HasColumnName("fail_Destroy_Source_Message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.FailDestroyTargetAmount)
+                    .HasColumnName("fail_Destroy_Target_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FailDestroyTargetChance)
+                    .HasColumnName("fail_Destroy_Target_Chance")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FailDestroyTargetMessage)
+                    .HasColumnName("fail_Destroy_Target_Message")
+                    .HasColumnType("text");
+
                 entity.Property(e => e.FailMessage)
                     .HasColumnName("fail_Message")
                     .HasColumnType("text");
@@ -351,6 +374,30 @@ namespace ACE.Database.Models.World
                     .HasColumnName("success_Amount")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.SuccessDestroySourceAmount)
+                    .HasColumnName("success_Destroy_Source_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SuccessDestroySourceChance)
+                    .HasColumnName("success_Destroy_Source_Chance")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SuccessDestroySourceMessage)
+                    .HasColumnName("success_Destroy_Source_Message")
+                    .HasColumnType("text");
+
+                entity.Property(e => e.SuccessDestroyTargetAmount)
+                    .HasColumnName("success_Destroy_Target_Amount")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SuccessDestroyTargetChance)
+                    .HasColumnName("success_Destroy_Target_Chance")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SuccessDestroyTargetMessage)
+                    .HasColumnName("success_Destroy_Target_Message")
+                    .HasColumnType("text");
+
                 entity.Property(e => e.SuccessMessage)
                     .HasColumnName("success_Message")
                     .HasColumnType("text");
@@ -362,37 +409,6 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
                     .HasDefaultValueSql("'0'");
-            });
-
-            modelBuilder.Entity<RecipeComponent>(entity =>
-            {
-                entity.ToTable("recipe_component");
-
-                entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.DestroyAmount)
-                    .HasColumnName("destroy_Amount")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.DestroyChance)
-                    .HasColumnName("destroy_Chance")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.DestroyMessage)
-                    .HasColumnName("destroy_Message")
-                    .HasColumnType("text");
-
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Recipe)
-                    .WithMany(p => p.RecipeComponent)
-                    .HasForeignKey(d => d.RecipeId)
-                    .HasConstraintName("recipeId_component");
             });
 
             modelBuilder.Entity<RecipeMod>(entity =>

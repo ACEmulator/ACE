@@ -190,28 +190,21 @@ CREATE TABLE `recipe` (
   `fail_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of object to create upon failing application of this recipe',
   `fail_Amount` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Amount of objects to create upon failing application of this recipe',
   `fail_Message` text,
+  `success_Destroy_Source_Chance` double NOT NULL DEFAULT '0',
+  `success_Destroy_Source_Amount` int(10) unsigned NOT NULL DEFAULT '0',
+  `success_Destroy_Source_Message` text,
+  `success_Destroy_Target_Chance` double NOT NULL DEFAULT '0',
+  `success_Destroy_Target_Amount` int(10) unsigned NOT NULL DEFAULT '0',
+  `success_Destroy_Target_Message` text,
+  `fail_Destroy_Source_Chance` double NOT NULL DEFAULT '0',
+  `fail_Destroy_Source_Amount` int(10) unsigned NOT NULL DEFAULT '0',
+  `fail_Destroy_Source_Message` text,
+  `fail_Destroy_Target_Chance` double NOT NULL DEFAULT '0',
+  `fail_Destroy_Target_Amount` int(10) unsigned NOT NULL DEFAULT '0',
+  `fail_Destroy_Target_Message` text,
   `data_Id` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipes';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `recipe_component`
---
-
-DROP TABLE IF EXISTS `recipe_component`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `recipe_component` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Component instance',
-  `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `destroy_Chance` double NOT NULL DEFAULT '0',
-  `destroy_Amount` int(10) unsigned NOT NULL DEFAULT '0',
-  `destroy_Message` text,
-  PRIMARY KEY (`id`),
-  KEY `recipe_idx` (`recipe_Id`),
-  CONSTRAINT `recipeId_component` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Components';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

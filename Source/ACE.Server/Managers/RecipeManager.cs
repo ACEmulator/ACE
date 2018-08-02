@@ -82,34 +82,30 @@ namespace ACE.Server.Managers
                     skillSuccess = _random.NextDouble() < percentSuccess;
 
 
-                var components = recipe.Recipe.RecipeComponent.ToList();
-
                 if (skillSuccess)
                 {
-                    var targetSuccess = components[0];
-                    var sourceSuccess = components[1];
-
-                    bool destroyTarget = _random.NextDouble() < targetSuccess.DestroyChance;
-                    bool destroySource = _random.NextDouble() < sourceSuccess.DestroyChance;
+                    bool destroyTarget = _random.NextDouble() < recipe.Recipe.SuccessDestroyTargetChance;
+                    bool destroySource = _random.NextDouble() < recipe.Recipe.SuccessDestroySourceChance;
 
                     if (destroyTarget)
                     {
                         if (target.OwnerId == player.Guid.Full  || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetSuccess.DestroyAmount);
+                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)recipe.Recipe.SuccessDestroyTargetAmount);
                         }
                         else if (target.WielderId == player.Guid.Full)
                         {
-                            if (!player.TryRemoveItemWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
+                            if (!player.TryRemoveItemWithNetworking(target))
+                                throw new Exception($"Failed to remove {target.Name} from player inventory.");
                         }
                         else
                         {
                             target.Destroy();
                         }
 
-                        if (targetSuccess.DestroyMessage != "")
+                        if (!String.IsNullOrEmpty(recipe.Recipe.SuccessDestroyTargetMessage))
                         {
-                            var destroyMessage = new GameMessageSystemChat(targetSuccess.DestroyMessage, ChatMessageType.Craft);
+                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.SuccessDestroyTargetMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
                         }
                     }
@@ -118,20 +114,21 @@ namespace ACE.Server.Managers
                     {
                         if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceSuccess.DestroyAmount);
+                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)recipe.Recipe.SuccessDestroySourceAmount);
                         }
                         else if (source.WielderId == player.Guid.Full)
                         {
-                            if (!player.TryRemoveItemWithNetworking(source)) throw new Exception($"Failed to remove {source.Name} from player inventory.");
+                            if (!player.TryRemoveItemWithNetworking(source))
+                                throw new Exception($"Failed to remove {source.Name} from player inventory.");
                         }
                         else
                         {
                             source.Destroy();
                         }
 
-                        if (sourceSuccess.DestroyMessage != "")
+                        if (!String.IsNullOrEmpty(recipe.Recipe.SuccessDestroySourceMessage))
                         {
-                            var destroyMessage = new GameMessageSystemChat(sourceSuccess.DestroyMessage, ChatMessageType.Craft);
+                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.SuccessDestroySourceMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
                         }
                     }
@@ -154,30 +151,28 @@ namespace ACE.Server.Managers
                 }
                 else
                 {
-                    var targetFail = components[2];
-                    var sourceFail = components[3];
-
-                    bool destroyTarget = _random.NextDouble() < targetFail.DestroyChance;
-                    bool destroySource = _random.NextDouble() < sourceFail.DestroyChance;
+                    bool destroyTarget = _random.NextDouble() < recipe.Recipe.FailDestroyTargetChance;
+                    bool destroySource = _random.NextDouble() < recipe.Recipe.FailDestroySourceChance;
 
                     if (destroyTarget)
                     {
                         if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)targetFail.DestroyAmount);
+                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)recipe.Recipe.FailDestroyTargetAmount);
                         }
                         else if (target.WielderId == player.Guid.Full)
                         {
-                            if (!player.TryRemoveItemWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
+                            if (!player.TryRemoveItemWithNetworking(target))
+                                throw new Exception($"Failed to remove {target.Name} from player inventory.");
                         }
                         else
                         {
                             target.Destroy();
                         }
 
-                        if (targetFail.DestroyMessage != "")
+                        if (!String.IsNullOrEmpty(recipe.Recipe.FailDestroyTargetMessage))
                         {
-                            var destroyMessage = new GameMessageSystemChat(targetFail.DestroyMessage, ChatMessageType.Craft);
+                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.FailDestroyTargetMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
                         }
                     }
@@ -186,20 +181,21 @@ namespace ACE.Server.Managers
                     {
                         if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)sourceFail.DestroyAmount);
+                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)recipe.Recipe.FailDestroySourceAmount);
                         }
                         else if (source.WielderId == player.Guid.Full)
                         {
-                            if (!player.TryRemoveItemWithNetworking(source)) throw new Exception($"Failed to remove {source.Name} from player inventory.");
+                            if (!player.TryRemoveItemWithNetworking(source))
+                                throw new Exception($"Failed to remove {source.Name} from player inventory.");
                         }
                         else
                         {
                             source.Destroy();
                         }
 
-                        if (sourceFail.DestroyMessage != "")
+                        if (!String.IsNullOrEmpty(recipe.Recipe.FailDestroySourceMessage))
                         {
-                            var destroyMessage = new GameMessageSystemChat(sourceFail.DestroyMessage, ChatMessageType.Craft);
+                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.FailDestroySourceMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
                         }
                     }

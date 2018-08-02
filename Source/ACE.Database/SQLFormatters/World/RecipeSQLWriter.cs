@@ -62,7 +62,10 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(Recipe input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe` (`id`, `unknown_1`, `skill`, `difficulty`, `salvage_Type`, `success_W_C_I_D`, `success_Amount`, `success_Message`, `fail_W_C_I_D`, `fail_Amount`, `fail_Message`, `data_Id`)");
+            writer.WriteLine("INSERT INTO `recipe` (`id`, `unknown_1`, `skill`, `difficulty`, `salvage_Type`, `success_W_C_I_D`, `success_Amount`, `success_Message`, `fail_W_C_I_D`, `fail_Amount`, `fail_Message`, " +
+                             "`success_Destroy_Source_Chance`, `success_Destroy_Source_Amount`, `success_Destroy_Source_Message`, `success_Destroy_Target_Chance`, `success_Destroy_Target_Amount`, `success_Destroy_Target_Message`, " +
+                             "`fail_Destroy_Source_Chance`, `fail_Destroy_Source_Amount`, `fail_Destroy_Source_Message`, `fail_Destroy_Target_Chance`, `fail_Destroy_Target_Amount`, `fail_Destroy_Target_Message`, " +
+                             "`data_Id`)");
 
             string skillLabel = null;
             if (input.Skill != 0)
@@ -77,29 +80,35 @@ namespace ACE.Database.SQLFormatters.World
                 WeenieNames.TryGetValue(input.FailWCID, out failWeenieLabel);
 
             var output = "VALUES (" +
-                             $"{input.Id}, " +
-                             $"{input.Unknown1}, " +
-                             $"{input.Skill} /* {skillLabel} */, " +
-                             $"{input.Difficulty}, " +
-                             $"{input.SalvageType}, " +
-                             $"{input.SuccessWCID} /* {successWeenieLabel} */, " +
-                             $"{input.SuccessAmount}, " +
-                             $"{GetSQLString(input.SuccessMessage)}, " +
-                             $"{input.FailWCID} /* {failWeenieLabel} */, " +
-                             $"{input.FailAmount}, " +
-                             $"{GetSQLString(input.FailMessage)}, " +
-                             $"{input.DataId}" +
-                             ");";
+                         $"{input.Id}, " +
+                         $"{input.Unknown1}, " +
+                         $"{input.Skill} /* {skillLabel} */, " +
+                         $"{input.Difficulty}, " +
+                         $"{input.SalvageType}, " +
+                         $"{input.SuccessWCID} /* {successWeenieLabel} */, " +
+                         $"{input.SuccessAmount}, " +
+                         $"{GetSQLString(input.SuccessMessage)}, " +
+                         $"{input.FailWCID} /* {failWeenieLabel} */, " +
+                         $"{input.FailAmount}, " +
+                         $"{GetSQLString(input.FailMessage)}, " +
+                         $"{input.SuccessDestroySourceChance}, " +
+                         $"{input.SuccessDestroySourceAmount}, " +
+                         $"{GetSQLString(input.SuccessDestroySourceMessage)}, " +
+                         $"{input.SuccessDestroyTargetChance}, " +
+                         $"{input.SuccessDestroyTargetAmount}, " +
+                         $"{GetSQLString(input.SuccessDestroyTargetMessage)}, " +
+                         $"{input.FailDestroySourceChance}, " +
+                         $"{input.FailDestroySourceAmount}, " +
+                         $"{GetSQLString(input.FailDestroySourceMessage)}, " +
+                         $"{input.FailDestroyTargetChance}, " +
+                         $"{input.FailDestroyTargetAmount}, " +
+                         $"{GetSQLString(input.FailDestroyTargetMessage)}, " +
+                         $"{input.DataId}" +
+                         ");";
 
             output = FixNullFields(output);
 
             writer.WriteLine(output);
-
-            if (input.RecipeComponent != null && input.RecipeComponent.Count > 0)
-            {
-                writer.WriteLine();
-                CreateSQLINSERTStatement(input.Id, input.RecipeComponent.ToList(), writer);
-            }
 
             if (input.RecipeRequirementsInt != null && input.RecipeRequirementsInt.Count > 0)
             {
@@ -137,15 +146,6 @@ namespace ACE.Database.SQLFormatters.World
                 //writer.WriteLine(); // This is not needed because CreateSQLINSERTStatement will take care of it for us on each Recipe.
                 CreateSQLINSERTStatement(input.Id, input.RecipeMod.ToList(), writer);
             }
-        }
-
-        public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeComponent> input, StreamWriter writer)
-        {
-            writer.WriteLine("INSERT INTO `recipe_component` (`recipe_Id`, `destroy_Chance`, `destroy_Amount`, `destroy_Message`)");
-
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].DestroyChance}, {input[i].DestroyAmount}, {GetSQLString(input[i].DestroyMessage)})");
-
-            ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsInt> input, StreamWriter writer)

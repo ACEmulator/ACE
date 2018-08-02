@@ -367,7 +367,6 @@ namespace ACE.Database
                 var result = context.CookBook
                     .AsNoTracking()
                     .Include(r => r.Recipe)
-                    .Include(r => r.Recipe.RecipeComponent)
                     .Include(r => r.Recipe.RecipeMod)
                         .ThenInclude(r => r.RecipeModsBool)
                     .Include(r => r.Recipe.RecipeMod)
