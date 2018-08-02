@@ -448,23 +448,8 @@ namespace ACE.Database.Models.World
                     .HasColumnName("recipe_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.Unknown2)
-                    .HasColumnName("unknown_2")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Unknown4)
-                    .HasColumnName("unknown_4")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Unknown5)
-                    .HasColumnName("unknown_5")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.Unknown6)
-                    .HasColumnName("unknown_6")
+                entity.Property(e => e.Stamina)
+                    .HasColumnName("stamina")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
