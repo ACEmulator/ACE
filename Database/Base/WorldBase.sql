@@ -217,6 +217,7 @@ DROP TABLE IF EXISTS `recipe_mod`;
 CREATE TABLE `recipe_mod` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
+  `executes_On_Success` bit(1) NOT NULL,
   `health` int(10) NOT NULL DEFAULT '0',
   `unknown_2` int(10) NOT NULL DEFAULT '0',
   `mana` int(10) NOT NULL DEFAULT '0',

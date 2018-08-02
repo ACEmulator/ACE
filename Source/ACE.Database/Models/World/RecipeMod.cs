@@ -17,6 +17,7 @@ namespace ACE.Database.Models.World
 
         public uint Id { get; set; }
         public uint RecipeId { get; set; }
+        public bool ExecutesOnSuccess { get; set; }
         public int Health { get; set; }
         public int Unknown2 { get; set; }
         public int Mana { get; set; }

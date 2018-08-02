@@ -425,6 +425,10 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.ExecutesOnSuccess)
+                    .HasColumnName("executes_On_Success")
+                    .HasColumnType("bit(1)");
+
                 entity.Property(e => e.Health)
                     .HasColumnName("health")
                     .HasColumnType("int(10)")

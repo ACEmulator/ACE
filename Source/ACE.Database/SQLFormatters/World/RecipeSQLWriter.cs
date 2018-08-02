@@ -216,9 +216,9 @@ namespace ACE.Database.SQLFormatters.World
             foreach (var value in input)
             {
                 writer.WriteLine();
-                writer.WriteLine("INSERT INTO `recipe_mod` (`recipe_Id`, `health`, `unknown_2`, `mana`, `unknown_4`, `unknown_5`, `unknown_6`, `unknown_7`, `data_Id`, `unknown_9`, `instance_Id`)");
+                writer.WriteLine("INSERT INTO `recipe_mod` (`recipe_Id`, `executes_On_Success`, `health`, `unknown_2`, `mana`, `unknown_4`, `unknown_5`, `unknown_6`, `unknown_7`, `data_Id`, `unknown_9`, `instance_Id`)");
 
-                var output = $"VALUES ({recipeId}, {value.Health}, {value.Unknown2}, {value.Mana}, {value.Unknown4}, {value.Unknown5}, {value.Unknown6}, {value.Unknown7}, {value.DataId}, {value.Unknown9}, {value.InstanceId});";
+                var output = $"VALUES ({recipeId}, {value.ExecutesOnSuccess}, {value.Health}, {value.Unknown2}, {value.Mana}, {value.Unknown4}, {value.Unknown5}, {value.Unknown6}, {value.Unknown7}, {value.DataId}, {value.Unknown9}, {value.InstanceId});";
 
                 output = FixNullFields(output);
 
