@@ -109,7 +109,8 @@ namespace ACE.Server.Physics.Common
 
             var target = transition.ObjectInfo.Object.ProjectileTarget;
 
-            foreach (var shadowObj in ShadowObjectList)
+            // TODO: find out what is causing the exception when .ToList() is not used.
+            foreach (var shadowObj in ShadowObjectList.ToList())
             {
                 var obj = shadowObj.PhysicsObj;
 
