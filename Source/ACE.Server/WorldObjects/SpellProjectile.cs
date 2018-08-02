@@ -241,28 +241,10 @@ namespace ACE.Server.WorldObjects
 
             var player = projectileCaster as Player;
 
-            // Ensure target still exist before proceeding to handle collision
-            //Creature target = CurrentLandblock?.GetObject(guidTarget) as Creature;
+            // ensure valid creature target
+            // non-target objects will be excluded beforehand from collision detection
             var target = _target as Creature;
             if (target == null)
-            {
-                OnCollideEnvironment();
-                return;
-            }
-
-            // Projectile struck some target that isn't a player or creature
-            if (target.WeenieType != WeenieType.Creature)
-            {
-                if (target.WeenieClassId != 1)
-                {
-                    OnCollideEnvironment();
-                    return;
-                }
-            }
-            var targetPlayer = target as Player;
-
-            // Collision registered against a valid target that was not the intended target
-            if (!target.Guid.Equals(targetGuid))
             {
                 OnCollideEnvironment();
                 return;
@@ -272,6 +254,8 @@ namespace ACE.Server.WorldObjects
 
             var critical = false;
             var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
+
+            var targetPlayer = target as Player;
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null || damage == -1)
