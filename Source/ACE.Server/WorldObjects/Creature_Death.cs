@@ -8,19 +8,16 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
-using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private static readonly UniversalMotion deadMotion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-
         public uint? DeathTreasureType
         {
             get => GetProperty(PropertyDataId.DeathTreasureType);
@@ -38,13 +35,63 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void CreateCorpse()
+        /// <summary>
+        /// Kills a player/creature and performs the full death sequence
+        /// </summary>
+        public void Die()
+        {
+            Die(DamageHistory.LastDamager, DamageHistory.TopDamager);
+        }
+
+        /// <summary>
+        /// Performs the full death sequence for non-Player creatures
+        /// </summary>
+        protected virtual void Die(WorldObject lastDamager, WorldObject topDamager)
+        {
+            UpdateVital(Health, 0);
+
+            if (topDamager != null)
+                Killer = topDamager.Guid.Full;
+
+            // broadcast death animation
+            var motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            CurrentLandblock?.EnqueueBroadcastMotion(this, motionDeath);
+
+            var dieChain = new ActionChain();
+
+            // wait for death animation to finish
+            var deathAnimLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
+            dieChain.AddDelaySeconds(deathAnimLength);
+
+            dieChain.AddAction(this, () =>
+            {
+                NotifyOfEvent(RegenerationType.Destruction);
+                LandblockManager.RemoveObject(this);
+                CreateCorpse();
+            });
+
+            dieChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// Called when an admin player uses the /smite command
+        /// to instantly kill a creature
+        /// </summary>
+        public void Smite(WorldObject smiter)
+        {
+            Die(smiter, smiter);
+        }
+
+        /// <summary>
+        /// Create a corpse for both creatures and players currently
+        /// </summary>
+        protected void CreateCorpse()
         {
             if (NoCorpse ?? false)
                 return;
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
-                
+
             corpse.SetupTableId = SetupTableId;
             corpse.MotionTableId = MotionTableId;
             corpse.SoundTableId = SoundTableId;
@@ -59,7 +106,7 @@ namespace ACE.Server.WorldObjects
             if (Shade.HasValue)
                 corpse.Shade = Shade;
             //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
-            //    corpse.Translucency = Translucency;
+                //corpse.Translucency = Translucency;
 
             if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
             {
@@ -77,12 +124,12 @@ namespace ACE.Server.WorldObjects
                     corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
-            //corpse.Location = Location;
             corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
             //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
 
             corpse.Name = $"Corpse of {Name}";
 
+            // set 'killed by' for looting rights
             string killerName = null;
 
             if (Killer.HasValue && Killer != 0)
@@ -99,7 +146,7 @@ namespace ACE.Server.WorldObjects
             corpse.LongDesc = $"Killed by {killerName}";
 
             if (Killer.HasValue)
-                corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value); // Think this will be what limits corpses to Killer first.
+                corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value);
 
             var player = this as Player;
             if (player != null)
@@ -201,103 +248,6 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-        }
-
-        private ActionChain GetCreateCorpseChain()
-        {
-            ActionChain createCorpseChain = new ActionChain(this, () =>
-            {
-                /*
-                // Create Corpse and set a location on the ground
-                // TODO: set text of killer in description and find a better computation for the location, some corpse could end up in the ground
-                var corpse = CorpseObjectFactory.CreateCorpse(this, this.Location);
-                // FIXME(ddevec): We don't have a real corpse yet, so these come in null -- this hack just stops them from crashing the game
-                corpse.Location.PositionY -= (corpse.ObjScale ?? 0);
-                corpse.Location.PositionZ -= (corpse.ObjScale ?? 0) / 2;
-
-                // Corpses stay on the ground for 5 * player level but minimum 1 hour
-                corpse.DespawnTime = Math.Max((int)Session.Player.PropertiesInt[Enum.Properties.PropertyInt.Level] * 5, 360) + WorldManager.PortalYearTicks; // as in live
-                 corpse.DespawnTime = 20 + WorldManager.PortalYearTicks; // only for testing
-                float despawnTime = GetCorpseSpawnTime();
-
-                // Create corpse
-                CurrentLandblock?.AddWorldObject(corpse);
-                // Create corpse decay
-                ActionChain despawnChain = new ActionChain();
-                despawnChain.AddDelaySeconds(despawnTime);
-                despawnChain.AddAction(CurrentLandblock, () => corpse.CurrentLandblock?.RemoveWorldObject(corpse.Guid, false));
-                despawnChain.EnqueueChain();*/
-            });
-            return createCorpseChain;
-        }
-
-        private void OnKill(Session session)
-        {
-            IsAlive = false;
-            // This will determine if the derived type is a player
-            var isDerivedPlayer = Guid.IsPlayer();
-
-            if (!isDerivedPlayer)
-            {
-                // Create and send the death notice
-                string killMessage = $"{session.Player.Name} has killed {Name}.";
-                var creatureDeathEvent = new GameEventDeathNotice(session, killMessage);
-                session.Network.EnqueueSend(creatureDeathEvent);
-            }
-
-            // MovementEvent: (Hand-)Combat or in the case of smite: from Standing to Death
-            // TODO: Check if the duration of the motion can somehow be computed
-            UniversalMotion motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionDeath);
-
-            // If the object is a creature, Remove it from from Landblock
-            if (!isDerivedPlayer)
-            {
-                CurrentLandblock?.RemoveWorldObject(Guid, false);
-            }
-        }
-
-        protected ActionChain OnKillInternal(Session killerSession)
-        {
-            // Will start death animation
-            OnKill(killerSession);
-
-            // Wait, then run kill animation
-            ActionChain onKillChain = new ActionChain();
-            onKillChain.AddDelaySeconds(2);
-            //onKillChain.AddChain(GetCreateCorpseChain());
-            onKillChain.AddAction(this, CreateCorpse);
-
-            return onKillChain;
-        }
-
-        protected virtual void DoOnKill(Session killerSession)
-        {
-            OnKillInternal(killerSession).EnqueueChain();
-        }
-
-        public void Die()
-        {
-            ActionChain dieChain = new ActionChain();
-            dieChain.AddAction(this, () =>
-            {
-                CurrentLandblock?.EnqueueBroadcastMotion(this, deadMotion);
-            });
-            dieChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead));
-            dieChain.AddAction(this, () =>
-            {
-                NotifyOfEvent(RegenerationType.Destruction);
-                LandblockManager.RemoveObject(this);
-                CreateCorpse();
-            });
-            dieChain.EnqueueChain();
-        }
-
-        public virtual void Smite(ObjectGuid smiter)
-        {
-            Health.Current = 0;
-            Killer = smiter.Full;
-            Die();
         }
     }
 }

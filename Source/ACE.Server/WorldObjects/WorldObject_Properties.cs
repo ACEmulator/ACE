@@ -2399,10 +2399,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value.Value); }
         }
 
-        public PlayerKillerStatus? PlayerKillerStatus
+        public PlayerKillerStatus PlayerKillerStatus
         {
-            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlayerKillerStatus); else SetProperty(PropertyInt.PlayerKillerStatus, (int)value.Value); }
+            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? ACE.Entity.Enum.PlayerKillerStatus.NPK;
+            set => SetProperty(PropertyInt.PlayerKillerStatus, (int)value);
         }
 
         public CloakStatus? CloakStatus
@@ -2431,7 +2431,7 @@ namespace ACE.Server.WorldObjects
 
         public bool? FirstEnterWorldDone
         {
-            get => GetProperty(PropertyBool.FirstEnterWorldDone);
+            get => GetProperty(PropertyBool.FirstEnterWorldDone) ?? false;
             set { if (!value.HasValue) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value.Value); }
         }
 

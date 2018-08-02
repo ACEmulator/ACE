@@ -299,15 +299,7 @@ namespace ACE.Server.Entity
 
             Parallel.ForEach(wolist, (o) =>
             {
-                //if (o is Creature)
-                //{
-                //    if (((Creature)o).IsAlive)
-                //        player.TrackObject(o);
-                //}
-                //else
-                //{
-                    player.TrackObject(o);
-                //}
+                player.TrackObject(o);
             });
         }
 
@@ -319,7 +311,7 @@ namespace ACE.Server.Entity
 
         public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)
         {
-            return new Actions.ActionChain(this, () => AddWorldObjectInternal(wo));
+            return new ActionChain(this, () => AddWorldObjectInternal(wo));
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)

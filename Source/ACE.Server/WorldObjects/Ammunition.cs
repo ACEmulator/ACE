@@ -45,9 +45,10 @@ namespace ACE.Server.WorldObjects
 
             // take damage
             var player = ProjectileSource as Player;
-            if (player != null)
+            var creatureTarget = target as Creature;
+            if (player != null && creatureTarget != null)
             {
-                var damage = player.DamageTarget(target, this);
+                var damage = player.DamageTarget(creatureTarget, this);
 
                 if (damage > 0)
                     player.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.Collision, 1.0f));    // todo: landblock broadcast?

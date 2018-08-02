@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Numerics;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -10,14 +8,15 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
 
 using PhysicsState = ACE.Server.Physics.PhysicsState;
+using Spell = ACE.Database.Models.World.Spell;
 
 namespace ACE.Server.WorldObjects
 {
@@ -81,14 +80,14 @@ namespace ACE.Server.WorldObjects
             SpellId = spellId;
 
             SpellType = GetProjectileSpellType(spellId);
-            var spellPower = DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
+            var spell = DatManager.PortalDat.SpellTable.Spells[SpellId];
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
-                var spellLevel = CalculateSpellLevel(spellPower);
+                var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
 
@@ -210,7 +209,7 @@ namespace ACE.Server.WorldObjects
 
                 SpellType = GetProjectileSpellType(spellId);
                 var spellPower = spell.Power;
-                var spellLevel = CalculateSpellLevel(spellPower);
+                var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
 
                 CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
@@ -258,81 +257,58 @@ namespace ACE.Server.WorldObjects
             var targetPlayer = target as Player;
 
             // null damage -> target resisted; damage of -1 -> target already dead
-            if (damage != null || damage == -1)
+            if (damage != null && damage != -1)
             {
-                int newSpellTargetVital;
+                uint amount;
                 var percent = 0.0f;
 
                 if (spell.School == MagicSchool.LifeMagic && (spell.Name.Contains("Blight") || spell.Name.Contains("Tenacity")))
                 {
                     if (spell.Name.Contains("Blight"))
                     {
-                        newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
                         percent = (float)damage / targetPlayer.Mana.MaxValue;
-                        if (newSpellTargetVital <= 0)
-                            target.UpdateVital(target.Mana, 0);
-                        else
-                            target.UpdateVital(target.Mana, (uint)newSpellTargetVital);
+                        amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
                     }
                     else
                     {
-                        newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
                         percent = (float)damage / targetPlayer.Stamina.MaxValue;
-                        if (newSpellTargetVital <= 0)
-                            target.UpdateVital(target.Stamina, 0);
-                        else
-                            target.UpdateVital(target.Stamina, (uint)newSpellTargetVital);
+                        amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
                     }
                 }
                 else
                 {
-                    newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
-                    if (newSpellTargetVital <= 0)
-                        target.UpdateVital(target.Health, 0);
-                    else
-                        target.UpdateVital(target.Health, (uint)newSpellTargetVital);
+                    percent = (float)damage / target.Health.MaxValue;
+                    amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
+                    target.DamageHistory.Add(projectileCaster, amount);
                 }
 
                 string verb = null, plural = null;
-                percent = (float)damage / target.Health.MaxValue;
                 Strings.DeathMessages.TryGetValue(damageType, out var messages);
                 Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
                 var type = damageType.GetName().ToLower();
 
-                var amount = (uint)Math.Round(damage ?? 0.0f);
-                AttackList.Add(new AttackDamage(projectileCaster, amount, critical));
+                amount = (uint)Math.Round(damage.Value);    // full amount for debugging
+
+                if (player != null)
+                {
+                    // is percent for the vital, or always based on health?
+                    var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new AttackConditions());
+                    player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                }
+
+                if (targetPlayer != null)
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                    //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
 
                 if (target.Health.Current <= 0)
                 {
-                    target.UpdateVital(target.Health, 0);
-                    //target.OnDeath();
                     target.Die();
 
                     if (player != null)
                     {
-                        if ((target as Player) == null)
-                            player.EarnXP((long)target.XpOverride, true);
-
-                        var topDamager = AttackDamage.GetTopDamager(AttackList);
-                        if (topDamager != null)
-                            target.Killer = topDamager.Guid.Full;
-
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
-
-                        if (targetPlayer != null)
-                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} has killed you!", ChatMessageType.Broadcast));
+                        player.EarnXP((long)target.XpOverride);
                     }
-                }
-                else
-                {
-                    if (player != null)
-                    {
-                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
-                        player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                    }
-
-                    if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                 }
             }
             else

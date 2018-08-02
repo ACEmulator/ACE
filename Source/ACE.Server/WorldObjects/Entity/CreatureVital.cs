@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects.Entity
                     derivationTotal += wil * creature.Self.Current;
 
                     derivationTotal *= formula.AbilityMultiplier;
-                    total = (uint)Math.Ceiling((double)derivationTotal / (double)formula.Divisor);
+                    total = (uint)Math.Round((double)derivationTotal / (double)formula.Divisor);
                 }
 
                 total += StartingValue + Ranks;

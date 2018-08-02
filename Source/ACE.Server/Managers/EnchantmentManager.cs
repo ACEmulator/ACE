@@ -208,9 +208,21 @@ namespace ACE.Server.Managers
             if (vitae.StatModValue < minVitae)
                 vitae.StatModValue = minVitae;
 
+            RemoveAllEnchantments();
             SaveDatabase();
 
             return vitae.StatModValue;
+        }
+
+        /// <summary>
+        /// Removes all enchantments except for vitae
+        /// Called on player death
+        /// </summary>
+        public void RemoveAllEnchantments()
+        {
+            var enchantments = Enchantments.Where(e => e.SpellId != (int)Spell.Vitae).ToList();
+            foreach (var enchantment in enchantments)
+                WorldObject.RemoveEnchantment(enchantment.SpellId);
         }
 
         /// <summary>
@@ -285,7 +297,7 @@ namespace ACE.Server.Managers
         public void SaveDatabase()
         {
             if (Player == null) return;
-            var saveChain = Player.GetSaveChain();
+            var saveChain = Player.GetSaveChain(false);
             saveChain.EnqueueChain();
         }
 

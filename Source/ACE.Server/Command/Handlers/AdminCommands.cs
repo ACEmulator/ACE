@@ -652,7 +652,7 @@ namespace ACE.Server.Command.Handlers
                         var wo = session.Player.CurrentLandblock?.GetObject(guid);
 
                         if (wo is Creature creature)
-                            creature.Smite(session.Player.Guid);
+                            creature.Smite(session.Player);
                     }
                 }
                 else
@@ -681,7 +681,7 @@ namespace ACE.Server.Command.Handlers
                     // playerSession will be null when the character is not found
                     if (playerSession != null)
                     {
-                        playerSession.Player.Smite(session.Player.Guid);
+                        playerSession.Player.Smite(session.Player);
                         return;
                     }
 
@@ -700,7 +700,7 @@ namespace ACE.Server.Command.Handlers
                         return;
 
                     if (wo != null)
-                        wo.Smite(session.Player.Guid);
+                        wo.Smite(session.Player);
                 }
                 else
                 {

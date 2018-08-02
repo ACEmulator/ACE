@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
                 sendMsg = true;
             }
 
-            if (sendMsg && FirstEnterWorldDone)
+            if (sendMsg && FirstEnterWorldDone.Value)
             {
                 var message = new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle);
                 Session.Network.EnqueueSend(message);

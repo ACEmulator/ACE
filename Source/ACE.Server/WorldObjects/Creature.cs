@@ -32,10 +32,6 @@ namespace ACE.Server.WorldObjects
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
-
-            InitPhysics = true;
-
-            CombatMode = CombatMode.NonCombat;
         }
 
         /// <summary>
@@ -44,14 +40,13 @@ namespace ACE.Server.WorldObjects
         public Creature(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-
-            InitPhysics = true;
-
-            CombatMode = CombatMode.NonCombat;
         }
 
         private void SetEphemeralValues()
         {
+            CombatMode = CombatMode.NonCombat;
+            DamageHistory = new DamageHistory(this);
+
             if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
                 GenerateNewFace();
 
@@ -225,7 +220,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
-        public bool IsAlive { get; set; }
+        public bool IsAlive { get => Health.Current > 0; }
 
         public double RespawnTime { get; set; }
 
@@ -621,6 +616,9 @@ namespace ACE.Server.WorldObjects
                 }
             }
         }
+
+        public bool IsExhausted { get => Stamina.Current == 0; }
+
 
         /// <summary>
         /// Called every ~5 seconds for Creatures

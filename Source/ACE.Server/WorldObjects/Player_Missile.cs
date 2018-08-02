@@ -19,6 +19,16 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject MissileTarget;
 
+        public PowerAccuracy GetAccuracyRange()
+        {
+            if (AccuracyLevel < 0.33f)
+                return PowerAccuracy.Low;
+            else if (AccuracyLevel < 0.66f)
+                return PowerAccuracy.Medium;
+            else
+                return PowerAccuracy.High;
+        }
+
         /// <summary>
         /// Called by network packet handler 0xA - GameActionTargetedMissileAttack
         /// </summary>
@@ -66,7 +76,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var creature = target as Creature;
-            if (MissileTarget == null || creature.Health.Current <= 0)
+            if (!IsAlive || MissileTarget == null || creature.Health.Current <= 0)
             {
                 MissileTarget = null;
                 return;
@@ -95,16 +105,22 @@ namespace ACE.Server.WorldObjects
             }
             else
                 MissileTarget = null;
+
+            // stamina usage
+            // TODO: ensure enough stamina for attack
+            // TODO: verify formulas - double/triple cost for bow/xbow?
+            var staminaCost = GetAttackStamina(GetAccuracyRange());
+            UpdateVitalDelta(Stamina, -staminaCost);
         }
 
         public override float GetAimHeight(WorldObject target)
         {
-            switch (AttackHeight)
+            switch (AttackHeight.Value)
             {
-                case AttackHeight.High: return 1.0f;
-                case AttackHeight.Medium: return 2.0f;
+                case ACE.Entity.Enum.AttackHeight.High: return 1.0f;
+                case ACE.Entity.Enum.AttackHeight.Medium: return 2.0f;
                 //case AttackHeight.Low: return target.Height;
-                case AttackHeight.Low: return 3.0f;
+                case ACE.Entity.Enum.AttackHeight.Low: return 3.0f;
             }
             return 2.0f;
         }

@@ -135,17 +135,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the current vital to a new value
         /// </summary>
-        public override void UpdateVital(CreatureVital vital, uint newVal)
+        /// <returns>The actual change in the vital, after clamping between 0 and MaxVital</returns>
+        public override int UpdateVital(CreatureVital vital, int newVal)
         {
+            var change = base.UpdateVital(vital, newVal);
+
+            if (change != 0)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (vital.Current != newVal && newVal <= 0)
+                if (change != 0 && vital.Current == 0)
                     OnExhausted();
-            }
 
-            base.UpdateVital(vital, newVal);
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+            }
+            return change;
         }
     }
 }

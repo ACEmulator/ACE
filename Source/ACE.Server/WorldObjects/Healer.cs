@@ -92,8 +92,9 @@ namespace ACE.Server.WorldObjects
             // heal up
             var healAmount = GetHealAmount(healer, target, out var critical, out var staminaCost);
 
-            healer.UpdateVitalDelta(healer.Stamina, -staminaCost);
+            healer.UpdateVitalDelta(healer.Stamina, (int)(-staminaCost));
             target.UpdateVitalDelta(target.Health, healAmount);
+            target.DamageHistory.OnHeal(healAmount);
 
             var updateHealth = new GameMessagePrivateUpdateAttribute2ndLevel(target, Vital.Health, target.Health.Current);
             var crit = critical ? "expertly " : "";

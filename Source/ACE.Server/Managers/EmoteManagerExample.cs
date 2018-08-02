@@ -392,7 +392,7 @@ namespace ACE.Server.Managers
                 case EmoteType.KillSelf:
 
                     if (player != null)
-                        player.Smite(WorldObject.Guid);
+                        player.Smite(WorldObject);
                     break;
 
                 case EmoteType.LocalBroadcast:

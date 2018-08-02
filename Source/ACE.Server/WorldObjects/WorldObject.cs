@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 
 using log4net;
@@ -14,7 +13,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -71,8 +69,6 @@ namespace ACE.Server.WorldObjects
 
         public EmoteManager EmoteManager;
         public EnchantmentManager EnchantmentManager;
-
-        public List<AttackDamage> AttackList = new List<AttackDamage>();
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
@@ -772,46 +768,6 @@ namespace ACE.Server.WorldObjects
         public virtual void Close(WorldObject closer)
         {
             // empty base, override in child objects
-        }
-
-        /// <summary>
-        /// Applies some amount of damage to this world object from source
-        /// </summary>
-        /// <param name="source">The attacker / source of damage</param>
-        /// <param name="_amount">The amount of damage rounded</param>
-        public virtual void TakeDamage(WorldObject source, float _amount, bool crit = false)
-        {
-            // currently only handles creature types
-            if (!(this is Creature)) return;
-            var monster = this as Creature;
-
-            var player = source is Player ? source as Player : null;
-
-            var amount = (uint)Math.Round(_amount);
-            var newMonsterHealth = (int)(monster.Health.Current - amount);
-
-            AttackList.Add(new AttackDamage(source, amount, crit));
-
-            // apply damage
-            if (newMonsterHealth > 0)
-                monster.Health.Current = (uint)newMonsterHealth;
-            else
-            {
-                monster.Health.Current = 0;
-                monster.OnDeath();
-                monster.Die();
-
-                if (player != null)
-                {
-                    var topDamager = AttackDamage.GetTopDamager(AttackList);
-                    if (topDamager != null)
-                        monster.Killer = topDamager.Guid.Full;
-
-                    var deathMessage = monster.GetDeathMessage(source, crit);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, monster.Name), ChatMessageType.Broadcast));
-                    player.EarnXP((long)monster.XpOverride);
-                }
-            }
         }
 
         /// <summary>
