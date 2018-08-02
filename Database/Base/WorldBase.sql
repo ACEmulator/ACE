@@ -187,10 +187,10 @@ CREATE TABLE `recipe` (
   `salvage_Type` int(10) unsigned NOT NULL DEFAULT '0',
   `success_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of object to create upon successful application of this recipe',
   `success_Amount` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Amount of objects to create upon successful application of this recipe',
-  `success_Message` text NOT NULL,
+  `success_Message` text,
   `fail_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of object to create upon failing application of this recipe',
   `fail_Amount` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Amount of objects to create upon failing application of this recipe',
-  `fail_Message` text NOT NULL,
+  `fail_Message` text,
   `data_Id` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `recipe_uidx` (`recipe_Id`)
@@ -209,7 +209,7 @@ CREATE TABLE `recipe_component` (
   `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
   `destroy_Chance` double NOT NULL DEFAULT '0',
   `destroy_Amount` int(10) unsigned NOT NULL DEFAULT '0',
-  `destroy_Message` text NOT NULL,
+  `destroy_Message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_component` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -353,7 +353,7 @@ CREATE TABLE `recipe_mods_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe Mod',
   `stat` int(10) NOT NULL DEFAULT '0',
-  `value` text NOT NULL,
+  `value` text,
   `enum` int(10) NOT NULL DEFAULT '0',
   `unknown_1` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -375,7 +375,7 @@ CREATE TABLE `recipe_requirements_bool` (
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` bit(1) NOT NULL,
   `enum` int(10) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -395,7 +395,7 @@ CREATE TABLE `recipe_requirements_d_i_d` (
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` int(10) unsigned NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -415,7 +415,7 @@ CREATE TABLE `recipe_requirements_float` (
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` double NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -435,7 +435,7 @@ CREATE TABLE `recipe_requirements_i_i_d` (
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` int(10) unsigned NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -455,7 +455,7 @@ CREATE TABLE `recipe_requirements_int` (
   `stat` int(10) NOT NULL DEFAULT '0',
   `value` int(10) NOT NULL DEFAULT '0',
   `enum` int(10) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -473,9 +473,9 @@ CREATE TABLE `recipe_requirements_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
   `stat` int(10) NOT NULL DEFAULT '0',
-  `value` text NOT NULL,
+  `value` text,
   `enum` int(10) NOT NULL DEFAULT '0',
-  `message` text NOT NULL,
+  `message` text,
   PRIMARY KEY (`id`),
   KEY `recipe_idx` (`recipe_Id`),
   CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`recipe_Id`) ON DELETE CASCADE ON UPDATE NO ACTION

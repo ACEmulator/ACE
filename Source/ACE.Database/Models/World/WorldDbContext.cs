@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -337,7 +337,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.FailMessage)
-                    .IsRequired()
                     .HasColumnName("fail_Message")
                     .HasColumnType("text");
 
@@ -362,7 +361,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SuccessMessage)
-                    .IsRequired()
                     .HasColumnName("success_Message")
                     .HasColumnType("text");
 
@@ -393,7 +391,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.DestroyMessage)
-                    .IsRequired()
                     .HasColumnName("destroy_Message")
                     .HasColumnType("text");
 
@@ -697,7 +694,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Value)
-                    .IsRequired()
                     .HasColumnName("value")
                     .HasColumnType("text");
 
@@ -722,7 +718,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
@@ -761,7 +756,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
@@ -800,7 +794,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
@@ -839,7 +832,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
@@ -878,7 +870,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
@@ -918,7 +909,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
@@ -932,7 +922,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Value)
-                    .IsRequired()
                     .HasColumnName("value")
                     .HasColumnType("text");
 
