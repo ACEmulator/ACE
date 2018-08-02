@@ -298,7 +298,6 @@ namespace ACE.Database.Models.World
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Message)
-                    .IsRequired()
                     .HasColumnName("message")
                     .HasColumnType("text");
 
