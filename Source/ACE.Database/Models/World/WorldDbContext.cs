@@ -83,8 +83,8 @@ namespace ACE.Database.Models.World
                 entity.HasIndex(e => e.TargetWCID)
                     .HasName("target_idx");
 
-                entity.HasIndex(e => new { e.RecipeId, e.TargetWCID, e.SourceWCID })
-                    .HasName("recipe_target_source_uidx")
+                entity.HasIndex(e => new { e.RecipeId, e.SourceWCID, e.TargetWCID })
+                    .HasName("recipe_source_target_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");

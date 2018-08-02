@@ -35,10 +35,10 @@ DROP TABLE IF EXISTS `cook_book`;
 CREATE TABLE `cook_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this cook book instance',
   `recipe_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique Id of Recipe',
-  `target_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of the target object for this recipe',
   `source_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of the source object for this recipe',
+  `target_W_C_I_D` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Weenie Class Id of the target object for this recipe',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `recipe_target_source_uidx` (`recipe_Id`,`target_W_C_I_D`,`source_W_C_I_D`),
+  UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   KEY `source_idx` (`source_W_C_I_D`),
   KEY `target_idx` (`target_W_C_I_D`),
   CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
