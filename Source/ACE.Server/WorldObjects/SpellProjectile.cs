@@ -337,7 +337,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
 
-            Console.WriteLine("Projectile PhysicsState: " + PhysicsObj.State);
+            //Console.WriteLine("SpellProjectile PhysicsState: " + PhysicsObj.State);
 
             var pos = Location.Pos;
             var rotation = Location.Rotation;
