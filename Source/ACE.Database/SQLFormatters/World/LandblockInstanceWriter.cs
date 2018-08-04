@@ -6,12 +6,12 @@ using ACE.Database.Models.World;
 
 namespace ACE.Database.SQLFormatters.World
 {
-    public class LandblockInstancesWriter : SQLWriter
+    public class LandblockInstanceWriter : SQLWriter
     {
         /// <summary>
         /// Default is formed from: (input.ObjCellId >> 16).ToString("X4")
         /// </summary>
-        public string GetDefaultFileName(LandblockInstances input)
+        public string GetDefaultFileName(LandblockInstance input)
         {
             string fileName = (input.ObjCellId >> 16).ToString("X4");
             fileName = IllegalInFileName.Replace(fileName, "_");
@@ -20,15 +20,15 @@ namespace ACE.Database.SQLFormatters.World
             return fileName;
         }
 
-        public void CreateSQLDELETEStatement(IList<LandblockInstances> input, StreamWriter writer)
+        public void CreateSQLDELETEStatement(IList<LandblockInstance> input, StreamWriter writer)
         {
             throw new NotImplementedException();
         }
 
         /// <exception cref="System.Exception">WeenieClassNames must be set, and must have a record for input.ClassId.</exception>
-        public void CreateSQLINSERTStatement(IList<LandblockInstances> input, StreamWriter writer)
+        public void CreateSQLINSERTStatement(IList<LandblockInstance> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `landblock_instances` (`weenie_Class_Id`, `guid`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `link_Slot`, `link_Controller`)");
+            writer.WriteLine("INSERT INTO `landblock_instance` (`weenie_Class_Id`, `guid`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `link_Slot`, `link_Controller`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {

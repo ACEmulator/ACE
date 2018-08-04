@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.World
 {
-    public partial class LandblockInstances
+    public partial class LandblockInstance
     {
         public uint Id { get; set; }
         public int? Landblock { get; set; }

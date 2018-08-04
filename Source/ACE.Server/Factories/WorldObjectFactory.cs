@@ -202,7 +202,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
-        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstances> sourceObjects)
+        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects)
         {
             var results = new List<WorldObject>();
 

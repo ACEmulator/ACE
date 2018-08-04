@@ -106,13 +106,13 @@ CREATE TABLE `house_portal` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `landblock_instances`
+-- Table structure for table `landblock_instance`
 --
 
-DROP TABLE IF EXISTS `landblock_instances`;
+DROP TABLE IF EXISTS `landblock_instance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `landblock_instances` (
+CREATE TABLE `landblock_instance` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance',
   `landblock` int(5) GENERATED ALWAYS AS ((`obj_Cell_Id` >> 16)) VIRTUAL,
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of object to spawn',

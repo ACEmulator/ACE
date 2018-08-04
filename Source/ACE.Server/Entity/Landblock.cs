@@ -181,7 +181,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the landblock
         /// </summary>
-        public void LoadMeshes(List<LandblockInstances> objects)
+        public void LoadMeshes(List<LandblockInstance> objects)
         {
             CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
             LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
@@ -219,7 +219,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the weenies on the landblock
         /// </summary>
-        public void LoadWeenies(List<LandblockInstances> objects)
+        public void LoadWeenies(List<LandblockInstance> objects)
         {
             WeenieMeshes = new List<ModelMesh>();
 

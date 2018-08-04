@@ -51,7 +51,7 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
                     .AsNoTracking()
                     .Where(r => r.Guid >= min && r.Guid <= max)
                     .ToList();
@@ -246,13 +246,13 @@ namespace ACE.Database
         /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
-        public Dictionary<Weenie, List<LandblockInstances>> GetCachedWeenieInstancesByLandblock(ushort landblock)
+        public Dictionary<Weenie, List<LandblockInstance>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
-            var builder = new Dictionary<uint, List<LandblockInstances>>();
+            var builder = new Dictionary<uint, List<LandblockInstance>>();
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock)
                     .ToList();
@@ -262,11 +262,11 @@ namespace ACE.Database
                     if (builder.TryGetValue(result.WeenieClassId, out var value))
                         value.Add(result);
                     else
-                        builder[result.WeenieClassId] = new List<LandblockInstances>() { result };
+                        builder[result.WeenieClassId] = new List<LandblockInstance>() { result };
                 }
             }
 
-            var ret = new Dictionary<Weenie, List<LandblockInstances>>();
+            var ret = new Dictionary<Weenie, List<LandblockInstance>>();
 
             foreach (var kvp in builder)
                 ret[GetCachedWeenie(kvp.Key)] = kvp.Value;
@@ -275,7 +275,7 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<ushort, List<LandblockInstances>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstances>>();
+        private readonly ConcurrentDictionary<ushort, List<LandblockInstance>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstance>>();
 
         /// <summary>
         /// Returns the number of LandblockInstances currently cached.
@@ -288,14 +288,14 @@ namespace ACE.Database
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
-        public List<LandblockInstances> GetCachedInstancesByLandblock(ushort landblock)
+        public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
         {
             if (cachedLandblockInstances.TryGetValue(landblock, out var value))
                 return value;
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock)
                     .ToList();

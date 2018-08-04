@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -19,7 +19,7 @@ namespace ACE.Database.Models.World
         public virtual DbSet<Encounter> Encounter { get; set; }
         public virtual DbSet<Event> Event { get; set; }
         public virtual DbSet<HousePortal> HousePortal { get; set; }
-        public virtual DbSet<LandblockInstances> LandblockInstances { get; set; }
+        public virtual DbSet<LandblockInstance> LandblockInstance { get; set; }
         public virtual DbSet<PointsOfInterest> PointsOfInterest { get; set; }
         public virtual DbSet<Quest> Quest { get; set; }
         public virtual DbSet<Recipe> Recipe { get; set; }
@@ -200,9 +200,9 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.OriginZ).HasColumnName("origin_Z");
             });
 
-            modelBuilder.Entity<LandblockInstances>(entity =>
+            modelBuilder.Entity<LandblockInstance>(entity =>
             {
-                entity.ToTable("landblock_instances");
+                entity.ToTable("landblock_instance");
 
                 entity.HasIndex(e => e.Guid)
                     .HasName("guid_UNIQUE")
@@ -251,7 +251,7 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
 
                 entity.HasOne(d => d.WeenieClass)
-                    .WithMany(p => p.LandblockInstances)
+                    .WithMany(p => p.LandblockInstance)
                     .HasForeignKey(d => d.WeenieClassId)
                     .HasConstraintName("wcid_instance");
             });
