@@ -124,7 +124,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
 
             PhysicsObj.State = CalculatedPhysicsState();
-            Console.WriteLine($"InitPhysicsObj({Name}) - {PhysicsObj.State}");
+            //Console.WriteLine($"InitPhysicsObj({Name}) - {PhysicsObj.State}");
 
             /*var player = this as Player;
             if (creature != null && player == null)
