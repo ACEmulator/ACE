@@ -15,6 +15,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -227,7 +228,8 @@ namespace ACE.Server.WorldObjects
 
             writer.Write((uint)physicsDescriptionFlag);
 
-            var physicsState = PhysicsObj != null ? PhysicsObj.State : PhysicsState.DefaultState;
+            var defaultObjState = GetProperty(PropertyInt.PhysicsState);
+            var physicsState = PhysicsObj != null ? PhysicsObj.State : defaultObjState != null ? (PhysicsState)defaultObjState : PhysicsGlobals.DefaultState;
             writer.Write((uint)physicsState);
 
             // PhysicsDescriptionFlag.Movement takes priorty over PhysicsDescription.FlagAnimationFrame

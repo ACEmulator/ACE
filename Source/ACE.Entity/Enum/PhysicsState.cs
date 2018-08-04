@@ -30,7 +30,5 @@ namespace ACE.Entity.Enum
         EdgeSlide                     = 0x00400000,
         Sledding                      = 0x00800000,
         Frozen                        = 0x01000000,
-
-        DefaultState                  = EdgeSlide | LightingOn | Gravity | ReportCollisions
     }
 }
