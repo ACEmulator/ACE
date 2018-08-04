@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2018-08-04
+[mcreedjr]
+* Fix logic error in learnspellsinbulk method which caused certain spells to not be learned when invoked
 
 ### 2018-08-01
 [gmriggs]

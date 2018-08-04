@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
             var spellTable = DatManager.PortalDat.SpellTable;
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
 
-            for (uint x = 0; x < PlayerSpellID.Length; x++)
+            for (uint x = 1; x < PlayerSpellID.Length; x++)
             {
                 if (spellTable.Spells.ContainsKey(PlayerSpellID[x]))
                 {
