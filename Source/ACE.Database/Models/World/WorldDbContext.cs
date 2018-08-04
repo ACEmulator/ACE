@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -1876,7 +1876,7 @@ namespace ACE.Database.Models.World
                     .HasName("emotetype_idx");
 
                 entity.HasIndex(e => new { e.EmoteId, e.Order })
-                    .HasName("weenieid_order_uidx")
+                    .HasName("emoteid_order_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
