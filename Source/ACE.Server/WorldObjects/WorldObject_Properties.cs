@@ -523,92 +523,159 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        public bool GetPhysicsState(PhysicsState state)
+        {
+            if (PhysicsObj == null) return false;
+            return PhysicsObj.State.HasFlag(state);
+        }
+
+        public void SetPhysicsState(PhysicsState state, bool? value)
+        {
+            if (PhysicsObj != null)
+            {
+                if (value.HasValue && value.Value)
+                    PhysicsObj.State |= state;
+                else
+                    PhysicsObj.State &= ~state;   // default to false for null, should get real physics default for this field
+            }
+        }
+
+        public void SetPhysicsPropertyState(PropertyBool property, PhysicsState state, bool? value)
+        {
+            if (value.HasValue)
+            {
+                SetProperty(property, value.Value);
+                SetPhysicsState(state, value);
+            }
+            else
+            {
+                RemoveProperty(property);
+                SetPhysicsState(state, false);  // default to false for null, should get real physics default for this field
+            }
+        }
+
         // ========================================
         // ======= Physics State Properties =======
         // ========================================
         // used in CalculatedPhysicsState()
-        public bool? Static { get; set; }
+        public bool? Static
+        {
+            get => GetPhysicsState(PhysicsState.Static);
+            set => SetPhysicsState(PhysicsState.Static, value);
+        }
 
         public bool? Ethereal
         {
-            get => GetProperty(PropertyBool.Ethereal);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Ethereal); else SetProperty(PropertyBool.Ethereal, value.Value); }
+            get => GetProperty(PropertyBool.Ethereal);  // TODO: property or physics state?
+            set => SetPhysicsPropertyState(PropertyBool.Ethereal, PhysicsState.Ethereal, value);
         }
 
         public bool? ReportCollisions
         {
             get => GetProperty(PropertyBool.ReportCollisions);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.ReportCollisions); else SetProperty(PropertyBool.ReportCollisions, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.ReportCollisions, PhysicsState.ReportCollisions, value);
         }
 
         public bool? IgnoreCollisions
         {
             get => GetProperty(PropertyBool.IgnoreCollisions);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCollisions); else SetProperty(PropertyBool.IgnoreCollisions, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.IgnoreCollisions, PhysicsState.IgnoreCollisions, value);
         }
 
         public bool? NoDraw
         {
             get => GetProperty(PropertyBool.NoDraw);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.NoDraw); else SetProperty(PropertyBool.NoDraw, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.NoDraw, PhysicsState.NoDraw, value);
         }
 
-        public bool? Missile { get; set; }
+        public bool? Missile
+        {
+            get => GetPhysicsState(PhysicsState.Missile);
+            set => SetPhysicsState(PhysicsState.Missile, value);
+        }
 
-        public bool? Pushable { get; set; }
+        public bool? Pushable
+        {
+            get => GetPhysicsState(PhysicsState.Pushable);
+            set => SetPhysicsState(PhysicsState.Missile, value);
+        }
 
-        public bool? AlignPath { get; set; }
+        public bool? AlignPath
+        {
+            get => GetPhysicsState(PhysicsState.AlignPath);
+            set => SetPhysicsState(PhysicsState.AlignPath, value);
+        }
 
-        public bool? PathClipped { get; set; }
+        public bool? PathClipped
+        {
+            get => GetPhysicsState(PhysicsState.PathClipped);
+            set => SetPhysicsState(PhysicsState.PathClipped, value);
+        }
 
         public bool? GravityStatus
         {
             get => GetProperty(PropertyBool.GravityStatus);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.GravityStatus); else SetProperty(PropertyBool.GravityStatus, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.GravityStatus, PhysicsState.Gravity, value);
         }
 
         public bool? LightsStatus
         {
             get => GetProperty(PropertyBool.LightsStatus);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.LightsStatus); else SetProperty(PropertyBool.LightsStatus, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.LightsStatus, PhysicsState.LightingOn, value);
         }
 
-        public bool? ParticleEmitter { get; set; }
+        public bool? ParticleEmitter
+        {
+            get => GetPhysicsState(PhysicsState.ParticleEmitter);
+            set => SetPhysicsState(PhysicsState.ParticleEmitter, value);
+        }
 
-        public bool? Hidden { get; set; }
+        public bool? Hidden
+        {
+            get => GetPhysicsState(PhysicsState.Hidden);
+            set => SetPhysicsState(PhysicsState.Hidden, value);
+        }
 
         public bool? ScriptedCollision
         {
             get => GetProperty(PropertyBool.ScriptedCollision);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.ScriptedCollision); else SetProperty(PropertyBool.ScriptedCollision, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.ScriptedCollision, PhysicsState.ScriptedCollision, value);
         }
 
         public bool? Inelastic
         {
             get => GetProperty(PropertyBool.Inelastic);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Inelastic); else SetProperty(PropertyBool.Inelastic, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.Inelastic, PhysicsState.Inelastic, value);
         }
 
-        public bool? Cloaked { get; set; }
+        public bool? Cloaked
+        {
+            get => GetPhysicsState(PhysicsState.Cloaked);
+            set => SetPhysicsState(PhysicsState.Cloaked, value);
+        }
 
         public bool? ReportCollisionsAsEnvironment
         {
             get => GetProperty(PropertyBool.ReportCollisionsAsEnvironment);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.ReportCollisionsAsEnvironment); else SetProperty(PropertyBool.ReportCollisionsAsEnvironment, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.ReportCollisionsAsEnvironment, PhysicsState.ReportCollisionsAsEnvironment, value);
         }
 
         public bool? AllowEdgeSlide
         {
             get => GetProperty(PropertyBool.AllowEdgeSlide);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.AllowEdgeSlide); else SetProperty(PropertyBool.AllowEdgeSlide, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.AllowEdgeSlide, PhysicsState.EdgeSlide, value);
         }
 
-        public bool? Sledding { get; set; }
+        public bool? Sledding
+        {
+            get => GetPhysicsState(PhysicsState.Sledding);
+            set => SetPhysicsState(PhysicsState.Sledding, value);
+        }
 
         public bool? IsFrozen
         {
             get => GetProperty(PropertyBool.IsFrozen);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.IsFrozen); else SetProperty(PropertyBool.IsFrozen, value.Value); }
+            set => SetPhysicsPropertyState(PropertyBool.IsFrozen, PhysicsState.Frozen, value);
         }
 
 

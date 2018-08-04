@@ -15,7 +15,6 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
 
-using PhysicsState = ACE.Server.Physics.PhysicsState;
 using Spell = ACE.Database.Models.World.Spell;
 
 namespace ACE.Server.WorldObjects
@@ -56,19 +55,6 @@ namespace ACE.Server.WorldObjects
             // Override weenie description defaults
             ValidLocations = null;
             DefaultScriptId = null;
-
-            // Override physics state defaults
-            ReportCollisions = true;
-            Missile = true;
-            AlignPath = true;
-            PathClipped = true;
-            Ethereal = false;
-            IgnoreCollisions = false;
-            CurrentMotionState = null;
-            Placement = null;
-
-            // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
-            InitPhysicsObj();
         }
 
         /// <summary>
@@ -77,6 +63,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellId"></param>
         public void Setup(uint spellId)
         {
+            InitPhysicsObj();
+
             SpellId = spellId;
 
             SpellType = GetProjectileSpellType(spellId);
@@ -199,9 +187,6 @@ namespace ACE.Server.WorldObjects
                 NoDraw = true;
                 Cloaked = true;
                 LightsStatus = false;
-
-                PhysicsObj.State |= PhysicsState.Ethereal | PhysicsState.IgnoreCollisions | PhysicsState.NoDraw | PhysicsState.Cloaked;
-                PhysicsObj.State &= ~(PhysicsState.ReportCollisions | PhysicsState.LightingOn);
 
                 PhysicsObj.set_active(false);
 
@@ -337,15 +322,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            // TODO: Right now WorldObjects have two fields for physics states: one under the root object and another
-            // under PhysicsObj. These should be combined into one field to eliminate the duplicaiton.
-            // Also: the physics state should be set on object creation so some of this code may need to be removed
-            // once the field duplication is done.
-            PhysicsObj.State = PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
-            PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
+            // runtime changes to default state
+            ReportCollisions = true;
+            Missile = true;
+            AlignPath = true;
+            PathClipped = true;
+            Ethereal = false;
+            IgnoreCollisions = false;
 
-            if (useGravity)
-                PhysicsObj.State |= PhysicsState.Gravity;
+            if (useGravity) GravityStatus = true;
+
+            CurrentMotionState = null;
+            Placement = null;
+
+            // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
+
+            Console.WriteLine("Projectile PhysicsState: " + PhysicsObj.State);
 
             var pos = Location.Pos;
             var rotation = Location.Rotation;

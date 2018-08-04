@@ -104,7 +104,6 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj = new PhysicsObj();
             PhysicsObj.set_object_guid(Guid);
-            //PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
 
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
@@ -124,9 +123,8 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
 
-            var physicsState = GetProperty(PropertyInt.PhysicsState);
-            if (physicsState != null)
-                PhysicsObj.State |= (Physics.PhysicsState)physicsState;
+            PhysicsObj.State = CalculatedPhysicsState();
+            Console.WriteLine($"InitPhysicsObj({Name}) - {PhysicsObj.State}");
 
             /*var player = this as Player;
             if (creature != null && player == null)
@@ -479,7 +477,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {physicsDescriptionFlag.ToString()}" + " (" + (uint)physicsDescriptionFlag + ")");
                         break;
                     case "physicsstate":
-                        var physicsState = CalculatedPhysicsState();
+                        var physicsState = PhysicsObj.State;
                         sb.AppendLine($"{prop.Name} = {physicsState.ToString()}" + " (" + (uint)physicsState + ")");
                         break;
                     //case "propertiesspellid":
@@ -570,23 +568,11 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // This fully replaces the PhysicsState of the WO, use sparingly?
-        //public void SetPhysicsState(PhysicsState state, bool packet = true)
-        //{
-        //    PhysicsState = state;
-
-        //    if (packet)
-        //    {
-        //        EnqueueBroadcastPhysicsState();
-        //    }
-        //}
-
         public void EnqueueBroadcastPhysicsState()
         {
             if (CurrentLandblock != null)
             {
-                var physicsState = CalculatedPhysicsState();
-                GameMessage msg = new GameMessageSetState(this, physicsState);
+                GameMessage msg = new GameMessageSetState(this, PhysicsObj.State);
                 CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }

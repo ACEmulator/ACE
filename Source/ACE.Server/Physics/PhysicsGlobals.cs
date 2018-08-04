@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics
 {
