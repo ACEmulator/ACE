@@ -16,7 +16,6 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesCreateList = new HashSet<BiotaPropertiesCreateList>();
             BiotaPropertiesDID = new HashSet<BiotaPropertiesDID>();
             BiotaPropertiesEmote = new HashSet<BiotaPropertiesEmote>();
-            BiotaPropertiesEmoteAction = new HashSet<BiotaPropertiesEmoteAction>();
             BiotaPropertiesEnchantmentRegistry = new HashSet<BiotaPropertiesEnchantmentRegistry>();
             BiotaPropertiesEventFilter = new HashSet<BiotaPropertiesEventFilter>();
             BiotaPropertiesFloat = new HashSet<BiotaPropertiesFloat>();
@@ -54,7 +53,6 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesCreateList> BiotaPropertiesCreateList { get; set; }
         public ICollection<BiotaPropertiesDID> BiotaPropertiesDID { get; set; }
         public ICollection<BiotaPropertiesEmote> BiotaPropertiesEmote { get; set; }
-        public ICollection<BiotaPropertiesEmoteAction> BiotaPropertiesEmoteAction { get; set; }
         public ICollection<BiotaPropertiesEnchantmentRegistry> BiotaPropertiesEnchantmentRegistry { get; set; }
         public ICollection<BiotaPropertiesEventFilter> BiotaPropertiesEventFilter { get; set; }
         public ICollection<BiotaPropertiesFloat> BiotaPropertiesFloat { get; set; }

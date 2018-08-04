@@ -166,13 +166,8 @@ namespace ACE.Database.SQLFormatters.World
 
             if (input.WeeniePropertiesEmote != null && input.WeeniePropertiesEmote.Count > 0)
             {
-                writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesEmote.OrderBy(r => r.EmoteSetId).ThenBy(r => r.Category).ToList(), writer);
-            }
-            if (input.WeeniePropertiesEmoteAction != null && input.WeeniePropertiesEmoteAction.Count > 0)
-            {
-                writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesEmoteAction.OrderBy(r => r.EmoteSetId).ThenBy(r => r.EmoteCategory).ThenBy(r => r.Order).ToList(), writer);
+                //writer.WriteLine(); // This is not needed because CreateSQLINSERTStatement will take care of it for us on each Recipe.
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesEmote.OrderBy(r => r.Category).ToList(), writer);
             }
 
             if (input.WeeniePropertiesCreateList != null && input.WeeniePropertiesCreateList.Count > 0)
@@ -418,75 +413,83 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(uint weenieClassID, IList<WeeniePropertiesEmote> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `weenie_properties_emote` (`object_Id`, `emote_Set_Id`, `category`, `probability`, `weenie_Class_Id`, `style`, `substyle`, `quest`, `vendor_Type`, `min_Health`, `max_Health`)");
-
-            var lineGenerator = new Func<int, string>(i =>
+            foreach (var value in input)
             {
-                var categoryLabel = Enum.GetName(typeof(EmoteCategory), input[i].Category);
+                writer.WriteLine();
+                writer.WriteLine("INSERT INTO `weenie_properties_emote` (`object_Id`, `category`, `probability`, `weenie_Class_Id`, `style`, `substyle`, `quest`, `vendor_Type`, `min_Health`, `max_Health`)");
+
+                var categoryLabel = Enum.GetName(typeof(EmoteCategory), value.Category);
                 if (categoryLabel != null)
                     categoryLabel = $" /* {categoryLabel} */";
 
                 string weenieClassIdLabel = null;
-                if (WeenieNames != null && input[i].WeenieClassId.HasValue)
+                if (WeenieNames != null && value.WeenieClassId.HasValue)
                 {
-                    WeenieNames.TryGetValue(input[i].WeenieClassId.Value, out weenieClassIdLabel);
+                    WeenieNames.TryGetValue(value.WeenieClassId.Value, out weenieClassIdLabel);
                     if (weenieClassIdLabel != null)
                         weenieClassIdLabel = $" /* {weenieClassIdLabel} */";
                 }
 
                 string styleLabel = null;
-                if (input[i].Style.HasValue)
+                if (value.Style.HasValue)
                 {
-                    styleLabel = Enum.GetName(typeof(MotionStance), input[i].Style.Value);
+                    styleLabel = Enum.GetName(typeof(MotionStance), value.Style.Value);
                     if (styleLabel != null)
                         styleLabel = $" /* {styleLabel} */";
                 }
 
                 string substyleLabel = null;
-                if (input[i].Substyle.HasValue)
+                if (value.Substyle.HasValue)
                 {
-                    substyleLabel = Enum.GetName(typeof(MotionCommand), input[i].Substyle.Value);
+                    substyleLabel = Enum.GetName(typeof(MotionCommand), value.Substyle.Value);
                     if (substyleLabel != null)
                         substyleLabel = $" /* {substyleLabel} */";
                 }
 
                 string vendorTypeLabel = null;
-                if (input[i].VendorType.HasValue)
+                if (value.VendorType.HasValue)
                 {
-                    vendorTypeLabel = Enum.GetName(typeof(VendorType), input[i].VendorType.Value);
+                    vendorTypeLabel = Enum.GetName(typeof(VendorType), value.VendorType.Value);
                     if (vendorTypeLabel != null)
                         vendorTypeLabel = $" /* {vendorTypeLabel} */";
                 }
 
-                return
-                    $"{weenieClassID}, " +
-                    $"{input[i].EmoteSetId}, " +
-                    $"{input[i].Category.ToString().PadLeft(2)}{categoryLabel}, " +
-                    $"{input[i].Probability.ToString(CultureInfo.InvariantCulture).PadLeft(6)}, " +
-                    $"{input[i].WeenieClassId}{weenieClassIdLabel}, " +
-                    $"{input[i].Style}{styleLabel}, " +
-                    $"{input[i].Substyle}{substyleLabel}, " +
-                    $"{GetSQLString(input[i].Quest)}, " +
-                    $"{input[i].VendorType}{vendorTypeLabel}, " +
-                    $"{input[i].MinHealth}, " +
-                    $"{input[i].MaxHealth})";
-            });
+                var output = "VALUES (" +
+                             $"{weenieClassID}, " +
+                             $"{value.Category.ToString().PadLeft(2)}{categoryLabel}, " +
+                             $"{value.Probability.ToString(CultureInfo.InvariantCulture).PadLeft(6)}, " +
+                             $"{value.WeenieClassId}{weenieClassIdLabel}, " +
+                             $"{value.Style}{styleLabel}, " +
+                             $"{value.Substyle}{substyleLabel}, " +
+                             $"{GetSQLString(value.Quest)}, " +
+                             $"{value.VendorType}{vendorTypeLabel}, " +
+                             $"{value.MinHealth}, " +
+                             $"{value.MaxHealth}" +
+                             ");";
 
-            ValuesWriter(input.Count, lineGenerator, writer);
+                output = FixNullFields(output);
+
+                writer.WriteLine(output);
+
+                if (value.WeeniePropertiesEmoteAction != null && value.WeeniePropertiesEmoteAction.Count > 0)
+                {
+                    writer.WriteLine();
+                    writer.WriteLine("SET @parent_id = LAST_INSERT_ID();");
+
+                    writer.WriteLine();
+                    CreateSQLINSERTStatement(value.WeeniePropertiesEmoteAction.OrderBy(r => r.Order).ToList(), writer);
+                }
+            }
         }
 
-        public void CreateSQLINSERTStatement(uint weenieClassID, IList<WeeniePropertiesEmoteAction> input, StreamWriter writer)
+        private void CreateSQLINSERTStatement(IList<WeeniePropertiesEmoteAction> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `weenie_properties_emote_action` (`object_Id`, `emote_Set_Id`, `emote_Category`, `order`, `type`, `delay`, `extent`, `motion`, `message`, `test_String`, `min`, `max`, `min_64`, `max_64`, `min_Dbl`, `max_Dbl`, " +
+            writer.WriteLine("INSERT INTO `weenie_properties_emote_action` (`emote_Id`, `order`, `type`, `delay`, `extent`, `motion`, `message`, `test_String`, `min`, `max`, `min_64`, `max_64`, `min_Dbl`, `max_Dbl`, " +
                              "`stat`, `display`, `amount`, `amount_64`, `hero_X_P_64`, `percent`, `spell_Id`, `wealth_Rating`, `treasure_Class`, `treasure_Type`, `p_Script`, `sound`, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`, " +
                              "`obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_X`, `angles_Y`, `angles_Z`, `angles_W`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
-                var categoryLabel = Enum.GetName(typeof(EmoteCategory), input[i].EmoteCategory);
-                if (categoryLabel != null)
-                    categoryLabel = $" /* {categoryLabel} */";
-
                 string typeLabel = Enum.GetName(typeof(EmoteType), input[i].Type);
                 if (typeLabel != null)
                     typeLabel = $" /* {typeLabel} */";
@@ -532,9 +535,7 @@ namespace ACE.Database.SQLFormatters.World
                 }
 
                 return
-                    $"{weenieClassID}, " +
-                    $"{input[i].EmoteSetId}, " +
-                    $"{input[i].EmoteCategory.ToString().PadLeft(2)}{categoryLabel}, " +
+                    $"@parent_id, " +
                     $"{input[i].Order.ToString().PadLeft(2)}, " +
                     $"{input[i].Type.ToString().PadLeft(3)}{typeLabel}, " +
                     $"{input[i].Delay}, " +

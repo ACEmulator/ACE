@@ -18,7 +18,6 @@ namespace ACE.Database.Models.World
             WeeniePropertiesCreateList = new HashSet<WeeniePropertiesCreateList>();
             WeeniePropertiesDID = new HashSet<WeeniePropertiesDID>();
             WeeniePropertiesEmote = new HashSet<WeeniePropertiesEmote>();
-            WeeniePropertiesEmoteAction = new HashSet<WeeniePropertiesEmoteAction>();
             WeeniePropertiesEventFilter = new HashSet<WeeniePropertiesEventFilter>();
             WeeniePropertiesFloat = new HashSet<WeeniePropertiesFloat>();
             WeeniePropertiesGenerator = new HashSet<WeeniePropertiesGenerator>();
@@ -49,7 +48,6 @@ namespace ACE.Database.Models.World
         public ICollection<WeeniePropertiesCreateList> WeeniePropertiesCreateList { get; set; }
         public ICollection<WeeniePropertiesDID> WeeniePropertiesDID { get; set; }
         public ICollection<WeeniePropertiesEmote> WeeniePropertiesEmote { get; set; }
-        public ICollection<WeeniePropertiesEmoteAction> WeeniePropertiesEmoteAction { get; set; }
         public ICollection<WeeniePropertiesEventFilter> WeeniePropertiesEventFilter { get; set; }
         public ICollection<WeeniePropertiesFloat> WeeniePropertiesFloat { get; set; }
         public ICollection<WeeniePropertiesGenerator> WeeniePropertiesGenerator { get; set; }

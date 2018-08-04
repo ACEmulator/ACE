@@ -308,9 +308,7 @@ namespace ACE.Server.WorldObjects
             if (emote == null)
                 return false;
 
-            var actions = Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == emote.EmoteSetId && a.EmoteCategory == emote.Category);
-
-            foreach (var action in actions)
+            foreach (var action in emote.BiotaPropertiesEmoteAction)
                 EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
 
             return true;
@@ -684,7 +682,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual void HeartBeat()
-        {            
+        {
             // Do Stuff
             if (!(FirstEnterWorldDone ?? false))
             {

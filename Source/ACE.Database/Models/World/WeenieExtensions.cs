@@ -264,7 +264,6 @@ namespace ACE.Database.Models.World
                     ObjectId = biota.Id,
                     Category = value.Category,
                     Probability = value.Probability,
-                    EmoteSetId = value.EmoteSetId,
                     WeenieClassId = value.WeenieClassId,
                     Style = value.Style,
                     Substyle = value.Substyle,
@@ -274,58 +273,66 @@ namespace ACE.Database.Models.World
                     MaxHealth = value.MaxHealth,
                 };
 
-                biota.BiotaPropertiesEmote.Add(emote);
-            }
-
-            foreach (var value in weenie.WeeniePropertiesEmoteAction)
-            {
-                var action = new BiotaPropertiesEmoteAction
+                foreach (var value2 in value.WeeniePropertiesEmoteAction)
                 {
-                    ObjectId = biota.Id,
-                    EmoteCategory = value.EmoteCategory,
-                    EmoteSetId = value.EmoteSetId,
-                    Type = value.Type,
-                    Order = value.Order,
-                    Delay = value.Delay,
-                    Extent = value.Extent,
-                    Motion = value.Motion,
-                    Message = value.Message,
-                    TestString = value.TestString,
-                    Min = value.Min,
-                    Max = value.Max,
-                    Min64 = value.Min64,
-                    Max64 = value.Max64,
-                    MinDbl = value.MinDbl,
-                    MaxDbl = value.MaxDbl,
-                    Stat = value.Stat,
-                    Display = value.Display,
-                    Amount = value.Amount,
-                    Amount64 = value.Amount64,
-                    HeroXP64 = value.HeroXP64,
-                    Percent = value.Percent,
-                    SpellId = value.SpellId,
-                    WealthRating = value.WealthRating,
-                    TreasureClass = value.TreasureClass,
-                    TreasureType = value.TreasureType,
-                    PScript = value.PScript,
-                    Sound = value.Sound,
-                    DestinationType = value.DestinationType,
-                    WeenieClassId = value.WeenieClassId,
-                    StackSize = value.StackSize,
-                    Palette = value.Palette,
-                    Shade = value.Shade,
-                    TryToBond = value.TryToBond,
-                    ObjCellId = value.ObjCellId,
-                    OriginX = value.OriginX,
-                    OriginY = value.OriginY,
-                    OriginZ = value.OriginZ,
-                    AnglesW = value.AnglesW,
-                    AnglesX = value.AnglesX,
-                    AnglesY = value.AnglesY,
-                    AnglesZ = value.AnglesZ,
-                };
+                    var action = new BiotaPropertiesEmoteAction
+                    {
+                        // EmoteId is a foreign key to Emote.Id.
+                        // If we don't set this to a non-zero number, EF will not auto-set this for us when we add this biota to the database.
+                        // We set it to uint.MaxValue instead of 1 because 1 is more likely to be a valid foreign key. We don't want to enter a valid foreign key.
+                        // We just want to enter a value that forces EF to update the record with the correft foreign key. If this behavior changes in the future and we set it to 1,
+                        // we're more likely to run into an unnoticed issue (because 1 would not throw an exception and uint.MaxValue probably would).
+                        // We put this here instead of in ShardDatabase for efficiency.
+                        // It's possible this might be fixable with a attribute in the Emote or EmoteAction classes.
+                        // It's also possible we don't have the schema defined in a way that helps scaffolding identify the relationship.
+                        // Mag-nus 2018-08-04
+                        EmoteId = uint.MaxValue,
 
-                biota.BiotaPropertiesEmoteAction.Add(action);
+                        Order = value2.Order,
+                        Type = value2.Type,
+                        Delay = value2.Delay,
+                        Extent = value2.Extent,
+                        Motion = value2.Motion,
+                        Message = value2.Message,
+                        TestString = value2.TestString,
+                        Min = value2.Min,
+                        Max = value2.Max,
+                        Min64 = value2.Min64,
+                        Max64 = value2.Max64,
+                        MinDbl = value2.MinDbl,
+                        MaxDbl = value2.MaxDbl,
+                        Stat = value2.Stat,
+                        Display = value2.Display,
+                        Amount = value2.Amount,
+                        Amount64 = value2.Amount64,
+                        HeroXP64 = value2.HeroXP64,
+                        Percent = value2.Percent,
+                        SpellId = value2.SpellId,
+                        WealthRating = value2.WealthRating,
+                        TreasureClass = value2.TreasureClass,
+                        TreasureType = value2.TreasureType,
+                        PScript = value2.PScript,
+                        Sound = value2.Sound,
+                        DestinationType = value2.DestinationType,
+                        WeenieClassId = value2.WeenieClassId,
+                        StackSize = value2.StackSize,
+                        Palette = value2.Palette,
+                        Shade = value2.Shade,
+                        TryToBond = value2.TryToBond,
+                        ObjCellId = value2.ObjCellId,
+                        OriginX = value2.OriginX,
+                        OriginY = value2.OriginY,
+                        OriginZ = value2.OriginZ,
+                        AnglesW = value2.AnglesW,
+                        AnglesX = value2.AnglesX,
+                        AnglesY = value2.AnglesY,
+                        AnglesZ = value2.AnglesZ,
+                    };
+
+                    emote.BiotaPropertiesEmoteAction.Add(action);
+                }
+
+                biota.BiotaPropertiesEmote.Add(emote);
             }
 
 
