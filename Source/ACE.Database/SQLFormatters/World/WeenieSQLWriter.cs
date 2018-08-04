@@ -284,9 +284,9 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(uint weenieClassID, IList<WeeniePropertiesPosition> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `weenie_properties_position` (`object_Id`, `position_Type`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_X`, `angles_Y`, `angles_Z`, `angles_W`)");
+            writer.WriteLine("INSERT INTO `weenie_properties_position` (`object_Id`, `position_Type`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ}, {input[i].AnglesW}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesW}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -486,7 +486,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_emote_action` (`emote_Id`, `order`, `type`, `delay`, `extent`, `motion`, `message`, `test_String`, `min`, `max`, `min_64`, `max_64`, `min_Dbl`, `max_Dbl`, " +
                              "`stat`, `display`, `amount`, `amount_64`, `hero_X_P_64`, `percent`, `spell_Id`, `wealth_Rating`, `treasure_Class`, `treasure_Type`, `p_Script`, `sound`, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`, " +
-                             "`obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_X`, `angles_Y`, `angles_Z`, `angles_W`)");
+                             "`obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -571,10 +571,10 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].OriginX}, " +
                     $"{input[i].OriginY}, " +
                     $"{input[i].OriginZ}, " +
+                    $"{input[i].AnglesW}, " +
                     $"{input[i].AnglesX}, " +
                     $"{input[i].AnglesY}, " +
-                    $"{input[i].AnglesZ}, " +
-                    $"{input[i].AnglesW})";
+                    $"{input[i].AnglesZ})";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -617,7 +617,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, " +
                              "`delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, " +
-                             "`obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_X`, `angles_Y`, `angles_Z`, `angles_W`)");
+                             "`obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
             var lineGenerator = new Func<int, string>(i =>
                 $"{weenieClassID}, " +
@@ -635,10 +635,10 @@ namespace ACE.Database.SQLFormatters.World
                 $"{input[i].OriginX}, " +
                 $"{input[i].OriginY}, " +
                 $"{input[i].OriginZ}, " +
+                $"{input[i].AnglesW}, " +
                 $"{input[i].AnglesX}, " +
                 $"{input[i].AnglesY}, " +
-                $"{input[i].AnglesZ}, " +
-                $"{input[i].AnglesW})");
+                $"{input[i].AnglesZ})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

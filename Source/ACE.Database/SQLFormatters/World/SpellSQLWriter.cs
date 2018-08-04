@@ -352,6 +352,11 @@ namespace ACE.Database.SQLFormatters.World
                 spellLineHdr += ", `position_Origin_Z`";
                 spellLine += $", {input.PositionOriginZ}";
             }
+            if (input.PositionAnglesW.HasValue)
+            {
+                spellLineHdr += ", `position_Angles_W`";
+                spellLine += $", {input.PositionAnglesW}";
+            }
             if (input.PositionAnglesX.HasValue)
             {
                 spellLineHdr += ", `position_Angles_X`";
@@ -366,11 +371,6 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `position_Angles_Z`";
                 spellLine += $", {input.PositionAnglesZ}";
-            }
-            if (input.PositionAnglesW.HasValue)
-            {
-                spellLineHdr += ", `position_Angles_W`";
-                spellLine += $", {input.PositionAnglesW}";
             }
 
             if (input.MinPower.HasValue)
