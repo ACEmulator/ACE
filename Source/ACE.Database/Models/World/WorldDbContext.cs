@@ -938,10 +938,6 @@ namespace ACE.Database.Models.World
                     .HasName("metaspell_id_uidx")
                     .IsUnique();
 
-                entity.HasIndex(e => e.SpellId)
-                    .HasName("spell_id_uidx")
-                    .IsUnique();
-
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Align)
@@ -1209,8 +1205,6 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.SpellFormulaComp8ComponentId)
                     .HasColumnName("spell_Formula_Comp_8_Component_Id")
                     .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellId).HasColumnName("spell_Id");
 
                 entity.Property(e => e.SpreadAngle).HasColumnName("spread_Angle");
 

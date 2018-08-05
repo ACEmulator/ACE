@@ -493,8 +493,7 @@ DROP TABLE IF EXISTS `spell`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `spell` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Spell',
-  `spell_Id` int(10) unsigned NOT NULL COMMENT 'Unique Spell Id',
+  `id` int(10) unsigned NOT NULL COMMENT 'Unique Id of this Spell',
   `name` text NOT NULL,
   `description` text NOT NULL,
   `school` int(10) NOT NULL DEFAULT '0',
@@ -593,7 +592,6 @@ CREATE TABLE `spell` (
   `number` int(10) DEFAULT NULL,
   `number_Variance` float DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `spell_id_uidx` (`spell_Id`),
   UNIQUE KEY `metaspell_id_uidx` (`meta_Spell_Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Spell Table Extended Data';
 /*!40101 SET character_set_client = @saved_cs_client */;
