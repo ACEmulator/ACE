@@ -197,6 +197,40 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Determine Player's PK status and whether it matches the target Player
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="target"></param>
+        /// <param name="spell"></param>
+        /// <returns>
+        /// A null return signifies either player or target are not Player World objects, so check does not apply
+        /// A true return value indicates that the Player passed the PK status check
+        /// A false return value indicates that the Player failed the PK status check
+        /// </returns>
+        protected bool? CheckPKStatusVsTarget(Player player, Player target, SpellBase spell)
+        {
+            if (player == null || target == null)
+                return null;
+
+            bool isSpellHarmful = IsSpellHarmful(spell);
+            if (isSpellHarmful)
+            {
+                // Ensure that a non-PK cannot cast harmful spells on another player
+                if (player.PlayerKillerStatus == PlayerKillerStatus.NPK)
+                    return false;
+
+                // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
+                if (player.PlayerKillerStatus != PlayerKillerStatus.NPK)
+                {
+                    if (player.PlayerKillerStatus != target.PlayerKillerStatus)
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Determines whether the target for the spell being cast is invalid
         /// </summary>
         /// <param name="spell"></param>
@@ -647,7 +681,7 @@ namespace ACE.Server.WorldObjects
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
                                 }
                                 else
-                                    recall = PositionType.LastPortal;
+                                    recall = PositionType.LinkedLifestone;
                                 break;
                             case 48: // Primary Portal Recall
                                 if (!player.Positions.ContainsKey(PositionType.LinkedPortalOne))
@@ -656,7 +690,7 @@ namespace ACE.Server.WorldObjects
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
-                                    recall = PositionType.LastPortal;
+                                    recall = PositionType.LinkedPortalOne;
                                 break;
                             case 2647: // Secondary Portal Recall
                                 if (!player.Positions.ContainsKey(PositionType.LinkedPortalTwo))
@@ -665,7 +699,7 @@ namespace ACE.Server.WorldObjects
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
-                                    recall = PositionType.LastPortal;
+                                    recall = PositionType.LinkedPortalTwo;
                                 break;
                         }
 
@@ -693,8 +727,42 @@ namespace ACE.Server.WorldObjects
                         }
                         break;
                     case SpellType.PortalLink:
-                        if (targetPlayer != null)
-                            enchantmentStatus.message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
+                        if (player != null)
+                        {
+                            switch (spell.MetaSpellId)
+                            {
+                                case 47:    // Primary Portal Tie
+                                    if (target.WeenieType == WeenieType.Portal)
+                                    {
+                                        var targetPortal = target as Portal;
+                                        if (!targetPortal.NoTie)
+                                            player.LinkedPortalOne = targetPortal.Destination;
+                                        else
+                                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
+                                    }
+                                    else
+                                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Primary Portal Tie cannot be cast on {target.Name}"));
+                                    break;
+                                case 2644:  // Lifestone Tie
+                                    if (target.WeenieType == WeenieType.LifeStone)
+                                        player.LinkedLifestone = target.Location;
+                                    else
+                                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Lifestone Tie cannot be cast on {target.Name}"));
+                                    break;
+                                case 2646:  // Secondary Portal Tie
+                                    if (target.WeenieType == WeenieType.Portal)
+                                    {
+                                        var targetPortal = target as Portal;
+                                        if (!targetPortal.NoTie)
+                                            player.LinkedPortalTwo = targetPortal.Destination;
+                                        else
+                                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
+                                    }
+                                    else
+                                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Secondary Portal Tie cannot be cast on {target.Name}"));
+                                    break;
+                            }
+                        }
                         break;
                     case SpellType.PortalSummon:
                         uint portalId = 0;
@@ -732,7 +800,7 @@ namespace ACE.Server.WorldObjects
                             portal.EnterWorld();
 
                             // Create portal decay
-                            double portalDespawnTime = spellStatMod.PortalLifetime ?? 15.0f;
+                            double portalDespawnTime = spellStatMod.PortalLifetime ?? 60.0f;
                             ActionChain despawnChain = new ActionChain();
                             despawnChain.AddDelaySeconds(portalDespawnTime);
                             despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));

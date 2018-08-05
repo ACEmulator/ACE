@@ -348,6 +348,7 @@ namespace ACE.Server.WorldObjects
             OutOfMana,
             OutOfOtherVital,
             CastFailed,
+            InvalidPKStatus,
             Success
         }
 
@@ -374,7 +375,7 @@ namespace ACE.Server.WorldObjects
             }
             if (target == null)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.TargetNotAcquired));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.TargetNotAcquired));
                 targetCategory = TargetCategory.UnDef;
                 return;
             }
@@ -383,7 +384,7 @@ namespace ACE.Server.WorldObjects
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             if (!spellTable.Spells.ContainsKey(spellId))
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
                 return;
             }
 
@@ -392,7 +393,7 @@ namespace ACE.Server.WorldObjects
             if (IsInvalidTarget(spell, target))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{spell.Name} cannot be cast on {target.Name}."));
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                 return;
             }
 
@@ -400,13 +401,13 @@ namespace ACE.Server.WorldObjects
             if (spellStatMod == null)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
                 return;
             }
 
             if (player.IsBusy == true)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YoureTooBusy));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
                 return;
             }
             else
@@ -425,31 +426,8 @@ namespace ACE.Server.WorldObjects
 
                     if (distanceTo > spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod)
                     {
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicTargetOutOfRange),
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicTargetOutOfRange),
                             new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
-                        player.IsBusy = false;
-                        return;
-                    }
-                }
-            }
-
-            bool isSpellHarmful = IsSpellHarmful(spell);
-            if (isSpellHarmful)
-            {
-                // Ensure that a non-PK cannot cast harmful spells on another player
-                if ((target is Player) && (player.PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.NPK))
-                {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
-                    player.IsBusy = false;
-                    return;
-                }
-
-                // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
-                if ((target is Player) && (player.PlayerKillerStatus != ACE.Entity.Enum.PlayerKillerStatus.NPK))
-                {
-                    if (player.PlayerKillerStatus != target.PlayerKillerStatus)
-                    {
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.InvalidPkStatus));
                         player.IsBusy = false;
                         return;
                     }
@@ -491,6 +469,13 @@ namespace ACE.Server.WorldObjects
             else
                 player.UpdateVital(player.Mana, player.Mana.Current - manaUsed);
             #endregion
+
+            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
+            if (checkPKStatusVsTarget != null)
+            {
+                if (checkPKStatusVsTarget == false)
+                    castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
+            }
 
             ActionChain spellChain = new ActionChain();
 
@@ -589,8 +574,6 @@ namespace ACE.Server.WorldObjects
                                 CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 targetDeath = LifeMagic(target, spell, spellStatMod, out uint damage, out bool critical, out enchantmentStatus);
 
-                                if (enchantmentStatus.message != null)
-                                    player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                 if (targetDeath == true)
                                 {
                                     creatureTarget.Die();
@@ -600,6 +583,11 @@ namespace ACE.Server.WorldObjects
 
                                     if ((creatureTarget as Player) == null)
                                         player.EarnXP((long)target.XpOverride, true);
+                                }
+                                else
+                                {
+                                    if (enchantmentStatus.message != null)
+                                        player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                 }
                                 break;
 
@@ -611,7 +599,12 @@ namespace ACE.Server.WorldObjects
                                     if (guidTarget == Guid)
                                         CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                     else
-                                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                    {
+                                        if (spell.MetaSpellType == SpellType.PortalLink)
+                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                        else
+                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                    }
                                     if (enchantmentStatus.message != null)
                                         player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                 }
@@ -650,6 +643,26 @@ namespace ACE.Server.WorldObjects
                         }
                     });
                     break;
+                case CastingPreCheckStatus.InvalidPKStatus:
+                    spellChain.AddAction(this, () =>
+                    {
+                        switch (spell.School)
+                        {
+                            case MagicSchool.WarMagic:
+                                WarMagic(target, spell, spellStatMod);
+                                break;
+                            case MagicSchool.VoidMagic:
+                                VoidMagic(target, spell, spellStatMod);
+                                break;
+                            case MagicSchool.ItemEnchantment:
+                                // Do nothing
+                                break;
+                            default:
+                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                break;
+                        }
+                    });
+                    break;
                 default:
                     spellChain.AddAction(this, () => CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f)));
                     break;
@@ -665,11 +678,17 @@ namespace ACE.Server.WorldObjects
 
             switch (castingPreCheckStatus)
             {
+                case CastingPreCheckStatus.InvalidPKStatus:
+                    if (spell.School == MagicSchool.LifeMagic || spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.ItemEnchantment)
+                        spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.InvalidPkStatus)));
+                    else
+                        spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None)));
+                    break;
                 case CastingPreCheckStatus.OutOfMana:
-                    spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.YouDontHaveEnoughManaToCast)));
+                    spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDontHaveEnoughManaToCast)));
                     break;
                 default:
-                    spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None)));
+                    spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None)));
                     break;
             }
 
