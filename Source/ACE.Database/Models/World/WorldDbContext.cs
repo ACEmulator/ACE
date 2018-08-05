@@ -90,17 +90,11 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
-                entity.Property(e => e.SourceWCID)
-                    .HasColumnName("source_W_C_I_D")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SourceWCID).HasColumnName("source_W_C_I_D");
 
-                entity.Property(e => e.TargetWCID)
-                    .HasColumnName("target_W_C_I_D")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.TargetWCID).HasColumnName("target_W_C_I_D");
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.CookBook)
@@ -123,22 +117,17 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.CellX)
                     .HasColumnName("cell_X")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(5)");
 
                 entity.Property(e => e.CellY)
                     .HasColumnName("cell_Y")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(5)");
 
                 entity.Property(e => e.Landblock)
                     .HasColumnName("landblock")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(5)");
 
-                entity.Property(e => e.WeenieClassId)
-                    .HasColumnName("weenie_Class_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
             });
 
             modelBuilder.Entity<Event>(entity =>
@@ -168,8 +157,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.State)
                     .HasColumnName("state")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
             });
 
             modelBuilder.Entity<HousePortal>(entity =>
@@ -305,16 +293,13 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.MaxSolves)
                     .HasColumnName("max_Solves")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.MinDelta)
-                    .HasColumnName("min_Delta")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.MinDelta).HasColumnName("min_Delta");
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -328,37 +313,23 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.DataId)
-                    .HasColumnName("data_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.DataId).HasColumnName("data_Id");
 
-                entity.Property(e => e.Difficulty)
-                    .HasColumnName("difficulty")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Difficulty).HasColumnName("difficulty");
 
-                entity.Property(e => e.FailAmount)
-                    .HasColumnName("fail_Amount")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FailAmount).HasColumnName("fail_Amount");
 
-                entity.Property(e => e.FailDestroySourceAmount)
-                    .HasColumnName("fail_Destroy_Source_Amount")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FailDestroySourceAmount).HasColumnName("fail_Destroy_Source_Amount");
 
-                entity.Property(e => e.FailDestroySourceChance)
-                    .HasColumnName("fail_Destroy_Source_Chance")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FailDestroySourceChance).HasColumnName("fail_Destroy_Source_Chance");
 
                 entity.Property(e => e.FailDestroySourceMessage)
                     .HasColumnName("fail_Destroy_Source_Message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.FailDestroyTargetAmount)
-                    .HasColumnName("fail_Destroy_Target_Amount")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FailDestroyTargetAmount).HasColumnName("fail_Destroy_Target_Amount");
 
-                entity.Property(e => e.FailDestroyTargetChance)
-                    .HasColumnName("fail_Destroy_Target_Chance")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FailDestroyTargetChance).HasColumnName("fail_Destroy_Target_Chance");
 
                 entity.Property(e => e.FailDestroyTargetMessage)
                     .HasColumnName("fail_Destroy_Target_Message")
@@ -368,41 +339,25 @@ namespace ACE.Database.Models.World
                     .HasColumnName("fail_Message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.FailWCID)
-                    .HasColumnName("fail_W_C_I_D")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FailWCID).HasColumnName("fail_W_C_I_D");
 
-                entity.Property(e => e.SalvageType)
-                    .HasColumnName("salvage_Type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SalvageType).HasColumnName("salvage_Type");
 
-                entity.Property(e => e.Skill)
-                    .HasColumnName("skill")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Skill).HasColumnName("skill");
 
-                entity.Property(e => e.SuccessAmount)
-                    .HasColumnName("success_Amount")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SuccessAmount).HasColumnName("success_Amount");
 
-                entity.Property(e => e.SuccessDestroySourceAmount)
-                    .HasColumnName("success_Destroy_Source_Amount")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SuccessDestroySourceAmount).HasColumnName("success_Destroy_Source_Amount");
 
-                entity.Property(e => e.SuccessDestroySourceChance)
-                    .HasColumnName("success_Destroy_Source_Chance")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SuccessDestroySourceChance).HasColumnName("success_Destroy_Source_Chance");
 
                 entity.Property(e => e.SuccessDestroySourceMessage)
                     .HasColumnName("success_Destroy_Source_Message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.SuccessDestroyTargetAmount)
-                    .HasColumnName("success_Destroy_Target_Amount")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SuccessDestroyTargetAmount).HasColumnName("success_Destroy_Target_Amount");
 
-                entity.Property(e => e.SuccessDestroyTargetChance)
-                    .HasColumnName("success_Destroy_Target_Chance")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SuccessDestroyTargetChance).HasColumnName("success_Destroy_Target_Chance");
 
                 entity.Property(e => e.SuccessDestroyTargetMessage)
                     .HasColumnName("success_Destroy_Target_Message")
@@ -412,13 +367,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("success_Message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.SuccessWCID)
-                    .HasColumnName("success_W_C_I_D")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SuccessWCID).HasColumnName("success_W_C_I_D");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Unknown1).HasColumnName("unknown_1");
             });
 
             modelBuilder.Entity<RecipeMod>(entity =>
@@ -432,8 +383,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.DataId)
                     .HasColumnName("data_Id")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ExecutesOnSuccess)
                     .HasColumnName("executes_On_Success")
@@ -441,27 +391,21 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Health)
                     .HasColumnName("health")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.InstanceId)
                     .HasColumnName("instance_Id")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Mana)
                     .HasColumnName("mana")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stamina)
                     .HasColumnName("stamina")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown7)
                     .HasColumnName("unknown_7")
@@ -469,8 +413,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Unknown9)
                     .HasColumnName("unknown_9")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeMod)
@@ -489,22 +432,17 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeModId)
-                    .HasColumnName("recipe_Mod_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -527,26 +465,19 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeModId)
-                    .HasColumnName("recipe_Mod_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsDID)
@@ -565,26 +496,19 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeModId)
-                    .HasColumnName("recipe_Mod_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsFloat)
@@ -603,26 +527,19 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeModId)
-                    .HasColumnName("recipe_Mod_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsIID)
@@ -641,27 +558,21 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeModId)
-                    .HasColumnName("recipe_Mod_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.HasOne(d => d.RecipeMod)
                     .WithMany(p => p.RecipeModsInt)
@@ -680,22 +591,17 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.RecipeModId)
-                    .HasColumnName("recipe_Mod_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Unknown1)
                     .HasColumnName("unknown_1")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -718,21 +624,17 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -755,25 +657,19 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsDID)
@@ -792,25 +688,19 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsFloat)
@@ -829,25 +719,19 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsIID)
@@ -866,26 +750,21 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.HasOne(d => d.Recipe)
                     .WithMany(p => p.RecipeRequirementsInt)
@@ -904,21 +783,17 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
 
-                entity.Property(e => e.RecipeId)
-                    .HasColumnName("recipe_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.Stat)
                     .HasColumnName("stat")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -948,9 +823,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("base_Intensity")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Bitfield)
-                    .HasColumnName("bitfield")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Bitfield).HasColumnName("bitfield");
 
                 entity.Property(e => e.Boost)
                     .HasColumnName("boost")
@@ -960,13 +833,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("boost_Variance")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.CasterEffect)
-                    .HasColumnName("caster_Effect")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.CasterEffect).HasColumnName("caster_Effect");
 
-                entity.Property(e => e.Category)
-                    .HasColumnName("category")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Category).HasColumnName("category");
 
                 entity.Property(e => e.ComponentLoss).HasColumnName("component_Loss");
 
@@ -1011,9 +880,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("dispel_School")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.DisplayOrder)
-                    .HasColumnName("display_Order")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.DisplayOrder).HasColumnName("display_Order");
 
                 entity.Property(e => e.DrainPercentage).HasColumnName("drain_Percentage");
 
@@ -1025,17 +892,11 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.ElementalModifier).HasColumnName("elemental_Modifier");
 
-                entity.Property(e => e.FizzleEffect)
-                    .HasColumnName("fizzle_Effect")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FizzleEffect).HasColumnName("fizzle_Effect");
 
-                entity.Property(e => e.FormulaVersion)
-                    .HasColumnName("formula_Version")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.FormulaVersion).HasColumnName("formula_Version");
 
-                entity.Property(e => e.IconId)
-                    .HasColumnName("icon_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.IconId).HasColumnName("icon_Id");
 
                 entity.Property(e => e.IgnoreMagicResist)
                     .HasColumnName("ignore_Magic_Resist")
@@ -1053,13 +914,9 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.LossPercent).HasColumnName("loss_Percent");
 
-                entity.Property(e => e.Mana)
-                    .HasColumnName("mana")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Mana).HasColumnName("mana");
 
-                entity.Property(e => e.ManaMod)
-                    .HasColumnName("mana_Mod")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ManaMod).HasColumnName("mana_Mod");
 
                 entity.Property(e => e.MaxBoostAllowed)
                     .HasColumnName("max_Boost_Allowed")
@@ -1069,14 +926,11 @@ namespace ACE.Database.Models.World
                     .HasColumnName("max_Power")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.MetaSpellId)
-                    .HasColumnName("meta_Spell_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.MetaSpellId).HasColumnName("meta_Spell_Id");
 
                 entity.Property(e => e.MetaSpellType)
                     .HasColumnName("meta_Spell_Type")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.MinPower)
                     .HasColumnName("min_Power")
@@ -1087,9 +941,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("name")
                     .HasColumnType("text");
 
-                entity.Property(e => e.NonComponentTargetType)
-                    .HasColumnName("non_Component_Target_Type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.NonComponentTargetType).HasColumnName("non_Component_Target_Type");
 
                 entity.Property(e => e.NonTracking)
                     .HasColumnName("non_Tracking")
@@ -1139,9 +991,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.PositionOriginZ).HasColumnName("position_Origin_Z");
 
-                entity.Property(e => e.Power)
-                    .HasColumnName("power")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Power).HasColumnName("power");
 
                 entity.Property(e => e.PowerVariance).HasColumnName("power_Variance");
 
@@ -1157,8 +1007,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.School)
                     .HasColumnName("school")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.SlayerCreatureType)
                     .HasColumnName("slayer_Creature_Type")
@@ -1174,37 +1023,21 @@ namespace ACE.Database.Models.World
                     .HasColumnName("source_Loss")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.SpellFormulaComp1ComponentId)
-                    .HasColumnName("spell_Formula_Comp_1_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp1ComponentId).HasColumnName("spell_Formula_Comp_1_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp2ComponentId)
-                    .HasColumnName("spell_Formula_Comp_2_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp2ComponentId).HasColumnName("spell_Formula_Comp_2_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp3ComponentId)
-                    .HasColumnName("spell_Formula_Comp_3_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp3ComponentId).HasColumnName("spell_Formula_Comp_3_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp4ComponentId)
-                    .HasColumnName("spell_Formula_Comp_4_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp4ComponentId).HasColumnName("spell_Formula_Comp_4_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp5ComponentId)
-                    .HasColumnName("spell_Formula_Comp_5_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp5ComponentId).HasColumnName("spell_Formula_Comp_5_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp6ComponentId)
-                    .HasColumnName("spell_Formula_Comp_6_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp6ComponentId).HasColumnName("spell_Formula_Comp_6_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp7ComponentId)
-                    .HasColumnName("spell_Formula_Comp_7_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp7ComponentId).HasColumnName("spell_Formula_Comp_7_Component_Id");
 
-                entity.Property(e => e.SpellFormulaComp8ComponentId)
-                    .HasColumnName("spell_Formula_Comp_8_Component_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SpellFormulaComp8ComponentId).HasColumnName("spell_Formula_Comp_8_Component_Id");
 
                 entity.Property(e => e.SpreadAngle).HasColumnName("spread_Angle");
 
@@ -1214,9 +1047,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.StatModVal).HasColumnName("stat_Mod_Val");
 
-                entity.Property(e => e.TargetEffect)
-                    .HasColumnName("target_Effect")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.TargetEffect).HasColumnName("target_Effect");
 
                 entity.Property(e => e.TransferBitfield).HasColumnName("transfer_Bitfield");
 
@@ -1377,8 +1208,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
-                    .HasColumnType("int(5)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(5)");
             });
 
             modelBuilder.Entity<WeeniePropertiesAnimPart>(entity =>
@@ -1395,9 +1225,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Index).HasColumnName("index");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesAnimPart)
@@ -1418,25 +1246,15 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.CPSpent)
-                    .HasColumnName("c_P_Spent")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.CPSpent).HasColumnName("c_P_Spent");
 
-                entity.Property(e => e.InitLevel)
-                    .HasColumnName("init_Level")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.InitLevel).HasColumnName("init_Level");
 
-                entity.Property(e => e.LevelFromCP)
-                    .HasColumnName("level_From_C_P")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LevelFromCP).HasColumnName("level_From_C_P");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesAttribute)
@@ -1457,29 +1275,17 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.CPSpent)
-                    .HasColumnName("c_P_Spent")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.CPSpent).HasColumnName("c_P_Spent");
 
-                entity.Property(e => e.CurrentLevel)
-                    .HasColumnName("current_Level")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.CurrentLevel).HasColumnName("current_Level");
 
-                entity.Property(e => e.InitLevel)
-                    .HasColumnName("init_Level")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.InitLevel).HasColumnName("init_Level");
 
-                entity.Property(e => e.LevelFromCP)
-                    .HasColumnName("level_From_C_P")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LevelFromCP).HasColumnName("level_From_C_P");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesAttribute2nd)
@@ -1502,123 +1308,81 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.ArmorVsAcid)
                     .HasColumnName("armor_Vs_Acid")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsBludgeon)
                     .HasColumnName("armor_Vs_Bludgeon")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsCold)
                     .HasColumnName("armor_Vs_Cold")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsElectric)
                     .HasColumnName("armor_Vs_Electric")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsFire)
                     .HasColumnName("armor_Vs_Fire")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsNether)
                     .HasColumnName("armor_Vs_Nether")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsPierce)
                     .HasColumnName("armor_Vs_Pierce")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.ArmorVsSlash)
                     .HasColumnName("armor_Vs_Slash")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.BH)
                     .HasColumnName("b_h")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.BaseArmor)
                     .HasColumnName("base_Armor")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.DType)
                     .HasColumnName("d_Type")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.Property(e => e.DVal)
                     .HasColumnName("d_Val")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.DVar)
-                    .HasColumnName("d_Var")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.DVar).HasColumnName("d_Var");
 
-                entity.Property(e => e.HLB)
-                    .HasColumnName("h_l_b")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.HLB).HasColumnName("h_l_b");
 
-                entity.Property(e => e.HLF)
-                    .HasColumnName("h_l_f")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.HLF).HasColumnName("h_l_f");
 
-                entity.Property(e => e.HRB)
-                    .HasColumnName("h_r_b")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.HRB).HasColumnName("h_r_b");
 
-                entity.Property(e => e.HRF)
-                    .HasColumnName("h_r_f")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.HRF).HasColumnName("h_r_f");
 
-                entity.Property(e => e.Key)
-                    .HasColumnName("key")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Key).HasColumnName("key");
 
-                entity.Property(e => e.LLB)
-                    .HasColumnName("l_l_b")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LLB).HasColumnName("l_l_b");
 
-                entity.Property(e => e.LLF)
-                    .HasColumnName("l_l_f")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LLF).HasColumnName("l_l_f");
 
-                entity.Property(e => e.LRB)
-                    .HasColumnName("l_r_b")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LRB).HasColumnName("l_r_b");
 
-                entity.Property(e => e.LRF)
-                    .HasColumnName("l_r_f")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LRF).HasColumnName("l_r_f");
 
-                entity.Property(e => e.MLB)
-                    .HasColumnName("m_l_b")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.MLB).HasColumnName("m_l_b");
 
-                entity.Property(e => e.MLF)
-                    .HasColumnName("m_l_f")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.MLF).HasColumnName("m_l_f");
 
-                entity.Property(e => e.MRB)
-                    .HasColumnName("m_r_b")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.MRB).HasColumnName("m_r_b");
 
-                entity.Property(e => e.MRF)
-                    .HasColumnName("m_r_f")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.MRF).HasColumnName("m_r_f");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesBodyPart)
@@ -1646,9 +1410,7 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'1'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithOne(p => p.WeeniePropertiesBook)
@@ -1675,9 +1437,7 @@ namespace ACE.Database.Models.World
                     .HasColumnType("varchar(255)")
                     .HasDefaultValueSql("'prewritten'");
 
-                entity.Property(e => e.AuthorId)
-                    .HasColumnName("author_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.AuthorId).HasColumnName("author_Id");
 
                 entity.Property(e => e.AuthorName)
                     .IsRequired()
@@ -1689,13 +1449,9 @@ namespace ACE.Database.Models.World
                     .HasColumnName("ignore_Author")
                     .HasColumnType("bit(1)");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.PageId)
-                    .HasColumnName("page_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.PageId).HasColumnName("page_Id");
 
                 entity.Property(e => e.PageText)
                     .IsRequired()
@@ -1721,13 +1477,9 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
@@ -1750,21 +1502,15 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.DestinationType)
                     .HasColumnName("destination_Type")
-                    .HasColumnType("tinyint(5)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("tinyint(5)");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.Property(e => e.Palette)
                     .HasColumnName("palette")
-                    .HasColumnType("tinyint(5)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("tinyint(5)");
 
-                entity.Property(e => e.Shade)
-                    .HasColumnName("shade")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Shade).HasColumnName("shade");
 
                 entity.Property(e => e.StackSize)
                     .HasColumnName("stack_Size")
@@ -1775,9 +1521,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("try_To_Bond")
                     .HasColumnType("bit(1)");
 
-                entity.Property(e => e.WeenieClassId)
-                    .HasColumnName("weenie_Class_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesCreateList)
@@ -1801,17 +1545,11 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesDID)
@@ -1831,17 +1569,13 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.Category)
-                    .HasColumnName("category")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Category).HasColumnName("category");
 
                 entity.Property(e => e.MaxHealth).HasColumnName("max_Health");
 
                 entity.Property(e => e.MinHealth).HasColumnName("min_Health");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
@@ -1914,9 +1648,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("display")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.EmoteId)
-                    .HasColumnName("emote_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.EmoteId).HasColumnName("emote_Id");
 
                 entity.Property(e => e.Extent)
                     .HasColumnName("extent")
@@ -1956,9 +1688,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
-                entity.Property(e => e.Order)
-                    .HasColumnName("order")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Order).HasColumnName("order");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
@@ -2010,9 +1740,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("try_To_Bond")
                     .HasColumnType("bit(1)");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.WealthRating)
                     .HasColumnName("wealth_Rating")
@@ -2041,12 +1769,9 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Event)
                     .HasColumnName("event")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesEventFilter)
@@ -2067,17 +1792,11 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesFloat)
@@ -2102,9 +1821,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.AnglesZ).HasColumnName("angles_Z");
 
-                entity.Property(e => e.Delay)
-                    .HasColumnName("delay")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Delay).HasColumnName("delay");
 
                 entity.Property(e => e.InitCreate)
                     .HasColumnName("init_Create")
@@ -2116,9 +1833,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
 
@@ -2138,9 +1853,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stack_Size")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.WeenieClassId)
-                    .HasColumnName("weenie_Class_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
 
                 entity.Property(e => e.WhenCreate)
                     .HasColumnName("when_Create")
@@ -2172,17 +1885,11 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
-                entity.Property(e => e.Value)
-                    .HasColumnName("value")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Value).HasColumnName("value");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesIID)
@@ -2203,18 +1910,13 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesInt)
@@ -2235,18 +1937,13 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")
-                    .HasColumnType("bigint(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("bigint(10)");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesInt64)
@@ -2266,9 +1963,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Length).HasColumnName("length");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.Property(e => e.Offset).HasColumnName("offset");
 
@@ -2335,41 +2030,23 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.AdjustPP)
-                    .HasColumnName("adjust_P_P")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.AdjustPP).HasColumnName("adjust_P_P");
 
-                entity.Property(e => e.InitLevel)
-                    .HasColumnName("init_Level")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.InitLevel).HasColumnName("init_Level");
 
-                entity.Property(e => e.LastUsedTime)
-                    .HasColumnName("last_Used_Time")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LastUsedTime).HasColumnName("last_Used_Time");
 
-                entity.Property(e => e.LevelFromPP)
-                    .HasColumnName("level_From_P_P")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.LevelFromPP).HasColumnName("level_From_P_P");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.PP)
-                    .HasColumnName("p_p")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.PP).HasColumnName("p_p");
 
-                entity.Property(e => e.ResistanceAtLastCheck)
-                    .HasColumnName("resistance_At_Last_Check")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ResistanceAtLastCheck).HasColumnName("resistance_At_Last_Check");
 
-                entity.Property(e => e.SAC)
-                    .HasColumnName("s_a_c")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.SAC).HasColumnName("s_a_c");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesSkill)
@@ -2390,9 +2067,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
@@ -2400,8 +2075,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Spell)
                     .HasColumnName("spell")
-                    .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'0'");
+                    .HasColumnType("int(10)");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.WeeniePropertiesSpellBook)
@@ -2422,13 +2096,9 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
-                entity.Property(e => e.Type)
-                    .HasColumnName("type")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.Value)
                     .IsRequired()
@@ -2455,9 +2125,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.NewId).HasColumnName("new_Id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.ObjectId).HasColumnName("object_Id");
 
                 entity.Property(e => e.OldId).HasColumnName("old_Id");
 
