@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using ACE.Database.Models.World;
 
@@ -8,6 +9,12 @@ namespace ACE.Database.SQLFormatters.World
 {
     public class LandblockInstanceWriter : SQLWriter
     {
+        /// <summary>
+        /// Set this to enable auto commenting when creating SQL statements.<para />
+        /// If a child link is found in the dictionary, the name will be added in the form of a /* Friendly Instance Name */
+        /// </summary>
+        public Dictionary<uint, string> InstanceNames;
+
         /// <summary>
         /// Default is formed from: (input.ObjCellId >> 16).ToString("X4")
         /// </summary>
@@ -28,28 +35,58 @@ namespace ACE.Database.SQLFormatters.World
         /// <exception cref="System.Exception">WeenieClassNames must be set, and must have a record for input.ClassId.</exception>
         public void CreateSQLINSERTStatement(IList<LandblockInstance> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `landblock_instance` (`weenie_Class_Id`, `guid`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `link_Slot`, `link_Controller`)");
+            input = input.OrderBy(r => r.Guid).ToList();
+
+            foreach (var value in input)
+            {
+                if (value != input[0])
+                    writer.WriteLine();
+
+                writer.WriteLine("INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`)");
+
+                string label = null;
+
+                if (WeenieNames != null)
+                    WeenieNames.TryGetValue(value.WeenieClassId, out label);
+
+                var output = "VALUES (" +
+                             $"{value.Guid.ToString().PadLeft(10)}, " +
+                             $"{value.WeenieClassId.ToString().PadLeft(5)}, " +
+                             $"{value.ObjCellId}, " +
+                             $"{value.OriginX}, " +
+                             $"{value.OriginY}, " +
+                             $"{value.OriginZ}, " +
+                             $"{value.AnglesW}, " +
+                             $"{value.AnglesX}, " +
+                             $"{value.AnglesY}, " +
+                             $"{value.AnglesZ}, " +
+                             $"{value.IsLinkChild.ToString().PadLeft(5)}" +
+                             $"); /* {label} */";
+
+                output = FixNullFields(output);
+
+                writer.WriteLine(output);
+
+                if (value.LandblockInstanceLink != null && value.LandblockInstanceLink.Count > 0)
+                {
+                    writer.WriteLine();
+                    CreateSQLINSERTStatement(value.LandblockInstanceLink.OrderBy(r => r.ChildGuid).ToList(), writer);
+                }
+            }
+        }
+
+        private void CreateSQLINSERTStatement(IList<LandblockInstanceLink> input, StreamWriter writer)
+        {
+            writer.WriteLine("INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
                 string label = null;
 
-                if (WeenieNames != null)
-                    WeenieNames.TryGetValue(input[i].WeenieClassId, out label);
+                if (InstanceNames != null)
+                    InstanceNames.TryGetValue(input[i].ChildGuid, out label);
 
-                return $"{input[i].WeenieClassId.ToString().PadLeft(5)}, " +
-                       $"{input[i].Guid}, " +
-                       $"{input[i].ObjCellId}, " +
-                       $"{input[i].OriginX}, " +
-                       $"{input[i].OriginY}, " +
-                       $"{input[i].OriginZ}, " +
-                       $"{input[i].AnglesW}, " +
-                       $"{input[i].AnglesX}, " +
-                       $"{input[i].AnglesY}, " +
-                       $"{input[i].AnglesZ}, " +
-                       $"{input[i].LinkSlot}, " +
-                       $"{input[i].LinkController}) " +
-                       $"/* {label} */";
+                return $"{input[i].ParentGuid.ToString().PadLeft(10)}, {input[i].ChildGuid.ToString().PadLeft(10)}) /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

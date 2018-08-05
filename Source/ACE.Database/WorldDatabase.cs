@@ -253,6 +253,7 @@ namespace ACE.Database
             using (var context = new WorldDbContext())
             {
                 var results = context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock)
                     .ToList();
@@ -296,11 +297,12 @@ namespace ACE.Database
             using (var context = new WorldDbContext())
             {
                 var results = context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock)
                     .ToList();
 
-                cachedLandblockInstances.TryAdd(landblock, results.OrderBy(x => x.LinkController).ThenBy(x => x.LinkSlot).ToList());
+                cachedLandblockInstances.TryAdd(landblock, results.ToList());
             }
 
             return cachedLandblockInstances[landblock];

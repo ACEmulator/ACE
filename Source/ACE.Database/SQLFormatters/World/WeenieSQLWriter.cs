@@ -535,7 +535,7 @@ namespace ACE.Database.SQLFormatters.World
                 }
 
                 return
-                    $"@parent_id, " +
+                    "@parent_id, " +
                     $"{input[i].Order.ToString().PadLeft(2)}, " +
                     $"{input[i].Type.ToString().PadLeft(3)}{typeLabel}, " +
                     $"{input[i].Delay}, " +

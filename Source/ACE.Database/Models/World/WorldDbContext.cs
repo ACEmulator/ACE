@@ -20,6 +20,7 @@ namespace ACE.Database.Models.World
         public virtual DbSet<Event> Event { get; set; }
         public virtual DbSet<HousePortal> HousePortal { get; set; }
         public virtual DbSet<LandblockInstance> LandblockInstance { get; set; }
+        public virtual DbSet<LandblockInstanceLink> LandblockInstanceLink { get; set; }
         public virtual DbSet<PointsOfInterest> PointsOfInterest { get; set; }
         public virtual DbSet<Quest> Quest { get; set; }
         public virtual DbSet<Recipe> Recipe { get; set; }
@@ -202,11 +203,9 @@ namespace ACE.Database.Models.World
 
             modelBuilder.Entity<LandblockInstance>(entity =>
             {
-                entity.ToTable("landblock_instance");
+                entity.HasKey(e => e.Guid);
 
-                entity.HasIndex(e => e.Guid)
-                    .HasName("guid_UNIQUE")
-                    .IsUnique();
+                entity.ToTable("landblock_instance");
 
                 entity.HasIndex(e => e.Landblock)
                     .HasName("instance_landblock_idx");
@@ -214,7 +213,7 @@ namespace ACE.Database.Models.World
                 entity.HasIndex(e => e.WeenieClassId)
                     .HasName("wcid_instance_idx");
 
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Guid).HasColumnName("guid");
 
                 entity.Property(e => e.AnglesW).HasColumnName("angles_W");
 
@@ -224,20 +223,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.AnglesZ).HasColumnName("angles_Z");
 
-                entity.Property(e => e.Guid)
-                    .HasColumnName("guid")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.IsLinkChild)
+                    .HasColumnName("is_Link_Child")
+                    .HasColumnType("bit(1)");
 
                 entity.Property(e => e.Landblock)
                     .HasColumnName("landblock")
-                    .HasColumnType("int(5)");
-
-                entity.Property(e => e.LinkController)
-                    .HasColumnName("link_Controller")
-                    .HasColumnType("bit(1)");
-
-                entity.Property(e => e.LinkSlot)
-                    .HasColumnName("link_Slot")
                     .HasColumnType("int(5)");
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
@@ -254,6 +245,26 @@ namespace ACE.Database.Models.World
                     .WithMany(p => p.LandblockInstance)
                     .HasForeignKey(d => d.WeenieClassId)
                     .HasConstraintName("wcid_instance");
+            });
+
+            modelBuilder.Entity<LandblockInstanceLink>(entity =>
+            {
+                entity.ToTable("landblock_instance_link");
+
+                entity.HasIndex(e => new { e.ParentGuid, e.ChildGuid })
+                    .HasName("parent_child_guuidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ChildGuid).HasColumnName("child_GUID");
+
+                entity.Property(e => e.ParentGuid).HasColumnName("parent_GUID");
+
+                entity.HasOne(d => d.ParentGu)
+                    .WithMany(p => p.LandblockInstanceLink)
+                    .HasForeignKey(d => d.ParentGuid)
+                    .HasConstraintName("instance_link");
             });
 
             modelBuilder.Entity<PointsOfInterest>(entity =>

@@ -113,10 +113,9 @@ DROP TABLE IF EXISTS `landblock_instance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `landblock_instance` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance',
+  `guid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance',
   `landblock` int(5) GENERATED ALWAYS AS ((`obj_Cell_Id` >> 16)) VIRTUAL,
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of object to spawn',
-  `guid` int(10) unsigned NOT NULL DEFAULT '0',
   `obj_Cell_Id` int(10) unsigned NOT NULL,
   `origin_X` float NOT NULL,
   `origin_Y` float NOT NULL,
@@ -125,14 +124,29 @@ CREATE TABLE `landblock_instance` (
   `angles_X` float NOT NULL,
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
-  `link_Slot` int(5) DEFAULT NULL COMMENT 'Slot Id for this instance''s link',
-  `link_Controller` bit(1) DEFAULT NULL COMMENT 'Is this the controller for the link?',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `guid_UNIQUE` (`guid`),
+  `is_Link_Child` bit(1) NOT NULL COMMENT 'Is this a child link for any other instances?',
+  PRIMARY KEY (`guid`),
   KEY `wcid_instance_idx` (`weenie_Class_Id`),
   KEY `instance_landblock_idx` (`landblock`),
   CONSTRAINT `wcid_instance` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instances for each Landblock';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `landblock_instance_link`
+--
+
+DROP TABLE IF EXISTS `landblock_instance_link`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `landblock_instance_link` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance Link',
+  `parent_GUID` int(10) unsigned NOT NULL COMMENT 'GUID of parent instance',
+  `child_GUID` int(10) unsigned NOT NULL COMMENT 'GUID of child instance',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `parent_child_guuidx` (`parent_GUID`,`child_GUID`),
+  CONSTRAINT `instance_link` FOREIGN KEY (`parent_GUID`) REFERENCES `landblock_instance` (`guid`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instance Links';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
