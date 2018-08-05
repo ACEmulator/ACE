@@ -199,7 +199,7 @@ namespace ACE.Database.Models.World
                     .HasName("instance_landblock_idx");
 
                 entity.HasIndex(e => e.WeenieClassId)
-                    .HasName("wcid_instance_idx");
+                    .HasName("wcid_instance");
 
                 entity.Property(e => e.Guid).HasColumnName("guid");
 
@@ -264,7 +264,7 @@ namespace ACE.Database.Models.World
                     .IsUnique();
 
                 entity.HasIndex(e => e.WeenieClassId)
-                    .HasName("wcid_poi_idx");
+                    .HasName("wcid_poi");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -377,7 +377,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mod");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_Mod");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -426,7 +426,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mods_bool");
 
                 entity.HasIndex(e => e.RecipeModId)
-                    .HasName("recipe_mod_idx");
+                    .HasName("recipeId_mod_bool");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -459,7 +459,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mods_d_i_d");
 
                 entity.HasIndex(e => e.RecipeModId)
-                    .HasName("recipe_mod_idx");
+                    .HasName("recipeId_mod_did");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -490,7 +490,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mods_float");
 
                 entity.HasIndex(e => e.RecipeModId)
-                    .HasName("recipe_mod_idx");
+                    .HasName("recipeId_mod_float");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -521,7 +521,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mods_i_i_d");
 
                 entity.HasIndex(e => e.RecipeModId)
-                    .HasName("recipe_mod_idx");
+                    .HasName("recipeId_mod_iid");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -552,7 +552,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mods_int");
 
                 entity.HasIndex(e => e.RecipeModId)
-                    .HasName("recipe_mod_idx");
+                    .HasName("recipeId_mod_int");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -585,7 +585,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_mods_string");
 
                 entity.HasIndex(e => e.RecipeModId)
-                    .HasName("recipe_mod_idx");
+                    .HasName("recipeId_mod_string");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -618,7 +618,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_requirements_bool");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_req_bool");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -651,7 +651,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_requirements_d_i_d");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_req_did");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -682,7 +682,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_requirements_float");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_req_float");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -713,7 +713,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_requirements_i_i_d");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_req_iid");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -744,7 +744,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_requirements_int");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_req_int");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -777,7 +777,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("recipe_requirements_string");
 
                 entity.HasIndex(e => e.RecipeId)
-                    .HasName("recipe_idx");
+                    .HasName("recipeId_req_string");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -1208,7 +1208,8 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
-                    .HasColumnType("int(5)");
+                    .HasColumnType("int(5)")
+                    .HasDefaultValueSql("'0'");
             });
 
             modelBuilder.Entity<WeeniePropertiesAnimPart>(entity =>
@@ -1237,9 +1238,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_attribute");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_attribute_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_attribute_type_uidx")
                     .IsUnique();
@@ -1265,9 +1263,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesAttribute2nd>(entity =>
             {
                 entity.ToTable("weenie_properties_attribute_2nd");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_attribute2nd_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_attribute2nd_type_uidx")
@@ -1296,9 +1291,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesBodyPart>(entity =>
             {
                 entity.ToTable("weenie_properties_body_part");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bodypart_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Key })
                     .HasName("wcid_bodypart_type_uidx")
@@ -1422,9 +1414,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_book_page_data");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_pagedata_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.PageId })
                     .HasName("wcid_pageid_uidx")
                     .IsUnique();
@@ -1468,9 +1457,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_bool");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bool_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_bool_type_uidx")
                     .IsUnique();
@@ -1496,7 +1482,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("weenie_properties_create_list");
 
                 entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_createlist_idx");
+                    .HasName("wcid_createlist");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -1533,9 +1519,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_d_i_d");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_did_idx");
-
                 entity.HasIndex(e => e.Type)
                     .HasName("wcid_did_type_idx");
 
@@ -1565,7 +1548,7 @@ namespace ACE.Database.Models.World
                     .HasName("category_idx");
 
                 entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_emote_idx");
+                    .HasName("wcid_emote");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -1604,9 +1587,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesEmoteAction>(entity =>
             {
                 entity.ToTable("weenie_properties_emote_action");
-
-                entity.HasIndex(e => e.EmoteId)
-                    .HasName("emoteid_emoteaction_idx");
 
                 entity.HasIndex(e => e.Order)
                     .HasName("emoteorder_idx");
@@ -1758,9 +1738,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_event_filter");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_eventfilter_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Event })
                     .HasName("wcid_eventfilter_type_uidx")
                     .IsUnique();
@@ -1782,9 +1759,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesFloat>(entity =>
             {
                 entity.ToTable("weenie_properties_float");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_float_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_float_type_uidx")
@@ -1809,7 +1783,7 @@ namespace ACE.Database.Models.World
                 entity.ToTable("weenie_properties_generator");
 
                 entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_generator_idx");
+                    .HasName("wcid_generator");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -1873,9 +1847,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_i_i_d");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_iid_idx");
-
                 entity.HasIndex(e => e.Type)
                     .HasName("wcid_did_type_idx");
 
@@ -1901,9 +1872,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_int");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_int_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_int_type_uidx")
                     .IsUnique();
@@ -1927,9 +1895,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesInt64>(entity =>
             {
                 entity.ToTable("weenie_properties_int64");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_int64_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_int64_type_uidx")
@@ -1982,9 +1947,6 @@ namespace ACE.Database.Models.World
                 entity.HasIndex(e => e.ObjCellId)
                     .HasName("objCellId_idx");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_position_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.PositionType })
                     .HasName("wcid_position_type_uidx")
                     .IsUnique();
@@ -2021,9 +1983,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_skill");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_skill_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_skill_type_uidx")
                     .IsUnique();
@@ -2058,9 +2017,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_spell_book");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_spellbook_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Spell })
                     .HasName("wcid_spellbook_type_uidx")
                     .IsUnique();
@@ -2086,9 +2042,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesString>(entity =>
             {
                 entity.ToTable("weenie_properties_string");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_string_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_string_type_uidx")
