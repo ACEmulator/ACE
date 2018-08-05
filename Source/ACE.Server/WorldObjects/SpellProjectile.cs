@@ -306,7 +306,7 @@ namespace ACE.Server.WorldObjects
                     if (player != null)
                     {
                         var rng = Physics.Common.Random.RollDice(0, messages.Count - 1);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[rng], target.Name), ChatMessageType.Broadcast));u
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[rng], target.Name), ChatMessageType.Broadcast));
                         player.EarnXP((long)target.XpOverride);
                     }
                 }
