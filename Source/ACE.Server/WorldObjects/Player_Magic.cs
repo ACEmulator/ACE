@@ -599,7 +599,12 @@ namespace ACE.Server.WorldObjects
                                     if (guidTarget == Guid)
                                         CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                     else
-                                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                    {
+                                        if (spell.MetaSpellType == SpellType.PortalLink)
+                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                        else
+                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                    }
                                     if (enchantmentStatus.message != null)
                                         player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                 }
