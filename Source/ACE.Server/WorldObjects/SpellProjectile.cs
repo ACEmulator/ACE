@@ -251,6 +251,16 @@ namespace ACE.Server.WorldObjects
 
             ProjectileImpact();
 
+            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
+            if (checkPKStatusVsTarget != null)
+            {
+                if (checkPKStatusVsTarget == false)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.InvalidPkStatus));
+                    return;
+                }
+            }
+
             var critical = false;
             var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
 
@@ -289,17 +299,6 @@ namespace ACE.Server.WorldObjects
 
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
-                if (player != null)
-                {
-                    // is percent for the vital, or always based on health?
-                    var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new AttackConditions());
-                    player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-                }
-
-                if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
-                    //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
-
                 if (target.Health.Current <= 0)
                 {
                     target.Die();
@@ -309,6 +308,19 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
                         player.EarnXP((long)target.XpOverride);
                     }
+                }
+                else
+                {
+                    if (player != null)
+                    {
+                        // is percent for the vital, or always based on health?
+                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new AttackConditions());
+                        player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                    }
+
+                    if (targetPlayer != null)
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                        //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
                 }
             }
             else
