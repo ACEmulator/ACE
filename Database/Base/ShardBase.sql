@@ -552,7 +552,6 @@ CREATE TABLE `biota_properties_skill` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertySkill.????)',
   `level_From_P_P` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'points raised',
-  `adjust_P_P` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'If this is not 0, it appears to trigger the initLevel to be treated as extra XP applied to the skill',
   `s_a_c` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'skill state',
   `p_p` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'XP spent on this skill',
   `init_Level` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'starting point for advancement of the skill (eg bonus points)',

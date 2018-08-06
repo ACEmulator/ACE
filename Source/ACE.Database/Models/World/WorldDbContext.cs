@@ -1989,8 +1989,6 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.AdjustPP).HasColumnName("adjust_P_P");
-
                 entity.Property(e => e.InitLevel).HasColumnName("init_Level");
 
                 entity.Property(e => e.LastUsedTime).HasColumnName("last_Used_Time");

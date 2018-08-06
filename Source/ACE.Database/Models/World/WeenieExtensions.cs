@@ -446,7 +446,6 @@ namespace ACE.Database.Models.World
                     ObjectId = biota.Id,
                     Type = value.Type,
                     LevelFromPP = value.LevelFromPP,
-                    AdjustPP = value.AdjustPP,
                     SAC = value.SAC,
                     PP = value.PP,
                     InitLevel = value.InitLevel,

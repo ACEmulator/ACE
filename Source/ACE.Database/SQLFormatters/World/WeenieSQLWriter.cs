@@ -320,13 +320,12 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(uint weenieClassID, IList<WeeniePropertiesSkill> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `weenie_properties_skill` (`object_Id`, `type`, `level_From_P_P`, `adjust_P_P`, `s_a_c`, `p_p`, `init_Level`, `resistance_At_Last_Check`, `last_Used_Time`)");
+            writer.WriteLine("INSERT INTO `weenie_properties_skill` (`object_Id`, `type`, `level_From_P_P`, `s_a_c`, `p_p`, `init_Level`, `resistance_At_Last_Check`, `last_Used_Time`)");
 
             var lineGenerator = new Func<int, string>(i =>
                 $"{weenieClassID}, " +
                 $"{input[i].Type.ToString().PadLeft(2)}, " +
                 $"{input[i].LevelFromPP}, " +
-                $"{input[i].AdjustPP}, " +
                 $"{input[i].SAC}, " +
                 $"{input[i].PP}, " +
                 $"{input[i].InitLevel.ToString().PadLeft(3)}, " +

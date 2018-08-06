@@ -1120,10 +1120,6 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.AdjustPP)
-                    .HasColumnName("adjust_P_P")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.InitLevel)
                     .HasColumnName("init_Level")
                     .HasDefaultValueSql("'0'");
