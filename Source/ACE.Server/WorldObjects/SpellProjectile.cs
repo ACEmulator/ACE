@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Numerics;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -10,14 +8,14 @@ using ACE.DatLoader.FileTypes;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
 
-using PhysicsState = ACE.Server.Physics.PhysicsState;
+using Spell = ACE.Database.Models.World.Spell;
 
 namespace ACE.Server.WorldObjects
 {
@@ -57,19 +55,6 @@ namespace ACE.Server.WorldObjects
             // Override weenie description defaults
             ValidLocations = null;
             DefaultScriptId = null;
-
-            // Override physics state defaults
-            ReportCollisions = true;
-            Missile = true;
-            AlignPath = true;
-            PathClipped = true;
-            Ethereal = false;
-            IgnoreCollisions = false;
-            CurrentMotionState = null;
-            Placement = null;
-
-            // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
-            InitPhysicsObj();
         }
 
         /// <summary>
@@ -78,17 +63,19 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellId"></param>
         public void Setup(uint spellId)
         {
+            InitPhysicsObj();
+
             SpellId = spellId;
 
             SpellType = GetProjectileSpellType(spellId);
-            var spellPower = DatManager.PortalDat.SpellTable.Spells[SpellId].Power;
+            var spell = DatManager.PortalDat.SpellTable.Spells[SpellId];
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
-                                                      || SpellType == ProjectileSpellType.Arc)
+                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
-                var spellLevel = CalculateSpellLevel(spellPower);
+                var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
 
@@ -113,7 +100,7 @@ namespace ACE.Server.WorldObjects
             Wall
         }
 
-        public ProjectileSpellType GetProjectileSpellType(uint SpellId)
+        public static ProjectileSpellType GetProjectileSpellType(uint SpellId)
         {
             var WeenieClassId = DatabaseManager.World.GetCachedSpell(SpellId).Wcid;
             if (WeenieClassId == null)
@@ -201,16 +188,13 @@ namespace ACE.Server.WorldObjects
                 Cloaked = true;
                 LightsStatus = false;
 
-                PhysicsObj.State |= PhysicsState.Ethereal | PhysicsState.IgnoreCollisions | PhysicsState.NoDraw | PhysicsState.Cloaked;
-                PhysicsObj.State &= ~(PhysicsState.ReportCollisions | PhysicsState.LightingOn);
-
                 PhysicsObj.set_active(false);
 
                 EnqueueBroadcastPhysicsState();
 
                 SpellType = GetProjectileSpellType(spellId);
                 var spellPower = spell.Power;
-                var spellLevel = CalculateSpellLevel(spellPower);
+                var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
 
                 CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
@@ -241,8 +225,8 @@ namespace ACE.Server.WorldObjects
 
             var player = projectileCaster as Player;
 
-            // Ensure target still exist before proceeding to handle collision
-            //Creature target = CurrentLandblock?.GetObject(guidTarget) as Creature;
+            // ensure valid creature target
+            // non-target objects will be excluded beforehand from collision detection
             var target = _target as Creature;
             if (target == null)
             {
@@ -250,105 +234,79 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // Projectile struck some target that isn't a player or creature
-            if (target.WeenieType != WeenieType.Creature)
+            ProjectileImpact();
+
+            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
+            if (checkPKStatusVsTarget != null)
             {
-                if (target.WeenieClassId != 1)
+                if (checkPKStatusVsTarget == false)
                 {
-                    OnCollideEnvironment();
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.InvalidPkStatus));
                     return;
                 }
             }
-            var targetPlayer = target as Player;
-
-            // Collision registered against a valid target that was not the intended target
-            if (!target.Guid.Equals(targetGuid))
-            {
-                OnCollideEnvironment();
-                return;
-            }
-
-            ProjectileImpact();
 
             var critical = false;
             var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
 
+            var targetPlayer = target as Player;
+
             // null damage -> target resisted; damage of -1 -> target already dead
-            if (damage != null || damage == -1)
+            if (damage != null && damage != -1)
             {
-                int newSpellTargetVital;
+                uint amount;
                 var percent = 0.0f;
 
                 if (spell.School == MagicSchool.LifeMagic && (spell.Name.Contains("Blight") || spell.Name.Contains("Tenacity")))
                 {
                     if (spell.Name.Contains("Blight"))
                     {
-                        newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) - damage);
                         percent = (float)damage / targetPlayer.Mana.MaxValue;
-                        if (newSpellTargetVital <= 0)
-                            target.UpdateVital(target.Mana, 0);
-                        else
-                            target.UpdateVital(target.Mana, (uint)newSpellTargetVital);
+                        amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
                     }
                     else
                     {
-                        newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) - damage);
                         percent = (float)damage / targetPlayer.Stamina.MaxValue;
-                        if (newSpellTargetVital <= 0)
-                            target.UpdateVital(target.Stamina, 0);
-                        else
-                            target.UpdateVital(target.Stamina, (uint)newSpellTargetVital);
+                        amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
                     }
                 }
                 else
                 {
-                    newSpellTargetVital = (int)(target.GetCurrentCreatureVital(PropertyAttribute2nd.Health) - damage);
-                    if (newSpellTargetVital <= 0)
-                        target.UpdateVital(target.Health, 0);
-                    else
-                        target.UpdateVital(target.Health, (uint)newSpellTargetVital);
+                    percent = (float)damage / target.Health.MaxValue;
+                    amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
+                    target.DamageHistory.Add(projectileCaster, amount);
                 }
 
                 string verb = null, plural = null;
-                percent = (float)damage / target.Health.MaxValue;
                 Strings.DeathMessages.TryGetValue(damageType, out var messages);
                 Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
                 var type = damageType.GetName().ToLower();
 
-                var amount = (uint)Math.Round(damage ?? 0.0f);
-                AttackList.Add(new AttackDamage(projectileCaster, amount, critical));
+                amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
                 if (target.Health.Current <= 0)
                 {
-                    target.UpdateVital(target.Health, 0);
-                    //target.OnDeath();
                     target.Die();
 
                     if (player != null)
                     {
-                        if ((target as Player) == null)
-                            player.EarnXP((long)target.XpOverride, true);
-
-                        var topDamager = AttackDamage.GetTopDamager(AttackList);
-                        if (topDamager != null)
-                            target.Killer = topDamager.Guid.Full;
-
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
-
-                        if (targetPlayer != null)
-                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} has killed you!", ChatMessageType.Broadcast));
+                        var rng = Physics.Common.Random.RollDice(0, messages.Count - 1);
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[rng], target.Name), ChatMessageType.Broadcast));
+                        player.EarnXP((long)target.XpOverride);
                     }
                 }
                 else
                 {
                     if (player != null)
                     {
-                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new Network.Enum.AttackConditions());
+                        // is percent for the vital, or always based on health?
+                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new AttackConditions());
                         player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                     }
 
                     if (targetPlayer != null)
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                        //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
                 }
             }
             else
@@ -377,11 +335,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            PhysicsObj.State |= PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
-            PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
+            // runtime changes to default state
+            ReportCollisions = true;
+            Missile = true;
+            AlignPath = true;
+            PathClipped = true;
+            Ethereal = false;
+            IgnoreCollisions = false;
 
-            if (!useGravity)
-                PhysicsObj.State &= ~PhysicsState.Gravity;
+            if (useGravity) GravityStatus = true;
+
+            CurrentMotionState = null;
+            Placement = null;
+
+            // TODO: Physics description timestamps (sequence numbers) don't seem to be getting updated
+
+            //Console.WriteLine("SpellProjectile PhysicsState: " + PhysicsObj.State);
 
             var pos = Location.Pos;
             var rotation = Location.Rotation;
@@ -391,7 +360,8 @@ namespace ACE.Server.WorldObjects
             var velocity = Velocity.Get();
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
             PhysicsObj.Velocity = velocity;
-            PhysicsObj.ProjectileTarget = target.PhysicsObj;
+            if (target != null)
+                PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             PhysicsObj.set_active(true);
         }

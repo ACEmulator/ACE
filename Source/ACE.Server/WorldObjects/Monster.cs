@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            SetFinalPosition();
+            //SetFinalPosition();
         }
     }
 }

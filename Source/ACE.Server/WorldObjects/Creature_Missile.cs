@@ -12,7 +12,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
-using PhysicsState = ACE.Server.Physics.PhysicsState;
 
 namespace ACE.Server.WorldObjects
 {
@@ -145,7 +144,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
-                    arrow, PropertyInt.PlayerKillerStatus, (int)(player.PlayerKillerStatus ?? ACE.Entity.Enum.PlayerKillerStatus.NPK) ));
+                    arrow, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
             }
             else
             {
@@ -221,15 +220,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject obj, WorldObject target)
         {
+            obj.InitPhysicsObj();
+
             obj.ReportCollisions = true;
             obj.Missile = true;
             obj.AlignPath = true;
             obj.PathClipped = true;
             obj.Ethereal = false;
             obj.IgnoreCollisions = false;
-
-            obj.PhysicsObj.State |= PhysicsState.ReportCollisions | PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped;
-            obj.PhysicsObj.State &= ~(PhysicsState.Ethereal | PhysicsState.IgnoreCollisions);
 
             var pos = obj.Location.Pos;
             var rotation = obj.Location.Rotation;
