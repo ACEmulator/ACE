@@ -109,7 +109,7 @@ namespace ACE.Server.Managers
             // Remove from the old landblock -- force
             if (oldBlock != null)
             {
-                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, false);
+                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, true);
             }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);

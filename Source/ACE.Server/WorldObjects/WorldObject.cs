@@ -131,6 +131,9 @@ namespace ACE.Server.WorldObjects
 
         public bool AddPhysicsObj()
         {
+            if (PhysicsObj.CurCell != null)
+                return false;
+
             AdjustDungeonCells(Location);
 
             var cell = LScape.get_landcell(Location.Cell);

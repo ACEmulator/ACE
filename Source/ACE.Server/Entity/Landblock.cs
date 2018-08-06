@@ -391,9 +391,7 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(objectId))
             {
                 wo = worldObjects[objectId];
-
-                //if (!(wo is Creature))
-                    worldObjects.Remove(objectId);
+                worldObjects.Remove(objectId);
             }
 
             if (wo != null)
@@ -407,9 +405,12 @@ namespace ACE.Server.Entity
                 else
                     EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
 
-                wo.PhysicsObj.leave_cell(false);
-                wo.PhysicsObj.remove_shadows_from_cells();
-                wo.PhysicsObj.remove_visible_cells();
+                if (!adjacencyMove)
+                {
+                    wo.PhysicsObj.leave_cell(false);
+                    wo.PhysicsObj.remove_shadows_from_cells();
+                    wo.PhysicsObj.remove_visible_cells();
+                }
             }
         }
 
