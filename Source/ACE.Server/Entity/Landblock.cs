@@ -359,7 +359,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove)
+        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove = false)
         {
             Landblock owner = GetOwner(objectId);
 
@@ -377,12 +377,12 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="objectId">The object ID to be removed from the current landblock</param>
         /// <param name="adjacencyMove">Flag indicates if object is moving to an adjacent landblock</param>
-        public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
+        public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove = false)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
-        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove)
+        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
         {
             WorldObject wo = null;
 
@@ -1041,7 +1041,7 @@ namespace ACE.Server.Entity
 
             // remove all objects
             foreach (var wo in worldObjects.Keys.ToList())
-                RemoveWorldObjectInternal(wo, false);
+                RemoveWorldObjectInternal(wo);
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);

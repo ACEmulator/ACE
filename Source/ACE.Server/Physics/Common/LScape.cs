@@ -89,11 +89,7 @@ namespace ACE.Server.Physics.Common
 
         public static bool unload_landblock(uint landblockID)
         {
-            if (!Landblocks.ContainsKey(landblockID))
-                return false;
-
-            Landblocks.Remove(landblockID);
-            return true;
+            return Landblocks.Remove(landblockID);
         }
 
         public static ObjCell get_landcell(uint blockCellID)
