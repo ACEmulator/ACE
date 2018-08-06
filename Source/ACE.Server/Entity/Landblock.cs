@@ -328,6 +328,9 @@ namespace ACE.Server.Entity
 
             wo.SetParent(this);
 
+            if (wo.PhysicsObj == null)
+                wo.InitPhysicsObj();
+
             wo.PhysicsObj.Position.Frame.Origin = wo.Location.Pos;
             wo.PhysicsObj.Position.Frame.Orientation = wo.Location.Rotation;
 

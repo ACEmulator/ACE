@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
