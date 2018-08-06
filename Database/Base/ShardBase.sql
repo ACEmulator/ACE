@@ -74,7 +74,6 @@ CREATE TABLE `biota_properties_attribute` (
   `level_From_C_P` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'points raised',
   `c_P_Spent` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'XP spent on this attribute',
   PRIMARY KEY (`id`),
-  KEY `wcid_attribute_idx` (`object_Id`),
   UNIQUE KEY `wcid_attribute_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_attribute` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Attribute Properties of Weenies';
@@ -96,7 +95,6 @@ CREATE TABLE `biota_properties_attribute_2nd` (
   `c_P_Spent` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'XP spent on this attribute',
   `current_Level` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'current value of the vital',
   PRIMARY KEY (`id`),
-  KEY `wcid_attribute2nd_idx` (`object_Id`),
   UNIQUE KEY `wcid_attribute2nd_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_attribute2nd` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Attribute2nd (Vital) Properties of Weenies';
@@ -139,7 +137,6 @@ CREATE TABLE `biota_properties_body_part` (
   `m_r_b` float NOT NULL DEFAULT '0',
   `l_r_b` float NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `wcid_bodypart_idx` (`object_Id`),
   UNIQUE KEY `wcid_bodypart_type_uidx` (`object_Id`,`key`),
   CONSTRAINT `wcid_bodypart` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Body Part Properties of Weenies';
@@ -158,7 +155,6 @@ CREATE TABLE `biota_properties_book` (
   `max_Num_Pages` int(10) NOT NULL DEFAULT '1' COMMENT 'Maximum number of pages per book',
   `max_Num_Chars_Per_Page` int(10) NOT NULL DEFAULT '1000' COMMENT 'Maximum number of characters per page',
   PRIMARY KEY (`id`),
-  KEY `wcid_bookdata_idx` (`object_Id`),
   UNIQUE KEY `wcid_bookdata_uidx` (`object_Id`),
   CONSTRAINT `wcid_bookdata` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Book Properties of Weenies';
@@ -181,7 +177,6 @@ CREATE TABLE `biota_properties_book_page_data` (
   `ignore_Author` bit(1) NOT NULL COMMENT 'if this is true, any character in the world can change the page',
   `page_Text` text NOT NULL COMMENT 'Text of the Page',
   PRIMARY KEY (`id`),
-  KEY `wcid_pagedata_idx` (`object_Id`),
   UNIQUE KEY `wcid_pageid_uidx` (`object_Id`,`page_Id`),
   CONSTRAINT `wcid_pagedata` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Page Properties of Weenies';
@@ -200,7 +195,6 @@ CREATE TABLE `biota_properties_bool` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyBool.????)',
   `value` bit(1) NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_bool_idx` (`object_Id`),
   UNIQUE KEY `wcid_bool_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_bool` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bool Properties of Weenies';
@@ -223,7 +217,6 @@ CREATE TABLE `biota_properties_create_list` (
   `shade` float NOT NULL DEFAULT '0' COMMENT 'Shade of Object''s Palette',
   `try_To_Bond` bit(1) NOT NULL COMMENT 'Unused?',
   PRIMARY KEY (`id`),
-  KEY `wcid_createlist_idx` (`object_Id`),
   CONSTRAINT `wcid_createlist` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='CreateList Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -241,7 +234,6 @@ CREATE TABLE `biota_properties_d_i_d` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyDataId.????)',
   `value` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_did_idx` (`object_Id`),
   KEY `wcid_did_type_idx` (`type`),
   UNIQUE KEY `wcid_did_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_did` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -268,7 +260,6 @@ CREATE TABLE `biota_properties_emote` (
   `min_Health` float DEFAULT NULL,
   `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `wcid_emote_idx` (`object_Id`),
   KEY `category_idx` (`category`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
@@ -324,7 +315,6 @@ CREATE TABLE `biota_properties_emote_action` (
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `emoteid_emoteaction_idx` (`emote_Id`),
   KEY `emoteorder_idx` (`order`),
   KEY `emotetype_idx` (`type`),
   UNIQUE KEY `wcid_category_set_order_uidx` (`emote_Id`,`order`),
@@ -359,7 +349,6 @@ CREATE TABLE `biota_properties_enchantment_registry` (
   `stat_Mod_Value` float NOT NULL DEFAULT '0' COMMENT 'the effect value/amount',
   `spell_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Spell Set for this spell',
   PRIMARY KEY (`id`),
-  KEY `wcid_enchantmentregistry_idx` (`object_Id`),
   UNIQUE KEY `wcid_enchantmentregistry_objectId_spellId_layerId_uidx` (`object_Id`,`spell_Id`,`layer_Id`),
   CONSTRAINT `wcid_enchantmentregistry` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Enchantment Registry Properties of Weenies';
@@ -377,7 +366,6 @@ CREATE TABLE `biota_properties_event_filter` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `event` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Event to filter',
   PRIMARY KEY (`id`),
-  KEY `wcid_eventfilter_idx` (`object_Id`),
   UNIQUE KEY `wcid_eventfilter_type_uidx` (`object_Id`,`event`),
   CONSTRAINT `wcid_eventfilter` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EventFilter Properties of Weenies';
@@ -396,7 +384,6 @@ CREATE TABLE `biota_properties_float` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyFloat.????)',
   `value` double NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_float_idx` (`object_Id`),
   UNIQUE KEY `wcid_float_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_float` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Float Properties of Weenies';
@@ -431,7 +418,6 @@ CREATE TABLE `biota_properties_generator` (
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `wcid_generator_idx` (`object_Id`),
   CONSTRAINT `wcid_generator` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Generator Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -449,7 +435,6 @@ CREATE TABLE `biota_properties_i_i_d` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyInstanceId.????)',
   `value` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_iid_idx` (`object_Id`),
   KEY `wcid_iid_type_idx` (`type`),
   UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -469,7 +454,6 @@ CREATE TABLE `biota_properties_int` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyInt.????)',
   `value` int(10) NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_int_idx` (`object_Id`),
   UNIQUE KEY `wcid_int_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_int` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Int Properties of Weenies';
@@ -488,7 +472,6 @@ CREATE TABLE `biota_properties_int64` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyInt64.????)',
   `value` bigint(10) NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_int64_idx` (`object_Id`),
   UNIQUE KEY `wcid_int64_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_int64` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Int64 Properties of Weenies';
@@ -533,7 +516,6 @@ CREATE TABLE `biota_properties_position` (
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `wcid_position_idx` (`object_Id`),
   KEY `objCellId_idx` (`obj_Cell_Id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -558,7 +540,6 @@ CREATE TABLE `biota_properties_skill` (
   `resistance_At_Last_Check` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'last use difficulty',
   `last_Used_Time` double NOT NULL DEFAULT '0' COMMENT 'time skill was last used',
   PRIMARY KEY (`id`),
-  KEY `wcid_skill_idx` (`object_Id`),
   UNIQUE KEY `wcid_skill_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_skill` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Skill Properties of Weenies';
@@ -577,7 +558,6 @@ CREATE TABLE `biota_properties_spell_book` (
   `spell` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell',
   `probability` float NOT NULL DEFAULT '2' COMMENT 'Chance to cast this spell',
   PRIMARY KEY (`id`),
-  KEY `wcid_spellbook_idx` (`object_Id`),
   UNIQUE KEY `wcid_spellbook_type_uidx` (`object_Id`,`spell`),
   CONSTRAINT `wcid_spellbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SpellBook Properties of Weenies';
@@ -596,7 +576,6 @@ CREATE TABLE `biota_properties_string` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyString.????)',
   `value` text NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_string_idx` (`object_Id`),
   UNIQUE KEY `wcid_string_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_string` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='String Properties of Weenies';
@@ -669,7 +648,6 @@ CREATE TABLE `character_properties_contract` (
   `delete_Contract` bit(1) NOT NULL,
   `set_As_Display_Contract` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `wcid_contract_idx` (`object_Id`),
   UNIQUE KEY `wcid_contract_uidx` (`object_Id`,`contract_Id`),
   CONSTRAINT `wcid_contract` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -688,7 +666,6 @@ CREATE TABLE `character_properties_fill_comp_book` (
   `spell_Component_Id` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell Component',
   `quantity_To_Rebuy` int(10) NOT NULL DEFAULT '0' COMMENT 'Amount of this component to add to the buy list for repurchase',
   PRIMARY KEY (`id`),
-  KEY `wcid_fillcompbook_idx` (`object_Id`),
   UNIQUE KEY `wcid_fillcompbook_type_uidx` (`object_Id`,`spell_Component_Id`),
   CONSTRAINT `wcid_fillcompbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FillCompBook Properties of Weenies';
@@ -707,7 +684,6 @@ CREATE TABLE `character_properties_friend_list` (
   `friend_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Friend',
   `account_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Account Id of object this property belongs to',
   PRIMARY KEY (`id`),
-  KEY `wcid_friend_idx` (`object_Id`),
   KEY `wcid_account_id_idx` (`account_Id`),
   UNIQUE KEY `wcid_friend_uidx` (`object_Id`,`friend_Id`),
   CONSTRAINT `wcid_friend` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -728,7 +704,6 @@ CREATE TABLE `character_properties_quest_registry` (
   `last_Time_Completed` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp of last successful completion',
   `num_Times_Completed` int(10) NOT NULL DEFAULT '0' COMMENT 'Number of successful completions',
   PRIMARY KEY (`id`),
-  KEY `wcid_questbook_idx` (`object_Id`),
   UNIQUE KEY `wcid_questbook_name_uidx` (`object_Id`,`quest_Name`),
   CONSTRAINT `wcid_questbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='QuestBook Properties of Weenies';
@@ -747,7 +722,6 @@ CREATE TABLE `character_properties_shortcut_bar` (
   `shortcut_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on the Shortcut Bar for this Object',
   `shortcut_Object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Guid of the object at this Slot',
   PRIMARY KEY (`id`),
-  KEY `wcid_shortcutbar_idx` (`object_Id`),
   UNIQUE KEY `wcid_shortcutbar_barIndex_ObjectId_uidx` (`object_Id`,`shortcut_Bar_Index`,`shortcut_Object_Id`),
   CONSTRAINT `wcid_shortcutbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ShortcutBar Properties of Weenies';
@@ -767,7 +741,6 @@ CREATE TABLE `character_properties_spell_bar` (
   `spell_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on this Spell Bar for this Spell',
   `spell_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Spell on this Spell Bar at this Slot',
   PRIMARY KEY (`id`),
-  KEY `wcid_spellbar_idx` (`object_Id`),
   UNIQUE KEY `wcid_spellbar_barId_spellId_uidx` (`object_Id`,`spell_Bar_Number`,`spell_Id`),
   CONSTRAINT `wcid_spellbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SpellBar Properties of Weenies';
@@ -785,7 +758,6 @@ CREATE TABLE `character_properties_title_book` (
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `title_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Title',
   PRIMARY KEY (`id`),
-  KEY `wcid_titlebook_idx` (`object_Id`),
   UNIQUE KEY `wcid_titlebook_type_uidx` (`object_Id`,`title_Id`),
   CONSTRAINT `wcid_titlebook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='TitleBook Properties of Weenies';

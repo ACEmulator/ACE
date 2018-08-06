@@ -106,9 +106,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_attribute");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_attribute_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_attribute_type_uidx")
                     .IsUnique();
@@ -144,9 +141,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesAttribute2nd>(entity =>
             {
                 entity.ToTable("biota_properties_attribute_2nd");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_attribute2nd_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_attribute2nd_type_uidx")
@@ -187,9 +181,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesBodyPart>(entity =>
             {
                 entity.ToTable("biota_properties_body_part");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bodypart_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Key })
                     .HasName("wcid_bodypart_type_uidx")
@@ -357,9 +348,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_book_page_data");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_pagedata_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.PageId })
                     .HasName("wcid_pageid_uidx")
                     .IsUnique();
@@ -409,9 +397,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_bool");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_bool_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_bool_type_uidx")
                     .IsUnique();
@@ -441,7 +426,7 @@ namespace ACE.Database.Models.Shard
                 entity.ToTable("biota_properties_create_list");
 
                 entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_createlist_idx");
+                    .HasName("wcid_createlist");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -486,9 +471,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_d_i_d");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_did_idx");
-
                 entity.HasIndex(e => e.Type)
                     .HasName("wcid_did_type_idx");
 
@@ -524,7 +506,7 @@ namespace ACE.Database.Models.Shard
                     .HasName("category_idx");
 
                 entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_emote_idx");
+                    .HasName("wcid_emote");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -567,9 +549,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesEmoteAction>(entity =>
             {
                 entity.ToTable("biota_properties_emote_action");
-
-                entity.HasIndex(e => e.EmoteId)
-                    .HasName("emoteid_emoteaction_idx");
 
                 entity.HasIndex(e => e.Order)
                     .HasName("emoteorder_idx");
@@ -727,9 +706,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_enchantment_registry");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_enchantmentregistry_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.SpellId, e.LayerId })
                     .HasName("wcid_enchantmentregistry_objectId_spellId_layerId_uidx")
                     .IsUnique();
@@ -815,9 +791,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_event_filter");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_eventfilter_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Event })
                     .HasName("wcid_eventfilter_type_uidx")
                     .IsUnique();
@@ -842,9 +815,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesFloat>(entity =>
             {
                 entity.ToTable("biota_properties_float");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_float_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_float_type_uidx")
@@ -875,7 +845,7 @@ namespace ACE.Database.Models.Shard
                 entity.ToTable("biota_properties_generator");
 
                 entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_generator_idx");
+                    .HasName("wcid_generator");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -945,9 +915,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_i_i_d");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_iid_idx");
-
                 entity.HasIndex(e => e.Type)
                     .HasName("wcid_iid_type_idx");
 
@@ -979,9 +946,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_int");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_int_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_int_type_uidx")
                     .IsUnique();
@@ -1010,9 +974,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesInt64>(entity =>
             {
                 entity.ToTable("biota_properties_int64");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_int64_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_int64_type_uidx")
@@ -1072,9 +1033,6 @@ namespace ACE.Database.Models.Shard
                 entity.HasIndex(e => e.ObjCellId)
                     .HasName("objCellId_idx");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_position_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.PositionType })
                     .HasName("wcid_position_type_uidx")
                     .IsUnique();
@@ -1110,9 +1068,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesSkill>(entity =>
             {
                 entity.ToTable("biota_properties_skill");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_skill_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_skill_type_uidx")
@@ -1162,9 +1117,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_spell_book");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_spellbook_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Spell })
                     .HasName("wcid_spellbook_type_uidx")
                     .IsUnique();
@@ -1193,9 +1145,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesString>(entity =>
             {
                 entity.ToTable("biota_properties_string");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_string_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_string_type_uidx")
@@ -1328,9 +1277,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_contract");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_contract_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.ContractId })
                     .HasName("wcid_contract_uidx")
                     .IsUnique();
@@ -1369,9 +1315,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_fill_comp_book");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_fillcompbook_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.SpellComponentId })
                     .HasName("wcid_fillcompbook_type_uidx")
                     .IsUnique();
@@ -1405,9 +1348,6 @@ namespace ACE.Database.Models.Shard
                 entity.HasIndex(e => e.AccountId)
                     .HasName("wcid_account_id_idx");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_friend_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.FriendId })
                     .HasName("wcid_friend_uidx")
                     .IsUnique();
@@ -1435,9 +1375,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<CharacterPropertiesQuestRegistry>(entity =>
             {
                 entity.ToTable("character_properties_quest_registry");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_questbook_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.QuestName })
                     .HasName("wcid_questbook_name_uidx")
@@ -1473,9 +1410,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_shortcut_bar");
 
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_shortcutbar_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.ShortcutBarIndex, e.ShortcutObjectId })
                     .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
                     .IsUnique();
@@ -1503,9 +1437,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<CharacterPropertiesSpellBar>(entity =>
             {
                 entity.ToTable("character_properties_spell_bar");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_spellbar_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.SpellBarNumber, e.SpellId })
                     .HasName("wcid_spellbar_barId_spellId_uidx")
@@ -1538,9 +1469,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<CharacterPropertiesTitleBook>(entity =>
             {
                 entity.ToTable("character_properties_title_book");
-
-                entity.HasIndex(e => e.ObjectId)
-                    .HasName("wcid_titlebook_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.TitleId })
                     .HasName("wcid_titlebook_type_uidx")
