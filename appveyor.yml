@@ -18,22 +18,22 @@ test_script:
 #
 # Bad  (TPv1): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
 # Good (TPv2): C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform\
-- cmd: set path=%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform;%path%
+#- cmd: set path=%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\Common7\IDE\Extensions\TestPlatform;%path%
 #
 # These sepcify the AppVeyor logger, which results in the fllowing error: Could not find a test logger with URI or FriendlyName 'Appveyor'. Command exited with code 1
 #- cmd: vstest.console /logger:Appveyor "Source\ACE.Server.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Server.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #
-- cmd: vstest.console /logger:Appveyor "Source\ACE.Server.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Server.Tests.dll" --Diag:ACETests.txt --blame
-- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" --Diag:ACETests-Database.txt --blame
+#- cmd: vstest.console /logger:Appveyor "Source\ACE.Server.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Server.Tests.dll" --Diag:ACETests.txt --blame
+#- cmd: vstest.console /logger:Appveyor "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" --Diag:ACETests-Database.txt --blame
 #
 #- cmd: vstest.console "Source\ACE.Server.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Server.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #- cmd: vstest.console "Source\ACE.Database.Tests\bin\x64\Debug\netcoreapp2.0\ACE.Database.Tests.dll" /Platform:x64 /Framework:FrameworkCore10
 #
 #
 # Alternate test engine:
-# - cmd: dotnet test --no-build "Source\ACE.Server.Tests"
-# - cmd: dotnet test --no-build "Source\ACE.Database.Tests"
+ - cmd: dotnet test --no-build "Source\ACE.Server.Tests"
+ - cmd: dotnet test --no-build "Source\ACE.Database.Tests"
 artifacts:
   - path: '**\ACETests*.txt'
     name: test logs
