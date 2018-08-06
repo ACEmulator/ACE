@@ -495,7 +495,7 @@ namespace ACE.Server.Managers
                 case EmoteType.KillSelf:
 
                     if (targetCreature != null)
-                        targetCreature.Smite(targetCreature.Guid);
+                        targetCreature.Smite(targetCreature);
                     break;
 
                 case EmoteType.LocalBroadcast:

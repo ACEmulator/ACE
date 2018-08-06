@@ -36,20 +36,32 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the current vital to a new value
         /// </summary>
-        public virtual void UpdateVital(CreatureVital vital, uint newVal)
+        /// <returns>The actual change in the vital, after clamping between 0 and MaxVital</returns>
+        public virtual int UpdateVital(CreatureVital vital, int newVal)
         {
-            vital.Current = Math.Clamp(newVal, 0, vital.MaxValue);
+            var before = vital.Current;
+            vital.Current = (uint)Math.Clamp(newVal, 0, vital.MaxValue);
+            return (int)(vital.Current - before);
+        }
+
+        public virtual int UpdateVital(CreatureVital vital, uint newVal)
+        {
+            return UpdateVital(vital, (int)newVal);
         }
 
         /// <summary>
         /// Updates a vital relative to current value
         /// </summary>
-        public void UpdateVitalDelta(CreatureVital vital, long delta)
+        public int UpdateVitalDelta(CreatureVital vital, int delta)
         {
-            var newVital = vital.Current + delta;
-            newVital = Math.Clamp(newVital, 0, vital.MaxValue);
+            var newVital = (int)vital.Current + delta;
 
-            UpdateVital(vital, (uint)newVital);
+            return UpdateVital(vital, newVital);
+        }
+
+        public int UpdateVitalDelta(CreatureVital vital, uint delta)
+        {
+            return UpdateVitalDelta(vital, (int)delta);
         }
 
         /// <summary>
@@ -57,13 +69,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void VitalTick()
         {
-            if (Health.Current < Health.MaxValue)
+            if (Health.Current != Health.MaxValue)
                 VitalTick(Health);
 
-            if (Stamina.Current < Stamina.MaxValue)
+            if (Stamina.Current != Stamina.MaxValue)
                 VitalTick(Stamina);
 
-            if (Mana.Current < Mana.MaxValue)
+            if (Mana.Current != Mana.MaxValue)
                 VitalTick(Mana);
         }
 
@@ -73,8 +85,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="vital">The vital stat to update (health/stamina/mana)</param>
         public void VitalTick(CreatureVital vital)
         {
-            if (vital.Current >= vital.MaxValue)
+            if (vital.Current == vital.MaxValue)
                 return;
+
+            if (vital.Current > vital.MaxValue)
+            {
+                UpdateVital(vital, vital.MaxValue);
+                return;
+            }
 
             if (vital.RegenRate == 0.0) return;
 
@@ -99,8 +117,11 @@ namespace ACE.Server.WorldObjects
             vital.PartialRegen = totalTick - intTick;
 
             if (intTick > 0)
+            {
                 UpdateVitalDelta(vital, intTick);
-
+                if (vital.Vital == PropertyAttribute2nd.MaxHealth)
+                    DamageHistory.OnHeal((uint)intTick);
+            }
             //Console.WriteLine($"VitalTick({vital.Vital.ToSentence()}): attributeMod={attributeMod}, stanceMod={stanceMod}, enchantmentMod={enchantmentMod}, regenRate={vital.RegenRate}, currentTick={currentTick}, totalTick={totalTick}, accumulated={vital.PartialRegen}");
         }
 

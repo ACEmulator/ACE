@@ -5,6 +5,25 @@
 * Major schema refactoring + changes for World and Shard.
 * New PY16 format required
 
+### 2018-08-01
+[gmriggs]
+* Added player stamina usage on melee / missile attack
+* Refactored the death system
+* Added Damage History system to track damage and healing sources - for corpse looting rights
+* Fixed a bug where player death was removing enchantments on the client only
+* Improved player exhaustion system. Both players and monsters now receive attack and defense penalties when stamina = 0
+* Added attribute mod to monster damage. Some monsters now deal significantly more damage, so beware!
+* Fixed a bug where a player autoattack could occur after death
+* Fixed a bug where attributes could be debuffed below 10 on the server
+* Fixed a bug with MaxVital calculation with vitae
+* Updated shield effective angle to match retail
+
+[Jyrus]
+* Updated Life Magic code to properly utilize the DamageHistory for tracking damage through harm/drain/heals
+* Fixed all compiler warnings
+* Refactored spell resistance to common method for all creatures (players / monsters)
+* Spell level now determined by Scarab instead of PowerLevel, as per retail servers and client
+
 ### 2018-07-31
 [Mag-nus]
 * Updated all NuGet packages to latest stable. Most notably EF Core 2.1.

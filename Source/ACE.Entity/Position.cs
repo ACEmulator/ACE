@@ -20,6 +20,7 @@ namespace ACE.Entity
         }
 
         [JsonIgnore]
+        public uint Landblock { get => landblockId.Raw >> 16;  }
         public uint Cell { get => landblockId.Raw; }
 
         public Vector3 Pos

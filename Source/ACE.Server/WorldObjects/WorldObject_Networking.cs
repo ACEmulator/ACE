@@ -15,6 +15,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -224,10 +225,11 @@ namespace ACE.Server.WorldObjects
         private void SerializePhysicsData(BinaryWriter writer)
         {
             var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
-            var physicsState = CalculatedPhysicsState();
 
             writer.Write((uint)physicsDescriptionFlag);
 
+            var defaultObjState = GetProperty(PropertyInt.PhysicsState);
+            var physicsState = PhysicsObj != null ? PhysicsObj.State : defaultObjState != null ? (PhysicsState)defaultObjState : PhysicsGlobals.DefaultState;
             writer.Write((uint)physicsState);
 
             // PhysicsDescriptionFlag.Movement takes priorty over PhysicsDescription.FlagAnimationFrame
@@ -421,6 +423,8 @@ namespace ACE.Server.WorldObjects
             if ((WielderId != null && ParentLocation != null))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Parent;
 
+            // where did this epsilon value come from?
+            // why is it different from the physics engine epsilon?
             if ((ObjScale != null) && (Math.Abs(ObjScale ?? 0) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.ObjScale;
 
@@ -453,10 +457,9 @@ namespace ACE.Server.WorldObjects
 
         private PhysicsState CalculatedPhysicsState()
         {
-            // todo: This is doing 2 things. It's pulling the flag values from the PropertyInt.PhysicsState, then in turn, setting the bool value counterparts.
-            // That seem a bit redundant
+            // This is doing 2 things. It's pulling the default flags from the PropertyInt.PhysicsState, then in turn, setting the PropertyBool counterparts ONLY if they are null.
+            // This seems a bit confusing...
             // If we really want to set default states on create or load, we need to separate this function into two parts.
-            // Right now, every time this is called, defaults are being set.
 
             // Read in Object's Default PhysicsState
             var physicsState = (PhysicsState)(GetProperty(PropertyInt.PhysicsState) ?? 0);
@@ -467,10 +470,10 @@ namespace ACE.Server.WorldObjects
             if (physicsState.HasFlag(PhysicsState.Ethereal))
                 if (!Ethereal.HasValue)
                     Ethereal = true;
-            if (physicsState.HasFlag(PhysicsState.ReportCollision))
+            if (physicsState.HasFlag(PhysicsState.ReportCollisions))
                 if (!ReportCollisions.HasValue)
                     ReportCollisions = true;
-            if (physicsState.HasFlag(PhysicsState.IgnoreCollision))
+            if (physicsState.HasFlag(PhysicsState.IgnoreCollisions))
                 if (!IgnoreCollisions.HasValue)
                     IgnoreCollisions = true;
             if (physicsState.HasFlag(PhysicsState.NoDraw))
@@ -509,7 +512,7 @@ namespace ACE.Server.WorldObjects
             if (physicsState.HasFlag(PhysicsState.Cloaked))
                 if (!Cloaked.HasValue)
                     Cloaked = true;
-            if (physicsState.HasFlag(PhysicsState.ReportCollisionAsEnviroment))
+            if (physicsState.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                 if (!ReportCollisionsAsEnvironment.HasValue)
                     ReportCollisionsAsEnvironment = true;
             if (physicsState.HasFlag(PhysicsState.EdgeSlide))
@@ -535,14 +538,14 @@ namespace ACE.Server.WorldObjects
                 physicsState &= ~PhysicsState.Ethereal;
             ////ReportCollision             = 0x00000008,
             if (ReportCollisions ?? false)
-                physicsState |= PhysicsState.ReportCollision;
+                physicsState |= PhysicsState.ReportCollisions;
             else
-                physicsState &= ~PhysicsState.ReportCollision;
+                physicsState &= ~PhysicsState.ReportCollisions;
             ////IgnoreCollision             = 0x00000010,
             if (IgnoreCollisions ?? false)
-                physicsState |= PhysicsState.IgnoreCollision;
+                physicsState |= PhysicsState.IgnoreCollisions;
             else
-                physicsState &= ~PhysicsState.IgnoreCollision;
+                physicsState &= ~PhysicsState.IgnoreCollisions;
             ////NoDraw                      = 0x00000020,
             if (NoDraw ?? false)
                 physicsState |= PhysicsState.NoDraw;
@@ -594,11 +597,11 @@ namespace ACE.Server.WorldObjects
                 physicsState |= PhysicsState.ScriptedCollision;
             else
                 physicsState &= ~PhysicsState.ScriptedCollision;
-            ////HasPhysicsBsp               = 0x00010000,
+            ////HasPhysicsBSP               = 0x00010000,
             if (CSetup.HasPhysicsBSP)
-                physicsState |= PhysicsState.HasPhysicsBsp;
+                physicsState |= PhysicsState.HasPhysicsBSP;
             else
-                physicsState &= ~PhysicsState.HasPhysicsBsp;
+                physicsState &= ~PhysicsState.HasPhysicsBSP;
             ////Inelastic                   = 0x00020000,
             if (Inelastic ?? false)
                 physicsState |= PhysicsState.Inelastic;
@@ -621,9 +624,9 @@ namespace ACE.Server.WorldObjects
                 physicsState &= ~PhysicsState.Cloaked;
             ////ReportCollisionAsEnviroment = 0x00200000,
             if (ReportCollisionsAsEnvironment ?? false)
-                physicsState |= PhysicsState.ReportCollisionAsEnviroment;
+                physicsState |= PhysicsState.ReportCollisionsAsEnvironment;
             else
-                physicsState &= ~PhysicsState.ReportCollisionAsEnviroment;
+                physicsState &= ~PhysicsState.ReportCollisionsAsEnvironment;
             ////EdgeSlide                   = 0x00400000,
             if (AllowEdgeSlide ?? false)
                 physicsState |= PhysicsState.EdgeSlide;

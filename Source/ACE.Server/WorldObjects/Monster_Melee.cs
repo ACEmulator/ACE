@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
                 case MotionStance.UaNoShieldAttack:
                 default:
                     {
-                        Enum.TryParse("Attack" + GetAttackHeight() + GetPowerRange(), out motion);
+                        Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);
                         return motion;
                     }
             }
@@ -152,7 +152,10 @@ namespace ACE.Server.WorldObjects
         public float GetEvadeChance()
         {
             // get monster attack skill
-            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill());
+            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+
+            if (IsExhausted)
+                attackSkill = GetExhaustedSkill(attackSkill);
 
             // get player defense skill
             var player = AttackTarget as Player;
@@ -160,10 +163,12 @@ namespace ACE.Server.WorldObjects
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var difficulty = player.GetCreatureSkill(defenseSkill).Current;
 
-            //Console.WriteLine("Attack skill: " + attackSkill.Current);
+            if (player.IsExhausted) difficulty = 0;
+
+            //Console.WriteLine("Attack skill: " + attackSkill);
             //Console.WriteLine("Defense skill: " + difficulty);
 
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill.Current, (int)difficulty);
+            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;
         }
 
@@ -193,6 +198,9 @@ namespace ACE.Server.WorldObjects
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
                 criticalHit = true;
 
+            // attribute damage modifier (verify)
+            var attributeMod = GetAttributeMod(AttackType.Melee);
+
             // get armor piece
             var armor = GetArmor(bodyPart);
 
@@ -207,7 +215,7 @@ namespace ACE.Server.WorldObjects
             var shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             // scale damage by modifiers
-            var damage = baseDamage * armorMod * shieldMod * resistanceMod;
+            var damage = baseDamage * attributeMod * armorMod * shieldMod * resistanceMod;
 
             if (criticalHit) damage *= 2;
 
@@ -364,10 +372,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the power range for the current melee attack
         /// </summary>
-        /// <returns></returns>
-        public virtual int GetPowerRange()
+        public virtual PowerAccuracy GetPowerRange()
         {
-            return 1;   // only 1 for monsters?
+            return PowerAccuracy.Low; // always low for monsters?
         }
 
         /// <summary>

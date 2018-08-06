@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common

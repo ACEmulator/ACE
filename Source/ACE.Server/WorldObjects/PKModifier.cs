@@ -41,12 +41,6 @@ namespace ACE.Server.WorldObjects
 
         private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch1));
 
-        public uint? AllowedActivator
-        {
-            get => GetProperty(PropertyInstanceId.AllowedActivator);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.AllowedActivator); else SetProperty(PropertyInstanceId.AllowedActivator, value.Value); }
-        }
-
         public uint? UseTargetSuccessAnimation
         {
             get => GetProperty(PropertyDataId.UseTargetSuccessAnimation);
