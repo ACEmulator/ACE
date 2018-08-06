@@ -350,7 +350,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
+        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
         {
             ActionChain removeChain = GetRemoveWorldObjectChain(objectId, adjacencyMove);
             if (removeChain != null)
@@ -1035,8 +1035,16 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Unload()
         {
-            //Console.WriteLine("Landblock.Unload(" + (Id.Raw | 0xFFFF).ToString("X8") + ")");
+            var landblockID = Id.Raw | 0xFFFF;
+            //Console.WriteLine($"Landblock.Unload({landblockID:X})");
             SaveDB();
+
+            // remove all objects
+            foreach (var wo in worldObjects.Keys.ToList())
+                RemoveWorldObjectInternal(wo, false);
+
+            // remove physics landblock
+            LScape.unload_landblock(landblockID);
 
             // dungeon landblocks do not handle adjacents
             if (_landblock.IsDungeon) return;
