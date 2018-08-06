@@ -141,7 +141,6 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.Position.ObjCellID = cell.ID;
 
-            //PhysicsObj.add_obj_to_cell(cell, PhysicsObj.Position.Frame);
             var location = new Physics.Common.Position();
             location.ObjCellID = cell.ID;
             location.Frame.Origin = Location.Pos;
@@ -151,7 +150,7 @@ namespace ACE.Server.WorldObjects
 
             if (!success)
             {
-                Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
+                //Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
                 return false;
             }
             //Console.WriteLine($"AddPhysicsObj: success: {Name}");
