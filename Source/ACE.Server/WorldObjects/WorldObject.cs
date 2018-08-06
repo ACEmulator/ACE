@@ -112,7 +112,6 @@ namespace ACE.Server.WorldObjects
             if (creature == null)
             {
                 var isDynamic = Static == null || !Static.Value;
-                //Console.WriteLine($"Making object for {Name} (isDynamic={isDynamic})");
                 PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
                 PhysicsObj.set_weenie_obj(new WeenieObject(this));
             }
@@ -124,15 +123,40 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
 
             PhysicsObj.State = CalculatedPhysicsState();
-            //Console.WriteLine($"InitPhysicsObj({Name}) - {PhysicsObj.State}");
 
             /*var player = this as Player;
             if (creature != null && player == null)
+                AllowEdgeSlide = false;*/
+        }
+
+        public bool AddPhysicsObj()
+        {
+            AdjustDungeonCells(Location);
+
+            var cell = LScape.get_landcell(Location.Cell);
+            if (cell == null) return false;
+
+            PhysicsObj.Position.ObjCellID = cell.ID;
+
+            //PhysicsObj.add_obj_to_cell(cell, PhysicsObj.Position.Frame);
+            var location = new Physics.Common.Position();
+            location.ObjCellID = cell.ID;
+            location.Frame.Origin = Location.Pos;
+            location.Frame.Orientation = Location.Rotation;
+
+            var success = PhysicsObj.enter_world(location);
+
+            if (!success)
             {
-                // monsters / npcs
-                PhysicsObj.State &= ~Physics.PhysicsState.EdgeSlide;
-                AllowEdgeSlide = false;
-            }*/
+                Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
+                return false;
+            }
+            //Console.WriteLine($"AddPhysicsObj: success: {Name}");
+            Location.LandblockId = new LandblockId(location.ObjCellID);
+            Location.Pos = PhysicsObj.Position.Frame.Origin;
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
+            return true;
         }
 
         private void SetEphemeralValues()

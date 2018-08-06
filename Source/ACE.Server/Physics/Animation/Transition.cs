@@ -369,17 +369,17 @@ namespace ACE.Server.Physics.Animation
                 sphereRad = 0.48f;
             }
 
-            var delta = sphereRad;
+            var movementDelta = sphereRad;
 
-            var step = 4.0f / delta;
+            var fNumSteps = 4.0f / movementDelta;
 
             if (fakeSphere)
-                step *= 0.5f;
+                fNumSteps *= 0.5f;
 
-            if (step <= 1.0f)
+            if (fNumSteps <= 1.0f)
                 return false;
 
-            var numSteps = (int)Math.Ceiling(step);
+            var numSteps = (int)Math.Ceiling(fNumSteps);
             var distPerStep = adjustRad / numSteps;
             var radiansPerStep = (float)(Math.PI * distPerStep / sphereRad);
 
@@ -392,7 +392,8 @@ namespace ACE.Server.Physics.Animation
                 totalRad += radiansPerStep;
 
                 var rad = (int)Math.Ceiling(totalRad);
-                var angle = rad * 2;
+                rad *= 2;
+                var angle = 360.0f / rad;
 
                 var frame = new AFrame();
 
@@ -414,7 +415,8 @@ namespace ACE.Server.Physics.Animation
                         transitionState = TransitionalInsert(3);
                         transitionState = ValidatePlacementTransition(transitionState, ref redo);
 
-                        if (transitionState == TransitionState.OK) return true;
+                        if (transitionState == TransitionState.OK)
+                            return true;
                     }
                 }
             }
@@ -430,20 +432,25 @@ namespace ACE.Server.Physics.Animation
             if (SpherePath.CheckCell != null)
             {
                 transitionState = InsertIntoCell(SpherePath.CheckCell, 3);
+
                 if (transitionState == TransitionState.OK)
                     transitionState = CheckOtherCells(SpherePath.CheckCell);
             }
             else
                 transitionState = TransitionState.Collided;
 
-            if (ValidatePlacement(transitionState, true) != TransitionState.OK)
+            var result = ValidatePlacement(transitionState, true);
+            if (result != TransitionState.OK)
                 return false;
 
             SpherePath.InsertType = InsertType.Placement;
             if (!FindPlacementPos()) return false;
 
             if (!ObjectInfo.StepDown)
-                return ValidatePlacement(TransitionState.OK, true) == TransitionState.OK;
+            {
+                result = ValidatePlacement(TransitionState.OK, true);
+                return result == TransitionState.OK;
+            }
 
             SpherePath.WalkableAllowance = PhysicsGlobals.LandingZ;
             SpherePath.SaveCheckPos();
@@ -457,7 +464,7 @@ namespace ACE.Server.Physics.Animation
             if (SpherePath.NumSphere < 2 && globSphere.Radius * 2 < stepDownHeight)
                 stepDownHeight = globSphere.Radius * 0.5f;
 
-            if (stepDownHeight < globSphere.Radius * 2)
+            if (stepDownHeight <= globSphere.Radius * 2)
             {
                 if (!StepDown(stepDownHeight, PhysicsGlobals.LandingZ))
                 {
@@ -480,7 +487,8 @@ namespace ACE.Server.Physics.Animation
             SpherePath.InsertType = SpherePath.Backup;
             SpherePath.Walkable = null;
 
-            return ValidatePlacement(TransitionState.OK, true) == TransitionState.OK;
+            result = ValidatePlacement(TransitionState.OK, true);
+            return result == TransitionState.OK;
         }
 
         public bool FindTransitionalPosition()
@@ -665,9 +673,6 @@ namespace ACE.Server.Physics.Animation
                     case TransitionState.OK:
                     case TransitionState.Collided:
                         return transitionState;
-
-                    case TransitionState.Adjusted:
-                        break;  // debug breakpoint
 
                     case TransitionState.Slid:
                         CollisionInfo.ContactPlaneValid = false;

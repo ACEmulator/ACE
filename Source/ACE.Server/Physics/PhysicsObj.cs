@@ -189,16 +189,19 @@ namespace ACE.Server.Physics
         public ObjCell AdjustPosition(Position position, Vector3 low_pt, bool dontCreateCells, bool searchCells)
         {
             var cellID = position.ObjCellID & 0xFFFF;
+
             if ((cellID < 1 || cellID > 0x40) && (cellID < 0x100 || cellID > 0xFFFD) && cellID != 0xFFFF)
                 return null;
-            cellID = position.ObjCellID;
+
             if (cellID < 0x100)
             {
                 LandDefs.AdjustToOutside(position);
-                return ObjCell.GetVisible(cellID);
+                return ObjCell.GetVisible(position.ObjCellID);
             }
-            var visibleCell = (Common.EnvCell)ObjCell.GetVisible(cellID);
+
+            var visibleCell = (Common.EnvCell)ObjCell.GetVisible(position.ObjCellID);
             if (visibleCell == null) return null;
+
             var point = position.LocalToGlobal(low_pt);
             var child = visibleCell.find_visible_child_cell(point, searchCells);
             if (child != null)
@@ -206,9 +209,12 @@ namespace ACE.Server.Physics
                 position.ObjCellID = child.ID;
                 return child;
             }
-            if (!visibleCell.SeenOutside) return visibleCell;
+
+            if (!visibleCell.SeenOutside)
+                return null;
+
             position.adjust_to_outside();
-            return ObjCell.GetVisible(cellID);
+            return ObjCell.GetVisible(position.ObjCellID);
         }
 
         public bool CacheHasPhysicsBSP()
@@ -253,12 +259,18 @@ namespace ACE.Server.Physics
         public bool CheckPositionInternal(ObjCell newCell, Position newPos, Transition transition, SetPosition setPos)
         {
             transition.InitPath(newCell, null, newPos);
+
             if (!setPos.Flags.HasFlag(SetPositionFlags.Slide))
                 transition.SpherePath.PlacementAllowsSliding = false;
+
             if (!transition.FindValidPosition()) return false;
+
             if (setPos.Flags.HasFlag(SetPositionFlags.Slide))
                 return true;
+
             var diff = transition.SpherePath.CurPos.Frame.Origin - newPos.Frame.Origin;
+
+            // should be using Math.Abs(), bug in original?
             if (transition.SpherePath.CurPos.ObjCellID == newCell.ID && diff.X < 0.05f && diff.Y < 0.05f)
             {
                 newPos.Frame.Origin = transition.SpherePath.CurPos.Frame.Origin;
@@ -1028,7 +1040,7 @@ namespace ACE.Server.Physics
             return result;
         }
 
-        public SetPositionError SetPositionInternal(Transition transition)
+        public bool SetPositionInternal(Transition transition)
         {
             var prevOnWalkable = (TransientState & TransientStateFlags.OnWalkable) != 0;
             var transitCell = transition.SpherePath.CurCell;
@@ -1042,8 +1054,8 @@ namespace ACE.Server.Physics
 
                 ObjMaint.GotoLostCell(this, Position.ObjCellID);
 
-                TransientState &= ~TransientStateFlags.Active;
-                return SetPositionError.GeneralFailure;
+                set_active(false);
+                return true;
             }
 
             if (transitCell.Equals(CurCell))
@@ -1117,7 +1129,7 @@ namespace ACE.Server.Physics
                 if (State.HasFlag(PhysicsState.HasPhysicsBSP))
                 {
                     calc_cross_cells();
-                    return SetPositionError.GeneralFailure;
+                    return true;
                 }
 
                 if (transition.CellArray.Cells.Count > 0)
@@ -1125,10 +1137,10 @@ namespace ACE.Server.Physics
                     remove_shadows_from_cells();
                     add_shadows_to_cell(transition.CellArray);
 
-                    return SetPositionError.GeneralFailure;
+                    return true;
                 }
             }
-            return SetPositionError.OK;
+            return true;
         }
 
         public SetPositionError SetPositionInternal(Position pos, SetPosition setPos, Transition transition)
@@ -1158,7 +1170,7 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.CurCell == null) return SetPositionError.NoCell;
 
-            if (SetPositionInternal(transition) != SetPositionError.OK)
+            if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
 
             return SetPositionError.OK;
@@ -1169,8 +1181,9 @@ namespace ACE.Server.Physics
             if (setPos.Flags.HasFlag(SetPositionFlags.RandomScatter))
                 return SetScatterPositionInternal(setPos, transition);
 
-            // frame copy constructor
+            // frame ref?
             var result = SetPositionInternal(setPos.Pos, setPos, transition);
+
             if (result != SetPositionError.OK && setPos.Flags.HasFlag(SetPositionFlags.Scatter))
                 return SetScatterPositionInternal(setPos, transition);
 
@@ -2040,19 +2053,29 @@ namespace ACE.Server.Physics
         public bool enter_world(bool slide)
         {
             if (Parent != null) return false;
+
             UpdateTime = Timer.CurrentTime;
-            var sps = new SetPosition();
-            sps.Pos = Position;
+
+            var setPos = new SetPosition();
+            setPos.Pos = Position;
+            setPos.Flags = SetPositionFlags.Placement;
+
             if (slide)
-                sps.Flags |= SetPositionFlags.Slide;
-            if (SetPosition(sps) != SetPositionError.OK)
+                setPos.Flags |= SetPositionFlags.Slide;
+
+            var result = SetPosition(setPos);
+            if (result != SetPositionError.OK)
                 return false;
+
             if (!State.HasFlag(PhysicsState.Static))
                 TransientState |= TransientStateFlags.Active;
+
             if (PartArray != null)
                 PartArray.HandleEnterWorld();
+
             if (MovementManager != null)
                 MovementManager.HandleEnterWorld();
+
             return true;
         }
 
@@ -3444,11 +3467,14 @@ namespace ACE.Server.Physics
 
         public void store_position(Position pos)
         {
-            if (pos.ObjCellID < 0x100) LandDefs.AdjustToOutside(pos);
+            // position ref?
+            if ((pos.ObjCellID & 0xFFFF) < 0x100)
+                LandDefs.AdjustToOutside(pos);
 
             if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
                 PartArray.SetCellID(pos.ObjCellID);
 
+            set_cell_id(pos.ObjCellID);
             set_frame(pos.Frame);
         }
 
@@ -3674,6 +3700,8 @@ namespace ACE.Server.Physics
         {
             PositionManager.StickyManager.remove_unsticky_listener(listener);
         }
+
+        public bool IsGrounded { get => TransientState.HasFlag(TransientStateFlags.OnWalkable) && CachedVelocity.Equals(Vector3.Zero); }
 
         public bool Equals(PhysicsObj obj)
         {

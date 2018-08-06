@@ -88,6 +88,9 @@ namespace ACE.Server.Physics.Common
 
         public bool Equals(ObjCell objCell)
         {
+            if (objCell == null)
+                return false;
+
             return ID.Equals(objCell.ID);
         }
 
