@@ -1073,64 +1073,64 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
+                entity.Property(e => e.ItemChance)
+                    .HasColumnName("item_Chance")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.ItemMaxAmount)
+                    .HasColumnName("item_Max_Amount")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.ItemMinAmount)
+                    .HasColumnName("item_Min_Amount")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.ItemTreasureTypeSelectionChances)
+                    .HasColumnName("item_Treasure_Type_Selection_Chances")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.LootQualityMod).HasColumnName("loot_Quality_Mod");
+
+                entity.Property(e => e.MagicItemChance)
+                    .HasColumnName("magic_Item_Chance")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MagicItemMaxAmount)
+                    .HasColumnName("magic_Item_Max_Amount")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MagicItemMinAmount)
+                    .HasColumnName("magic_Item_Min_Amount")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MagicItemTreasureTypeSelectionChances)
+                    .HasColumnName("magic_Item_Treasure_Type_Selection_Chances")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MundaneItemChance)
+                    .HasColumnName("mundane_Item_Chance")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MundaneItemMaxAmount)
+                    .HasColumnName("mundane_Item_Max_Amount")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MundaneItemMinAmount)
+                    .HasColumnName("mundane_Item_Min_Amount")
+                    .HasColumnType("int(10)");
+
+                entity.Property(e => e.MundaneItemTypeSelectionChances)
+                    .HasColumnName("mundane_Item_Type_Selection_Chances")
+                    .HasColumnType("int(10)");
+
                 entity.Property(e => e.Tier)
                     .HasColumnName("tier")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.TreasureType).HasColumnName("treasure_Type");
 
-                entity.Property(e => e.Unknown1).HasColumnName("unknown_1");
-
-                entity.Property(e => e.Unknown10)
-                    .HasColumnName("unknown_10")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown11)
-                    .HasColumnName("unknown_11")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown12)
-                    .HasColumnName("unknown_12")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown13)
-                    .HasColumnName("unknown_13")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown14)
-                    .HasColumnName("unknown_14")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown2)
-                    .HasColumnName("unknown_2")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown3)
-                    .HasColumnName("unknown_3")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown4)
-                    .HasColumnName("unknown_4")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown5)
-                    .HasColumnName("unknown_5")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown6)
-                    .HasColumnName("unknown_6")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown7)
-                    .HasColumnName("unknown_7")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown8)
-                    .HasColumnName("unknown_8")
-                    .HasColumnType("int(10)");
-
-                entity.Property(e => e.Unknown9)
-                    .HasColumnName("unknown_9")
+                entity.Property(e => e.UnknownChances)
+                    .HasColumnName("unknown_Chances")
                     .HasColumnType("int(10)");
             });
 
@@ -1143,9 +1143,21 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
+                entity.Property(e => e.ContinuesPreviousSet)
+                    .HasColumnName("continues_Previous_Set")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.HasSubSet)
+                    .HasColumnName("has_Sub_Set")
+                    .HasColumnType("bit(1)");
+
                 entity.Property(e => e.PaletteId).HasColumnName("palette_Id");
 
                 entity.Property(e => e.Probability).HasColumnName("probability");
+
+                entity.Property(e => e.SetStart)
+                    .HasColumnName("set_Start")
+                    .HasColumnType("bit(1)");
 
                 entity.Property(e => e.Shade).HasColumnName("shade");
 
@@ -1153,6 +1165,8 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stack_Size")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.StackSizeVariance).HasColumnName("stack_Size_Variance");
 
                 entity.Property(e => e.TreasureType).HasColumnName("treasure_Type");
 
@@ -1164,25 +1178,11 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Unknown12).HasColumnName("unknown_12");
 
-                entity.Property(e => e.Unknown2).HasColumnName("unknown_2");
-
                 entity.Property(e => e.Unknown3).HasColumnName("unknown_3");
 
                 entity.Property(e => e.Unknown4).HasColumnName("unknown_4");
 
                 entity.Property(e => e.Unknown5).HasColumnName("unknown_5");
-
-                entity.Property(e => e.Unknown6)
-                    .HasColumnName("unknown_6")
-                    .HasColumnType("bit(1)");
-
-                entity.Property(e => e.Unknown7)
-                    .HasColumnName("unknown_7")
-                    .HasColumnType("bit(1)");
-
-                entity.Property(e => e.Unknown8)
-                    .HasColumnName("unknown_8")
-                    .HasColumnType("bit(1)");
 
                 entity.Property(e => e.Unknown9).HasColumnName("unknown_9");
 

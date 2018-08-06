@@ -12,14 +12,14 @@ namespace ACE.Database.Models.World
         public uint Unknown1 { get; set; }
         public float Shade { get; set; }
         public int StackSize { get; set; }
-        public float Unknown2 { get; set; }
+        public float StackSizeVariance { get; set; }
         public float Probability { get; set; }
         public uint Unknown3 { get; set; }
         public uint Unknown4 { get; set; }
         public uint Unknown5 { get; set; }
-        public bool Unknown6 { get; set; }
-        public bool Unknown7 { get; set; }
-        public bool Unknown8 { get; set; }
+        public bool SetStart { get; set; }
+        public bool HasSubSet { get; set; }
+        public bool ContinuesPreviousSet { get; set; }
         public uint Unknown9 { get; set; }
         public uint Unknown10 { get; set; }
         public uint Unknown11 { get; set; }

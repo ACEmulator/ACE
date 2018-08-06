@@ -26,25 +26,25 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(TreasureDeath input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `treasure_death` (`treasure_Type`, `tier`, `unknown_1`, `unknown_2`, `unknown_3`, `unknown_4`, `unknown_5`, `unknown_6`, `unknown_7`, `unknown_8`, `unknown_9`, `unknown_10`, `unknown_11`, `unknown_12`, `unknown_13`, `unknown_14`)");
+            writer.WriteLine("INSERT INTO `treasure_death` (`treasure_Type`, `tier`, `loot_Quality_Mod`, `unknown_Chances`, `item_Chance`, `item_Min_Amount`, `item_Max_Amount`, `item_Treasure_Type_Selection_Chances`, `magic_Item_Chance`, `magic_Item_Min_Amount`, `magic_Item_Max_Amount`, `magic_Item_Treasure_Type_Selection_Chances`, `mundane_Item_Chance`, `mundane_Item_Min_Amount`, `mundane_Item_Max_Amount`, `mundane_Item_Type_Selection_Chances`)");
 
             var output = "VALUES (" +
                 $"{input.TreasureType}, " +
                 $"{input.Tier}, " +
-                $"{input.Unknown1}, " +
-                $"{input.Unknown2}, " +
-                $"{input.Unknown3}, " +
-                $"{input.Unknown4}, " +
-                $"{input.Unknown5}, " +
-                $"{input.Unknown6}, " +
-                $"{input.Unknown7}, " +
-                $"{input.Unknown8}, " +
-                $"{input.Unknown9}, " +
-                $"{input.Unknown10}, " +
-                $"{input.Unknown11}, " +
-                $"{input.Unknown12}, " +
-                $"{input.Unknown13}, " +
-                $"{input.Unknown14}" +
+                $"{input.LootQualityMod}, " +
+                $"{input.UnknownChances}, " +
+                $"{input.ItemChance}, " +
+                $"{input.ItemMinAmount}, " +
+                $"{input.ItemMaxAmount}, " +
+                $"{input.ItemTreasureTypeSelectionChances}, " +
+                $"{input.MagicItemChance}, " +
+                $"{input.MagicItemMinAmount}, " +
+                $"{input.MagicItemMaxAmount}, " +
+                $"{input.MagicItemTreasureTypeSelectionChances}, " +
+                $"{input.MundaneItemChance}, " +
+                $"{input.MundaneItemMinAmount}, " +
+                $"{input.MundaneItemMaxAmount}, " +
+                $"{input.MundaneItemTypeSelectionChances}" +
                 ");";
 
             output = FixNullFields(output);
