@@ -471,9 +471,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_d_i_d");
 
-                entity.HasIndex(e => e.Type)
-                    .HasName("wcid_did_type_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_did_type_uidx")
                     .IsUnique();
@@ -501,9 +498,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesEmote>(entity =>
             {
                 entity.ToTable("biota_properties_emote");
-
-                entity.HasIndex(e => e.Category)
-                    .HasName("category_idx");
 
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_emote");
@@ -549,12 +543,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesEmoteAction>(entity =>
             {
                 entity.ToTable("biota_properties_emote_action");
-
-                entity.HasIndex(e => e.Order)
-                    .HasName("emoteorder_idx");
-
-                entity.HasIndex(e => e.Type)
-                    .HasName("emotetype_idx");
 
                 entity.HasIndex(e => new { e.EmoteId, e.Order })
                     .HasName("wcid_category_set_order_uidx")
@@ -915,9 +903,6 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_i_i_d");
 
-                entity.HasIndex(e => e.Type)
-                    .HasName("wcid_iid_type_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_iid_type_uidx")
                     .IsUnique();
@@ -1029,9 +1014,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<BiotaPropertiesPosition>(entity =>
             {
                 entity.ToTable("biota_properties_position");
-
-                entity.HasIndex(e => e.ObjCellId)
-                    .HasName("objCellId_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.PositionType })
                     .HasName("wcid_position_type_uidx")
@@ -1344,9 +1326,6 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<CharacterPropertiesFriendList>(entity =>
             {
                 entity.ToTable("character_properties_friend_list");
-
-                entity.HasIndex(e => e.AccountId)
-                    .HasName("wcid_account_id_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.FriendId })
                     .HasName("wcid_friend_uidx")

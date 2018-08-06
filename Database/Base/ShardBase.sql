@@ -234,7 +234,6 @@ CREATE TABLE `biota_properties_d_i_d` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyDataId.????)',
   `value` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_did_type_idx` (`type`),
   UNIQUE KEY `wcid_did_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_did` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='DataID Properties of Weenies';
@@ -260,7 +259,6 @@ CREATE TABLE `biota_properties_emote` (
   `min_Health` float DEFAULT NULL,
   `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `category_idx` (`category`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -315,8 +313,6 @@ CREATE TABLE `biota_properties_emote_action` (
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `emoteorder_idx` (`order`),
-  KEY `emotetype_idx` (`type`),
   UNIQUE KEY `wcid_category_set_order_uidx` (`emote_Id`,`order`),
   CONSTRAINT `emoteid_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `biota_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
@@ -435,7 +431,6 @@ CREATE TABLE `biota_properties_i_i_d` (
   `type` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Type of Property the value applies to (PropertyInstanceId.????)',
   `value` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_iid_type_idx` (`type`),
   UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='InstanceID Properties of Weenies';
@@ -516,7 +511,6 @@ CREATE TABLE `biota_properties_position` (
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `objCellId_idx` (`obj_Cell_Id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
@@ -684,7 +678,6 @@ CREATE TABLE `character_properties_friend_list` (
   `friend_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Friend',
   `account_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Account Id of object this property belongs to',
   PRIMARY KEY (`id`),
-  KEY `wcid_account_id_idx` (`account_Id`),
   UNIQUE KEY `wcid_friend_uidx` (`object_Id`,`friend_Id`),
   CONSTRAINT `wcid_friend` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FriendList Properties of Weenies';

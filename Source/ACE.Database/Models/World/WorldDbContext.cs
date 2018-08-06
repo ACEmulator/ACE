@@ -1519,9 +1519,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_d_i_d");
 
-                entity.HasIndex(e => e.Type)
-                    .HasName("wcid_did_type_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_did_type_uidx")
                     .IsUnique();
@@ -1543,9 +1540,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesEmote>(entity =>
             {
                 entity.ToTable("weenie_properties_emote");
-
-                entity.HasIndex(e => e.Category)
-                    .HasName("category_idx");
 
                 entity.HasIndex(e => e.ObjectId)
                     .HasName("wcid_emote");
@@ -1587,12 +1581,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesEmoteAction>(entity =>
             {
                 entity.ToTable("weenie_properties_emote_action");
-
-                entity.HasIndex(e => e.Order)
-                    .HasName("emoteorder_idx");
-
-                entity.HasIndex(e => e.Type)
-                    .HasName("emotetype_idx");
 
                 entity.HasIndex(e => new { e.EmoteId, e.Order })
                     .HasName("emoteid_order_uidx")
@@ -1847,9 +1835,6 @@ namespace ACE.Database.Models.World
             {
                 entity.ToTable("weenie_properties_i_i_d");
 
-                entity.HasIndex(e => e.Type)
-                    .HasName("wcid_did_type_idx");
-
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_iid_type_uidx")
                     .IsUnique();
@@ -1943,9 +1928,6 @@ namespace ACE.Database.Models.World
             modelBuilder.Entity<WeeniePropertiesPosition>(entity =>
             {
                 entity.ToTable("weenie_properties_position");
-
-                entity.HasIndex(e => e.ObjCellId)
-                    .HasName("objCellId_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.PositionType })
                     .HasName("wcid_position_type_uidx")

@@ -852,7 +852,6 @@ CREATE TABLE `weenie_properties_d_i_d` (
   `type` smallint(5) unsigned NOT NULL COMMENT 'Type of Property the value applies to (PropertyDataId.????)',
   `value` int(10) unsigned NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_did_type_idx` (`type`),
   UNIQUE KEY `wcid_did_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_did` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='DataID Properties of Weenies';
@@ -878,7 +877,6 @@ CREATE TABLE `weenie_properties_emote` (
   `min_Health` float,
   `max_Health` float,
   PRIMARY KEY (`id`),
-  KEY `category_idx` (`category`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -933,8 +931,6 @@ CREATE TABLE `weenie_properties_emote_action` (
   `angles_Y` float,
   `angles_Z` float,
   PRIMARY KEY (`id`),
-  KEY `emoteorder_idx` (`order`),
-  KEY `emotetype_idx` (`type`),
   UNIQUE KEY `emoteid_order_uidx` (`emote_Id`,`order`),
   CONSTRAINT `emoteid_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `weenie_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
@@ -1021,7 +1017,6 @@ CREATE TABLE `weenie_properties_i_i_d` (
   `type` smallint(5) unsigned NOT NULL COMMENT 'Type of Property the value applies to (PropertyInstanceId.????)',
   `value` int(10) unsigned NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  KEY `wcid_did_type_idx` (`type`),
   UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='InstanceID Properties of Weenies';
@@ -1102,7 +1097,6 @@ CREATE TABLE `weenie_properties_position` (
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `objCellId_idx` (`obj_Cell_Id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
