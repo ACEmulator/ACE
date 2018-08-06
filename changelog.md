@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-08-06
+[Mag-nus]
+* Major schema refactoring + changes for World and Shard.
+* New PY16 format required
+
 ### 2018-07-31
 [Mag-nus]
 * Updated all NuGet packages to latest stable. Most notably EF Core 2.1.
