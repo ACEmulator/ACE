@@ -407,7 +407,8 @@ namespace ACE.Server.WorldObjects
 
             if (player.IsBusy == true)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                 return;
             }
             else
@@ -496,7 +497,7 @@ namespace ACE.Server.WorldObjects
             {
                 string spellWords = spell.SpellWords;
                 if (spellWords != null)
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
+                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
 
                 var motionCastSpell = new UniversalMotion(MotionStance.Spellcasting);
                 motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
