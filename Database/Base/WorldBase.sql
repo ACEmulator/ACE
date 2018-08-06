@@ -38,9 +38,9 @@ CREATE TABLE `cook_book` (
   `source_W_C_I_D` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the source object for this recipe',
   `target_W_C_I_D` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the target object for this recipe',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   KEY `source_idx` (`source_W_C_I_D`),
   KEY `target_idx` (`target_W_C_I_D`),
+  UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cook Book for Recipes';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -59,8 +59,8 @@ CREATE TABLE `encounter` (
   `cell_X` int(5) NOT NULL COMMENT 'CellX position of this Encounter',
   `cell_Y` int(5) NOT NULL COMMENT 'CellY position of this Encounter',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `landblock_cellx_celly_uidx` (`landblock`,`cell_X`,`cell_Y`),
-  KEY `landblock_idx` (`landblock`)
+  KEY `landblock_idx` (`landblock`),
+  UNIQUE KEY `landblock_cellx_celly_uidx` (`landblock`,`cell_X`,`cell_Y`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Encounters';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -852,8 +852,8 @@ CREATE TABLE `weenie_properties_d_i_d` (
   `type` smallint(5) unsigned NOT NULL COMMENT 'Type of Property the value applies to (PropertyDataId.????)',
   `value` int(10) unsigned NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_did_type_uidx` (`object_Id`,`type`),
   KEY `wcid_did_type_idx` (`type`),
+  UNIQUE KEY `wcid_did_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_did` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='DataID Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -933,9 +933,9 @@ CREATE TABLE `weenie_properties_emote_action` (
   `angles_Y` float,
   `angles_Z` float,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `emoteid_order_uidx` (`emote_Id`,`order`),
   KEY `emoteorder_idx` (`order`),
   KEY `emotetype_idx` (`type`),
+  UNIQUE KEY `emoteid_order_uidx` (`emote_Id`,`order`),
   CONSTRAINT `emoteid_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `weenie_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1021,8 +1021,8 @@ CREATE TABLE `weenie_properties_i_i_d` (
   `type` smallint(5) unsigned NOT NULL COMMENT 'Type of Property the value applies to (PropertyInstanceId.????)',
   `value` int(10) unsigned NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
   KEY `wcid_did_type_idx` (`type`),
+  UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
   CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='InstanceID Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1102,8 +1102,8 @@ CREATE TABLE `weenie_properties_position` (
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   KEY `objCellId_idx` (`obj_Cell_Id`),
+  UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
