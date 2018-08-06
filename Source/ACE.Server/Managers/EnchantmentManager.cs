@@ -80,7 +80,7 @@ namespace ACE.Server.Managers
             // if none, add new record
             if (entries.Count == 0)
             {
-                var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
+                var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                 newEntry.LayerId = enchantment.Layer;
                 var type = (EnchantmentTypeFlags)newEntry.StatModType;
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
@@ -117,7 +117,7 @@ namespace ACE.Server.Managers
                         if ((caster as Creature) == null)
                         {
                             enchantment.Layer = entry.LayerId; // Should be a higher layer than existing enchant
-                            var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
+                            var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                             newEntry.LayerId = enchantment.Layer;
                             WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
 
@@ -148,7 +148,7 @@ namespace ACE.Server.Managers
                     }
 
                     enchantment.Layer = (ushort)(layerBuffer + 1); // Should be a higher layer than existing enchant
-                    var newEntry = BuildEntry(enchantment.Spell.SpellId, caster);
+                    var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                     newEntry.LayerId = enchantment.Layer;
                     WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
 
@@ -315,7 +315,7 @@ namespace ACE.Server.Managers
             var enchantmentType = (EnchantmentTypeFlags)entry.EnchantmentCategory;
             entry.ObjectId = WorldObject.Guid.Full;
             entry.Object = WorldObject.Biota;
-            entry.SpellId = (int)spell.SpellId;
+            entry.SpellId = (int)spell.Id;
             entry.SpellCategory = (ushort)spellBase.Category;
             entry.PowerLevel = spellBase.Power;
 

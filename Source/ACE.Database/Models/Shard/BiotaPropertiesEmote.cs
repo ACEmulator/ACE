@@ -14,7 +14,6 @@ namespace ACE.Database.Models.Shard
         public uint ObjectId { get; set; }
         public uint Category { get; set; }
         public float Probability { get; set; }
-        public uint EmoteSetId { get; set; }
         public uint? WeenieClassId { get; set; }
         public uint? Style { get; set; }
         public uint? Substyle { get; set; }

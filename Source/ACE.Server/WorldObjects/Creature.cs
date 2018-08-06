@@ -599,9 +599,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        var emoteActions = Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == selectedEmoteSet.Category && x.EmoteSetId == selectedEmoteSet.EmoteSetId).OrderBy(x => x.Order).ToList();
-
-                        foreach (var action in emoteActions)
+                        foreach (var action in selectedEmoteSet.BiotaPropertiesEmoteAction)
                         {
                             EmoteManager.ExecuteEmote(selectedEmoteSet, action, actionChain, this, player);
                         }

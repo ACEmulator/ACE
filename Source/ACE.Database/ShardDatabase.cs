@@ -328,7 +328,7 @@ namespace ACE.Database
                 .Include(r => r.BiotaPropertiesCreateList)
                 .Include(r => r.BiotaPropertiesDID)                
                 .Include(r => r.BiotaPropertiesEmote)
-                .Include(r => r.BiotaPropertiesEmoteAction)
+                    .ThenInclude(r => r.BiotaPropertiesEmoteAction)
                 .Include(r => r.BiotaPropertiesEnchantmentRegistry)
                 .Include(r => r.BiotaPropertiesEventFilter)
                 .Include(r => r.CharacterPropertiesFillCompBook)
@@ -435,9 +435,7 @@ namespace ACE.Database
             //biota.BiotaPropertiesContract = context.BiotaPropertiesContract.Where(r => r.ObjectId == biota.Id).ToList();
 
             biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Where(r => r.ObjectId == biota.Id).ToList();
-            if (biota.BiotaPropertiesEmote.Count > 0)
-                biota.BiotaPropertiesEmoteAction = context.BiotaPropertiesEmoteAction.Where(r => r.ObjectId == biota.Id).ToList();
+            biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Include(r => r.BiotaPropertiesEmoteAction).Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
             biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
             biota.CharacterPropertiesQuestRegistry = context.CharacterPropertiesQuestRegistry.Where(r => r.ObjectId == biota.Id).ToList();

@@ -51,7 +51,7 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
                     .AsNoTracking()
                     .Where(r => r.Guid >= min && r.Guid <= max)
                     .ToList();
@@ -119,9 +119,7 @@ namespace ACE.Database
             }
 
             weenie.WeeniePropertiesCreateList = context.WeeniePropertiesCreateList.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            if (weenie.WeeniePropertiesEmote.Count > 0)
-                weenie.WeeniePropertiesEmoteAction = context.WeeniePropertiesEmoteAction.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Include(r => r.WeeniePropertiesEmoteAction).Where(r => r.ObjectId == weenie.ClassId).ToList();
             weenie.WeeniePropertiesEventFilter = context.WeeniePropertiesEventFilter.Where(r => r.ObjectId == weenie.ClassId).ToList();
 
             weenie.WeeniePropertiesGenerator = context.WeeniePropertiesGenerator.Where(r => r.ObjectId == weenie.ClassId).ToList();
@@ -248,13 +246,14 @@ namespace ACE.Database
         /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
-        public Dictionary<Weenie, List<LandblockInstances>> GetCachedWeenieInstancesByLandblock(ushort landblock)
+        public Dictionary<Weenie, List<LandblockInstance>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
-            var builder = new Dictionary<uint, List<LandblockInstances>>();
+            var builder = new Dictionary<uint, List<LandblockInstance>>();
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock)
                     .ToList();
@@ -264,11 +263,11 @@ namespace ACE.Database
                     if (builder.TryGetValue(result.WeenieClassId, out var value))
                         value.Add(result);
                     else
-                        builder[result.WeenieClassId] = new List<LandblockInstances>() { result };
+                        builder[result.WeenieClassId] = new List<LandblockInstance>() { result };
                 }
             }
 
-            var ret = new Dictionary<Weenie, List<LandblockInstances>>();
+            var ret = new Dictionary<Weenie, List<LandblockInstance>>();
 
             foreach (var kvp in builder)
                 ret[GetCachedWeenie(kvp.Key)] = kvp.Value;
@@ -277,7 +276,7 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<ushort, List<LandblockInstances>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstances>>();
+        private readonly ConcurrentDictionary<ushort, List<LandblockInstance>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstance>>();
 
         /// <summary>
         /// Returns the number of LandblockInstances currently cached.
@@ -290,19 +289,20 @@ namespace ACE.Database
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
         /// </summary>
-        public List<LandblockInstances> GetCachedInstancesByLandblock(ushort landblock)
+        public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
         {
             if (cachedLandblockInstances.TryGetValue(landblock, out var value))
                 return value;
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock)
                     .ToList();
 
-                cachedLandblockInstances.TryAdd(landblock, results.OrderBy(x => x.LinkController).ThenBy(x => x.LinkSlot).ToList());
+                cachedLandblockInstances.TryAdd(landblock, results.ToList());
             }
 
             return cachedLandblockInstances[landblock];
@@ -367,14 +367,18 @@ namespace ACE.Database
                 var result = context.CookBook
                     .AsNoTracking()
                     .Include(r => r.Recipe)
-                    .Include(r => r.Recipe.RecipeComponent)
                     .Include(r => r.Recipe.RecipeMod)
-                    .Include(r => r.Recipe.RecipeModsBool)
-                    .Include(r => r.Recipe.RecipeModsDID)
-                    .Include(r => r.Recipe.RecipeModsFloat)
-                    .Include(r => r.Recipe.RecipeModsIID)
-                    .Include(r => r.Recipe.RecipeModsInt)
-                    .Include(r => r.Recipe.RecipeModsString)
+                        .ThenInclude(r => r.RecipeModsBool)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsDID)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsFloat)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsIID)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsInt)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsString)
                     .Include(r => r.Recipe.RecipeRequirementsBool)
                     .Include(r => r.Recipe.RecipeRequirementsDID)
                     .Include(r => r.Recipe.RecipeRequirementsFloat)
@@ -419,7 +423,7 @@ namespace ACE.Database
             {
                 var result = context.Spell
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.SpellId == spellId);
+                    .FirstOrDefault(r => r.Id == spellId);
 
                 if (result != null)
                 {

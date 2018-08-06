@@ -270,8 +270,7 @@ namespace ACE.Server.Managers
 
                     var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
                     var firstEmote = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)EmoteCategory.GotoSet && rng < e.Probability);
-                    var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(e => e.EmoteSetId == firstEmote.EmoteSetId && e.EmoteCategory == firstEmote.Category).ToList();
-                    foreach (var action in actions)
+                    foreach (var action in firstEmote.BiotaPropertiesEmoteAction)
                     {
                         actionChain.AddAction(player, () =>
                         {
@@ -939,9 +938,8 @@ namespace ACE.Server.Managers
 
             var result = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)categoryId && e.Quest == emoteAction.Message && rng <= e.Probability);
             if (result == null) return;
-            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == result.EmoteSetId && a.EmoteCategory == result.Category);
 
-            foreach (var action in actions)
+            foreach (var action in result.BiotaPropertiesEmoteAction)
             {
                 actionChain.AddAction(sourceObject, () =>
                 {
@@ -999,7 +997,7 @@ namespace ACE.Server.Managers
             {
                 if (rng < emote.Probability)
                 {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    foreach (var action in emote.BiotaPropertiesEmoteAction)
                     {
                         ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
                     }
@@ -1012,7 +1010,7 @@ namespace ACE.Server.Managers
             {
                 if (rng < emote.Probability)
                 {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    foreach (var action in emote.BiotaPropertiesEmoteAction)
                     {
                         ExecuteEmote(emote, action, emoteChain, WorldObject);
                     }
@@ -1021,11 +1019,6 @@ namespace ACE.Server.Managers
                 }
             }
             emoteChain.EnqueueChain();
-        }
-
-        public IEnumerable<BiotaPropertiesEmoteAction> EmoteSet(uint emoteCategory, uint emoteSetId)
-        {
-            return WorldObject.Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == emoteCategory && x.EmoteSetId == emoteSetId);
         }
 
         public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)
@@ -1059,7 +1052,7 @@ namespace ACE.Server.Managers
             {
                 if (rng < emote.Probability)
                 {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    foreach (var action in emote.BiotaPropertiesEmoteAction)
                         ExecuteEmote(emote, action, emoteChain, WorldObject);
 
                     break;

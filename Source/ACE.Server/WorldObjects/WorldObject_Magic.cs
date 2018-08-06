@@ -899,7 +899,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // create enchantment
-            var enchantment = new Enchantment(target, caster.Guid, spellStatMod.SpellId, duration, 1, (uint)EnchantmentMask.CreatureSpells);
+            var enchantment = new Enchantment(target, caster.Guid, spellStatMod.Id, duration, 1, (uint)EnchantmentMask.CreatureSpells);
             var stackType = target.EnchantmentManager.Add(enchantment, caster);
 
             var player = this as Player;

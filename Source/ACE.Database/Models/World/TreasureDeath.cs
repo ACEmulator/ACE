@@ -8,19 +8,19 @@ namespace ACE.Database.Models.World
         public uint Id { get; set; }
         public uint TreasureType { get; set; }
         public int Tier { get; set; }
-        public float Unknown1 { get; set; }
-        public int Unknown2 { get; set; }
-        public int Unknown3 { get; set; }
-        public int Unknown4 { get; set; }
-        public int Unknown5 { get; set; }
-        public int Unknown6 { get; set; }
-        public int Unknown7 { get; set; }
-        public int Unknown8 { get; set; }
-        public int Unknown9 { get; set; }
-        public int Unknown10 { get; set; }
-        public int Unknown11 { get; set; }
-        public int Unknown12 { get; set; }
-        public int Unknown13 { get; set; }
-        public int Unknown14 { get; set; }
+        public float LootQualityMod { get; set; }
+        public int UnknownChances { get; set; }
+        public int ItemChance { get; set; }
+        public int ItemMinAmount { get; set; }
+        public int ItemMaxAmount { get; set; }
+        public int ItemTreasureTypeSelectionChances { get; set; }
+        public int MagicItemChance { get; set; }
+        public int MagicItemMinAmount { get; set; }
+        public int MagicItemMaxAmount { get; set; }
+        public int MagicItemTreasureTypeSelectionChances { get; set; }
+        public int MundaneItemChance { get; set; }
+        public int MundaneItemMinAmount { get; set; }
+        public int MundaneItemMaxAmount { get; set; }
+        public int MundaneItemTypeSelectionChances { get; set; }
     }
 }
