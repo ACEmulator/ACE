@@ -2,6 +2,10 @@
 
 ### 2018-08-06
 [Mag-nus]
+* Change from .NET Core 2.0 to .NET Core 2.1. This requires .NET Core 2.1 x64 SDK.
+
+### 2018-08-06
+[Mag-nus]
 * Major schema refactoring + changes for World and Shard.
 * New PY16 format required
 
