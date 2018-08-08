@@ -23,7 +23,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
-using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
@@ -37,6 +36,8 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public Character Character { get; }
+
         public Session Session { get; }
 
         public QuestManager QuestManager;
@@ -46,6 +47,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Player(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid)
         {
+            Character = new Character();
+            Character.Id = guid.Full;
+            Character.AccountId = session.Id;
+            Character.Name = GetProperty(PropertyString.Name);
+
             Session = session;
 
             // Make sure properties this WorldObject requires are not null.
@@ -58,11 +64,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Session session) : base(biota)
+        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
         {
             SortBiotasIntoInventory(inventory);
             AddBiotasToEquippedObjects(wieldedItems);
 
+            Character = character;
             Session = session;
 
             SetEphemeralValues();
@@ -488,16 +495,16 @@ namespace ACE.Server.WorldObjects
             }
 
             // already exists in friends list?
-            if (Biota.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
+            if (Character.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
                 ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
 
             var newFriend = new CharacterPropertiesFriendList();
-            newFriend.ObjectId = Biota.Id;      // current player id
+            newFriend.CharacterId = Biota.Id;      // current player id
             //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
             newFriend.FriendId = friendInfo.Biota.Id;
 
             // add friend to DB
-            Biota.CharacterPropertiesFriendList.Add(newFriend);
+            Character.CharacterPropertiesFriendList.Add(newFriend);
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
@@ -509,7 +516,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public void HandleActionRemoveFriend(ObjectGuid friendId)
         {
-            var friendToRemove = Biota.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
+            var friendToRemove = Character.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
 
             // Not in friend list
             if (friendToRemove == null)
@@ -519,7 +526,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // remove friend in DB
-            RemoveFriend(friendId);
+            if (Character.TryRemoveFriend(friendId, out var entity) && ExistsInDatabase && entity.Id != 0)
+                DatabaseManager.Shard.RemoveEntity(entity, null);
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));

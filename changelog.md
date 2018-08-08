@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-08-07
+[Mag-nus]
+* Shard schema changed to remove foreign key link between Character and Biota.
+* This also significantly changes the relationship of Session/Player/Character objects.
+
 ### 2018-08-06
 [Mag-nus]
 * Major schema refactoring + changes for World and Shard.

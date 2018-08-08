@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
@@ -45,6 +46,8 @@ namespace ACE.Server.WorldObjects
                 if (possession.ChangesDetected)
                     possession.SaveBiotaToDatabase();
             }
+
+            DatabaseManager.Shard.SaveCharacter(Character, null);
 
             #if DEBUG
             if (Session.Player != null && showMsg)

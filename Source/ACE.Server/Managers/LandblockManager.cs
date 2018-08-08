@@ -7,6 +7,7 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -44,22 +45,20 @@ namespace ACE.Server.Managers
 
         public static List<Landblock> DestructionQueue = new List<Landblock>();
 
-        public static void PlayerEnterWorld(Session session, ObjectGuid guid)
+        public static void PlayerEnterWorld(Session session, Character character)
         {
             var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotas(guid.Full, biotas =>
+            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
                 log.Info("GetPlayerBiotas took " + (DateTime.UtcNow - start).TotalMilliseconds + " ms"); // This can be removed after EF performance is at the desired level.
                 Player player;
 
                 if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
                 else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
                 else
-                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
-
-                player.Name = session.Character.Name;
+                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
 
                 session.SetPlayer(player);
                 session.Player.PlayerEnterWorld();

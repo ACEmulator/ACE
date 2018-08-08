@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
@@ -7,15 +8,13 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Entity;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Database.Models.Shard;
-using System.Linq;
 
 namespace ACE.Server.Network
 {
@@ -35,10 +34,6 @@ namespace ACE.Server.Network
 
         public List<Character> AccountCharacters { get; } = new List<Character>();
 
-        public Character CharacterRequested { get; set; }
-
-        public Character Character { get; set; }
-
         public Player Player { get; private set; }
 
         private DateTime lastAutoSaveTime;
@@ -49,8 +44,8 @@ namespace ACE.Server.Network
         private DateTime lastSendAgeIntUpdateTime;
         private bool bootSession;
 
-        private ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
-        private object playerSync = new object();
+        private readonly ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
+        private readonly object playerSync = new object();
 
         // connection related
         public IPEndPoint EndPoint { get; }
@@ -62,7 +57,7 @@ namespace ACE.Server.Network
         /// <summary>
         /// This actionQueue forces network packets on to the main thread off the network thread, to avoid concurrency errors
         /// </summary>
-        private NestedActionQueue actionQueue = new NestedActionQueue();
+        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
         public bool IsOnline = true;
 
@@ -115,8 +110,6 @@ namespace ACE.Server.Network
 
         public void InitSessionForWorldLogin()
         {
-            CharacterRequested = null;
-
             lastAgeIntUpdateTime = DateTime.MinValue;
             lastSendAgeIntUpdateTime = DateTime.MinValue;
 
@@ -138,28 +131,23 @@ namespace ACE.Server.Network
         public void UpdateCachedCharacters(IEnumerable<Character> characters)
         {
             AccountCharacters.Clear();
+
             foreach (var character in characters)
             {
-                if (character.DeleteTime > 0)
+                if (character.DeleteTime > 0 && Time.GetUnixTime() > character.DeleteTime)
                 {
-                    if (Time.GetUnixTime() > character.DeleteTime)
+                    character.IsDeleted = true;
+
+                    DatabaseManager.Shard.MarkCharacterDeleted(character.Id, deleteSuccess =>
                     {
-                        character.IsDeleted = true;
-                        DatabaseManager.Shard.MarkCharacterDeleted(character.BiotaId, deleteSuccess =>
-                        {
-                            if (deleteSuccess)
-                            {
-                                log.Info($"Character {character.BiotaId:X} successfully marked as deleted");
-                            }
-                            else
-                            {
-                                log.Error($"Unable to mark character {character.BiotaId:X} as deleted");
-                            }
-                        });
-                        continue;
-                    }
+                        if (deleteSuccess)
+                            log.Info($"Character {character.Id:X} successfully marked as deleted");
+                        else
+                            log.Error($"Unable to mark character {character.Id:X} as deleted");
+                    });
                 }
-                AccountCharacters.Add(character);
+                else
+                    AccountCharacters.Add(character);
             }
         }
 
@@ -307,8 +295,8 @@ namespace ACE.Server.Network
             DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
             {
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
-
                 UpdateCachedCharacters(result);
+
                 Network.EnqueueSend(new GameMessageCharacterList(result, this));
 
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);

@@ -1422,8 +1422,7 @@ namespace ACE.Server.Command.Handlers
 
             DatabaseManager.Shard.AddBiotas(possessedBiotas, null);
 
-            session.Character.BiotaId = player.Guid.Full;
-            DatabaseManager.Shard.SaveCharacter(session.Character, null);
+            DatabaseManager.Shard.SaveCharacter(player.Character, null);
 
             session.LogOffPlayer();
         }
