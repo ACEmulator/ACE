@@ -249,7 +249,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 if (WieldedTreasureType.HasValue)
-                    return DatabaseManager.World.GetWieldedTreasure(WieldedTreasureType.Value);
+                    return DatabaseManager.World.GetCachedWieldedTreasure(WieldedTreasureType.Value);
                 else
                     return null;
             }
