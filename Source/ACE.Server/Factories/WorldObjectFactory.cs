@@ -330,12 +330,12 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateNewWorldObject(string weenieClassName)
         {
-            var classId = DatabaseManager.World.GetWeenieClassId(weenieClassName);
+            var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassName);
 
-            if (classId == 0)
+            if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(classId);
+            return CreateNewWorldObject(weenie.ClassId);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 if (DeathTreasureType.HasValue)
-                    return DatabaseManager.World.GetDeathTreasure(DeathTreasureType.Value);
+                    return DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value);
                 else
                     return null;
             }

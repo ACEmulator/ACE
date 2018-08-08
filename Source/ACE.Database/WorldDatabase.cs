@@ -141,7 +141,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetWeenie(uint weenieClassId)
         {
@@ -180,21 +180,30 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(uint weenieClassId)
         {
             if (weenieCache.TryGetValue(weenieClassId, out var value))
                 return value;
 
-            var result = GetWeenie(weenieClassId); // This will add the result into the weenieCache
-
-            return result;
+            return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        /// <summary>
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// </summary>
         public Weenie GetCachedWeenie(string weenieClassName)
         {
-            return GetCachedWeenie(GetWeenieClassId(weenieClassName));
+            foreach (var weenie in weenieCache.Values)
+            {
+                if (weenie.ClassName == weenieClassName)
+                    return weenie;
+            }
+
+            var weenieClassId = GetWeenieClassId(weenieClassName);
+
+            return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
         /// <summary>
@@ -244,7 +253,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
         /// </summary>
         public Dictionary<Weenie, List<LandblockInstance>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
@@ -287,7 +296,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
         {
@@ -526,7 +535,7 @@ namespace ACE.Database
             return cachedDeathTreasure.Count;
         }
 
-        public TreasureDeath GetDeathTreasure(uint dataId)
+        public TreasureDeath GetCachedDeathTreasure(uint dataId)
         {
             if (cachedDeathTreasure.TryGetValue(dataId, out var value))
                 return value;
@@ -557,7 +566,7 @@ namespace ACE.Database
             return cachedWieldedTreasure.Count;
         }
 
-        public List<TreasureWielded> GetWieldedTreasure(uint dataId)
+        public List<TreasureWielded> GetCachedWieldedTreasure(uint dataId)
         {
             if (cachedWieldedTreasure.TryGetValue(dataId, out var value))
                 return value;
