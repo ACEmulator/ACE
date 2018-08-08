@@ -1418,11 +1418,7 @@ namespace ACE.Server.Command.Handlers
             foreach (var possession in possessions)
                 possessedBiotas.Add(possession.Biota);
 
-            DatabaseManager.Shard.AddBiota(player.Biota, null);
-
-            DatabaseManager.Shard.AddBiotas(possessedBiotas, null);
-
-            DatabaseManager.Shard.SaveCharacter(player.Character, null);
+            DatabaseManager.Shard.AddCharacter(player.Biota, possessedBiotas, player.Character, null);
 
             session.LogOffPlayer();
         }
