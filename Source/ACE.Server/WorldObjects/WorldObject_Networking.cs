@@ -987,7 +987,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj != null)
             {
                 var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
-                if (dist > Physics.PhysicsGlobals.EPSILON)
+                if (dist > PhysicsGlobals.EPSILON)
                 {
                     var curCell = Physics.Common.LScape.get_landcell(newPosition.Cell);
                     if (curCell != null)
@@ -1035,7 +1035,19 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null || !PhysicsObj.is_active())
                 return false;
 
-            if (CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)
+            // arrows / spell projectiles
+            var isMissile = Missile.HasValue && Missile.Value;
+
+            // monsters have separate physics updates
+            var creature = this as Creature;
+            var monster = creature != null && creature.IsMonster;
+
+            // determine if updates should be run for object
+            var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
+            //var runUpdate = isMissile;
+            if (!runUpdate) return false;
+
+            if (isMissile && CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)
             {
                 // only for projectiles?
                 //Console.WriteLine("Timeout reached - destroying " + Name);
@@ -1049,7 +1061,7 @@ namespace ACE.Server.WorldObjects
             var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
             var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
-            PhysicsObj.update_object();
+            var updated = PhysicsObj.update_object();
 
             // get position after
             pos = PhysicsObj.Position.Frame.Origin;

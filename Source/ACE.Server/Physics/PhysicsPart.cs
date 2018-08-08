@@ -133,5 +133,12 @@ namespace ACE.Server.Physics
         {
             // client rendering?
         }
+
+        public bool Equals(ShadowPart shadowPart)
+        {
+            if (shadowPart == null) return false;
+
+            return this == shadowPart.Part;
+        }
     }
 }

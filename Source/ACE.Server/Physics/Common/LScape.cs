@@ -87,6 +87,11 @@ namespace ACE.Server.Physics.Common
             return landblock;
         }
 
+        public static bool unload_landblock(uint landblockID)
+        {
+            return Landblocks.Remove(landblockID);
+        }
+
         public static ObjCell get_landcell(uint blockCellID)
         {
             var landblock = get_landblock(blockCellID);

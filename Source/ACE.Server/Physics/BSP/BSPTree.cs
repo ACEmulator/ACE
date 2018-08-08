@@ -243,12 +243,12 @@ namespace ACE.Server.Physics.BSP
         {
             var path = transition.SpherePath;
 
-            var validPos = path.LocalSpaceSphere[0];
+            var validPos = new Sphere(path.LocalSpaceSphere[0]);
             var rad = validPos.Radius;
 
             Sphere validPos_ = null;
             if (path.NumSphere > 1)
-                validPos_ = path.LocalSpaceSphere[1];
+                validPos_ = new Sphere(path.LocalSpaceSphere[1]);
 
             var clearCell = true;
             if (path.BuildingCheck)
@@ -294,13 +294,12 @@ namespace ACE.Server.Physics.BSP
         public TransitionState placement_insert_inner(Sphere validPos, SpherePath path, int i)
         {
             if (i == 0)
-            {
-                var adjust = validPos.Center - path.LocalSpaceSphere[0].Center;
-                var offset = path.LocalSpacePos.LocalToGlobalVec(adjust);
-                path.AddOffsetToCheckPos(offset);
-                return TransitionState.Adjusted;
-            }
-            return TransitionState.OK;
+                return TransitionState.OK;
+
+            var adjust = validPos.Center - path.LocalSpaceSphere[0].Center;
+            var offset = path.LocalSpacePos.LocalToGlobalVec(adjust);
+            path.AddOffsetToCheckPos(offset);
+            return TransitionState.Adjusted;
         }
 
         public bool point_inside_cell_bsp(Vector3 origin)
