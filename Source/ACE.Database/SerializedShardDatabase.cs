@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
+
+using log4net;
 
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using log4net;
 
 namespace ACE.Database
 {
@@ -115,11 +117,11 @@ namespace ACE.Database
             return _wrappedDatabase.IsCharacterPlussed(biotaId);
         }
 
-        public void AddCharacter(Character character, Biota biota, IEnumerable<Biota> possessions, Action<bool> callback)
+        public void AddCharacter(Biota biota, IEnumerable<Biota> possessions, Character character, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.AddCharacter(character, biota, possessions);
+                var result = _wrappedDatabase.AddCharacter(biota, possessions, character);
                 callback?.Invoke(result);
             }));
         }
@@ -150,6 +152,7 @@ namespace ACE.Database
                 callback?.Invoke(result);
             }));
         }
+
 
         public void AddBiota(Biota biota, Action<bool> callback)
         {
@@ -205,6 +208,7 @@ namespace ACE.Database
             }));
         }
 
+
         public void AddeEntity(object entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -222,6 +226,7 @@ namespace ACE.Database
                 callback?.Invoke(result);
             }));
         }
+
 
         public void RemoveEntity(BiotaPropertiesBool entity, Action<bool> callback)
         {
@@ -295,24 +300,6 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveEntity(CharacterPropertiesShortcutBar entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(CharacterPropertiesSpellBar entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
         public void RemoveEntity(BiotaPropertiesSpellBook entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -323,6 +310,25 @@ namespace ACE.Database
         }
 
         public void RemoveEntity(BiotaPropertiesString entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+
+        public void RemoveEntity(CharacterPropertiesShortcutBar entity, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveEntity(entity);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveEntity(CharacterPropertiesSpellBar entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -369,8 +375,6 @@ namespace ACE.Database
                 callback?.Invoke(c);
             }));
         }
-
-
 
 
 

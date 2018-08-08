@@ -1188,10 +1188,6 @@ namespace ACE.Database.Models.Shard
                 entity.HasIndex(e => e.AccountId)
                     .HasName("character_account_idx");
 
-                entity.HasIndex(e => e.BiotaId)
-                    .HasName("biota_UNIQUE")
-                    .IsUnique();
-
                 entity.HasIndex(e => e.Name)
                     .HasName("character_name_idx");
 
@@ -1199,10 +1195,6 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.AccountId)
                     .HasColumnName("account_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.BiotaId)
-                    .HasColumnName("biota_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CharacterOptions1)
@@ -1248,32 +1240,27 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("total_Logins")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Biota)
-                    .WithOne(p => p.Character)
-                    .HasForeignKey<Character>(d => d.BiotaId)
-                    .HasConstraintName("biota_character");
             });
 
             modelBuilder.Entity<CharacterPropertiesContract>(entity =>
             {
                 entity.ToTable("character_properties_contract");
 
-                entity.HasIndex(e => new { e.ObjectId, e.ContractId })
+                entity.HasIndex(e => new { e.CharacterId, e.ContractId })
                     .HasName("wcid_contract_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.ContractId).HasColumnName("contract_Id");
 
                 entity.Property(e => e.DeleteContract)
                     .HasColumnName("delete_Contract")
                     .HasColumnType("bit(1)");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SetAsDisplayContract)
                     .HasColumnName("set_As_Display_Contract")
@@ -1287,9 +1274,9 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Version).HasColumnName("version");
 
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesContract)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_contract");
             });
 
@@ -1297,14 +1284,14 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_fill_comp_book");
 
-                entity.HasIndex(e => new { e.ObjectId, e.SpellComponentId })
+                entity.HasIndex(e => new { e.CharacterId, e.SpellComponentId })
                     .HasName("wcid_fillcompbook_type_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.QuantityToRebuy)
@@ -1317,9 +1304,9 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesFillCompBook)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_fillcompbook");
             });
 
@@ -1327,7 +1314,7 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_friend_list");
 
-                entity.HasIndex(e => new { e.ObjectId, e.FriendId })
+                entity.HasIndex(e => new { e.CharacterId, e.FriendId })
                     .HasName("wcid_friend_uidx")
                     .IsUnique();
 
@@ -1337,17 +1324,17 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("account_Id")
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.FriendId)
                     .HasColumnName("friend_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesFriendList)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_friend");
             });
 
@@ -1355,11 +1342,15 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_quest_registry");
 
-                entity.HasIndex(e => new { e.ObjectId, e.QuestName })
+                entity.HasIndex(e => new { e.CharacterId, e.QuestName })
                     .HasName("wcid_questbook_name_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.LastTimeCompleted)
                     .HasColumnName("last_Time_Completed")
@@ -1370,18 +1361,14 @@ namespace ACE.Database.Models.Shard
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.QuestName)
                     .IsRequired()
                     .HasColumnName("quest_Name")
                     .HasColumnType("varchar(255)");
 
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesQuestRegistry)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_questbook");
             });
 
@@ -1389,14 +1376,14 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_shortcut_bar");
 
-                entity.HasIndex(e => new { e.ObjectId, e.ShortcutBarIndex, e.ShortcutObjectId })
+                entity.HasIndex(e => new { e.CharacterId, e.ShortcutBarIndex, e.ShortcutObjectId })
                     .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.ShortcutBarIndex)
@@ -1407,9 +1394,9 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("shortcut_Object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesShortcutBar)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_shortcutbar");
             });
 
@@ -1417,14 +1404,14 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_spell_bar");
 
-                entity.HasIndex(e => new { e.ObjectId, e.SpellBarNumber, e.SpellId })
+                entity.HasIndex(e => new { e.CharacterId, e.SpellBarNumber, e.SpellId })
                     .HasName("wcid_spellbar_barId_spellId_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SpellBarIndex)
@@ -1439,9 +1426,9 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("spell_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesSpellBar)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_spellbar");
             });
 
@@ -1449,23 +1436,23 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("character_properties_title_book");
 
-                entity.HasIndex(e => new { e.ObjectId, e.TitleId })
+                entity.HasIndex(e => new { e.CharacterId, e.TitleId })
                     .HasName("wcid_titlebook_type_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.TitleId)
                     .HasColumnName("title_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.HasOne(d => d.Object)
+                entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesTitleBook)
-                    .HasForeignKey(d => d.ObjectId)
+                    .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_titlebook");
             });
 

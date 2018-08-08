@@ -11,7 +11,6 @@ using log4net;
 
 using ACE.Common;
 using ACE.Entity;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
@@ -88,10 +87,10 @@ namespace ACE.Server.Managers
             {
                 foreach (var character in characters)
                 {
-                    DatabaseManager.Shard.GetPlayerBiotas(character.BiotaId, biotas =>
+                    DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
                     {
                         var session = new Session();
-                        var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                        var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
                         AllPlayers.Add(player);
                     });
                 }

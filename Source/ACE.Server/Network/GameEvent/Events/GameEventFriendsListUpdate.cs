@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 
 using ACE.Database.Models.Shard;
-using ACE.Entity;
 using ACE.Server.Managers;
 
 namespace ACE.Server.Network.GameEvent.Events
@@ -59,7 +58,7 @@ namespace ACE.Server.Network.GameEvent.Events
             List<CharacterPropertiesFriendList> friendList;
 
             if (updateType == FriendsUpdateTypeFlag.FullList)
-                friendList = Session.Player.Biota.CharacterPropertiesFriendList.ToList();
+                friendList = Session.Player.Character.CharacterPropertiesFriendList.ToList();
             else
                 friendList = new List<CharacterPropertiesFriendList>() { friend };
 
@@ -89,13 +88,13 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.WriteString16L(friendName);  // Name of the friend
 
                 // send the list of friend's friends
-                Writer.Write((uint)offlinePlayer.Biota.CharacterPropertiesFriendList.Count);
-                foreach (var friendFriend in offlinePlayer.Biota.CharacterPropertiesFriendList)
+                Writer.Write((uint)offlinePlayer.Character.CharacterPropertiesFriendList.Count);
+                foreach (var friendFriend in offlinePlayer.Character.CharacterPropertiesFriendList)
                     Writer.Write(friendFriend.FriendId);
 
                 // todo: send the inverse list of friend's friends
-                Writer.Write((uint)offlinePlayer.Biota.CharacterPropertiesFriendList.Count);
-                foreach (var friendFriend in offlinePlayer.Biota.CharacterPropertiesFriendList)
+                Writer.Write((uint)offlinePlayer.Character.CharacterPropertiesFriendList.Count);
+                foreach (var friendFriend in offlinePlayer.Character.CharacterPropertiesFriendList)
                     Writer.Write(friendFriend.FriendId);
             }
 

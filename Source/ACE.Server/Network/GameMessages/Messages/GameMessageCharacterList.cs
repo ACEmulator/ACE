@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -24,10 +25,10 @@ namespace ACE.Server.Network.GameMessages.Messages
 
             foreach (var character in charactersTrimmed)
             {                
-                Writer.WriteGuid(new ObjectGuid(character.BiotaId));
+                Writer.WriteGuid(new ObjectGuid(character.Id));
                 if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > ACE.Entity.Enum.AccessLevel.Advocate)
                     Writer.WriteString16L("+" + character.Name);
-                else if (DatabaseManager.Shard.IsCharacterPlussed(character.BiotaId))
+                else if (DatabaseManager.Shard.IsCharacterPlussed(character.Id))
                     Writer.WriteString16L("+" + character.Name);
                 else
                     Writer.WriteString16L(character.Name);

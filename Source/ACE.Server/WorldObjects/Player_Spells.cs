@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
         {
             var spells = new List<SpellBarPositions>();
 
-            var results = Biota.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barId);
+            var results = Character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barId);
 
             foreach (var result in results)
             {
@@ -130,15 +130,15 @@ namespace ACE.Server.WorldObjects
                 spellBarPositionId = (uint)(spells.Count + 1);
 
             // We must increment the position of existing spells in the bar that exist on or after this position
-            foreach (var property in Biota.CharacterPropertiesSpellBar)
+            foreach (var property in Character.CharacterPropertiesSpellBar)
             {
                 if (property.SpellBarNumber == spellBarId && property.SpellBarIndex >= spellBarPositionId)
                     property.SpellBarIndex++;
             }
 
-            var entity = new CharacterPropertiesSpellBar { ObjectId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId, Object = Biota };
+            var entity = new CharacterPropertiesSpellBar { CharacterId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId };
 
-            Biota.CharacterPropertiesSpellBar.Add(entity);
+            Character.CharacterPropertiesSpellBar.Add(entity);
             ChangesDetected = true;
         }
 
@@ -147,12 +147,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionRemoveSpellFavorite(uint spellId, uint spellBarId)
         {
-            var entity = Biota.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == spellBarId && x.SpellId == spellId);
+            var entity = Character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == spellBarId && x.SpellId == spellId);
 
             if (entity != null)
             {
                 // We must decrement the position of existing spells in the bar that exist after this position
-                foreach (var property in Biota.CharacterPropertiesSpellBar)
+                foreach (var property in Character.CharacterPropertiesSpellBar)
                 {
                     if (property.SpellBarNumber == spellBarId && property.SpellBarIndex > entity.SpellBarIndex)
                     {
@@ -161,8 +161,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                Biota.CharacterPropertiesSpellBar.Remove(entity);
-                entity.Object = null;
+                Character.CharacterPropertiesSpellBar.Remove(entity);
 
                 if (ExistsInDatabase && entity.Id != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);

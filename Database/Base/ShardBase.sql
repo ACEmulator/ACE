@@ -603,9 +603,8 @@ DROP TABLE IF EXISTS `character`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Character',
+  `id` int(10) unsigned NOT NULL COMMENT 'Id of the Biota for this Character',
   `account_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Biota for this Character',
-  `biota_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Biota for this Character',
   `name` varchar(255) NOT NULL COMMENT 'Name of Character',
   `is_Deleted` bit(1) NOT NULL COMMENT 'Is this Character deleted?',
   `delete_Time` bigint(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The character will be marked IsDeleted=True after this timestamp',
@@ -618,9 +617,7 @@ CREATE TABLE `character` (
   `default_Hair_Texture` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `character_account_idx` (`account_Id`),
-  KEY `character_name_idx` (`name`),
-  UNIQUE KEY `biota_UNIQUE` (`biota_Id`),
-  CONSTRAINT `biota_character` FOREIGN KEY (`biota_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  KEY `character_name_idx` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Int Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -633,7 +630,7 @@ DROP TABLE IF EXISTS `character_properties_contract`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_contract` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `contract_Id` int(10) unsigned NOT NULL,
   `version` int(10) unsigned NOT NULL,
   `stage` int(10) unsigned NOT NULL,
@@ -642,8 +639,8 @@ CREATE TABLE `character_properties_contract` (
   `delete_Contract` bit(1) NOT NULL,
   `set_As_Display_Contract` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_contract_uidx` (`object_Id`,`contract_Id`),
-  CONSTRAINT `wcid_contract` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_contract_uidx` (`character_Id`,`contract_Id`),
+  CONSTRAINT `wcid_contract` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -656,12 +653,12 @@ DROP TABLE IF EXISTS `character_properties_fill_comp_book`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_fill_comp_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `spell_Component_Id` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell Component',
   `quantity_To_Rebuy` int(10) NOT NULL DEFAULT '0' COMMENT 'Amount of this component to add to the buy list for repurchase',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_fillcompbook_type_uidx` (`object_Id`,`spell_Component_Id`),
-  CONSTRAINT `wcid_fillcompbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_fillcompbook_type_uidx` (`character_Id`,`spell_Component_Id`),
+  CONSTRAINT `wcid_fillcompbook` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FillCompBook Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -674,12 +671,12 @@ DROP TABLE IF EXISTS `character_properties_friend_list`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_friend_list` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `friend_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Friend',
   `account_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Account Id of object this property belongs to',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_friend_uidx` (`object_Id`,`friend_Id`),
-  CONSTRAINT `wcid_friend` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_friend_uidx` (`character_Id`,`friend_Id`),
+  CONSTRAINT `wcid_friend` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='FriendList Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -692,13 +689,13 @@ DROP TABLE IF EXISTS `character_properties_quest_registry`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_quest_registry` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `quest_Name` varchar(255) NOT NULL COMMENT 'Unique Name of Quest',
   `last_Time_Completed` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp of last successful completion',
   `num_Times_Completed` int(10) NOT NULL DEFAULT '0' COMMENT 'Number of successful completions',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_questbook_name_uidx` (`object_Id`,`quest_Name`),
-  CONSTRAINT `wcid_questbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_questbook_name_uidx` (`character_Id`,`quest_Name`),
+  CONSTRAINT `wcid_questbook` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='QuestBook Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -711,12 +708,12 @@ DROP TABLE IF EXISTS `character_properties_shortcut_bar`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_shortcut_bar` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `shortcut_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on the Shortcut Bar for this Object',
   `shortcut_Object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Guid of the object at this Slot',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_shortcutbar_barIndex_ObjectId_uidx` (`object_Id`,`shortcut_Bar_Index`,`shortcut_Object_Id`),
-  CONSTRAINT `wcid_shortcutbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_shortcutbar_barIndex_ObjectId_uidx` (`character_Id`,`shortcut_Bar_Index`,`shortcut_Object_Id`),
+  CONSTRAINT `wcid_shortcutbar` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ShortcutBar Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -729,13 +726,13 @@ DROP TABLE IF EXISTS `character_properties_spell_bar`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_spell_bar` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `spell_Bar_Number` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Spell Bar',
   `spell_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on this Spell Bar for this Spell',
   `spell_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Spell on this Spell Bar at this Slot',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_spellbar_barId_spellId_uidx` (`object_Id`,`spell_Bar_Number`,`spell_Id`),
-  CONSTRAINT `wcid_spellbar` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_spellbar_barId_spellId_uidx` (`character_Id`,`spell_Bar_Number`,`spell_Id`),
+  CONSTRAINT `wcid_spellbar` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SpellBar Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -748,11 +745,11 @@ DROP TABLE IF EXISTS `character_properties_title_book`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `character_properties_title_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
-  `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
+  `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `title_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of Title',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_titlebook_type_uidx` (`object_Id`,`title_Id`),
-  CONSTRAINT `wcid_titlebook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  UNIQUE KEY `wcid_titlebook_type_uidx` (`character_Id`,`title_Id`),
+  CONSTRAINT `wcid_titlebook` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='TitleBook Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 

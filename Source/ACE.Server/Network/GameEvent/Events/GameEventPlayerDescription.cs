@@ -299,7 +299,7 @@ namespace ACE.Server.Network.GameEvent.Events
             if (shortcuts.Count > 0)
                 optionFlags |= CharacterOptionDataFlag.Shortcut;
 
-            if (Session.Character.GameplayOptions != null && Session.Character.GameplayOptions.Length > 0)
+            if (Session.Player.Character.GameplayOptions != null && Session.Player.Character.GameplayOptions.Length > 0)
                 optionFlags |= CharacterOptionDataFlag.GameplayOptions;
 
             Writer.Write((uint)optionFlags);
@@ -339,7 +339,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }*/
 
             if ((optionFlags & CharacterOptionDataFlag.GameplayOptions) != 0)
-                Writer.Write(Session.Character.GameplayOptions);
+                Writer.Write(Session.Player.Character.GameplayOptions);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk400) != 0)
             {

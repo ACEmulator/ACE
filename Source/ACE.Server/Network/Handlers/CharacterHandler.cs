@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using log4net;
+
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -18,8 +21,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Database.Models.World;
-using log4net;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -46,26 +47,21 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.BiotaId == guid.Full);
-            if (cachedCharacter == null)
+            var character = session.AccountCharacters.SingleOrDefault(c => c.Id == guid.Full);
+            if (character == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
             }
 
-            session.CharacterRequested = cachedCharacter;
-
             session.InitSessionForWorldLogin();
-
-            session.Character = cachedCharacter;
 
             session.State = SessionState.WorldConnected;
 
-            LandblockManager.PlayerEnterWorld(session, new ObjectGuid(cachedCharacter.BiotaId));
+            LandblockManager.PlayerEnterWorld(session, character);
 
             // Save the the LoginTimestamp
-            cachedCharacter.LastLoginTimestamp = Time.GetTimestamp();
-            DatabaseManager.Shard.SaveCharacter(cachedCharacter, null);
+            character.LastLoginTimestamp = Time.GetTimestamp();
         }
 
         [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
@@ -91,21 +87,21 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            DatabaseManager.Shard.DeleteOrRestoreCharacter(Time.GetUnixTime() + 3600ul, cachedCharacter.BiotaId, ((bool deleteOrRestoreSuccess) =>
+            DatabaseManager.Shard.DeleteOrRestoreCharacter(Time.GetUnixTime() + 3600ul, cachedCharacter.Id, deleteOrRestoreSuccess =>
             {
                 if (deleteOrRestoreSuccess)
                 {
-                    DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
+                    DatabaseManager.Shard.GetCharacters(session.Id, result =>
                     {
                         session.UpdateCachedCharacters(result);
                         session.Network.EnqueueSend(new GameMessageCharacterList(result, session));
-                    }));
+                    });
                 }
                 else
                 {
                     session.SendCharacterError(CharacterError.Delete);
                 }
-            }));
+            });
         }
 
         [GameMessage(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
@@ -113,11 +109,11 @@ namespace ACE.Server.Network.Handlers
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
-            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.BiotaId == guid.Full);
+            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Id == guid.Full);
             if (cachedCharacter == null)
                 return;
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, ((bool isAvailable) =>
+            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, isAvailable =>
             {
                 if (!isAvailable)
                 {
@@ -125,15 +121,15 @@ namespace ACE.Server.Network.Handlers
                 }
                 else
                 {
-                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, cachedCharacter.BiotaId, ((bool deleteOrRestoreSuccess) =>
+                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, cachedCharacter.Id, deleteOrRestoreSuccess =>
                     {
                         if (deleteOrRestoreSuccess)
                             session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
                         else
                             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
-                    }));
+                    });
                 }
-            }));
+            });
         }
 
         [GameMessage(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
@@ -459,6 +455,7 @@ namespace ACE.Server.Network.Handlers
             }
 
             player.Name = characterCreateInfo.Name;
+            player.Character.Name = player.Name;
             //player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
 
             // Index used to determine the starting location
@@ -480,12 +477,6 @@ namespace ACE.Server.Network.Handlers
 
                 // player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
 
-                var character = new Character();
-                character.AccountId = session.Id;
-                character.Name = player.GetProperty(PropertyString.Name);
-                character.BiotaId = player.Guid.Full;
-                character.IsDeleted = false;
-
                 CharacterCreateSetDefaultCharacterOptions(player);
 
                 player.Location = new Position(cg.StarterAreas[(int)startArea].Locations[0].ObjCellID,
@@ -501,7 +492,7 @@ namespace ACE.Server.Network.Handlers
                     possessedBiotas.Add(possession.Biota);
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddCharacter(character, player.Biota, possessedBiotas, saveSuccess =>
+                DatabaseManager.Shard.AddCharacter(player.Biota, possessedBiotas, player.Character, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {
@@ -509,7 +500,7 @@ namespace ACE.Server.Network.Handlers
                         return;
                     }
 
-                    session.AccountCharacters.Add(character);
+                    session.AccountCharacters.Add(player.Character);
 
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, player.Guid, characterCreateInfo.Name);
                 });
