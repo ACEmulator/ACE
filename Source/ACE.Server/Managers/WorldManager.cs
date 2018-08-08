@@ -550,26 +550,26 @@ namespace ACE.Server.Managers
             if (Server.Physics.Common.Timer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
                 return movedObjects;
 
-            if (Concurrency)
+            try
             {
-                // Access ActiveLandblocks should be safe here, but sometimes crashes with
-                // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-                try
+                if (Concurrency)
                 {
+                    // Access ActiveLandblocks should be safe here, but sometimes crashes with
+                    // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
                     Parallel.ForEach(LandblockManager.ActiveLandblocks.Keys, landblock =>
                     {
                         HandlePhysicsLandblock(landblock, timeTick, movedObjects);
                     });
                 }
-                catch (Exception e)
+                else
                 {
-                    Console.WriteLine(e);   // FIXME: concurrency
+                    foreach (var landblock in LandblockManager.ActiveLandblocks.Keys)
+                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
                 }
             }
-            else
+            catch (Exception e)
             {
-                foreach (var landblock in LandblockManager.ActiveLandblocks.Keys)
-                    HandlePhysicsLandblock(landblock, timeTick, movedObjects);
+                Console.WriteLine(e);   // FIXME: concurrency + collection was modified
             }
 
             foreach (var wo in UpdateLandblock)

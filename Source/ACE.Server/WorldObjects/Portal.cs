@@ -185,6 +185,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             player.Teleporting = true;
+            var restrict = true;
 
             if (Destination != null)
             {
@@ -194,7 +195,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
                 // Check player level -- requires remote query to player (ugh)...
-                if ((player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)) || (player.IgnorePortalRestrictions ?? false))
+                if (!restrict || (player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)) || (player.IgnorePortalRestrictions ?? false))
                 {
                     Position portalDest = Destination;
                     switch (WeenieClassId)

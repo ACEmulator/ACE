@@ -524,6 +524,8 @@ namespace ACE.Server.Managers
                 case EmoteType.ForceMotion: // TODO: figure out the difference
                 case EmoteType.Motion:
 
+                    if (sourceObject == null || sourceObject.CurrentMotionState == null) break;
+
                     if (emote.Category != (uint)EmoteCategory.Vendor && emote.Style != null)
                     {
                         var startingMotion = new UniversalMotion((MotionStance)emote.Style, new MotionItem((MotionCommand)emote.Substyle));
