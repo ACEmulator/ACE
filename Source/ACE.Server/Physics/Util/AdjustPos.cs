@@ -16,7 +16,7 @@ namespace ACE.Server.Physics.Util
             DungeonProfiles = new Dictionary<uint, AdjustPosProfile>();
 
             // Burial Temple
-            var burialTemple = new AdjustPosProfile(0x13e);
+            var burialTemple = new AdjustPosProfile();
             burialTemple.BadPosition = new Vector3(30.389999f, -37.439999f, 0.000000f);
             burialTemple.BadRotation = new Quaternion(-0f, 0, 0, -1f);
             burialTemple.GoodPosition = new Vector3(30f, -146.30799865723f, 0.0049999998882413f);
@@ -25,7 +25,7 @@ namespace ACE.Server.Physics.Util
             DungeonProfiles.Add(0x13e, burialTemple);
 
             // North Glenden Prison
-            var glendenPrison = new AdjustPosProfile(0x1e4);
+            var glendenPrison = new AdjustPosProfile();
             glendenPrison.BadPosition = new Vector3(38.400002f, -18.600000f, 6.000000f);
             glendenPrison.BadRotation = new Quaternion(-0.782608f, 0, 0, -0.622514f);
             glendenPrison.GoodPosition = new Vector3(61, -20, -17.995000839233f);
@@ -34,7 +34,7 @@ namespace ACE.Server.Physics.Util
             DungeonProfiles.Add(0x1e4, glendenPrison);
 
             // Nuhmudira's Dungeon
-            var nuhmudirasDungeon = new AdjustPosProfile(0x536d);
+            var nuhmudirasDungeon = new AdjustPosProfile();
             nuhmudirasDungeon.BadPosition = new Vector3(149.242996f, -49.946301f, -5.995000f);
             nuhmudirasDungeon.BadRotation = new Quaternion(-0.707107f, 0, 0, -0.707107f);
             nuhmudirasDungeon.GoodPosition = new Vector3(149.24299621582f, -129.94599914551f, -5.9949998855591f);
@@ -48,8 +48,8 @@ namespace ACE.Server.Physics.Util
             if (!DungeonProfiles.TryGetValue(dungeonID, out var profile))
                 return false;
 
-            pos.Pos = Vector3.Transform(pos.Pos, profile.GetTransform());
-            //pos.Rotation *= profile.GoodRotation * Quaternion.Inverse(pos.Rotation);
+            pos.Pos += profile.GoodPosition - profile.BadPosition;
+            //pos.Rotation *= profile.GoodRotation * Quaternion.Inverse(profile.BadRotation);
 
             return true;
         }
