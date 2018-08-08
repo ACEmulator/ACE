@@ -561,7 +561,7 @@ namespace ACE.Server.WorldObjects
         public void SetPhysicalCharacterPosition()
         {
             // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            SetCharacterPosition(PositionType.Location, Session.Player.Location);
+            SetCharacterPosition(PositionType.Location, Location);
         }
 
         /// <summary>

@@ -866,6 +866,14 @@ namespace ACE.Server.Command.Handlers
             AddWeeniesToInventory(session, weenieIds);
         }
 
+        [CommandHandler("comps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates spell component items in your inventory for testing.")]
+        public static void HandleComps(Session session, params string[] parameters)
+        {
+            HashSet<uint> weenieIds = new HashSet<uint> { 20631, 686, 687, 688, 689, 690, 691, 7299, 8897 };
+
+            AddWeeniesToInventory(session, weenieIds);
+        }
+
         [CommandHandler("food", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some food items in your inventory for testing.")]
         public static void HandleFood(Session session, params string[] parameters)
         {
