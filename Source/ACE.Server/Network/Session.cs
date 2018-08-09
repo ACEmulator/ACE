@@ -303,7 +303,6 @@ namespace ACE.Server.Network
 
             DatabaseManager.Shard.GetCharacters(Id, false, result =>
             {
-                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 UpdateCharacters(result);
 
                 Network.EnqueueSend(new GameMessageCharacterList(result, this));

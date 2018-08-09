@@ -142,7 +142,6 @@ namespace ACE.Server.Network.Handlers
 
             DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
             {
-                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 session.UpdateCharacters(result);
 
                 GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session);
