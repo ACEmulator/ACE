@@ -10,7 +10,7 @@ namespace ACE.Server.Physics
     /// <summary>
     /// Spherical collision detection
     /// </summary>
-    public class Sphere
+    public class Sphere: IEquatable<Sphere>
     {
         /// <summary>
         /// The center point of the sphere
@@ -595,6 +595,21 @@ namespace ACE.Server.Physics
         public override string ToString()
         {
             return string.Format("Center: {0} Radius: {1}", Center, Radius);
+        }
+
+        public bool Equals(Sphere sphere)
+        {
+            return Center.X == sphere.Center.X && Center.Y == sphere.Center.Y && Center.Z == sphere.Center.Z && Radius == sphere.Radius;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+
+            hash = (hash * 397) ^ Center.GetHashCode();
+            hash = (hash * 397) ^ Radius.GetHashCode();
+
+            return hash;
         }
     }
 }

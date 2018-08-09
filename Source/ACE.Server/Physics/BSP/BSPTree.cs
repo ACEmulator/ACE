@@ -14,7 +14,7 @@ namespace ACE.Server.Physics.BSP
         Cell = 0x2
     };
 
-    public class BSPTree
+    public class BSPTree: IEquatable<BSPTree>
     {
         public BSPNode RootNode;
 
@@ -367,6 +367,17 @@ namespace ACE.Server.Physics.BSP
                 return TransitionState.OK;
             else
                 return path.StepUpSlide(transition);
+        }
+
+        public bool Equals(BSPTree bspTree)
+        {
+            if (bspTree == null) return false;
+            return RootNode.Equals(bspTree.RootNode);
+        }
+
+        public override int GetHashCode()
+        {
+            return RootNode.GetHashCode();
         }
     }
 }

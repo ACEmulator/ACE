@@ -1,19 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Numerics;
 
 namespace ACE.Entity
 {
+    /// <summary>
+    /// A runtime-definable copy of DatLoader.SWVertex
+    /// </summary>
     public class SWVertex
     {
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
+        public Vector3 Origin;
+        public Vector3 Normal;
+        //public List<Vec2Duv> UVs;     // texture coordinates excluded for server
 
-        public float NormalX { get; set; }
-        public float NormalY { get; set; }
-        public float NormalZ { get; set; }
-
-        public List<Vec2Duv> UVs { get; set; }
+        public SWVertex(Vector3 origin, Vector3 normal)
+        {
+            Origin = origin;    // ref?
+            Normal = normal;
+        }
     }
 }

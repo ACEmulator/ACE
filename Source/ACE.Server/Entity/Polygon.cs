@@ -45,7 +45,7 @@ namespace ACE.Server.Entity
             // from local object to world space
             foreach (var vertex in _poly.Vertices)
             {
-                Vertices.Add(Vector3.Transform(vertex.ToVector(), transform));
+                Vertices.Add(Vector3.Transform(vertex.Origin, transform));
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Collision;
+using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics
 {
@@ -90,7 +91,7 @@ namespace ACE.Server.Physics
         public bool LoadGfxObjArray(uint rootObjectID/*, GfxObjDegradeInfo newDegrades*/)
         {
             var gfxObj = (DatLoader.FileTypes.GfxObj)DBObj.Get(new QualifiedDataID(6, rootObjectID));
-            GfxObj = new List<GfxObj>() { new GfxObj(gfxObj) };
+            GfxObj = new List<GfxObj>() { GfxObjCache.Get(gfxObj) };
             // degrades omitted
             return GfxObj != null;
         }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.DatLoader.FileTypes;
+using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics.Common
 {
@@ -23,19 +25,19 @@ namespace ACE.Server.Physics.Common
         public Dictionary<int, ObjCell> LandCells;
         public List<bool> SWtoNEcut;
 
-        public static List<VertexUV> LandUVs;
+        //public static List<VertexUV> LandUVs;     // texture coordinates unused by server
         public static List<ushort> SurfChar;
 
         static LandblockStruct()
         {
-            LandUVs = new List<VertexUV>(4);
+            /*LandUVs = new List<VertexUV>(4);
             LandUVs.AddRange(new List<VertexUV>()
             {
                 new VertexUV(0, 1),
                 new VertexUV(1, 1),
                 new VertexUV(1, 0),
                 new VertexUV(0, 0)
-            });
+            });*/
 
             SurfChar = new List<ushort>()
             {
@@ -257,23 +259,19 @@ namespace ACE.Server.Physics.Common
 
         public void Destroy()
         {
-            if (VertexArray.Type == 1)
-                VertexArray.DeleteUVs();    // unneeded?
+            // omitted delete UVs
 
             if (LandCells != null)
             {
                 RemoveSurfaces();
                 LandCells = null;
             }
-
+            VertexArray.Vertices = null;
             Polygons = null;
-
-            VertexArray.DestroyVertex();
-
             SWtoNEcut = null;
-
             SurfaceStrips = null;
-            // vertexlighting
+
+            // omitted vertex lighting
         }
 
         public bool FSplitNESW(int x, int y)
@@ -319,6 +317,8 @@ namespace ACE.Server.Physics.Common
 
             CalcWater();
 
+            FinalizePVArrays();
+
             return cellRegen;
         }
 
@@ -338,15 +338,18 @@ namespace ACE.Server.Physics.Common
             for (uint i = 1; i <= 64; i++) LandCells.Add((int)i, new LandCell((i)));
         }
 
+        /// <summary>
+        /// Initialize arrays for vertices and polygons
+        /// </summary>
         public void InitPVArrays()
         {
             var numSquares = SidePolyCount * SidePolyCount;
             var numVerts = SideVertexCount * SideVertexCount;
             var numCells = SideCellCount * SideCellCount;
 
-            VertexArray = new VertexArray(numVerts, 1);
-            for (ushort i = 0; i < numVerts; i++)
-                VertexArray.Vertices.Add(new Vertex(i, LandUVs));
+            VertexArray = new VertexArray(VertexType.CSWVertexType, numVerts);
+            for (var i = 0; i < numVerts; i++)
+                VertexArray.Vertices.Add(new Vertex((ushort)i));
 
             var numPolys = numSquares * 2;
             Polygons = new List<Polygon>(numPolys);
@@ -360,8 +363,19 @@ namespace ACE.Server.Physics.Common
             LandCells = new Dictionary<int, ObjCell>(numCells);
             for (uint i = 0; i < numCells; i++)
                 LandCells.Add((int)i, new LandCell((ID & LandDefs.BlockMask) + i));
+        }
 
-            // omitted lighting
+        /// <summary>
+        /// Finalize arrays for vertices and polygons
+        /// by linking to cached versions
+        /// </summary>
+        public void FinalizePVArrays()
+        {
+            for (var i = 0; i < VertexArray.Vertices.Count; i++)
+                VertexArray.Vertices[i] = VertexCache.Get(VertexArray.Vertices[i]);
+
+            for (var i = 0; i < Polygons.Count; i++)
+                Polygons[i] = PolygonCache.Get(Polygons[i]);
         }
 
         public void RemoveSurfaces()
