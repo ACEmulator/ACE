@@ -301,19 +301,16 @@ namespace ACE.Server.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(Id, false, result =>
-            {
-                UpdateCharacters(result);
+            CheckCharactersForDeletion();
 
-                Network.EnqueueSend(new GameMessageCharacterList(result, this));
+            Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
 
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-                Network.EnqueueSend(serverNameMessage);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+            Network.EnqueueSend(serverNameMessage);
 
-                State = SessionState.AuthConnected;
+            State = SessionState.AuthConnected;
 
-                Player = null;
-            });
+            Player = null;
         }
 
         private void SendFinalBoot()
