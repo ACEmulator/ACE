@@ -28,114 +28,11 @@ namespace ACE.Server.Network.Handlers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
-        public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
-        {
-            session.Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
-        }
-
-        [GameMessage(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
-        public static void CharacterEnterWorld(ClientMessage message, Session session)
-        {
-            ObjectGuid guid = message.Payload.ReadGuid();
-
-            string clientString = message.Payload.ReadString16L();
-
-            if (clientString != session.Account)
-            {
-                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
-                return;
-            }
-
-            var character = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
-            if (character == null)
-            {
-                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
-                return;
-            }
-
-            session.InitSessionForWorldLogin();
-
-            session.State = SessionState.WorldConnected;
-
-            LandblockManager.PlayerEnterWorld(session, character);
-
-            // Save the the LoginTimestamp
-            character.LastLoginTimestamp = Time.GetTimestamp();
-        }
-
-        [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
-        public static void CharacterDelete(ClientMessage message, Session session)
-        {
-            string clientString = message.Payload.ReadString16L();
-            uint characterSlot = message.Payload.ReadUInt32();
-            
-            if (clientString != session.Account)
-            {
-                session.SendCharacterError(CharacterError.Delete);
-                return;
-            }
-
-            var cachedCharacter = session.Characters[(int)characterSlot];
-            if (cachedCharacter == null)
-            {
-                session.SendCharacterError(CharacterError.Delete);
-                return;
-            }
-
-            // TODO: check if character is already pending removal
-
-            session.Network.EnqueueSend(new GameMessageCharacterDelete());
-
-            DatabaseManager.Shard.DeleteOrRestoreCharacter(Time.GetUnixTime() + 3600ul, cachedCharacter.Id, deleteOrRestoreSuccess =>
-            {
-                if (deleteOrRestoreSuccess)
-                {
-                    DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
-                    {
-                        session.UpdateCharacters(result);
-                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session));
-                    });
-                }
-                else
-                {
-                    session.SendCharacterError(CharacterError.Delete);
-                }
-            });
-        }
-
-        [GameMessage(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
-        public static void CharacterRestore(ClientMessage message, Session session)
-        {
-            ObjectGuid guid = message.Payload.ReadGuid();
-
-            var cachedCharacter = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
-            if (cachedCharacter == null)
-                return;
-
-            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, isAvailable =>
-            {
-                if (!isAvailable)
-                {
-                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
-                }
-                else
-                {
-                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, cachedCharacter.Id, deleteOrRestoreSuccess =>
-                    {
-                        if (deleteOrRestoreSuccess)
-                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
-                        else
-                            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
-                    });
-                }
-            });
-        }
-
         [GameMessage(GameMessageOpcode.CharacterCreate, SessionState.AuthConnected)]
         public static void CharacterCreate(ClientMessage message, Session session)
         {
             string clientString = message.Payload.ReadString16L();
+
             if (clientString != session.Account)
                 return;
 
@@ -207,7 +104,7 @@ namespace ACE.Server.Network.Handlers
             if (weenie == null) // If it is STILL null after the above catchall, the database is missing critical data and cannot continue with character creation.
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
-                log.Error($"Database does not contain the weenie for human (1). Characters cannot be created until the missing weenie is restored.");
+                log.Error("Database does not contain the weenie for human (1). Characters cannot be created until the missing weenie is restored.");
                 return;
             }
 
@@ -548,17 +445,6 @@ namespace ACE.Server.Network.Handlers
             player.Location = CharacterPositionExtensions.StartingPosition(startArea);
         }
 
-        private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
-        {
-            session.Network.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
-        }
-
-        [GameMessage(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
-        public static void CharacterLogOff(ClientMessage message, Session session)
-        {
-            session.LogOffPlayer();
-        }
-
         private static WorldObject GetClothingObject(uint weenieClassId, uint palette, double shade)
         {
             var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
@@ -634,6 +520,124 @@ namespace ACE.Server.Network.Handlers
             book.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
             player.TryAddToInventory(book);
+        }
+
+        private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
+        {
+            session.Network.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
+        }
+
+
+        [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
+        public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
+        {
+            session.Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
+        }
+
+        [GameMessage(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
+        public static void CharacterEnterWorld(ClientMessage message, Session session)
+        {
+            ObjectGuid guid = message.Payload.ReadGuid();
+
+            string clientString = message.Payload.ReadString16L();
+
+            if (clientString != session.Account)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
+
+            var character = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
+            if (character == null)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
+
+            session.InitSessionForWorldLogin();
+
+            session.State = SessionState.WorldConnected;
+
+            LandblockManager.PlayerEnterWorld(session, character);
+
+            // Save the the LoginTimestamp
+            character.LastLoginTimestamp = Time.GetTimestamp();
+        }
+
+
+        [GameMessage(GameMessageOpcode.CharacterLogOff, SessionState.WorldConnected)]
+        public static void CharacterLogOff(ClientMessage message, Session session)
+        {
+            session.LogOffPlayer();
+        }
+
+
+        [GameMessage(GameMessageOpcode.CharacterDelete, SessionState.AuthConnected)]
+        public static void CharacterDelete(ClientMessage message, Session session)
+        {
+            string clientString = message.Payload.ReadString16L();
+            uint characterSlot = message.Payload.ReadUInt32();
+
+            if (clientString != session.Account)
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
+            var cachedCharacter = session.Characters[(int)characterSlot];
+            if (cachedCharacter == null)
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
+            // TODO: check if character is already pending removal
+
+            session.Network.EnqueueSend(new GameMessageCharacterDelete());
+
+            DatabaseManager.Shard.DeleteOrRestoreCharacter(Time.GetUnixTime() + 3600ul, cachedCharacter.Id, deleteOrRestoreSuccess =>
+            {
+                if (deleteOrRestoreSuccess)
+                {
+                    DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
+                    {
+                        session.UpdateCharacters(result);
+                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session));
+                    });
+                }
+                else
+                {
+                    session.SendCharacterError(CharacterError.Delete);
+                }
+            });
+        }
+
+        [GameMessage(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
+        public static void CharacterRestore(ClientMessage message, Session session)
+        {
+            ObjectGuid guid = message.Payload.ReadGuid();
+
+            var cachedCharacter = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
+            if (cachedCharacter == null)
+                return;
+
+            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, isAvailable =>
+            {
+                if (!isAvailable)
+                {
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                }
+                else
+                {
+                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, cachedCharacter.Id, deleteOrRestoreSuccess =>
+                    {
+                        if (deleteOrRestoreSuccess)
+                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
+                        else
+                            SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
+                    });
+                }
+            });
         }
     }
 }
