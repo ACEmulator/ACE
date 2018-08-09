@@ -138,7 +138,7 @@ namespace ACE.Server.Network.Handlers
             {
                 session.UpdateCharacters(result);
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session);
+                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
