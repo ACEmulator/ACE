@@ -73,7 +73,7 @@ namespace ACE.Database
         }
 
 
-        public List<Character> GetCharacters(uint accountId, bool includeDeleted = false)
+        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             using (var context = new ShardDbContext())
             {

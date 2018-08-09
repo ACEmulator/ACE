@@ -91,7 +91,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (deleteOrRestoreSuccess)
                 {
-                    DatabaseManager.Shard.GetCharacters(session.Id, result =>
+                    DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
                     {
                         session.UpdateCharacters(result);
                         session.Network.EnqueueSend(new GameMessageCharacterList(result, session));

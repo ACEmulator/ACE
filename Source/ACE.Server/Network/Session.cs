@@ -301,7 +301,7 @@ namespace ACE.Server.Network
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
+            DatabaseManager.Shard.GetCharacters(Id, false, result =>
             {
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 UpdateCharacters(result);
@@ -314,7 +314,7 @@ namespace ACE.Server.Network
                 State = SessionState.AuthConnected;
 
                 Player = null;
-            }));
+            });
         }
 
         private void SendFinalBoot()

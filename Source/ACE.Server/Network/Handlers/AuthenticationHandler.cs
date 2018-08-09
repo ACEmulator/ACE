@@ -140,7 +140,7 @@ namespace ACE.Server.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, result =>
+            DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
             {
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 session.UpdateCharacters(result);

@@ -85,7 +85,7 @@ namespace ACE.Database
         }
 
 
-        public void GetCharacters(uint accountId, Action<List<Character>> callback, bool includeDeleted = false)
+        public void GetCharacters(uint accountId, bool includeDeleted, Action<List<Character>> callback)
         {
             _queue.Add(new Task(() =>
             {
