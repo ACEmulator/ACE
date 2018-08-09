@@ -584,26 +584,25 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.Characters[(int)characterSlot];
-            if (cachedCharacter == null)
+            var character = session.Characters[(int)characterSlot];
+            if (character == null)
             {
                 session.SendCharacterError(CharacterError.Delete);
                 return;
             }
 
-            // TODO: check if character is already pending removal
-
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            DatabaseManager.Shard.DeleteOrRestoreCharacter(Time.GetUnixTime() + 3600ul, cachedCharacter.Id, deleteOrRestoreSuccess =>
+            var deleteTime = Time.GetUnixTime() + 3600ul;
+
+            DatabaseManager.Shard.DeleteOrRestoreCharacter(deleteTime, character.Id, deleteOrRestoreSuccess =>
             {
                 if (deleteOrRestoreSuccess)
                 {
-                    DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
-                    {
-                        session.UpdateCharacters(result);
-                        session.Network.EnqueueSend(new GameMessageCharacterList(result, session));
-                    });
+                    character.DeleteTime = deleteTime;
+                    character.IsDeleted = false;
+
+                    session.Network.EnqueueSend(new GameMessageCharacterList(session.Characters, session));
                 }
                 else
                 {
@@ -617,11 +616,11 @@ namespace ACE.Server.Network.Handlers
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
-            var cachedCharacter = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
-            if (cachedCharacter == null)
+            var character = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
+            if (character == null)
                 return;
 
-            DatabaseManager.Shard.IsCharacterNameAvailable(cachedCharacter.Name, isAvailable =>
+            DatabaseManager.Shard.IsCharacterNameAvailable(character.Name, isAvailable =>
             {
                 if (!isAvailable)
                 {
@@ -629,10 +628,15 @@ namespace ACE.Server.Network.Handlers
                 }
                 else
                 {
-                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, cachedCharacter.Id, deleteOrRestoreSuccess =>
+                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, character.Id, deleteOrRestoreSuccess =>
                     {
                         if (deleteOrRestoreSuccess)
-                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, cachedCharacter.Name, 0u));
+                        {
+                            character.DeleteTime = 0;
+                            character.IsDeleted = false;
+
+                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, character.Name, 0u));
+                        }
                         else
                             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                     });
