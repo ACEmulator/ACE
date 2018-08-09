@@ -179,6 +179,8 @@ namespace ACE.Server.Physics.Common
             {
                 foreach (var visibleCell in VisibleCells.Values)
                 {
+                    if (visibleCell == null) continue;
+
                     var envCell = GetVisible(visibleCell.ID);
                     if (envCell != null && envCell.point_in_cell(origin))
                         return envCell;

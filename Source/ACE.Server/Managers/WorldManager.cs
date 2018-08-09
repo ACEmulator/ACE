@@ -38,6 +38,8 @@ namespace ACE.Server.Managers
 
         public static List<Player> AllPlayers;
 
+        public static bool Concurrency = false;
+
         /// <summary>
         /// Seconds until a session will timeout. 
         /// Raising this value allows connections to remain active for a longer period of time. 
@@ -429,35 +431,18 @@ namespace ACE.Server.Managers
                 }
 
                 // FIXME(ddevec): This O(n^2) tracking loop is a remenant of the old structure -- we should probably come up with a more efficient tracking scheme
-                Parallel.ForEach(movedObjects, mo =>
+                if (Concurrency)
                 {
-                    // detect all world objects in ghost range
-                    List<WorldObject> woproxghost = new List<WorldObject>();
-                    woproxghost.AddRange(mo.CurrentLandblock?.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
-
-                    // for all objects in range of this moving object or in ghost range of moving object update them.
-                    Parallel.ForEach(woproxghost, gwo =>
+                    Parallel.ForEach(movedObjects, movedObject =>
                     {
-                        if (mo.Guid.IsPlayer())
-                        {
-                            // if world object is in active zone then.
-                            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.MaxObjectRange * Landblock.MaxObjectRange)
-                            {
-                                // if world object is in active zone.
-                                if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
-                                    (mo as Player).TrackObject(gwo);
-                            }
-                            // if world object is in ghost zone and outside of active zone
-                            else
-                            {
-                                if ((mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
-                                {
-                                    (mo as Player).StopTrackingObject(gwo, false);
-                                }
-                            }
-                        }
+                        UpdateWorld_MovedObject(movedObject);
                     });
-                });
+                }
+                else
+                {
+                    foreach (var movedObject in movedObjects)
+                        UpdateWorld_MovedObject(movedObject);
+                }
 
                 // Process between landblock object motions sequentially
                 // Currently only used for picking items up off a landblock
@@ -505,7 +490,54 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
+        private static void UpdateWorld_MovedObject(WorldObject mo)
+        {
+            // detect all world objects in ghost range
+            List<WorldObject> woproxghost = new List<WorldObject>();
+            woproxghost.AddRange(mo.CurrentLandblock?.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
+
+            // for all objects in range of this moving object or in ghost range of moving object update them.
+            if (Concurrency)
+            {
+                Parallel.ForEach(woproxghost, gwo =>
+                {
+                    UpdateWorld_MovedObjectTrack(mo, gwo);
+                });
+            }
+            else
+            {
+                foreach (var gwo in woproxghost)
+                    UpdateWorld_MovedObjectTrack(mo, gwo);
+            }
+        }
+
+        private static void UpdateWorld_MovedObjectTrack(WorldObject mo, WorldObject gwo)
+        {
+            if (!mo.Guid.IsPlayer()) return;
+
+            // if world object is in active zone then.
+            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.MaxObjectRange * Landblock.MaxObjectRange)
+            {
+                // if world object is in active zone.
+                if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
+                    (mo as Player).TrackObject(gwo);
+            }
+            // if world object is in ghost zone and outside of active zone
+            else
+            {
+                if ((mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
+                    (mo as Player).StopTrackingObject(gwo, false);
+            }
+        }
+
         public static List<WorldObject> UpdateLandblock = new List<WorldObject>();
+
+        /// <summary>
+        /// The number of times per second physics updates are processed (inverted)
+        /// </summary>
+        public static double PhysicsRate = 1.0f / 60.0f;
+
+        public static double LastPhysicsUpdate;
 
         /// <summary>
         /// Processes physics objects in all active landblocks for updating
@@ -514,53 +546,73 @@ namespace ACE.Server.Managers
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
 
-            // Access ActiveLandblocks should be safe here, but sometimes crashes with
-            // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
+            if (Server.Physics.Common.Timer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
+                return movedObjects;
+
             try
             {
-                Parallel.ForEach(LandblockManager.ActiveLandblocks.Keys, landblock =>
+                if (Concurrency)
                 {
-                    foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+                    // Access ActiveLandblocks should be safe here, but sometimes crashes with
+                    // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
+                    Parallel.ForEach(LandblockManager.ActiveLandblocks.Keys, landblock =>
                     {
-                        Position newPosition = null;
-
-                        // detect player movement
-                        // TODO: handle players the same as everything else
-                        var player = wo as Player;
-                        if (player != null)
-                        {
-                            newPosition = HandlePlayerPhysics(player, timeTick);
-
-                            if (newPosition != null)
-                            {
-                                movedObjects.Enqueue(wo);
-
-                                // update position through physics engine
-                                wo.UpdatePlayerPhysics(newPosition);
-                            }
-                        }
-                        else if (wo.Missile.HasValue && wo.Missile.Value)
-                        {
-                            // physics minimum quantum?
-                            var isMoved = wo.UpdateObjectPhysics();
-                            if (isMoved)
-                                movedObjects.Enqueue(wo);   // send update?
-                        }
-                    }
-                });
-
-                foreach (var wo in UpdateLandblock)
-                {
-                    wo.PreviousLocation = wo.Location;
-                    LandblockManager.RelocateObjectForPhysics(wo);
+                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
+                    });
                 }
-                UpdateLandblock.Clear();
+                else
+                {
+                    foreach (var landblock in LandblockManager.ActiveLandblocks.Keys)
+                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);   // FIXME: concurrency
+                Console.WriteLine(e);   // FIXME: concurrency + collection was modified
             }
+
+            foreach (var wo in UpdateLandblock)
+            {
+                wo.PreviousLocation = wo.Location;
+                LandblockManager.RelocateObjectForPhysics(wo);
+            }
+            UpdateLandblock.Clear();
+
+            LastPhysicsUpdate = Server.Physics.Common.Timer.CurrentTime;
+
             return movedObjects;
+        }
+
+        public static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
+        {
+            foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+            {
+                Position newPosition = null;
+
+                // detect player movement
+                // TODO: handle players the same as everything else
+                var player = wo as Player;
+                if (player != null)
+                {
+                    newPosition = HandlePlayerPhysics(player, timeTick);
+
+                    if (newPosition != null)
+                    {
+                        movedObjects.Enqueue(wo);
+
+                        // update position through physics engine
+                        wo.UpdatePlayerPhysics(newPosition);
+                    }
+                }
+                //else if (wo.Missile.HasValue && wo.Missile.Value)
+                else
+                {
+                    // physics minimum quantum?
+                    var isMoved = wo.UpdateObjectPhysics();
+                    if (isMoved)
+                        movedObjects.Enqueue(wo);   // send update?
+                }
+            }
         }
 
         /// <summary>

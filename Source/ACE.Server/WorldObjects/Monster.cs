@@ -7,6 +7,8 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Creature
     {
+        public bool IsMonster;
+
         /// <summary>
         /// The exclusive state of the monster
         /// </summary>
@@ -36,6 +38,8 @@ namespace ACE.Server.WorldObjects
         public void Think()
         {
             if (!IsAwake || IsDead) return;
+
+            IsMonster = true;
 
             // decide current type of attack
             if (CurrentAttack == null)

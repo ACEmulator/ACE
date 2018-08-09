@@ -150,7 +150,8 @@ namespace ACE.Server.Physics
             var diff = radius - dp;
             var adjusted = Plane.Normal * diff;
             hitSphere.Center += adjusted;
-            otherSphere.Center += adjusted;
+            if (otherSphere != null)
+                otherSphere.Center += adjusted;
         }
 
         public bool check_small_walkable(Sphere sphere, Vector3 up)
