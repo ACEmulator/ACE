@@ -85,11 +85,11 @@ namespace ACE.Database
         }
 
 
-        public void GetCharacters(uint accountId, Action<List<Character>> callback)
+        public void GetCharacters(uint accountId, Action<List<Character>> callback, bool includeDeleted = false)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCharacters(accountId);
+                var result = _wrappedDatabase.GetCharacters(accountId, includeDeleted);
                 callback?.Invoke(result);
             }));
         }

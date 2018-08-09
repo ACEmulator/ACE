@@ -140,7 +140,7 @@ namespace ACE.Server.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
+            DatabaseManager.Shard.GetCharacters(session.Id, result =>
             {
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
                 session.UpdateCharacters(result);
@@ -153,7 +153,7 @@ namespace ACE.Server.Network.Handlers
                 session.Network.EnqueueSend(dddInterrogation);
 
                 session.State = SessionState.AuthConnected;
-            }));
+            });
         }
     }
 }
