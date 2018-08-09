@@ -363,7 +363,6 @@ namespace ACE.Server.Physics.BSP
                 hash = (hash * 397) ^ PolyIDs[i].GetHashCode();
                 hash = (hash * 397) ^ Polygons[i].GetHashCode();
             }
-
             if (PosNode != null)
                 hash = (hash * 397) ^ PosNode.GetHashCode();
 
