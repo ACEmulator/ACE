@@ -47,7 +47,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var character = session.AccountCharacters.SingleOrDefault(c => c.Id == guid.Full);
+            var character = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
             if (character == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
@@ -76,7 +76,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var cachedCharacter = session.AccountCharacters[(int)characterSlot];
+            var cachedCharacter = session.Characters[(int)characterSlot];
             if (cachedCharacter == null)
             {
                 session.SendCharacterError(CharacterError.Delete);
@@ -93,7 +93,7 @@ namespace ACE.Server.Network.Handlers
                 {
                     DatabaseManager.Shard.GetCharacters(session.Id, result =>
                     {
-                        session.UpdateCachedCharacters(result);
+                        session.UpdateCharacters(result);
                         session.Network.EnqueueSend(new GameMessageCharacterList(result, session));
                     });
                 }
@@ -109,7 +109,7 @@ namespace ACE.Server.Network.Handlers
         {
             ObjectGuid guid = message.Payload.ReadGuid();
 
-            var cachedCharacter = session.AccountCharacters.SingleOrDefault(c => c.Id == guid.Full);
+            var cachedCharacter = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
             if (cachedCharacter == null)
                 return;
 
@@ -500,7 +500,7 @@ namespace ACE.Server.Network.Handlers
                         return;
                     }
 
-                    session.AccountCharacters.Add(player.Character);
+                    session.Characters.Add(player.Character);
 
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, player.Guid, characterCreateInfo.Name);
                 });

@@ -32,7 +32,7 @@ namespace ACE.Server.Network
 
         public SessionState State { get; set; }
 
-        public List<Character> AccountCharacters { get; } = new List<Character>();
+        public List<Character> Characters { get; } = new List<Character>();
 
         public Player Player { get; private set; }
 
@@ -128,26 +128,35 @@ namespace ACE.Server.Network
             AccessLevel = accountAccesslevel;
         }
 
-        public void UpdateCachedCharacters(IEnumerable<Character> characters)
+        public void UpdateCharacters(IEnumerable<Character> characters)
         {
-            AccountCharacters.Clear();
+            Characters.Clear();
 
-            foreach (var character in characters)
+            Characters.AddRange(characters);
+
+            CheckCharactersForDeletion();
+        }
+
+        public void CheckCharactersForDeletion()
+        {
+            for (int i = Characters.Count - 1; i >= 0; i--)
             {
-                if (character.DeleteTime > 0 && Time.GetUnixTime() > character.DeleteTime)
+                if (Characters[i].DeleteTime > 0 && Time.GetUnixTime() > Characters[i].DeleteTime)
                 {
-                    character.IsDeleted = true;
+                    Characters[i].IsDeleted = true;
 
-                    DatabaseManager.Shard.MarkCharacterDeleted(character.Id, deleteSuccess =>
+                    var idToDelete = Characters[i].Id;
+
+                    DatabaseManager.Shard.MarkCharacterDeleted(idToDelete, deleteSuccess =>
                     {
                         if (deleteSuccess)
-                            log.Info($"Character {character.Id:X} successfully marked as deleted");
+                            log.Info($"Character {idToDelete:X} successfully marked as deleted");
                         else
-                            log.Error($"Unable to mark character {character.Id:X} as deleted");
+                            log.Error($"Unable to mark character {idToDelete:X} as deleted");
                     });
+
+                    Characters.RemoveAt(i);
                 }
-                else
-                    AccountCharacters.Add(character);
             }
         }
 
@@ -295,7 +304,7 @@ namespace ACE.Server.Network
             DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
             {
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
-                UpdateCachedCharacters(result);
+                UpdateCharacters(result);
 
                 Network.EnqueueSend(new GameMessageCharacterList(result, this));
 

@@ -143,7 +143,7 @@ namespace ACE.Server.Network.Handlers
             DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
             {
                 result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
-                session.UpdateCachedCharacters(result);
+                session.UpdateCharacters(result);
 
                 GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session);
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
