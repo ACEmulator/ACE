@@ -72,9 +72,12 @@ namespace ACE.Database
         }
 
 
+        private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+        private readonly ConcurrentDictionary<uint, byte> weeniesNotFound = new ConcurrentDictionary<uint, byte>();
+
         /// <summary>
         /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
-        /// If the weenie doesn't exist in the cache, it will be added.
+        /// This will also update the weenie cache.
         /// </summary>
         private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
         {
@@ -91,7 +94,11 @@ namespace ACE.Database
                 .FirstOrDefault(r => r.ClassId == weenieClassId);
 
             if (weenie == null)
+            {
+                weenieCache.TryRemove(weenieClassId, out _);
+                weeniesNotFound.TryAdd(weenieClassId, 0);
                 return null;
+            }
 
             var weenieType = (WeenieType)weenie.Type;
 
@@ -136,12 +143,14 @@ namespace ACE.Database
 
             // If the weenie doesn't exist in the cache, we'll add it.
             weenieCache.TryAdd(weenieClassId, weenie);
+            weeniesNotFound.TryRemove(weenieClassId, out _);
 
             return weenie;
         }
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
         /// </summary>
         public Weenie GetWeenie(uint weenieClassId)
         {
@@ -164,12 +173,16 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
+        /// </summary>
         public Weenie GetWeenie(string weenieClassName)
         {
-            return GetWeenie(GetWeenieClassId(weenieClassName));
-        }
+            var weenieClassId = GetWeenieClassId(weenieClassName);
 
-        private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+            return GetWeenie(weenieClassId);
+        }
 
         /// <summary>
         /// Returns the number of weenies currently cached.
@@ -179,6 +192,12 @@ namespace ACE.Database
             return weenieCache.Count;
         }
 
+        public void ClearWeenieCache()
+        {
+            weenieCache.Clear();
+            weeniesNotFound.Clear();
+        }
+
         /// <summary>
         /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
         /// </summary>
@@ -186,6 +205,9 @@ namespace ACE.Database
         {
             if (weenieCache.TryGetValue(weenieClassId, out var value))
                 return value;
+
+            if (weeniesNotFound.ContainsKey(weenieClassId))
+                return null;
 
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
@@ -245,7 +267,9 @@ namespace ACE.Database
                 {
                     var index = rand.Next(0, results.Count - 1);
 
-                    weenies.Add(GetCachedWeenie(results[index].ClassId));
+                    var weenie = GetCachedWeenie(results[index].ClassId);
+
+                    weenies.Add(weenie);
                 }
 
                 return weenies;
