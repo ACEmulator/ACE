@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using log4net;
@@ -9,16 +7,12 @@ using ACE.Common;
 using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Packets;
-
-using Account = ACE.Database.Models.Auth.Account;
-using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Network.Handlers
 {
