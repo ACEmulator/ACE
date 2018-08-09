@@ -78,6 +78,13 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
             {
                 var results = context.Character
+                    .Include(r => r.CharacterPropertiesContract)
+                    .Include(r => r.CharacterPropertiesFillCompBook)
+                    .Include(r => r.CharacterPropertiesFriendList)
+                    .Include(r => r.CharacterPropertiesQuestRegistry)
+                    .Include(r => r.CharacterPropertiesShortcutBar)
+                    .Include(r => r.CharacterPropertiesSpellBar)
+                    .Include(r => r.CharacterPropertiesTitleBook)
                     .AsNoTracking()
                     .Where(r => r.AccountId == accountId && !r.IsDeleted)
                     .ToList();
@@ -90,7 +97,10 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.Character.AsNoTracking().ToList();
+                var results = context.Character
+                    .AsNoTracking()
+                    .ToList();
+
                 return results;
             }
         }
