@@ -277,7 +277,7 @@ namespace ACE.Server.Physics
 
         public bool polygon_hits_ray(Ray ray, ref float time)
         {
-            if (SidesType != CullMode.Clockwise && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)   // dist?
+            if (SidesType == CullMode.Landblock && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)   // dist?
                 return false;
 
             if (!Plane.compute_time_of_intersection(ray, ref time))

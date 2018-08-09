@@ -5,8 +5,9 @@ namespace ACE.Entity.Enum
     /// </summary>
     public enum CullMode
     {
-        Clockwise   = 0x0,
-        None        = 0x1,
-        Unknown     = 0x2
+        Landblock        = 0x0,     // not in dat, but it seems to be used for this?
+        None             = 0x1,
+        Clockwise        = 0x2,
+        CounterClockwise = 0x3
     };
 }

@@ -354,7 +354,7 @@ namespace ACE.Server.Physics.Common
             var numPolys = numSquares * 2;
             Polygons = new List<Polygon>(numPolys);
             for (var i = 0; i < numPolys; i++)
-                Polygons.Add(new Polygon(i, 3, CullMode.Clockwise));
+                Polygons.Add(new Polygon(i, 3, CullMode.Landblock));
 
             SWtoNEcut = new List<bool>(numSquares);
             for (var i = 0; i < numSquares; i++)

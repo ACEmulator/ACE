@@ -38,7 +38,7 @@ namespace ACE.DatLoader.Entity
                     PosUVIndices.Add(reader.ReadByte());
             }
 
-            if (Stippling.HasFlag(StipplingType.Negative) && !Stippling.HasFlag(StipplingType.NoNeg))
+            if (SidesType == CullMode.Clockwise && !Stippling.HasFlag(StipplingType.NoNeg))
             {
                 for (short i = 0; i < NumPts; i++)
                     NegUVIndices.Add(reader.ReadByte());
