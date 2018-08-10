@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
     public class Polygon : IUnpackable
     {
         public byte NumPts { get; private set; }
-        public byte Stippling { get; private set; } // Whether it has that textured/bumpiness to it
+        public StipplingType Stippling { get; private set; } // Whether it has that textured/bumpiness to it
 
-        public int SidesType { get; private set; }
+        public CullMode SidesType { get; private set; }
         public short PosSurface { get; private set; }
         public short NegSurface { get; private set; }
 
@@ -23,28 +23,28 @@ namespace ACE.DatLoader.Entity
         public void Unpack(BinaryReader reader)
         {
             NumPts      = reader.ReadByte();
-            Stippling   = reader.ReadByte();
+            Stippling   = (StipplingType)reader.ReadByte();
 
-            SidesType   = reader.ReadInt32();
+            SidesType   = (CullMode)reader.ReadInt32();
             PosSurface  = reader.ReadInt16();
             NegSurface  = reader.ReadInt16();
 
             for (short i = 0; i < NumPts; i++)
                 VertexIds.Add(reader.ReadInt16());
 
-            if ((Stippling & 4) == 0)
+            if (!Stippling.HasFlag(StipplingType.NoPos))
             {
                 for (short i = 0; i < NumPts; i++)
                     PosUVIndices.Add(reader.ReadByte());
             }
 
-            if (SidesType == 2 && ((Stippling & 8) == 0))
+            if (SidesType == CullMode.Clockwise && !Stippling.HasFlag(StipplingType.NoNeg))
             {
                 for (short i = 0; i < NumPts; i++)
                     NegUVIndices.Add(reader.ReadByte());
             }
 
-            if (SidesType == 1)
+            if (SidesType == CullMode.None)
             {
                 NegSurface = PosSurface;
                 NegUVIndices = PosUVIndices;

@@ -1,95 +1,66 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
+using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics
 {
-    public enum CullMode
+    public class Polygon: IEquatable<Polygon>
     {
-        Clockwise = 0x0,
-        None = 0x1,
-        Unknown = 0x2
-    };
-
-    public enum Sidedness
-    {
-        Positive = 0x0,
-        Negative = 0x1,
-        InPlane  = 0x2,
-        Crossing = 0x3
-    };
-
-    public enum SimplePolygonType
-    {
-        SimplePolygon   = 0x0,
-        PathPolygon     = 0x1,
-        PlanarPolygon   = 0x2
-    };
-
-    public enum StipplingType
-    {
-        None = 0x0,
-        Positive = 0x1,
-        Negative = 0x2,
-        Both = 0x3,
-        NoPos = 0x4,
-        NoNeg = 0x8,
-        NoUVS = 0x14
-    };
-
-    public class Polygon
-    {
-        public List<Vertex> Vertices;
+        public List<Vertex> Vertices;   // not directly in this DAT structure
         public List<short> VertexIDs;
-        public List<Vector2> Screen;
-        public int PolyID;
+        //public List<Vector2> Screen;
+        public int PolyID;              // not directly in this DAT structure
         public int NumPoints;
-        public byte Stippling;
+        public StipplingType Stippling;
         public CullMode SidesType;
-        public List<byte> PosUVIndices;
-        public List<byte> NegUVIndices;
+        //public List<byte> PosUVIndices;   // texture coordinates unused by server
+        //public List<byte> NegUVIndices;
         public short PosSurface;
         public short NegSurface;
-        public Plane Plane;
+        public Plane Plane;             // not directly in this DAT structure
 
-        public Polygon()
-        {
-            Init();
-        }
-
-        public Polygon(DatLoader.Entity.Polygon polygon, DatLoader.Entity.CVertexArray vertexArray)
-        {
-            NegSurface = polygon.NegSurface;
-            NegUVIndices = polygon.NegUVIndices;
-            NumPoints = polygon.NumPts;
-            PosSurface = polygon.PosSurface;
-            PosUVIndices = polygon.PosUVIndices;
-            SidesType = (CullMode)polygon.SidesType;
-            Stippling = polygon.Stippling;
-            VertexIDs = polygon.VertexIds;
-            Vertices = new List<Vertex>();
-            foreach (var vertexIdx in VertexIDs)
-                Vertices.Add(new Vertex(vertexArray.Vertices[(ushort)vertexIdx]));
-            make_plane();
-        }
-
+        /// <summary>
+        /// Constructs a polygon for landblock terrain outdoors
+        /// </summary>
         public Polygon(int idx, int numPoints, CullMode cullMode)
         {
             Init();
+
             PolyID = idx;
             NumPoints = numPoints;
             SidesType = cullMode;
 
-            VertexIDs = new List<short>();
+            VertexIDs = new List<short>(numPoints);
             Vertices = new List<Vertex>(numPoints);
             for (var i = 0; i < numPoints; i++)
             {
                 Vertices.Add(null);
                 VertexIDs.Add(-1);
             }
+        }
+
+        /// <summary>
+        /// Constructs a polygon from the DAT file
+        /// </summary>
+        public Polygon(DatLoader.Entity.Polygon polygon, DatLoader.Entity.CVertexArray vertexArray)
+        {
+            NegSurface = polygon.NegSurface;
+            //NegUVIndices = polygon.NegUVIndices;
+            NumPoints = polygon.NumPts;
+            PosSurface = polygon.PosSurface;
+            //PosUVIndices = polygon.PosUVIndices;
+            SidesType = polygon.SidesType;
+            Stippling = polygon.Stippling;
+            VertexIDs = polygon.VertexIds;
+            Vertices = new List<Vertex>();
+            foreach (var vertexIdx in VertexIDs)
+                Vertices.Add(VertexCache.Get(vertexArray.Vertices[(ushort)vertexIdx]));
+
+            make_plane();
         }
 
         public void Init()
@@ -306,7 +277,7 @@ namespace ACE.Server.Physics
 
         public bool polygon_hits_ray(Ray ray, ref float time)
         {
-            if (SidesType != CullMode.Clockwise && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)   // dist?
+            if (SidesType == CullMode.Landblock && Vector3.Dot(Plane.Normal, ray.Dir) > 0.0f)   // dist?
                 return false;
 
             if (!Plane.compute_time_of_intersection(ray, ref time))
@@ -438,6 +409,42 @@ namespace ACE.Server.Physics
                 polygon_hits_sphere(sphere, ref contactPoint);
             }
             return hit;
+        }
+
+        public bool Equals(Polygon p)
+        {
+            if (PolyID != p.PolyID || NumPoints != p.NumPoints || Stippling != p.Stippling || SidesType != p.SidesType ||
+                PosSurface != p.PosSurface || NegSurface != p.NegSurface) return false;
+
+            for (var i = 0; i < NumPoints; i++)
+            {
+                if (!p.Vertices[i].Equals(Vertices[i]))
+                    return false;
+
+                if (!p.VertexIDs[i].Equals(VertexIDs[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+
+            hash = (hash * 397) ^ PolyID.GetHashCode();
+            hash = (hash * 397) ^ NumPoints.GetHashCode();
+            hash = (hash * 397) ^ Stippling.GetHashCode();
+            hash = (hash * 397) ^ SidesType.GetHashCode();
+            hash = (hash * 397) ^ PosSurface.GetHashCode();
+            hash = (hash * 397) ^ NegSurface.GetHashCode();
+
+            for (var i = 0; i < NumPoints; i++)
+            {
+                hash = (hash * 397) ^ Vertices[i].GetHashCode();
+                hash = (hash * 397) ^ VertexIDs[i].GetHashCode();
+            }
+
+            return hash;
         }
     }
 }

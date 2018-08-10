@@ -66,7 +66,7 @@ namespace ACE.Server.Physics
             {
                 foreach (var v in gfxObj.VertexArray.Vertices.Values)
                 {
-                    var vertex = Vector3.Transform(new Vector3(v.X, v.Y, v.Z), transform);
+                    var vertex = Vector3.Transform(v.Origin, transform);
 
                     if (vertex.X < Min.X) Min.X = vertex.X;
                     if (vertex.Y < Min.Y) Min.Y = vertex.Y;

@@ -4,28 +4,29 @@ using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Collision;
+using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics
 {
     public class PhysicsPart
     {
-        public float CYpt;
-        public Vector3 ViewerHeading;
-        public DatLoader.FileTypes.GfxObjDegradeInfo Degrades;
-        public int DegLevel;
-        public int DegMode;
-        public List<GfxObj> GfxObj;
+        //public float CYpt;
+        //public Vector3 ViewerHeading;
+        //public DatLoader.FileTypes.GfxObjDegradeInfo Degrades;
+        //public int DegLevel;
+        //public int DegMode;
+        public GfxObj GfxObj;
         public Vector3 GfxObjScale;
         public Position Pos;
-        public Position DrawPos;
+        //public Position DrawPos;
         //public Material Material;
-        public List<uint> Surfaces;
-        public int OriginalPaletteID;
-        public float CurTranslucency;
-        public float CurDiffuse;
-        public float CurLuminosity;
-        public DatLoader.FileTypes.Palette ShiftPal;
-        public int CurrentRenderFrameNum;
+        //public List<uint> Surfaces;
+        //public int OriginalPaletteID;
+        //public float CurTranslucency;
+        //public float CurDiffuse;
+        //public float CurLuminosity;
+        //public DatLoader.FileTypes.Palette ShiftPal;
+        //public int CurrentRenderFrameNum;
         public PhysicsObj PhysObj;
         public int PhysObjIndex;
         public BBox BoundingBox;
@@ -45,17 +46,17 @@ namespace ACE.Server.Physics
 
         public TransitionState FindObjCollisions(Transition transition)
         {
-            if (GfxObj != null && GfxObj[0].PhysicsBSP != null)
+            if (GfxObj != null && GfxObj.PhysicsBSP != null)
             {
                 transition.SpherePath.CacheLocalSpaceSphere(Pos, GfxObjScale.Z);
-                return GfxObj[0].FindObjCollisions(transition, GfxObjScale.Z);
+                return GfxObj.FindObjCollisions(transition, GfxObjScale.Z);
             }
             return TransitionState.OK;  // should be invalid?
         }
 
         public BBox GetBoundingBox()
         {
-            return GfxObj[0].GfxBoundBox;
+            return GfxObj.GfxBoundBox;
         }
 
         public uint GetPhysObjID()
@@ -70,11 +71,11 @@ namespace ACE.Server.Physics
         {
             GfxObjScale = new Vector3(1.0f, 1.0f, 1.0f);
             Pos = new Position();
-            DrawPos = new Position();
-            ViewerHeading = new Vector3(0.0f, 0.0f, 1.0f);
+            //DrawPos = new Position();
+            //ViewerHeading = new Vector3(0.0f, 0.0f, 1.0f);
             PhysObjIndex = -1;
-            DegMode = 1;
-            CYpt = Int16.MaxValue;
+            //DegMode = 1;
+            //CYpt = Int16.MaxValue;
         }
 
         public bool InitObjDescChanges()
@@ -90,7 +91,7 @@ namespace ACE.Server.Physics
         public bool LoadGfxObjArray(uint rootObjectID/*, GfxObjDegradeInfo newDegrades*/)
         {
             var gfxObj = (DatLoader.FileTypes.GfxObj)DBObj.Get(new QualifiedDataID(6, rootObjectID));
-            GfxObj = new List<GfxObj>() { new GfxObj(gfxObj) };
+            GfxObj = GfxObjCache.Get(gfxObj);
             // degrades omitted
             return GfxObj != null;
         }
@@ -113,8 +114,8 @@ namespace ACE.Server.Physics
             GfxObj = template.GfxObj;   
             GfxObjScale = template.GfxObjScale;
             Pos = template.Pos;
-            DrawPos = template.DrawPos;
-            OriginalPaletteID = template.OriginalPaletteID;
+            //DrawPos = template.DrawPos;
+            //OriginalPaletteID = template.OriginalPaletteID;
             // removed surfaces
             return true;
         }

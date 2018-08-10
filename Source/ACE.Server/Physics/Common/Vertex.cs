@@ -1,29 +1,26 @@
-﻿using System.Collections.Generic;
+using System;
 using System.Numerics;
 
-namespace ACE.Server.Physics.Common
+namespace ACE.Server.Physics.Entity
 {
-    public class Vertex
+    public class Vertex: IEquatable<Vertex>
     {
-        public Vector3 Origin;
         public ushort Index;
-        public List<VertexUV> UVs;
+        public Vector3 Origin;
         public Vector3 Normal;
-        public float Unknown1;
-        public float Unknown2;
 
         public Vertex() { }
 
-        public Vertex(ushort index, List<VertexUV> uvs)
+        public Vertex(ushort index)
         {
             Index = index;
-            UVs = uvs;  // copy?
         }
 
         public Vertex(DatLoader.Entity.SWVertex v)
         {
-            Origin = new Vector3(v.X, v.Y, v.Z);
-            Normal = new Vector3(v.NormalX, v.NormalY, v.NormalZ);
+            Origin = v.Origin;
+            Normal = v.Normal;
+
             // omitted UV texture coordinates
         }
 
@@ -50,6 +47,25 @@ namespace ACE.Server.Physics.Common
         public static Vector3 operator/ (Vertex a, Vertex b)
         {
             return a.Origin / b.Origin;
+        }
+
+        public bool Equals(Vertex v)
+        {
+            if (v == null) return false;
+
+            return Index == v.Index && Origin.X == v.Origin.X && Origin.Y == v.Origin.Y && Origin.Z == v.Origin.Z &&
+                Normal.X == v.Normal.X && Normal.Y == v.Normal.Y && Normal.Z == v.Normal.Z;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+
+            hash = (hash * 397) ^ Index.GetHashCode();
+            hash = (hash * 397) ^ Origin.GetHashCode();
+            hash = (hash * 397) ^ Normal.GetHashCode();
+
+            return hash;
         }
     }
 }

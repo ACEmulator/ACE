@@ -20,7 +20,7 @@ namespace ACE.Server.Physics.Collision
             {
                 foreach (var vertex in poly.Vertices)
                 {
-                    var v = Vector3.Transform(new Vector3(vertex.X, vertex.Y, vertex.Z), transform);
+                    var v = Vector3.Transform(vertex.Origin, transform);
 
                     if (v.X < Min.X) Min.X = v.X;
                     if (v.Y < Min.Y) Min.Y = v.Y;
