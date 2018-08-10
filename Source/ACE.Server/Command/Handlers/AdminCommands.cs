@@ -1717,8 +1717,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2,
-            "Modifies a server property that is a bool", "modifybool (string) (bool)")]
+        [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
         public static void HandleModifyServerBoolProperty(Session session, params string[] paramters)
         {
             try
@@ -1739,8 +1738,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("fetchbool", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Fetches a server property that is a bool", "fetchbool (string)")]
+        [CommandHandler("fetchbool", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a bool", "fetchbool (string)")]
         public static void HandleFetchServerBoolProperty(Session session, params string[] paramters)
         {
             var boolVal = PropertyManager.GetBool(paramters[0], cacheFallback: false);
@@ -1750,8 +1748,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
         }
 
-        [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2,
-            "Modifies a server property that is a long", "modifylong (string) (long)")]
+        [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a long", "modifylong (string) (long)")]
         public static void HandleModifyServerLongProperty(Session session, params string[] paramters)
         {
             try
@@ -1772,8 +1769,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("fetchlong", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Fetches a server property that is a long", "fetchlong (string)")]
+        [CommandHandler("fetchlong", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a long", "fetchlong (string)")]
         public static void HandleFetchServerLongProperty(Session session, params string[] paramters)
         {
             var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
@@ -1783,8 +1779,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
         }
 
-        [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2,
-            "Modifies a server property that is a double", "modifyfloat (string) (double)")]
+        [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a double", "modifyfloat (string) (double)")]
         public static void HandleModifyServerFloatProperty(Session session, params string[] paramters)
         {
             try
@@ -1804,8 +1799,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("fetchdouble", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Fetches a server property that is a double", "fetchdouble (string)")]
+        [CommandHandler("fetchdouble", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a double", "fetchdouble (string)")]
         public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
         {
             var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
@@ -1815,8 +1809,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
         }
 
-        [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2,
-            "Modifies a server property that is a string", "modifystring (string) (string)")]
+        [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a string", "modifystring (string) (string)")]
         public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
         {
             PropertyManager.ModifyString(parameters[0], parameters[1]);
@@ -1826,8 +1819,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine("String property successfully updated!");
         }
 
-        [CommandHandler("fetchstring", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Fetches a server property that is a string", "fetchstring (string)")]
+        [CommandHandler("fetchstring", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a string", "fetchstring (string)")]
         public static void HandleFetchServerStringProperty(Session session, params string[] parameters)
         {
             var stringVal = PropertyManager.GetString(parameters[0], cacheFallback: false);
@@ -1837,12 +1829,12 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"{parameters[0]} - {stringVal.Description ?? "No Description"}: {stringVal.Item}");
         }
 
-        [CommandHandler("modifypropertydesc", AccessLevel.Admin, CommandHandlerFlag.None, 3,
-            "Modifies a server property's description", "modifypropertydesc <STRING|BOOL|DOUBLE|LONG> (string) (string)")]
+        [CommandHandler("modifypropertydesc", AccessLevel.Admin, CommandHandlerFlag.None, 3, "Modifies a server property's description", "modifypropertydesc <STRING|BOOL|DOUBLE|LONG> (string) (string)")]
         public static void HandleModifyPropertyDescription(Session session, params string[] parameters)
         {
             var isSession = session != null;
-            switch (parameters[0]) {
+            switch (parameters[0])
+            {
                 case "STRING":
                     PropertyManager.ModifyStringDescription(parameters[1], parameters[2]);
                     break;
@@ -1857,24 +1849,16 @@ namespace ACE.Server.Command.Handlers
                     break;
                 default:
                     if (isSession)
-                    {
                         session.Network.EnqueueSend(new GameMessageSystemChat("Please pick from STRING, BOOL, DOUBLE, or LONG", ChatMessageType.Help));
-                    }
                     else
-                    {
                         Console.WriteLine("Please pick from STRING, BOOL, DOUBLE, or LONG");
-                    }
                     return;
             }
 
             if (isSession)
-            {
                 session.Network.EnqueueSend(new GameMessageSystemChat("Successfully updated property description!", ChatMessageType.Help));
-            }
             else
-            {
                 Console.WriteLine("Successfully updated property description!");
-            }
         }
 
         [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, -1,
