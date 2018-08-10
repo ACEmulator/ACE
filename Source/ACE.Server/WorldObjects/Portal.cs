@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
                                 break;
                             }
                     }
-                    player.AdjustDungeonCells(portalDest);
+                    player.AdjustDungeon(portalDest);
 
 #if DEBUG
                     serverMessage = "Portal sending player to destination";

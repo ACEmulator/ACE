@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj.CurCell != null)
                 return false;
 
-            AdjustDungeonCells(Location);
+            AdjustDungeon(Location);
 
             var cell = LScape.get_landcell(Location.Cell);
             if (cell == null) return false;
@@ -745,6 +745,12 @@ namespace ACE.Server.WorldObjects
             nextHeartBeat.EnqueueChain();
         }
 
+        public void AdjustDungeon(Position pos)
+        {
+            AdjustDungeonPos(pos);
+            AdjustDungeonCells(pos);
+        }
+
         public bool AdjustDungeonCells(Position pos)
         {
             if (pos == null) return false;
@@ -763,6 +769,19 @@ namespace ACE.Server.WorldObjects
                 return true;
             }
             return false;
+        }
+
+        public bool AdjustDungeonPos(Position pos)
+        {
+            if (pos == null) return false;
+
+            var landblock = LScape.get_landblock(pos.Cell);
+            if (landblock == null || !landblock.IsDungeon) return false;
+
+            var dungeonID = pos.Cell >> 16;
+
+            var adjusted = AdjustPos.Adjust(dungeonID, pos);
+            return adjusted;
         }
 
         public virtual void Activate(WorldObject activator)
