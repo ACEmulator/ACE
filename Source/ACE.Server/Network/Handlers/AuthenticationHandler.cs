@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using log4net;
@@ -136,6 +137,7 @@ namespace ACE.Server.Network.Handlers
 
             DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
             {
+                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList(); // The client highlights the first character in the list. We sort so the first character sent is the one we last logged in
                 session.UpdateCharacters(result);
 
                 GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
