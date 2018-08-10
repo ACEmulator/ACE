@@ -136,10 +136,10 @@ namespace ACE.Server.Physics.Common
                 if (part == null) continue;
 
                 Sphere boundingSphere = null;
-                if (part.GfxObj[0].PhysicsSphere != null)
-                    boundingSphere = part.GfxObj[0].PhysicsSphere;
+                if (part.GfxObj.PhysicsSphere != null)
+                    boundingSphere = part.GfxObj.PhysicsSphere;
                 else
-                    boundingSphere = part.GfxObj[0].DrawingSphere;
+                    boundingSphere = part.GfxObj.DrawingSphere;
 
                 if (boundingSphere == null) continue;
 
@@ -233,9 +233,9 @@ namespace ACE.Server.Physics.Common
                 foreach (var part in parts)
                 {
                     if (part == null) continue;
-                    var sphere = part.GfxObj[0].PhysicsSphere;
+                    var sphere = part.GfxObj.PhysicsSphere;
                     if (sphere == null)
-                        sphere = part.GfxObj[0].DrawingSphere;
+                        sphere = part.GfxObj.DrawingSphere;
                     if (sphere == null)
                         continue;
 

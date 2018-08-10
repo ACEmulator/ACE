@@ -126,7 +126,7 @@ namespace ACE.Server.Physics
             }
 
             var part = new PhysicsPart();
-            part.GfxObj = new List<Collision.GfxObj>() { gfxObj };
+            part.GfxObj = gfxObj;
             setup.Parts.Add(part);
 
             var placementType = new PlacementType();

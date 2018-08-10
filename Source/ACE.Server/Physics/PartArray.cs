@@ -59,7 +59,7 @@ namespace ACE.Server.Physics
         {
             foreach (var part in Parts)
             {
-                if (part.GfxObj[0].PhysicsBSP != null)
+                if (part.GfxObj.PhysicsBSP != null)
                 {
                     State |= 0x10000;
                     return true;
@@ -181,7 +181,7 @@ namespace ACE.Server.Physics
                 return Setup.ID;
 
             if (NumParts == 1)
-                return Parts[0].GfxObj[0].ID;
+                return Parts[0].GfxObj.ID;
 
             return 0;
         }
