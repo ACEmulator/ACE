@@ -86,7 +86,7 @@ namespace ACE.Server.Network
         {
             if (Player != null)
             {
-                SaveSessionPlayer();
+                Player.EnqueueSaveChain();
                 Player.HandleActionLogout(true);
             }
 
@@ -112,6 +112,9 @@ namespace ACE.Server.Network
         }
 
 
+        /// <summary>
+        /// This is run in parallel from our main loop.
+        /// </summary>
         public void Update(double lastTick, long currentTimeTick)
         {
             // Checks if the session has stopped responding.
@@ -122,8 +125,6 @@ namespace ACE.Server.Network
             }
 
             Network.Update(lastTick);
-
-            // FIXME(ddevec): Most of the following work can probably be integrated into the player's action queue, or an action queue strucutre
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
@@ -140,17 +141,18 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
+            // todo: I'd like to move this to a player Update() function. Mag-nus 2018-08-10
             if (Player != null)
             {
                 // First, we check if the player hasn't been saved in the last 5 minutes
                 if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
                 {
                     // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
-                    // We do this because SaveSessionPlayer will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
+                    // We do this because EnqueueSaveChain will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
                     if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
                     {
                         lastAutoSaveTime = DateTime.UtcNow;
-                        SaveSessionPlayer();
+                        Player.EnqueueSaveChain();
                     }
                 }
 
@@ -307,17 +309,6 @@ namespace ACE.Server.Network
             // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
             Network.EnqueueSend(new GameMessageBootAccount(this));
         }
-
-
-        /// <summary>
-        /// This will queue the SaveChain for the Player attached to this Session.
-        /// </summary>
-        public void SaveSessionPlayer()
-        {
-            if (Player != null)
-                Player.GetSaveChain().EnqueueChain();
-        }
-
 
 
         public void SendCharacterError(CharacterError error)
