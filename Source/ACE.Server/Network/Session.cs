@@ -17,7 +17,7 @@ using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Network
 {
-    public class Session : IActor
+    public class Session
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -29,12 +29,6 @@ namespace ACE.Server.Network
         public uint GameEventSequence { get; set; }
 
         public SessionState State { get; set; }
-
-
-        /// <summary>
-        /// This actionQueue forces network packets on to the main thread off the network thread, to avoid concurrency errors
-        /// </summary>
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
 
 
         public uint Id { get; private set; }
@@ -71,7 +65,6 @@ namespace ACE.Server.Network
         {
             EndPoint = endPoint;
             Network = new NetworkSession(this, clientId, serverId);
-            actionQueue.SetParent(WorldManager.ActionQueue);
         }
 
 
@@ -340,23 +333,6 @@ namespace ACE.Server.Network
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
             Network.EnqueueSend(worldBroadcastMessage);
-        }
-
-
-        /// Boilerplate Action/Actor stuff
-        public LinkedListNode<IAction> EnqueueAction(IAction act)
-        {
-            return actionQueue.EnqueueAction(act);
-        }
-
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
         }
     }
 }

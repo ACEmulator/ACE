@@ -58,6 +58,7 @@ namespace ACE.Server.Managers
 
         public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
 
+        public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
         public static readonly ActionQueue ActionQueue = new ActionQueue();
         public static readonly ActionQueue MotionQueue = new ActionQueue();
         public static readonly ActionQueue BroadcastQueue = new ActionQueue();
@@ -443,6 +444,8 @@ namespace ACE.Server.Managers
                     foreach (var movedObject in movedObjects)
                         UpdateWorld_MovedObject(movedObject);
                 }
+
+                InboundMessageQueue.RunActions();
 
                 // Process between landblock object motions sequentially
                 // Currently only used for picking items up off a landblock
