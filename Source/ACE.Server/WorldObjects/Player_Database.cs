@@ -19,6 +19,14 @@ namespace ACE.Server.WorldObjects
             return new ActionChain(this, () => SavePlayer(showMsg));
         }
 
+        /// <summary>
+        /// Creates and Enqueues an ActionChain to save a character
+        /// </summary>
+        public void EnqueueSaveChain(bool showMsg = true)
+        {
+            GetSaveChain(showMsg).EnqueueChain();
+        }
+
         public void SaveDatabase(bool showMsg = true)
         {
             var saveChain = GetSaveChain(showMsg);

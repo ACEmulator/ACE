@@ -86,7 +86,7 @@ namespace ACE.Server.Network
         {
             if (Player != null)
             {
-                SaveSessionPlayer();
+                Player.EnqueueSaveChain();
                 Player.HandleActionLogout(true);
             }
 
@@ -150,7 +150,7 @@ namespace ACE.Server.Network
                     if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
                     {
                         lastAutoSaveTime = DateTime.UtcNow;
-                        SaveSessionPlayer();
+                        Player.EnqueueSaveChain();
                     }
                 }
 
@@ -307,17 +307,6 @@ namespace ACE.Server.Network
             // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
             Network.EnqueueSend(new GameMessageBootAccount(this));
         }
-
-
-        /// <summary>
-        /// This will queue the SaveChain for the Player attached to this Session.
-        /// </summary>
-        public void SaveSessionPlayer()
-        {
-            if (Player != null)
-                Player.GetSaveChain().EnqueueChain();
-        }
-
 
 
         public void SendCharacterError(CharacterError error)
