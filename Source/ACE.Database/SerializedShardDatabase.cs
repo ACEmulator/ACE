@@ -23,12 +23,11 @@ namespace ACE.Database
 
         private Thread _workerThread;
 
-        public ShardPropertyTables Config;
+        public readonly ShardPropertyTables Config = new ShardPropertyTables();
 
         internal SerializedShardDatabase(ShardDatabase shardDatabase)
         {
             _wrappedDatabase = shardDatabase;
-            Config = new ShardPropertyTables();
         }
 
         public void Start()

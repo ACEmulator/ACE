@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
-using System.Timers;
-using ACE.Database;
-using System.Linq;
-using log4net;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Timers;
+
+using log4net;
+
+using ACE.Database;
 
 namespace ACE.Server.Managers
 {
@@ -15,10 +16,10 @@ namespace ACE.Server.Managers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // caching internally to the server
-        private static ConcurrentDictionary<string, ConfigurationEntry<bool>> CachedBooleanSettings = new ConcurrentDictionary<string, ConfigurationEntry<bool>>();
-        private static ConcurrentDictionary<string, ConfigurationEntry<long>> CachedLongSettings = new ConcurrentDictionary<string, ConfigurationEntry<long>>();
-        private static ConcurrentDictionary<string, ConfigurationEntry<double>> CachedDoubleSettings = new ConcurrentDictionary<string, ConfigurationEntry<double>>();
-        private static ConcurrentDictionary<string, ConfigurationEntry<string>> CachedStringSettings = new ConcurrentDictionary<string, ConfigurationEntry<string>>();
+        private static readonly ConcurrentDictionary<string, ConfigurationEntry<bool>> CachedBooleanSettings = new ConcurrentDictionary<string, ConfigurationEntry<bool>>();
+        private static readonly ConcurrentDictionary<string, ConfigurationEntry<long>> CachedLongSettings = new ConcurrentDictionary<string, ConfigurationEntry<long>>();
+        private static readonly ConcurrentDictionary<string, ConfigurationEntry<double>> CachedDoubleSettings = new ConcurrentDictionary<string, ConfigurationEntry<double>>();
+        private static readonly ConcurrentDictionary<string, ConfigurationEntry<string>> CachedStringSettings = new ConcurrentDictionary<string, ConfigurationEntry<string>>();
 
         private static Timer _workerThread;
 
@@ -30,10 +31,10 @@ namespace ACE.Server.Managers
         public static void Initialize(bool loadDefaultValues = true)
         {
             if (loadDefaultValues)
-            {
                 DefaultPropertyManager.LoadDefaultProperties();
-            }
+
             LoadPropertiesFromDB();
+
             _workerThread = new Timer(300000);
             _workerThread.Elapsed += DoWork;
             _workerThread.AutoReset = true;
@@ -61,22 +62,17 @@ namespace ACE.Server.Managers
             // then, check the database. if the key exists in the database, grab it and cache it
             // finally, set it to a default of false.
             if (CachedBooleanSettings.ContainsKey(key))
-            {
                 return new Property<bool>(CachedBooleanSettings[key].Item, CachedBooleanSettings[key].Description);
-            }
 
             var dbValue = DatabaseManager.Shard.Config.GetBool(key);
-            var useFallback = false;
 
-            if (dbValue == null || dbValue?.Value == null)
-            {
-                useFallback = true;
-            }
+            bool useFallback = dbValue?.Value == null;
 
             var boolVal = dbValue?.Value ?? fallback;
 
-            if (!useFallback || (useFallback && cacheFallback))
+            if (!useFallback || cacheFallback)
                 CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, boolVal, dbValue.Description);
+
             return new Property<bool>(boolVal, dbValue.Description);
         }
 
@@ -111,21 +107,17 @@ namespace ACE.Server.Managers
         public static Property<long> GetLong(string key, long fallback = 0, bool cacheFallback = true)
         {
             if (CachedLongSettings.ContainsKey(key))
-            {
                 return new Property<long>(CachedLongSettings[key].Item, CachedLongSettings[key].Description);
-            }
 
             var dbValue = DatabaseManager.Shard.Config.GetLong(key);
-            var useFallback = false;
 
-            if (dbValue == null || dbValue?.Value == null)
-            {
-                useFallback = true;
-            }
+            bool useFallback = dbValue?.Value == null;
 
             var intVal = dbValue?.Value ?? fallback;
-            if (!useFallback || (useFallback && cacheFallback))
+
+            if (!useFallback || cacheFallback)
                 CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, intVal, dbValue.Description);
+
             return new Property<long>(intVal, dbValue.Description);
         }
 
@@ -165,16 +157,14 @@ namespace ACE.Server.Managers
             }
 
             var dbValue = DatabaseManager.Shard.Config.GetLong(key);
-            var useFallback = false;
 
-            if (dbValue == null || dbValue?.Value == null)
-            {
-                useFallback = true;
-            }
+            bool useFallback = dbValue?.Value == null;
 
             var floatVal = dbValue?.Value ?? fallback;
-            if (!useFallback || (useFallback && cacheFallback))
+
+            if (!useFallback || cacheFallback)
                 CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, floatVal, dbValue.Description);
+
             return new Property<double>(CachedDoubleSettings[key].Item, CachedDoubleSettings[key].Description);
         }
 
@@ -214,16 +204,14 @@ namespace ACE.Server.Managers
             }
 
             var dbValue = DatabaseManager.Shard.Config.GetString(key);
-            var useFallback = false;
 
-            if (dbValue == null || dbValue?.Value == null)
-            {
-                useFallback = true;
-            }
+            bool useFallback = dbValue?.Value == null;
 
             var stringVal = dbValue?.Value ?? fallback;
-            if (!useFallback || (useFallback && cacheFallback))
+
+            if (!useFallback || cacheFallback)
                 CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, stringVal, dbValue.Description);
+
             return new Property<string>(stringVal, dbValue.Description);
         }
 
@@ -255,7 +243,9 @@ namespace ACE.Server.Managers
         public static void ResyncVariables()
         {
             _workerThread.Stop();
+
             DoWork(null, null);
+
             _workerThread.Start();
         }
 
@@ -286,8 +276,9 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteBoolToDB()
         {
-            log.Info("Beginning to write modified boolean properties into database");
-            foreach (var i in CachedBooleanSettings.Where(r => r.Value.Modified == true))
+            log.Debug("Beginning to write modified boolean properties into database");
+
+            foreach (var i in CachedBooleanSettings.Where(r => r.Value.Modified))
             {
                 // this probably should be upsert. This does 2 queries per modified datapoint.
                 // perhaps run a transaction to queue all the queries at once.
@@ -303,8 +294,9 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteLongToDB()
         {
-            log.Info("Beginning to write modified integer properties into database");
-            foreach (var i in CachedLongSettings.Where(r => r.Value.Modified == true))
+            log.Debug("Beginning to write modified integer properties into database");
+
+            foreach (var i in CachedLongSettings.Where(r => r.Value.Modified))
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.Shard.Config.LongExists(i.Key))
@@ -319,9 +311,9 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteDoubleToDB()
         {
-            // float next
-            log.Info("Beginning to write modified float properties into database");
-            foreach (var i in CachedDoubleSettings.Where(r => r.Value.Modified == true))
+            log.Debug("Beginning to write modified float properties into database");
+
+            foreach (var i in CachedDoubleSettings.Where(r => r.Value.Modified))
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.Shard.Config.LongExists(i.Key))
@@ -336,8 +328,9 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteStringToDB()
         {
-            log.Info("Beginning to write modified string properties into database");
-            foreach (var i in CachedStringSettings.Where(r => r.Value.Modified == true))
+            log.Debug("Beginning to write modified string properties into database");
+
+            foreach (var i in CachedStringSettings.Where(r => r.Value.Modified))
             {
                 // todo: see boolean section for caveat in this approach
                 if (DatabaseManager.Shard.Config.StringExists(i.Key))
@@ -360,7 +353,6 @@ namespace ACE.Server.Managers
             // next, we need to fetch all of the variables from the DB and compare them quickly.
             LoadPropertiesFromDB();
         }
-
     }
 
     public struct Property<T>
@@ -371,8 +363,8 @@ namespace ACE.Server.Managers
             Description = description;
         }
 
-        public T Item { get;  private set; }
-        public string Description { get;  private set; }
+        public T Item { get; }
+        public string Description { get; }
     }
 
     class ConfigurationEntry<T>
@@ -383,32 +375,32 @@ namespace ACE.Server.Managers
 
         public ConfigurationEntry(bool modified, T item)
         {
-            this.Modified = modified;
-            this.Item = item;
+            Modified = modified;
+            Item = item;
         }
 
         public ConfigurationEntry(bool modified, T item, string description)
         {
-            this.Modified = modified;
-            this.Item = item;
-            this.Description = description;
+            Modified = modified;
+            Item = item;
+            Description = description;
         }
 
         public void Modify(T item)
         {
-            this.Item = item;
-            this.Modified = true;
+            Item = item;
+            Modified = true;
         }
 
         public void ModifyDescription(string description)
         {
-            this.Description = description;
-            this.Modified = true;
+            Description = description;
+            Modified = true;
         }
 
         public override string ToString()
         {
-            return Item.ToString() + " " + Modified;
+            return Item + " " + Modified;
         }
     }
 
@@ -419,40 +411,40 @@ namespace ACE.Server.Managers
             return new ReadOnlyDictionary<A, V>(new Dictionary<A, V>());
         }
 
-        private static ReadOnlyDictionary<A, V> DictOf<A, V>(params (A, V)[] pairs) {
-            return new ReadOnlyDictionary<A, V>(pairs.ToDictionary(
-                (tup) => tup.Item1,
-                (tup) => tup.Item2
+        private static ReadOnlyDictionary<A, V> DictOf<A, V>(params (A, V)[] pairs)
+        {
+            return new ReadOnlyDictionary<A, V>(pairs.ToDictionary
+            (
+                tup => tup.Item1,
+                tup => tup.Item2
             ));
         }
 
         public static void LoadDefaultProperties()
         {
             // Place any default properties to load in here
+
             //bool
             foreach (var item in DefaultBooleanProperties)
-            {
                 PropertyManager.ModifyBool(item.Key, item.Value);
-            }
+
             //float
             foreach (var item in DefaultDoubleProperties)
-            {
                 PropertyManager.ModifyDouble(item.Key, item.Value);
-            }
+
             //int
             foreach (var item in DefaultLongProperties)
-            {
                 PropertyManager.ModifyLong(item.Key, item.Value);
-            }
+
             //string
             foreach (var item in DefaultStringProperties)
-            {
                 PropertyManager.ModifyString(item.Key, item.Value);
-            }
         }
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties = DictOf<string, bool>();
+
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();
+
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
                 ("xp_modifier", 1.0d),
@@ -460,11 +452,10 @@ namespace ACE.Server.Managers
                 ("vitae_penalty", 0.05d),
                 ("vitae_min", 0.60d)
                 );
+
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(
                 ("motd_string", "Welcome to Asheron's Call\npowered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp")
                 );
     }
-
-
 }
