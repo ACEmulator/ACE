@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj.CurCell != null)
                 return false;
 
-            AdjustDungeonCells(Location);
+            AdjustDungeon(Location);
 
             var cell = LScape.get_landcell(Location.Cell);
             if (cell == null) return false;
