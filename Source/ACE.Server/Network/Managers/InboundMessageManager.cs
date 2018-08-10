@@ -1,17 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
+using log4net;
+
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameAction;
 using ACE.Server.Network.GameMessages;
-using log4net;
 
 namespace ACE.Server.Network.Managers
 {
     public static class InboundMessageManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private class MessageHandlerInfo
         {
             public MessageHandler Handler { get; set; }
