@@ -34,6 +34,7 @@ namespace ACE.Database.Models.Shard
         public uint Id { get; set; }
         public uint WeenieClassId { get; set; }
         public int WeenieType { get; set; }
+        public uint PopulatedCollectionFlags { get; set; }
 
         public BiotaPropertiesBook BiotaPropertiesBook { get; set; }
         public ICollection<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }

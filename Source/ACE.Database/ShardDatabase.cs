@@ -261,6 +261,65 @@ namespace ACE.Database
         }
 
 
+        [Flags]
+        enum PopulatedCollectionFlags
+        {
+            BiotaPropertiesAnimPart             = 0x1,
+            BiotaPropertiesAttribute            = 0x2,
+            BiotaPropertiesAttribute2nd         = 0x4,
+            BiotaPropertiesBodyPart             = 0x8,
+            BiotaPropertiesBook                 = 0x10,
+            BiotaPropertiesBookPageData         = 0x20,
+            BiotaPropertiesBool                 = 0x40,
+            BiotaPropertiesCreateList           = 0x80,
+            BiotaPropertiesDID                  = 0x100,
+            BiotaPropertiesEmote                = 0x200,
+            BiotaPropertiesEnchantmentRegistry  = 0x400,
+            BiotaPropertiesEventFilter          = 0x800,
+            BiotaPropertiesFloat                = 0x1000,
+            BiotaPropertiesGenerator            = 0x2000,
+            BiotaPropertiesIID                  = 0x4000,
+            BiotaPropertiesInt                  = 0x8000,
+            BiotaPropertiesInt64                = 0x10000,
+            BiotaPropertiesPalette              = 0x20000,
+            BiotaPropertiesPosition             = 0x40000,
+            BiotaPropertiesSkill                = 0x80000,
+            BiotaPropertiesSpellBook            = 0x100000,
+            BiotaPropertiesString               = 0x200000,
+            BiotaPropertiesTextureMap           = 0x400000
+        }
+
+        private static void SetBiotaPopulatedCollections(Biota biota)
+        {
+            PopulatedCollectionFlags populatedCollectionFlags = 0;
+
+            if (biota.BiotaPropertiesAnimPart != null && biota.BiotaPropertiesAnimPart.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesAnimPart;
+            if (biota.BiotaPropertiesAttribute != null && biota.BiotaPropertiesAttribute.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesAttribute;
+            if (biota.BiotaPropertiesAttribute2nd != null && biota.BiotaPropertiesAttribute2nd.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesAttribute2nd;
+            if (biota.BiotaPropertiesBodyPart != null && biota.BiotaPropertiesBodyPart.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesBodyPart;
+            if (biota.BiotaPropertiesBook != null) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesBook;
+            if (biota.BiotaPropertiesBookPageData != null && biota.BiotaPropertiesBookPageData.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesBookPageData;
+            if (biota.BiotaPropertiesBool != null && biota.BiotaPropertiesBool.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesBool;
+            if (biota.BiotaPropertiesCreateList != null && biota.BiotaPropertiesCreateList.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesCreateList;
+            if (biota.BiotaPropertiesDID != null && biota.BiotaPropertiesDID.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesDID;
+            if (biota.BiotaPropertiesEmote != null && biota.BiotaPropertiesEmote.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesEmote;
+            if (biota.BiotaPropertiesEnchantmentRegistry != null && biota.BiotaPropertiesEnchantmentRegistry.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesEnchantmentRegistry;
+            if (biota.BiotaPropertiesEventFilter != null && biota.BiotaPropertiesEventFilter.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesEventFilter;
+            if (biota.BiotaPropertiesFloat != null && biota.BiotaPropertiesFloat.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesFloat;
+            if (biota.BiotaPropertiesGenerator != null && biota.BiotaPropertiesGenerator.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesGenerator;
+            if (biota.BiotaPropertiesIID != null && biota.BiotaPropertiesIID.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesIID;
+            if (biota.BiotaPropertiesInt != null && biota.BiotaPropertiesInt.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesInt;
+            if (biota.BiotaPropertiesInt64 != null && biota.BiotaPropertiesInt64.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesInt64;
+            if (biota.BiotaPropertiesPalette != null && biota.BiotaPropertiesPalette.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesPalette;
+            if (biota.BiotaPropertiesPosition != null && biota.BiotaPropertiesPosition.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesPosition;
+            if (biota.BiotaPropertiesSkill != null && biota.BiotaPropertiesSkill.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesSkill;
+            if (biota.BiotaPropertiesSpellBook != null && biota.BiotaPropertiesSpellBook.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesSpellBook;
+            if (biota.BiotaPropertiesString != null && biota.BiotaPropertiesString.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesString;
+            if (biota.BiotaPropertiesTextureMap != null && biota.BiotaPropertiesTextureMap.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesTextureMap;
+
+            biota.PopulatedCollectionFlags = (uint)populatedCollectionFlags;
+        }
+
         public bool AddBiota(Biota biota)
         {
             using (var context = new ShardDbContext())
@@ -269,6 +328,8 @@ namespace ACE.Database
 
         private static bool AddBiota(ShardDbContext context, Biota biota)
         {
+            SetBiotaPopulatedCollections(biota);
+
             context.Biota.Add(biota);
 
             try
@@ -292,7 +353,11 @@ namespace ACE.Database
         private static bool AddBiotas(ShardDbContext context, IEnumerable<Biota> biotas)
         {
             foreach (var biota in biotas)
+            {
+                SetBiotaPopulatedCollections(biota);
+
                 context.Biota.Add(biota);
+            }
 
             try
             {
@@ -316,128 +381,39 @@ namespace ACE.Database
             }
         }
 
-        /// <summary>
-        /// This method will populate all sub collections of the biota.
-        /// It is slower, but should be used if you are not sure if the biota is a player or not.
-        /// </summary>
         private static Biota GetBiota(ShardDbContext context, uint id)
         {
-            return context.Biota
-                .Include(r => r.BiotaPropertiesAnimPart)
-                .Include(r => r.BiotaPropertiesAttribute)
-                .Include(r => r.BiotaPropertiesAttribute2nd)
-                .Include(r => r.BiotaPropertiesBodyPart)
-                .Include(r => r.BiotaPropertiesBook)
-                .Include(r => r.BiotaPropertiesBookPageData)
-                .Include(r => r.BiotaPropertiesBool)
-                .Include(r => r.BiotaPropertiesCreateList)
-                .Include(r => r.BiotaPropertiesDID)                
-                .Include(r => r.BiotaPropertiesEmote)
-                    .ThenInclude(r => r.BiotaPropertiesEmoteAction)
-                .Include(r => r.BiotaPropertiesEnchantmentRegistry)
-                .Include(r => r.BiotaPropertiesEventFilter)
-                .Include(r => r.BiotaPropertiesFloat)
-                .Include(r => r.BiotaPropertiesGenerator)
-                .Include(r => r.BiotaPropertiesIID)
-                .Include(r => r.BiotaPropertiesInt)
-                .Include(r => r.BiotaPropertiesInt64)
-                .Include(r => r.BiotaPropertiesPalette)
-                .Include(r => r.BiotaPropertiesPosition)
-                .Include(r => r.BiotaPropertiesSkill)
-                .Include(r => r.BiotaPropertiesSpellBook)
-                .Include(r => r.BiotaPropertiesString)
-                .Include(r => r.BiotaPropertiesTextureMap)
-                .FirstOrDefault(r => r.Id == id);
-        }
-
-        /// <summary>
-        /// Use this method when you know if the biota is a player or not.
-        /// Player biotas reference additional tables. Knowing if the biota is a player can significantly improve the query perofrmance.
-        /// </summary>
-        private static Biota GetBiota(ShardDbContext context, uint id, bool isPlayer)
-        {
-            if (isPlayer)
-            {
-                return context.Biota
-                    //.Include(r => r.BiotaPropertiesAnimPart)
-                    .Include(r => r.BiotaPropertiesAttribute)
-                    .Include(r => r.BiotaPropertiesAttribute2nd)
-                    .Include(r => r.BiotaPropertiesBodyPart)
-                    //.Include(r => r.BiotaPropertiesBook)
-                    //.Include(r => r.BiotaPropertiesBookPageData)
-                    .Include(r => r.BiotaPropertiesBool)
-                    //.Include(r => r.BiotaPropertiesCreateList)
-                    .Include(r => r.BiotaPropertiesDID)
-                    //.Include(r => r.BiotaPropertiesEmote).ThenInclude(emote => emote.BiotaPropertiesEmoteAction)
-                    .Include(r => r.BiotaPropertiesEnchantmentRegistry)
-                    //.Include(r => r.BiotaPropertiesEventFilter)
-                    .Include(r => r.BiotaPropertiesFloat)
-                    //.Include(r => r.BiotaPropertiesGenerator)
-                    .Include(r => r.BiotaPropertiesIID)
-                    .Include(r => r.BiotaPropertiesInt)
-                    .Include(r => r.BiotaPropertiesInt64)
-                    //.Include(r => r.BiotaPropertiesPalette)
-                    .Include(r => r.BiotaPropertiesPosition)
-                    .Include(r => r.BiotaPropertiesSkill)
-                    .Include(r => r.BiotaPropertiesSpellBook)
-                    .Include(r => r.BiotaPropertiesString)
-                    //.Include(r => r.BiotaPropertiesTextureMap)
-                    .FirstOrDefault(r => r.Id == id);
-            }
-
-            // Base properties for every biota (ACBaseQualities)
             var biota = context.Biota
-                .Include(r => r.BiotaPropertiesBool)
-                .Include(r => r.BiotaPropertiesDID)
-                .Include(r => r.BiotaPropertiesFloat)
-                .Include(r => r.BiotaPropertiesIID)
-                .Include(r => r.BiotaPropertiesInt)
-                .Include(r => r.BiotaPropertiesInt64)
-                .Include(r => r.BiotaPropertiesPosition)
-                .Include(r => r.BiotaPropertiesString)
                 .FirstOrDefault(r => r.Id == id);
 
             if (biota == null)
                 return null;
 
-            var weenieType = (WeenieType)biota.WeenieType;
+            PopulatedCollectionFlags populatedCollectionFlags = (PopulatedCollectionFlags)biota.PopulatedCollectionFlags;
 
-            bool isCreature = weenieType == WeenieType.Creature || weenieType == WeenieType.Cow ||
-                              weenieType == WeenieType.Sentinel || weenieType == WeenieType.Admin ||
-                              weenieType == WeenieType.Vendor;
-
-            biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
-
-            if (isCreature)
-            {
-                biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
-                biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
-
-                biota.BiotaPropertiesBodyPart = context.BiotaPropertiesBodyPart.Where(r => r.ObjectId == biota.Id).ToList();
-            }
-
-            if (weenieType == WeenieType.Book)
-            {
-                biota.BiotaPropertiesBook = context.BiotaPropertiesBook.FirstOrDefault(r => r.ObjectId == biota.Id);
-                biota.BiotaPropertiesBookPageData = context.BiotaPropertiesBookPageData.Where(r => r.ObjectId == biota.Id).ToList();
-            }
-
-            biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Include(r => r.BiotaPropertiesEmoteAction).Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
-
-            biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
-            biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
-
-            if (isCreature)
-            {
-                biota.BiotaPropertiesSkill = context.BiotaPropertiesSkill.Where(r => r.ObjectId == biota.Id).ToList();
-            }
-
-            biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
-
-            biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAnimPart)) biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute)) biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute2nd)) biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBodyPart)) biota.BiotaPropertiesBodyPart = context.BiotaPropertiesBodyPart.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBook)) biota.BiotaPropertiesBook = context.BiotaPropertiesBook.FirstOrDefault(r => r.ObjectId == biota.Id);
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBookPageData)) biota.BiotaPropertiesBookPageData = context.BiotaPropertiesBookPageData.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBool)) biota.BiotaPropertiesBool = context.BiotaPropertiesBool.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesCreateList)) biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesDID)) biota.BiotaPropertiesDID = context.BiotaPropertiesDID.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEmote)) biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Include(r => r.BiotaPropertiesEmoteAction).Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEnchantmentRegistry)) biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEventFilter)) biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesFloat)) biota.BiotaPropertiesFloat = context.BiotaPropertiesFloat.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesGenerator)) biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesIID)) biota.BiotaPropertiesIID = context.BiotaPropertiesIID.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesInt)) biota.BiotaPropertiesInt = context.BiotaPropertiesInt.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesInt64)) biota.BiotaPropertiesInt64 = context.BiotaPropertiesInt64.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesPalette)) biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesPosition)) biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesSkill)) biota.BiotaPropertiesSkill = context.BiotaPropertiesSkill.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesSpellBook)) biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesString)) biota.BiotaPropertiesString = context.BiotaPropertiesString.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesTextureMap)) biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
 
             return biota;
         }
@@ -446,6 +422,8 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
+                SetBiotaPopulatedCollections(biota);
+
                 context.Biota.Update(biota);
 
                 try
@@ -467,7 +445,11 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
             {
                 foreach (var biota in biotas)
+                {
+                    SetBiotaPopulatedCollections(biota);
+
                     context.Biota.Update(biota);
+                }
 
                 try
                 {
@@ -498,26 +480,6 @@ namespace ACE.Database
                 {
                     // Character name might be in use or some other fault
                     log.Error($"RemoveBiota failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool AddEntity(object entity)
-        {
-            using (var context = new ShardDbContext())
-            {
-                context.Add(entity);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"AddEntity failed with exception: {ex}");
                     return false;
                 }
             }
@@ -790,7 +752,7 @@ namespace ACE.Database
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var biota = GetBiota(context, id, true);
+                var biota = GetBiota(context, id);
 
                 var inventory = GetInventory(context, id, true);
 
@@ -824,7 +786,7 @@ namespace ACE.Database
 
             foreach (var result in results)
             {
-                var biota = GetBiota(context, result.ObjectId, false);
+                var biota = GetBiota(context, result.ObjectId);
 
                 if (biota != null)
                 {
@@ -866,7 +828,7 @@ namespace ACE.Database
 
             foreach (var result in results)
             {
-                var biota = GetBiota(context, result.ObjectId, false);
+                var biota = GetBiota(context, result.ObjectId);
 
                 if (biota != null)
                     items.Add(biota);
@@ -889,7 +851,7 @@ namespace ACE.Database
 
                 foreach (var result in results)
                 {
-                    var biota = GetBiota(context, result.ObjectId, false);
+                    var biota = GetBiota(context, result.ObjectId);
 
                     if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
                         decayables.Add(biota);

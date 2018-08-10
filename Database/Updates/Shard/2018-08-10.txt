@@ -1,0 +1,2 @@
+ALTER TABLE `ace_shard`.`biota` 
+ADD COLUMN `populated_Collection_Flags` INT UNSIGNED NOT NULL DEFAULT '4294967295' AFTER `weenie_Type`;
