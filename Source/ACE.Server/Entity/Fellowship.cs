@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using ACE.Entity;
-using ACE.Server.WorldObjects;
+using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -88,11 +87,11 @@ namespace ACE.Server.Entity
                 {
                     FellowshipMembers.Add(player);
                     CalculateXPSharing();
-                    Parallel.ForEach(FellowshipMembers, (member) =>
+                    foreach (var member in FellowshipMembers)
                     {
                         inviter.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(inviter.Session, player, ShareXP));
                         inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
-                    });
+                    }
                     player.Fellowship = inviter.Fellowship;
                     SendMessageAndUpdate($"{player.Name} joined the fellowship");
                 }
@@ -105,11 +104,11 @@ namespace ACE.Server.Entity
         
         public void RemoveFellowshipMember(Player player)
         {
-            Parallel.ForEach(FellowshipMembers, member =>
+            foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
                 member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
-            });
+            }
             FellowshipMembers.Remove(player);
             player.Fellowship = null;
             CalculateXPSharing();
@@ -118,21 +117,21 @@ namespace ACE.Server.Entity
 
         private void UpdateAllMembers()
         {
-            Parallel.ForEach(FellowshipMembers, member =>
+            foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-            });
+            }
         }
 
         private void SendMessageAndUpdate(string message)
         {
-            Parallel.ForEach(FellowshipMembers, member =>
+            foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
-            });
+            }
         }
 
         public void QuitFellowship(Player player, bool disband)
@@ -141,7 +140,7 @@ namespace ACE.Server.Entity
             {
                 if (disband)
                 {
-                    Parallel.ForEach(FellowshipMembers, member =>
+                    foreach (var member in FellowshipMembers)
                     {
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
@@ -153,7 +152,7 @@ namespace ACE.Server.Entity
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
                             member.Fellowship = null;
                         }
-                    });
+                    }
                 }
                 else
                 {                 
@@ -293,13 +292,13 @@ namespace ACE.Server.Entity
                 else
                     shareAmount = (amount / (UInt64)SharableMembers.Count);
 
-                Parallel.ForEach(SharableMembers, member =>
+                foreach (var member in SharableMembers)
                 {
                     if (!member.Location.Indoors && !fixedAmount)
                         shareAmount = (UInt64)(shareAmount * GetDistanceScalar(member));
 
                     member.EarnXP((long)shareAmount, false);
-                });
+                }
             }
             else
             {
@@ -310,14 +309,14 @@ namespace ACE.Server.Entity
                     totalLevels += p.Level ?? 1;
                 }
                 double percentPerLevel = totalLevels / SharableMembers.Count;
-                Parallel.ForEach(SharableMembers, member =>
+                foreach (var member in SharableMembers)
                 {
                     if (!member.Location.Indoors)
                     {
                         UInt64 playerTotal = (UInt64)(member.Level * percentPerLevel * GetDistanceScalar(member));
                         member.EarnXP((long)playerTotal, false);
                     }
-                });
+                }
             }
         }
 
