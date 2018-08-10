@@ -141,6 +141,7 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
+            // todo: I'd like to move this to a player Update() function. Mag-nus 2018-08-10
             if (Player != null)
             {
                 // First, we check if the player hasn't been saved in the last 5 minutes
