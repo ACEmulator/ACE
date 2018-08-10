@@ -73,7 +73,7 @@ namespace ACE.Database
         }
 
 
-        public List<Character> GetCharacters(uint accountId)
+        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             using (var context = new ShardDbContext())
             {
@@ -86,7 +86,7 @@ namespace ACE.Database
                     .Include(r => r.CharacterPropertiesSpellBar)
                     .Include(r => r.CharacterPropertiesTitleBook)
                     .AsNoTracking()
-                    .Where(r => r.AccountId == accountId && !r.IsDeleted)
+                    .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
                     .ToList();
 
                 return results;

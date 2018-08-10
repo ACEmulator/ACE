@@ -115,7 +115,7 @@ namespace ACE.Server.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
-            actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
+            actionQueue = new NestedActionQueue(WorldManager.LandblockActionQueue);
 
             // create world objects (monster locations, generators)
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
@@ -145,7 +145,7 @@ namespace ACE.Server.Entity
             // FIXME(ddevec): Goal: get rid of UseTime() function...
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
 
-            motionQueue = new NestedActionQueue(WorldManager.MotionQueue);
+            motionQueue = new NestedActionQueue(WorldManager.LandblockMotionQueue);
 
             LastActiveTime = Timer.CurrentTime;
 
@@ -602,7 +602,7 @@ namespace ACE.Server.Entity
             //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
             if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
             {
-                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
+                WorldManager.LandblockBroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
             }
 
             foreach (GameMessage msg in msgs)
@@ -620,7 +620,7 @@ namespace ACE.Server.Entity
             //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
             if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
             {
-                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
+                WorldManager.LandblockBroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
             }
 
             foreach (GameMessage msg in msgs)
