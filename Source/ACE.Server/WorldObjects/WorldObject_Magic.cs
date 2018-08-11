@@ -253,7 +253,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Invalidate beneficial spells against Creature/Non-player targets
-            if (target.WeenieType == WeenieType.Creature && IsSpellHarmful(spell) == false)
+            if (target.WeenieType == WeenieType.Creature && ((target is Player) == false) && IsSpellHarmful(spell) == false)
                 return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
