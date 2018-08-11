@@ -591,7 +591,14 @@ namespace ACE.Database.SQLFormatters.World
                 if (WeenieNames != null)
                     WeenieNames.TryGetValue(input[i].WeenieClassId, out weenieName);
 
-                return $"{weenieClassID}, {input[i].DestinationType}, {input[i].WeenieClassId.ToString().PadLeft(5)}, {input[i].StackSize.ToString().PadLeft(2)}, {input[i].Palette}, {input[i].Shade}, {input[i].TryToBond}) /* Create {weenieName ?? "Unknown"} for {Enum.GetName(typeof(DestinationType), input[i].DestinationType)} */";
+                var label = weenieName + $" ({input[i].WeenieClassId})";
+
+                if (input[i].WeenieClassId == 0)
+                {
+                    label = GetValueForTreasureData(weenieClassID, true);
+                }
+
+                return $"{weenieClassID}, {input[i].DestinationType}, {input[i].WeenieClassId.ToString().PadLeft(5)}, {input[i].StackSize.ToString().PadLeft(2)}, {input[i].Palette}, {input[i].Shade}, {input[i].TryToBond}) /* Create {label ?? "Unknown"} for {Enum.GetName(typeof(DestinationType), input[i].DestinationType)} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -620,26 +627,40 @@ namespace ACE.Database.SQLFormatters.World
                              "`obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
             var lineGenerator = new Func<int, string>(i =>
-                $"{weenieClassID}, " +
-                $"{input[i].Probability}, " +
-                $"{input[i].WeenieClassId}, " +
-                $"{input[i].Delay}, " +
-                $"{input[i].InitCreate}, " +
-                $"{input[i].MaxCreate}, " +
-                $"{input[i].WhenCreate}, " +
-                $"{input[i].WhereCreate}, " +
-                $"{input[i].StackSize}, " +
-                $"{input[i].PaletteId}, " +
-                $"{input[i].Shade}, " +
-                $"{input[i].ObjCellId}, " +
-                $"{input[i].OriginX}, " +
-                $"{input[i].OriginY}, " +
-                $"{input[i].OriginZ}, " +
-                $"{input[i].AnglesW}, " +
-                $"{input[i].AnglesX}, " +
-                $"{input[i].AnglesY}, " +
-                $"{input[i].AnglesZ})");
+            {
+                string weenieName = null;
 
+                if (WeenieNames != null)
+                    WeenieNames.TryGetValue(input[i].WeenieClassId, out weenieName);
+
+                var label = weenieName + $" ({input[i].WeenieClassId})";
+
+                if ((input[i].WhereCreate & (int)RegenLocationType.Treasure) != 0)
+                {
+                    label = GetValueForTreasureData(input[i].WeenieClassId, false);
+                }
+
+                return  $"{weenieClassID}, " +
+                        $"{input[i].Probability}, " +
+                        $"{input[i].WeenieClassId}, " +
+                        $"{input[i].Delay}, " +
+                        $"{input[i].InitCreate}, " +
+                        $"{input[i].MaxCreate}, " +
+                        $"{input[i].WhenCreate}, " +
+                        $"{input[i].WhereCreate}, " +
+                        $"{input[i].StackSize}, " +
+                        $"{input[i].PaletteId}, " +
+                        $"{input[i].Shade}, " +
+                        $"{input[i].ObjCellId}, " +
+                        $"{input[i].OriginX}, " +
+                        $"{input[i].OriginY}, " +
+                        $"{input[i].OriginZ}, " +
+                        $"{input[i].AnglesW}, " +
+                        $"{input[i].AnglesX}, " +
+                        $"{input[i].AnglesY}, " +
+                        $"{input[i].AnglesZ})" +
+                        $" /* Generate {label} (x{input[i].InitCreate.ToString("N0")} up to max of {input[i].MaxCreate.ToString("N0")}) - Regenerate upon {Enum.GetName(typeof(RegenerationType), input[i].WhenCreate)} - Location to (re)Generate: {Enum.GetName(typeof(RegenLocationType), input[i].WhereCreate)} */";
+            });
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
