@@ -218,6 +218,7 @@ CREATE TABLE `biota_properties_create_list` (
   `shade` float NOT NULL DEFAULT '0' COMMENT 'Shade of Object''s Palette',
   `try_To_Bond` bit(1) NOT NULL COMMENT 'Unused?',
   PRIMARY KEY (`id`),
+  KEY `wcid_createlist` (`object_Id`),
   CONSTRAINT `wcid_createlist` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='CreateList Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -260,6 +261,7 @@ CREATE TABLE `biota_properties_emote` (
   `min_Health` float DEFAULT NULL,
   `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  KEY `wcid_emote` (`object_Id`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -415,6 +417,7 @@ CREATE TABLE `biota_properties_generator` (
   `angles_Y` float DEFAULT NULL,
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  KEY `wcid_generator` (`object_Id`),
   CONSTRAINT `wcid_generator` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Generator Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -823,4 +826,4 @@ CREATE TABLE `config_properties_string` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-22 13:10:09
+-- Dump completed on 2018-08-11 15:10:16
