@@ -186,10 +186,10 @@ namespace ACE.Server.Command.Handlers
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
             if (aceParams[0].AsPlayer.Fellowship == null)
             {
-                BuffPlayers(new Player[] { aceParams[0].AsPlayer }, session.Player, aceParams[0].AsPlayer == session.Player);
+                session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
                 return;
             }
-            BuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers, session.Player,
+            session.Player.CreateSentinelBuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers,
                 aceParams[0].AsPlayer.Fellowship.FellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipMembers[0] == session.Player);
         }
 
@@ -209,172 +209,8 @@ namespace ACE.Server.Command.Handlers
                 }
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
-            BuffPlayers(new Player[] { aceParams[0].AsPlayer }, session.Player, aceParams[0].AsPlayer == session.Player);
-        }
-
-        public static void BuffPlayers(IEnumerable<Player> players, Player caster, bool self = false)
-        {
-            var SelfOrOther = self ? "Self" : "Other";
-            var maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? "7" : "8";
-            var tySpell = typeof(Network.Enum.Spell);
-            List<BuffMessage> buffMessages = new List<BuffMessage>();
-            // prepare messages
-            foreach (var spell in Buffs)
-            {
-                var spellNamPrefix = spell;
-                bool isBane = false;
-                if (spellNamPrefix.StartsWith("@"))
-                {
-                    isBane = true;
-                    spellNamPrefix = spellNamPrefix.Substring(1);
-                }
-                uint spellID = (uint)Enum.Parse(tySpell, spellNamPrefix + ((isBane) ? string.Empty : SelfOrOther) + maxSpellLevel);
-                var buffMsg = BuildBuffMessage(spellID);
-                if (buffMsg != null)
-                {
-                    buffMsg.Bane = isBane;
-                    buffMessages.Add(buffMsg);
-                }
-            }
-            // buff each player
-            players.ToList().ForEach(targetPlayer =>
-            {
-                if (buffMessages.Any(k => !k.Bane))
-                {
-                    // bake player into the messages
-                    buffMessages.Where(k => !k.Bane).ToList().ForEach(k => k.SetTargetPlayer(targetPlayer));
-                    // update client-side enchantments
-                    targetPlayer.Session.Network.EnqueueSend(buffMessages.Where(k => !k.Bane).ToList().Select(k => k.SessionMessage).ToArray());
-                    // run client-side effect scripts, omitting duplicates
-                    targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.Where(k => !k.Bane).ToList().GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
-                    // update server-side enchantments
-                    targetPlayer.EnchantmentManager.AddRange(buffMessages.Where(k => !k.Bane).ToList().Select(k => k.Enchantment), caster);
-                }
-                if (buffMessages.Any(k => k.Bane))
-                {
-                    // Impen/bane targeted at a player
-                    var items = (targetPlayer as Player).GetAllWieldedItems();
-                    var itembuffs = buffMessages.Where(k => k.Bane).ToList();
-                    foreach (var itemBuff in itembuffs)
-                    {
-                        foreach (var item in items)
-                        {
-                            if (item.WeenieType == WeenieType.Clothing || item.IsShield)
-                            {
-                                itemBuff.SetLandblockMessage(item.Guid);
-                                var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.SpellBase, itemBuff.Spell, caster);
-                                targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, itemBuff.LandblockMessage);
-                                //if (enchantmentStatus.message != null)
-                                //    targetPlayer.Session.Network.EnqueueSend(enchantmentStatus.message);
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        private static string[] Buffs = new string[] {
-#region spells
-            // @ indicates impenetrability or a bane
-            "Strength",
-            "Invulnerability",
-            "FireProtection",
-            "Armor",
-            "Rejuvenation",
-            "Regeneration",
-            "ManaRenewal",
-            "Impregnability",
-            "MagicResistance",
-            "AxeMastery",
-            "DaggerMastery",
-            "MaceMastery",
-            "SpearMastery",
-            "StaffMastery",
-            "SwordMastery",
-            "UnarmedCombatMastery",
-            "BowMastery",
-            "CrossbowMastery",
-            "AcidProtection",
-            "ThrownWeaponMastery",
-            "CreatureEnchantmentMastery",
-            "ItemEnchantmentMastery",
-            "LifeMagicMastery",
-            "WarMagicMastery",
-            "ManaMastery",
-            "ArcaneEnlightenment",
-            "ArmorExpertise",
-            "ItemExpertise",
-            "MagicItemExpertise",
-            "WeaponExpertise",
-            "MonsterAttunement",
-            "PersonAttunement",
-            "DeceptionMastery",
-            "HealingMastery",
-            "LeadershipMastery",
-            "LockpickMastery",
-            "Fealty",
-            "JumpingMastery",
-            "Sprint",
-            "BludgeonProtection",
-            "ColdProtection",
-            "LightningProtection",
-            "BladeProtection",
-            "PiercingProtection",
-            "Endurance",
-            "Coordination",
-            "Quickness",
-            "Focus",
-            "Willpower",
-            "CookingMastery",
-            "FletchingMastery",
-            "AlchemyMastery",
-            "VoidMagicMastery",
-            "SummoningMastery",
-            "SwiftKiller",
-            "Defender",
-            "BloodDrinker",
-            "HeartSeeker",
-            "TrueValue", // aura of mystic's blessing
-            "SpiritDrinker",
-            "@Impenetrability",
-            "@PiercingBane",
-            "@BludgeonBane",
-            "@BladeBane",
-            "@AcidBane",
-            "@FlameBane",
-            "@FrostBane",
-            "@LightningBane",
-#endregion
-            };
-
-        public class BuffMessage
-        {
-            public bool Bane { get; set; } = false;
-            public GameEventMagicUpdateEnchantment SessionMessage { get; set; } = null;
-            public GameMessageScript LandblockMessage { get; set; } = null;
-            public SpellBase SpellBase { get; set; } = null;
-            public Spell Spell { get; set; } = null;
-            public Enchantment Enchantment { get; set; } = null;
-            public void SetTargetPlayer(Player p)
-            {
-                Enchantment.Target = p;
-                SessionMessage = new GameEventMagicUpdateEnchantment(p.Session, Enchantment);
-                SetLandblockMessage(p.Guid);
-            }
-            public void SetLandblockMessage(ObjectGuid target)
-            {
-                LandblockMessage = new GameMessageScript(target, (PlayScript)SpellBase.TargetEffect, 1f);
-            }
-        }
-
-        public static BuffMessage BuildBuffMessage(uint spellID)
-        {
-            BuffMessage buff = new BuffMessage();
-            if (spellID < 1) throw new Exception("spell not found");
-            buff.SpellBase = DatManager.PortalDat.SpellTable.Spells[spellID]; if (buff.SpellBase == null) return null; // the portal data doesn't have the spell, throw here instead?
-            buff.Spell = DatabaseManager.World.GetCachedSpell(spellID); if (buff.Spell == null) return null; // the database doesn't have the spell
-            buff.Enchantment = new Enchantment(null, null, spellID, (double)buff.Spell.Duration, 1, buff.Spell.StatModType, buff.Spell.StatModVal);
-            return buff;
-        }
+            session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
+        }        
 
         // run < on | off | toggle | check >
         [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
