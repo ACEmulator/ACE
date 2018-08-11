@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2018-08-11
+[mcreedjr]
+* Added missing comma in updated ShardBase.sql to allow creation of updated Shard DB after Mag-nus' previous PR
 
 ### 2018-08-10
 [Mag-nus]

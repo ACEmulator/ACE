@@ -36,7 +36,7 @@ CREATE TABLE `biota` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Object Id within the Shard',
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the Weenie this Biota was created from',
   `weenie_Type` int(5) NOT NULL DEFAULT '0' COMMENT 'WeenieType for this Object',
-  `populated_Collection_Flags` int(10) unsigned NOT NULL DEFAULT '4294967295'
+  `populated_Collection_Flags` int(10) unsigned NOT NULL DEFAULT '4294967295',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamic Weenies of a Shard/World';
 /*!40101 SET character_set_client = @saved_cs_client */;
