@@ -98,7 +98,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!String.IsNullOrEmpty(HeritageGroup))
                 {
-                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
+                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""), true);
                     if (parsed != 0)
                         Heritage = (int)parsed;
                 }
@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!String.IsNullOrEmpty(Sex))
                 {
-                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex);
+                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex, true);
                     if (parsed != 0)
                         Gender = (int)parsed;
                 }
