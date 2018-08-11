@@ -6,11 +6,9 @@ namespace ACE.Database.Models.World
     public partial class WeeniePropertiesEmoteAction
     {
         public uint Id { get; set; }
-        public uint ObjectId { get; set; }
-        public uint EmoteCategory { get; set; }
-        public uint EmoteSetId { get; set; }
-        public uint Type { get; set; }
+        public uint EmoteId { get; set; }
         public uint Order { get; set; }
+        public uint Type { get; set; }
         public float Delay { get; set; }
         public float Extent { get; set; }
         public int? Motion { get; set; }
@@ -49,7 +47,6 @@ namespace ACE.Database.Models.World
         public float? AnglesY { get; set; }
         public float? AnglesZ { get; set; }
 
-        public Weenie Object { get; set; }
-        public WeeniePropertiesEmote WeeniePropertiesEmote { get; set; }
+        public WeeniePropertiesEmote Emote { get; set; }
     }
 }

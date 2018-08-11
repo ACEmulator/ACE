@@ -9,7 +9,6 @@ namespace ACE.Database.Models.Shard
         public uint ObjectId { get; set; }
         public ushort Type { get; set; }
         public ushort LevelFromPP { get; set; }
-        public ushort AdjustPP { get; set; }
         public uint SAC { get; set; }
         public uint PP { get; set; }
         public uint InitLevel { get; set; }

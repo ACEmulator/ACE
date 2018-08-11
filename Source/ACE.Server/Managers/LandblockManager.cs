@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 using log4net;
 
@@ -46,30 +45,35 @@ namespace ACE.Server.Managers
 
         public static List<Landblock> DestructionQueue = new List<Landblock>();
 
-        public static void PlayerEnterWorld(Session session, ObjectGuid guid)
+        public static void PlayerEnterWorld(Session session, Character character)
         {
             var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotas(guid.Full, biotas =>
+            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
                 log.Info("GetPlayerBiotas took " + (DateTime.UtcNow - start).TotalMilliseconds + " ms"); // This can be removed after EF performance is at the desired level.
                 Player player;
 
                 if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
                 else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
+                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
                 else
-                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, session);
-
-                player.Name = session.Character.Name;
-                player.InitPhysicsObj();
+                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
 
                 session.SetPlayer(player);
                 session.Player.PlayerEnterWorld();
 
                 // check the value of the welcome message. Only display it if it is not empty
+                string welcomeHeader;
                 if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-                    session.Network.EnqueueSend(new GameEventPopupString(session, ConfigManager.Config.Server.Welcome));
+                    welcomeHeader = ConfigManager.Config.Server.Welcome;
+                else
+                    welcomeHeader = "Welcome to Asheron's Call!";
+
+                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
+
+                if (player.TotalLogins <= 1)
+                    session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
                 Landblock block = GetLandblock(location.LandblockId, true);
@@ -104,7 +108,7 @@ namespace ACE.Server.Managers
             // Remove from the old landblock -- force
             if (oldBlock != null)
             {
-                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, false);
+                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, true);
             }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);

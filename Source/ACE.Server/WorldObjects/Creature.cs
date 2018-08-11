@@ -32,8 +32,6 @@ namespace ACE.Server.WorldObjects
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
-
-            InitPhysics = true;
         }
 
         /// <summary>
@@ -42,12 +40,13 @@ namespace ACE.Server.WorldObjects
         public Creature(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-
-            InitPhysics = true;
         }
 
         private void SetEphemeralValues()
         {
+            CombatMode = CombatMode.NonCombat;
+            DamageHistory = new DamageHistory(this);
+
             if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
                 GenerateNewFace();
 
@@ -99,7 +98,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!String.IsNullOrEmpty(HeritageGroup))
                 {
-                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""));
+                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""), true);
                     if (parsed != 0)
                         Heritage = (int)parsed;
                 }
@@ -109,7 +108,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!String.IsNullOrEmpty(Sex))
                 {
-                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex);
+                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex, true);
                     if (parsed != 0)
                         Gender = (int)parsed;
                 }
@@ -221,7 +220,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
-        public bool IsAlive { get; set; }
+        public bool IsAlive { get => Health.Current > 0; }
 
         public double RespawnTime { get; set; }
 
@@ -600,9 +599,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        var emoteActions = Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == selectedEmoteSet.Category && x.EmoteSetId == selectedEmoteSet.EmoteSetId).OrderBy(x => x.Order).ToList();
-
-                        foreach (var action in emoteActions)
+                        foreach (var action in selectedEmoteSet.BiotaPropertiesEmoteAction)
                         {
                             EmoteManager.ExecuteEmote(selectedEmoteSet, action, actionChain, this, player);
                         }
@@ -616,6 +613,21 @@ namespace ACE.Server.WorldObjects
                     player.SendUseDoneEvent();
                 }
             }
+        }
+
+        public bool IsExhausted { get => Stamina.Current == 0; }
+
+
+        /// <summary>
+        /// Called every ~5 seconds for Creatures
+        /// </summary>
+        public override void HeartBeat()
+        {
+            EnchantmentManager.HeartBeat();
+            VitalTick();
+            // item enchantment ticks?
+
+            QueueNextHeartBeat();
         }
 
         public static readonly float TickInterval = 0.2f;

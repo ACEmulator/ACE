@@ -51,9 +51,10 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
                     .AsNoTracking()
-                    .Where(r => r.Guid >= min && r.Guid <= max);
+                    .Where(r => r.Guid >= min && r.Guid <= max)
+                    .ToList();
 
                 if (!results.Any())
                     return uint.MaxValue;
@@ -71,9 +72,12 @@ namespace ACE.Database
         }
 
 
+        private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+        private readonly ConcurrentDictionary<uint, byte> weeniesNotFound = new ConcurrentDictionary<uint, byte>();
+
         /// <summary>
         /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
-        /// If the weenie doesn't exist in the cache, it will be added.
+        /// This will also update the weenie cache.
         /// </summary>
         private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
         {
@@ -90,7 +94,11 @@ namespace ACE.Database
                 .FirstOrDefault(r => r.ClassId == weenieClassId);
 
             if (weenie == null)
+            {
+                weenieCache.TryRemove(weenieClassId, out _);
+                weeniesNotFound.TryAdd(weenieClassId, 0);
                 return null;
+            }
 
             var weenieType = (WeenieType)weenie.Type;
 
@@ -118,9 +126,7 @@ namespace ACE.Database
             }
 
             weenie.WeeniePropertiesCreateList = context.WeeniePropertiesCreateList.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            if (weenie.WeeniePropertiesEmote.Count > 0)
-                weenie.WeeniePropertiesEmoteAction = context.WeeniePropertiesEmoteAction.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Include(r => r.WeeniePropertiesEmoteAction).Where(r => r.ObjectId == weenie.ClassId).ToList();
             weenie.WeeniePropertiesEventFilter = context.WeeniePropertiesEventFilter.Where(r => r.ObjectId == weenie.ClassId).ToList();
 
             weenie.WeeniePropertiesGenerator = context.WeeniePropertiesGenerator.Where(r => r.ObjectId == weenie.ClassId).ToList();
@@ -137,12 +143,14 @@ namespace ACE.Database
 
             // If the weenie doesn't exist in the cache, we'll add it.
             weenieCache.TryAdd(weenieClassId, weenie);
+            weeniesNotFound.TryRemove(weenieClassId, out _);
 
             return weenie;
         }
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
         /// </summary>
         public Weenie GetWeenie(uint weenieClassId)
         {
@@ -165,12 +173,16 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
+        /// </summary>
         public Weenie GetWeenie(string weenieClassName)
         {
-            return GetWeenie(GetWeenieClassId(weenieClassName));
-        }
+            var weenieClassId = GetWeenieClassId(weenieClassName);
 
-        private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+            return GetWeenie(weenieClassId);
+        }
 
         /// <summary>
         /// Returns the number of weenies currently cached.
@@ -180,22 +192,40 @@ namespace ACE.Database
             return weenieCache.Count;
         }
 
+        public void ClearWeenieCache()
+        {
+            weenieCache.Clear();
+            weeniesNotFound.Clear();
+        }
+
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(uint weenieClassId)
         {
             if (weenieCache.TryGetValue(weenieClassId, out var value))
                 return value;
 
-            var result = GetWeenie(weenieClassId); // This will add the result into the weenieCache
+            if (weeniesNotFound.ContainsKey(weenieClassId))
+                return null;
 
-            return result;
+            return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        /// <summary>
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// </summary>
         public Weenie GetCachedWeenie(string weenieClassName)
         {
-            return GetCachedWeenie(GetWeenieClassId(weenieClassName));
+            foreach (var weenie in weenieCache.Values)
+            {
+                if (weenie.ClassName == weenieClassName)
+                    return weenie;
+            }
+
+            var weenieClassId = GetWeenieClassId(weenieClassName);
+
+            return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
         /// <summary>
@@ -237,7 +267,9 @@ namespace ACE.Database
                 {
                     var index = rand.Next(0, results.Count - 1);
 
-                    weenies.Add(GetCachedWeenie(results[index].ClassId));
+                    var weenie = GetCachedWeenie(results[index].ClassId);
+
+                    weenies.Add(weenie);
                 }
 
                 return weenies;
@@ -245,28 +277,30 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
         /// </summary>
-        public Dictionary<Weenie, List<LandblockInstances>> GetCachedWeenieInstancesByLandblock(ushort landblock)
+        public Dictionary<Weenie, List<LandblockInstance>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
-            var builder = new Dictionary<uint, List<LandblockInstances>>();
+            var builder = new Dictionary<uint, List<LandblockInstance>>();
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
-                    .Where(r => r.Landblock == landblock);
+                    .Where(r => r.Landblock == landblock)
+                    .ToList();
 
                 foreach (var result in results)
                 {
                     if (builder.TryGetValue(result.WeenieClassId, out var value))
                         value.Add(result);
                     else
-                        builder[result.WeenieClassId] = new List<LandblockInstances>() { result };
+                        builder[result.WeenieClassId] = new List<LandblockInstance>() { result };
                 }
             }
 
-            var ret = new Dictionary<Weenie, List<LandblockInstances>>();
+            var ret = new Dictionary<Weenie, List<LandblockInstance>>();
 
             foreach (var kvp in builder)
                 ret[GetCachedWeenie(kvp.Key)] = kvp.Value;
@@ -275,7 +309,7 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<ushort, List<LandblockInstances>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstances>>();
+        private readonly ConcurrentDictionary<ushort, List<LandblockInstance>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstance>>();
 
         /// <summary>
         /// Returns the number of LandblockInstances currently cached.
@@ -286,20 +320,22 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest, WeeniePropertiesEmoteAction
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
-        public List<LandblockInstances> GetCachedInstancesByLandblock(ushort landblock)
+        public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
         {
             if (cachedLandblockInstances.TryGetValue(landblock, out var value))
                 return value;
 
             using (var context = new WorldDbContext())
             {
-                var results = context.LandblockInstances
+                var results = context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
-                    .Where(r => r.Landblock == landblock);
+                    .Where(r => r.Landblock == landblock)
+                    .ToList();
 
-                cachedLandblockInstances.TryAdd(landblock, results.OrderBy(x => x.LinkController).ThenBy(x => x.LinkSlot).ToList());
+                cachedLandblockInstances.TryAdd(landblock, results.ToList());
             }
 
             return cachedLandblockInstances[landblock];
@@ -364,14 +400,18 @@ namespace ACE.Database
                 var result = context.CookBook
                     .AsNoTracking()
                     .Include(r => r.Recipe)
-                    .Include(r => r.Recipe.RecipeComponent)
                     .Include(r => r.Recipe.RecipeMod)
-                    .Include(r => r.Recipe.RecipeModsBool)
-                    .Include(r => r.Recipe.RecipeModsDID)
-                    .Include(r => r.Recipe.RecipeModsFloat)
-                    .Include(r => r.Recipe.RecipeModsIID)
-                    .Include(r => r.Recipe.RecipeModsInt)
-                    .Include(r => r.Recipe.RecipeModsString)
+                        .ThenInclude(r => r.RecipeModsBool)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsDID)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsFloat)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsIID)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsInt)
+                    .Include(r => r.Recipe.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsString)
                     .Include(r => r.Recipe.RecipeRequirementsBool)
                     .Include(r => r.Recipe.RecipeRequirementsDID)
                     .Include(r => r.Recipe.RecipeRequirementsFloat)
@@ -416,7 +456,7 @@ namespace ACE.Database
             {
                 var result = context.Spell
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.SpellId == spellId);
+                    .FirstOrDefault(r => r.Id == spellId);
 
                 if (result != null)
                 {
@@ -448,7 +488,8 @@ namespace ACE.Database
             {
                 var results = context.Encounter
                     .AsNoTracking()
-                    .Where(r => r.Landblock == landblock);
+                    .Where(r => r.Landblock == landblock)
+                    .ToList();
 
                 cachedEncounters.TryAdd(landblock, results.ToList());
             }
@@ -518,7 +559,7 @@ namespace ACE.Database
             return cachedDeathTreasure.Count;
         }
 
-        public TreasureDeath GetDeathTreasure(uint dataId)
+        public TreasureDeath GetCachedDeathTreasure(uint dataId)
         {
             if (cachedDeathTreasure.TryGetValue(dataId, out var value))
                 return value;
@@ -549,7 +590,7 @@ namespace ACE.Database
             return cachedWieldedTreasure.Count;
         }
 
-        public List<TreasureWielded> GetWieldedTreasure(uint dataId)
+        public List<TreasureWielded> GetCachedWieldedTreasure(uint dataId)
         {
             if (cachedWieldedTreasure.TryGetValue(dataId, out var value))
                 return value;
@@ -561,14 +602,9 @@ namespace ACE.Database
                     .Where(r => r.TreasureType == dataId)
                     .ToList();
 
-                if (results != null)
-                {
-                    cachedWieldedTreasure[dataId] = results;
-                    return results;
-                }
+                cachedWieldedTreasure[dataId] = results;
+                return results;
             }
-
-            return null;
         }
     }
 }

@@ -67,7 +67,11 @@ namespace ACE.Database
         public Account GetAccountById(uint accountId)
         {
             using (var context = new AuthDbContext())
-                return context.Account.AsNoTracking().FirstOrDefault(r => r.AccountId == accountId);
+            {
+                return context.Account
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.AccountId == accountId);
+            }
         }
 
         /// <summary>
@@ -76,7 +80,11 @@ namespace ACE.Database
         public Account GetAccountByName(string accountName)
         {
             using (var context = new AuthDbContext())
-                return context.Account.AsNoTracking().FirstOrDefault(r => r.AccountName == accountName);
+            {
+                return context.Account
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.AccountName == accountName);
+            }
         }
 
         /// <summary>
@@ -86,7 +94,9 @@ namespace ACE.Database
         {
             using (var context = new AuthDbContext())
             {
-                var result = context.Account.AsNoTracking().FirstOrDefault(r => r.AccountName == accountName);
+                var result = context.Account
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.AccountName == accountName);
 
                 return (result != null) ? result.AccountId : 0;
             }
@@ -106,7 +116,8 @@ namespace ACE.Database
         {
             using (var context = new AuthDbContext())
             {
-                var account = context.Account.First(r => r.AccountId == accountId);
+                var account = context.Account
+                    .First(r => r.AccountId == accountId);
 
                 if (account == null)
                     return false;

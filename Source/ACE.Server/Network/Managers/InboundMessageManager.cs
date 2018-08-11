@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
+using log4net;
+
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameAction;
 using ACE.Server.Network.GameMessages;
-using log4net;
 
 namespace ACE.Server.Network.Managers
 {
     public static class InboundMessageManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private class MessageHandlerInfo
         {
             public MessageHandler Handler { get; set; }
@@ -93,7 +97,7 @@ namespace ACE.Server.Network.Managers
                 {
                     if (messageHandlerInfo.Attribute.State == session.State)
                     {
-                        session.EnqueueAction(new ActionEventDelegate(() =>
+                        WorldManager.InboundMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
                         {
                             messageHandlerInfo.Handler.Invoke(message, session);
                         }));
@@ -110,7 +114,8 @@ namespace ACE.Server.Network.Managers
             {
                 if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
                 {
-                    session.EnqueueAction(new ActionEventDelegate(() => {
+                    WorldManager.InboundMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
+                    {
                         actionHandlerInfo.Handler.Invoke(message, session);
                     }));
                 }

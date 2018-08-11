@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateSkill : GameMessage
     {
-        public GameMessagePrivateUpdateSkill(WorldObject worldObject, Skill skill, SkillStatus status, uint ranks, uint bonus, uint totalInvestment)
+        public GameMessagePrivateUpdateSkill(WorldObject worldObject, Skill skill, SkillAdvancementClass status, uint ranks, uint bonus, uint totalInvestment)
             : base(GameMessageOpcode.PrivateUpdateSkill, GameMessageGroup.UIQueue)
         {
             // TODO Why is baseValue being passed to this function even though it's not used?

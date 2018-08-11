@@ -31,11 +31,8 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            // TODO we shouldn't be auto setting properties that come from our weenie by default
-
+            // TODO: we shouldn't be auto setting properties that come from our weenie by default
             UseRadius = 1;
-            IsAlive = true;
-            //SetupVitals();
         }
 
         private double? resetTimestamp;
@@ -50,12 +47,6 @@ namespace ACE.Server.WorldObjects
         {
             get { return useTimestamp; }
             set { useTimestamp = Time.GetTimestamp(); }
-        }
-
-        private uint? AllowedActivator
-        {
-            get;
-            set;
         }
 
         /// <summary>
@@ -97,14 +88,14 @@ namespace ACE.Server.WorldObjects
 
             ActionChain autoResetTimer = new ActionChain();
             autoResetTimer.AddDelaySeconds(4);
-            autoResetTimer.AddAction(this, () => Reset());
+            autoResetTimer.AddAction(this, () => ResetCow());
             autoResetTimer.EnqueueChain();
 
             if (activator.Full > 0)
                 UseTimestamp++;
         }
 
-        private void Reset()
+        private void ResetCow()
         {
             AllowedActivator = null;
 

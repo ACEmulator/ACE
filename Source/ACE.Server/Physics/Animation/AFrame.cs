@@ -155,9 +155,11 @@ namespace ACE.Server.Physics.Animation
             var matrix = Matrix4x4.CreateFromQuaternion(Orientation);
 
             var heading = new Vector3();
-            heading.X = matrix.M21 + matrix.M31;
-            heading.Y = matrix.M22 + matrix.M32;
-            heading.Z = matrix.M23 + matrix.M33;
+
+            heading.X = matrix.M21;
+            heading.Y = matrix.M22;
+            heading.Z = matrix.M23;
+
             return heading;
         }
 

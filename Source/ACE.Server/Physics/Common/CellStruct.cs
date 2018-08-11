@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.BSP;
+using ACE.Server.Physics.Entity;
 using ACE.Server.Physics.Collision;
 
 namespace ACE.Server.Physics.Common
@@ -9,15 +10,12 @@ namespace ACE.Server.Physics.Common
     {
         public int CellStructID;
         public List<Vector3> VertexArray;
-        public int NumPortals;
-        public List<Polygon> Portals;
-        public int NumSurfaceStrips;
-        //public List<SurfaceTriStrips> SurfaceStrips;
-        public int NumPolygons;
         public Dictionary<ushort, Polygon> Polygons;
-        public BSPTree DrawingBSP;
-        public int NumPhysicsPolygons;
         public Dictionary<ushort, Polygon> PhysicsPolygons;
+        public List<Polygon> Portals;
+        //public int NumSurfaceStrips;
+        //public List<SurfaceTriStrips> SurfaceStrips;
+        public BSPTree DrawingBSP;
         public BSPTree PhysicsBSP;
         public BSPTree CellBSP;
 
@@ -25,24 +23,26 @@ namespace ACE.Server.Physics.Common
 
         public CellStruct(DatLoader.Entity.CellStruct cellStruct)
         {
-            NumPortals = cellStruct.Portals.Count;
-            NumPolygons = cellStruct.Polygons.Count;
-            NumPhysicsPolygons = cellStruct.PhysicsPolygons.Count;
             Polygons = new Dictionary<ushort, Polygon>();
             foreach (var poly in cellStruct.Polygons)
-                Polygons.Add(poly.Key, new Polygon(poly.Value, cellStruct.VertexArray));
+                Polygons.Add(poly.Key, PolygonCache.Get(new Polygon(poly.Value, cellStruct.VertexArray)));
+
             Portals = new List<Polygon>();
             foreach (var portal in cellStruct.Portals)
                 Portals.Add(Polygons[portal]);
+
             PhysicsPolygons = new Dictionary<ushort, Polygon>();
-            foreach (var poly in cellStruct.PhysicsPolygons)    // todo: link to regular polys
-                PhysicsPolygons.Add(poly.Key, new Polygon(poly.Value, cellStruct.VertexArray));
+            foreach (var poly in cellStruct.PhysicsPolygons)
+                PhysicsPolygons.Add(poly.Key, PolygonCache.Get(new Polygon(poly.Value, cellStruct.VertexArray)));
+
             if (cellStruct.CellBSP != null)
-                CellBSP = new BSPTree(cellStruct.CellBSP, cellStruct.PhysicsPolygons, cellStruct.VertexArray); // physics or drawing?
+                CellBSP = BSPCache.Get(cellStruct.CellBSP, cellStruct.PhysicsPolygons, cellStruct.VertexArray);
+
             if (cellStruct.DrawingBSP != null)
-                DrawingBSP = new BSPTree(cellStruct.DrawingBSP, cellStruct.Polygons, cellStruct.VertexArray);
+
+                DrawingBSP = BSPCache.Get(cellStruct.DrawingBSP, cellStruct.Polygons, cellStruct.VertexArray);
             if (cellStruct.PhysicsBSP != null)
-                PhysicsBSP = new BSPTree(cellStruct.PhysicsBSP, cellStruct.PhysicsPolygons, cellStruct.VertexArray);
+                PhysicsBSP = BSPCache.Get(cellStruct.PhysicsBSP, cellStruct.PhysicsPolygons, cellStruct.VertexArray);
         }
 
         public bool box_intersects_cell(BBox bbox)

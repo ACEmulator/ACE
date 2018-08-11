@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 
@@ -87,6 +88,9 @@ namespace ACE.Server.Physics.Common
 
         public bool Equals(ObjCell objCell)
         {
+            if (objCell == null)
+                return false;
+
             return ID.Equals(objCell.ID);
         }
 
@@ -109,7 +113,8 @@ namespace ACE.Server.Physics.Common
 
             var target = transition.ObjectInfo.Object.ProjectileTarget;
 
-            foreach (var shadowObj in ShadowObjectList)
+            // TODO: find out what is causing the exception when .ToList() is not used.
+            foreach (var shadowObj in ShadowObjectList.ToList())
             {
                 var obj = shadowObj.PhysicsObj;
 

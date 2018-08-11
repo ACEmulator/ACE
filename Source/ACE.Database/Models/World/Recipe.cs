@@ -8,14 +8,7 @@ namespace ACE.Database.Models.World
         public Recipe()
         {
             CookBook = new HashSet<CookBook>();
-            RecipeComponent = new HashSet<RecipeComponent>();
             RecipeMod = new HashSet<RecipeMod>();
-            RecipeModsBool = new HashSet<RecipeModsBool>();
-            RecipeModsDID = new HashSet<RecipeModsDID>();
-            RecipeModsFloat = new HashSet<RecipeModsFloat>();
-            RecipeModsIID = new HashSet<RecipeModsIID>();
-            RecipeModsInt = new HashSet<RecipeModsInt>();
-            RecipeModsString = new HashSet<RecipeModsString>();
             RecipeRequirementsBool = new HashSet<RecipeRequirementsBool>();
             RecipeRequirementsDID = new HashSet<RecipeRequirementsDID>();
             RecipeRequirementsFloat = new HashSet<RecipeRequirementsFloat>();
@@ -25,7 +18,6 @@ namespace ACE.Database.Models.World
         }
 
         public uint Id { get; set; }
-        public uint RecipeId { get; set; }
         public uint Unknown1 { get; set; }
         public uint Skill { get; set; }
         public uint Difficulty { get; set; }
@@ -36,17 +28,22 @@ namespace ACE.Database.Models.World
         public uint FailWCID { get; set; }
         public uint FailAmount { get; set; }
         public string FailMessage { get; set; }
+        public double SuccessDestroySourceChance { get; set; }
+        public uint SuccessDestroySourceAmount { get; set; }
+        public string SuccessDestroySourceMessage { get; set; }
+        public double SuccessDestroyTargetChance { get; set; }
+        public uint SuccessDestroyTargetAmount { get; set; }
+        public string SuccessDestroyTargetMessage { get; set; }
+        public double FailDestroySourceChance { get; set; }
+        public uint FailDestroySourceAmount { get; set; }
+        public string FailDestroySourceMessage { get; set; }
+        public double FailDestroyTargetChance { get; set; }
+        public uint FailDestroyTargetAmount { get; set; }
+        public string FailDestroyTargetMessage { get; set; }
         public uint DataId { get; set; }
 
         public ICollection<CookBook> CookBook { get; set; }
-        public ICollection<RecipeComponent> RecipeComponent { get; set; }
         public ICollection<RecipeMod> RecipeMod { get; set; }
-        public ICollection<RecipeModsBool> RecipeModsBool { get; set; }
-        public ICollection<RecipeModsDID> RecipeModsDID { get; set; }
-        public ICollection<RecipeModsFloat> RecipeModsFloat { get; set; }
-        public ICollection<RecipeModsIID> RecipeModsIID { get; set; }
-        public ICollection<RecipeModsInt> RecipeModsInt { get; set; }
-        public ICollection<RecipeModsString> RecipeModsString { get; set; }
         public ICollection<RecipeRequirementsBool> RecipeRequirementsBool { get; set; }
         public ICollection<RecipeRequirementsDID> RecipeRequirementsDID { get; set; }
         public ICollection<RecipeRequirementsFloat> RecipeRequirementsFloat { get; set; }

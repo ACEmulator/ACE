@@ -8,7 +8,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public List<LandblockInstances> LinkedInstances = new List<LandblockInstances>();
+        public List<LandblockInstance> LinkedInstances = new List<LandblockInstance>();
 
         public virtual void ActivateLinks()
         {

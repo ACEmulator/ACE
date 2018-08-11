@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
+using ACE.Server.Physics.Entity;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.BSP
@@ -21,7 +22,7 @@ namespace ACE.Server.Physics.BSP
         Close = 0x02
     };
 
-    public class BSPNode
+    public class BSPNode: IEquatable<BSPNode>
     {
         public Sphere Sphere;
         public Plane SplittingPlane;
@@ -57,7 +58,7 @@ namespace ACE.Server.Physics.BSP
                 PolyIDs = node.InPolys;
                 Polygons = new List<Polygon>();
                 foreach (var poly in node.InPolys)
-                    Polygons.Add(new Polygon(polys[poly], vertexArray));
+                    Polygons.Add(PolygonCache.Get(new Polygon(polys[poly], vertexArray)));
             }
             if (node.PosNode != null)
             {
@@ -320,6 +321,55 @@ namespace ACE.Server.Physics.BSP
 
                 return NegNode.sphere_intersects_solid_poly(checkPos, radius, ref centerSolid, ref hitPoly, false);
             }
+        }
+
+        public bool Equals(BSPNode node)
+        {
+            if (Sphere != null && !Sphere.Equals(node.Sphere) || !SplittingPlane.is_equal(node.SplittingPlane) || Type != node.Type || Typename != null && !Typename.Equals(node.Typename) || NumPolys != node.NumPolys)
+                return false;
+
+            for (var i = 0; i < NumPolys; i++)
+            {
+                if (PolyIDs[i] != node.PolyIDs[i] || !Polygons[i].Equals(node.Polygons[i]))
+                    return false;
+            }
+
+            if (PosNode != null && !PosNode.Equals(node.PosNode))
+                return false;
+
+            if (NegNode != null && !NegNode.Equals(node.NegNode))
+                return false;
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+
+            if (Sphere != null)
+                hash = (hash * 397) ^ Sphere.GetHashCode();
+
+            hash = (hash * 397) ^ SplittingPlane.get_hash_code();
+            hash = (hash * 397) ^ Type.GetHashCode();
+
+            if (Typename != null)
+                hash = (hash * 397) ^ Typename.GetHashCode();
+
+            hash = (hash * 397) ^ NumPolys.GetHashCode();
+
+            for (var i = 0; i < NumPolys; i++)
+            {
+                hash = (hash * 397) ^ PolyIDs[i].GetHashCode();
+                hash = (hash * 397) ^ Polygons[i].GetHashCode();
+            }
+            if (PosNode != null)
+                hash = (hash * 397) ^ PosNode.GetHashCode();
+
+            if (NegNode != null)
+                hash = (hash * 397) ^ NegNode.GetHashCode();
+
+            return hash;
         }
     }
 }

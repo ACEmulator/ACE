@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
         {
             var shortcuts = new List<Shortcut>();
 
-            foreach (var shortcut in Biota.CharacterPropertiesShortcutBar)
+            foreach (var shortcut in Character.CharacterPropertiesShortcutBar)
                 shortcuts.Add(new Shortcut(shortcut));
 
             return shortcuts;
@@ -99,9 +99,9 @@ namespace ACE.Server.WorldObjects
         {
             // When a shortcut is added on top of an existing item, the client automatically sends the RemoveShortcut command for that existing item first, then will add the new item, and re-add the existing item to the appropriate place.
 
-            var entity = new CharacterPropertiesShortcutBar { ObjectId = Biota.Id, ShortcutBarIndex = shortcut.Index, ShortcutObjectId = shortcut.ObjectId, Object = Biota };
+            var entity = new CharacterPropertiesShortcutBar { CharacterId = Biota.Id, ShortcutBarIndex = shortcut.Index, ShortcutObjectId = shortcut.ObjectId };
 
-            Biota.CharacterPropertiesShortcutBar.Add(entity);
+            Character.CharacterPropertiesShortcutBar.Add(entity);
             ChangesDetected = true;
         }
 
@@ -110,12 +110,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionRemoveShortcut(uint index)
         {
-            var entity = Biota.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index);
+            var entity = Character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index);
 
             if (entity != null)
             {
-                Biota.CharacterPropertiesShortcutBar.Remove(entity);
-                entity.Object = null;
+                Character.CharacterPropertiesShortcutBar.Remove(entity);
 
                 if (ExistsInDatabase && entity.Id != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);

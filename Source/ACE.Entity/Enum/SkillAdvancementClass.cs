@@ -1,7 +1,7 @@
 
 namespace ACE.Entity.Enum
 {
-    public enum SkillStatus : uint
+    public enum SkillAdvancementClass : uint
     {
         Inactive,
         Untrained,

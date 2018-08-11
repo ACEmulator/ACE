@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Numerics;
-using ACE.Server.Physics.Common;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
+using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics
 {
@@ -115,7 +116,7 @@ namespace ACE.Server.Physics
             setup.NumParts = 1;
             setup.Parts = new List<PhysicsPart>(1);
 
-            var gfxObj = new Collision.GfxObj((GfxObj)DBObj.Get(new QualifiedDataID(6, gfxObjID)));
+            var gfxObj = GfxObjCache.Get((GfxObj)DBObj.Get(new QualifiedDataID(6, gfxObjID)));
             if (gfxObj != null)
             {
                 if (gfxObj.PhysicsSphere != null)
@@ -125,7 +126,7 @@ namespace ACE.Server.Physics
             }
 
             var part = new PhysicsPart();
-            part.GfxObj = new List<Collision.GfxObj>() { gfxObj };
+            part.GfxObj = gfxObj;
             setup.Parts.Add(part);
 
             var placementType = new PlacementType();

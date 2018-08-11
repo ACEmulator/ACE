@@ -5,9 +5,19 @@ namespace ACE.Database.Models.Shard
 {
     public partial class Character
     {
+        public Character()
+        {
+            CharacterPropertiesContract = new HashSet<CharacterPropertiesContract>();
+            CharacterPropertiesFillCompBook = new HashSet<CharacterPropertiesFillCompBook>();
+            CharacterPropertiesFriendList = new HashSet<CharacterPropertiesFriendList>();
+            CharacterPropertiesQuestRegistry = new HashSet<CharacterPropertiesQuestRegistry>();
+            CharacterPropertiesShortcutBar = new HashSet<CharacterPropertiesShortcutBar>();
+            CharacterPropertiesSpellBar = new HashSet<CharacterPropertiesSpellBar>();
+            CharacterPropertiesTitleBook = new HashSet<CharacterPropertiesTitleBook>();
+        }
+
         public uint Id { get; set; }
         public uint AccountId { get; set; }
-        public uint BiotaId { get; set; }
         public string Name { get; set; }
         public bool IsDeleted { get; set; }
         public ulong DeleteTime { get; set; }
@@ -19,6 +29,12 @@ namespace ACE.Database.Models.Shard
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 
-        public Biota Biota { get; set; }
+        public ICollection<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
+        public ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
+        public ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
+        public ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
+        public ICollection<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
+        public ICollection<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public ICollection<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
     }
 }

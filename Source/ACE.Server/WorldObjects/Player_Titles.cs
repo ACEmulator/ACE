@@ -21,7 +21,7 @@ namespace ACE.Server.WorldObjects
 
             var titlebook = new List<uint>();
 
-            foreach (var title in Biota.CharacterPropertiesTitleBook)
+            foreach (var title in Character.CharacterPropertiesTitleBook)
                 titlebook.Add(title.TitleId);
 
             NumCharacterTitles = titlebook.Count();
@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
 
             if (!titlebook.Contains(titleId))
             {
-                Biota.CharacterPropertiesTitleBook.Add(new Database.Models.Shard.CharacterPropertiesTitleBook { ObjectId = Guid.Full, TitleId = titleId });
+                Character.CharacterPropertiesTitleBook.Add(new Database.Models.Shard.CharacterPropertiesTitleBook { CharacterId = Guid.Full, TitleId = titleId });
                 titlebook.Add(titleId);
                 NumCharacterTitles++;
                 sendMsg = true;
@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
                 sendMsg = true;
             }
 
-            if (sendMsg && FirstEnterWorldDone)
+            if (sendMsg && FirstEnterWorldDone.Value)
             {
                 var message = new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle);
                 Session.Network.EnqueueSend(message);

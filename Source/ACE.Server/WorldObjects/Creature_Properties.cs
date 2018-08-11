@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistNether); else SetProperty(PropertyFloat.ResistNether, value.Value); }
         }
 
-        public double GetNaturalResistence(ResistanceType resistance)
+        public double GetNaturalResistance(ResistanceType resistance)
         {
             switch (resistance)
             {
@@ -148,12 +148,6 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.StaminaRate);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.StaminaRate); else SetProperty(PropertyFloat.StaminaRate, value.Value); }
-        }
-
-        public double? ManaRate
-        {
-            get => GetProperty(PropertyFloat.ManaRate);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaRate); else SetProperty(PropertyFloat.ManaRate, value.Value); }
         }
 
         public double? ArmorModVsSlash

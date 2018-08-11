@@ -115,7 +115,7 @@ namespace ACE.Server.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
-            actionQueue = new NestedActionQueue(WorldManager.ActionQueue);
+            actionQueue = new NestedActionQueue(WorldManager.LandblockActionQueue);
 
             // create world objects (monster locations, generators)
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
@@ -136,42 +136,16 @@ namespace ACE.Server.Entity
 
             _landblock = LScape.get_landblock(Id.Raw);
 
-            // Many thanks for GDL cache and GDL coding for loading into landblock and gmriggs assistance with taking the byte arrays and turning them in to more easy to follow (for me) data structures
-            var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(Id.Landblock);
-            encounters.ForEach(encounter =>
-            {
-                var wo = WorldObjectFactory.CreateNewWorldObject(encounter.WeenieClassId);
-
-                if (wo != null)
-                {
-                    float x_shift = 24.0f * encounter.CellX;
-                    float y_shift = 24.0f * encounter.CellY;
-
-                    var pos = new Physics.Common.Position();
-                    pos.ObjCellID = (uint)(id.Landblock << 16) | 1;
-                    pos.Frame = new Physics.Animation.AFrame(new Vector3(x_shift, y_shift, 0), new Quaternion(0, 0, 0, 1));
-                    pos.adjust_to_outside();
-
-                    pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
-
-                    wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
-
-                    if (!worldObjects.ContainsKey(wo.Guid))
-                    {
-                        AddWorldObject(wo);
-                    }
-                }
-            });
-
-
             //LoadMeshes(objects);
+
+            SpawnEncounters();
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
             // FIXME(ddevec): Goal: get rid of UseTime() function...
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
 
-            motionQueue = new NestedActionQueue(WorldManager.MotionQueue);
+            motionQueue = new NestedActionQueue(WorldManager.LandblockMotionQueue);
 
             LastActiveTime = Timer.CurrentTime;
 
@@ -179,9 +153,40 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Spawns the semi-randomized monsters scattered around the outdoors
+        /// </summary>
+        public void SpawnEncounters()
+        {
+            // get the encounter spawns for this landblock
+            var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(Id.Landblock);
+
+            foreach (var encounter in encounters)
+            {
+                var wo = WorldObjectFactory.CreateNewWorldObject(encounter.WeenieClassId);
+
+                if (wo == null) continue;
+
+                var xPos = encounter.CellX * 24.0f;
+                var yPos = encounter.CellY * 24.0f;
+
+                var pos = new Physics.Common.Position();
+                pos.ObjCellID = (uint)(Id.Landblock << 16) | 1;
+                pos.Frame = new Physics.Animation.AFrame(new Vector3(xPos, yPos, 0), Quaternion.Identity);
+                pos.adjust_to_outside();
+
+                pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
+
+                wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
+
+                if (!worldObjects.ContainsKey(wo.Guid))
+                    AddWorldObject(wo);
+            }
+        }
+
+        /// <summary>
         /// Loads the meshes for the landblock
         /// </summary>
-        public void LoadMeshes(List<LandblockInstances> objects)
+        public void LoadMeshes(List<LandblockInstance> objects)
         {
             CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
             LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
@@ -219,7 +224,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the weenies on the landblock
         /// </summary>
-        public void LoadWeenies(List<LandblockInstances> objects)
+        public void LoadWeenies(List<LandblockInstance> objects)
         {
             WeenieMeshes = new List<ModelMesh>();
 
@@ -299,27 +304,18 @@ namespace ACE.Server.Entity
 
             Parallel.ForEach(wolist, (o) =>
             {
-                //if (o is Creature)
-                //{
-                //    if (((Creature)o).IsAlive)
-                //        player.TrackObject(o);
-                //}
-                //else
-                //{
-                    player.TrackObject(o);
-                //}
+                player.TrackObject(o);
             });
         }
 
         public void AddWorldObject(WorldObject wo)
         {
-            // EnqueueAction(new ActionEventDelegate(() => AddWorldObjectInternal(wo)));
             AddWorldObjectInternal(wo);
         }
 
         public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)
         {
-            return new Actions.ActionChain(this, () => AddWorldObjectInternal(wo));
+            return new ActionChain(this, () => AddWorldObjectInternal(wo));
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -329,41 +325,32 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            Log($"adding {wo.Guid.Full:X}");
+            Log($"adding {wo.Guid}");
 
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
 
             wo.SetParent(this);
 
-            wo.PhysicsObj.Position.Frame.Origin = wo.Location.Pos;
-            wo.PhysicsObj.Position.Frame.Orientation = wo.Location.Rotation;
+            if (wo.PhysicsObj == null)
+                wo.InitPhysicsObj();
 
-            wo.AdjustDungeonCells(wo.Location);
+            var success = wo.AddPhysicsObj();
+            if (!success)
+                return;
 
-            var cell = LScape.get_landcell(wo.Location.Cell);
-            if (cell != null)
-            {
-                wo.PhysicsObj.Position.ObjCellID = cell.ID;
-
-                wo.PhysicsObj.add_obj_to_cell(cell, wo.PhysicsObj.Position.Frame);
-            }
-
-            // var args = BroadcastEventArgs.CreateAction(BroadcastAction.AddOrUpdate, wo);
-            // Broadcast(args, true, Quadrant.All);
-            // Alert all nearby players of the object
+            // broadcast to nearby players
             EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.TrackObject(wo));
 
-            // if this is a player, tell them about everything else we have in range of them.
+            // if spawning a player, tell them about nearby objects
             if (wo is Player)
             {
-                List<WorldObject> wolist = null;
-                wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
-                AddPlayerTracking(wolist, ((Player)wo));
+                var objectList = GetWorldObjectsInRange(wo, MaxObjectRange);
+                AddPlayerTracking(objectList, wo as Player);
             }
         }
 
-        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove)
+        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
         {
             ActionChain removeChain = GetRemoveWorldObjectChain(objectId, adjacencyMove);
             if (removeChain != null)
@@ -372,7 +359,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove)
+        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove = false)
         {
             Landblock owner = GetOwner(objectId);
 
@@ -390,12 +377,12 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="objectId">The object ID to be removed from the current landblock</param>
         /// <param name="adjacencyMove">Flag indicates if object is moving to an adjacent landblock</param>
-        public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove)
+        public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove = false)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
-        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove)
+        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
         {
             WorldObject wo = null;
 
@@ -404,9 +391,7 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(objectId))
             {
                 wo = worldObjects[objectId];
-
-                //if (!(wo is Creature))
-                    worldObjects.Remove(objectId);
+                worldObjects.Remove(objectId);
             }
 
             if (wo != null)
@@ -420,9 +405,12 @@ namespace ACE.Server.Entity
                 else
                     EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
 
-                wo.PhysicsObj.leave_cell(false);
-                wo.PhysicsObj.remove_shadows_from_cells();
-                wo.PhysicsObj.remove_visible_cells();
+                if (!adjacencyMove)
+                {
+                    wo.PhysicsObj.leave_cell(false);
+                    wo.PhysicsObj.remove_shadows_from_cells();
+                    wo.PhysicsObj.remove_visible_cells();
+                }
             }
         }
 
@@ -614,7 +602,7 @@ namespace ACE.Server.Entity
             //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
             if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
             {
-                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
+                WorldManager.LandblockBroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
             }
 
             foreach (GameMessage msg in msgs)
@@ -632,7 +620,7 @@ namespace ACE.Server.Entity
             //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
             if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
             {
-                WorldManager.BroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
+                WorldManager.LandblockBroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
             }
 
             foreach (GameMessage msg in msgs)
@@ -896,6 +884,35 @@ namespace ACE.Server.Entity
             return null;
         }
 
+        /// <summary>
+        /// Searches this landblock (and possibly adjacents) for an ObjectGuid wielded by a creature
+        /// </summary>
+        public WorldObject GetWieldedObject(ObjectGuid guid, bool searchAdjacents = true)
+        {
+            // search creature wielded items in current landblock
+            var creatures = worldObjects.Values.Where(wo => wo is Creature);
+            foreach (var creature in creatures)
+            {
+                var wieldedItem = (creature as Creature).GetWieldedItem(guid);
+                if (wieldedItem != null)
+                    return wieldedItem;     // found it
+            }
+
+            // try searching adjacent landblocks if not found
+            if (searchAdjacents)
+            {
+                foreach (var adjacent in adjacencies.Values)
+                {
+                    if (adjacent == null) continue;
+
+                    var wieldedItem = adjacent.GetWieldedObject(guid, false);
+                    if (wieldedItem != null)
+                        return wieldedItem;
+                }
+            }
+            return null;
+        }
+
         /*
         public void ChainOnObject(ActionChain chain, ObjectGuid woGuid, Action<WorldObject> action)
         {
@@ -971,7 +988,7 @@ namespace ACE.Server.Entity
         /// Landblocks which have been inactive for this many seconds
         /// will be unloaded
         /// </summary>
-        public static readonly int UnloadInterval = 30;
+        public static readonly int UnloadInterval = 300;
 
         /// <summary>
         /// Flag indicates if this landblock is permanently loaded
@@ -1047,8 +1064,16 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Unload()
         {
-            //Console.WriteLine("Landblock.Unload(" + (Id.Raw | 0xFFFF).ToString("X8") + ")");
+            var landblockID = Id.Raw | 0xFFFF;
+            //Console.WriteLine($"Landblock.Unload({landblockID:X})");
             SaveDB();
+
+            // remove all objects
+            foreach (var wo in worldObjects.Keys.ToList())
+                RemoveWorldObjectInternal(wo);
+
+            // remove physics landblock
+            LScape.unload_landblock(landblockID);
 
             // dungeon landblocks do not handle adjacents
             if (_landblock.IsDungeon) return;

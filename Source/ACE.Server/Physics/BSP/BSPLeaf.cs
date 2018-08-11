@@ -5,7 +5,7 @@ using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.BSP
 {
-    public class BSPLeaf: BSPNode
+    public class BSPLeaf: BSPNode, IEquatable<BSPLeaf>
     {
         public int LeafIdx;
         public bool Solid;
@@ -109,6 +109,21 @@ namespace ACE.Server.Physics.BSP
                 }
             }
             return centerSolid;
+        }
+
+        public bool Equals(BSPLeaf leaf)
+        {
+            return base.Equals(leaf) && LeafIdx == leaf.LeafIdx && Solid == leaf.Solid;
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = base.GetHashCode();
+
+            hash = (hash * 397) ^ LeafIdx.GetHashCode();
+            hash = (hash * 397) ^ Solid.GetHashCode();
+
+            return hash;
         }
     }
 }

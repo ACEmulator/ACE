@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,16 +8,12 @@ using ACE.Common;
 using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Packets;
-
-using Account = ACE.Database.Models.Auth.Account;
-using ACE.Database.Models.Shard;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -140,12 +135,12 @@ namespace ACE.Server.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, ((List<Character> result) =>
+            DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
             {
-                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
-                session.UpdateCachedCharacters(result);
+                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList(); // The client highlights the first character in the list. We sort so the first character sent is the one we last logged in
+                session.UpdateCharacters(result);
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(result, session);
+                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
@@ -153,7 +148,7 @@ namespace ACE.Server.Network.Handlers
                 session.Network.EnqueueSend(dddInterrogation);
 
                 session.State = SessionState.AuthConnected;
-            }));
+            });
         }
     }
 }

@@ -9,7 +9,6 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -24,8 +23,11 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
-using ACE.Server.Physics;
+using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Common;
 
+using Landblock = ACE.Server.Entity.Landblock;
+using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -33,6 +35,8 @@ namespace ACE.Server.WorldObjects
     public partial class Player : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public Character Character { get; }
 
         public Session Session { get; }
 
@@ -43,6 +47,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Player(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid)
         {
+            Character = new Character();
+            Character.Id = guid.Full;
+            Character.AccountId = session.Id;
+            Character.Name = GetProperty(PropertyString.Name);
+
             Session = session;
 
             // Make sure properties this WorldObject requires are not null.
@@ -55,11 +64,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Session session) : base(biota)
+        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
         {
             SortBiotasIntoInventory(inventory);
             AddBiotasToEquippedObjects(wieldedItems);
 
+            Character = character;
             Session = session;
 
             SetEphemeralValues();
@@ -160,9 +170,9 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }*/
 
-            FirstEnterWorldDone = false;
+            // FirstEnterWorldDone = false;
 
-            IsAlive = true;
+            // IsAlive = true;
         }
 
 
@@ -320,22 +330,7 @@ namespace ACE.Server.WorldObjects
         //public ReadOnlyCollection<Friend> Friends => Friends;
         public ReadOnlyCollection<Friend> Friends { get; set; }
 
-
-        public bool FirstEnterWorldDone = false;
-
-
-
         public MotionStance stance = MotionStance.Standing;
-
-
-
-
-
-
-
-
-
-
 
         public void ExamineObject(ObjectGuid examinationId)
         {
@@ -500,16 +495,16 @@ namespace ACE.Server.WorldObjects
             }
 
             // already exists in friends list?
-            if (Biota.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
+            if (Character.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
                 ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
 
             var newFriend = new CharacterPropertiesFriendList();
-            newFriend.ObjectId = Biota.Id;      // current player id
+            newFriend.CharacterId = Biota.Id;      // current player id
             //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
             newFriend.FriendId = friendInfo.Biota.Id;
 
             // add friend to DB
-            Biota.CharacterPropertiesFriendList.Add(newFriend);
+            Character.CharacterPropertiesFriendList.Add(newFriend);
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
@@ -521,7 +516,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public void HandleActionRemoveFriend(ObjectGuid friendId)
         {
-            var friendToRemove = Biota.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
+            var friendToRemove = Character.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
 
             // Not in friend list
             if (friendToRemove == null)
@@ -531,7 +526,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // remove friend in DB
-            RemoveFriend(friendId);
+            if (Character.TryRemoveFriend(friendId, out var entity) && ExistsInDatabase && entity.Id != 0)
+                DatabaseManager.Shard.RemoveEntity(entity, null);
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
@@ -565,7 +561,7 @@ namespace ACE.Server.WorldObjects
         public void SetPhysicalCharacterPosition()
         {
             // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            SetCharacterPosition(PositionType.Location, Session.Player.Location);
+            SetCharacterPosition(PositionType.Location, Location);
         }
 
         /// <summary>
@@ -983,6 +979,46 @@ namespace ACE.Server.WorldObjects
         public void HandleActionJump(JumpPack jump)
         {
             //Console.WriteLine(jump);
+
+            UseJumpStamina(jump);
+        }
+
+        public void UseJumpStamina(JumpPack jump)
+        {
+            var strength = GetCreatureAttribute(PropertyAttribute.Strength).Current;
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
+            var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
+
+            // calculate stamina cost for this jump
+            var staminaCost = MovementSystem.JumpStaminaCost(jump.Extent, burden, false);
+
+            //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
+
+            // TODO: ensure player has enough stamina to jump
+            UpdateVitalDelta(Stamina, -staminaCost);
+        }
+
+        /// <summary>
+        /// Called when the Player's stamina has recently changed to 0
+        /// </summary>
+        public void OnExhausted()
+        {
+            // adjust player speed if running
+            if (CurrentMotionCommand == (uint)MotionCommand.RunForward)
+            {
+                var motion = new UniversalMotion(CurrentMotionState.Stance);
+                // this should be autonomous, like retail, but if it's set to autonomous here, the desired effect doesn't happen
+                // motion.IsAutonomous = true;
+                motion.MovementData = new MovementData()
+                {
+                    CurrentStyle = (uint)CurrentMotionState.Stance,
+                    ForwardCommand = (uint)MotionCommand.RunForward
+                };
+                CurrentMotionState = motion;
+                if (CurrentLandblock != null)
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            }
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
         }
 
         /// <summary>
@@ -1042,16 +1078,9 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
 
-                uint updatedVitalAmount = creatureVital.Current + (uint)boostAmount;
+                var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
 
-                if (updatedVitalAmount > creatureVital.MaxValue)
-                    updatedVitalAmount = creatureVital.MaxValue;
-
-                boostAmount = updatedVitalAmount - creatureVital.Current;
-
-                UpdateVital(creatureVital, updatedVitalAmount);
-
-                buffMessage = new GameMessageSystemChat($"You regain {boostAmount} {vitalName}.", ChatMessageType.Craft);
+                buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
             }
 
             Session.Network.EnqueueSend(soundEvent, buffMessage);

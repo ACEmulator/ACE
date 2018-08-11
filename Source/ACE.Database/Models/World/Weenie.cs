@@ -7,7 +7,7 @@ namespace ACE.Database.Models.World
     {
         public Weenie()
         {
-            LandblockInstances = new HashSet<LandblockInstances>();
+            LandblockInstance = new HashSet<LandblockInstance>();
             PointsOfInterest = new HashSet<PointsOfInterest>();
             WeeniePropertiesAnimPart = new HashSet<WeeniePropertiesAnimPart>();
             WeeniePropertiesAttribute = new HashSet<WeeniePropertiesAttribute>();
@@ -18,7 +18,6 @@ namespace ACE.Database.Models.World
             WeeniePropertiesCreateList = new HashSet<WeeniePropertiesCreateList>();
             WeeniePropertiesDID = new HashSet<WeeniePropertiesDID>();
             WeeniePropertiesEmote = new HashSet<WeeniePropertiesEmote>();
-            WeeniePropertiesEmoteAction = new HashSet<WeeniePropertiesEmoteAction>();
             WeeniePropertiesEventFilter = new HashSet<WeeniePropertiesEventFilter>();
             WeeniePropertiesFloat = new HashSet<WeeniePropertiesFloat>();
             WeeniePropertiesGenerator = new HashSet<WeeniePropertiesGenerator>();
@@ -38,7 +37,7 @@ namespace ACE.Database.Models.World
         public int Type { get; set; }
 
         public WeeniePropertiesBook WeeniePropertiesBook { get; set; }
-        public ICollection<LandblockInstances> LandblockInstances { get; set; }
+        public ICollection<LandblockInstance> LandblockInstance { get; set; }
         public ICollection<PointsOfInterest> PointsOfInterest { get; set; }
         public ICollection<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public ICollection<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -49,7 +48,6 @@ namespace ACE.Database.Models.World
         public ICollection<WeeniePropertiesCreateList> WeeniePropertiesCreateList { get; set; }
         public ICollection<WeeniePropertiesDID> WeeniePropertiesDID { get; set; }
         public ICollection<WeeniePropertiesEmote> WeeniePropertiesEmote { get; set; }
-        public ICollection<WeeniePropertiesEmoteAction> WeeniePropertiesEmoteAction { get; set; }
         public ICollection<WeeniePropertiesEventFilter> WeeniePropertiesEventFilter { get; set; }
         public ICollection<WeeniePropertiesFloat> WeeniePropertiesFloat { get; set; }
         public ICollection<WeeniePropertiesGenerator> WeeniePropertiesGenerator { get; set; }

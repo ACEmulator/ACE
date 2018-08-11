@@ -135,32 +135,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the current vital to a new value
         /// </summary>
-        public override void UpdateVital(CreatureVital vital, uint newVal)
+        /// <returns>The actual change in the vital, after clamping between 0 and MaxVital</returns>
+        public override int UpdateVital(CreatureVital vital, int newVal)
         {
-            //check for exhaustion
+            var change = base.UpdateVital(vital, newVal);
+
+            if (change != 0)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+
+            // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (vital.Current != newVal && newVal < 1)
-                {
-                    // force player to experience exhaustion
-                    var motion = new UniversalMotion(CurrentMotionState.Stance);
-                    // this should be autonymous, like retail, but if it's set to autonymous here, the desired effect doesn't happen
-                    // motion.IsAutonomous = true;
-                    motion.MovementData = new MovementData()
-                    {
-                        CurrentStyle = (uint)CurrentMotionState.Stance,
-                        ForwardCommand = (uint)MotionCommand.RunForward
-                    };
-                    CurrentMotionState = motion;
-                    if (CurrentLandblock != null)
-                    {
-                        CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
-                    }
-                }
+                if (change != 0 && vital.Current == 0)
+                    OnExhausted();
+
             }
-            base.UpdateVital(vital, newVal);
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+            return change;
         }
     }
 }

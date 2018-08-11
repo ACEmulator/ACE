@@ -11,6 +11,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
@@ -269,8 +270,7 @@ namespace ACE.Server.Managers
 
                     var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
                     var firstEmote = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)EmoteCategory.GotoSet && rng < e.Probability);
-                    var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(e => e.EmoteSetId == firstEmote.EmoteSetId && e.EmoteCategory == firstEmote.Category).ToList();
-                    foreach (var action in actions)
+                    foreach (var action in firstEmote.BiotaPropertiesEmoteAction)
                     {
                         actionChain.AddAction(player, () =>
                         {
@@ -476,7 +476,7 @@ namespace ACE.Server.Managers
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emoteAction.Stat);
                         // TestNoQuality?
-                        InqProperty(skill.Status == SkillStatus.Trained || skill.Status == SkillStatus.Specialized, emoteAction, sourceObject, targetObject, actionChain);
+                        InqProperty(skill.AdvancementClass == SkillAdvancementClass.Trained || skill.AdvancementClass == SkillAdvancementClass.Specialized, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
 
@@ -495,7 +495,7 @@ namespace ACE.Server.Managers
                 case EmoteType.KillSelf:
 
                     if (targetCreature != null)
-                        targetCreature.Smite(targetCreature.Guid);
+                        targetCreature.Smite(targetCreature);
                     break;
 
                 case EmoteType.LocalBroadcast:
@@ -523,6 +523,8 @@ namespace ACE.Server.Managers
 
                 case EmoteType.ForceMotion: // TODO: figure out the difference
                 case EmoteType.Motion:
+
+                    if (sourceObject == null || sourceObject.CurrentMotionState == null) break;
 
                     if (emote.Category != (uint)EmoteCategory.Vendor && emote.Style != null)
                     {
@@ -649,7 +651,17 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.PopUp:
-                    ConfirmationManager.AddConfirmation(new Confirmation((ConfirmationType)emoteAction.Stat, emoteAction.Message, sourceObject.Guid.Full, targetObject.Guid.Full));
+                    if (player != null)
+                    {
+                        if ((ConfirmationType)emoteAction.Stat == ConfirmationType.Undefined)
+                            player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emoteAction.Message));
+                        else
+                        {
+                            Confirmation confirm = new Confirmation((ConfirmationType)emoteAction.Stat, emoteAction.Message, sourceObject.Guid.Full, targetObject.Guid.Full);
+                            ConfirmationManager.AddConfirmation(confirm);
+                            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emoteAction.Stat, confirm.ConfirmationID, confirm.Message));
+                        }
+                    }
                     break;
 
                 case EmoteType.RemoveContract:
@@ -928,9 +940,8 @@ namespace ACE.Server.Managers
 
             var result = sourceObject.Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.Category == (uint)categoryId && e.Quest == emoteAction.Message && rng <= e.Probability);
             if (result == null) return;
-            var actions = sourceObject.Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == result.EmoteSetId && a.EmoteCategory == result.Category);
 
-            foreach (var action in actions)
+            foreach (var action in result.BiotaPropertiesEmoteAction)
             {
                 actionChain.AddAction(sourceObject, () =>
                 {
@@ -988,7 +999,7 @@ namespace ACE.Server.Managers
             {
                 if (rng < emote.Probability)
                 {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    foreach (var action in emote.BiotaPropertiesEmoteAction)
                     {
                         ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
                     }
@@ -1001,7 +1012,7 @@ namespace ACE.Server.Managers
             {
                 if (rng < emote.Probability)
                 {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    foreach (var action in emote.BiotaPropertiesEmoteAction)
                     {
                         ExecuteEmote(emote, action, emoteChain, WorldObject);
                     }
@@ -1010,11 +1021,6 @@ namespace ACE.Server.Managers
                 }
             }
             emoteChain.EnqueueChain();
-        }
-
-        public IEnumerable<BiotaPropertiesEmoteAction> EmoteSet(uint emoteCategory, uint emoteSetId)
-        {
-            return WorldObject.Biota.BiotaPropertiesEmoteAction.Where(x => x.EmoteCategory == emoteCategory && x.EmoteSetId == emoteSetId);
         }
 
         public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)
@@ -1048,7 +1054,7 @@ namespace ACE.Server.Managers
             {
                 if (rng < emote.Probability)
                 {
-                    foreach (var action in EmoteSet(emote.Category, emote.EmoteSetId))
+                    foreach (var action in emote.BiotaPropertiesEmoteAction)
                         ExecuteEmote(emote, action, emoteChain, WorldObject);
 
                     break;

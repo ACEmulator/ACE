@@ -7,21 +7,29 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Entity;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Database.Models.Shard;
-using System.Linq;
 
 namespace ACE.Server.Network
 {
-    public class Session : IActor
+    public class Session
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+
+        public IPEndPoint EndPoint { get; }
+
+        public NetworkSession Network { get; set; }
+
+        public uint GameEventSequence { get; set; }
+
+        public SessionState State { get; set; }
+
 
         public uint Id { get; private set; }
 
@@ -31,49 +39,198 @@ namespace ACE.Server.Network
 
         public AccessLevel AccessLevel { get; private set; }
 
-        public SessionState State { get; set; }
-
-        public List<Character> AccountCharacters { get; } = new List<Character>();
-
-        public Character CharacterRequested { get; set; }
-
-        public Character Character { get; set; }
+        public List<Character> Characters { get; } = new List<Character>();
 
         public Player Player { get; private set; }
 
+
         private DateTime lastAutoSaveTime;
-
         private DateTime logOffRequestTime;
-
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
+
         private bool bootSession;
 
-        private ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
-        private object playerSync = new object();
 
-        // connection related
-        public IPEndPoint EndPoint { get; }
-
-        public uint GameEventSequence { get; set; }
-
-        public NetworkSession Network { get; set; }
-
-        /// <summary>
-        /// This actionQueue forces network packets on to the main thread off the network thread, to avoid concurrency errors
-        /// </summary>
-        private NestedActionQueue actionQueue = new NestedActionQueue();
-
+        // todo: Remove this when WorldManager.LoadAllPlayers() is refactored
         public bool IsOnline = true;
 
-        public Session() { IsOnline = false;  }
+        // todo: Remove this when WorldManager.LoadAllPlayers() is refactored
+        public Session()
+        {
+            IsOnline = false;
+        }
 
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
             Network = new NetworkSession(this, clientId, serverId);
-            actionQueue.SetParent(WorldManager.ActionQueue);
         }
+
+
+        private bool CheckState(ClientPacket packet)
+        {
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
+                return false;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
+                return false;
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSync | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == SessionState.AuthLoginRequest)
+                return false;
+
+            return true;
+        }
+
+        private void HandleDisconnectResponse()
+        {
+            if (Player != null)
+            {
+                Player.EnqueueSaveChain();
+                Player.HandleActionLogout(true);
+            }
+
+            WorldManager.RemoveSession(this);
+        }
+
+        public void ProcessPacket(ClientPacket packet)
+        {
+            if (!CheckState(packet))
+                return;
+
+            // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
+            if (Network != null)
+                Network.ProcessPacket(packet);
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
+                HandleDisconnectResponse();
+        }
+
+        public uint GetIssacValue(PacketDirection direction)
+        {
+            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
+        }
+
+
+        /// <summary>
+        /// This is run in parallel from our main loop.
+        /// </summary>
+        public void Update(double lastTick, long currentTimeTick)
+        {
+            // Checks if the session has stopped responding.
+            if (currentTimeTick >= Network.TimeoutTick)
+            {
+                // Change the state to show that the Session has reached a timeout.
+                State = SessionState.NetworkTimeout;
+            }
+
+            Network.Update(lastTick);
+
+            // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
+            // This could be made 0 for instant logoffs.
+            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
+            {
+                logOffRequestTime = DateTime.MinValue;
+                SendFinalLogOffMessages();
+            }
+
+            // Check if the player has been booted
+            if (bootSession)
+            {
+                SendFinalBoot();
+                State = SessionState.NetworkTimeout;
+            }
+
+            // todo: I'd like to move this to a player Update() function. Mag-nus 2018-08-10
+            if (Player != null)
+            {
+                // First, we check if the player hasn't been saved in the last 5 minutes
+                if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
+                {
+                    // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
+                    // We do this because EnqueueSaveChain will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
+                    if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
+                    {
+                        lastAutoSaveTime = DateTime.UtcNow;
+                        Player.EnqueueSaveChain();
+                    }
+                }
+
+                if (lastAgeIntUpdateTime == DateTime.MinValue)
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+
+                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
+                {
+                    Player.UpdateAge();
+                    lastAgeIntUpdateTime = DateTime.UtcNow;
+                }
+
+                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+
+                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
+                {
+                    Player.SendAgeInt();
+                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
+                }
+            }
+        }
+
+
+        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
+        {
+            Id = accountId;
+            Account = account;
+            AccessLevel = accountAccesslevel;
+        }
+
+        public void UpdateCharacters(IEnumerable<Character> characters)
+        {
+            Characters.Clear();
+
+            Characters.AddRange(characters);
+
+            CheckCharactersForDeletion();
+        }
+
+        public void CheckCharactersForDeletion()
+        {
+            for (int i = Characters.Count - 1; i >= 0; i--)
+            {
+                if (Characters[i].DeleteTime > 0 && Time.GetUnixTime() > Characters[i].DeleteTime)
+                {
+                    Characters[i].IsDeleted = true;
+
+                    var idToDelete = Characters[i].Id;
+
+                    DatabaseManager.Shard.MarkCharacterDeleted(idToDelete, deleteSuccess =>
+                    {
+                        if (deleteSuccess)
+                            log.Info($"Character {idToDelete:X} successfully marked as deleted");
+                        else
+                            log.Error($"Unable to mark character {idToDelete:X} as deleted");
+                    });
+
+                    Characters.RemoveAt(i);
+                }
+            }
+        }
+
+        public void InitSessionForWorldLogin()
+        {
+            lastAgeIntUpdateTime = DateTime.MinValue;
+            lastSendAgeIntUpdateTime = DateTime.MinValue;
+
+            GameEventSequence = 1;
+        }
+
+        public void SetAccessLevel(AccessLevel accountAccesslevel)
+        {
+            AccessLevel = accountAccesslevel;
+        }
+
+        private readonly ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
+        private readonly object playerSync = new object();
 
         public void WaitForPlayer()
         {
@@ -113,177 +270,6 @@ namespace ACE.Server.Network
             playerWaitLock.ExitWriteLock();
         }
 
-        public void InitSessionForWorldLogin()
-        {
-            CharacterRequested = null;
-
-            lastAgeIntUpdateTime = DateTime.MinValue;
-            lastSendAgeIntUpdateTime = DateTime.MinValue;
-
-            GameEventSequence = 1;
-        }
-
-        public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
-        {
-            Id = accountId;
-            Account = account;
-            AccessLevel = accountAccesslevel;
-        }
-
-        public void SetAccessLevel(AccessLevel accountAccesslevel)
-        {
-            AccessLevel = accountAccesslevel;
-        }
-
-        public void UpdateCachedCharacters(IEnumerable<Character> characters)
-        {
-            AccountCharacters.Clear();
-            foreach (var character in characters)
-            {
-                if (character.DeleteTime > 0)
-                {
-                    if (Time.GetUnixTime() > character.DeleteTime)
-                    {
-                        character.IsDeleted = true;
-                        DatabaseManager.Shard.MarkCharacterDeleted(character.BiotaId, deleteSuccess =>
-                        {
-                            if (deleteSuccess)
-                            {
-                                log.Info($"Character {character.BiotaId:X} successfully marked as deleted");
-                            }
-                            else
-                            {
-                                log.Error($"Unable to mark character {character.BiotaId:X} as deleted");
-                            }
-                        });
-                        continue;
-                    }
-                }
-                AccountCharacters.Add(character);
-            }
-        }
-
-        public void Update(double lastTick, long currentTimeTick)
-        {
-            // Checks if the session has stopped responding.
-            if (currentTimeTick >= Network.TimeoutTick)
-            {
-                // Change the state to show that the Session has reached a timeout.
-                State = SessionState.NetworkTimeout;
-            }
-
-            Network.Update(lastTick);
-
-            // FIXME(ddevec): Most of the following work can probably be integrated into the player's action queue, or an action queue strucutre
-
-            // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
-            // This could be made 0 for instant logoffs.
-            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
-            {
-                logOffRequestTime = DateTime.MinValue;
-                SendFinalLogOffMessages();
-            }
-
-            // Check if the player has been booted
-            if (bootSession)
-            {
-                SendFinalBoot();
-                State = SessionState.NetworkTimeout;
-            }
-
-            if (Player != null)
-            {
-                // First, we check if the player hasn't been saved in the last 5 minutes
-                if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                {
-                    // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
-                    // We do this because SaveSessionPlayer will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
-                    if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                    {
-                        lastAutoSaveTime = DateTime.UtcNow;
-                        SaveSessionPlayer();
-                    }
-                }
-
-                if (lastAgeIntUpdateTime == DateTime.MinValue)
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-
-                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-                {
-                    Player.UpdateAge();
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                }
-
-                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-
-                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-                {
-                    Player.SendAgeInt();
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }
-            }
-        }
-
-        /// <summary>
-        /// This will queue the SaveChain for the Player attached to this Session.
-        /// </summary>
-        public void SaveSessionPlayer()
-        {
-            if (Player != null)
-                Player.GetSaveChain().EnqueueChain();
-        }
-
-        public uint GetIssacValue(PacketDirection direction)
-        {
-            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
-        }
-
-        public void SendCharacterError(CharacterError error)
-        {
-            Network.EnqueueSend(new GameMessageCharacterError(error));
-        }
-
-        private bool CheckState(ClientPacket packet)
-        {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
-                return false;
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence | PacketHeaderFlags.TimeSync | PacketHeaderFlags.EchoRequest | PacketHeaderFlags.Flow) && State == SessionState.AuthLoginRequest)
-                return false;
-
-            return true;
-        }
-
-        public void ProcessPacket(ClientPacket packet)
-        {
-            if (!CheckState(packet))
-            {
-                return;
-            }
-
-            // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if (Network != null)
-                Network.ProcessPacket(packet);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse();
-        }
-
-        private void HandleDisconnectResponse()
-        {
-            if (Player != null)
-            {
-                SaveSessionPlayer();
-                Player.HandleActionLogout(true);
-            }
-
-            WorldManager.RemoveSession(this);
-        }
-
         public void LogOffPlayer()
         {
             // First save, then logout
@@ -295,29 +281,25 @@ namespace ACE.Server.Network
             logOffRequestTime = DateTime.UtcNow;
         }
 
-        public void BootPlayer()
-        {
-            bootSession = true;
-        }
-
         private void SendFinalLogOffMessages()
         {
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            DatabaseManager.Shard.GetCharacters(Id, ((List<Character> result) =>
-            {
-                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList();
+            CheckCharactersForDeletion();
 
-                UpdateCachedCharacters(result);
-                Network.EnqueueSend(new GameMessageCharacterList(result, this));
+            Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
 
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
-                Network.EnqueueSend(serverNameMessage);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+            Network.EnqueueSend(serverNameMessage);
 
-                State = SessionState.AuthConnected;
+            State = SessionState.AuthConnected;
 
-                Player = null;
-            }));
+            Player = null;
+        }
+
+        public void BootPlayer()
+        {
+            bootSession = true;
         }
 
         private void SendFinalBoot()
@@ -328,6 +310,12 @@ namespace ACE.Server.Network
             Network.EnqueueSend(new GameMessageBootAccount(this));
         }
 
+
+        public void SendCharacterError(CharacterError error)
+        {
+            Network.EnqueueSend(new GameMessageCharacterError(error));
+        }
+
         /// <summary>
         /// Sends a broadcast message to the player
         /// </summary>
@@ -336,22 +324,6 @@ namespace ACE.Server.Network
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
             Network.EnqueueSend(worldBroadcastMessage);
-        }
-
-        /// Boilerplate Action/Actor stuff
-        public LinkedListNode<IAction> EnqueueAction(IAction act)
-        {
-            return actionQueue.EnqueueAction(act);
-        }
-
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
         }
     }
 }

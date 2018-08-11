@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
@@ -13,14 +14,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Gets the ActionChain to save a character
         /// </summary>
-        public ActionChain GetSaveChain()
+        public ActionChain GetSaveChain(bool showMsg = true)
         {
-            return new ActionChain(this, SavePlayer);
+            return new ActionChain(this, () => SavePlayer(showMsg));
         }
 
-        public void SaveDatabase()
+        /// <summary>
+        /// Creates and Enqueues an ActionChain to save a character
+        /// </summary>
+        public void EnqueueSaveChain(bool showMsg = true)
         {
-            var saveChain = GetSaveChain();
+            GetSaveChain(showMsg).EnqueueChain();
+        }
+
+        public void SaveDatabase(bool showMsg = true)
+        {
+            var saveChain = GetSaveChain(showMsg);
             saveChain.EnqueueChain();
         }
 
@@ -29,7 +38,7 @@ namespace ACE.Server.WorldObjects
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.<para />
         /// Will also save any possessions that are marked with ChangesDetected.
         /// </summary>
-        private void SavePlayer()
+        private void SavePlayer(bool showMsg = true)
         {
             LastRequestedDatabaseSave = DateTime.UtcNow;
 
@@ -46,8 +55,10 @@ namespace ACE.Server.WorldObjects
                     possession.SaveBiotaToDatabase();
             }
 
+            DatabaseManager.Shard.SaveCharacter(Character, null);
+
             #if DEBUG
-            if (Session.Player != null)
+            if (Session.Player != null && showMsg)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved.", ChatMessageType.Broadcast));
             #endif
         }

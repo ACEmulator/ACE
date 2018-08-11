@@ -25,7 +25,7 @@ namespace ACE.Entity
         public uint CharacterSlot { get; private set; }
         public uint ClassId { get; private set; }
 
-        public List<SkillStatus> SkillStatuses = new List<SkillStatus>();
+        public List<SkillAdvancementClass> SkillAdvancementClasses = new List<SkillAdvancementClass>();
 
         public string Name { get; private set; }
 
@@ -57,7 +57,7 @@ namespace ACE.Entity
 
             uint numOfSkills = reader.ReadUInt32();
             for (uint i = 0; i < numOfSkills; i++)
-                SkillStatuses.Add((SkillStatus)reader.ReadUInt32());
+                SkillAdvancementClasses.Add((SkillAdvancementClass)reader.ReadUInt32());
 
             Name = reader.ReadString16L();
 

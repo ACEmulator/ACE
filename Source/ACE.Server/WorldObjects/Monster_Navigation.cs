@@ -224,9 +224,11 @@ namespace ACE.Server.WorldObjects
             var newPos = PhysicsObj.Position;
             if (Location.LandblockId.Raw != newPos.ObjCellID)
             {
+                var prevBlockCell = Location.LandblockId.Raw;
                 var prevBlock = Location.LandblockId.Raw >> 16;
                 var prevCell = Location.LandblockId.Raw & 0xFFFF;
 
+                var newBlockCell = newPos.ObjCellID;
                 var newBlock = newPos.ObjCellID >> 16;
                 var newCell = newPos.ObjCellID & 0xFFFF;
 
@@ -236,17 +238,18 @@ namespace ACE.Server.WorldObjects
                 {
                     PreviousLocation = Location;
                     LandblockManager.RelocateObjectForPhysics(this);
-                    //PhysicsObj.Position.Frame.Origin = newPos;
-                    //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
+                    //Console.WriteLine($"Relocating {Name} from {prevBlockCell:X8} to {newBlockCell:X8}");
+                    //Console.WriteLine("Old position: " + Location.Pos);
+                    //Console.WriteLine("New position: " + newPos.Frame.Origin);
                 }
                 //else
-                //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
+                    //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
             }
             Location.Pos = newPos.Frame.Origin;
             Location.Rotation = newPos.Frame.Orientation;
 
-            //if (DebugMove)
-                //DebugDistance();
+            if (DebugMove)
+                DebugDistance();
         }
 
         public void DebugDistance()
@@ -254,7 +257,7 @@ namespace ACE.Server.WorldObjects
             var dist = GetDistanceToTarget();
             var angle = GetAngle(AttackTarget);
             Console.WriteLine("Dist: " + dist);
-            Console.WriteLine("Angle: " + angle);
+            //Console.WriteLine("Angle: " + angle);
         }
 
         public void GetMovementSpeed()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
 using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -20,39 +21,40 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
-        /// Player Death/Kill, use this to kill a session's player
+        /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
+        /// Queues the action to call TeleportOnDeath and enter portal space soon
         /// </summary>
-        /// <remarks>
-        ///     TODO:
-        ///         1. Find the best vitae formula and add vitae
-        ///         2. Generate the correct death message, or have it passed in as a parameter.
-        ///         3. Find the correct player death noise based on the player model and play on death.
-        ///         4. Determine if we need to Send Queued Action for Lifestone Materialize, after Action Location.
-        ///         5. Find the health after death formula and Set the correct health
-        /// </remarks>
-        private void OnKill(Session killerSession)
+        protected override void Die(WorldObject lastDamager, WorldObject topDamager)
         {
-            ObjectGuid killerId = killerSession.Player.Guid;
+            UpdateVital(Health, 0);
+            NumDeaths++;
+            DeathLevel = Level; // for calculating vitae XP
+            VitaeCpPool = 0;    // reset vitae XP earned
 
-            IsAlive = false;
-            Health.Current = 0; // Set the health to zero
-            NumDeaths++; // Increase the NumDeaths counter
-            DeathLevel = Level; // For calculating vitae XP
-            VitaeCpPool = 0; // Set vitae XP
+            // killer = top damager for looting rights
+            if (topDamager != null)
+                Killer = topDamager.Guid.Full;
 
-            // TODO: Generate a death message based on the damage type to pass in to each death message:
-            string currentDeathMessage = $"died to {killerSession.Player.Name}.";
+            // broadcast death animation
+            var deathAnim = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            CurrentLandblock?.EnqueueBroadcastMotion(this, deathAnim);
 
-            // Send Vicitim Notification, or "Your Death" event to the client:
-            // create and send the client death event, GameEventYourDeath
+            // killer death message = last damager
+            var killerMsg = lastDamager != null ? " to " + lastDamager.Name : "";
+            var currentDeathMessage = $"died{killerMsg}.";
+
+            // create network messages for player death
+            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, 0);
+
+            // TODO: death sounds? seems to play automatically in client
+            // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
             var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
             var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
-            // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
 
-            // handle vitae
+            // update vitae
             var vitae = EnchantmentManager.UpdateVitae();
 
             var spellID = (uint)Network.Enum.Spell.Vitae;
@@ -61,84 +63,69 @@ namespace ACE.Server.WorldObjects
             var vitaeEnchantment = new Enchantment(this, Guid, spellID, (double)spell.Duration, 0, spell.StatModType, vitae);
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
-            var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, 0);
-
-            // Send first death message group
+            // send network messages for player death
             Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
 
-            // Broadcast the 019E: Player Killed GameMessage
-            ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerId);
-        }
+            // wait for the death animation to finish
+            var dieChain = new ActionChain();
+            var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
+            dieChain.AddDelaySeconds(animLength + 1.0f);
 
-        protected override void DoOnKill(Session killerSession)
-        {
-            // First do on-kill
-            OnKill(killerSession);
+            // enter portal space
+            dieChain.AddAction(this, CreateCorpse);
+            dieChain.AddAction(this, TeleportOnDeath);
+            dieChain.EnqueueChain();
 
-            // Then get onKill from our parent
-            ActionChain killChain = OnKillInternal(killerSession);
-
-            // Send the teleport out after we animate death
-            killChain.AddAction(this, () =>
+            // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
+            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
             {
-                // teleport to sanctuary or best location
-                var newPosition = Sanctuary ?? LastPortal ?? Location;
-
-                // Enqueue a teleport action, followed by Stand-up
-                // Queue the teleport to lifestone
-                ActionChain teleportChain = GetTeleportChain(newPosition);
-
-                teleportChain.AddAction(this, () =>
-                {
-                    var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
-                    var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
-                    var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
-
-                    var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
-                    var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
-                    var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
-
-                    UpdateVital(Health, newHealth);
-                    UpdateVital(Stamina, newStamina);
-                    UpdateVital(Mana, newMana);
-
-                    killerSession.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
-
-                    // Stand back up
-                    DoMotion(new UniversalMotion(MotionStance.Standing));
-
-                    // add a Corpse at the current location via the ActionQueue to honor the motion and teleport delays
-                    // QueuedGameAction addCorpse = new QueuedGameAction(this.Guid.Full, corpse, true, GameActionType.ObjectCreate);
-                    // AddToActionQueue(addCorpse);
-                    // If the player is outside of the landblock we just died in, then reboadcast the death for
-                    // the players at the lifestone.
-                    if (Positions.ContainsKey(PositionType.LastOutsideDeath) && Positions[PositionType.LastOutsideDeath].Cell != newPosition.Cell)
-                    {
-                        string currentDeathMessage = $"died to {killerSession.Player.Name}.";
-                        ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerSession.Player.Guid);
-                    }
-                });
-                teleportChain.EnqueueChain();
-            });
-            killChain.EnqueueChain();
+                var killerGuid = lastDamager != null ? lastDamager.Guid : Guid;
+                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerGuid);
+            }
+            DamageHistory.Reset();
         }
 
+        /// <summary>
+        /// Called when the player enters portal space after dying
+        /// </summary>
+        public void TeleportOnDeath()
+        {
+            // teleport to sanctuary or best location
+            var newPosition = Sanctuary ?? LastPortal ?? Location;
+
+            // Enqueue a teleport action, followed by Stand-up
+            // Queue the teleport to lifestone
+            ActionChain teleportChain = GetTeleportChain(newPosition);
+
+            teleportChain.AddAction(this, () =>
+            {
+                // currently happens while in portal space
+                var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
+                var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
+                var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
+
+                var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
+                var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
+                var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
+
+                UpdateVital(Health, newHealth);
+                UpdateVital(Stamina, newStamina);
+                UpdateVital(Mana, newMana);
+
+                Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
+
+                // Stand back up
+                DoMotion(new UniversalMotion(MotionStance.Standing));
+            });
+            teleportChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// Called when player uses the /die command
+        /// </summary>
         public void HandleActionDie()
         {
-            new ActionChain(this, () =>
-            {
-                DoOnKill(Session);
-            }).EnqueueChain();
-        }
-
-        public override void Smite(ObjectGuid smiter)
-        {
-            HandleActionDie();
-        }
-
-        public void CreateCorpse()
-        {
-
+            Die(this, DamageHistory.TopDamager);
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)

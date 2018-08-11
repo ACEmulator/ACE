@@ -616,7 +616,7 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.ItemXpStyle:
                     return System.Enum.GetName(typeof(ItemXpStyle), value);
                 case PropertyInt.MaterialType:
-                    return System.Enum.GetName(typeof(Material), value);
+                    return System.Enum.GetName(typeof(MaterialType), value);
                 case PropertyInt.PaletteTemplate:
                     return System.Enum.GetName(typeof(PaletteTemplate), value);
                 case PropertyInt.PhysicsState:

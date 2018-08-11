@@ -1,6 +1,6 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
-    public enum Material : uint
+    public enum MaterialType : uint
     {
         Ceramic         = 0x00000001,
         Porcelain       = 0x00000002,

@@ -5,36 +5,6 @@ using ACE.Server.Physics.Common;
 namespace ACE.Server.Physics
 {
     [Flags]
-    public enum PhysicsState
-    {
-        Static = 0x1,
-        Unused1 = 0x2,
-        Ethereal = 0x4,
-        ReportCollisions = 0x8,
-        IgnoreCollisions = 0x10,
-        NoDraw = 0x20,
-        Missile = 0x40,
-        Pushable = 0x80,
-        AlignPath = 0x100,
-        PathClipped = 0x200,
-        Gravity = 0x400,
-        LightingOn = 0x800,
-        ParticleEmitter = 0x1000,
-        Unused2 = 0x2000,
-        Hidden = 0x4000,
-        ScriptedCollision = 0x8000,
-        HasPhysicsBSP = 0x10000,
-        Inelastic = 0x20000,
-        HasDefaultAnim = 0x40000,
-        HasDefaultScript = 0x80000,
-        Cloaked = 0x100000,
-        ReportCollisionsAsEnvironment = 0x200000,
-        EdgeSlide = 0x400000,
-        Sledding = 0x800000,
-        Frozen = 0x1000000
-    };
-
-    [Flags]
     public enum TransientStateFlags
     {
         Contact = 0x1,

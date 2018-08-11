@@ -28,7 +28,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(IList<TreasureWielded> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `treasure_wielded` (`treasure_Type`, `weenie_Class_Id`, `palette_Id`, `unknown_1`, `shade`, `stack_Size`, `unknown_2`, `probability`, `unknown_3`, `unknown_4`, `unknown_5`, `unknown_6`, `unknown_7`, `unknown_8`, `unknown_9`, `unknown_10`, `unknown_11`, `unknown_12`)");
+            writer.WriteLine("INSERT INTO `treasure_wielded` (`treasure_Type`, `weenie_Class_Id`, `palette_Id`, `unknown_1`, `shade`, `stack_Size`, `stack_Size_Variance`, `probability`, `unknown_3`, `unknown_4`, `unknown_5`, `set_Start`, `has_Sub_Set`, `continues_Previous_Set`, `unknown_9`, `unknown_10`, `unknown_11`, `unknown_12`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -43,14 +43,14 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Unknown1}, " +
                     $"{input[i].Shade.ToString(CultureInfo.InvariantCulture).PadLeft(4)}, " +
                     $"{input[i].StackSize}, " +
-                    $"{input[i].Unknown2}, " +
+                    $"{input[i].StackSizeVariance}, " +
                     $"{input[i].Probability.ToString(CultureInfo.InvariantCulture).PadLeft(7)}, " +
                     $"{input[i].Unknown3}, " +
                     $"{input[i].Unknown4}, " +
                     $"{input[i].Unknown5}, " +
-                    $"{input[i].Unknown6.ToString().PadLeft(5)}, " +
-                    $"{input[i].Unknown7.ToString().PadLeft(5)}, " +
-                    $"{input[i].Unknown8.ToString().PadLeft(5)}, " +
+                    $"{input[i].SetStart.ToString().PadLeft(5)}, " +
+                    $"{input[i].HasSubSet.ToString().PadLeft(5)}, " +
+                    $"{input[i].ContinuesPreviousSet.ToString().PadLeft(5)}, " +
                     $"{input[i].Unknown9}, " +
                     $"{input[i].Unknown10}, " +
                     $"{input[i].Unknown11}, " +

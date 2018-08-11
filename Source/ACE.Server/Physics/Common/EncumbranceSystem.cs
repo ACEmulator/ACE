@@ -2,11 +2,11 @@ namespace ACE.Server.Physics.Common
 {
     public class EncumbranceSystem
     {
-        public static int EncumbranceCapacity(int strength, int augments)
+        public static int EncumbranceCapacity(int strength, int numAugs)
         {
             if (strength <= 0) return 0;
 
-            var bonusBurden = 30 * augments;
+            var bonusBurden = 30 * numAugs;
 
             if (bonusBurden >= 0)
             {
@@ -19,22 +19,22 @@ namespace ACE.Server.Physics.Common
                 return 150 * strength;
         }
 
-        public static float Load(int capacity, int encumbrance)
+        public static float GetBurden(int capacity, int encumbrance)
         {
             if (capacity <= 0) return 3.0f;
 
             if (encumbrance >= 0)
-                return encumbrance / capacity;
+                return (float)encumbrance / capacity;
             else
                 return 0.0f;
         }
 
-        public static float LoadMod(float load)
+        public static float GetBurdenMod(float burden)
         {
-            if (load < 1.0f) return 1.0f;
+            if (burden < 1.0f) return 1.0f;
 
-            if (load < 2.0f)
-                return 2.0f - load;
+            if (burden < 2.0f)
+                return 2.0f - burden;
             else
                 return 0.0f;
         }

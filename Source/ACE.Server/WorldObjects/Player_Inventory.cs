@@ -795,7 +795,7 @@ namespace ACE.Server.WorldObjects
                             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
                             CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                new GameMessageParentEvent(Session.Player, item, childLocation, placementId),
+                                new GameMessageParentEvent(this, item, childLocation, placementId),
                                 new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
                                 new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),

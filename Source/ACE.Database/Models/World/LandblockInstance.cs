@@ -3,12 +3,16 @@ using System.Collections.Generic;
 
 namespace ACE.Database.Models.World
 {
-    public partial class LandblockInstances
+    public partial class LandblockInstance
     {
-        public uint Id { get; set; }
+        public LandblockInstance()
+        {
+            LandblockInstanceLink = new HashSet<LandblockInstanceLink>();
+        }
+
+        public uint Guid { get; set; }
         public int? Landblock { get; set; }
         public uint WeenieClassId { get; set; }
-        public uint Guid { get; set; }
         public uint ObjCellId { get; set; }
         public float OriginX { get; set; }
         public float OriginY { get; set; }
@@ -17,9 +21,9 @@ namespace ACE.Database.Models.World
         public float AnglesX { get; set; }
         public float AnglesY { get; set; }
         public float AnglesZ { get; set; }
-        public int? LinkSlot { get; set; }
-        public bool? LinkController { get; set; }
+        public bool IsLinkChild { get; set; }
 
         public Weenie WeenieClass { get; set; }
+        public ICollection<LandblockInstanceLink> LandblockInstanceLink { get; set; }
     }
 }

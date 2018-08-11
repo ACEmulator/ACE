@@ -1,14 +1,3 @@
-12/21/2017
+08/10/2018
 ---------
-- Swapped Placement data with PlacementPosition data
-
-8/03/2017
----------
-- Added 08-08-03-2017-ace_object_properties_book to store page/book data.
-
-6/17/2017
---------
-- Added 01-2017-07-06-LoginTimestamp - This adds the `loginTimestamp` field to the `vw_ace_character` view.
-
-07/02/2018
-- Added 2018-07-02-gameplay_Options - This field saves GameplayOptions (UI Window Placement & Options)
+- Added `populated_collection_flags` to `biota` table.

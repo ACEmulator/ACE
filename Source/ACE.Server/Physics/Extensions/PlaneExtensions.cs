@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Collision;
@@ -77,6 +78,21 @@ namespace ACE.Server.Physics.Extensions
 
             v.Z = -((v.Y * p.Normal.Y + v.X * p.Normal.X + p.D) / p.Normal.Z);
             return true;
+        }
+
+        public static bool is_equal(this Plane p1, Plane p2)
+        {
+            return p1.Normal.X == p2.Normal.X && p1.Normal.Y == p2.Normal.Y && p1.Normal.Z == p2.Normal.Z && p1.D == p2.D;
+        }
+
+        public static int get_hash_code(this Plane p)
+        {
+            int hash = 0;
+
+            hash = (hash * 397) ^ p.Normal.GetHashCode();
+            hash = (hash * 397) ^ p.D.GetHashCode();
+
+            return hash;
         }
     }
 }

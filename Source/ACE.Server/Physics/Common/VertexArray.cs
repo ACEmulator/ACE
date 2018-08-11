@@ -1,32 +1,23 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using ACE.Entity.Enum;
+using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics.Common
 {
     public class VertexArray
     {
+        public VertexType Type;
         public List<Vertex> Vertices;
-        public int Type;
 
         public VertexArray()
         {
             Vertices = new List<Vertex>();
         }
 
-        public VertexArray(int numVertices, int type)
+        public VertexArray(VertexType type, int numVerts)
         {
-            Vertices = new List<Vertex>(numVertices);
+            Vertices = new List<Vertex>(numVerts);
             Type = type;
-        }
-
-        public void DeleteUVs()
-        {
-            foreach (var vertex in Vertices)
-                vertex.UVs = null;
-        }
-
-        public void DestroyVertex()
-        {
-            Vertices = null;    // verify
         }
     }
 }

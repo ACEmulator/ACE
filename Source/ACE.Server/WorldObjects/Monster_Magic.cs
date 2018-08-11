@@ -117,6 +117,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CastSpell()
         {
+            bool? resisted;
             var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();
 
@@ -124,7 +125,7 @@ namespace ACE.Server.WorldObjects
             var target = targetSelf ? this : AttackTarget;
 
             var player = AttackTarget as Player;
-            var scale = SpellAttributes(player.Session.Account, spell.SpellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            var scale = SpellAttributes(player.Session.Account, spell.Id, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
             switch (spellBase.School)
             {
@@ -135,38 +136,30 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    if (!targetSelf && ResistSpell(Skill.LifeMagic))break;
+                    resisted = ResistSpell(target, spellBase);
+                    if (!targetSelf && (resisted == true))break;
+                    if (resisted == null)
+                    {
+                        log.Error("Something went wrong with the Magic resistance check");
+                        break;
+                    }
                     LifeMagic(target, spellBase, spell, out uint damage, out bool critical, out var msg);
                     if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
 
                 case MagicSchool.CreatureEnchantment:
 
-                    if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
+                    resisted = ResistSpell(target, spellBase);
+                    if (!targetSelf && (resisted == true)) break;
+                    if (resisted == null)
+                    {
+                        log.Error("Something went wrong with the Magic resistance check");
+                        break;
+                    }
                     CreatureMagic(target, spellBase, spell);
                     if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
             }
-        }
-
-        /// <summary>
-        /// Returns TRUE if player resists the magic spell
-        /// </summary>
-        public bool ResistSpell(Skill skill)
-        {
-            var player = AttackTarget as Player;
-
-            var magicSkill = GetCreatureSkill(skill).Current;
-            var difficulty = player.GetCreatureSkill(Skill.MagicDefense).Current;
-
-            var resisted = MagicDefenseCheck(magicSkill, difficulty);
-
-            if (resisted)
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You resist the spell cast by " + Name, ChatMessageType.Magic));
-                player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
-            }
-            return resisted;
         }
 
         /// <summary>

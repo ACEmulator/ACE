@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,7 +21,6 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
-            IsAlive = true; // seems like something that should be handled differently...
             IsOnline = true;
 
             // Save the the LoginTimestamp
@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
                 {
                     int placementId;
                     int parentLocation;
-                    Session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
+                    SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
             Placement = null;
             Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
 
-            SendInventoryAndWieldedItems(Session);
+            SendInventoryAndWieldedItems();
 
             // SendContractTrackerTable(); todo fix for new ef not use aceobj
         }
@@ -92,12 +92,11 @@ namespace ACE.Server.WorldObjects
         /// It also iterates over your wielded items - it sends create object messages needed by the login process
         /// it is called from SendSelf as part of the login message traffic.   Og II
         /// </summary>
-        /// <param name="session"></param>
-        public void SendInventoryAndWieldedItems(Session session)
+        public void SendInventoryAndWieldedItems()
         {
             foreach (var item in Inventory.Values)
             {
-                session.Network.EnqueueSend(new GameMessageCreateObject(item));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
 
                 // Was the item I just send a container? If so, we need to send the items in the container as well. Og II
                 if (item is Container container)
@@ -105,7 +104,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
 
                     foreach (var itemsInContainer in container.Inventory.Values)
-                        session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
+                        Session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
                 }
             }
 
@@ -117,7 +116,7 @@ namespace ACE.Server.WorldObjects
                 {
                     int placementId;
                     int parentLocation;
-                    session.Player.SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
+                    SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
                     item.CurrentMotionState = null;
                 }
 
@@ -128,7 +127,7 @@ namespace ACE.Server.WorldObjects
                     item.Placement = ACE.Entity.Enum.Placement.Resting;
                     item.Location = null;
                 }
-                session.Network.EnqueueSend(new GameMessageCreateObject(item));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
             }
         }
 
@@ -190,6 +189,10 @@ namespace ACE.Server.WorldObjects
                 // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
                 newMotion.Commands.AddRange(commands);
                 CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
+
+                // TODO: use real motion / animation system from physics
+                CurrentMotionCommand = md.ForwardCommand;
+
             }).EnqueueChain();
         }
 

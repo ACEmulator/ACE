@@ -5,7 +5,7 @@ using System.IO;
 namespace ACE.DatLoader.Entity
 {
     /// <summary>
-    /// This is actually different than just a "VertexArray" class.
+    /// A list of indexed vertices, and their associated type
     /// </summary>
     public class CVertexArray : IUnpackable
     {

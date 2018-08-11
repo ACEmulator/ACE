@@ -24,13 +24,13 @@ namespace ACE.Server.Network.Enum
                 return highlightMask;
 
             // Enchant applies to all weapons
-            if (wielder.EnchantmentManager.GetDefenseMod() != 1.0f)
+            if (wielder.EnchantmentManager.GetDefenseMod() != 0)
                 highlightMask |= WeaponMask.MeleeDefense;
 
             // Following enchants do not apply to caster weapons
             if (weapon.WeenieType != ACE.Entity.Enum.WeenieType.Caster)
             {
-                if (wielder.EnchantmentManager.GetAttackMod() != 1.0f)
+                if (wielder.EnchantmentManager.GetAttackMod() != 0)
                     highlightMask |= WeaponMask.AttackSkill;
                 if (wielder.EnchantmentManager.GetWeaponSpeedMod() != 0)
                     highlightMask |= WeaponMask.Speed;
@@ -53,14 +53,14 @@ namespace ACE.Server.Network.Enum
                 return colorMask;
 
             // Enchant applies to all weapons
-            if (wielder.EnchantmentManager.GetDefenseMod() > 1.0f)
+            if (wielder.EnchantmentManager.GetDefenseMod() > 0)
                 colorMask |= WeaponMask.MeleeDefense;
 
             // Following enchants do not apply to caster weapons
             if (weapon.WeenieType != ACE.Entity.Enum.WeenieType.Caster)
             {
                 // item enchanments are currently being cast on wielder
-                if (wielder.EnchantmentManager.GetAttackMod() > 1.0f)
+                if (wielder.EnchantmentManager.GetAttackMod() > 0)
                     colorMask |= WeaponMask.AttackSkill;
                 if (wielder.EnchantmentManager.GetWeaponSpeedMod() < 0)
                     colorMask |= WeaponMask.Speed;

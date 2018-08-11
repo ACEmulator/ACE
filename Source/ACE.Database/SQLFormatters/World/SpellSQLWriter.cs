@@ -10,11 +10,11 @@ namespace ACE.Database.SQLFormatters.World
     public class SpellSQLWriter : SQLWriter
     {
         /// <summary>
-        /// Default is formed from: input.SpellId.ToString("00000") + " " + input.Name
+        /// Default is formed from: input.Id.ToString("00000") + " " + input.Name
         /// </summary>
         public string GetDefaultFileName(Spell input)
         {
-            string fileName = input.SpellId.ToString("00000") + " " + input.Name;
+            string fileName = input.Id.ToString("00000") + " " + input.Name;
             fileName = IllegalInFileName.Replace(fileName, "_");
             fileName += ".sql";
 
@@ -23,14 +23,14 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Spell input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `spell` WHERE `spell_Id` = {input.SpellId};");
+            writer.WriteLine($"DELETE FROM `spell` WHERE `spell_Id` = {input.Id};");
         }
 
         public void CreateSQLINSERTStatement(Spell input, StreamWriter writer)
         {
-            var spellLineHdr = "INSERT INTO `spell` (`spell_Id`, `name`, `description`, `school`, `icon_Id`, `category`, `bitfield`, `mana`, `range_Constant`, `range_Mod`, `power`, `economy_Mod`, `formula_Version`, `component_Loss`, `meta_Spell_Type`, `meta_Spell_Id`, `spell_Formula_Comp_1_Component_Id`, `spell_Formula_Comp_2_Component_Id`, `spell_Formula_Comp_3_Component_Id`, `spell_Formula_Comp_4_Component_Id`, `spell_Formula_Comp_5_Component_Id`, `spell_Formula_Comp_6_Component_Id`, `spell_Formula_Comp_7_Component_Id`, `spell_Formula_Comp_8_Component_Id`, `caster_Effect`, `target_Effect`, `fizzle_Effect`, `recovery_Interval`, `recovery_Amount`, `display_Order`, `non_Component_Target_Type`, `mana_Mod`";
+            var spellLineHdr = "INSERT INTO `spell` (`id`, `name`, `description`, `school`, `icon_Id`, `category`, `bitfield`, `mana`, `range_Constant`, `range_Mod`, `power`, `economy_Mod`, `formula_Version`, `component_Loss`, `meta_Spell_Type`, `meta_Spell_Id`, `spell_Formula_Comp_1_Component_Id`, `spell_Formula_Comp_2_Component_Id`, `spell_Formula_Comp_3_Component_Id`, `spell_Formula_Comp_4_Component_Id`, `spell_Formula_Comp_5_Component_Id`, `spell_Formula_Comp_6_Component_Id`, `spell_Formula_Comp_7_Component_Id`, `spell_Formula_Comp_8_Component_Id`, `caster_Effect`, `target_Effect`, `fizzle_Effect`, `recovery_Interval`, `recovery_Amount`, `display_Order`, `non_Component_Target_Type`, `mana_Mod`";
 
-            var spellLine = $"VALUES ({input.SpellId}, {GetSQLString(input.Name)}, {GetSQLString(input.Description)}, {input.School} /* {Enum.GetName(typeof(MagicSchool), input.School)} */, {input.IconId}, {input.Category}, {input.Bitfield} /* {((SpellBitfield)input.Bitfield).ToString()} */, {input.Mana}, {input.RangeConstant}, {input.RangeMod}, {input.Power}, {input.EconomyMod}, {input.FormulaVersion}, {input.ComponentLoss}, {input.MetaSpellType} /* {Enum.GetName(typeof(ACE.Entity.Enum.SpellType), input.MetaSpellType)} */, {input.MetaSpellId}, {input.SpellFormulaComp1ComponentId}, {input.SpellFormulaComp2ComponentId}, {input.SpellFormulaComp3ComponentId}, {input.SpellFormulaComp4ComponentId}, {input.SpellFormulaComp5ComponentId}, {input.SpellFormulaComp6ComponentId}, {input.SpellFormulaComp7ComponentId}, {input.SpellFormulaComp8ComponentId}, {input.CasterEffect}, {input.TargetEffect}, {input.FizzleEffect}, {input.RecoveryInterval}, {input.RecoveryAmount}, {input.DisplayOrder}, {input.NonComponentTargetType}, {input.ManaMod}";
+            var spellLine = $"VALUES ({input.Id}, {GetSQLString(input.Name)}, {GetSQLString(input.Description)}, {input.School} /* {Enum.GetName(typeof(MagicSchool), input.School)} */, {input.IconId}, {input.Category}, {input.Bitfield} /* {((SpellBitfield)input.Bitfield).ToString()} */, {input.Mana}, {input.RangeConstant}, {input.RangeMod}, {input.Power}, {input.EconomyMod}, {input.FormulaVersion}, {input.ComponentLoss}, {input.MetaSpellType} /* {Enum.GetName(typeof(ACE.Entity.Enum.SpellType), input.MetaSpellType)} */, {input.MetaSpellId}, {input.SpellFormulaComp1ComponentId}, {input.SpellFormulaComp2ComponentId}, {input.SpellFormulaComp3ComponentId}, {input.SpellFormulaComp4ComponentId}, {input.SpellFormulaComp5ComponentId}, {input.SpellFormulaComp6ComponentId}, {input.SpellFormulaComp7ComponentId}, {input.SpellFormulaComp8ComponentId}, {input.CasterEffect}, {input.TargetEffect}, {input.FizzleEffect}, {input.RecoveryInterval}, {input.RecoveryAmount}, {input.DisplayOrder}, {input.NonComponentTargetType}, {input.ManaMod}";
 
             if (input.Duration.HasValue)
             {
@@ -352,6 +352,11 @@ namespace ACE.Database.SQLFormatters.World
                 spellLineHdr += ", `position_Origin_Z`";
                 spellLine += $", {input.PositionOriginZ}";
             }
+            if (input.PositionAnglesW.HasValue)
+            {
+                spellLineHdr += ", `position_Angles_W`";
+                spellLine += $", {input.PositionAnglesW}";
+            }
             if (input.PositionAnglesX.HasValue)
             {
                 spellLineHdr += ", `position_Angles_X`";
@@ -366,11 +371,6 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `position_Angles_Z`";
                 spellLine += $", {input.PositionAnglesZ}";
-            }
-            if (input.PositionAnglesW.HasValue)
-            {
-                spellLineHdr += ", `position_Angles_W`";
-                spellLine += $", {input.PositionAnglesW}";
             }
 
             if (input.MinPower.HasValue)

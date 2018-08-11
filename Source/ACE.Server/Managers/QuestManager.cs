@@ -9,7 +9,7 @@ namespace ACE.Server.Managers
     public class QuestManager
     {
         public Player Player { get; }
-        public ICollection<CharacterPropertiesQuestRegistry> Quests { get => Player.Biota.CharacterPropertiesQuestRegistry; }
+        public ICollection<CharacterPropertiesQuestRegistry> Quests { get => Player.Character.CharacterPropertiesQuestRegistry; }
 
         /// <summary>
         /// Constructs a new QuestManager for a Player
@@ -34,7 +34,7 @@ namespace ACE.Server.Managers
             var quest = new CharacterPropertiesQuestRegistry
             {
                 QuestName = questName,
-                ObjectId = Player.Guid.Full,
+                CharacterId = Player.Guid.Full,
                 LastTimeCompleted = 0,  // TODO: get accurate server time?
                 NumTimesCompleted = 1   // ??
             };
@@ -100,7 +100,7 @@ namespace ACE.Server.Managers
                 Console.WriteLine("Times Completed: " + quest.NumTimesCompleted);
                 Console.WriteLine("Last Time Completed: " + quest.LastTimeCompleted);
                 Console.WriteLine("Quest ID: " + quest.Id.ToString("X8"));
-                Console.WriteLine("Player ID: " + quest.ObjectId.ToString("X8"));
+                Console.WriteLine("Player ID: " + quest.CharacterId.ToString("X8"));
                 Console.WriteLine("----");
             }
         }

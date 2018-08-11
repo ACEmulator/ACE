@@ -3,6 +3,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -141,6 +142,33 @@ namespace ACE.Server.WorldObjects
                 return (DamageType)attackPart.DType;
             else
                 return GetDamageType(false);
+        }
+
+        /// <summary>
+        /// Applies some amount of damage to this monster from source
+        /// </summary>
+        /// <param name="source">The attacker / source of damage</param>
+        /// <param name="amount">The amount of damage rounded</param>
+        public virtual void TakeDamage(WorldObject source, float amount, bool crit = false)
+        {
+            var tryDamage = (uint)Math.Round(amount);
+            var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
+
+            DamageHistory.Add(source, damage);
+
+            if (Health.Current <= 0)
+            {
+                OnDeath();
+                Die();
+
+                var player = source as Player;
+                if (player != null)
+                {
+                    var deathMessage = GetDeathMessage(source, crit);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, Name), ChatMessageType.Broadcast));
+                    player.EarnXP((long)XpOverride);
+                }
+            }
         }
     }
 }

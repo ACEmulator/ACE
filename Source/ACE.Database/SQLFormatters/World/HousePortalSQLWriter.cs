@@ -27,9 +27,9 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(IList<HousePortal> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `house_portal` (`house_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_X`, `angles_Y`, `angles_Z`, `angles_W`)");
+            writer.WriteLine("INSERT INTO `house_portal` (`house_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{input[i].HouseId}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ}, {input[i].AnglesW})");
+            var lineGenerator = new Func<int, string>(i => $"{input[i].HouseId}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesW}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

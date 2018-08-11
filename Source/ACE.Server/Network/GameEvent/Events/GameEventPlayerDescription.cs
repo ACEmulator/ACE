@@ -266,7 +266,7 @@ namespace ACE.Server.Network.GameEvent.Events
                     Writer.Write((uint)kvp.Key); // skill id
                     Writer.Write(kvp.Value.Ranks); // points raised
                     Writer.Write((ushort)1u);
-                    Writer.Write((uint)kvp.Value.Status); // skill state
+                    Writer.Write((uint)kvp.Value.AdvancementClass); // skill state
                     Writer.Write(kvp.Value.ExperienceSpent); // xp spent on this skill
                     Writer.Write(kvp.Value.InitLevel);  // init_level, for training/specialized bonus from character creation
                     Writer.Write(0u); // task difficulty, aka "resistance_of_last_check"
@@ -299,7 +299,7 @@ namespace ACE.Server.Network.GameEvent.Events
             if (shortcuts.Count > 0)
                 optionFlags |= CharacterOptionDataFlag.Shortcut;
 
-            if (Session.Character.GameplayOptions != null && Session.Character.GameplayOptions.Length > 0)
+            if (Session.Player.Character.GameplayOptions != null && Session.Player.Character.GameplayOptions.Length > 0)
                 optionFlags |= CharacterOptionDataFlag.GameplayOptions;
 
             Writer.Write((uint)optionFlags);
@@ -339,7 +339,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }*/
 
             if ((optionFlags & CharacterOptionDataFlag.GameplayOptions) != 0)
-                Writer.Write(Session.Character.GameplayOptions);
+                Writer.Write(Session.Player.Character.GameplayOptions);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk400) != 0)
             {

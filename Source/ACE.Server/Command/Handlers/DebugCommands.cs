@@ -399,7 +399,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Saves your session.")]
         public static void HandleSaveNow(Session session, params string[] parameters)
         {
-            session.SaveSessionPlayer();
+            session.Player.EnqueueSaveChain();
         }
 
         /// <summary>
@@ -822,7 +822,7 @@ namespace ACE.Server.Command.Handlers
         // Create Objects in Player Inventory
         // ==================================
 
-        private static void AddWeeniesToInventory(Session session, HashSet<uint> weenieIds)
+        private static void AddWeeniesToInventory(Session session, HashSet<uint> weenieIds, ushort? stackSize = null)
         {
             foreach (uint weenieId in weenieIds)
             {
@@ -831,11 +831,14 @@ namespace ACE.Server.Command.Handlers
                 if (loot == null) // weenie doesn't exist
                     continue;
 
-                if (loot.MaxStackSize > 1)
+                if (stackSize == null)
+                    stackSize = loot.MaxStackSize;
+
+                if (stackSize > 1)
                 {
-                    loot.StackSize = loot.MaxStackSize;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (loot.StackSize ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (loot.StackSize ?? 1);
+                    loot.StackSize = stackSize;
+                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSize ?? 1);
+                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSize ?? 1);
                 }
 
                 session.Player.TryCreateInInventoryWithNetworking(loot);
@@ -864,6 +867,14 @@ namespace ACE.Server.Command.Handlers
             HashSet<uint> weenieIds = new HashSet<uint> { 300, 690, 20630, 20631, 31198, 37155 };
 
             AddWeeniesToInventory(session, weenieIds);
+        }
+
+        [CommandHandler("comps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates spell component items in your inventory for testing.")]
+        public static void HandleComps(Session session, params string[] parameters)
+        {
+            HashSet<uint> weenieIds = new HashSet<uint> { 686, 687, 688, 689, 690, 691, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779 ,780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 1643, 1644, 1645, 1646, 1647, 1648, 1649, 1650, 1651, 1652, 1653, 1654, 7299, 8897, 20631 };
+
+            AddWeeniesToInventory(session, weenieIds, 1);
         }
 
         [CommandHandler("food", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some food items in your inventory for testing.")]

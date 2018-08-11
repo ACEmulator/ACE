@@ -185,6 +185,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             player.Teleporting = true;
+            var restrict = true;
 
             if (Destination != null)
             {
@@ -194,7 +195,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
                 // Check player level -- requires remote query to player (ugh)...
-                if ((player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)) || (player.IgnorePortalRestrictions ?? false))
+                if (!restrict || (player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)) || (player.IgnorePortalRestrictions ?? false))
                 {
                     Position portalDest = Destination;
                     switch (WeenieClassId)
@@ -279,14 +280,14 @@ namespace ACE.Server.WorldObjects
                                 break;
                             }
                     }
-                    player.AdjustDungeonCells(portalDest);
+                    player.AdjustDungeon(portalDest);
 
 #if DEBUG
                     serverMessage = "Portal sending player to destination";
                     usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                     player.Session.Network.EnqueueSend(usePortalMessage);
 #endif
-                    player.Session.Player.Teleport(portalDest);
+                    player.Teleport(portalDest);
                     // If the portal just used is able to be recalled to,
                     // save the destination coordinates to the LastPortal character position save table
                     if (!NoRecall)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Network.Enum;
-using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -172,15 +171,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
                 byte[] gameplayOptions = new byte[size];
                 gameplayOptions = message.Payload.ReadBytes(size);
-                session.Character.GameplayOptions = gameplayOptions;
-
-                // Not sure if this is the best way to do this, but only way it saves.
-                // Is this thread safe?
-                ACE.Database.DatabaseManager.Shard.SaveCharacter(session.Character, null);
+                session.Player.Character.GameplayOptions = gameplayOptions;
             }
-
-            // Save the options
-            session.Player.SaveBiotaToDatabase();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -10,24 +11,15 @@ namespace ACE.Server.Network.GameMessages.Messages
     {
         public GameMessageCharacterList(List<Character> characters, Session session) : base(GameMessageOpcode.CharacterList, GameMessageGroup.UIQueue)
         {
-            // Remove any deleted characters from results
-            List<Character> charactersTrimmed = new List<Character>();
+            Writer.Write(0u);
+            Writer.Write(characters.Count);
 
             foreach (var character in characters)
-            {
-                if (!character.IsDeleted)
-                    charactersTrimmed.Add(character);
-            }
-
-            Writer.Write(0u);
-            Writer.Write(charactersTrimmed.Count);
-
-            foreach (var character in charactersTrimmed)
             {                
-                Writer.WriteGuid(new ObjectGuid(character.BiotaId));
+                Writer.WriteGuid(new ObjectGuid(character.Id));
                 if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > ACE.Entity.Enum.AccessLevel.Advocate)
                     Writer.WriteString16L("+" + character.Name);
-                else if (DatabaseManager.Shard.IsCharacterPlussed(character.BiotaId))
+                else if (DatabaseManager.Shard.IsCharacterPlussed(character.Id))
                     Writer.WriteString16L("+" + character.Name);
                 else
                     Writer.WriteString16L(character.Name);

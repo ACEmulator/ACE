@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -7,7 +7,8 @@ namespace ACE.Entity.Enum
     /// <summary>
     /// This is a combination of the CharacterOption1 and CharacterOption2 enums. For the client, these are split into two groups because they can't be contained in a single uint field.<para />
     /// Only some of these have values, which is intentional.<para />
-    /// Used with F7B1 0005: GameAction -> Set Single Character Option - Only those that have values will trigger that GameAction.
+    /// Used with F7B1 0005: GameAction -> Set Single Character Option - Only those that have values will trigger that GameAction.<para />
+    /// In the client, this is named PlayerOption.
     /// </summary>
     public enum CharacterOption
     {

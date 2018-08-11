@@ -1,10 +1,14 @@
+using System;
+
 namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// This is a list of all the options that are sent in the CharacterOptions1 flag
-    /// Used with F7B0 0013: GameEvent -> PlayerDescription - To send some of the options (the others are sent in the CharacterOptions2 flag)
-    /// Used with F7B1 01A1: GameAction -> Set Character Options - Sent as a flag with the "true" values ORed
+    /// This is a list of all the options that are sent in the CharacterOptions1 flag<para />
+    /// Used with F7B0 0013: GameEvent -> PlayerDescription - To send some of the options (the others are sent in the CharacterOptions2 flag)<para />
+    /// Used with F7B1 01A1: GameAction -> Set Character Options - Sent as a flag with the "true" values ORed<para />
+    /// /// In the client, this is named CharacterOption.
     /// </summary>
+    [Flags]
     public enum CharacterOptions1 : uint
     {
         NotUsed1                                = 0x00000001,

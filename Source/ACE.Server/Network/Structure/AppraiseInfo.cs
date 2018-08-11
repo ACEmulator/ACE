@@ -70,7 +70,7 @@ namespace ACE.Server.Network.Structure
             // get wielder, if applicable
             var wielder = GetWielder(wo);
 
-            BuildProperties(wo);
+            BuildProperties(wo, wielder);
             BuildSpells(wo);
 
             // armor / clothing / shield
@@ -87,7 +87,7 @@ namespace ACE.Server.Network.Structure
             BuildFlags();
         }
 
-        private void BuildProperties(WorldObject wo)
+        private void BuildProperties(WorldObject wo, WorldObject wielder)
         {
             PropertiesInt = wo.GetAllPropertyInt().Where(x => ClientProperties.PropertiesInt.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesInt64 = wo.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
@@ -96,15 +96,18 @@ namespace ACE.Server.Network.Structure
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
 
-            AddPropertyEnchantments(wo);
+            AddPropertyEnchantments(wo, wielder);
         }
 
-        private void AddPropertyEnchantments(WorldObject wo)
+        private void AddPropertyEnchantments(WorldObject wo, WorldObject wielder)
         {
             if (wo == null) return;
 
             if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
                 PropertiesInt[PropertyInt.ArmorLevel] += wo.EnchantmentManager.GetArmorMod();
+
+            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense))
+                PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
         }
 
         private void BuildSpells(WorldObject wo)

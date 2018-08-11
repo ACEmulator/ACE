@@ -1,5 +1,7 @@
 namespace ACE.Entity.Enum
 {
+    // TODO: Figure out what bitfield(s) these values map to and replace with OR's
+    // Note: These IDs are from the last version of the client. Earlier versions of the client had different values for some of the enums.
     public enum MotionCommand : uint
     {
         Invalid                               = 0x0,
@@ -273,6 +275,9 @@ namespace ACE.Entity.Enum
         VividTargetIndicator                  = 0x900010c,
         SelectSelf                            = 0x900010d,
         SkillHealSelf                         = 0x1000010e,
+        WoahDuplicate1                        = 0x1000010F, // Appears to be the same as Motion_Woah except it starts with 0x10 instead of 0x13
+        MimeDrinkDuplicate1                   = 0x10000110, // Appears to be the same as Motion_MimeDrink except it starts with 0x10 instead of 0x13
+        MimeDrinkDuplicate2                   = 0x10000111, // Appears to be the same as Motion_MimeDrink except it starts with 0x10 instead of 0x13
         NextMonster                           = 0x900010f,
         PreviousMonster                       = 0x9000110,
         ClosestMonster                        = 0x9000111,
@@ -410,5 +415,6 @@ namespace ACE.Entity.Enum
         OffhandPunchSlowHigh                  = 0x10000198,
         OffhandPunchSlowMed                   = 0x10000199,
         OffhandPunchSlowLow                   = 0x1000019a,
+        WoahDuplicate2                        = 0x1000019b, // Appears to be the same as Motion_Woah except it starts with 0x10 instead of 0x13
     }
 }

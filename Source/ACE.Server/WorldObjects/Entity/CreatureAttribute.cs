@@ -77,19 +77,12 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                uint total = Base;
+                var total = (int)Base;
 
-                var attrMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
-                total += (uint)attrMod;    // can be negative?
+                var attributeMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
+                total += attributeMod;
 
-                if (creature is Player)
-                {
-                    var player = creature as Player;
-
-                    if (player.HasVitae)
-                        total = (uint)Math.Round(total * player.Vitae);
-                }
-                return total;
+                return (uint)Math.Max(total, 10);    // minimum value for an attribute: 10
             }
         }
 

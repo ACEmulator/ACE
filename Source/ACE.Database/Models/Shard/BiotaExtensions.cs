@@ -48,11 +48,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static CharacterPropertiesContract GetContract(this Biota biota, uint contractId)
-        {
-            return biota.CharacterPropertiesContract.FirstOrDefault(x => x.ContractId == contractId);
-        }
-
         public static BiotaPropertiesCreateList GetCreateList(this Biota biota, sbyte destinationType)
         {
             return biota.BiotaPropertiesCreateList.FirstOrDefault(x => x.DestinationType == destinationType);
@@ -81,8 +76,6 @@ namespace ACE.Database.Models.Shard
             return biota.BiotaPropertiesEmote.Where(x => x.Category == category);
         }
 
-        // BiotaPropertiesEmoteAction
-
         public static BiotaPropertiesEventFilter GetEventFilter(this Biota biota, int eventId)
         {
             return biota.BiotaPropertiesEventFilter.FirstOrDefault(x => x.Event == eventId);
@@ -100,8 +93,6 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitReadLock();
             }
         }
-
-        // BiotaPropertiesFriendList
 
         // BiotaPropertiesGenerator
 
@@ -280,6 +271,8 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
+
+        // BiotaPropertiesGenerator
 
         public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock)
         {
@@ -516,6 +509,8 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // BiotaPropertiesGenerator
+
         public static bool TryRemoveProperty(this Biota biota, PropertyInstanceId property, out BiotaPropertiesIID entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -668,34 +663,6 @@ namespace ACE.Database.Models.Shard
                     try
                     {
                         biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
-                        entity.Object = null;
-                        return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-                return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
-        public static bool TryRemoveFriend(this Biota biota, ObjectGuid friendGuid, out CharacterPropertiesFriendList entity, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                entity = biota.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendGuid.Full);
-                if (entity != null)
-                {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
-                        biota.CharacterPropertiesFriendList.Remove(entity);
                         entity.Object = null;
                         return true;
                     }

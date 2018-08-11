@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 
 using log4net;
@@ -14,7 +13,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -73,8 +71,6 @@ namespace ACE.Server.WorldObjects
         public EmoteManager EmoteManager;
         public EnchantmentManager EnchantmentManager;
 
-        public List<AttackDamage> AttackList = new List<AttackDamage>();
-
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
@@ -109,7 +105,6 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj = new PhysicsObj();
             PhysicsObj.set_object_guid(Guid);
-            //PhysicsObj.TransientState |= TransientStateFlags.Contact | TransientStateFlags.OnWalkable;
 
             // will eventually map directly to WorldObject
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
@@ -118,7 +113,6 @@ namespace ACE.Server.WorldObjects
             if (creature == null)
             {
                 var isDynamic = Static == null || !Static.Value;
-                //Console.WriteLine($"Making object for {Name} (isDynamic={isDynamic})");
                 PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
                 PhysicsObj.set_weenie_obj(new WeenieObject(this));
             }
@@ -129,17 +123,43 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
 
-            var physicsState = GetProperty(PropertyInt.PhysicsState);
-            if (physicsState != null)
-                PhysicsObj.State |= (Physics.PhysicsState)physicsState;
+            PhysicsObj.State = CalculatedPhysicsState();
 
             /*var player = this as Player;
             if (creature != null && player == null)
+                AllowEdgeSlide = false;*/
+        }
+
+        public bool AddPhysicsObj()
+        {
+            if (PhysicsObj.CurCell != null)
+                return false;
+
+            AdjustDungeon(Location);
+
+            var cell = LScape.get_landcell(Location.Cell);
+            if (cell == null) return false;
+
+            PhysicsObj.Position.ObjCellID = cell.ID;
+
+            var location = new Physics.Common.Position();
+            location.ObjCellID = cell.ID;
+            location.Frame.Origin = Location.Pos;
+            location.Frame.Orientation = Location.Rotation;
+
+            var success = PhysicsObj.enter_world(location);
+
+            if (!success)
             {
-                // monsters / npcs
-                PhysicsObj.State &= ~Physics.PhysicsState.EdgeSlide;
-                AllowEdgeSlide = false;
-            }*/
+                //Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
+                return false;
+            }
+            //Console.WriteLine($"AddPhysicsObj: success: {Name}");
+            Location.LandblockId = new LandblockId(location.ObjCellID);
+            Location.Pos = PhysicsObj.Position.Frame.Origin;
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
+            return true;
         }
 
         private void SetEphemeralValues()
@@ -309,9 +329,7 @@ namespace ACE.Server.WorldObjects
             if (emote == null)
                 return false;
 
-            var actions = Biota.BiotaPropertiesEmoteAction.Where(a => a.EmoteSetId == emote.EmoteSetId && a.EmoteCategory == emote.Category);
-
-            foreach (var action in actions)
+            foreach (var action in emote.BiotaPropertiesEmoteAction)
                 EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
 
             return true;
@@ -484,7 +502,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {physicsDescriptionFlag.ToString()}" + " (" + (uint)physicsDescriptionFlag + ")");
                         break;
                     case "physicsstate":
-                        var physicsState = CalculatedPhysicsState();
+                        var physicsState = PhysicsObj.State;
                         sb.AppendLine($"{prop.Name} = {physicsState.ToString()}" + " (" + (uint)physicsState + ")");
                         break;
                     //case "propertiesspellid":
@@ -575,23 +593,11 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // This fully replaces the PhysicsState of the WO, use sparingly?
-        //public void SetPhysicsState(PhysicsState state, bool packet = true)
-        //{
-        //    PhysicsState = state;
-
-        //    if (packet)
-        //    {
-        //        EnqueueBroadcastPhysicsState();
-        //    }
-        //}
-
         public void EnqueueBroadcastPhysicsState()
         {
             if (CurrentLandblock != null)
             {
-                var physicsState = CalculatedPhysicsState();
-                GameMessage msg = new GameMessageSetState(this, physicsState);
+                GameMessage msg = new GameMessageSetState(this, PhysicsObj.State);
                 CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
             }
         }
@@ -685,7 +691,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual void HeartBeat()
-        {            
+        {
             // Do Stuff
             if (!(FirstEnterWorldDone ?? false))
             {
@@ -740,6 +746,12 @@ namespace ACE.Server.WorldObjects
             nextHeartBeat.EnqueueChain();
         }
 
+        public void AdjustDungeon(Position pos)
+        {
+            AdjustDungeonPos(pos);
+            AdjustDungeonCells(pos);
+        }
+
         public bool AdjustDungeonCells(Position pos)
         {
             if (pos == null) return false;
@@ -760,6 +772,19 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        public bool AdjustDungeonPos(Position pos)
+        {
+            if (pos == null) return false;
+
+            var landblock = LScape.get_landblock(pos.Cell);
+            if (landblock == null || !landblock.IsDungeon) return false;
+
+            var dungeonID = pos.Cell >> 16;
+
+            var adjusted = AdjustPos.Adjust(dungeonID, pos);
+            return adjusted;
+        }
+
         public virtual void Activate(WorldObject activator)
         {
             // empty base, override in child objects
@@ -773,46 +798,6 @@ namespace ACE.Server.WorldObjects
         public virtual void Close(WorldObject closer)
         {
             // empty base, override in child objects
-        }
-
-        /// <summary>
-        /// Applies some amount of damage to this world object from source
-        /// </summary>
-        /// <param name="source">The attacker / source of damage</param>
-        /// <param name="_amount">The amount of damage rounded</param>
-        public virtual void TakeDamage(WorldObject source, float _amount, bool crit = false)
-        {
-            // currently only handles creature types
-            if (!(this is Creature)) return;
-            var monster = this as Creature;
-
-            var player = source is Player ? source as Player : null;
-
-            var amount = (uint)Math.Round(_amount);
-            var newMonsterHealth = (int)(monster.Health.Current - amount);
-
-            AttackList.Add(new AttackDamage(source, amount, crit));
-
-            // apply damage
-            if (newMonsterHealth > 0)
-                monster.Health.Current = (uint)newMonsterHealth;
-            else
-            {
-                monster.Health.Current = 0;
-                monster.OnDeath();
-                monster.Die();
-
-                if (player != null)
-                {
-                    var topDamager = AttackDamage.GetTopDamager(AttackList);
-                    if (topDamager != null)
-                        monster.Killer = topDamager.Guid.Full;
-
-                    var deathMessage = monster.GetDeathMessage(source, crit);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, monster.Name), ChatMessageType.Broadcast));
-                    player.EarnXP((long)monster.XpOverride);
-                }
-            }
         }
 
         /// <summary>

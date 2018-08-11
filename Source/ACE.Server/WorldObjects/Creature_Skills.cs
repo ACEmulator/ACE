@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Will return true if the skill was added, or false if the skill already exists.
         /// </summary>
-        public bool AddSkill(Skill skill, SkillStatus skillStatus)
+        public bool AddSkill(Skill skill, SkillAdvancementClass skillStatus)
         {
             var result = Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
 
@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
             if (Skills.TryGetValue(skill, out var value))
                 return value;
 
-            AddSkill(skill, SkillStatus.Untrained);
+            AddSkill(skill, SkillAdvancementClass.Untrained);
 
             return Skills[skill];
         }
