@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2018-08-10
+[Mag-nus]
+* Significantly improved GetBiota performance from the shard by using flags to indicate populated collections.
+* Also added Parallel.ForEach support for Shard GetPlayerBiotas.
+
 ### 2018-08-07
 [Mag-nus]
 * Shard schema changed to remove foreign key link between Character and Biota.

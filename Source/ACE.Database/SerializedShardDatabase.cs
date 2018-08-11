@@ -201,15 +201,6 @@ namespace ACE.Database
         }
 
 
-        public void AddeEntity(object entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
         public void RemoveEntity(object entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>

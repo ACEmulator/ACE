@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -67,6 +67,10 @@ namespace ACE.Database.Models.Shard
                 entity.ToTable("biota");
 
                 entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.PopulatedCollectionFlags)
+                    .HasColumnName("populated_Collection_Flags")
+                    .HasDefaultValueSql("'4294967295'");
 
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
 
