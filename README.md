@@ -22,6 +22,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 ## Getting Started
 
 **For a more detailed installation process, please see [this excellent write up](https://shinobyte.gitbooks.io/shinobyte-knowledge-repository/content/acemu/acemu-server-installation.html) by "Immortus"**
+
 * Install Visual Studio 2017
   - [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
   - [.NET Core 2.1 x64 SDK Required](https://www.microsoft.com/net/download/visual-studio-sdks)

@@ -933,7 +933,12 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     if (caster is Creature)
-                        message = $"You cast {spell.Name} on {targetName}{suffix}";
+                    {
+                        if (caster.Guid == Guid)
+                            message = $"You cast {spell.Name} on {targetName}{suffix}";
+                        else
+                            message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
+                    }
                     else
                     {
                         if (target.Name != caster.Name)
