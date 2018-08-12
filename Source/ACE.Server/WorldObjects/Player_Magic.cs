@@ -21,7 +21,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        private enum TargetCategory
+        public enum TargetCategory
         {
             UnDef,
             WorldObject,
@@ -36,15 +36,21 @@ namespace ACE.Server.WorldObjects
         public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)
         {
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
-            WorldObject target = CurrentLandblock?.GetObject(guidTarget) as WorldObject;
             TargetCategory targetCategory = TargetCategory.WorldObject;
 
             if (guidTarget == Guid)
                 targetCategory = TargetCategory.Self;
-            if (target == null)
+            if (!(CurrentLandblock?.GetObject(guidTarget) is WorldObject target))
             {
                 target = GetWieldedItem(guidTarget);
-                targetCategory = TargetCategory.Wielded;
+                if (target != null)
+                    targetCategory = TargetCategory.Wielded;
+                else
+                {
+                    target = CurrentLandblock?.GetWieldedObject(guidTarget);
+                    if (target != null)
+                        targetCategory = TargetCategory.Wielded;
+                }
             }
             if (target == null)
             {
@@ -53,14 +59,14 @@ namespace ACE.Server.WorldObjects
             }
             if (target == null)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.TargetNotAcquired));
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.TargetNotAcquired));
                 targetCategory = TargetCategory.UnDef;
                 return;
             }
 
             if (targetCategory != TargetCategory.WorldObject)
             {
-                CreatePlayerSpell(guidTarget, spellId);
+                CreatePlayerSpell(target, targetCategory, spellId);
             }
             else
             {
@@ -69,7 +75,7 @@ namespace ACE.Server.WorldObjects
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(rotateTime);
 
-                actionChain.AddAction(this, () => CreatePlayerSpell(guidTarget, spellId));
+                actionChain.AddAction(this, () => CreatePlayerSpell(target, targetCategory, spellId));
                 actionChain.EnqueueChain();
             }
         }
@@ -358,30 +364,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
-        public void CreatePlayerSpell(ObjectGuid guidTarget, uint spellId)
+        public void CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId)
         {
             CastingPreCheckStatus castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
             Player player = CurrentLandblock?.GetObject(Guid) as Player;
-            WorldObject target = CurrentLandblock?.GetObject(guidTarget);
-            TargetCategory targetCategory = TargetCategory.WorldObject;
 
-            if (target == null)
-            {
-                target = GetWieldedItem(guidTarget);
-                targetCategory = TargetCategory.Wielded;
-            }
-            if (target == null)
-            {
-                target = GetInventoryItem(guidTarget);
-                targetCategory = TargetCategory.Inventory;
-            }
-            if (target == null)
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.TargetNotAcquired));
-                targetCategory = TargetCategory.UnDef;
-                return;
-            }
             var creatureTarget = target as Creature;
 
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
@@ -400,7 +388,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            Database.Models.World.Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
+            Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
             if (spellStatMod == null)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
@@ -424,7 +412,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetCategory == TargetCategory.WorldObject)
             {
-                if (guidTarget != Guid)
+                if (target.Guid != Guid)
                 {
                     float distanceTo = Location.Distance2D(target.Location);
 
@@ -600,7 +588,7 @@ namespace ACE.Server.WorldObjects
                                 {
                                     // Non-impen/bane spells
                                     enchantmentStatus = ItemMagic(target, spell, spellStatMod);
-                                    if (guidTarget == Guid)
+                                    if (target.Guid == Guid)
                                         CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                     else
                                     {
@@ -618,7 +606,7 @@ namespace ACE.Server.WorldObjects
                                     {
                                         // Individual impen/bane WeenieType.Clothing target
                                         enchantmentStatus = ItemMagic(target, spell, spellStatMod);
-                                        if (guidTarget == Guid)
+                                        if (target.Guid == Guid)
                                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                         else
                                             CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
