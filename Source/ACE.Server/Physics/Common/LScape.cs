@@ -94,6 +94,8 @@ namespace ACE.Server.Physics.Common
 
         public static ObjCell get_landcell(uint blockCellID)
         {
+            //Console.WriteLine($"get_landcell({blockCellID:X8}");
+
             var landblock = get_landblock(blockCellID);
             if (landblock == null)
                 return null;
@@ -116,7 +118,8 @@ namespace ACE.Server.Physics.Common
                 if (cell != null) return cell;
                 cell = (EnvCell)DBObj.Get(new QualifiedDataID(3, blockCellID));
                 landblock.LandCells.Add((int)cellID, cell);
-                ((EnvCell)cell).build_visible_cells();
+                var envCell = cell as EnvCell;
+                envCell.PostInit();
             }
             return cell;
         }

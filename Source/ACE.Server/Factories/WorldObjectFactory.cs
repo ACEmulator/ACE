@@ -196,11 +196,10 @@ namespace ACE.Server.Factories
         {
             var results = new List<WorldObject>();
 
-            // TODO: Fix how objets are generated and linked
+            // TODO: Fix how objects are generated and linked
 
             // Code for new schema
-            //foreach (var instance in sourceObjects.Where(x => x.IsLinkChild == false))
-            foreach (var instance in sourceObjects)
+            foreach (var instance in sourceObjects.Where(x => x.IsLinkChild == false))
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
 
@@ -215,13 +214,13 @@ namespace ACE.Server.Factories
                 {
                     worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
 
-                    /*foreach (var link in instance.LandblockInstanceLink)
+                    foreach (var link in instance.LandblockInstanceLink)
                     {
                         var linkInstance = sourceObjects.FirstOrDefault(x => x.Guid == link.ChildGuid);
 
                         if (linkInstance != null)
                             worldObject.LinkedInstances.Add(linkInstance);
-                    }*/
+                    }
 
                     results.Add(worldObject);
                 }

@@ -233,7 +233,11 @@ namespace ACE.Server.WorldObjects
 
                 if (lastUsedContainer != null)
                 {
-                    if (!lastUsedContainer.TryRemoveFromInventory(itemGuid, out item))
+                    if (lastUsedContainer.TryRemoveFromInventory(itemGuid, out item))
+                    {
+                        item.NotifyOfEvent(RegenerationType.PickUp);
+                    }
+                    else
                     {
                         // Item is in the container which we should have open
                         log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers side pack WIP");

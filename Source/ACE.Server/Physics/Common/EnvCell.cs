@@ -46,6 +46,7 @@ namespace ACE.Server.Physics.Common
             NumPortals = Portals.Count;
             StaticObjectIDs = new List<uint>();
             StaticObjectFrames = new List<AFrame>();
+            NumStaticObjects = envCell.StaticObjects.Count;
             foreach (var staticObj in envCell.StaticObjects)
             {
                 StaticObjectIDs.Add(staticObj.Id);
@@ -61,6 +62,12 @@ namespace ACE.Server.Physics.Common
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+        }
+
+        public void PostInit()
+        {
+            build_visible_cells();
+            init_static_objects();
         }
 
         public override TransitionState FindEnvCollisions(Transition transition)
@@ -211,7 +218,7 @@ namespace ACE.Server.Physics.Common
             CellStructure = new CellStruct();
             StaticObjectIDs = new List<uint>();
             StaticObjectFrames = new List<AFrame>();
-            StaticObjects = new List<PhysicsObj>();
+            //StaticObjects = new List<PhysicsObj>();
             VisibleCells = new Dictionary<uint, EnvCell>();
         }
 
@@ -371,6 +378,8 @@ namespace ACE.Server.Physics.Common
 
                     StaticObjects.Add(staticObj);
                 }
+
+                //Console.WriteLine($"{ID:X8}: loaded {NumStaticObjects} static objects");
             }
         }
 

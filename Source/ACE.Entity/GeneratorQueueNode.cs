@@ -3,6 +3,6 @@ namespace ACE.Entity
     public class GeneratorQueueNode
     {
         public uint Slot;
-        public double When;
+        public double SpawnTime;
     }
 }

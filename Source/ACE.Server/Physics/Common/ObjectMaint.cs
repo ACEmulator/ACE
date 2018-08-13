@@ -165,10 +165,22 @@ namespace ACE.Server.Physics.Common
         {
             var visibleObjs = new List<PhysicsObj>();
 
+            // add current cell
+            var curCellObjs = cell.ObjectList.Except(cell.StaticObjects);
+            visibleObjs.AddRange(curCellObjs);
+
+            // add objects from nearby visible cells
             foreach (var envCell in cell.VisibleCells.Values)
             {
-                if (envCell == null) continue; 
-                visibleObjs.AddRange(envCell.ObjectList);
+                if (envCell == null) continue;
+
+                var allObjects = envCell.ObjectList;
+
+                // exclude static / dat objects
+                // keep a pre-calculated list of dynamic objects?
+                var dynamicObjects = allObjects.Except(envCell.StaticObjects);
+
+                visibleObjs.AddRange(dynamicObjects);
             }
 
             return visibleObjs.Distinct().ToList();
@@ -245,6 +257,11 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
+        /// <summary>
+        /// Remove objects from the destruction queue,
+        /// when they re-enter visibility within 25s
+        /// </summary>
+        /// <param name="objs"></param>
         public void RemoveObjectsToBeDestroyed(List<PhysicsObj> objs)
         {
             foreach (var obj in objs)
@@ -252,7 +269,17 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Adds a PhysicsObj to the static list of server-wide objjects
+        /// Remove objects from the destroyed objects table
+        /// Called when a previously known object that was not visible for 25s re-enters visiblity
+        /// </summary>
+        public void RemoveDestroyedObjects(List<PhysicsObj> objs)
+        {
+            foreach (var obj in objs)
+                DestructionObjectTable.Remove(obj);
+        }
+
+        /// <summary>
+        /// Adds a PhysicsObj to the static list of server-wide objects
         /// </summary>
         public static void AddServerObject(PhysicsObj obj)
         {
