@@ -77,13 +77,10 @@ namespace ACE.Server.Network.Structure
             BuildSpells(wo);
 
             // Help us make sure the item identify properly
-            if(wo.GetProperty(PropertyBool.NpcLooksLikeObject) == true)
-                NPCLooksLikeObject = true;
-            else
-                NPCLooksLikeObject = false;
+            NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
             // armor / clothing / shield
-                var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
+            var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
             if (wo is Clothing || isShield)
                 BuildArmor(wo);
 
@@ -270,31 +267,34 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.IntStatsTable;
             if (PropertiesInt64.Count > 0)
                 Flags |= IdentifyResponseFlags.Int64StatsTable;
-            if (PropertiesBool.Count > 0 && !NPCLooksLikeObject)
+            if (SpellBook.Count > 0)
+                Flags |= IdentifyResponseFlags.SpellBook;
+            if (ResistHighlight != 0)
+                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
+            
+			if (NPCLooksLikeObject) return;
+				
+			if (PropertiesBool.Count > 0)
                 Flags |= IdentifyResponseFlags.BoolStatsTable;
-            if (PropertiesFloat.Count > 0 && !NPCLooksLikeObject)
+            if (PropertiesFloat.Count > 0)
                 Flags |= IdentifyResponseFlags.FloatStatsTable;
             if (PropertiesString.Count > 0)
                 Flags |= IdentifyResponseFlags.StringStatsTable;
-            if (PropertiesDID.Count > 0 && !NPCLooksLikeObject)
+            if (PropertiesDID.Count > 0)
                 Flags |= IdentifyResponseFlags.DidStatsTable;
-            if (SpellBook.Count > 0)
-                Flags |= IdentifyResponseFlags.SpellBook;
-            if (ArmorProfile != null && !NPCLooksLikeObject)
+            if (ArmorProfile != null)
                 Flags |= IdentifyResponseFlags.ArmorProfile;
-            if (CreatureProfile != null && !NPCLooksLikeObject)
+            if (CreatureProfile != null)
                 Flags |= IdentifyResponseFlags.CreatureProfile;
-            if (WeaponProfile != null && !NPCLooksLikeObject)
+            if (WeaponProfile != null)
                 Flags |= IdentifyResponseFlags.WeaponProfile;
             if (HookProfile != null)
                 Flags |= IdentifyResponseFlags.HookProfile;
-            if (ArmorHighlight != 0 && !NPCLooksLikeObject)
+            if (ArmorHighlight != 0)
                 Flags |= IdentifyResponseFlags.ArmorEnchantmentBitfield;
-            if (WeaponHighlight != 0 && !NPCLooksLikeObject)
+            if (WeaponHighlight != 0)
                 Flags |= IdentifyResponseFlags.WeaponEnchantmentBitfield;
-            if (ResistHighlight != 0)
-                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
-            if (ArmorLevels != null && !NPCLooksLikeObject)
+            if (ArmorLevels != null)
                 Flags |= IdentifyResponseFlags.ArmorLevels;
         }
     }
