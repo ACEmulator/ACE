@@ -11,6 +11,7 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Hooks;
 using ACE.Server.Physics.Sound;
+using ACE.Server.WorldObjects;
 using log4net;
 using ObjectGuid = ACE.Entity.ObjectGuid;
 
@@ -1656,6 +1657,8 @@ namespace ACE.Server.Physics
             {
                 foreach (var cell in cellArray.Cells.Values)
                 {
+                    if (cell == null) continue; // fixme
+
                     var shadowObj = new ShadowObj(this, cell);
                     if (!ShadowObjects.ContainsKey(cell.ID))
                         ShadowObjects.Add(cell.ID, shadowObj);
@@ -1741,7 +1744,10 @@ namespace ACE.Server.Physics
             var attackInfo = AttackManager.NewAttack(attackCone.PartIdx);
 
             foreach (var cell in cellArray.Cells.Values)
+            {
+                if (cell == null) continue;
                 cell.CheckAttack(ID, Position, Scale, attackCone, attackInfo);
+            }
 
             if (!attackInfo.WaitingForCells)
                 report_attacks(attackInfo);
@@ -1980,7 +1986,7 @@ namespace ACE.Server.Physics
 
         public void enqueue_objs(AddUpdateObjs addUpdateObjs)
         {
-            var player = WeenieObj.WorldObject as WorldObjects.Player;
+            var player = WeenieObj.WorldObject as Player;
             if (player == null) return;
 
             foreach (var obj in addUpdateObjs.AddObjects)
@@ -2120,6 +2126,8 @@ namespace ACE.Server.Physics
             //foreach (var cell in checkCells)
             {
                 var cell = cellArray.Cells.Values.ElementAt(i);
+                if (cell == null) continue;
+
                 PartArray.calc_cross_cells_static(cell, cellArray);
             }
         }
@@ -2330,21 +2338,35 @@ namespace ACE.Server.Physics
 
         public AddUpdateObjs handle_visible_cells()
         {
+            //Console.WriteLine("handle_visible_cells()");
+
             // get the list of visible objects from this cell
             var visibleObjects = ObjMaint.GetVisibleObjects(CurCell as Common.EnvCell);
+            //Console.WriteLine("Visible objects from this cell: " + visibleObjects.Count);
 
-            // add to known and visible objects lists
+            // get list of objects that were previously unknown
             var createObjs = ObjMaint.AddVisibleObjects(visibleObjects);
+            //Console.WriteLine("New objects that were previously unknown: " + createObjs.Count);
 
-            // add occluded objects to destruction queue
+            // get total occluded objects, and newly occluded objects since last update
             var occludedObjs = ObjMaint.ObjectTable.Values.Except(visibleObjects).ToList();
             var addOccluded = ObjMaint.AddObjectsToBeDestroyed(occludedObjs);
+            //Console.WriteLine("Total occluded objects: " + occludedObjs.Count);
+            //Console.WriteLine("Newly occluded objects: " + addOccluded.Count);
 
             // remove visible objects from destruction queue
             ObjMaint.RemoveObjectsToBeDestroyed(visibleObjects);
 
-            // re-send visible destroyed objects
+            // get list of previously known objects that were not visible for >= 25s
+            // which are now re-entering visiblity
             var updateObjs = visibleObjects.Intersect(ObjMaint.GetDestroyedObjects()).ToList();
+            //Console.WriteLine("Previously known objects that were destroyed, now re-entering visibility: " + updateObjs.Count);
+
+            // add these to visible objects again
+            ObjMaint.AddVisibleObjects(updateObjs);
+
+            // remove from destroyed objects
+            ObjMaint.RemoveDestroyedObjects(updateObjs);
 
             if (createObjs.Count == 0 && updateObjs.Count == 0)
                 return null;

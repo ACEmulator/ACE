@@ -224,6 +224,8 @@ namespace ACE.Server.Physics.Common
                 for (var i = 0; i < cellArray.Cells.Count; i++)
                 {
                     var cell = cellArray.Cells.Values.ElementAt(i);
+                    if (cell == null) continue;
+
                     cell.find_transit_cells(position, numSphere, sphere, cellArray, path);
                 }
                 //var checkCells = cellArray.Cells.Values.ToList();
@@ -235,6 +237,8 @@ namespace ACE.Server.Physics.Common
                     currCell = null;
                     foreach (var cell in cellArray.Cells.Values)
                     {
+                        if (cell == null) continue;
+
                         var blockOffset = LandDefs.GetBlockOffset(position.ObjCellID, cell.ID);
                         var localPoint = sphere[0].Center - blockOffset;
 
@@ -255,6 +259,8 @@ namespace ACE.Server.Physics.Common
                 var cells = cellArray.Cells.Values.ToList();
                 foreach (var cell in cells)
                 {
+                    if (cell == null) continue;
+
                     if (visibleCell.ID == cell.ID)
                         continue;
 

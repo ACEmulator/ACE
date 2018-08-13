@@ -44,5 +44,10 @@ namespace ACE.DatLoader.Entity
             var qz = reader.ReadSingle();
             Orientation = new Quaternion(qx, qy, qz, qw);
         }
+
+        public override string ToString()
+        {
+            return Origin + " " + Orientation;
+        }
     }
 }

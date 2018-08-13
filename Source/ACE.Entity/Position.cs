@@ -224,6 +224,13 @@ namespace ACE.Entity
             Rotation = Quaternion.Identity;
         }
 
+        public Position(Position pos)
+        {
+            LandblockId = new LandblockId(pos.LandblockId.Raw);
+            Pos = pos.Pos;
+            Rotation = pos.Rotation;
+        }
+
         public Position(uint blockCellID, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
         {
             LandblockId = new LandblockId(blockCellID);

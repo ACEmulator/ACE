@@ -101,9 +101,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TrackObject(WorldObject worldObject, bool update = false)
         {
+            //Console.WriteLine($"TrackObject({worldObject.Name})");
+
             bool sendUpdate;
 
-            if (worldObject.Guid == Guid)
+            if (worldObject == null || worldObject.Guid == Guid)
                 return;
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.

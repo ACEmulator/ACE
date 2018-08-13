@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
             //Console.WriteLine($"AddPhysicsObj: success: {Name}");
-            Location.LandblockId = new LandblockId(location.ObjCellID);
+            Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
@@ -690,48 +690,16 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Called every ~5 seconds for WorldObject base
+        /// </summary>
         public virtual void HeartBeat()
         {
-            // Do Stuff
-            if (!(FirstEnterWorldDone ?? false))
-            {
-                FirstEnterWorldDone = true;
-            }
-
-            CheckGeneratorStatus();
-
-            if (!(GeneratorEnteredWorld ?? false))
-            {
-                if (FirstEnterWorldDone ?? false)
-                {
-                    if (!(GeneratorDisabled ?? false))
-                    {
-                        CurrentlyPoweringUp = true;
-                        SelectGeneratorProfiles();
-                        UpdateGeneratorInts();
-                        QueueGenerator();
-                        CurrentlyPoweringUp = false;
-                    }
-
-                    GeneratorEnteredWorld = true;
-                }
-            }
+            Generator_HeartBeat();
 
             EmoteManager.HeartBeat();
 
             EnchantmentManager.HeartBeat();
-
-            if (!(GeneratorDisabled ?? false))
-            {
-                if (GeneratorRegistry.Count < InitGeneratedObjects)
-                {
-                    SelectMoreGeneratorProfiles();
-                    QueueGenerator();
-                }
-
-                if (GeneratorQueue.Count > 0)
-                    ProcessGeneratorQueue();
-            }
 
             QueueNextHeartBeat();
 

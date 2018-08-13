@@ -1043,8 +1043,8 @@ namespace ACE.Server.WorldObjects
             var monster = creature != null && creature.IsMonster;
 
             // determine if updates should be run for object
-            //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
-            var runUpdate = isMissile;
+            var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
+            //var runUpdate = isMissile;
             if (!runUpdate) return false;
 
             if (isMissile && CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)
