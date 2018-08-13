@@ -56,6 +56,9 @@ namespace ACE.Server.Network.Structure
 
         public ArmorLevel ArmorLevels;
 
+        // This helps ensure the item will identify properly. Some "items" are technically "Creatures".
+        private bool NPCLooksLikeObject; 
+
         /// <summary>
         /// Construct all of the info required for appraising any WorldObject
         /// </summary>
@@ -72,6 +75,9 @@ namespace ACE.Server.Network.Structure
 
             BuildProperties(wo, wielder);
             BuildSpells(wo);
+
+            // Help us make sure the item identify properly
+            NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
             // armor / clothing / shield
             var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
@@ -261,7 +267,14 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.IntStatsTable;
             if (PropertiesInt64.Count > 0)
                 Flags |= IdentifyResponseFlags.Int64StatsTable;
-            if (PropertiesBool.Count > 0)
+            if (SpellBook.Count > 0)
+                Flags |= IdentifyResponseFlags.SpellBook;
+            if (ResistHighlight != 0)
+                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
+            
+			if (NPCLooksLikeObject) return;
+				
+			if (PropertiesBool.Count > 0)
                 Flags |= IdentifyResponseFlags.BoolStatsTable;
             if (PropertiesFloat.Count > 0)
                 Flags |= IdentifyResponseFlags.FloatStatsTable;
@@ -269,8 +282,6 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.StringStatsTable;
             if (PropertiesDID.Count > 0)
                 Flags |= IdentifyResponseFlags.DidStatsTable;
-            if (SpellBook.Count > 0)
-                Flags |= IdentifyResponseFlags.SpellBook;
             if (ArmorProfile != null)
                 Flags |= IdentifyResponseFlags.ArmorProfile;
             if (CreatureProfile != null)
@@ -283,8 +294,6 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.ArmorEnchantmentBitfield;
             if (WeaponHighlight != 0)
                 Flags |= IdentifyResponseFlags.WeaponEnchantmentBitfield;
-            if (ResistHighlight != 0)
-                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
             if (ArmorLevels != null)
                 Flags |= IdentifyResponseFlags.ArmorLevels;
         }

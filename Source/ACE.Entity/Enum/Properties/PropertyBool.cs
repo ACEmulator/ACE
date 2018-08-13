@@ -111,6 +111,7 @@ namespace ACE.Entity.Enum.Properties
         IgnorePortalRestrictions         = 80,
         RequiresBackpackSlot             = 81,
         DontTurnOrMoveWhenGiving         = 82,
+        [ServerOnly]
         NpcLooksLikeObject               = 83,
         IgnoreCloIcons                   = 84,
         AppraisalHasAllowedWielder       = 85,
