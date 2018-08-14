@@ -584,7 +584,8 @@ namespace ACE.Server.WorldObjects
                         caster.DamageHistory.Add(this, damage);
                     }
 
-                    CreateSpellProjectile(this, target, spell.MetaSpellId, (uint)spellStatMod.Wcid, damage);
+                    var sp = CreateSpellProjectile(spell.MetaSpellId, (uint)spellStatMod.Wcid, target, damage);
+                    LaunchSpellProjectile(sp);
 
                     if (caster.Health.Current <= 0)
                         caster.Die();
@@ -830,6 +831,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Untargeted War Magic
+        /// </summary>
+        /// <param name="spell"></param>
+        /// <param name="spellStatMod"></param>
+        protected void WarMagic(SpellBase spell, Database.Models.World.Spell spellStatMod)
+        {
+            var spellType = SpellProjectile.GetProjectileSpellType(spell.MetaSpellId);
+
+            if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+            {
+                // TODO CreateRingProjectiles()
+            }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Wall)
+            {
+                // TODO CreateWallProjectiles()
+            }
+            else
+            {
+                if (WeenieClassId == 1)
+                {
+                    Player player = (Player)this;
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                        new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
+            }
+        }
+
+        /// <summary>
         /// Targeted War Magic
         /// </summary>
         /// <param name="target"></param>
@@ -841,11 +870,16 @@ namespace ACE.Server.WorldObjects
             // Bolt, Streak, Arc
             if (spellStatMod.NumProjectiles == 1)
             {
-                CreateSpellProjectile(this, target, spell.MetaSpellId, (uint)spellStatMod.Wcid);
+                var sp = CreateSpellProjectile(spell.MetaSpellId, (uint)spellStatMod.Wcid, target);
+                LaunchSpellProjectile(sp);
             }
             else if (spellType == SpellProjectile.ProjectileSpellType.Volley)
             {
-                CreateVolleyProjectiles(this, target, spell.MetaSpellId, (uint)spellStatMod.Wcid, spellStatMod.NumProjectiles ?? 3);
+                var spList = CreateVolleyProjectiles(target, spell.MetaSpellId, (uint)spellStatMod.Wcid, spellStatMod.NumProjectiles.GetValueOrDefault());
+                foreach (var sp in spList)
+                {
+                    LaunchSpellProjectile(sp);
+                }
             }
             else
             {
@@ -969,162 +1003,196 @@ namespace ACE.Server.WorldObjects
             return enchantmentStatus;
         }
 
+
         /// <summary>
         /// Creates the Magic projectile spells for Life, War, and Void Magic
         /// </summary>
-        /// <param name="caster"></param>
-        /// <param name="target"></param>
+        /// 
         /// <param name="spellId"></param>
         /// <param name="projectileWcid"></param>
+        /// <param name="target"></param>
         /// <param name="lifeProjectileDamage"></param>
-        private void CreateSpellProjectile(WorldObject caster, WorldObject target, uint spellId, uint projectileWcid, uint lifeProjectileDamage = 0, Vector3? creationOffset = null)
+        /// <param name="globalOrigin"></param>
+        /// <param name="velocity"></param>
+        /// <returns></returns>
+        private SpellProjectile CreateSpellProjectile(uint spellId, uint projectileWcid, WorldObject target = null, uint lifeProjectileDamage = 0, Vector3? globalOrigin = null, AceVector3 velocity = null)
         {
             SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(projectileWcid) as SpellProjectile;
             spellProjectile.Setup(spellId);
 
-            var origin = caster.Location.ToGlobal();
-            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
-                origin.Z += caster.Height;
-            else
-                origin.Z += caster.Height * 2.0f / 3.0f;
-
-            var dest = target.Location.ToGlobal();
-            dest.Z += target.Height / 2.0f;
-
-            var direction = Vector3.Normalize(dest - origin);
-            // This is not perfect but is close to values that retail used. TODO: revisit this later.
-            origin += direction * (caster.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius());
-
-            float time;
-            var dist = (dest - origin).Length();
-            float speed = 15f;
-            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Bolt
-                || spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Volley)
-            {
-                speed = GetStationarySpeed(15f, dist);
-            }
-            else if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Streak)
-            {
-                speed = GetStationarySpeed(45f, dist);
-            }
-            else if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
-            {
-                speed = GetStationarySpeed(40f, dist);
-            }
-
-            // TODO: Implement target leading for non arc spells
-            // Also: velocity seems to increase when target is moving away from the caster and decrease when
-            // the target is moving toward the caster. This still needs more research.
-
-            var velocity = direction * speed;
-
             var useGravity = spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc;
-            spellProjectile.Velocity = GetSpellProjectileVelocity(origin, target, dest, speed, useGravity, out time);
-            spellProjectile.FlightTime = time;
 
-            var loc = caster.Location;
-            origin = loc.Pos;
-            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
-                origin.Z += caster.Height;
-            else
-                origin.Z += caster.Height * 2.0f / 3.0f;
-            origin += direction * (caster.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius());
-
-            if (creationOffset != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Volley)
+            // We have a target and we are not overriding the projectile creation position
+            if (target != null && globalOrigin == null)
             {
-                origin.X = (float)creationOffset?.X;
-                origin.Y = (float)creationOffset?.Y;
-            }
+                var globalDest = target.Location.ToGlobal();
+                globalDest.Z += target.Height / 2.0f;
+                globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest);
+                spellProjectile.GlobalOrigin = (Vector3)globalOrigin;
 
-            spellProjectile.Location = new ACE.Entity.Position(loc.LandblockId.Raw, origin.X, origin.Y, origin.Z, loc.Rotation.X, loc.Rotation.Y, loc.Rotation.Z, loc.RotationW);
-            spellProjectile.ParentWorldObject = (Creature)this;
-            spellProjectile.TargetGuid = target.Guid;
-            spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
-            spellProjectile.ProjectileSource = caster;
-            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Volley)
-                spellProjectile.ProjectileTarget = null;
+                float dist = (float)(globalDest - globalOrigin)?.Length();
+                float speed = GetSpellProjectileSpeed(spellProjectile.SpellType, dist);
+                spellProjectile.DistanceToTarget = dist;
+                spellProjectile.Velocity = GetSpellProjectileVelocity((Vector3)globalOrigin, target, globalDest, speed, useGravity, out var time);
+            }
+            // We don't have a target or: we do have a target and want to override the projectile origin and velocity
             else
-                spellProjectile.ProjectileTarget = target;
+            {
+                if (velocity == null)
+                    log.Warn($"Untargeted or secondary spell projectiles must have a velocity set.");
+                else
+                    spellProjectile.Velocity = velocity;
+                    
+                if (globalOrigin == null)
+                    log.Warn($"Untargeted or secondary spell projectiles must have a global origin (creation offset) set.");
+                else
+                    spellProjectile.GlobalOrigin = (Vector3)globalOrigin;
+            }
+            
+            ACE.Entity.Position localPos = new ACE.Entity.Position().FromGlobal((Vector3)globalOrigin);
+            spellProjectile.Location = new ACE.Entity.Position(localPos.LandblockId.Raw, localPos.Pos, this.Location.Rotation);
+            spellProjectile.ParentWorldObject = (Creature)this;
+            spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
+            spellProjectile.ProjectileSource = this;
+            spellProjectile.ProjectileTarget = target;
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
 
-            LandblockManager.AddObject(spellProjectile);
-            spellProjectile.EnqueueBroadcast(new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, spellProjectile.PlayscriptIntensity));
-
-            // detonate point-blank projectiles immediately
-            var radsum = target.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius();
-            if (dist < radsum)
-                spellProjectile.OnCollideObject(target);
-
-            // TODO : removed when real server projectile tracking and collisions are implemented
-            /*var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(spellProjectile.FlightTime);
-            actionChain.AddAction(spellProjectile, () => spellProjectile.HandleOnCollide(spellProjectile.TargetGuid));
-            actionChain.EnqueueChain();*/
+            return spellProjectile;
         }
 
-        private void CreateVolleyProjectiles(WorldObject caster, WorldObject target, uint spellId, uint projectileWcid, int numProjectiles)
+        /// <summary>
+        /// Creates a spell projectile in the world.
+        /// </summary>
+        /// <param name="sp"></param>
+        private void LaunchSpellProjectile(SpellProjectile sp)
         {
-            List<Vector3> projectileList = new List<Vector3>();
-            if (numProjectiles == 3)
-                projectileList = calculateVolleyPositions_3Projectiles(caster.Location.Pos, caster.Location.Rotation);
-            else if (numProjectiles == 5)
-                projectileList = calculateVolleyPositions_5Projectiles(caster.Location.Pos, caster.Location.Rotation);
+            LandblockManager.AddObject(sp);
+            CurrentLandblock?.EnqueueBroadcast(sp.Location, new GameMessageScript(sp.Guid, ACE.Entity.Enum.PlayScript.Launch, sp.PlayscriptIntensity));
 
-            foreach (var projectile in projectileList)
+            if (sp.ProjectileTarget == null)
+                return;
+
+            // Detonate point-blank projectiles immediately
+            var radsum = sp.ProjectileTarget.PhysicsObj.GetRadius() + sp.PhysicsObj.GetRadius();
+            if (sp.DistanceToTarget < radsum)
+                sp.OnCollideObject(sp.ProjectileTarget);
+        }
+
+        /// <summary>
+        /// Calculates the spell projectile origin based on the targets global destination.
+        /// </summary>
+        /// <param name="caster"></param>
+        /// <param name="spellProjectile"></param>
+        /// <param name="globalDest"></param>
+        /// <returns></returns>
+        private Vector3 GetSpellProjectileOrigin(WorldObject caster, SpellProjectile spellProjectile, Vector3 globalDest)
+        {
+            var globalOrigin = caster.Location.ToGlobal();
+            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
+                globalOrigin.Z += caster.Height;
+            else
+                globalOrigin.Z += caster.Height * 2.0f / 3.0f;
+
+            var direction = Vector3.Normalize(globalDest - globalOrigin);
+
+            // This is not perfect but is close to values that retail used. TODO: revisit this later.
+            globalOrigin += direction * (caster.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius());
+
+            return globalOrigin;
+        }
+
+        /// <summary>
+        /// Gets the speed of a projectile based on the distance to the target.
+        /// </summary>
+        /// <param name="spellType"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
+        private float GetSpellProjectileSpeed(SpellProjectile.ProjectileSpellType spellType, float distance)
+        {
+            float speed;
+
+            // TODO:
+            // Speed seems to increase when target is moving away from the caster and decrease when
+            // the target is moving toward the caster. This still needs more research.
+            switch (spellType)
             {
-                CreateSpellProjectile(this, target, spellId, projectileWcid, creationOffset: projectile);
+                case SpellProjectile.ProjectileSpellType.Bolt:
+                case SpellProjectile.ProjectileSpellType.Volley:
+                case SpellProjectile.ProjectileSpellType.Blast:
+                    speed = GetStationarySpeed(15f, distance);
+                    break;
+                case SpellProjectile.ProjectileSpellType.Streak:
+                    speed = GetStationarySpeed(45f, distance);
+                    break;
+                case SpellProjectile.ProjectileSpellType.Arc:
+                    speed = GetStationarySpeed(40f, distance);
+                    break;
+                default:
+                    speed = 15f;
+                    break;
             }
+
+            return speed;
         }
 
-        static List<Vector3> calculateVolleyPositions_3Projectiles(Vector3 playerPosition, Quaternion playerRotation)
+        /// <summary>
+        /// Creates a list of volley sell projectiles ready for creation in the world.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="spellId"></param>
+        /// <param name="projectileWcid"></param>
+        /// <param name="numProjectiles"></param>
+        /// <returns></returns>
+        private List<SpellProjectile> CreateVolleyProjectiles(WorldObject target, uint spellId, uint projectileWcid, int numProjectiles)
         {
-            // WorldObject.PhysicsObj.GetRadius()
-            var vectorList = new List<Vector3>();
-            var playerOrigin = rotatePosition(playerPosition, playerRotation);
-            var offsetArray = new[] {
-                new Vector3(0f, 0.6459f, 1.14587f),  // Center
-                new Vector3(-1.2f, 0.6459f, 1.14587f), // Near left
-                new Vector3(1.2f, 0.6459f, 1.14587f),  // Near right
-            };
+            var spellProjectiles = new List<SpellProjectile>();
+            var centerProjectile = CreateSpellProjectile(spellId, projectileWcid, target);
+            spellProjectiles.Add(centerProjectile);
+            var projectileOrigins = GetVolleyProjectileOrigins(centerProjectile, numProjectiles);
 
-            foreach (var offset in offsetArray)
+            foreach (var origin in projectileOrigins)
             {
-                vectorList.Add(
-                    // Add offset to get the new projectile position and rotate back to the players original heading
-                    rotatePosition(playerOrigin + offset, Quaternion.Inverse(playerRotation))
+                spellProjectiles.Add(
+                    CreateSpellProjectile(spellId, projectileWcid, velocity: centerProjectile.Velocity, globalOrigin: origin)
                 );
             }
 
-            return vectorList;
+            return spellProjectiles;
         }
 
-        static List<Vector3> calculateVolleyPositions_5Projectiles(Vector3 playerPosition, Quaternion playerRotation)
+        /// <summary>
+        /// Gets volley projectile origins based on the position of the center projectile.
+        /// </summary>
+        /// <param name="centerProjectile"></param>
+        /// <param name="numProjectiles"></param>
+        /// <returns></returns>
+        List<Vector3> GetVolleyProjectileOrigins(SpellProjectile centerProjectile, int numProjectiles)
         {
-            var vectorList = new List<Vector3>();
-            var playerOrigin = rotatePosition(playerPosition, playerRotation);
-            var offsetArray = new[] {
-                new Vector3(0f, .6513175f, 1.16254f),  // Center
-                new Vector3(-2.4f, .6513175f, 1.16254f),  // Far left
-                new Vector3(-1.2f, .6513175f, 1.16254f), // Near left
-                new Vector3(1.2f, .6513175f, 1.16254f),  // Near right
-                new Vector3(2.4f, .6513175f, 1.16254f),  // Far right
-            };
+            var origins = new List<Vector3>();
+            var cpOrigin = RotatePosition(centerProjectile.GlobalOrigin, centerProjectile.Location.Rotation);
+            // Lightning projectiles (WCID 1635) get a little more padding since they have a bigger radius
+            var xOffsets = centerProjectile.WeenieClassId == 1635 ? new List<float> { -1.3f, 1.3f, -2.6f, 2.6f } : new List<float> { -1.2f, 1.2f, -2.4f, 2.4f };
 
-            foreach (var offset in offsetArray)
+            for (int i = 0; i < numProjectiles-1; i++) 
             {
-                vectorList.Add(
-                    // Add offset to get the new projectile position and rotate back to the players original heading
-                    rotatePosition(playerOrigin + offset, Quaternion.Inverse(playerRotation))
+                origins.Add(
+                    // Add offset to get the new projectile position and rotate back to the center projectiles original heading
+                    RotatePosition(cpOrigin + new Vector3(xOffsets[i], 0, 0), Quaternion.Inverse(centerProjectile.Location.Rotation))
                 );
             }
 
-            return vectorList;
+            return origins;
         }
 
-        static Vector3 rotatePosition(Vector3 position, Quaternion rotation)
+        /// <summary>
+        /// Rotates a position by the inverse of its rotation.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        /// <returns></returns>
+        private static Vector3 RotatePosition(Vector3 position, Quaternion rotation)
         {
-            var result = Vector3.Transform(position, Quaternion.Inverse(rotation));
-            return new Vector3(result.X, result.Y, result.Z);
+            return Vector3.Transform(position, Quaternion.Inverse(rotation));
         }
 
         /// <summary>
