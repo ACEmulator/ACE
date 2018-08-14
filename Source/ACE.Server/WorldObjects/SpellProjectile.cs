@@ -1,5 +1,5 @@
 using System;
-
+using System.Numerics;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -22,15 +22,14 @@ namespace ACE.Server.WorldObjects
     public class SpellProjectile : WorldObject
     {
         private Creature projectileCaster;
-        private ObjectGuid targetGuid;
         private uint spellId;
         private uint lifeProjectileDamage;
 
         public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
-        public ObjectGuid TargetGuid { get => targetGuid; set => targetGuid = value; }
+        public float DistanceToTarget { get; set; }
+        public Vector3 GlobalOrigin { get; set; }
         public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
-        public float FlightTime { get; set; }
         public float PlayscriptIntensity { get; set; }
         public ProjectileSpellType SpellType { get; set; }
 
