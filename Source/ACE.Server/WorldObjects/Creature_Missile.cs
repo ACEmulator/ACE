@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
 
             var ammo = GetEquippedAmmo();
             if (ammo != null)
-                actionChain.AddAction(this, () => CurrentLandblock?.EnqueueBroadcast(Location,
+                actionChain.AddAction(this, () => EnqueueBroadcast(
                     new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
                         (int)ACE.Entity.Enum.Placement.RightHandCombat)));
 
@@ -132,27 +132,19 @@ namespace ACE.Server.WorldObjects
             //actionChain.AddDelaySeconds(animLength);
 
             LandblockManager.AddObject(arrow);
-            CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessagePickupEvent(ammo));
+            arrow.EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
             var player = this as Player;
             // TODO: Add support for monster ammo depletion. For now only players will use up ammo.
             if (player != null)
                 UpdateAmmoAfterLaunch(ammo);
             // Not sure why this would be needed but it is sent in retail pcaps.
-            CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessageSetStackSize(arrow));
+            arrow.EnqueueBroadcast(new GameMessageSetStackSize(arrow));
 
-            if (player != null)
-            {
-                CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
-                    arrow, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
-            }
-            else
-            {
-                CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessagePublicUpdatePropertyInt(
-                    arrow, PropertyInt.PlayerKillerStatus, (int)ACE.Entity.Enum.PlayerKillerStatus.Creature));
-            }
-            
-            CurrentLandblock?.EnqueueBroadcast(arrow.Location, new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
+            var pkStatus = player == null ? PlayerKillerStatus.Creature : player.PlayerKillerStatus;
+
+            arrow.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(arrow, PropertyInt.PlayerKillerStatus, (int)pkStatus));
+            arrow.EnqueueBroadcast(new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
 
             // detonate point-blank projectiles immediately
             var radsum = target.PhysicsObj.GetRadius() + arrow.PhysicsObj.GetRadius();
@@ -175,13 +167,13 @@ namespace ACE.Server.WorldObjects
             {
                 TryDequipObject(ammo.Guid);
                 player?.Session.Network.EnqueueSend(new GameMessageDeleteObject(ammo));
-                CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, p => p.StopTrackingObject(ammo, true));
+                EnqueueActionBroadcast(p => p.RemoveTrackedObject(ammo, true));
             }
             else
             {
                 ammo.StackSize--;
                 player?.Session.Network.EnqueueSend(new GameMessageSetStackSize(ammo));
-                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessagePickupEvent(ammo));
+                EnqueueBroadcast(new GameMessagePickupEvent(ammo));
             }
         }
 

@@ -595,29 +595,14 @@ namespace ACE.Server.WorldObjects
 
         public void EnqueueBroadcastPhysicsState()
         {
-            if (CurrentLandblock != null)
-            {
-                GameMessage msg = new GameMessageSetState(this, PhysicsObj.State);
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
-            }
+            if (PhysicsObj != null)
+                EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
         }
 
         public void EnqueueBroadcastUpdateObject()
         {
-            if (CurrentLandblock != null)
-            {
-                GameMessage msg = new GameMessageUpdateObject(this);
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
-            }
+            EnqueueBroadcast(new GameMessageUpdateObject(this));
         }
-
-        /*public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
-        {
-            AceObject snapshot = (AceObject)AceObject.Clone();
-            if (clearDirtyFlags)
-                AceObject.ClearDirtyFlags();
-            return snapshot;
-        }*/
 
         public virtual void OnCollideObject(WorldObject target)
         {
@@ -660,11 +645,7 @@ namespace ACE.Server.WorldObjects
         // plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
         {
-            if (CurrentLandblock != null)
-            {
-                var effectEvent = new GameMessageScript(targetId, effectId);
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
-            }
+            EnqueueBroadcast(new GameMessageScript(targetId, effectId));
         }
 
         //public List<AceObjectInventory> CreateList => AceObject.CreateList;

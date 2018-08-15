@@ -7,6 +7,8 @@ using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
+using ACE.Server.Physics.Common;
+
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -43,11 +45,11 @@ namespace ACE.Server.WorldObjects
         public Dictionary<int, DateTime> LastUseTracker { get; set; }
 
         /// <summary>
-        /// FIXME(ddevec): This is the only object that need be locked in the player under the new model.
-        ///   It must be locked because of how we handle object updates -- We can clean this up in the future
+        /// The link to this player's Object Maintenance
+        /// This is the system from client physics that tracks known objects, visible objects,
+        /// and objects that have been occluded for less than 25s that are pending destruction
         /// </summary>
-        private readonly Dictionary<ObjectGuid, double> clientObjectList = new Dictionary<ObjectGuid, double>();
-
+        public ObjectMaint ObjMaint { get => PhysicsObj.ObjMaint; }
 
         /// <summary>
         /// Tracks Interacive world object you are have interacted with recently.  this should be
@@ -65,45 +67,20 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-
         /// <summary>
-        ///  Gets a list of Tracked Objects.
+        /// Returns the list of WorldObjects this Player this player currently knows about
         /// </summary>
-        public List<ObjectGuid> GetTrackedObjectGuids()
+        public List<WorldObject> GetKnownObjects()
         {
-            lock (clientObjectList)
-                return clientObjectList.Select(x => x.Key).ToList();
-        }
-
-        /// <summary>
-        /// returns a list of the ObjectGuids of all known creatures
-        /// </summary>
-        private List<ObjectGuid> GetKnownCreatures()
-        {
-            lock (clientObjectList)
-            {
-                throw new NotImplementedException(); // We can't use the GUID to see if this is a creature, we need another way
-                //return clientObjectList.Select(x => x.Key).Where(o => o.IsCreature()).ToList();
-            }
-        }
-
-        /// <summary>
-        /// returns a list of the ObjectGuids of all known objects
-        /// </summary>
-        public List<ObjectGuid> GetKnownObjects()
-        {
-            lock (clientObjectList)
-                return clientObjectList.Select(x => x.Key).ToList();
+            return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).ToList();
         }
 
         /// <summary>
         /// forces either an update or a create object to be sent to the client
         /// </summary>
-        public void TrackObject(WorldObject worldObject, bool update = false)
+        public void TrackObject(WorldObject worldObject)
         {
             //Console.WriteLine($"TrackObject({worldObject.Name})");
-
-            bool sendUpdate;
 
             if (worldObject == null || worldObject.Guid == Guid)
                 return;
@@ -112,20 +89,7 @@ namespace ACE.Server.WorldObjects
             if ((worldObject.Visibility ?? false) && !Adminvision)
                 return;
 
-            lock (clientObjectList)
-            {
-                sendUpdate = clientObjectList.ContainsKey(worldObject.Guid);
-
-                if (!sendUpdate)
-                    clientObjectList.Add(worldObject.Guid, WorldManager.PortalYearTicks);
-                else
-                    clientObjectList[worldObject.Guid] = WorldManager.PortalYearTicks;
-            }
-
-            // TODO: Better handling of sending updates to client. The below line is causing much more problems than it is solving until we get proper movement.
-            // Add this or something else back in when we handle movement better, until then, just send the create object once and move on.
-            //if (!sendUpdate)
-            //Console.WriteLine($"Telling {Name} about {worldObject.Name} - {worldObject.Guid.Full:X}");
+            //Console.WriteLine($"TrackObject({worldObject.Name})");
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
@@ -138,8 +102,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TrackEquippedObjects(Creature creature)
         {
-            var addList = new List<WorldObject>();
-
             foreach (var wieldedItem in creature.EquippedObjects.Values)
             {
                 var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
@@ -151,41 +113,41 @@ namespace ACE.Server.WorldObjects
                 if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
                     creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
 
-                lock (clientObjectList)
-                {
-                    var sendUpdate = clientObjectList.ContainsKey(wieldedItem.Guid);
-
-                    if (!sendUpdate)
-                        clientObjectList.Add(wieldedItem.Guid, WorldManager.PortalYearTicks);
-                    else
-                        clientObjectList[wieldedItem.Guid] = WorldManager.PortalYearTicks;
-                }
-                addList.Add(wieldedItem);
+                //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})");
+                Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
             }
+        }
 
-            foreach (var item in addList)
-            {
-                //Console.WriteLine($"Telling {Name} about {item.Name} - {item.Guid.Full:X}");
-                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
-            }
+        public bool AddTrackedObject(WorldObject worldObject)
+        {
+            // does this work for equipped objects?
+            if (ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
+                return false;
+
+            ObjMaint.AddObject(worldObject.PhysicsObj);
+            ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
+
+            TrackObject(worldObject);
+            return true;
         }
 
         /// <summary>
         /// This will return true of the object was being tracked and has successfully been removed.
         /// </summary>
-        /// <returns></returns>
-        public bool StopTrackingObject(WorldObject worldObject, bool remove)
+        public bool RemoveTrackedObject(WorldObject worldObject, bool remove)
         {
-            bool removed;
+            //Console.WriteLine($"RemoveTrackedObject({remove})");
 
-            lock (clientObjectList)
-                removed = clientObjectList.Remove(worldObject.Guid);
+            // does this work for equipped objects?
+            if (!ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
+                return false;
 
-            // Don't remove it if it went into our inventory...
-            if (removed && remove)
+            ObjMaint.RemoveObject(worldObject.PhysicsObj);
+
+            if (remove)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
 
-            return removed;
+            return true;
         }
     }
 }

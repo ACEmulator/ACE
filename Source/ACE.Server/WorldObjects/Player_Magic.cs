@@ -188,7 +188,7 @@ namespace ACE.Server.WorldObjects
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                            EnqueueBroadcast(new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                             if (!suppressSpellChatText)
                                 player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
@@ -203,7 +203,7 @@ namespace ACE.Server.WorldObjects
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                            EnqueueBroadcast(new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                             if (!suppressSpellChatText)
                                 player.Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects
                                 playScript = (PlayScript)spell.CasterEffect;
                             else
                                 playScript = (PlayScript)spell.TargetEffect;
-                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, playScript, scale));
+                            EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, scale));
                             enchantmentStatus = ItemMagic(player, spell, spellStatMod, item);
                         }
                         else
@@ -236,7 +236,7 @@ namespace ACE.Server.WorldObjects
                             else
                                 enchantmentStatus = ItemMagic(item, spell, spellStatMod, item);
 
-                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                            EnqueueBroadcast(new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
                         }
                         created = true;
                         if (enchantmentStatus.message != null)
@@ -488,7 +488,7 @@ namespace ACE.Server.WorldObjects
             {
                 string spellWords = spell.SpellWords;
                 if (spellWords != null)
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
+                    EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
 
                 var motionCastSpell = new UniversalMotion(MotionStance.Spellcasting);
                 motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
@@ -537,7 +537,7 @@ namespace ACE.Server.WorldObjects
                                     }
                                 }
 
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 enchantmentStatus = CreatureMagic(target, spell, spellStatMod);
                                 if (enchantmentStatus.message != null)
                                     player.Session.Network.EnqueueSend(enchantmentStatus.message);
@@ -563,7 +563,7 @@ namespace ACE.Server.WorldObjects
                                     }
                                 }
 
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 targetDeath = LifeMagic(target, spell, spellStatMod, out uint damage, out bool critical, out enchantmentStatus);
 
                                 if (targetDeath == true)
@@ -589,13 +589,13 @@ namespace ACE.Server.WorldObjects
                                     // Non-impen/bane spells
                                     enchantmentStatus = ItemMagic(target, spell, spellStatMod);
                                     if (target.Guid == Guid)
-                                        CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                        EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                     else
                                     {
                                         if (spell.MetaSpellType == SpellType.PortalLink)
-                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                            EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                         else
-                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                            EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                     }
                                     if (enchantmentStatus.message != null)
                                         player.Session.Network.EnqueueSend(enchantmentStatus.message);
@@ -607,9 +607,9 @@ namespace ACE.Server.WorldObjects
                                         // Individual impen/bane WeenieType.Clothing target
                                         enchantmentStatus = ItemMagic(target, spell, spellStatMod);
                                         if (target.Guid == Guid)
-                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
+                                            EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)spell.CasterEffect, scale));
                                         else
-                                            CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                            EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                         if (enchantmentStatus.message != null)
                                             player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                     }
@@ -622,7 +622,7 @@ namespace ACE.Server.WorldObjects
                                             if (item.WeenieType == WeenieType.Clothing)
                                             {
                                                 enchantmentStatus = ItemMagic(item, spell, spellStatMod);
-                                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                                EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                                 if (enchantmentStatus.message != null)
                                                     player.Session.Network.EnqueueSend(enchantmentStatus.message);
                                             }
@@ -650,13 +650,13 @@ namespace ACE.Server.WorldObjects
                                 // Do nothing
                                 break;
                             default:
-                                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 break;
                         }
                     });
                     break;
                 default:
-                    spellChain.AddAction(this, () => CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f)));
+                    spellChain.AddAction(this, () => EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f)));
                     break;
             }
 
@@ -785,7 +785,7 @@ namespace ACE.Server.WorldObjects
             {
                 string spellWords = spell.SpellWords;
                 if (spellWords != null)
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
+                    EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
 
                 var motionCastSpell = new UniversalMotion(MotionStance.Spellcasting);
                 motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
@@ -808,7 +808,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                     break;
                 default:
-                    spellChain.AddAction(this, () => CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f)));
+                    spellChain.AddAction(this, () => EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f)));
                     break;
             }
 
@@ -887,7 +887,7 @@ namespace ACE.Server.WorldObjects
                     // update client-side enchantments
                     targetPlayer.Session.Network.EnqueueSend(buffMessages.Where(k => !k.Bane).Select(k => k.SessionMessage).ToArray());
                     // run client-side effect scripts, omitting duplicates
-                    targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.Where(k => !k.Bane).ToList().GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
+                    targetPlayer.EnqueueBroadcast(buffMessages.Where(k => !k.Bane).ToList().GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
                     // update server-side enchantments
 
                     var buffsForPlayer = buffMessages.Where(k => !k.Bane).ToList().Select(k => k.Enchantment);
@@ -925,7 +925,7 @@ namespace ACE.Server.WorldObjects
                             {
                                 itemBuff.SetLandblockMessage(item.Guid);
                                 var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.SpellBase, itemBuff.Spell, this);
-                                targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, itemBuff.LandblockMessage);
+                                targetPlayer?.EnqueueBroadcast(itemBuff.LandblockMessage);
                             }
                         }
                     }

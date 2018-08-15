@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
                 var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
 
-                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
+                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
             });
             selfDestructChain.AddDelaySeconds(5.0);
             selfDestructChain.AddAction(this, () => LandblockManager.RemoveObject(this));

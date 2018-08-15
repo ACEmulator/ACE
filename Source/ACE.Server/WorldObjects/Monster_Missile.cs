@@ -69,8 +69,7 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedWeapon();
             var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
+            EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
             var player = AttackTarget as Player;
             var bodyPart = GetBodyPart();

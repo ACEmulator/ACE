@@ -1048,7 +1048,7 @@ namespace ACE.Server.WorldObjects
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
 
             LandblockManager.AddObject(spellProjectile);
-            CurrentLandblock?.EnqueueBroadcast(spellProjectile.Location, new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, spellProjectile.PlayscriptIntensity));
+            spellProjectile.EnqueueBroadcast(new GameMessageScript(spellProjectile.Guid, ACE.Entity.Enum.PlayScript.Launch, spellProjectile.PlayscriptIntensity));
 
             // detonate point-blank projectiles immediately
             var radsum = target.PhysicsObj.GetRadius() + spellProjectile.PhysicsObj.GetRadius();

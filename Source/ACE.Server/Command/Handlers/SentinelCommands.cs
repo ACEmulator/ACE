@@ -248,7 +248,7 @@ namespace ACE.Server.Command.Handlers
                 case "on":
                     var runEnchantment = new Enchantment(session.Player, session.Player.Guid, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
                     var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
-                    session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
+                    session.Player.EnqueueBroadcast(new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
                     session.Player.EnchantmentManager.Add(runEnchantment, null);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
                     break;

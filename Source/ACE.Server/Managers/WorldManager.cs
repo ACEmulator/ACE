@@ -415,38 +415,20 @@ namespace ACE.Server.Managers
             {
                 worldTickTimer.Restart();
 
-                // Handle time-based timeouts
+                // handle time-based actions
                 DelayManager.RunActions();
 
-                // Sequences of update thread:
-                // Update positions based on new tick
-                // TODO(ddevec): Physics here
-                IEnumerable<WorldObject> movedObjects = HandlePhysics(PortalYearTicks);
+                // update positions through physics engine
+                var movedObjects = HandlePhysics(PortalYearTicks);
 
-                // Do any pre-calculated landblock transfers --
-                foreach (WorldObject wo in movedObjects)
+                // iterate through objects that have changed landblocks
+                foreach (var movedObject in movedObjects)
                 {
-                    // If it was picked up, or moved
                     // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                    if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock?.Id)
-                    {
-                        // NOTE: We are moving the objects on behalf of the physics 
-                        LandblockManager.RelocateObjectForPhysics(wo);
-                    }
-                }
+                    if (movedObject.Location == null) continue;
 
-                // FIXME(ddevec): This O(n^2) tracking loop is a remenant of the old structure -- we should probably come up with a more efficient tracking scheme
-                if (Concurrency)
-                {
-                    Parallel.ForEach(movedObjects, movedObject =>
-                    {
-                        UpdateWorld_MovedObject(movedObject);
-                    });
-                }
-                else
-                {
-                    foreach (var movedObject in movedObjects)
-                        UpdateWorld_MovedObject(movedObject);
+                    // assume adjacency move here?
+                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
                 }
 
                 InboundMessageQueue.RunActions();
@@ -497,46 +479,9 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
-        private static void UpdateWorld_MovedObject(WorldObject mo)
-        {
-            // detect all world objects in ghost range
-            List<WorldObject> woproxghost = new List<WorldObject>();
-            woproxghost.AddRange(mo.CurrentLandblock?.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
-
-            // for all objects in range of this moving object or in ghost range of moving object update them.
-            if (Concurrency)
-            {
-                Parallel.ForEach(woproxghost, gwo =>
-                {
-                    UpdateWorld_MovedObjectTrack(mo, gwo);
-                });
-            }
-            else
-            {
-                foreach (var gwo in woproxghost)
-                    UpdateWorld_MovedObjectTrack(mo, gwo);
-            }
-        }
-
-        private static void UpdateWorld_MovedObjectTrack(WorldObject mo, WorldObject gwo)
-        {
-            if (!mo.Guid.IsPlayer()) return;
-
-            // if world object is in active zone then.
-            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.MaxObjectRange * Landblock.MaxObjectRange)
-            {
-                // if world object is in active zone.
-                if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
-                    (mo as Player).TrackObject(gwo);
-            }
-            // if world object is in ghost zone and outside of active zone
-            else
-            {
-                if ((mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
-                    (mo as Player).StopTrackingObject(gwo, false);
-            }
-        }
-
+        /// <summary>
+        /// A list of WorldObjects that have transitioned to adjacent landblocks for this update frame
+        /// </summary>
         public static List<WorldObject> UpdateLandblock = new List<WorldObject>();
 
         /// <summary>
@@ -578,13 +523,6 @@ namespace ACE.Server.Managers
                 Console.WriteLine(e);   // FIXME: concurrency + collection was modified
             }
 
-            foreach (var wo in UpdateLandblock)
-            {
-                wo.PreviousLocation = wo.Location;
-                LandblockManager.RelocateObjectForPhysics(wo);
-            }
-            UpdateLandblock.Clear();
-
             LastPhysicsUpdate = Server.Physics.Common.Timer.CurrentTime;
 
             return movedObjects;
@@ -596,6 +534,9 @@ namespace ACE.Server.Managers
             {
                 Position newPosition = null;
 
+                // set to TRUE if object changes landblock
+                var landblockUpdate = false;
+
                 // detect player movement
                 // TODO: handle players the same as everything else
                 var player = wo as Player;
@@ -603,22 +544,15 @@ namespace ACE.Server.Managers
                 {
                     newPosition = HandlePlayerPhysics(player, timeTick);
 
+                    // update position through physics engine
                     if (newPosition != null)
-                    {
-                        movedObjects.Enqueue(wo);
-
-                        // update position through physics engine
-                        wo.UpdatePlayerPhysics(newPosition);
-                    }
+                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
                 }
-                //else if (wo.Missile.HasValue && wo.Missile.Value)
                 else
-                {
-                    // physics minimum quantum?
-                    var isMoved = wo.UpdateObjectPhysics();
-                    if (isMoved)
-                        movedObjects.Enqueue(wo);   // send update?
-                }
+                    landblockUpdate = wo.UpdateObjectPhysics();
+
+                if (landblockUpdate)
+                    movedObjects.Enqueue(wo);
             }
         }
 
