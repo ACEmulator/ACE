@@ -322,9 +322,6 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"AddWorldObjectInternal({wo.Name})");
 
-            if (wo is Player)
-                Console.WriteLine($"Adding {wo.Name} to {Id.Landblock:X8}");
-
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
 

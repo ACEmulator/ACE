@@ -2995,13 +2995,6 @@ namespace ACE.Server.Physics
             }
         }
 
-        public void PlacementInsert(ACE.Entity.Position pos)
-        {
-            Console.WriteLine($"PlacementInsert({pos.Cell:X8}");
-
-            set_current_pos(new Position(pos));
-        }
-
         /// <summary>
         /// Sets the cell ID for an object and all its parts
         /// </summary>
