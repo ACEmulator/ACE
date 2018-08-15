@@ -2379,10 +2379,18 @@ namespace ACE.Server.Physics
             //foreach (var obj in newlyOccluded)
                 //Console.WriteLine(obj.Name);
 
-            // add newly visible objects
+            // add newly visible objects, and get the previously unknowns
             var createObjs = ObjMaint.AddVisibleObjects(visibleObjects);
-            if (createObjs.Count != newlyVisible.Count)
+            /*if (createObjs.Count != newlyVisible.Count)
+            {
                 Console.WriteLine($"Create objs differs from newly visible ({createObjs.Count} vs. {newlyVisible.Count})");
+                Console.WriteLine("CreateObjs:");
+                for (var i = 0; i < createObjs.Count; i++)
+                    Console.WriteLine($"{i} - {createObjs[i].Name}");
+                Console.WriteLine("Newly Visible:");
+                for (var i = 0; i < newlyVisible.Count; i++)
+                    Console.WriteLine($"{i} = {newlyVisible[i].Name}");
+            }*/
 
             // add newly occluded objects to the destruction queue
             ObjMaint.AddObjectsToBeDestroyed(newlyOccluded);
