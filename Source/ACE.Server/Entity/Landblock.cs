@@ -328,9 +328,10 @@ namespace ACE.Server.Entity
             wo.SetParent(this);
 
             if (wo.PhysicsObj == null)
-            {
                 wo.InitPhysicsObj();
 
+            if (wo.PhysicsObj.CurCell == null)
+            { 
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
