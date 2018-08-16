@@ -337,10 +337,18 @@ namespace ACE.Server.Entity
                     Console.WriteLine($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
                     return;
                 }
-
-                // broadcast to nearby players
-                wo.NotifyPlayers();
             }
+
+            // if adding a player to this landblock,
+            // tell them about other nearby objects
+            if (wo is Player)
+            {
+                var newlyVisible = wo.PhysicsObj.handle_visible_cells();
+                wo.PhysicsObj.enqueue_objs(newlyVisible);
+            }
+
+            // broadcast to nearby players
+            wo.NotifyPlayers();
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
