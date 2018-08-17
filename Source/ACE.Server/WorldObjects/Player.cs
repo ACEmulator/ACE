@@ -79,6 +79,9 @@ namespace ACE.Server.WorldObjects
         {
             base.InitPhysicsObj();
 
+            // set pink bubble state
+            IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
+
             PhysicsObj.SetPlayer();
         }
 

@@ -482,7 +482,7 @@ namespace ACE.Server.WorldObjects
             // If we really want to set default states on create or load, we need to separate this function into two parts.
 
             // Read in Object's Default PhysicsState
-            var physicsState = (PhysicsState)(GetProperty(PropertyInt.PhysicsState) ?? 0);
+            var physicsState = GetPhysicsStateOrDefault();
 
             if (physicsState.HasFlag(PhysicsState.Static))
                 if (!Static.HasValue)
