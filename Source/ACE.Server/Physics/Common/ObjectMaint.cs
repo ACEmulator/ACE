@@ -260,7 +260,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> GetVisibleObjects(ObjCell cell)
         {
-            if (cell == null) return new List<PhysicsObj>();
+            if (PhysicsObj.CurLandblock == null || cell == null) return new List<PhysicsObj>();
 
             // use PVS / VisibleCells for EnvCells not seen outside
             // (mostly dungeons, also some large indoor areas ie. caves)

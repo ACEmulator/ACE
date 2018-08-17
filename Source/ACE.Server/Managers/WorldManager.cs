@@ -544,13 +544,9 @@ namespace ACE.Server.Managers
                 {
                     newPosition = HandlePlayerPhysics(player, timeTick);
 
-                    wo.InUpdate = true;
-
                     // update position through physics engine
                     if (newPosition != null)
                         landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
-
-                    wo.InUpdate = false;
                 }
                 else
                     landblockUpdate = wo.UpdateObjectPhysics();
