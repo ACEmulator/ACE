@@ -1049,9 +1049,9 @@ namespace ACE.Server.WorldObjects
                 else
                     spellProjectile.GlobalOrigin = (Vector3)globalOrigin;
             }
-            
-            ACE.Entity.Position localPos = new ACE.Entity.Position().FromGlobal((Vector3)globalOrigin);
-            spellProjectile.Location = new ACE.Entity.Position(localPos.LandblockId.Raw, localPos.Pos, this.Location.Rotation);
+
+            var localPos = Location.FromGlobal((Vector3)globalOrigin);
+            spellProjectile.Location = localPos;
             spellProjectile.ParentWorldObject = (Creature)this;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
             spellProjectile.ProjectileSource = this;

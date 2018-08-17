@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using ACE.Entity;
 using System.Numerics;
-using LScape = ACE.Server.Physics.Common.LScape;
+using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Util;
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
 {
@@ -32,6 +34,8 @@ namespace ACE.Server.Entity
                 var iPos = new Position();
                 iPos.LandblockId = p.LandblockId;
                 iPos.Pos = new Vector3(pos.X, pos.Y, pos.Z);
+                iPos.Rotation = p.Rotation;
+                iPos.LandblockId = new LandblockId(GetCell(iPos));
                 return iPos;
             }
 
@@ -48,7 +52,57 @@ namespace ACE.Server.Entity
             position.PositionX = localX;
             position.PositionY = localY;
             position.PositionZ = pos.Z;
+            position.Rotation = p.Rotation;
+            position.LandblockId = new LandblockId(GetCell(position));
             return position;
+        }
+
+        /// <summary>
+        /// Gets the cell ID for a position within a landblock
+        /// </summary>
+        public static uint GetCell(this Position p)
+        {
+            var landblock = LScape.get_landblock(p.Landblock);
+
+            // dungeons
+            if (landblock.IsDungeon)
+                return GetIndoorCell(p);
+
+            // outside - could be on landscape, in building, or underground cave
+            var cellID = GetOutdoorCell(p);
+            var landcell = (LandCell)LScape.get_landcell(cellID);
+            if (landcell.has_building())
+            {
+                var envCells = landcell.Building.get_building_cells();
+                foreach (var envCell in envCells)
+                    if (envCell.point_in_cell(p.Pos))
+                        return envCell.ID;
+            }
+            return cellID;
+        }
+
+        /// <summary>
+        /// Gets an outdoor cell ID for a position within a landblock
+        /// </summary>
+        private static uint GetOutdoorCell(this Position p)
+        {
+            var cellX = (uint)p.PositionX / Position.CellLength;
+            var cellY = (uint)p.PositionY / Position.CellLength;
+
+            var cellID = cellX * Position.CellSide + cellY + 1;
+
+            var blockCellID = (uint)((p.LandblockId.Raw & 0xFFFF0000) | cellID);
+            return blockCellID;
+        }
+
+        private static uint GetIndoorCell(this Position p)
+        {
+            var adjustCell = AdjustCell.Get(p.Landblock);
+            var envCell = adjustCell.GetCell(p.Pos);
+            if (envCell != null)
+                return envCell.Value;
+            else
+                return p.Cell;
         }
     }
 }

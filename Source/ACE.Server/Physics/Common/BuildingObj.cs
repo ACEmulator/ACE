@@ -4,7 +4,7 @@ using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
-    public class BuildingObj: PhysicsObj
+    public class BuildingObj : PhysicsObj
     {
         public List<EnvCell> BuildingCells;
         public List<BldPortal> Portals;
