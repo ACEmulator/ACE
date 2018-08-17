@@ -103,10 +103,10 @@ namespace ACE.Server.WorldObjects
             arrow.ProjectileSource = this;
             arrow.ProjectileTarget = target;
 
-            var origin = Location.GlobalPos;
+            var origin = Location.ToGlobal();
             origin.Z += Height;
 
-            var dest = target.Location.GlobalPos;
+            var dest = target.Location.ToGlobal();
             //var dest = target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 

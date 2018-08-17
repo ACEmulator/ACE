@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
@@ -109,7 +110,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(rotateDelay);
             actionChain.AddAction(this, () =>
             {
-                var targetDir = GetDirection(Location.GlobalPos, target.Location.GlobalPos);
+                var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
                 Location.Rotate(targetDir);
             });
             actionChain.EnqueueChain();
