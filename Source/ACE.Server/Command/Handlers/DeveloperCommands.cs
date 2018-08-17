@@ -22,7 +22,7 @@ using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Command.Handlers
 {
-    public static class DebugCommands
+    public static class DeveloperCommands
     {
         // TODO: Replace later with a command to spawn a generator at the player's location
         /*
