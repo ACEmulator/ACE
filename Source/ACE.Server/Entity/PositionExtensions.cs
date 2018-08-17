@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using ACE.Entity;
 using System.Numerics;
 using ACE.Server.Physics.Common;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Util;
 using Position = ACE.Entity.Position;
 
@@ -13,7 +11,7 @@ namespace ACE.Server.Entity
     {
         public static Vector3 ToGlobal(this Position p)
         {
-            var landblock = LScape.get_landblock(p.Landblock);
+            var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
             if (landblock.IsDungeon)
                 return p.Pos;
@@ -27,7 +25,7 @@ namespace ACE.Server.Entity
 
         public static Position FromGlobal(this Position p, Vector3 pos)
         {
-            var landblock = LScape.get_landblock(p.Landblock);
+            var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
             if (landblock.IsDungeon)
             {
@@ -62,7 +60,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public static uint GetCell(this Position p)
         {
-            var landblock = LScape.get_landblock(p.Landblock);
+            var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
             // dungeons
             if (landblock.IsDungeon)
@@ -77,6 +75,25 @@ namespace ACE.Server.Entity
                 foreach (var envCell in envCells)
                     if (envCell.point_in_cell(p.Pos))
                         return envCell.ID;
+            }
+
+            // handle underground areas ie. caves
+            // get the terrain Z-height for this X/Y
+            Physics.Polygon walkable = null;
+            var terrainPoly = landcell.find_terrain_poly(p.Pos, ref walkable);
+            if (walkable != null)
+            {
+                Vector3 terrainPos = p.Pos;
+                walkable.Plane.set_height(ref terrainPos);
+
+                // are we below ground? if so, search all of the indoor cells for this landblock
+                if (terrainPos.Z > p.Pos.Z)
+                {
+                    var envCells = landblock.get_envcells();
+                    foreach (var envCell in envCells)
+                        if (envCell.point_in_cell(p.Pos))
+                            return envCell.ID;
+                }
             }
             return cellID;
         }
@@ -95,6 +112,9 @@ namespace ACE.Server.Entity
             return blockCellID;
         }
 
+        /// <summary>
+        /// Gets an indoor cell ID for a position within a dungeon
+        /// </summary>
         private static uint GetIndoorCell(this Position p)
         {
             var adjustCell = AdjustCell.Get(p.Landblock);
