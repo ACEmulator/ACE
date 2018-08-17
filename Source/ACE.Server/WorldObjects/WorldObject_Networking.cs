@@ -991,6 +991,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public uint prevCell;
+        public bool InUpdate;
 
         /// <summary>
         /// Used by physics engine to actually update a player position
@@ -1048,6 +1049,9 @@ namespace ACE.Server.WorldObjects
             Location = newPosition;
 
             SendUpdatePosition();
+
+            if (!InUpdate)
+                LandblockManager.RelocateObjectForPhysics(this, true);
 
             return landblockUpdate;
         }

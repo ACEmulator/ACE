@@ -804,7 +804,7 @@ namespace ACE.Server.Entity
                     return;
                 }
 
-                RemoveWorldObjectInternal(objectGuid, false);
+                RemoveWorldObjectInternal(objectGuid, true);
 
                 item.Location = null;
             });
