@@ -744,11 +744,11 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            // unwield missile launcher if dual wielding
+            // unwield wand / missile launcher if dual wielding
             if ((EquipMask)wieldLocation == EquipMask.Shield && !item.IsShield)
             {
-                var mainWeapon = GetEquippedWeapon();
-                if (mainWeapon != null && mainWeapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
+                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
+                if (mainWeapon != null)
                 {
                     if (!UnwieldItemWithNetworking(this, mainWeapon))
                         return false;
