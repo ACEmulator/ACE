@@ -165,10 +165,10 @@ namespace ACE.Database
 
         public bool AddCharacterInParallel(Biota biota, IEnumerable<Biota> possessions, Character character)
         {
-            if (!AddBiota(biota))
+            if (!SaveBiota(biota))
                 return false; // Biota save failed which mean Character fails.
 
-            if (!AddBiotasInParallel(possessions))
+            if (!SaveBiotasInParallel(possessions))
                 return false;
 
             using (var context = new ShardDbContext())
@@ -320,40 +320,6 @@ namespace ACE.Database
             if (biota.BiotaPropertiesTextureMap != null && biota.BiotaPropertiesTextureMap.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesTextureMap;
 
             biota.PopulatedCollectionFlags = (uint)populatedCollectionFlags;
-        }
-
-        public bool AddBiota(Biota biota)
-        {
-            using (var context = new ShardDbContext())
-            {
-                SetBiotaPopulatedCollections(biota);
-
-                context.Biota.Add(biota);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"AddBiota failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool AddBiotasInParallel(IEnumerable<Biota> biotas)
-        {
-            var result = true;
-
-            Parallel.ForEach(biotas, biota =>
-            {
-                if (!AddBiota(biota))
-                    result = false;
-            });
-
-            return result;
         }
 
         private static Biota GetBiota(ShardDbContext context, uint id)

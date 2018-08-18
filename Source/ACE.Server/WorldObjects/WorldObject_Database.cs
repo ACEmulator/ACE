@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
             // That way no database operations are lost between the time we tried to save and the time we actually saved.
             ExistsInDatabase = true;
 
-            DatabaseManager.Shard.AddBiota(Biota, result =>
+            DatabaseManager.Shard.SaveBiota(Biota, result =>
             {
                 if (result)
                     ChangesDetected = false;

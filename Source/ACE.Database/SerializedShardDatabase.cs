@@ -146,24 +146,6 @@ namespace ACE.Database
         }
 
 
-        public void AddBiota(Biota biota, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddBiota(biota);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void AddBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddBiotasInParallel(biotas);
-                callback?.Invoke(result);
-            }));
-        }
-
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
