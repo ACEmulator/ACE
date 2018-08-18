@@ -362,6 +362,7 @@ namespace ACE.Server.Physics.Common
             ObjectTable.Remove(obj.ID);
             VisibleObjectTable.Remove(obj.ID);
             DestructionQueue.Remove(obj);
+            VoyeurTable.Remove(obj.ID);
 
             obj.ObjMaint.RemoveVoyeur(PhysicsObj);
         }
