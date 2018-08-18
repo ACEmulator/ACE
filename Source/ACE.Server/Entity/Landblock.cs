@@ -405,9 +405,8 @@ namespace ACE.Server.Entity
                 // really remove it - send message to client to remove object
                 wo.EnqueueActionBroadcast((Player p) => p.RemoveTrackedObject(wo, true));
 
-                // remove physics object
-                wo.PhysicsObj.leave_cell(false);
-                wo.PhysicsObj.remove_shadows_from_cells();
+                wo.PhysicsObj.DestroyObject();
+                wo.IsDestroyed = true;
             }
         }
 

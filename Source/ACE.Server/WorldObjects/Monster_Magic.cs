@@ -117,6 +117,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CastSpell()
         {
+            if (AttackTarget == null) return;
+
             bool? resisted;
             var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();

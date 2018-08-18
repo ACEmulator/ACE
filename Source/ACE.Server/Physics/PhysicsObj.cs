@@ -142,7 +142,7 @@ namespace ACE.Server.Physics
 
         ~PhysicsObj()
         {
-            Destroy();
+            DestroyObject();
         }
 
         public void Destroy()
@@ -162,7 +162,19 @@ namespace ACE.Server.Physics
             // PartArray.SetCellID ?
 
             State = PhysicsGlobals.DefaultState;
-            ObjectMaint.RemoveServerObject(this);
+        }
+
+        /// <summary>
+        /// Called to completely remove a PhysicsObj from the server
+        /// </summary>
+        public void DestroyObject()
+        {
+            leave_cell(false);
+            remove_shadows_from_cells();
+            leave_world();
+            exit_world();
+
+            ObjMaint.DestroyObject();
         }
 
         public void AddObjectToSingleCell(ObjCell objCell)

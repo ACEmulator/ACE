@@ -454,5 +454,17 @@ namespace ACE.Server.Physics.Common
             var visiblePlayers = GetVisibleObjects(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
             AddVoyeurs(visiblePlayers);
         }
+
+        /// <summary>
+        /// The destructor cleans up all ObjMaint references
+        /// to this PhysicsObj
+        /// </summary>
+        public void DestroyObject()
+        {
+            foreach (var obj in ObjectTable.Values)
+                obj.ObjMaint.RemoveObject(PhysicsObj);
+
+            RemoveServerObject(PhysicsObj);
+        }
     }
 }

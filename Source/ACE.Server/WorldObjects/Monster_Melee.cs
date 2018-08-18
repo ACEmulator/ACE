@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength / 2.0f);
             actionChain.AddAction(this, () =>
             {
+                if (AttackTarget == null) return;
+
                 var critical = false;
                 var damageType = DamageType.Undef;
                 var damage = CalculateDamage(ref damageType, bodyPart, ref critical);

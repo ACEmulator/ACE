@@ -74,6 +74,8 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
+        public bool IsDestroyed = false;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
