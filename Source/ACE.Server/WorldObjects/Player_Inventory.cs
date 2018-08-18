@@ -744,7 +744,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            // check equip weapon in offhand
+            // unwield missile launcher if dual wielding
             if ((EquipMask)wieldLocation == EquipMask.Shield && !item.IsShield)
             {
                 var mainWeapon = GetEquippedWeapon();
