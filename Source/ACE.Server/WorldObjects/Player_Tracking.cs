@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Adds/updates the tracking list for creature wielded items
         /// </summary>
-        public void TrackEquippedObjects(Creature creature)
+        public void TrackEquippedObjects(Creature creature, bool remove = false)
         {
             foreach (var wieldedItem in creature.EquippedObjects.Values)
             {
@@ -113,8 +113,11 @@ namespace ACE.Server.WorldObjects
                 if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
                     creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
 
-                //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})");
-                Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+                //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})")
+                if (!remove)
+                    Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+                else
+                    Session.Network.EnqueueSend(new GameMessageDeleteObject(wieldedItem));
             }
         }
 
@@ -138,15 +141,15 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"RemoveTrackedObject({remove})");
 
-            // does this work for equipped objects?
-            if (!ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
-                return false;
-
             ObjMaint.RemoveObject(worldObject.PhysicsObj);
 
             if (remove)
+            {
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
-
+                var creature = worldObject as Creature;
+                if (creature != null)
+                    TrackEquippedObjects(creature, true);
+            }
             return true;
         }
     }
