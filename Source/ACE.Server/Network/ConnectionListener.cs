@@ -59,10 +59,14 @@ namespace ACE.Server.Network
                 EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
                 Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
             }
+            catch (SocketException socketException)
+            {
+                log.DebugFormat("Network Socket has thrown: {0} {1}", socketException.ErrorCode, socketException.Message);
+                Listen();
+            }
             catch (Exception exception)
             {
                 log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
-                Listen();
             }
         }
 
