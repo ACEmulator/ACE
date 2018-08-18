@@ -62,6 +62,7 @@ namespace ACE.Server.Network
             catch (Exception exception)
             {
                 log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                Listen();
             }
         }
 
