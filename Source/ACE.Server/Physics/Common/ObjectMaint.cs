@@ -277,7 +277,7 @@ namespace ACE.Server.Physics.Common
             foreach (var adjacent in adjacents)
                 visibleObjs.AddRange(adjacent.ServerObjects);
 
-            return visibleObjs;
+            return visibleObjs.Where(i => i.ID != PhysicsObj.ID).ToList();
 
             /*var cells = GetOutdoorCells(cell);
 
@@ -308,7 +308,7 @@ namespace ACE.Server.Physics.Common
                 visibleObjs.AddRange(envCell.ObjectList);
             }
 
-            return visibleObjs.Where(i => !i.DatObject).Distinct().ToList();
+            return visibleObjs.Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
         }
 
         /// <summary>
