@@ -113,7 +113,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.AddCharacter(biota, possessions, character);
+                var result = _wrappedDatabase.AddCharacterInParallel(biota, possessions, character);
                 callback?.Invoke(result);
             }));
         }
@@ -159,7 +159,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.AddBiotas(biotas);
+                var result = _wrappedDatabase.AddBiotasInParallel(biotas);
                 callback?.Invoke(result);
             }));
         }
@@ -186,7 +186,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveBiotas(biotas);
+                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
                 callback?.Invoke(result);
             }));
         }
@@ -196,6 +196,15 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.RemoveBiota(biota);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
                 callback?.Invoke(result);
             }));
         }
@@ -325,7 +334,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetPlayerBiotas(id);
+                var c = _wrappedDatabase.GetPlayerBiotasInParallel(id);
                 callback?.Invoke(c);
             }));
         }
@@ -334,7 +343,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetInventory(parentId, includedNestedItems);
+                var c = _wrappedDatabase.GetInventoryInParallel(parentId, includedNestedItems);
                 callback?.Invoke(c);
             }));
 
@@ -344,7 +353,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetWieldedItems(parentId);
+                var c = _wrappedDatabase.GetWieldedItemsInParallel(parentId);
                 callback?.Invoke(c);
             }));
 
@@ -354,7 +363,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetObjectsByLandblock(landblockId);
+                var c = _wrappedDatabase.GetObjectsByLandblockInParallel(landblockId);
                 callback?.Invoke(c);
             }));
         }

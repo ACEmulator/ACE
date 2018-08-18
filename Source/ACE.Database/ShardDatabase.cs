@@ -163,16 +163,16 @@ namespace ACE.Database
             }
         }
 
-        public bool AddCharacter(Biota biota, IEnumerable<Biota> possessions, Character character)
+        public bool AddCharacterInParallel(Biota biota, IEnumerable<Biota> possessions, Character character)
         {
+            if (!AddBiota(biota))
+                return false; // Biota save failed which mean Character fails.
+
+            if (!AddBiotasInParallel(possessions))
+                return false;
+
             using (var context = new ShardDbContext())
             {
-                if (!AddBiota(context, biota))
-                    return false; // Biota save failed which mean Character fails.
-
-                if (!AddBiotas(context, possessions))
-                    return false;
-
                 context.Character.Add(character);
 
                 try
@@ -325,52 +325,35 @@ namespace ACE.Database
         public bool AddBiota(Biota biota)
         {
             using (var context = new ShardDbContext())
-                return AddBiota(context, biota);
-        }
-
-        private static bool AddBiota(ShardDbContext context, Biota biota)
-        {
-            SetBiotaPopulatedCollections(biota);
-
-            context.Biota.Add(biota);
-
-            try
-            {
-                context.SaveChanges();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                log.Error($"AddBiota failed with exception: {ex}");
-                return false;
-            }
-        }
-
-        public bool AddBiotas(IEnumerable<Biota> biotas)
-        {
-            using (var context = new ShardDbContext())
-                return AddBiotas(context, biotas);
-        }
-
-        private static bool AddBiotas(ShardDbContext context, IEnumerable<Biota> biotas)
-        {
-            foreach (var biota in biotas)
             {
                 SetBiotaPopulatedCollections(biota);
 
                 context.Biota.Add(biota);
-            }
 
-            try
-            {
-                context.SaveChanges();
-                return true;
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"AddBiota failed with exception: {ex}");
+                    return false;
+                }
             }
-            catch (Exception ex)
+        }
+
+        public bool AddBiotasInParallel(IEnumerable<Biota> biotas)
+        {
+            var result = true;
+
+            Parallel.ForEach(biotas, biota =>
             {
-                log.Error($"AddBiota failed with exception: {ex}");
-                return false;
-            }
+                if (!AddBiota(biota))
+                    result = false;
+            });
+
+            return result;
         }
 
         public Biota GetBiota(uint id)
@@ -439,29 +422,17 @@ namespace ACE.Database
             }
         }
 
-        public bool SaveBiotas(IEnumerable<Biota> biotas)
+        public bool SaveBiotasInParallel(IEnumerable<Biota> biotas)
         {
-            using (var context = new ShardDbContext())
+            var result = true;
+
+            Parallel.ForEach(biotas, biota =>
             {
-                foreach (var biota in biotas)
-                {
-                    SetBiotaPopulatedCollections(biota);
+                if (!SaveBiota(biota))
+                    result = false;
+            });
 
-                    context.Biota.Update(biota);
-                }
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"SaveBiota failed with exception: {ex}");
-                    return false;
-                }
-            }
+            return result;
         }
 
         public bool RemoveBiota(Biota biota)
@@ -483,6 +454,20 @@ namespace ACE.Database
                 }
             }
         }
+
+        public bool RemoveBiotasInParallel(IEnumerable<Biota> biotas)
+        {
+            var result = true;
+
+            Parallel.ForEach(biotas, biota =>
+            {
+                if (!RemoveBiota(biota))
+                    result = false;
+            });
+
+            return result;
+        }
+
 
         public bool RemoveEntity(object entity)
         {
@@ -745,18 +730,18 @@ namespace ACE.Database
         }
 
 
-        public PlayerBiotas GetPlayerBiotas(uint id)
+        public PlayerBiotas GetPlayerBiotasInParallel(uint id)
         {
             var biota = GetBiota(id);
 
-            var inventory = GetInventory(id, true);
+            var inventory = GetInventoryInParallel(id, true);
 
-            var wieldedItems = GetWieldedItems(id);
+            var wieldedItems = GetWieldedItemsInParallel(id);
 
             return new PlayerBiotas(biota, inventory, wieldedItems);
         }
 
-        public List<Biota> GetInventory(uint parentId, bool includedNestedItems)
+        public List<Biota> GetInventoryInParallel(uint parentId, bool includedNestedItems)
         {
             var inventory = new ConcurrentBag<Biota>();
 
@@ -778,7 +763,7 @@ namespace ACE.Database
 
                         if (includedNestedItems && biota.WeenieType == (int) WeenieType.Container)
                         {
-                            var subItems = GetInventory(biota.Id, false);
+                            var subItems = GetInventoryInParallel(biota.Id, false);
 
                             foreach (var subItem in subItems)
                                 inventory.Add(subItem);
@@ -790,7 +775,7 @@ namespace ACE.Database
             return inventory.ToList();
         }
 
-        public List<Biota> GetWieldedItems(uint parentId)
+        public List<Biota> GetWieldedItemsInParallel(uint parentId)
         {
             var wieldedItems = new ConcurrentBag<Biota>();
 
@@ -815,7 +800,7 @@ namespace ACE.Database
         }
 
 
-        public List<Biota> GetObjectsByLandblock(ushort landblockId)
+        public List<Biota> GetObjectsByLandblockInParallel(ushort landblockId)
         {
             var decayables = new ConcurrentBag<Biota>();
 
