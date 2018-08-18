@@ -58,7 +58,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var biota in biotas)
             {
-                DatabaseManager.Shard.AddBiota(biota, result =>
+                DatabaseManager.Shard.SaveBiota(biota, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
@@ -144,7 +144,7 @@ namespace ACE.Server.Command.Handlers.Processors
             falseResults = 0;
             startTime = DateTime.UtcNow;
 
-            DatabaseManager.Shard.AddBiotas(biotas, result =>
+            DatabaseManager.Shard.SaveBiotas(biotas, result =>
             {
                 if (result)
                     Interlocked.Increment(ref trueResults);
@@ -238,7 +238,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
 
                 // Remove the last record
-                /*if (biota.BiotaPropertiesInt.Count > 0)
+                if (biota.BiotaPropertiesInt.Count > 0)
                     biota.BiotaPropertiesInt.Remove(biota.BiotaPropertiesInt.Last());
 
                 if (biota.BiotaPropertiesInt64.Count > 0)
@@ -261,19 +261,19 @@ namespace ACE.Server.Command.Handlers.Processors
 
 
                 // Add a new record
-                biota.BiotaPropertiesInt.Add(new BiotaPropertiesInt { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });
+                biota.BiotaPropertiesInt.Add(new BiotaPropertiesInt { ObjectId = biota.Id, Type = ushort.MaxValue, Value = 0, Object = biota });
 
-                biota.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64 { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });
+                biota.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64 { ObjectId = biota.Id, Type = ushort.MaxValue, Value = 0, Object = biota });
 
-                biota.BiotaPropertiesIID.Add(new BiotaPropertiesIID { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });
+                biota.BiotaPropertiesIID.Add(new BiotaPropertiesIID { ObjectId = biota.Id, Type = ushort.MaxValue, Value = 0, Object = biota });
 
-                biota.BiotaPropertiesDID.Add(new BiotaPropertiesDID { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });
+                biota.BiotaPropertiesDID.Add(new BiotaPropertiesDID { ObjectId = biota.Id, Type = ushort.MaxValue, Value = 0, Object = biota });
 
-                biota.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });
+                biota.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat { ObjectId = biota.Id, Type = ushort.MaxValue, Value = 0, Object = biota });
 
-                biota.BiotaPropertiesBool.Add(new BiotaPropertiesBool { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });
+                biota.BiotaPropertiesBool.Add(new BiotaPropertiesBool { ObjectId = biota.Id, Type = ushort.MaxValue, Value = false, Object = biota });
 
-                biota.BiotaPropertiesString.Add(new BiotaPropertiesString { ObjectId = biota.Id, Type = ushort.MaxValue, Object = biota });*/
+                biota.BiotaPropertiesString.Add(new BiotaPropertiesString { ObjectId = biota.Id, Type = ushort.MaxValue, Value = "", Object = biota });
             }
         }
 

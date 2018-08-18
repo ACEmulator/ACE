@@ -356,47 +356,52 @@ namespace ACE.Database
             return result;
         }
 
+        private static Biota GetBiota(ShardDbContext context, uint id)
+        {
+            var biota = context.Biota
+            .FirstOrDefault(r => r.Id == id);
+
+            if (biota == null)
+                return null;
+
+            PopulatedCollectionFlags populatedCollectionFlags = (PopulatedCollectionFlags)biota.PopulatedCollectionFlags;
+
+            // todo: There are gains to be had here if we can conditionally perform mulitple .Include (.Where) statements in a single query.
+            // todo: Until I figure out how to do that, this is still pretty good. Mag-nus 2018-08-10
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAnimPart)) biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute)) biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute2nd)) biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBodyPart)) biota.BiotaPropertiesBodyPart = context.BiotaPropertiesBodyPart.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBook)) biota.BiotaPropertiesBook = context.BiotaPropertiesBook.FirstOrDefault(r => r.ObjectId == biota.Id);
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBookPageData)) biota.BiotaPropertiesBookPageData = context.BiotaPropertiesBookPageData.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBool)) biota.BiotaPropertiesBool = context.BiotaPropertiesBool.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesCreateList)) biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesDID)) biota.BiotaPropertiesDID = context.BiotaPropertiesDID.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEmote)) biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Include(r => r.BiotaPropertiesEmoteAction).Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEnchantmentRegistry)) biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEventFilter)) biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesFloat)) biota.BiotaPropertiesFloat = context.BiotaPropertiesFloat.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesGenerator)) biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesIID)) biota.BiotaPropertiesIID = context.BiotaPropertiesIID.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesInt)) biota.BiotaPropertiesInt = context.BiotaPropertiesInt.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesInt64)) biota.BiotaPropertiesInt64 = context.BiotaPropertiesInt64.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesPalette)) biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesPosition)) biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesSkill)) biota.BiotaPropertiesSkill = context.BiotaPropertiesSkill.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesSpellBook)) biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesString)) biota.BiotaPropertiesString = context.BiotaPropertiesString.Where(r => r.ObjectId == biota.Id).ToList();
+            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesTextureMap)) biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
+
+            return biota;
+        }
+
         public Biota GetBiota(uint id)
         {
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var biota = context.Biota
-                .FirstOrDefault(r => r.Id == id);
-
-                if (biota == null)
-                    return null;
-
-                PopulatedCollectionFlags populatedCollectionFlags = (PopulatedCollectionFlags)biota.PopulatedCollectionFlags;
-
-                // todo: There are gains to be had here if we can conditionally perform mulitple .Include (.Where) statements in a single query.
-                // todo: Until I figure out how to do that, this is still pretty good. Mag-nus 2018-08-10
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAnimPart)) biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute)) biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute2nd)) biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBodyPart)) biota.BiotaPropertiesBodyPart = context.BiotaPropertiesBodyPart.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBook)) biota.BiotaPropertiesBook = context.BiotaPropertiesBook.FirstOrDefault(r => r.ObjectId == biota.Id);
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBookPageData)) biota.BiotaPropertiesBookPageData = context.BiotaPropertiesBookPageData.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesBool)) biota.BiotaPropertiesBool = context.BiotaPropertiesBool.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesCreateList)) biota.BiotaPropertiesCreateList = context.BiotaPropertiesCreateList.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesDID)) biota.BiotaPropertiesDID = context.BiotaPropertiesDID.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEmote)) biota.BiotaPropertiesEmote = context.BiotaPropertiesEmote.Include(r => r.BiotaPropertiesEmoteAction).Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEnchantmentRegistry)) biota.BiotaPropertiesEnchantmentRegistry = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesEventFilter)) biota.BiotaPropertiesEventFilter = context.BiotaPropertiesEventFilter.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesFloat)) biota.BiotaPropertiesFloat = context.BiotaPropertiesFloat.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesGenerator)) biota.BiotaPropertiesGenerator = context.BiotaPropertiesGenerator.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesIID)) biota.BiotaPropertiesIID = context.BiotaPropertiesIID.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesInt)) biota.BiotaPropertiesInt = context.BiotaPropertiesInt.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesInt64)) biota.BiotaPropertiesInt64 = context.BiotaPropertiesInt64.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesPalette)) biota.BiotaPropertiesPalette = context.BiotaPropertiesPalette.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesPosition)) biota.BiotaPropertiesPosition = context.BiotaPropertiesPosition.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesSkill)) biota.BiotaPropertiesSkill = context.BiotaPropertiesSkill.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesSpellBook)) biota.BiotaPropertiesSpellBook = context.BiotaPropertiesSpellBook.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesString)) biota.BiotaPropertiesString = context.BiotaPropertiesString.Where(r => r.ObjectId == biota.Id).ToList();
-                if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesTextureMap)) biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
-
-                return biota;
+                return GetBiota(context, id);
             }
         }
 
@@ -406,7 +411,517 @@ namespace ACE.Database
             {
                 SetBiotaPopulatedCollections(biota);
 
-                context.Biota.Update(biota);
+                var existingBiota = GetBiota(context, biota.Id);
+
+                if (existingBiota == null)
+                {
+                    context.Biota.Add(biota);
+                }
+                else
+                {
+                    context.Entry(existingBiota).CurrentValues.SetValues(biota);
+
+                    foreach (var value in biota.BiotaPropertiesAnimPart)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesAnimPart.Add(value);
+                        else
+                        {
+                            existingValue.Index = value.Index;
+                            existingValue.AnimationId = value.AnimationId;
+                            existingValue.Order = value.Order;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesAnimPart)
+                    {
+                        if (!biota.BiotaPropertiesAnimPart.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesAnimPart.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesAttribute)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesAttribute.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.InitLevel = value.InitLevel;
+                            existingValue.LevelFromCP = value.LevelFromCP;
+                            existingValue.CPSpent = value.CPSpent;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesAttribute)
+                    {
+                        if (!biota.BiotaPropertiesAttribute.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesAttribute.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesAttribute2nd)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesAttribute2nd.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.InitLevel = value.InitLevel;
+                            existingValue.LevelFromCP = value.LevelFromCP;
+                            existingValue.CPSpent = value.CPSpent;
+                            existingValue.CurrentLevel = value.CurrentLevel;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesAttribute2nd)
+                    {
+                        if (!biota.BiotaPropertiesAttribute2nd.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesAttribute2nd.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesBodyPart)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesBodyPart.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesBodyPart.Add(value);
+                        else
+                        {
+                            existingValue.Key = value.Key;
+                            existingValue.DType = value.DType;
+                            existingValue.DVal = value.DVal;
+                            existingValue.DVar = value.DVar;
+                            existingValue.BaseArmor = value.BaseArmor;
+                            existingValue.ArmorVsSlash = value.ArmorVsSlash;
+                            existingValue.ArmorVsPierce = value.ArmorVsPierce;
+                            existingValue.ArmorVsBludgeon = value.ArmorVsBludgeon;
+                            existingValue.ArmorVsCold = value.ArmorVsCold;
+                            existingValue.ArmorVsFire = value.ArmorVsFire;
+                            existingValue.ArmorVsAcid = value.ArmorVsAcid;
+                            existingValue.ArmorVsElectric = value.ArmorVsElectric;
+                            existingValue.ArmorVsNether = value.ArmorVsNether;
+                            existingValue.BH = value.BH;
+                            existingValue.HLF = value.HLF;
+                            existingValue.MLF = value.MLF;
+                            existingValue.LLF = value.LLF;
+                            existingValue.HRF = value.HRF;
+                            existingValue.MRF = value.MRF;
+                            existingValue.LRF = value.LRF;
+                            existingValue.HLB = value.HLB;
+                            existingValue.MLB = value.MLB;
+                            existingValue.LLB = value.LLB;
+                            existingValue.HRB = value.HRB;
+                            existingValue.MRB = value.MRB;
+                            existingValue.LRB = value.LRB;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesBodyPart)
+                    {
+                        if (!biota.BiotaPropertiesBodyPart.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesBodyPart.Remove(value);
+                    }
+
+                    if (biota.BiotaPropertiesBook != null)
+                    {
+                        if (existingBiota.BiotaPropertiesBook == null)
+                            existingBiota.BiotaPropertiesBook = new BiotaPropertiesBook();
+
+                        existingBiota.BiotaPropertiesBook.MaxNumPages = biota.BiotaPropertiesBook.MaxNumPages;
+                        existingBiota.BiotaPropertiesBook.MaxNumCharsPerPage = biota.BiotaPropertiesBook.MaxNumCharsPerPage;
+                    }
+                    else
+                    {
+                        if (existingBiota.BiotaPropertiesBook != null)
+                            ; // todo remove the old one
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesBookPageData)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesBookPageData.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesBookPageData.Add(value);
+                        else
+                        {
+                            existingValue.PageId = value.PageId;
+                            existingValue.AuthorId = value.AuthorId;
+                            existingValue.AuthorName = value.AuthorName;
+                            existingValue.AuthorAccount = value.AuthorAccount;
+                            existingValue.IgnoreAuthor = value.IgnoreAuthor;
+                            existingValue.PageText = value.PageText;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesBookPageData)
+                    {
+                        if (!biota.BiotaPropertiesBookPageData.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesBookPageData.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesBool)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesBool.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesBool.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesBool)
+                    {
+                        if (!biota.BiotaPropertiesBool.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesBool.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesCreateList)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesCreateList.Add(value);
+                        else
+                        {
+                            existingValue.DestinationType = value.DestinationType;
+                            existingValue.WeenieClassId = value.WeenieClassId;
+                            existingValue.StackSize = value.StackSize;
+                            existingValue.Palette = value.Palette;
+                            existingValue.Shade = value.Shade;
+                            existingValue.TryToBond = value.TryToBond;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesCreateList)
+                    {
+                        if (!biota.BiotaPropertiesCreateList.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesCreateList.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesDID)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesDID.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesDID.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesDID)
+                    {
+                        if (!biota.BiotaPropertiesDID.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesDID.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesEmote)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesEmote.Add(value);
+                        else
+                        {
+                            existingValue.Category = value.Category;
+                            existingValue.Probability = value.Probability;
+                            existingValue.WeenieClassId = value.WeenieClassId;
+                            existingValue.Style = value.Style;
+                            existingValue.Substyle = value.Substyle;
+                            existingValue.Quest = value.Quest;
+                            existingValue.VendorType = value.VendorType;
+                            existingValue.MinHealth = value.MinHealth;
+                            existingValue.MaxHealth = value.MaxHealth;
+                        }
+
+                        // todo BiotaPropertiesEmoteAction
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesEmote)
+                    {
+                        if (!biota.BiotaPropertiesEmote.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesEmote.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesEnchantmentRegistry)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesEnchantmentRegistry.Add(value);
+                        else
+                        {
+                            existingValue.EnchantmentCategory = value.EnchantmentCategory;
+                            existingValue.SpellId = value.SpellId;
+                            existingValue.LayerId = value.LayerId;
+                            existingValue.HasSpellSetId = value.HasSpellSetId;
+                            existingValue.SpellCategory = value.SpellCategory;
+                            existingValue.PowerLevel = value.PowerLevel;
+                            existingValue.StartTime = value.StartTime;
+                            existingValue.Duration = value.Duration;
+                            existingValue.CasterObjectId = value.CasterObjectId;
+                            existingValue.DegradeModifier = value.DegradeModifier;
+                            existingValue.DegradeLimit = value.DegradeLimit;
+                            existingValue.LastTimeDegraded = value.LastTimeDegraded;
+                            existingValue.StatModType = value.StatModType;
+                            existingValue.StatModKey = value.StatModKey;
+                            existingValue.StatModValue = value.StatModValue;
+                            existingValue.SpellSetId = value.SpellSetId;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesEnchantmentRegistry)
+                    {
+                        if (!biota.BiotaPropertiesEnchantmentRegistry.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesEnchantmentRegistry.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesEventFilter)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesEventFilter.Add(value);
+                        else
+                        {
+                            existingValue.Event = value.Event;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesEventFilter)
+                    {
+                        if (!biota.BiotaPropertiesEventFilter.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesEventFilter.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesFloat)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesFloat.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesFloat)
+                    {
+                        if (!biota.BiotaPropertiesFloat.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesFloat.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesGenerator)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesGenerator.Add(value);
+                        else
+                        {
+                            existingValue.Probability = value.Probability;
+                            existingValue.WeenieClassId = value.WeenieClassId;
+                            existingValue.Delay = value.Delay;
+                            existingValue.InitCreate = value.InitCreate;
+                            existingValue.MaxCreate = value.MaxCreate;
+                            existingValue.WhenCreate = value.WhenCreate;
+                            existingValue.WhereCreate = value.WhereCreate;
+                            existingValue.StackSize = value.StackSize;
+                            existingValue.PaletteId = value.PaletteId;
+                            existingValue.Shade = value.Shade;
+                            existingValue.ObjCellId = value.ObjCellId;
+                            existingValue.OriginX = value.OriginX;
+                            existingValue.OriginY = value.OriginY;
+                            existingValue.OriginZ = value.OriginZ;
+                            existingValue.AnglesW = value.AnglesW;
+                            existingValue.AnglesX = value.AnglesX;
+                            existingValue.AnglesY = value.AnglesY;
+                            existingValue.AnglesZ = value.AnglesZ;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesGenerator)
+                    {
+                        if (!biota.BiotaPropertiesGenerator.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesGenerator.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesIID)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesIID.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesIID.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesIID)
+                    {
+                        if (!biota.BiotaPropertiesIID.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesIID.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesInt)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesInt.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesInt.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesInt)
+                    {
+                        if (!biota.BiotaPropertiesInt.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesInt.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesInt64)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesInt64.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesInt64)
+                    {
+                        if (!biota.BiotaPropertiesInt64.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesInt64.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesPalette)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesPalette.Add(value);
+                        else
+                        {
+                            existingValue.SubPaletteId = value.SubPaletteId;
+                            existingValue.Offset = value.Offset;
+                            existingValue.Length = value.Length;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesPalette)
+                    {
+                        if (!biota.BiotaPropertiesPalette.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesPalette.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesPosition)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesPosition.Add(value);
+                        else
+                        {
+                            existingValue.PositionType = value.PositionType;
+                            existingValue.ObjCellId = value.ObjCellId;
+                            existingValue.OriginX = value.OriginX;
+                            existingValue.OriginY = value.OriginY;
+                            existingValue.OriginZ = value.OriginZ;
+                            existingValue.AnglesW = value.AnglesW;
+                            existingValue.AnglesX = value.AnglesX;
+                            existingValue.AnglesY = value.AnglesY;
+                            existingValue.AnglesZ = value.AnglesZ;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesPosition)
+                    {
+                        if (!biota.BiotaPropertiesPosition.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesPosition.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesSkill)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesSkill.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.LevelFromPP = value.LevelFromPP;
+                            existingValue.SAC = value.SAC;
+                            existingValue.PP = value.PP;
+                            existingValue.InitLevel = value.InitLevel;
+                            existingValue.ResistanceAtLastCheck = value.ResistanceAtLastCheck;
+                            existingValue.LastUsedTime = value.LastUsedTime;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesSkill)
+                    {
+                        if (!biota.BiotaPropertiesSkill.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesSkill.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesSpellBook)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesSpellBook.Add(value);
+                        else
+                        {
+                            existingValue.Spell = value.Spell;
+                            existingValue.Probability = value.Probability;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesSpellBook)
+                    {
+                        if (!biota.BiotaPropertiesSpellBook.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesSpellBook.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesString)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesString.Add(value);
+                        else
+                        {
+                            existingValue.Type = value.Type;
+                            existingValue.Value = value.Value;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesString)
+                    {
+                        if (!biota.BiotaPropertiesString.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesString.Remove(value);
+                    }
+
+                    foreach (var value in biota.BiotaPropertiesTextureMap)
+                    {
+                        var existingValue = existingBiota.BiotaPropertiesTextureMap.FirstOrDefault(r => r.Id == value.Id);
+
+                        if (existingValue == null)
+                            existingBiota.BiotaPropertiesTextureMap.Add(value);
+                        else
+                        {
+                            existingValue.Index = value.Index;
+                            existingValue.OldId = value.OldId;
+                            existingValue.NewId = value.NewId;
+                            existingValue.Order = value.Order;
+                        }
+                    }
+                    foreach (var value in existingBiota.BiotaPropertiesTextureMap)
+                    {
+                        if (!biota.BiotaPropertiesTextureMap.Any(p => p.Id == value.Id))
+                            context.BiotaPropertiesTextureMap.Remove(value);
+                    }
+                }
 
                 try
                 {
