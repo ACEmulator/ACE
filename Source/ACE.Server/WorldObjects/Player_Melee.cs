@@ -133,6 +133,8 @@ namespace ACE.Server.WorldObjects
             return actionChain;
         }
 
+        public bool DualWieldAlternate;
+
         public override MotionCommand GetSwingAnimation()
         {
             MotionCommand motion = new MotionCommand();
@@ -148,6 +150,14 @@ namespace ACE.Server.WorldObjects
                 case MotionStance.TwoHandedSwordAttack:
                     {
                         var action = PowerLevel < 0.33f ? "Thrust" : "Slash";
+                        if (CurrentMotionState.Stance == MotionStance.DualWieldAttack)
+                        {
+                            if (DualWieldAlternate)
+                                action = "Offhand" + action;
+
+                            DualWieldAlternate = !DualWieldAlternate;
+                        }
+
                         Enum.TryParse(action + GetAttackHeight(), out motion);
                         return motion;
                     }
