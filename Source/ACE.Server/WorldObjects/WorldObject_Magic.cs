@@ -8,7 +8,6 @@ using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -1049,9 +1048,9 @@ namespace ACE.Server.WorldObjects
                 else
                     spellProjectile.GlobalOrigin = (Vector3)globalOrigin;
             }
-
-            var localPos = Location.FromGlobal((Vector3)globalOrigin);
-            spellProjectile.Location = localPos;
+            
+            ACE.Entity.Position localPos = new ACE.Entity.Position().FromGlobal((Vector3)globalOrigin);
+            spellProjectile.Location = new ACE.Entity.Position(localPos.LandblockId.Raw, localPos.Pos, this.Location.Rotation);
             spellProjectile.ParentWorldObject = (Creature)this;
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
             spellProjectile.ProjectileSource = this;
@@ -1068,7 +1067,7 @@ namespace ACE.Server.WorldObjects
         private void LaunchSpellProjectile(SpellProjectile sp)
         {
             LandblockManager.AddObject(sp);
-            CurrentLandblock?.EnqueueBroadcast(sp.Location, new GameMessageScript(sp.Guid, ACE.Entity.Enum.PlayScript.Launch, sp.PlayscriptIntensity));
+            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, ACE.Entity.Enum.PlayScript.Launch, sp.PlayscriptIntensity));
 
             if (sp.ProjectileTarget == null)
                 return;
