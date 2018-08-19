@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2018-08-19
+[mcreedjr]
+* Added alwaysshowwelcome Boolean config property
+
 ### 2018-08-12
 [OptimShi]
 * Added handling of Bool.NpcLooksLikeObject to the AppraiseInfo event.
