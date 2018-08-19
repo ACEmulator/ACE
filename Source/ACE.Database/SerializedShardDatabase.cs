@@ -164,7 +164,7 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        public void SaveBiotas(IEnumerable<Biota> biotas, Action<bool> callback) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
         {
             _queue.Add(new Task(() =>
             {
@@ -182,7 +182,7 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        public void RemoveBiotas(IEnumerable<Biota> biotas, Action<bool> callback) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
         {
             _queue.Add(new Task(() =>
             {

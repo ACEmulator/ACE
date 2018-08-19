@@ -399,8 +399,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesAnimPart)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesAnimPart.Add(value);
@@ -411,7 +410,6 @@ namespace ACE.Database
                                 existingValue.Order = value.Order;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesAnimPart)
                         {
                             if (!biota.BiotaPropertiesAnimPart.Any(p => p.Id == value.Id))
@@ -420,8 +418,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesAttribute)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesAttribute.Add(value);
@@ -433,7 +430,6 @@ namespace ACE.Database
                                 existingValue.CPSpent = value.CPSpent;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesAttribute)
                         {
                             if (!biota.BiotaPropertiesAttribute.Any(p => p.Id == value.Id))
@@ -442,8 +438,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesAttribute2nd)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesAttribute2nd.Add(value);
@@ -456,7 +451,6 @@ namespace ACE.Database
                                 existingValue.CurrentLevel = value.CurrentLevel;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesAttribute2nd)
                         {
                             if (!biota.BiotaPropertiesAttribute2nd.Any(p => p.Id == value.Id))
@@ -465,8 +459,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesBodyPart)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesBodyPart.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesBodyPart.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesBodyPart.Add(value);
@@ -500,7 +493,6 @@ namespace ACE.Database
                                 existingValue.LRB = value.LRB;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesBodyPart)
                         {
                             if (!biota.BiotaPropertiesBodyPart.Any(p => p.Id == value.Id))
@@ -510,22 +502,22 @@ namespace ACE.Database
                         if (biota.BiotaPropertiesBook != null)
                         {
                             if (existingBiota.BiotaPropertiesBook == null)
-                                existingBiota.BiotaPropertiesBook = new BiotaPropertiesBook();
-
-                            existingBiota.BiotaPropertiesBook.MaxNumPages = biota.BiotaPropertiesBook.MaxNumPages;
-                            existingBiota.BiotaPropertiesBook.MaxNumCharsPerPage =
-                                biota.BiotaPropertiesBook.MaxNumCharsPerPage;
+                                existingBiota.BiotaPropertiesBook = biota.BiotaPropertiesBook;
+                            else
+                            {
+                                existingBiota.BiotaPropertiesBook.MaxNumPages = biota.BiotaPropertiesBook.MaxNumPages;
+                                existingBiota.BiotaPropertiesBook.MaxNumCharsPerPage = biota.BiotaPropertiesBook.MaxNumCharsPerPage;
+                            }
                         }
                         else
                         {
                             if (existingBiota.BiotaPropertiesBook != null)
-                                ; // todo remove the old one
+                                context.BiotaPropertiesBook.Remove(existingBiota.BiotaPropertiesBook);
                         }
 
                         foreach (var value in biota.BiotaPropertiesBookPageData)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesBookPageData.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesBookPageData.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesBookPageData.Add(value);
@@ -539,7 +531,6 @@ namespace ACE.Database
                                 existingValue.PageText = value.PageText;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesBookPageData)
                         {
                             if (!biota.BiotaPropertiesBookPageData.Any(p => p.Id == value.Id))
@@ -558,7 +549,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesBool)
                         {
                             if (!biota.BiotaPropertiesBool.Any(p => p.Id == value.Id))
@@ -567,8 +557,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesCreateList)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesCreateList.Add(value);
@@ -582,7 +571,6 @@ namespace ACE.Database
                                 existingValue.TryToBond = value.TryToBond;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesCreateList)
                         {
                             if (!biota.BiotaPropertiesCreateList.Any(p => p.Id == value.Id))
@@ -601,7 +589,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesDID)
                         {
                             if (!biota.BiotaPropertiesDID.Any(p => p.Id == value.Id))
@@ -610,8 +597,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesEmote)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesEmote.Add(value);
@@ -626,11 +612,64 @@ namespace ACE.Database
                                 existingValue.VendorType = value.VendorType;
                                 existingValue.MinHealth = value.MinHealth;
                                 existingValue.MaxHealth = value.MaxHealth;
+
+                                foreach (var value2 in value.BiotaPropertiesEmoteAction)
+                                {
+                                    var existingValue2 = existingValue.BiotaPropertiesEmoteAction.FirstOrDefault(r => r.Id == value2.Id);
+
+                                    if (existingValue2 == null)
+                                        existingValue.BiotaPropertiesEmoteAction.Add(value2);
+                                    else
+                                    {
+                                        existingValue2.EmoteId = value2.EmoteId;
+                                        existingValue2.Order = value2.Order;
+                                        existingValue2.Type = value2.Type;
+                                        existingValue2.Delay = value2.Delay;
+                                        existingValue2.Extent = value2.Extent;
+                                        existingValue2.Motion = value2.Motion;
+                                        existingValue2.Message = value2.Message;
+                                        existingValue2.TestString = value2.TestString;
+                                        existingValue2.Min = value2.Min;
+                                        existingValue2.Max = value2.Max;
+                                        existingValue2.Min64 = value2.Min64;
+                                        existingValue2.Max64 = value2.Max64;
+                                        existingValue2.MinDbl = value2.MinDbl;
+                                        existingValue2.MaxDbl = value2.MaxDbl;
+                                        existingValue2.Stat = value2.Stat;
+                                        existingValue2.Display = value2.Display;
+                                        existingValue2.Amount = value2.Amount;
+                                        existingValue2.Amount64 = value2.Amount64;
+                                        existingValue2.HeroXP64 = value2.HeroXP64;
+                                        existingValue2.Percent = value2.Percent;
+                                        existingValue2.SpellId = value2.SpellId;
+                                        existingValue2.WealthRating = value2.WealthRating;
+                                        existingValue2.TreasureClass = value2.TreasureClass;
+                                        existingValue2.TreasureType = value2.TreasureType;
+                                        existingValue2.PScript = value2.PScript;
+                                        existingValue2.Sound = value2.Sound;
+                                        existingValue2.DestinationType = value2.DestinationType;
+                                        existingValue2.WeenieClassId = value2.WeenieClassId;
+                                        existingValue2.StackSize = value2.StackSize;
+                                        existingValue2.Palette = value2.Palette;
+                                        existingValue2.Shade = value2.Shade;
+                                        existingValue2.TryToBond = value2.TryToBond;
+                                        existingValue2.ObjCellId = value2.ObjCellId;
+                                        existingValue2.OriginX = value2.OriginX;
+                                        existingValue2.OriginY = value2.OriginY;
+                                        existingValue2.OriginZ = value2.OriginZ;
+                                        existingValue2.AnglesW = value2.AnglesW;
+                                        existingValue2.AnglesX = value2.AnglesX;
+                                        existingValue2.AnglesY = value2.AnglesY;
+                                        existingValue2.AnglesZ = value2.AnglesZ;
+                                    }
+                                }
+                                foreach (var value2 in value.BiotaPropertiesEmoteAction)
+                                {
+                                    if (!existingValue.BiotaPropertiesEmoteAction.Any(p => p.Id == value2.Id))
+                                        context.BiotaPropertiesEmoteAction.Remove(value2);
+                                }
                             }
-
-                            // todo BiotaPropertiesEmoteAction
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesEmote)
                         {
                             if (!biota.BiotaPropertiesEmote.Any(p => p.Id == value.Id))
@@ -639,8 +678,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesEnchantmentRegistry)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesEnchantmentRegistry.Add(value);
@@ -664,7 +702,6 @@ namespace ACE.Database
                                 existingValue.SpellSetId = value.SpellSetId;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesEnchantmentRegistry)
                         {
                             if (!biota.BiotaPropertiesEnchantmentRegistry.Any(p => p.Id == value.Id))
@@ -673,8 +710,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesEventFilter)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesEventFilter.Add(value);
@@ -683,7 +719,6 @@ namespace ACE.Database
                                 existingValue.Event = value.Event;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesEventFilter)
                         {
                             if (!biota.BiotaPropertiesEventFilter.Any(p => p.Id == value.Id))
@@ -692,8 +727,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesFloat)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesFloat.Add(value);
@@ -703,7 +737,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesFloat)
                         {
                             if (!biota.BiotaPropertiesFloat.Any(p => p.Id == value.Id))
@@ -712,8 +745,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesGenerator)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesGenerator.Add(value);
@@ -739,7 +771,6 @@ namespace ACE.Database
                                 existingValue.AnglesZ = value.AnglesZ;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesGenerator)
                         {
                             if (!biota.BiotaPropertiesGenerator.Any(p => p.Id == value.Id))
@@ -758,7 +789,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesIID)
                         {
                             if (!biota.BiotaPropertiesIID.Any(p => p.Id == value.Id))
@@ -777,7 +807,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesInt)
                         {
                             if (!biota.BiotaPropertiesInt.Any(p => p.Id == value.Id))
@@ -786,8 +815,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesInt64)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesInt64.Add(value);
@@ -797,7 +825,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesInt64)
                         {
                             if (!biota.BiotaPropertiesInt64.Any(p => p.Id == value.Id))
@@ -806,8 +833,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesPalette)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesPalette.Add(value);
@@ -818,7 +844,6 @@ namespace ACE.Database
                                 existingValue.Length = value.Length;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesPalette)
                         {
                             if (!biota.BiotaPropertiesPalette.Any(p => p.Id == value.Id))
@@ -827,8 +852,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesPosition)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesPosition.Add(value);
@@ -845,7 +869,6 @@ namespace ACE.Database
                                 existingValue.AnglesZ = value.AnglesZ;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesPosition)
                         {
                             if (!biota.BiotaPropertiesPosition.Any(p => p.Id == value.Id))
@@ -854,8 +877,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesSkill)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesSkill.Add(value);
@@ -870,7 +892,6 @@ namespace ACE.Database
                                 existingValue.LastUsedTime = value.LastUsedTime;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesSkill)
                         {
                             if (!biota.BiotaPropertiesSkill.Any(p => p.Id == value.Id))
@@ -879,8 +900,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesSpellBook)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesSpellBook.Add(value);
@@ -890,7 +910,6 @@ namespace ACE.Database
                                 existingValue.Probability = value.Probability;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesSpellBook)
                         {
                             if (!biota.BiotaPropertiesSpellBook.Any(p => p.Id == value.Id))
@@ -899,8 +918,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesString)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesString.Add(value);
@@ -910,7 +928,6 @@ namespace ACE.Database
                                 existingValue.Value = value.Value;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesString)
                         {
                             if (!biota.BiotaPropertiesString.Any(p => p.Id == value.Id))
@@ -919,8 +936,7 @@ namespace ACE.Database
 
                         foreach (var value in biota.BiotaPropertiesTextureMap)
                         {
-                            var existingValue =
-                                existingBiota.BiotaPropertiesTextureMap.FirstOrDefault(r => r.Id == value.Id);
+                            var existingValue = existingBiota.BiotaPropertiesTextureMap.FirstOrDefault(r => r.Id == value.Id);
 
                             if (existingValue == null)
                                 existingBiota.BiotaPropertiesTextureMap.Add(value);
@@ -932,7 +948,6 @@ namespace ACE.Database
                                 existingValue.Order = value.Order;
                             }
                         }
-
                         foreach (var value in existingBiota.BiotaPropertiesTextureMap)
                         {
                             if (!biota.BiotaPropertiesTextureMap.Any(p => p.Id == value.Id))
@@ -959,7 +974,7 @@ namespace ACE.Database
             }
         }
 
-        public bool SaveBiotasInParallel(IEnumerable<Biota> biotas)
+        public bool SaveBiotasInParallel(IEnumerable<Biota> biotas) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
         {
             var result = true;
 
@@ -1000,7 +1015,7 @@ namespace ACE.Database
             }
         }
 
-        public bool RemoveBiotasInParallel(IEnumerable<Biota> biotas)
+        public bool RemoveBiotasInParallel(IEnumerable<Biota> biotas) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
         {
             var result = true;
 
@@ -1106,7 +1121,7 @@ namespace ACE.Database
                     {
                         inventory.Add(biota);
 
-                        if (includedNestedItems && biota.WeenieType == (int) WeenieType.Container)
+                        if (includedNestedItems && biota.WeenieType == (int)WeenieType.Container)
                         {
                             var subItems = GetInventoryInParallel(biota.Id, false);
 

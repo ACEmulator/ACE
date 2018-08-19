@@ -35,6 +35,8 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // BiotaPropertiesEnchantmentRegistry
+
         public static double? GetProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -175,6 +177,8 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
+
+        // BiotaPropertiesEnchantmentRegistry
 
         public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock)
         {
