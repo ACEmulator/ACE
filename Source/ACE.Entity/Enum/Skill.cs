@@ -69,19 +69,19 @@ namespace ACE.Entity.Enum
 
         Spellcraft,          /* Unimplemented */
 
-        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 6)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Coordination, 2)]
         [SkillCost(2, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         ItemTinkering,
 
         [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(2, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         AssessPerson,
 
         [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         Deception,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Coordination, 3)]
@@ -109,22 +109,22 @@ namespace ACE.Entity.Enum
 
         [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         AssessCreature,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Strength, 2)]
         [SkillCost(4, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         WeaponTinkering,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Endurance, 2)]
         [SkillCost(4, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         ArmorTinkering,
 
         [AttributeFormula(AttributeCache.Focus)]
         [SkillCost(4, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         MagicItemTinkering,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
@@ -216,7 +216,7 @@ namespace ACE.Entity.Enum
 
         [AttributeFormula(AttributeCache.Coordination, 3, AbilityMultiplier = 2)]
         [SkillCost(2, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         DualWield,
 
         [AttributeFormula(AttributeCache.Strength | AttributeCache.Quickness, 3)]

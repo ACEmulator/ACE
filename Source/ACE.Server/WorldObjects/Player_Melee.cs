@@ -101,9 +101,10 @@ namespace ACE.Server.WorldObjects
             DamageTarget(creature, null);
 
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
-            { 
+            {
                 // powerbar refill timing
-                actionChain.AddDelaySeconds(PowerLevel);
+                var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
+                actionChain.AddDelaySeconds(PowerLevel * refillMod);
                 actionChain.AddAction(this, () => Attack(target));
             }
             else
@@ -114,7 +115,9 @@ namespace ACE.Server.WorldObjects
 
         public override ActionChain DoSwingMotion(WorldObject target, out float animLength)
         {
-            var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f);
+            // FIXME: proper swing animation speeds
+            var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
+            var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f * animSpeedMod);
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
@@ -133,6 +136,8 @@ namespace ACE.Server.WorldObjects
             return actionChain;
         }
 
+        public bool DualWieldAlternate;
+
         public override MotionCommand GetSwingAnimation()
         {
             MotionCommand motion = new MotionCommand();
@@ -148,6 +153,14 @@ namespace ACE.Server.WorldObjects
                 case MotionStance.TwoHandedSwordAttack:
                     {
                         var action = PowerLevel < 0.33f ? "Thrust" : "Slash";
+                        if (CurrentMotionState.Stance == MotionStance.DualWieldAttack)
+                        {
+                            if (DualWieldAlternate)
+                                action = "Offhand" + action;
+
+                            DualWieldAlternate = !DualWieldAlternate;
+                        }
+
                         Enum.TryParse(action + GetAttackHeight(), out motion);
                         return motion;
                     }
