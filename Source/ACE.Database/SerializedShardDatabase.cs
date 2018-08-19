@@ -155,11 +155,11 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiota(Biota biota, Action<bool> callback)
+        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveBiota(biota);
+                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
                 callback?.Invoke(result);
             }));
         }
@@ -173,11 +173,11 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiota(Biota biota, Action<bool> callback)
+        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.RemoveBiota(biota);
+                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
                 callback?.Invoke(result);
             }));
         }
@@ -193,97 +193,6 @@ namespace ACE.Database
 
 
         public void RemoveEntity(object entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-
-        public void RemoveEntity(BiotaPropertiesBool entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesDID entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesEnchantmentRegistry entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesFloat entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesIID entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesInt entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesInt64 entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesPosition entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesSpellBook entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesString entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {

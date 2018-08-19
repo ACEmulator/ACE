@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -10,31 +9,6 @@ namespace ACE.Database.Models.Shard
 {
     public static class BiotaExtensions
     {
-        public static uint? GetAnimationId(this Biota biota, byte index)
-        {
-            return biota.BiotaPropertiesAnimPart.FirstOrDefault(x => x.Index == index)?.AnimationId;
-        }
-
-        public static BiotaPropertiesAttribute GetAttribute(this Biota biota, PropertyAttribute attribute)
-        {
-            return biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)attribute);
-        }
-
-        public static BiotaPropertiesAttribute2nd GetAttribute2nd(this Biota biota, PropertyAttribute2nd attribute)
-        {
-            return biota.BiotaPropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)attribute);
-        }
-
-        public static BiotaPropertiesBodyPart GetBodyPart(this Biota biota, ushort key)
-        {
-            return biota.BiotaPropertiesBodyPart.FirstOrDefault(x => x.Key == key);
-        }
-
-        public static BiotaPropertiesBookPageData GetBookPageData(this Biota biota, uint pageId)
-        {
-            return biota.BiotaPropertiesBookPageData.FirstOrDefault(x => x.PageId == pageId);
-        }
-
         public static bool? GetProperty(this Biota biota, PropertyBool property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -46,11 +20,6 @@ namespace ACE.Database.Models.Shard
             {
                 rwLock.ExitReadLock();
             }
-        }
-
-        public static BiotaPropertiesCreateList GetCreateList(this Biota biota, sbyte destinationType)
-        {
-            return biota.BiotaPropertiesCreateList.FirstOrDefault(x => x.DestinationType == destinationType);
         }
 
         public static uint? GetProperty(this Biota biota, PropertyDataId property, ReaderWriterLockSlim rwLock)
@@ -66,21 +35,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesEmote GetEmote(this Biota biota, uint category)
-        {
-            return biota.BiotaPropertiesEmote.FirstOrDefault(x => x.Category == category);
-        }
-
-        public static IEnumerable<BiotaPropertiesEmote> GetEmotes(this Biota biota, uint category)
-        {
-            return biota.BiotaPropertiesEmote.Where(x => x.Category == category);
-        }
-
-        public static BiotaPropertiesEventFilter GetEventFilter(this Biota biota, int eventId)
-        {
-            return biota.BiotaPropertiesEventFilter.FirstOrDefault(x => x.Event == eventId);
-        }
-
         public static double? GetProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -93,8 +47,6 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitReadLock();
             }
         }
-
-        // BiotaPropertiesGenerator
 
         public static uint? GetProperty(this Biota biota, PropertyInstanceId property, ReaderWriterLockSlim rwLock)
         {
@@ -135,11 +87,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesPalette GetPalette(this Biota biota, uint subPaletteId)
-        {
-            return biota.BiotaPropertiesPalette.FirstOrDefault(x => x.SubPaletteId == subPaletteId);
-        }
-
         public static Position GetPosition(this Biota biota, PositionType positionType, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -158,16 +105,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesSkill GetProperty(this Biota biota, Skill skill)
-        {
-            return biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
-        }
-
-        public static BiotaPropertiesSpellBook GetSpell(this Biota biota, int spell)
-        {
-            return biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
-        }
-
         public static string GetProperty(this Biota biota, PropertyString property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -179,11 +116,6 @@ namespace ACE.Database.Models.Shard
             {
                 rwLock.ExitReadLock();
             }
-        }
-
-        public static BiotaPropertiesTextureMap GetTextureMap(this Biota biota, byte index)
-        {
-            return biota.BiotaPropertiesTextureMap.FirstOrDefault(x => x.Index == index);
         }
 
 
@@ -272,8 +204,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        // BiotaPropertiesGenerator
-
         public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -358,34 +288,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint) property);
-                if (result != null)
-                    result.Value = value;
-                else
-                {
-                    rwLock.EnterWriteLock();
-                    try
-                    { 
-                        var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
-                        biota.BiotaPropertiesString.Add(entity);
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
         public static void SetPosition(this Biota biota, PositionType positionType, Position position, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -410,6 +312,34 @@ namespace ACE.Database.Models.Shard
                     { 
                         var entity = new BiotaPropertiesPosition { ObjectId = biota.Id, PositionType = (ushort)positionType, ObjCellId = position.Cell, OriginX = position.PositionX, OriginY = position.PositionY, OriginZ = position.PositionZ, AnglesW = position.RotationW, AnglesX = position.RotationX, AnglesY = position.RotationY, AnglesZ = position.RotationZ, Object = biota };
                         biota.BiotaPropertiesPosition.Add(entity);
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
+                if (result != null)
+                    result.Value = value;
+                else
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                        biota.BiotaPropertiesString.Add(entity);
                     }
                     finally
                     {
@@ -481,6 +411,34 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
+                        entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
         public static bool TryRemoveProperty(this Biota biota, PropertyFloat property, out BiotaPropertiesFloat entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -508,8 +466,6 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
-
-        // BiotaPropertiesGenerator
 
         public static bool TryRemoveProperty(this Biota biota, PropertyInstanceId property, out BiotaPropertiesIID entity, ReaderWriterLockSlim rwLock)
         {
@@ -635,34 +591,6 @@ namespace ACE.Database.Models.Shard
                     try
                     {
                         biota.BiotaPropertiesString.Remove(entity);
-                        entity.Object = null;
-                        return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-                return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
-        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
-                if (entity != null)
-                {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
-                        biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
                         entity.Object = null;
                         return true;
                     }

@@ -40,6 +40,8 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             ChatPacket.SendServerMessage(session, $"Starting Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...", ChatMessageType.System);
 
+            var rwLock = new ReaderWriterLockSlim();
+
 
             // Generate Individual WorldObjects
             var biotas = new Collection<Biota>();
@@ -58,7 +60,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var biota in biotas)
             {
-                DatabaseManager.Shard.SaveBiota(biota, result =>
+                DatabaseManager.Shard.SaveBiota(biota, rwLock, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
@@ -85,7 +87,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 foreach (var biota in biotas)
                 {
-                    DatabaseManager.Shard.SaveBiota(biota, result =>
+                    DatabaseManager.Shard.SaveBiota(biota, rwLock, result =>
                     {
                         if (result)
                             Interlocked.Increment(ref trueResults);
@@ -110,7 +112,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var biota in biotas)
             {
-                DatabaseManager.Shard.RemoveBiota(biota, result =>
+                DatabaseManager.Shard.RemoveBiota(biota, rwLock, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
