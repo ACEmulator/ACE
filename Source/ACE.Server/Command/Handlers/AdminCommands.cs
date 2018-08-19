@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 
 using log4net;
 
@@ -1452,9 +1453,9 @@ namespace ACE.Server.Command.Handlers
             }
 
             var possessions = player.GetAllPossessions();
-            var possessedBiotas = new Collection<Biota>();
+            var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
             foreach (var possession in possessions)
-                possessedBiotas.Add(possession.Biota);
+                possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
             DatabaseManager.Shard.AddCharacter(player.Biota, possessedBiotas, player.Character, null);
 

@@ -14,20 +14,32 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool ChangesDetected { get; protected set; }
 
-        public void SaveBiotaToDatabase()
+        /// <summary>
+        /// This will set the LastRequestedDatabaseSave to UtcNow and ChangesDetected to false.<para />
+        /// If enqueueSave is set to true, DatabaseManager.Shard.SaveBiota() will be called for the biota.<para />
+        /// Set enqueueSave to false if you want to perform all the normal routines for a save but not the actual save. This is useful if you're going to collect biotas in bulk for bulk saving.
+        /// </summary>
+        public virtual void SaveBiotaToDatabase(bool enqueueSave = true)
         {
             LastRequestedDatabaseSave = DateTime.UtcNow;
             ChangesDetected = false;
 
-            DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
+            if (enqueueSave)
+                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
         }
 
-        public void RemoveBiotaFromDatabase()
+        /// <summary>
+        /// This will set the LastRequestedDatabaseSave to MinValue and ChangesDetected to true.<para />
+        /// If enqueueRemove is set to true, DatabaseManager.Shard.RemoveBiota() will be called for the biota.<para />
+        /// Set enqueueRemove to false if you want to perform all the normal routines for a remove but not the actual removal. This is useful if you're going to collect biotas in bulk for bulk removing.
+        /// </summary>
+        public void RemoveBiotaFromDatabase(bool enqueueRemove = true)
         {
             LastRequestedDatabaseSave = DateTime.MinValue;
             ChangesDetected = true;
 
-            DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);
+            if (enqueueRemove)
+                DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);
         }
     }
 }

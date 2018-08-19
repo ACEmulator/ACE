@@ -109,7 +109,7 @@ namespace ACE.Database
             return _wrappedDatabase.IsCharacterPlussed(biotaId);
         }
 
-        public void AddCharacter(Biota biota, IEnumerable<Biota> possessions, Character character, Action<bool> callback)
+        public void AddCharacter(Biota biota, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -164,7 +164,7 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiotas(IEnumerable<Biota> biotas, Action<bool> callback) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
+        public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -182,7 +182,7 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiotas(IEnumerable<Biota> biotas, Action<bool> callback) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
+        public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {

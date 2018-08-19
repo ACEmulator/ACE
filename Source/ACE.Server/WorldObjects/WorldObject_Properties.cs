@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
         /// The critical thing is that the collections are not added to or removed from while Entity Framework is iterating over them.<para />
         /// Mag-nus 2018-08-19
         /// </summary>
-        protected readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
+        public readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
 
         #region GetProperty Functions
         public bool? GetProperty(PropertyBool property) { if (EphemeralPropertyBools.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }

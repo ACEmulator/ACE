@@ -40,16 +40,14 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             ChatPacket.SendServerMessage(session, $"Starting Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...", ChatMessageType.System);
 
-            var rwLock = new ReaderWriterLockSlim();
-
 
             // Generate Individual WorldObjects
-            var biotas = new Collection<Biota>();
+            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 
             for (int i = 0; i < biotasPerTest; i++)
             {
                 var worldObject = WorldObjectFactory.CreateNewWorldObject(testWeenies[i % testWeenies.Count]);
-                biotas.Add(worldObject.Biota);
+                biotas.Add((worldObject.Biota, worldObject.BiotaDatabaseLock));
             }
 
 
@@ -60,7 +58,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var biota in biotas)
             {
-                DatabaseManager.Shard.SaveBiota(biota, rwLock, result =>
+                DatabaseManager.Shard.SaveBiota(biota.biota, biota.rwLock, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
@@ -87,7 +85,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 foreach (var biota in biotas)
                 {
-                    DatabaseManager.Shard.SaveBiota(biota, rwLock, result =>
+                    DatabaseManager.Shard.SaveBiota(biota.biota, biota.rwLock, result =>
                     {
                         if (result)
                             Interlocked.Increment(ref trueResults);
@@ -112,7 +110,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var biota in biotas)
             {
-                DatabaseManager.Shard.RemoveBiota(biota, rwLock, result =>
+                DatabaseManager.Shard.RemoveBiota(biota.biota, biota.rwLock, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
@@ -137,7 +135,7 @@ namespace ACE.Server.Command.Handlers.Processors
             for (int i = 0; i < biotasPerTest; i++)
             {
                 var worldObject = WorldObjectFactory.CreateNewWorldObject(testWeenies[i % testWeenies.Count]);
-                biotas.Add(worldObject.Biota);
+                biotas.Add((worldObject.Biota, worldObject.BiotaDatabaseLock));
             }
 
 
@@ -212,10 +210,12 @@ namespace ACE.Server.Command.Handlers.Processors
             ChatPacket.SendServerMessage(session, "Database Performance Tests Completed", ChatMessageType.System);
         }
 
-        private static void ModifyBiotas(ICollection<Biota> biotas)
+        private static void ModifyBiotas(ICollection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
-            foreach (var biota in biotas)
+            foreach (var entry in biotas)
             {
+                var biota = entry.biota;
+
                 // Change the first record
                 if (biota.BiotaPropertiesInt.Count > 0)
                     biota.BiotaPropertiesInt.First().Value++;

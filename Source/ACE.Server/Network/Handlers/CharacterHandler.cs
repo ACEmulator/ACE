@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 using log4net;
 
@@ -384,9 +385,9 @@ namespace ACE.Server.Network.Handlers
                 player.Sanctuary = player.Location;
 
                 var possessions = player.GetAllPossessions();
-                var possessedBiotas = new Collection<Biota>();
+                var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
                 foreach (var possession in possessions)
-                    possessedBiotas.Add(possession.Biota);
+                    possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
                 // We must await here -- 
                 DatabaseManager.Shard.AddCharacter(player.Biota, possessedBiotas, player.Character, saveSuccess =>

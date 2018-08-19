@@ -163,7 +163,7 @@ namespace ACE.Database
             }
         }
 
-        public bool AddCharacterInParallel(Biota biota, IEnumerable<Biota> possessions, Character character)
+        public bool AddCharacterInParallel(Biota biota, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character)
         {
             if (!SaveBiota(biota, new ReaderWriterLockSlim()))
                 return false; // Biota save failed which mean Character fails.
@@ -974,13 +974,13 @@ namespace ACE.Database
             }
         }
 
-        public bool SaveBiotasInParallel(IEnumerable<Biota> biotas) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
+        public bool SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
             var result = true;
 
             Parallel.ForEach(biotas, biota =>
             {
-                if (!SaveBiota(biota, new ReaderWriterLockSlim()))
+                if (!SaveBiota(biota.biota, biota.rwLock))
                     result = false;
             });
 
@@ -1015,13 +1015,13 @@ namespace ACE.Database
             }
         }
 
-        public bool RemoveBiotasInParallel(IEnumerable<Biota> biotas) // // todo make Biotas an IEnumerable<Tuple<Biota, ReadWriterLockSlim>>
+        public bool RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
             var result = true;
 
             Parallel.ForEach(biotas, biota =>
             {
-                if (!RemoveBiota(biota, new ReaderWriterLockSlim()))
+                if (!RemoveBiota(biota.biota, biota.rwLock))
                     result = false;
             });
 
