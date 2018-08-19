@@ -116,11 +116,11 @@ namespace ACE.Server.WorldObjects
                             player.SendUseDoneEvent();
 
                             if (player.PkLevelModifier == 1)
-                                player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.PK;
+                                player.PlayerKillerStatus = PlayerKillerStatus.PK;
                             else
-                                player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.NPK;
+                                player.PlayerKillerStatus = PlayerKillerStatus.NPK;
 
-                            player.CurrentLandblock?.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+                            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
 
                             Reset();
                         });

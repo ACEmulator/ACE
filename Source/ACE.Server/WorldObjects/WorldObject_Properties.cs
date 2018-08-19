@@ -2512,7 +2512,7 @@ namespace ACE.Server.WorldObjects
 
         public PlayerKillerStatus PlayerKillerStatus
         {
-            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? ACE.Entity.Enum.PlayerKillerStatus.NPK;
+            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
             set => SetProperty(PropertyInt.PlayerKillerStatus, (int)value);
         }
 

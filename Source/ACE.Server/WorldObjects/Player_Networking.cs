@@ -21,6 +21,9 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
+            var player = this;
+            var physicsObj = PhysicsObj;
+
             IsOnline = true;
 
             // Save the the LoginTimestamp

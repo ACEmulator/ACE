@@ -206,8 +206,7 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                    new GameMessageUpdatePosition(this),
+                EnqueueBroadcast(new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
             });
 
@@ -331,12 +330,11 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                    new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
+                EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
                     new GameMessagePickupEvent(item));
 
                 if (iidPropertyId == PropertyInstanceId.Wielder)
-                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+                    EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
                 // TODO: Og II - check this later to see if it is still required.
                 //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
@@ -403,8 +401,7 @@ namespace ACE.Server.WorldObjects
 
             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
-            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
+            EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
                 new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
                 new GameMessagePickupEvent(item),
@@ -598,8 +595,7 @@ namespace ACE.Server.WorldObjects
                         //    new GameMessageObjDescEvent(this),
                         //    new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder));
 
-                        CurrentLandblock?.EnqueueBroadcast(Location,
-                            new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
+                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
                             new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)));
                     }
@@ -638,7 +634,7 @@ namespace ACE.Server.WorldObjects
                 {
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                     Session.Network.EnqueueSend(
                         new GameEventItemServerSaysMoveItem(Session, item),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
@@ -654,7 +650,7 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock?.AddWorldObject(item);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageUpdatePosition(item));
+                    EnqueueBroadcast(new GameMessageUpdatePosition(item));
                 });
 
                 actionChain.AddChain(dropChain);
@@ -694,155 +690,159 @@ namespace ACE.Server.WorldObjects
             return spellCreated;
         }
 
-        private enum WieldRequirements
-        {
-            None        = 0,
-            Skill       = 2,
-            Attribute   = 3,
-            Level       = 7
-        }
-
+        /// <summary>
+        /// Called when network message is received for 'GetAndWieldItem'
+        /// </summary>
         public void HandleActionGetAndWieldItem(uint itemId, int wieldLocation)
         {
             new ActionChain(this, () =>
             {
                 var itemGuid = new ObjectGuid(itemId);
 
+                // handle inventory item -> weapon/shield slot
                 var item = GetInventoryItem(itemGuid);
                 if (item != null)
                 {
-                    bool wieldReqCheckFailed = false;
-                    WeenieError weenieError = WeenieError.None;
-
-                    var itemWieldReq = (item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
-                    switch (itemWieldReq)
-                    {
-                        case (int)WieldRequirements.Skill:
-                            // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                            var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
-
-                            if (itemSkillReq != Skill.None)
-                            {
-                                var playerSkill = GetCreatureSkill(itemSkillReq).Current;
-
-                                if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                                {
-                                    wieldReqCheckFailed = true;
-                                    weenieError = WeenieError.SkillTooLow;
-                                }
-                            }
-                            break;
-                        case (int)WieldRequirements.Level:
-                            // Check WieldDifficulty property against player's level
-                            if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                            {
-                                wieldReqCheckFailed = true;
-                                weenieError = WeenieError.LevelTooLow;
-                            }
-                            break;
-                        case (int)WieldRequirements.Attribute:
-                            // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
-                            var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
-
-                            if (itemAttributeReq != PropertyAttribute.Undef)
-                            {
-                                var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
-
-                                if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                                {
-                                    wieldReqCheckFailed = true;
-                                    weenieError = WeenieError.SkillTooLow;
-                                }
-                            }
-                            break;
-                        default:
-                            wieldReqCheckFailed = false;
-                            weenieError = WeenieError.None;
-                            break;
-                    }
-
-                    if (wieldReqCheckFailed)
-                    {
-                        var containerId = (uint)item.ContainerId;
-                        var container = GetInventoryItem(new ObjectGuid(containerId));
-                        if (container == null)
-                        {
-                            container = this;
-                        }
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: weenieError));
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
-                        return;
-                    }
-
-                    TryRemoveFromInventory(itemGuid, out item);
-
-                    if (!TryEquipObject(item, wieldLocation))
-                    {
-                        log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
-                        return;
-                    }
-
-                    CreateEquippedItemSpells(item);
-
-                    if ((EquipMask)wieldLocation == EquipMask.MissileAmmo)
-                    {
-                        Session.Network.EnqueueSend(
-                            new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
-                            new GameMessageSound(Guid, Sound.WieldObject, 1.0f));
-                    }
-                    else
-                    {
-                        if (((EquipMask)wieldLocation & EquipMask.Selectable) != 0)
-                        {
-                            SetChild(item, wieldLocation, out var placementId, out var childLocation);
-
-                            // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-                            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                new GameMessageParentEvent(this, item, childLocation, placementId),
-                                new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
-                                new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
-                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
-
-                            if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                                return;
-
-                            switch ((EquipMask)wieldLocation)
-                            {
-                                case EquipMask.MissileWeapon:
-                                    SetCombatMode(CombatMode.Missile);
-                                    break;
-                                case EquipMask.Held:
-                                    SetCombatMode(CombatMode.Magic);
-                                    break;
-                                default:
-                                    SetCombatMode(CombatMode.Melee);
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-                            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                                new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
-                                new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
-                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation),
-                                new GameMessageObjDescEvent(this));
-                        }
-                    }
+                    var result = TryWieldItem(item, wieldLocation);
+                    return;
                 }
-                else
+
+                // handle 1 wielded slot -> the other wielded slot
+                // (weapon swap)
+                var wieldedItem = GetWieldedItem(itemGuid);
+                if (wieldedItem != null)
                 {
-                    // We don't have possession of the item so we must pick it up.
-                    PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);
+                    var result = TryWieldItem(wieldedItem, wieldLocation);
+                    return;
                 }
+
+                // We don't have possession of the item so we must pick it up.
+                // should this be wielding the item afterwards?
+                PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);
+
             }).EnqueueChain();
         }
+
+        public bool TryWieldItem(WorldObject item, int wieldLocation)
+        {
+            //Console.WriteLine($"TryWieldItem({item.Name}, {(EquipMask)wieldLocation})");
+
+            var wieldError = CheckWieldRequirement(item);
+
+            if (wieldError != WeenieError.None)
+            {
+                var containerId = (uint)item.ContainerId;
+                var container = GetInventoryItem(new ObjectGuid(containerId));
+                if (container == null) container = this;
+
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: wieldError));
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
+                return false;
+            }
+
+            // unwield wand / missile launcher if dual wielding
+            if ((EquipMask)wieldLocation == EquipMask.Shield && !item.IsShield)
+            {
+                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
+                if (mainWeapon != null)
+                {
+                    if (!UnwieldItemWithNetworking(this, mainWeapon))
+                        return false;
+                }
+            }
+
+            TryRemoveFromInventory(item.Guid, out var containerItem);
+
+            if (!TryEquipObject(item, wieldLocation))
+            {
+                log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
+                return false;
+            }
+
+            CreateEquippedItemSpells(item);
+
+            // TODO: I think we need to recalc our SetupModel here. see CalculateObjDesc()
+            var msgWieldItem = new GameEventWieldItem(Session, item.Guid.Full, wieldLocation);
+            var sound = new GameMessageSound(Guid, Sound.WieldObject, 1.0f);
+
+            if ((EquipMask)wieldLocation != EquipMask.MissileAmmo)
+            {
+                var updateContainer = new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0));
+                var updateWielder = new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid);
+                var updateWieldLoc = new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation);
+
+                if (((EquipMask)wieldLocation & EquipMask.Selectable) == 0)
+                {
+                    EnqueueBroadcast(msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc, new GameMessageObjDescEvent(this));
+                    return true;
+                }
+
+                SetChild(item, wieldLocation, out var placementId, out var childLocation);
+
+                EnqueueBroadcast(new GameMessageParentEvent(this, item, childLocation, placementId), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
+
+                if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
+                    return true;
+
+                switch ((EquipMask)wieldLocation)
+                {
+                    case EquipMask.MissileWeapon:
+                        SetCombatMode(CombatMode.Missile);
+                        break;
+                    case EquipMask.Held:
+                        SetCombatMode(CombatMode.Magic);
+                        break;
+                    default:
+                        SetCombatMode(CombatMode.Melee);
+                        break;
+                }
+            }
+            else
+                Session.Network.EnqueueSend(msgWieldItem, sound);
+
+            return true;
+        }
+
+        public WeenieError CheckWieldRequirement(WorldObject item)
+        {
+            var itemWieldReq = (WieldRequirement)(item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
+            switch (itemWieldReq)
+            {
+                case WieldRequirement.RawSkill:
+                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
+                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+
+                    if (itemSkillReq != Skill.None)
+                    {
+                        var playerSkill = GetCreatureSkill(itemSkillReq).Current;
+
+                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                            return WeenieError.SkillTooLow;
+                    }
+                    break;
+
+                case WieldRequirement.Level:
+                    // Check WieldDifficulty property against player's level
+                    if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                        return WeenieError.LevelTooLow;
+                    break;
+
+                case WieldRequirement.Attrib:
+                    // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
+                    var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+
+                    if (itemAttributeReq != PropertyAttribute.Undef)
+                    {
+                        var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+
+                        if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                            return WeenieError.SkillTooLow;
+                    }
+                    break;
+            }
+            return WeenieError.None;
+        }
+
         /// <summary>
         /// Dictionary for salvage bags/material types
         /// </summary>
@@ -1266,8 +1266,7 @@ namespace ACE.Server.WorldObjects
             fromWo.EncumbranceVal = (int)newFromBurden;
 
             // Build the needed messages to the client.
-            CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessageSetStackSize(fromWo));
+            EnqueueBroadcast(new GameMessageSetStackSize(fromWo));
         }
 
         /// <summary>
@@ -1297,12 +1296,9 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             if (missileAmmo)
-                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameMessageSetStackSize(toWo));
+                EnqueueBroadcast( new GameMessageSetStackSize(toWo));
             else
-                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameEventItemServerSaysContainId(Session, toWo, this),
-                    new GameMessageSetStackSize(toWo));
+                EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, toWo, this), new GameMessageSetStackSize(toWo));
         }
 
 
@@ -1376,8 +1372,7 @@ namespace ACE.Server.WorldObjects
 
                 // todo i'm not sure if this is right? Should it be a landblock broadcast if we're splitting items on our own person?
                 // todo Probably only landblock if the container exists on the landscape, but even then... i don't think so
-                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameEventItemServerSaysContainId(Session, newStack, container),
+                EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, newStack, container),
                     new GameMessageSetStackSize(stack),
                     new GameMessageCreateObject(newStack));
             }).EnqueueChain();
@@ -1454,7 +1449,7 @@ namespace ACE.Server.WorldObjects
 
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
@@ -1468,7 +1463,7 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock?.AddWorldObject(newStack);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageUpdatePosition(newStack));
+                    EnqueueBroadcast(new GameMessageUpdatePosition(newStack));
                 });
 
                 actionChain.AddChain(dropChain);

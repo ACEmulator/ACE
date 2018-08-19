@@ -76,9 +76,8 @@ namespace ACE.Server.Managers
                     session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
-                Landblock block = GetLandblock(location.LandblockId, true);
-                // Must enqueue add world object -- this is called from a message handler context
-                block.AddWorldObject(session.Player);
+                var landblock = GetLandblock(location.LandblockId, true);
+                landblock.AddWorldObject(session.Player);
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(MotdString, ChatMessageType.Broadcast));
             });
@@ -101,14 +100,14 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Relocates an object to the appropriate landblock -- Should only be called from physics/worldmanager -- not player!
         /// </summary>
-        public static void RelocateObjectForPhysics(WorldObject worldObject)
+        public static void RelocateObjectForPhysics(WorldObject worldObject, bool adjacencyMove)
         {
             var oldBlock = worldObject.CurrentLandblock;
             var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
             // Remove from the old landblock -- force
             if (oldBlock != null)
             {
-                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, true);
+                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, adjacencyMove);
             }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);

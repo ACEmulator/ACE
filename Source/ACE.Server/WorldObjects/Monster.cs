@@ -41,6 +41,12 @@ namespace ACE.Server.WorldObjects
 
             IsMonster = true;
 
+            if (AttackTarget != null && AttackTarget.IsDestroyed)
+            {
+                Sleep();
+                return;
+            }
+
             // decide current type of attack
             if (CurrentAttack == null)
             {

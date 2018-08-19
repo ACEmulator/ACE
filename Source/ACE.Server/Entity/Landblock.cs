@@ -299,13 +299,8 @@ namespace ACE.Server.Entity
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
-            // envcell tracking handled in PhysicsObj.handle_visible_cells()
-            if ((Id.Raw & 0xFFFF) >= 0x100) return;
-
-            Parallel.ForEach(wolist, (o) =>
-            {
-                player.TrackObject(o);
-            });
+            foreach (var wo in wolist)
+                player.AddTrackedObject(wo);
         }
 
         public void AddWorldObject(WorldObject wo)
@@ -325,7 +320,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            Log($"adding {wo.Guid}");
+            //Console.WriteLine($"AddWorldObjectInternal({wo.Name})");
 
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
@@ -335,19 +330,26 @@ namespace ACE.Server.Entity
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
 
-            var success = wo.AddPhysicsObj();
-            if (!success)
-                return;
+            if (wo.PhysicsObj.CurCell == null)
+            { 
+                var success = wo.AddPhysicsObj();
+                if (!success)
+                {
+                    Console.WriteLine($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
+                    return;
+                }
+            }
 
-            // broadcast to nearby players
-            EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.TrackObject(wo));
-
-            // if spawning a player, tell them about nearby objects
+            // if adding a player to this landblock,
+            // tell them about other nearby objects
             if (wo is Player)
             {
-                var objectList = GetWorldObjectsInRange(wo, MaxObjectRange);
-                AddPlayerTracking(objectList, wo as Player);
+                var newlyVisible = wo.PhysicsObj.handle_visible_cells();
+                wo.PhysicsObj.enqueue_objs(newlyVisible);
             }
+
+            // broadcast to nearby players
+            wo.NotifyPlayers();
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
@@ -394,23 +396,17 @@ namespace ACE.Server.Entity
                 worldObjects.Remove(objectId);
             }
 
-            if (wo != null)
-            {
-                wo.SetParent(null);
-                if (wo.PreviousLocation != null)
-                {
-                    EnqueueActionBroadcast(wo.PreviousLocation, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, false));
-                    wo.ClearPreviousLocation();
-                }
-                else
-                    EnqueueActionBroadcast(wo.Location, MaxObjectRange, (Player p) => p.StopTrackingObject(wo, true));
+            if (wo == null) return;
 
-                if (!adjacencyMove)
-                {
-                    wo.PhysicsObj.leave_cell(false);
-                    wo.PhysicsObj.remove_shadows_from_cells();
-                    wo.PhysicsObj.remove_visible_cells();
-                }
+            wo.SetParent(null);
+
+            if (!adjacencyMove)
+            {
+                // really remove it - send message to client to remove object
+                wo.EnqueueActionBroadcast((Player p) => p.RemoveTrackedObject(wo, true));
+
+                wo.PhysicsObj.DestroyObject();
+                wo.IsDestroyed = true;
             }
         }
 
@@ -594,150 +590,52 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Enqueues a message for broadcast, thread safe
-        /// </summary>
-        public void EnqueueBroadcast(Position pos, float distance, params GameMessage[] msgs)
-        {
-            // Atomically checks and sets the broadcastQueued bit --
-            //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
-            if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
-            {
-                WorldManager.LandblockBroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
-            }
-
-            foreach (GameMessage msg in msgs)
-            {
-                broadcastQueue.Enqueue(new Tuple<Position, float, GameMessage>(pos, distance, msg));
-            }
-        }
-
-        /// <summary>
-        /// Enqueues a message for broadcast, thread safe
-        /// </summary>
-        public void EnqueueBroadcast(Position pos, params GameMessage[] msgs)
-        {
-            // Atomically checks and sets the broadcastQueued bit --
-            //    guarantees that if we need a broadcast it will be enqueued in the world-managers broadcast queue exactly once
-            if (Interlocked.CompareExchange(ref broadcastQueued, 1, 0) == 0)
-            {
-                WorldManager.LandblockBroadcastQueue.EnqueueAction(new ActionEventDelegate(() => SendBroadcasts()));
-            }
-
-            foreach (GameMessage msg in msgs)
-            {
-                broadcastQueue.Enqueue(new Tuple<Position, float, GameMessage>(pos, MaxObjectRange, msg));
-            }
-        }
-
-        /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast a motion.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="motion"></param>
         public void EnqueueBroadcastMotion(WorldObject wo, UniversalMotion motion)
         {
-            // wo must exist on us
-            if (wo.CurrentLandblock != this)
-            {
-                log.Error("ERROR: Broadcasting motion from object not on our landblock");
-            }
-
-            EnqueueBroadcast(wo.Location, MaxObjectRange,
-                new GameMessageUpdateMotion(wo.Guid,
-                    wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance),
-                    wo.Sequences, motion));
+            wo.EnqueueBroadcast(new GameMessageUpdateMotion(wo.Guid,
+                wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), wo.Sequences, motion));
         }
 
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast a sound.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="sound"></param>
-        /// <param name="volume"></param>
-        public void EnqueueBroadcastSound(WorldObject wo, Sound sound, float volume = 1f)
+        public void EnqueueBroadcastSound(WorldObject wo, Sound sound, float volume = 1.0f)
         {
-            // wo must exist on us
-            if (wo.CurrentLandblock != this)
-            {
-                log.Error("ERROR: Broadcasting sound from object not on our landblock");
-            }
-
-            EnqueueBroadcast(wo.Location, MaxObjectRange,
-                new GameMessageSound(wo.Guid,
-                    sound,
-                    volume));
+            wo.EnqueueBroadcast(new GameMessageSound(wo.Guid, sound, volume));
         }
         
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="message"></param>
         public void EnqueueBroadcastSystemChat(WorldObject wo, string message, ChatMessageType type)
         {
-            // wo must exist on us
-            if (wo.CurrentLandblock != this)
-            {
-                log.Error("ERROR: Broadcasting chat from object not on our landblock");
-            }
-
-            GameMessageSystemChat chatMsg = new GameMessageSystemChat(message, type);
-
-            EnqueueBroadcast(wo.Location, MaxObjectRange, chatMsg);
+            wo.EnqueueBroadcast(new GameMessageSystemChat(message, type));
         }
 
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="message"></param>
         public void EnqueueBroadcastLocalChat(WorldObject wo, string message)
         {
-            // wo must exist on us
-            if (wo.CurrentLandblock != this)
-            {
-                log.Error("ERROR: Broadcasting chat from object not on our landblock");
-            }
-
-            GameMessageCreatureMessage creatureMessage = new GameMessageCreatureMessage(message, wo.Name, wo.Guid.Full, ChatMessageType.Speech);
-
-            EnqueueBroadcast(wo.Location, MaxObjectRange, creatureMessage);
+            wo.EnqueueBroadcast(new GameMessageCreatureMessage(message, wo.Name, wo.Guid.Full, ChatMessageType.Speech));
         }
 
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local chat emotes.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="emote"></param>
         public void EnqueueBroadcastLocalChatEmote(WorldObject wo, string emote)
         {
-            // wo must exist on us
-            if (wo.CurrentLandblock != this)
-            {
-                log.Error("ERROR: Broadcasting emote from object not on our landblock");
-            }
-
-            GameMessageEmoteText creatureMessage = new GameMessageEmoteText(wo.Guid.Full, wo.Name, emote);
-
-            EnqueueBroadcast(wo.Location, MaxObjectRange, creatureMessage);
+            wo.EnqueueBroadcast(new GameMessageEmoteText(wo.Guid.Full, wo.Name, emote));
         }
 
         /// <summary>
         /// Convenience wrapper to EnqueueBroadcast to broadcast local soul emotes.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="emote"></param>
         public void EnqueueBroadcastLocalChatSoulEmote(WorldObject wo, string emote)
         {
-            // wo must exist on us
-            if (wo.CurrentLandblock != this)
-            {
-                log.Error("ERROR: Broadcasting soul emote from object not on our landblock");
-            }
-
-            GameMessageSoulEmote creatureMessage = new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote);
-
-            EnqueueBroadcast(wo.Location, MaxObjectRange, creatureMessage);
+            wo.EnqueueBroadcast(new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote));
         }
 
         /// <summary>
@@ -796,54 +694,6 @@ namespace ACE.Server.Entity
             actionQueue.RunActions();
         }
         // End wrappers
-
-        /// <summary>
-        /// Runs an action on all players within a certain distance from a point.
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="distance"></param>
-        /// <param name="delegateAction"></param>
-        public void EnqueueActionBroadcast(Position pos, float distance, Action<Player> delegateAction)
-        {
-            List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-
-            foreach (Landblock lb in landblocksInRange)
-            {
-                List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
-                foreach (Player p in allPlayers)
-                {
-                    if (p.Location.SquaredDistanceTo(pos) < distance * distance)
-                    {
-                        p.EnqueueAction(new ActionEventDelegate(() => delegateAction(p)));
-                    }
-                }
-            }
-        }
-
-        private List<WorldObject> GetWorldObjectsInRange(Position pos, float distance)
-        {
-            List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-
-            List<WorldObject> ret = new List<WorldObject>();
-
-            foreach (Landblock lb in landblocksInRange)
-                ret.AddRange(lb.worldObjects.Values.Where(x => x.Location.SquaredDistanceTo(pos) < distance * distance).ToList());
-
-            return ret;
-        }
-
-        private List<WorldObject> GetWorldObjectsInRange(WorldObject wo, float distance)
-        {
-            return GetWorldObjectsInRange(wo.Location, distance);
-        }
-
-        /// <summary>
-        /// Should only be called by the physics engine / WorldManager!
-        /// </summary>
-        public List<WorldObject> GetWorldObjectsInRangeForPhysics(WorldObject wo, float distance)
-        {
-            return GetWorldObjectsInRange(wo, distance);
-        }
 
         /// <summary>
         /// This will return null if the object was not found in the current or adjacent landblocks.
@@ -953,7 +803,7 @@ namespace ACE.Server.Entity
                     return;
                 }
 
-                RemoveWorldObjectInternal(objectGuid, false);
+                RemoveWorldObjectInternal(objectGuid, true);
 
                 item.Location = null;
             });
@@ -966,9 +816,9 @@ namespace ACE.Server.Entity
 
         public void ResendObjectsInRange(WorldObject wo)
         {
-            List<WorldObject> wolist = null;
-            wolist = GetWorldObjectsInRange(wo, MaxObjectRange);
-            AddPlayerTracking(wolist, (wo as Player));
+            // this could need reworked a bit for consistency..
+            wo.PhysicsObj.ObjMaint.RemoveAllObjects();
+            wo.PhysicsObj.handle_visible_cells();
         }
 
         /// <summary>

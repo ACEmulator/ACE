@@ -117,6 +117,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CastSpell()
         {
+            if (AttackTarget == null) return;
+
             bool? resisted;
             var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();
@@ -144,7 +146,7 @@ namespace ACE.Server.WorldObjects
                         break;
                     }
                     LifeMagic(target, spellBase, spell, out uint damage, out bool critical, out var msg);
-                    if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
 
                 case MagicSchool.CreatureEnchantment:
@@ -157,7 +159,7 @@ namespace ACE.Server.WorldObjects
                         break;
                     }
                     CreatureMagic(target, spellBase, spell);
-                    if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
             }
         }

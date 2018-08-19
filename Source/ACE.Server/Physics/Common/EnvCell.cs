@@ -10,7 +10,7 @@ using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Common
 {
-    public class EnvCell: ObjCell
+    public class EnvCell: ObjCell, IEquatable<EnvCell>
     {
         public int NumSurfaces;
         //public List<Surface> Surfaces;
@@ -374,6 +374,7 @@ namespace ACE.Server.Physics.Common
                 for (var i = 0; i < NumStaticObjects; i++)
                 {
                     var staticObj = PhysicsObj.makeObject(StaticObjectIDs[i], 0, false);
+                    staticObj.DatObject = true;
                     staticObj.add_obj_to_cell(this, StaticObjectFrames[i]);
 
                     StaticObjects.Add(staticObj);
@@ -405,6 +406,19 @@ namespace ACE.Server.Physics.Common
         {
             foreach (var stab in stabs)
                 VisibleCells.Remove(stab);
+        }
+
+        public bool Equals(EnvCell envCell)
+        {
+            if (envCell == null)
+                return false;
+
+            return ID == envCell.ID;
+        }
+
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode();
         }
     }
 }

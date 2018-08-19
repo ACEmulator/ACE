@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Numerics;
 using System.Text;
 
 using log4net;
@@ -644,12 +645,10 @@ namespace ACE.Server.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    foreach (var guid in session.Player.GetKnownObjects())
+                    foreach (var wo in session.Player.GetKnownObjects())
                     {
-                        if (guid.IsPlayer()) // I don't recall if @smite all would kill players in range, assuming it didn't
+                        if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
-
-                        var wo = session.Player.CurrentLandblock?.GetObject(guid);
 
                         if (wo is Creature creature)
                             creature.Smite(session.Player);
@@ -960,9 +959,48 @@ namespace ACE.Server.Command.Handlers
                 loot.Location = session.Player.Location.InFrontOf(5f, true);
             else
                 loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
+
+            //Console.WriteLine($"Spawning {loot.Name} @ {loot.Location.Cell:X8} - {loot.Location.Pos}");
+            LastSpawnPos = loot.Location;
+
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
+        }
+
+        public static Position LastSpawnPos;
+
+        /// <summary>
+        /// Teleport object culling precision test
+        /// </summary>
+        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "/teletest <distance>")]
+        public static void HandleTeleportDist(Session session, params string[] parameters)
+        {
+            if (parameters.Length < 1)
+                return;
+
+            var distance = float.Parse(parameters[0]);
+
+            var newPos = new Position();
+            newPos.LandblockId = new LandblockId(LastSpawnPos.LandblockId.Raw);
+            newPos.Pos = LastSpawnPos.Pos;
+            newPos.Rotation = session.Player.Location.Rotation;
+
+            var dir = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, newPos.Rotation));
+            var offset = dir * distance;
+
+            newPos.SetPosition(newPos.Pos + offset);
+
+            session.Player.Teleport(newPos);
+
+            var totalDist = Vector3.Distance(LastSpawnPos.GlobalPos, newPos.GlobalPos);
+
+            var totalDist2d = Vector2.Distance(new Vector2(LastSpawnPos.GlobalPos.X, LastSpawnPos.GlobalPos.Y), new Vector2(newPos.GlobalPos.X, newPos.GlobalPos.Y));
+
+            Console.WriteLine($"Teleporting player to {newPos.Cell:X8} @ {newPos.Pos}");
+
+            Console.WriteLine("2D Distance: " + totalDist2d);
+            Console.WriteLine("3D Distance: " + totalDist);
         }
 
         // ci wclassid (number)

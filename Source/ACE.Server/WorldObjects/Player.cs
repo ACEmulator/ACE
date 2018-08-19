@@ -79,14 +79,15 @@ namespace ACE.Server.WorldObjects
         {
             base.InitPhysicsObj();
 
+            // set pink bubble state
+            IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
+
             PhysicsObj.SetPlayer();
         }
 
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
-
-            IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
 
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
@@ -463,7 +464,9 @@ namespace ACE.Server.WorldObjects
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
+
+            // OutdoorChatRange?
+            EnqueueBroadcast(deathBroadcast);
         }
 
         /// <summary>
@@ -698,7 +701,7 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
+            EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
@@ -778,10 +781,7 @@ namespace ACE.Server.WorldObjects
 
 
             // Broadcast updated character appearance
-            CurrentLandblock?.EnqueueBroadcast(
-                Location,
-                Landblock.MaxObjectRange,
-                new GameMessageObjDescEvent(this));
+            EnqueueBroadcast(new GameMessageObjDescEvent(this));
         }
 
         /// <summary>
@@ -795,8 +795,7 @@ namespace ACE.Server.WorldObjects
             {
                 WorldObject wo = GetInventoryItem(item);
                 if (wo != null)
-                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageObjDescEvent(wo));
+                    EnqueueBroadcast(new GameMessageObjDescEvent(wo));
                 else
                     log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
             });

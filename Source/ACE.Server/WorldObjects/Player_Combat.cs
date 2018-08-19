@@ -23,6 +23,11 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
+        /// <summary>
+        /// Returns TRUE if player is currently performing a dual wield attack
+        /// </summary>
+        public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldAttack; }
+
         public Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
@@ -41,6 +46,16 @@ namespace ACE.Server.WorldObjects
                 maxMelee = heavy;
             if (finesse.Current > maxMelee.Current)
                 maxMelee = finesse;
+
+            // DualWieldAlternate will be TRUE if *next* attack is offhand
+            if (IsDualWieldAttack && !DualWieldAlternate)
+            {
+                var dualWield = GetCreatureSkill(Skill.DualWield);
+
+                // offhand attacks use the lower skill level between dual wield and weapon skill
+                if (dualWield.Current < maxMelee.Current)
+                    return dualWield.Skill;
+            }
 
             return maxMelee.Skill;
         }

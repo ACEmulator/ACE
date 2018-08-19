@@ -1,4 +1,4 @@
-
+using System;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -7,6 +7,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -61,7 +62,7 @@ namespace ACE.Server.WorldObjects
 
                 // Then do teleport
                 lifestoneChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.LifestoneRecall));
-                lifestoneChain.AddChain(GetTeleportChain(Sanctuary));
+                lifestoneChain.AddAction(this, () => Teleport(Sanctuary));
 
                 lifestoneChain.EnqueueChain();
             }
@@ -88,7 +89,7 @@ namespace ACE.Server.WorldObjects
             mpChain.AddDelaySeconds(14);
 
             // Then do teleport
-            mpChain.AddChain(GetTeleportChain(MarketplaceDrop));
+            mpChain.AddAction(this, () => Teleport(MarketplaceDrop));
 
             // Set the chain to run
             mpChain.EnqueueChain();
@@ -96,43 +97,38 @@ namespace ACE.Server.WorldObjects
 
         public void Teleport(Position newPosition)
         {
-            ActionChain chain = GetTeleportChain(newPosition);
-            chain.EnqueueChain();
-        }
-
-        private ActionChain GetTeleportChain(Position newPosition)
-        {
-            ActionChain teleportChain = new ActionChain();
-
-            teleportChain.AddAction(this, () => TeleportInternal(newPosition));
-
-            // should this be a thing? seems like when the client sends GameActionLoginComplete that should be our signal for InWorld=True ....
-            teleportChain.AddDelaySeconds(3);
-            // Once back in world we can start listening to the game's request for positions
-            teleportChain.AddAction(this, () => InWorld = true);
-
-            return teleportChain;
-        }
-
-        private void TeleportInternal(Position newPosition)
-        {
             if (!InWorld)
                 return;
+
+            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
+
+            // load quickly, but player can load into landblock before server is finished loading
+            //Location = newPosition;
+            //SendUpdatePosition();
+
+            UpdatePlayerPhysics(newPosition, true);
 
             Hidden = true;
             IgnoreCollisions = true;
             ReportCollisions = false;
             EnqueueBroadcastPhysicsState();
-            ExternalUpdatePosition(newPosition);
+
             InWorld = false;
-
             Teleporting = true;
+        }
 
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
-            //CurrentLandblock?.RemoveWorldObject(Guid, false); // Reasonably sure this is the culprit of the failed teleports.
+        public void OnTeleportComplete()
+        {
+            // set materialize physics state
+            // this takes the player from pink bubbles -> fully materialized
+            ReportCollisions = true;
+            IgnoreCollisions = false;
+            Hidden = false;
 
-            lock (clientObjectList)
-                clientObjectList.Clear();
+            EnqueueBroadcastPhysicsState();
+
+            Teleporting = false;
+            InWorld = true;
         }
 
         public void NotifyLandblocks()

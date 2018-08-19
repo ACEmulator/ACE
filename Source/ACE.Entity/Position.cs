@@ -169,7 +169,7 @@ namespace ACE.Entity
             if (PositionY < 0)
             {
                 var blockOffset = (int)PositionY / BlockLength - 1;
-                var landblock = LandblockId.TransitionX(blockOffset);
+                var landblock = LandblockId.TransitionY(blockOffset);
                 if (landblock != null)
                 {
                     LandblockId = landblock.Value;
@@ -183,7 +183,7 @@ namespace ACE.Entity
             if (PositionY > BlockLength)
             {
                 var blockOffset = (int)PositionY / BlockLength;
-                var landblock = LandblockId.TransitionX(blockOffset);
+                var landblock = LandblockId.TransitionY(blockOffset);
                 if (landblock != null)
                 {
                     LandblockId = landblock.Value;

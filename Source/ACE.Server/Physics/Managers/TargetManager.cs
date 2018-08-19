@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
@@ -67,7 +68,7 @@ namespace ACE.Server.Physics.Combat
             }
 
             if (VoyeurTable != null)
-                foreach (var voyeur in VoyeurTable.Values)
+                foreach (var voyeur in VoyeurTable.Values.ToList())
                     CheckAndUpdateVoyeur(voyeur);
 
             LastUpdateTime = Timer.CurrentTime;
@@ -109,7 +110,7 @@ namespace ACE.Server.Physics.Combat
         {
             if (PhysicsObj == null || VoyeurTable == null) return;
 
-            foreach (var voyeur in VoyeurTable.Values)
+            foreach (var voyeur in VoyeurTable.Values.ToList())
                 SendVoyeurUpdate(voyeur, PhysicsObj.Position, status);
         }
 

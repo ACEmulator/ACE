@@ -93,10 +93,10 @@ namespace ACE.Server.WorldObjects
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? LastPortal ?? Location;
 
-            // Enqueue a teleport action, followed by Stand-up
-            // Queue the teleport to lifestone
-            ActionChain teleportChain = GetTeleportChain(newPosition);
+            Teleport(newPosition);
 
+            var teleportChain = new ActionChain();
+            teleportChain.AddDelaySeconds(3.0f);
             teleportChain.AddAction(this, () =>
             {
                 // currently happens while in portal space
