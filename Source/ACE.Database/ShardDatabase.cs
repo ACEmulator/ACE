@@ -375,6 +375,8 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
+                var existingBiota = GetBiota(context, biota.Id);
+
                 rwLock.EnterWriteLock();
                 try
                 {
@@ -386,8 +388,6 @@ namespace ACE.Database
                     // Manually setting the properties like we do below is the best case scenario for performance. However, it also has risks.
                     // If we add columns to the schema and forget to add those changes here, changes to the biota may not propegate to the database.
                     // Mag-nus 2018-08-18
-
-                    var existingBiota = GetBiota(context, biota.Id);
 
                     if (existingBiota == null)
                     {
