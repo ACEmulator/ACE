@@ -690,153 +690,159 @@ namespace ACE.Server.WorldObjects
             return spellCreated;
         }
 
-        private enum WieldRequirements
-        {
-            None        = 0,
-            Skill       = 2,
-            Attribute   = 3,
-            Level       = 7
-        }
-
+        /// <summary>
+        /// Called when network message is received for 'GetAndWieldItem'
+        /// </summary>
         public void HandleActionGetAndWieldItem(uint itemId, int wieldLocation)
         {
             new ActionChain(this, () =>
             {
                 var itemGuid = new ObjectGuid(itemId);
 
+                // handle inventory item -> weapon/shield slot
                 var item = GetInventoryItem(itemGuid);
                 if (item != null)
                 {
-                    bool wieldReqCheckFailed = false;
-                    WeenieError weenieError = WeenieError.None;
-
-                    var itemWieldReq = (item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
-                    switch (itemWieldReq)
-                    {
-                        case (int)WieldRequirements.Skill:
-                            // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                            var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
-
-                            if (itemSkillReq != Skill.None)
-                            {
-                                var playerSkill = GetCreatureSkill(itemSkillReq).Current;
-
-                                if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                                {
-                                    wieldReqCheckFailed = true;
-                                    weenieError = WeenieError.SkillTooLow;
-                                }
-                            }
-                            break;
-                        case (int)WieldRequirements.Level:
-                            // Check WieldDifficulty property against player's level
-                            if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                            {
-                                wieldReqCheckFailed = true;
-                                weenieError = WeenieError.LevelTooLow;
-                            }
-                            break;
-                        case (int)WieldRequirements.Attribute:
-                            // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
-                            var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
-
-                            if (itemAttributeReq != PropertyAttribute.Undef)
-                            {
-                                var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
-
-                                if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                                {
-                                    wieldReqCheckFailed = true;
-                                    weenieError = WeenieError.SkillTooLow;
-                                }
-                            }
-                            break;
-                        default:
-                            wieldReqCheckFailed = false;
-                            weenieError = WeenieError.None;
-                            break;
-                    }
-
-                    if (wieldReqCheckFailed)
-                    {
-                        var containerId = (uint)item.ContainerId;
-                        var container = GetInventoryItem(new ObjectGuid(containerId));
-                        if (container == null)
-                        {
-                            container = this;
-                        }
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: weenieError));
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
-                        return;
-                    }
-
-                    TryRemoveFromInventory(itemGuid, out item);
-
-                    if (!TryEquipObject(item, wieldLocation))
-                    {
-                        log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
-                        return;
-                    }
-
-                    CreateEquippedItemSpells(item);
-
-                    if ((EquipMask)wieldLocation == EquipMask.MissileAmmo)
-                    {
-                        Session.Network.EnqueueSend(
-                            new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
-                            new GameMessageSound(Guid, Sound.WieldObject, 1.0f));
-                    }
-                    else
-                    {
-                        if (((EquipMask)wieldLocation & EquipMask.Selectable) != 0)
-                        {
-                            SetChild(item, wieldLocation, out var placementId, out var childLocation);
-
-                            // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-                            EnqueueBroadcast(new GameMessageParentEvent(this, item, childLocation, placementId),
-                                new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
-                                new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
-                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
-
-                            if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                                return;
-
-                            switch ((EquipMask)wieldLocation)
-                            {
-                                case EquipMask.MissileWeapon:
-                                    SetCombatMode(CombatMode.Missile);
-                                    break;
-                                case EquipMask.Held:
-                                    SetCombatMode(CombatMode.Magic);
-                                    break;
-                                default:
-                                    SetCombatMode(CombatMode.Melee);
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-                            EnqueueBroadcast(new GameEventWieldItem(Session, itemGuid.Full, wieldLocation),
-                                new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
-                                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
-                                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation),
-                                new GameMessageObjDescEvent(this));
-                        }
-                    }
+                    var result = TryWieldItem(item, wieldLocation);
+                    return;
                 }
-                else
+
+                // handle 1 wielded slot -> the other wielded slot
+                // (weapon swap)
+                var wieldedItem = GetWieldedItem(itemGuid);
+                if (wieldedItem != null)
                 {
-                    // We don't have possession of the item so we must pick it up.
-                    PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);
+                    var result = TryWieldItem(wieldedItem, wieldLocation);
+                    return;
                 }
+
+                // We don't have possession of the item so we must pick it up.
+                // should this be wielding the item afterwards?
+                PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);
+
             }).EnqueueChain();
         }
+
+        public bool TryWieldItem(WorldObject item, int wieldLocation)
+        {
+            //Console.WriteLine($"TryWieldItem({item.Name}, {(EquipMask)wieldLocation})");
+
+            var wieldError = CheckWieldRequirement(item);
+
+            if (wieldError != WeenieError.None)
+            {
+                var containerId = (uint)item.ContainerId;
+                var container = GetInventoryItem(new ObjectGuid(containerId));
+                if (container == null) container = this;
+
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: wieldError));
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
+                return false;
+            }
+
+            // unwield wand / missile launcher if dual wielding
+            if ((EquipMask)wieldLocation == EquipMask.Shield && !item.IsShield)
+            {
+                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
+                if (mainWeapon != null)
+                {
+                    if (!UnwieldItemWithNetworking(this, mainWeapon))
+                        return false;
+                }
+            }
+
+            TryRemoveFromInventory(item.Guid, out var containerItem);
+
+            if (!TryEquipObject(item, wieldLocation))
+            {
+                log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
+                return false;
+            }
+
+            CreateEquippedItemSpells(item);
+
+            // TODO: I think we need to recalc our SetupModel here. see CalculateObjDesc()
+            var msgWieldItem = new GameEventWieldItem(Session, item.Guid.Full, wieldLocation);
+            var sound = new GameMessageSound(Guid, Sound.WieldObject, 1.0f);
+
+            if ((EquipMask)wieldLocation != EquipMask.MissileAmmo)
+            {
+                var updateContainer = new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0));
+                var updateWielder = new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid);
+                var updateWieldLoc = new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation);
+
+                if (((EquipMask)wieldLocation & EquipMask.Selectable) == 0)
+                {
+                    EnqueueBroadcast(msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc, new GameMessageObjDescEvent(this));
+                    return true;
+                }
+
+                SetChild(item, wieldLocation, out var placementId, out var childLocation);
+
+                EnqueueBroadcast(new GameMessageParentEvent(this, item, childLocation, placementId), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
+
+                if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
+                    return true;
+
+                switch ((EquipMask)wieldLocation)
+                {
+                    case EquipMask.MissileWeapon:
+                        SetCombatMode(CombatMode.Missile);
+                        break;
+                    case EquipMask.Held:
+                        SetCombatMode(CombatMode.Magic);
+                        break;
+                    default:
+                        SetCombatMode(CombatMode.Melee);
+                        break;
+                }
+            }
+            else
+                Session.Network.EnqueueSend(msgWieldItem, sound);
+
+            return true;
+        }
+
+        public WeenieError CheckWieldRequirement(WorldObject item)
+        {
+            var itemWieldReq = (WieldRequirement)(item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
+            switch (itemWieldReq)
+            {
+                case WieldRequirement.RawSkill:
+                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
+                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+
+                    if (itemSkillReq != Skill.None)
+                    {
+                        var playerSkill = GetCreatureSkill(itemSkillReq).Current;
+
+                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                            return WeenieError.SkillTooLow;
+                    }
+                    break;
+
+                case WieldRequirement.Level:
+                    // Check WieldDifficulty property against player's level
+                    if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                        return WeenieError.LevelTooLow;
+                    break;
+
+                case WieldRequirement.Attrib:
+                    // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
+                    var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+
+                    if (itemAttributeReq != PropertyAttribute.Undef)
+                    {
+                        var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+
+                        if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                            return WeenieError.SkillTooLow;
+                    }
+                    break;
+            }
+            return WeenieError.None;
+        }
+
         /// <summary>
         /// Dictionary for salvage bags/material types
         /// </summary>
