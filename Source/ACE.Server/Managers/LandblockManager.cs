@@ -72,7 +72,7 @@ namespace ACE.Server.Managers
 
                 string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
 
-                if (player.TotalLogins <= 1)
+                if ((player.TotalLogins <= 1) || ((bool)PropertyManager.GetBool("alwaysshowwelcome").Item == true))
                     session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
