@@ -92,9 +92,6 @@ namespace ACE.Server.WorldObjects
         {
             Biota = biota;
 
-            ExistsInDatabase = true;
-            LastRequestedDatabaseSave = DateTime.UtcNow;
-
             SetEphemeralValues();
         }
 

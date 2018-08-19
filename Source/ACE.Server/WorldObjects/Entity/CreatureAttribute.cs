@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -22,12 +24,12 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Attribute = attribute;
 
-            biotaPropertiesAttribute = creature.Biota.GetAttribute(Attribute);
+            biotaPropertiesAttribute = creature.Biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)Attribute);
 
             if (biotaPropertiesAttribute == null)
             {
-                creature.Biota.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute {ObjectId = creature.Biota.Id, Type = (ushort)Attribute });
-                biotaPropertiesAttribute = creature.Biota.GetAttribute(Attribute);
+                biotaPropertiesAttribute = new BiotaPropertiesAttribute { ObjectId = creature.Biota.Id, Type = (ushort)Attribute };
+                creature.Biota.BiotaPropertiesAttribute.Add(biotaPropertiesAttribute);
             }
         }
 

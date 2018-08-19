@@ -1,5 +1,6 @@
 using System;
-using ACE.Database.Models.Shard;
+using System.Linq;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -702,7 +703,7 @@ namespace ACE.Server.Managers
 
         public void InqCategory(EmoteCategory categoryId, Emote emote)
         {
-            var category = WorldObject.Biota.GetEmotes((uint)categoryId);
+            var category = WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (uint)categoryId);
             if (category == null) return;
             foreach (var entry in category)
             {
@@ -741,7 +742,7 @@ namespace ACE.Server.Managers
 
         public void InqPropertyInner(Emote emote, bool inRange)
         {
-            var category = WorldObject.Biota.GetEmotes(inRange ? (uint)EmoteCategory.TestSuccess : (uint)EmoteCategory.TestFailure);
+            var category = WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (inRange ? (uint)EmoteCategory.TestSuccess : (uint)EmoteCategory.TestFailure));
             if (category == null) return;
             foreach (var entry in category)
             {

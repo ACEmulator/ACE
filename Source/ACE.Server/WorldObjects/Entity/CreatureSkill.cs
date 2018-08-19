@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -18,7 +19,7 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Skill = skill;
 
-            biotaPropertiesSkill = creature.Biota.GetProperty(skill);
+            biotaPropertiesSkill = creature.Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
         }
 
         public SkillAdvancementClass AdvancementClass
