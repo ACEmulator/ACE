@@ -37,7 +37,9 @@ namespace ACE.Server.WorldObjects
         /// However, it's only a requirement to do this for properties/collections that will be modified after the initial biota has been created.<para />
         /// There are several properties/collections of the biota that are simply duplicates of the original weenie and are never changed. You wouldn't need to use this lock to read those collections.<para />
         /// <para />
-        /// For absolute maximum performance, if you're willing to assume (and risk) that a biota in the database will not be modified outside of ACE while ACE is running with a reference to that biota,<para />
+        /// For absolute maximum performance, if you're willing to assume (and risk) the following:<para />
+        ///  - that the biota in the database will not be modified (in a way that adds or removes properties) outside of ACE while ACE is running with a reference to that biota<para />
+        ///  - that the biota will only be read/modified by a single thread in ACE<para />
         /// You can remove the lock usage for any Get/GetAll Property functions. You would simply use it for Set/Remove Property functions because each of these could end up adding/removing to the collections.<para />
         /// The critical thing is that the collections are not added to or removed from while Entity Framework is iterating over them.<para />
         /// Mag-nus 2018-08-19
