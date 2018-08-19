@@ -226,14 +226,17 @@ namespace ACE.Server.WorldObjects
         {
             var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
 
+            // PhysicsDescriptionFlag.Movement takes priority over PhysicsDescription.FlagAnimationFrame
+            // If both are set, only Movement is written.
+            if (physicsDescriptionFlag.HasFlag(PhysicsDescriptionFlag.Movement) && physicsDescriptionFlag.HasFlag(PhysicsDescriptionFlag.AnimationFrame))
+                physicsDescriptionFlag &= ~PhysicsDescriptionFlag.AnimationFrame;
+
             writer.Write((uint)physicsDescriptionFlag);
 
             var defaultObjState = GetProperty(PropertyInt.PhysicsState);
             var physicsState = PhysicsObj != null ? PhysicsObj.State : defaultObjState != null ? (PhysicsState)defaultObjState : PhysicsGlobals.DefaultState;
             writer.Write((uint)physicsState);
 
-            // PhysicsDescriptionFlag.Movement takes priorty over PhysicsDescription.FlagAnimationFrame
-            // If both are set, only Movement is written.
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
                 if (CurrentMotionState != null)
