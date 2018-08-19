@@ -134,8 +134,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void UpdateLandblock()
         {
-            PreviousLocation = Location;
-            LandblockManager.RelocateObjectForPhysics(this);
+            LandblockManager.RelocateObjectForPhysics(this, true);
             //Console.WriteLine("Relocating " + Name + " to " + Location.LandblockId);
         }
 

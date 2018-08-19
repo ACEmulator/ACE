@@ -23,17 +23,10 @@ namespace ACE.Server.Physics.Common
         public uint RestrictionObj;
         public List<int> ClipPlanes;
         public int NumStabs;
-        public List<DatLoader.Entity.Stab> StabList;
+        public List<DatLoader.Entity.Stab> VisibleCells;
         public bool SeenOutside;
         public List<uint> VoyeurTable;
         public Landblock CurLandblock;
-
-        public static ObjectMaint ObjMaint;
-
-        static ObjCell()
-        {
-            ObjMaint = new ObjectMaint();   // global static?
-        }
 
         public ObjCell(): base()
         {
@@ -358,13 +351,9 @@ namespace ACE.Server.Physics.Common
 
         public void init_objects()
         {
-            if (ObjMaint == null) return;
-            ObjMaint.InitObjCell(this);
             foreach (var obj in ObjectList)
-            {
                 if (!obj.State.HasFlag(PhysicsState.Static) && !obj.is_completely_visible())
                     obj.recalc_cross_cells();
-            }
         }
 
         public virtual bool point_in_cell(Vector3 point)
@@ -381,8 +370,8 @@ namespace ACE.Server.Physics.Common
 
                 shadowObj.PhysicsObj.remove_parts(this);
             }
-            if (NumObjects > 0 && ObjMaint != null)
-                ObjMaint.ReleaseObjCell(this);
+            //if (NumObjects > 0 && ObjMaint != null)
+                //ObjMaint.ReleaseObjCell(this);
         }
 
         public void remove_shadow_object(ShadowObj shadowObj)

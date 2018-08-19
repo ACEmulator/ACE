@@ -236,8 +236,7 @@ namespace ACE.Server.WorldObjects
 
                 if (prevBlock != newBlock)
                 {
-                    PreviousLocation = Location;
-                    LandblockManager.RelocateObjectForPhysics(this);
+                    LandblockManager.RelocateObjectForPhysics(this, true);
                     //Console.WriteLine($"Relocating {Name} from {prevBlockCell:X8} to {newBlockCell:X8}");
                     //Console.WriteLine("Old position: " + Location.Pos);
                     //Console.WriteLine("New position: " + newPos.Frame.Origin);

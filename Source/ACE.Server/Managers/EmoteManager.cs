@@ -51,7 +51,7 @@ namespace ACE.Server.Managers
                 case EmoteType.Act:
                     // short for 'acting' text
                     var message = Replace(text, sourceObject, targetObject);
-                    sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageSystemChat(message, ChatMessageType.Broadcast));
+                    sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.Activate:
@@ -504,11 +504,11 @@ namespace ACE.Server.Managers
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                            sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                         });
                     }
                     else
-                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                        sourceObject.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.LocalSignal:
@@ -687,7 +687,7 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
-                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
+                        sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
                     });
                     break;
 

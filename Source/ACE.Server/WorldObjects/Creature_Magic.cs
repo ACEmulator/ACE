@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
                     // if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
                     ItemMagic(target, spell, spellStatMod);
-                    if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                     break;
                 case MagicSchool.LifeMagic:
 

@@ -10,6 +10,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
@@ -221,6 +222,27 @@ namespace ACE.Server.WorldObjects
             writer.Align();
         }
 
+        /// <summary>
+        /// Returns the current physics state for an object,
+        /// falling back to defaults if no PhysicsObj is loaded (inventory items)
+        /// </summary>
+        private PhysicsState GetPhysicsStateOrDefault()
+        {
+            if (PhysicsObj != null)
+                return PhysicsObj.State;
+
+            // special case for players logging in - sets pink bubble state here
+            if (this is Player)
+                return PhysicsState.IgnoreCollisions | PhysicsState.Gravity | PhysicsState.Hidden | PhysicsState.EdgeSlide;
+
+            var defaultObjState = GetProperty(PropertyInt.PhysicsState);
+
+            if (defaultObjState != null)
+                return (PhysicsState)defaultObjState;
+            else
+                return PhysicsGlobals.DefaultState;
+        }
+
         // todo: return bytes of data for network write ? ?
         private void SerializePhysicsData(BinaryWriter writer)
         {
@@ -233,8 +255,8 @@ namespace ACE.Server.WorldObjects
 
             writer.Write((uint)physicsDescriptionFlag);
 
-            var defaultObjState = GetProperty(PropertyInt.PhysicsState);
-            var physicsState = PhysicsObj != null ? PhysicsObj.State : defaultObjState != null ? (PhysicsState)defaultObjState : PhysicsGlobals.DefaultState;
+            var physicsState = GetPhysicsStateOrDefault();
+
             writer.Write((uint)physicsState);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
@@ -368,10 +390,8 @@ namespace ACE.Server.WorldObjects
         protected virtual void SendUpdatePosition(bool forcePos = false)
         {
             LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-            GameMessage msg = new GameMessageUpdatePosition(this, forcePos);
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
+            EnqueueBroadcast(new GameMessageUpdatePosition(this, forcePos));
         }
 
 
@@ -465,7 +485,7 @@ namespace ACE.Server.WorldObjects
             // If we really want to set default states on create or load, we need to separate this function into two parts.
 
             // Read in Object's Default PhysicsState
-            var physicsState = (PhysicsState)(GetProperty(PropertyInt.PhysicsState) ?? 0);
+            var physicsState = GetPhysicsStateOrDefault();
 
             if (physicsState.HasFlag(PhysicsState.Static))
                 if (!Static.HasValue)
@@ -848,7 +868,7 @@ namespace ACE.Server.WorldObjects
             else
                 flag &= ~ObjectDescriptionFlag.Attackable;
             ////PlayerKiller           = 0x00000020,
-            if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.PK)
+            if (PlayerKillerStatus == PlayerKillerStatus.PK)
                 flag |= ObjectDescriptionFlag.PlayerKiller;
             else
                 flag &= ~ObjectDescriptionFlag.PlayerKiller;
@@ -904,7 +924,7 @@ namespace ACE.Server.WorldObjects
                     flag &= ~ObjectDescriptionFlag.Admin;
             }
             ////FreePkStatus           = 0x00200000,
-            if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.Free)
+            if (PlayerKillerStatus == PlayerKillerStatus.Free)
                 flag |= ObjectDescriptionFlag.FreePkStatus;
             else
                 flag &= ~ObjectDescriptionFlag.FreePkStatus;
@@ -924,7 +944,7 @@ namespace ACE.Server.WorldObjects
             else
                 flag &= ~ObjectDescriptionFlag.Retained;
             ////PkLiteStatus           = 0x02000000,
-            if (PlayerKillerStatus == ACE.Entity.Enum.PlayerKillerStatus.PKLite)
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
                 flag |= ObjectDescriptionFlag.PkLiteStatus;
             else
                 flag &= ~ObjectDescriptionFlag.PkLiteStatus;
@@ -974,18 +994,25 @@ namespace ACE.Server.WorldObjects
         }
 
         public uint prevCell;
+        public bool InUpdate;
 
         /// <summary>
         /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
         /// </summary>
         /// <param name="newPosition">The new position being requested, before verification through physics engine</param>
-        public void UpdatePlayerPhysics(ACE.Entity.Position newPosition)
+        /// <returns>TRUE if object moves to a different landblock</returns>
+        public bool UpdatePlayerPhysics(ACE.Entity.Position newPosition, bool forceUpdate = false)
         {
+            //Console.WriteLine($"UpdatePlayerPhysics: {newPosition.Cell:X8}, {newPosition.Pos}");
+
             var player = this as Player;
 
-            // currently only processes players
-            if (player == null) return;
+            // only handles player movement
+            if (player == null) return false;
+
+            // possible bug: while teleporting, client can still send AutoPos packets from old landblock
+            if (Teleporting && !forceUpdate) return false;
 
             if (PhysicsObj != null)
             {
@@ -1006,24 +1033,30 @@ namespace ACE.Server.WorldObjects
 
                         player.CheckMonsters();
 
-                        /*if (curCell.ID != prevCell)
+                        if (curCell.ID != prevCell)
                         {
-                            prevCell = curCell.ID;
-                            Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
-                            if (curCell.ID != PhysicsObj.CurCell.ID)
-                                Console.WriteLine("Physics cell: " + PhysicsObj.CurCell.ID.ToString("X8"));
-                        }*/
+                            //prevCell = curCell.ID;
+                            //Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
+                            //var envCell = curCell as Physics.Common.EnvCell;
+                            //var seenOutside = envCell != null ? envCell.SeenOutside : true;
+                            //Console.WriteLine($"CurCell: {curCell.ID:X8}, SeenOutside: {seenOutside}");
+                        }
                     }
                 }
             }
-            if (Teleporting)
-                PreviousLocation = Location;
 
+            // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
+            if (Teleporting && !forceUpdate) return true;
+
+            var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
             Location = newPosition;
+
             SendUpdatePosition();
 
-            if (Teleporting)
-                CurrentLandblock?.EnqueueBroadcast(PreviousLocation, Landblock.MaxObjectRange, new GameMessageUpdatePosition(this));
+            if (!InUpdate)
+                LandblockManager.RelocateObjectForPhysics(this, true);
+
+            return landblockUpdate;
         }
 
         public double lastDist;
@@ -1089,8 +1122,8 @@ namespace ACE.Server.WorldObjects
                     Location.LandblockId = new LandblockId(curCell.ID);
 
                 Location.Pos = newPos;
-                if (landblockUpdate)
-                    WorldManager.UpdateLandblock.Add(this);
+                //if (landblockUpdate)
+                    //WorldManager.UpdateLandblock.Add(this);
             }
 
             if (PhysicsObj.IsGrounded)
@@ -1100,8 +1133,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Dist: " + dist);
             //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
 
-            // return position change?
-            return false;
+            return landblockUpdate;
         }
 
         public bool? IgnoreCloIcons
@@ -1222,6 +1254,51 @@ namespace ACE.Server.WorldObjects
             if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
             //AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
+        }
+
+        /// <summary>
+        /// Runs a function for all Players that currently know about this object
+        /// </summary>
+        public void EnqueueActionBroadcast(Action<Player> delegateAction)
+        {
+            if (PhysicsObj == null) return;
+
+            var self = this as Player;
+            if (self != null)
+                self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
+
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+                player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
+        }
+
+        /// <summary>
+        /// Sends network messages to all Players who currently know about this object
+        /// </summary>
+        public void EnqueueBroadcast(params GameMessage[] msgs)
+        {
+            if (PhysicsObj == null) return;
+
+            var self = this as Player;
+            if (self != null)
+                self.Session.Network.EnqueueSend(msgs);
+
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+                player.Session.Network.EnqueueSend(msgs);
+        }
+
+        /// <summary>
+        /// Called when a new PhysicsObj enters the world
+        /// </summary>
+        public void NotifyPlayers()
+        {
+            // build a list of all players within visible range
+            PhysicsObj.get_voyeurs();
+
+            //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
+
+            // add to player tracking / send create object network messages to these players
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+                player.AddTrackedObject(this);
         }
     }
 }

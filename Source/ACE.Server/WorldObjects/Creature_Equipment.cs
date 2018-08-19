@@ -102,8 +102,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+            EnqueueActionBroadcast((Player p) => p.TrackObject(this));
 
             return true;
         }
@@ -133,8 +132,7 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal -= worldObject.EncumbranceVal;
                 Value -= worldObject.Value;
 
-                if (CurrentLandblock != null)
-                    CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+                EnqueueActionBroadcast((Player p) => p.TrackObject(this));
 
                 return true;
             }

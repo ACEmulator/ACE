@@ -206,8 +206,7 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                    new GameMessageUpdatePosition(this),
+                EnqueueBroadcast(new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
             });
 
@@ -331,12 +330,11 @@ namespace ACE.Server.WorldObjects
 
                 var motion = new UniversalMotion(MotionStance.Standing);
 
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                    new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
+                EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
                     new GameMessagePickupEvent(item));
 
                 if (iidPropertyId == PropertyInstanceId.Wielder)
-                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessageObjDescEvent(this));
+                    EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
                 // TODO: Og II - check this later to see if it is still required.
                 //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
@@ -403,8 +401,7 @@ namespace ACE.Server.WorldObjects
 
             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
-            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
+            EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
                 new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
                 new GameMessagePickupEvent(item),
@@ -598,8 +595,7 @@ namespace ACE.Server.WorldObjects
                         //    new GameMessageObjDescEvent(this),
                         //    new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder));
 
-                        CurrentLandblock?.EnqueueBroadcast(Location,
-                            new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
+                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                             new GameMessageObjDescEvent(this),
                             new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)));
                     }
@@ -638,7 +634,7 @@ namespace ACE.Server.WorldObjects
                 {
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                     Session.Network.EnqueueSend(
                         new GameEventItemServerSaysMoveItem(Session, item),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
@@ -654,7 +650,7 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock?.AddWorldObject(item);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageUpdatePosition(item));
+                    EnqueueBroadcast(new GameMessageUpdatePosition(item));
                 });
 
                 actionChain.AddChain(dropChain);
@@ -777,13 +773,13 @@ namespace ACE.Server.WorldObjects
 
                 if (((EquipMask)wieldLocation & EquipMask.Selectable) == 0)
                 {
-                    CurrentLandblock?.EnqueueBroadcast(Location, msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc, new GameMessageObjDescEvent(this));
+                    EnqueueBroadcast(msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc, new GameMessageObjDescEvent(this));
                     return true;
                 }
 
                 SetChild(item, wieldLocation, out var placementId, out var childLocation);
 
-                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageParentEvent(this, item, childLocation, placementId), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
+                EnqueueBroadcast(new GameMessageParentEvent(this, item, childLocation, placementId), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
 
                 if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                     return true;
@@ -837,7 +833,6 @@ namespace ACE.Server.WorldObjects
 
                     if (itemAttributeReq != PropertyAttribute.Undef)
                     {
-
                         var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
 
                         if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
@@ -1271,8 +1266,7 @@ namespace ACE.Server.WorldObjects
             fromWo.EncumbranceVal = (int)newFromBurden;
 
             // Build the needed messages to the client.
-            CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                new GameMessageSetStackSize(fromWo));
+            EnqueueBroadcast(new GameMessageSetStackSize(fromWo));
         }
 
         /// <summary>
@@ -1302,12 +1296,9 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             if (missileAmmo)
-                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameMessageSetStackSize(toWo));
+                EnqueueBroadcast( new GameMessageSetStackSize(toWo));
             else
-                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameEventItemServerSaysContainId(Session, toWo, this),
-                    new GameMessageSetStackSize(toWo));
+                EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, toWo, this), new GameMessageSetStackSize(toWo));
         }
 
 
@@ -1381,8 +1372,7 @@ namespace ACE.Server.WorldObjects
 
                 // todo i'm not sure if this is right? Should it be a landblock broadcast if we're splitting items on our own person?
                 // todo Probably only landblock if the container exists on the landscape, but even then... i don't think so
-                CurrentLandblock?.EnqueueBroadcast(Location, MaxObjectTrackingRange,
-                    new GameEventItemServerSaysContainId(Session, newStack, container),
+                EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, newStack, container),
                     new GameMessageSetStackSize(stack),
                     new GameMessageCreateObject(newStack));
             }).EnqueueChain();
@@ -1459,7 +1449,7 @@ namespace ACE.Server.WorldObjects
 
                     motion = new UniversalMotion(MotionStance.Standing);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
@@ -1473,7 +1463,7 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock?.AddWorldObject(newStack);
 
                     //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageUpdatePosition(newStack));
+                    EnqueueBroadcast(new GameMessageUpdatePosition(newStack));
                 });
 
                 actionChain.AddChain(dropChain);

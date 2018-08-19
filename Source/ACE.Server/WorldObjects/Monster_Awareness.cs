@@ -53,9 +53,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Sleep()
         {
-            MonsterState = State.Idle;
+            AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
+            MonsterState = State.Idle;
         }
     }
 }

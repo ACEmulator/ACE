@@ -121,37 +121,38 @@ namespace ACE.Server.WorldObjects
                 myLockCode = woChest.LockCode;
             return myLockCode;
         }
-        public static UnlockResults Unlock(WorldObject me, string keyCode)
+        public static UnlockResults Unlock(WorldObject target, string keyCode)
         {
-            string myLockCode = GetLockCode(me);
+            string myLockCode = GetLockCode(target);
             if (myLockCode == null) return UnlockResults.IncorrectKey;
 
-            if (me.IsOpen ?? false)
+            if (target.IsOpen ?? false)
                 return UnlockResults.Open;
 
             if (keyCode == myLockCode)
             {
-                if (!me.IsLocked ?? false)
+                if (!target.IsLocked ?? false)
                     return UnlockResults.AlreadyUnlocked;
 
-                me.IsLocked = false;
-                me.CurrentLandblock?.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
-                me.CurrentLandblock?.EnqueueBroadcastSound(me, Sound.LockSuccess);
+                target.IsLocked = false;
+                var updateProperty = new GameMessagePublicUpdatePropertyBool(target, PropertyBool.Locked, target.IsLocked ?? false);
+                var sound = new GameMessageSound(target.Guid, Sound.LockSuccess, 1.0f);
+                target.EnqueueBroadcast(updateProperty, sound);
                 return UnlockResults.UnlockSuccess;
             }
             return UnlockResults.IncorrectKey;
         }
-        public static UnlockResults Unlock(WorldObject me, uint playerLockpickSkillLvl)
+        public static UnlockResults Unlock(WorldObject target, uint playerLockpickSkillLvl)
         {
-            int? myResistLockpick = GetResistLockpick(me);
+            int? myResistLockpick = GetResistLockpick(target);
 
             if (!myResistLockpick.HasValue || myResistLockpick < 1)
                 return UnlockResults.CannotBePicked;
 
-            if (me.IsOpen ?? false)
+            if (target.IsOpen ?? false)
                 return UnlockResults.Open;
 
-            if (!me.IsLocked ?? false)
+            if (!target.IsLocked ?? false)
                 return UnlockResults.AlreadyUnlocked;
 
             var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, (int)myResistLockpick);
@@ -164,9 +165,9 @@ namespace ACE.Server.WorldObjects
             if (dice > pickChance)
                 return UnlockResults.PickLockFailed;
 
-            me.IsLocked = false;
-            me.CurrentLandblock?.EnqueueBroadcast(me.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(me, PropertyBool.Locked, me.IsLocked ?? false));
-            //me.CurrentLandblock?.EnqueueBroadcastSound(me, Sound.Lockpicking);
+            target.IsLocked = false;
+            target.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(target, PropertyBool.Locked, target.IsLocked ?? false));
+            //target.CurrentLandblock?.EnqueueBroadcastSound(target, Sound.Lockpicking);
             return UnlockResults.UnlockSuccess;
         }
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
@@ -10,7 +9,6 @@ using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Hooks;
-using ACE.Server.Physics.Sound;
 using ACE.Server.WorldObjects;
 using log4net;
 using ObjectGuid = ACE.Entity.ObjectGuid;
@@ -42,6 +40,7 @@ namespace ACE.Server.Physics
         public ChildList Children;
         public Position Position;
         public ObjCell CurCell;
+        public Landblock CurLandblock;
         public int NumShadowObjects;
         public Dictionary<uint, ShadowObj> ShadowObjects;
         public PhysicsState State;
@@ -77,9 +76,21 @@ namespace ACE.Server.Physics
         public int[] UpdateTimes;
         public PhysicsObj ProjectileTarget;
         public PhysicsTimer PhysicsTimer;
+        public bool DatObject = false;
 
         // server
         public Position RequestPos;
+
+        public string Name
+        {
+            get
+            {
+                if (WeenieObj == null || WeenieObj.WorldObject == null)
+                    return "NULL";
+                else
+                    return WeenieObj.WorldObject.Name;
+            }
+        }
 
         public CellArray CellArray;
         public ObjectMaint ObjMaint;
@@ -121,7 +132,7 @@ namespace ACE.Server.Physics
             UpdateTimes = new int[UpdateTimeLength];
             PhysicsTimer = new PhysicsTimer();
             WeenieObj = new WeenieObject();
-            ObjMaint = new ObjectMaint();
+            ObjMaint = new ObjectMaint(this);
 
             if (PhysicsEngine.Instance != null && PhysicsEngine.Instance.Server)
             {
@@ -131,7 +142,7 @@ namespace ACE.Server.Physics
 
         ~PhysicsObj()
         {
-            Destroy();
+            DestroyObject();
         }
 
         public void Destroy()
@@ -151,7 +162,19 @@ namespace ACE.Server.Physics
             // PartArray.SetCellID ?
 
             State = PhysicsGlobals.DefaultState;
-            ObjectMaint.RemoveServerObject(this);
+        }
+
+        /// <summary>
+        /// Called to completely remove a PhysicsObj from the server
+        /// </summary>
+        public void DestroyObject()
+        {
+            leave_cell(false);
+            remove_shadows_from_cells();
+            leave_world();
+            exit_world();
+
+            ObjMaint.DestroyObject();
         }
 
         public void AddObjectToSingleCell(ObjCell objCell)
@@ -1053,7 +1076,7 @@ namespace ACE.Server.Physics
                 prepare_to_leave_visibility();
                 store_position(curPos);
 
-                ObjMaint.GotoLostCell(this, Position.ObjCellID);
+                //ObjMaint.GotoLostCell(this, Position.ObjCellID);
 
                 set_active(false);
                 return true;
@@ -1154,7 +1177,7 @@ namespace ACE.Server.Physics
             {
                 prepare_to_leave_visibility();
                 store_position(pos);
-                ObjMaint.GotoLostCell(this, Position.ObjCellID);
+                //ObjMaint.GotoLostCell(this, Position.ObjCellID);
                 set_active(false);
                 return SetPositionError.OK;
             }
@@ -1984,16 +2007,13 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
-        public void enqueue_objs(AddUpdateObjs addUpdateObjs)
+        public void enqueue_objs(List<PhysicsObj> newlyVisible)
         {
             var player = WeenieObj.WorldObject as Player;
             if (player == null) return;
 
-            foreach (var obj in addUpdateObjs.AddObjects)
+            foreach (var obj in newlyVisible)
                 player.TrackObject(obj.WeenieObj.WorldObject);
-
-            foreach (var obj in addUpdateObjs.UpdateObjects)
-                player.TrackObject(obj.WeenieObj.WorldObject, true);
         }
 
         public void enter_cell(ObjCell newCell)
@@ -2007,6 +2027,13 @@ namespace ACE.Server.Physics
             Position.ObjCellID = newCell.ID;
             if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
                 PartArray.SetCellID(newCell.ID);
+
+            if (!DatObject && newCell != null)
+            {
+                CurLandblock = LScape.get_landblock(newCell.ID);
+                if (CurLandblock != null)
+                    CurLandblock.add_server_object(this);
+            }
         }
 
         public void enter_cell_server(ObjCell newCell)
@@ -2015,14 +2042,13 @@ namespace ACE.Server.Physics
             RequestPos.ObjCellID = newCell.ID;
 
             // handle indoor cell visibility
-            if ((newCell.ID & 0xFFFF) >= 0x100)
-            {
+            //if ((newCell.ID & 0xFFFF) >= 0x100)
+            //{
                 if (IsPlayer)
                 {
                     // player entering new indoor cell
-                    var addUpdateObjs = handle_visible_cells();
-                    if (addUpdateObjs == null) return;
-                    enqueue_objs(addUpdateObjs);
+                    var newlyVisible = handle_visible_cells();
+                    enqueue_objs(newlyVisible);
                 }
 
                 foreach (var player in Players)
@@ -2030,7 +2056,7 @@ namespace ACE.Server.Physics
                     // is other player in same indoor landblock?
                     if (player.CurCell != null && (player.CurCell.ID & 0xFFFF) >= 0x100 && player.CurCell.ID >> 16 == newCell.ID >> 16)
                     {
-                        var envCell = player.CurCell as Common.EnvCell;
+                        var envCell = player.CurCell as EnvCell;
                         if (envCell != null)
                         {
                             if (envCell.VisibleCells.ContainsKey(newCell.ID & 0xFFFF))
@@ -2038,15 +2064,13 @@ namespace ACE.Server.Physics
                                 //Console.WriteLine($"Informing {player.WeenieObj.WorldObject.Name} about {WeenieObj.WorldObject.Name}");
 
                                 // inform other player about this object
-                                var addUpdateObjs = player.handle_visible_cells();
-                                if (addUpdateObjs == null) return;
-                                player.enqueue_objs(addUpdateObjs);
+                                var newlyVisible = player.handle_visible_cells();
+                                player.enqueue_objs(newlyVisible);
                             }
                         }
                     }
                 }
-            }
-
+            //}
             //Console.WriteLine("Cell: " + newCell.ID.ToString("X8") + " (" + newCell.ShadowObjectList.Count + ")");
         }
 
@@ -2336,42 +2360,54 @@ namespace ACE.Server.Physics
             return retval;
         }
 
-        public AddUpdateObjs handle_visible_cells()
+        /// <summary>
+        /// Maintains the list of visible objects for a player
+        /// </summary>
+        /// <returns>The list of newly visible objects since last call</returns>
+        public List<PhysicsObj> handle_visible_cells()
         {
-            //Console.WriteLine("handle_visible_cells()");
+            //return new List<PhysicsObj>();
+
+            //Console.WriteLine($"handle_visible_cells({CurCell.ID:X8}) for {Name}");
+
+            // remove any objects that have been in the destruction queue > 25s
+            var expiredObjs = ObjMaint.DestroyObjects();
+            //Console.WriteLine("Destroyed objects: " + expiredObjs.Count);
+            //foreach (var expiredObj in expiredObjs)
+                //Console.WriteLine(expiredObj.Name);
 
             // get the list of visible objects from this cell
-            var visibleObjects = ObjMaint.GetVisibleObjects(CurCell as Common.EnvCell);
+            var visibleObjects = ObjMaint.GetVisibleObjects(CurCell);
+
             //Console.WriteLine("Visible objects from this cell: " + visibleObjects.Count);
+            //foreach (var visibleObject in visibleObjects)
+                //Console.WriteLine(visibleObject.Name);
 
-            // get list of objects that were previously unknown
+            // get the difference between current and previous visible
+            var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjectTable.Values).ToList();
+            var newlyOccluded = ObjMaint.VisibleObjectTable.Values.Except(visibleObjects).ToList();
+            //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
+            //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
+            //foreach (var obj in newlyOccluded)
+                //Console.WriteLine(obj.Name);
+
+            // add newly visible objects, and get the previously unknowns
             var createObjs = ObjMaint.AddVisibleObjects(visibleObjects);
-            //Console.WriteLine("New objects that were previously unknown: " + createObjs.Count);
+            /*if (createObjs.Count != newlyVisible.Count)
+            {
+                Console.WriteLine($"Create objs differs from newly visible ({createObjs.Count} vs. {newlyVisible.Count})");
+                Console.WriteLine("CreateObjs:");
+                for (var i = 0; i < createObjs.Count; i++)
+                    Console.WriteLine($"{i} - {createObjs[i].Name}");
+                Console.WriteLine("Newly Visible:");
+                for (var i = 0; i < newlyVisible.Count; i++)
+                    Console.WriteLine($"{i} = {newlyVisible[i].Name}");
+            }*/
 
-            // get total occluded objects, and newly occluded objects since last update
-            var occludedObjs = ObjMaint.ObjectTable.Values.Except(visibleObjects).ToList();
-            var addOccluded = ObjMaint.AddObjectsToBeDestroyed(occludedObjs);
-            //Console.WriteLine("Total occluded objects: " + occludedObjs.Count);
-            //Console.WriteLine("Newly occluded objects: " + addOccluded.Count);
+            // add newly occluded objects to the destruction queue
+            ObjMaint.AddObjectsToBeDestroyed(newlyOccluded);
 
-            // remove visible objects from destruction queue
-            ObjMaint.RemoveObjectsToBeDestroyed(visibleObjects);
-
-            // get list of previously known objects that were not visible for >= 25s
-            // which are now re-entering visiblity
-            var updateObjs = visibleObjects.Intersect(ObjMaint.GetDestroyedObjects()).ToList();
-            //Console.WriteLine("Previously known objects that were destroyed, now re-entering visibility: " + updateObjs.Count);
-
-            // add these to visible objects again
-            ObjMaint.AddVisibleObjects(updateObjs);
-
-            // remove from destroyed objects
-            ObjMaint.RemoveDestroyedObjects(updateObjs);
-
-            if (createObjs.Count == 0 && updateObjs.Count == 0)
-                return null;
-            else
-                return new AddUpdateObjs(createObjs, updateObjs);
+            return createObjs;
         }
 
         public bool is_completely_visible()
@@ -2408,13 +2444,20 @@ namespace ACE.Server.Physics
                 child.leave_cell(is_changing_cell);
             // removed lighting
             CurCell = null;
+
+            if (CurLandblock != null && !DatObject)
+            {
+                CurLandblock.remove_server_object(this);
+                CurLandblock = null;
+            }
+           
         }
 
         public void leave_visibility()
         {
             prepare_to_leave_visibility();
             store_position(Position);
-            ObjMaint.GotoLostCell(this, Position.ObjCellID);
+            //ObjMaint.GotoLostCell(this, Position.ObjCellID);
             TransientState &= ~TransientStateFlags.Active;
         }
 
@@ -2423,7 +2466,7 @@ namespace ACE.Server.Physics
             report_collision_end(true);
             if (ObjMaint != null)
             {
-                ObjMaint.RemoveFromLostCell(this);
+                //ObjMaint.RemoveFromLostCell(this);
                 ObjMaint.RemoveObjectToBeDestroyed(this);
             }
             TransientState &= ~TransientStateFlags.Active;
@@ -2625,7 +2668,7 @@ namespace ACE.Server.Physics
         {
             UpdateTime = Timer.CurrentTime;
 
-            ObjMaint.RemoveFromLostCell(this);
+            //ObjMaint.RemoveFromLostCell(this);
             ObjMaint.RemoveObjectToBeDestroyed(this);
 
             foreach (var child in Children.Objects)
@@ -2643,7 +2686,7 @@ namespace ACE.Server.Physics
         public bool prepare_to_leave_visibility()
         {
             remove_shadows_from_cells();
-            ObjMaint.RemoveFromLostCell(this);
+            //ObjMaint.RemoveFromLostCell(this);
             leave_cell(false);
 
             ObjMaint.AddObjectToBeDestroyed(this);
@@ -2964,6 +3007,12 @@ namespace ACE.Server.Physics
         {
             Position.ObjCellID = newPos.ObjCellID;
             Position.Frame = new AFrame(newPos.Frame);
+
+            if (CurCell == null || CurCell.ID != Position.ObjCellID)
+            {
+                var newCell = LScape.get_landcell(newPos.ObjCellID);
+                change_cell_server(newCell);
+            }
         }
 
         /// <summary>
@@ -3689,6 +3738,11 @@ namespace ACE.Server.Physics
             }
             else
                 UpdateTime = Timer.CurrentTime;
+        }
+
+        public void get_voyeurs()
+        {
+            ObjMaint.get_voyeurs();
         }
 
         public void add_moveto_listener(Action listener)
