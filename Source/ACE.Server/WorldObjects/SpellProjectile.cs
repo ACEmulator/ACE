@@ -66,14 +66,34 @@ namespace ACE.Server.WorldObjects
             SpellType = GetProjectileSpellType(spellId);
             var spell = DatManager.PortalDat.SpellTable.Spells[SpellId];
 
+            // Runtime changes to default state
+            ReportCollisions = true;
+            Missile = true;
+            AlignPath = true;
+            PathClipped = true;
+            Ethereal = false;
+            IgnoreCollisions = false;
+
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
-                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley)
+                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
+                || WeenieClassId == 7276 || WeenieClassId == 7277 || WeenieClassId == 7279 || WeenieClassId == 7280)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
                 var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
+
+            // Some wall spells don't have scripted collisions
+            if (WeenieClassId == 7278 || WeenieClassId == 7281 || WeenieClassId == 7282 || WeenieClassId == 23144)
+            {
+                ScriptedCollision = false;
+            }
+
+            AllowEdgeSlide = false;
+            // No need to send an ObjScale of 1.0f over the wire since that is the default value
+            if (ObjScale == 1.0f)
+                ObjScale = null;
 
             if (SpellType == ProjectileSpellType.Ring)
             {
@@ -344,14 +364,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            // runtime changes to default state
-            ReportCollisions = true;
-            Missile = true;
-            AlignPath = true;
-            PathClipped = true;
-            Ethereal = false;
-            IgnoreCollisions = false;
-
             if (useGravity) GravityStatus = true;
 
             CurrentMotionState = null;
