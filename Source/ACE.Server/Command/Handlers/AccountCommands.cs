@@ -3,13 +3,14 @@ using System;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Command.Handlers
 {
     public static class AccountCommands
     {
         // accountcreate username password (accesslevel)
-        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2,
+        [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.None, 2,
             "Creates a new account.",
             "username password (accesslevel)\n" +
             "accesslevel can be a number or enum name\n" +
@@ -32,11 +33,13 @@ namespace ACE.Server.Command.Handlers
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                 articleAorAN = "an";
 
-            var accountExists = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
+            string message = "";
 
+            var accountExists = DatabaseManager.Authentication.GetAccountByName(parameters[0]);
+                      
             if (accountExists != null)
             {
-                Console.WriteLine("Account already exists. Try a new name.");
+                message= "Account already exists. Try a new name.";
             }
             else
             {
@@ -44,12 +47,20 @@ namespace ACE.Server.Command.Handlers
                 {
                     var account = DatabaseManager.Authentication.CreateAccount(parameters[0].ToLower(), parameters[1], accessLevel);
 
-                    Console.WriteLine("Account successfully created for " + account.AccountName + " (" + account.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
+                    message = ("Account successfully created for " + account.AccountName + " (" + account.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
                 }
                 catch// (MySqlException) Uncomment this after we remove the MySql.Data reference
                 {
-                    Console.WriteLine("Account already exists. Try a new name.");
+                    message = "Account already exists. Try a new name.";
                 }
+            }
+
+            if (session == null)
+                Console.WriteLine(message);
+            else
+            {
+                var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
+                session.Network.EnqueueSend(sysChatMsg);
             }
         }
   
