@@ -38,7 +38,20 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private void Run(Session session, int biotasPerTest)
         {
-            ChatPacket.SendServerMessage(session, $"Starting Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...", ChatMessageType.System);
+            ChatPacket.SendServerMessage(session, $"Starting Shard Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...\nCurrent database queue count: {DatabaseManager.Shard.QueueCount}", ChatMessageType.System);
+
+
+            // Get the current queue wait time
+            bool responseReceived = false;
+
+            DatabaseManager.Shard.GetCurrentQueueWaitTime(result =>
+            {
+                ChatPacket.SendServerMessage(session, $"Current database queue wait time: {result.TotalMilliseconds:N0} ms", ChatMessageType.System);
+                responseReceived = true;
+            });
+
+            while (!responseReceived)
+                Thread.Sleep(1);
 
 
             // Generate Individual WorldObjects
@@ -55,7 +68,8 @@ namespace ACE.Server.Command.Handlers.Processors
             long trueResults = 0;
             long falseResults = 0;
             var startTime = DateTime.UtcNow;
-
+            var initialQueueWaitTime = TimeSpan.Zero;
+            var totalQueryExecutionTime = TimeSpan.Zero;
             foreach (var biota in biotas)
             {
                 DatabaseManager.Shard.SaveBiota(biota.biota, biota.rwLock, result =>
@@ -64,6 +78,12 @@ namespace ACE.Server.Command.Handlers.Processors
                         Interlocked.Increment(ref trueResults);
                     else
                         Interlocked.Increment(ref falseResults);
+                }, (queueWaitTime, queryExecutionTime) =>
+                {
+                    if (initialQueueWaitTime == TimeSpan.Zero)
+                        initialQueueWaitTime = queueWaitTime;
+
+                    totalQueryExecutionTime += queryExecutionTime;
                 });
             }
 
@@ -71,7 +91,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 Thread.Sleep(1);
 
             var endTime = DateTime.UtcNow;
-            ReportResult(session, "individual add", biotasPerTest, (endTime - startTime), trueResults, falseResults);
+            ReportResult(session, "individual add", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
 
 
             // Update biotasPerTest biotas individually
@@ -82,6 +102,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 trueResults = 0;
                 falseResults = 0;
                 startTime = DateTime.UtcNow;
+                initialQueueWaitTime = TimeSpan.Zero;
+                totalQueryExecutionTime = TimeSpan.Zero;
 
                 foreach (var biota in biotas)
                 {
@@ -91,6 +113,12 @@ namespace ACE.Server.Command.Handlers.Processors
                             Interlocked.Increment(ref trueResults);
                         else
                             Interlocked.Increment(ref falseResults);
+                    }, (queueWaitTime, queryExecutionTime) =>
+                    {
+                        if (initialQueueWaitTime == TimeSpan.Zero)
+                            initialQueueWaitTime = queueWaitTime;
+
+                        totalQueryExecutionTime += queryExecutionTime;
                     });
                 }
 
@@ -98,8 +126,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     Thread.Sleep(1);
 
                 endTime = DateTime.UtcNow;
-                ReportResult(session, "individual save", biotasPerTest, (endTime - startTime), trueResults,
-                    falseResults);
+                ReportResult(session, "individual save", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
             }
 
 
@@ -107,6 +134,8 @@ namespace ACE.Server.Command.Handlers.Processors
             trueResults = 0;
             falseResults = 0;
             startTime = DateTime.UtcNow;
+            initialQueueWaitTime = TimeSpan.Zero;
+            totalQueryExecutionTime = TimeSpan.Zero;
 
             foreach (var biota in biotas)
             {
@@ -116,6 +145,12 @@ namespace ACE.Server.Command.Handlers.Processors
                         Interlocked.Increment(ref trueResults);
                     else
                         Interlocked.Increment(ref falseResults);
+                }, (queueWaitTime, queryExecutionTime) =>
+                {
+                    if (initialQueueWaitTime == TimeSpan.Zero)
+                        initialQueueWaitTime = queueWaitTime;
+
+                    totalQueryExecutionTime += queryExecutionTime;
                 });
             }
 
@@ -123,7 +158,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 Thread.Sleep(1);
 
             endTime = DateTime.UtcNow;
-            ReportResult(session, "individual remove", biotasPerTest, (endTime - startTime), trueResults, falseResults);
+            ReportResult(session, "individual remove", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
 
 
             if (!SessionIsStillInWorld(session))
@@ -143,6 +178,8 @@ namespace ACE.Server.Command.Handlers.Processors
             trueResults = 0;
             falseResults = 0;
             startTime = DateTime.UtcNow;
+            initialQueueWaitTime = TimeSpan.Zero;
+            totalQueryExecutionTime = TimeSpan.Zero;
 
             DatabaseManager.Shard.SaveBiotas(biotas, result =>
             {
@@ -150,13 +187,19 @@ namespace ACE.Server.Command.Handlers.Processors
                     Interlocked.Increment(ref trueResults);
                 else
                     Interlocked.Increment(ref falseResults);
+            }, (queueWaitTime, queryExecutionTime) =>
+            {
+                if (initialQueueWaitTime == TimeSpan.Zero)
+                    initialQueueWaitTime = queueWaitTime;
+
+                totalQueryExecutionTime += queryExecutionTime;
             });
 
             while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < 1)
                 Thread.Sleep(1);
 
             endTime = DateTime.UtcNow;
-            ReportResult(session, "bulk add", biotasPerTest, (endTime - startTime), trueResults, falseResults);
+            ReportResult(session, "bulk add", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
 
 
             // Update biotasPerTest biotas in bulk
@@ -167,6 +210,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 trueResults = 0;
                 falseResults = 0;
                 startTime = DateTime.UtcNow;
+                initialQueueWaitTime = TimeSpan.Zero;
+                totalQueryExecutionTime = TimeSpan.Zero;
 
                 DatabaseManager.Shard.SaveBiotas(biotas, result =>
                 {
@@ -174,13 +219,19 @@ namespace ACE.Server.Command.Handlers.Processors
                         Interlocked.Increment(ref trueResults);
                     else
                         Interlocked.Increment(ref falseResults);
+                }, (queueWaitTime, queryExecutionTime) =>
+                {
+                    if (initialQueueWaitTime == TimeSpan.Zero)
+                        initialQueueWaitTime = queueWaitTime;
+
+                    totalQueryExecutionTime += queryExecutionTime;
                 });
 
                 while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < 1)
                     Thread.Sleep(1);
 
                 endTime = DateTime.UtcNow;
-                ReportResult(session, "bulk save", biotasPerTest, (endTime - startTime), trueResults, falseResults);
+                ReportResult(session, "bulk save", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
             }
 
 
@@ -188,6 +239,8 @@ namespace ACE.Server.Command.Handlers.Processors
             trueResults = 0;
             falseResults = 0;
             startTime = DateTime.UtcNow;
+            initialQueueWaitTime = TimeSpan.Zero;
+            totalQueryExecutionTime = TimeSpan.Zero;
 
             DatabaseManager.Shard.RemoveBiotas(biotas, result =>
             {
@@ -195,13 +248,19 @@ namespace ACE.Server.Command.Handlers.Processors
                     Interlocked.Increment(ref trueResults);
                 else
                     Interlocked.Increment(ref falseResults);
+            }, (queueWaitTime, queryExecutionTime) =>
+            {
+                if (initialQueueWaitTime == TimeSpan.Zero)
+                    initialQueueWaitTime = queueWaitTime;
+
+                totalQueryExecutionTime += queryExecutionTime;
             });
 
             while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < 1)
                 Thread.Sleep(1);
 
             endTime = DateTime.UtcNow;
-            ReportResult(session, "bulk remove", biotasPerTest, (endTime - startTime), trueResults, falseResults);
+            ReportResult(session, "bulk remove", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
 
 
             if (!SessionIsStillInWorld(session))
@@ -279,12 +338,12 @@ namespace ACE.Server.Command.Handlers.Processors
             }
         }
 
-        private static void ReportResult(Session session, string testDescription, int biotasPerTest, TimeSpan duration, long trueResults, long falseResults)
+        private static void ReportResult(Session session, string testDescription, int biotasPerTest, TimeSpan duration, TimeSpan queueWaitTime, TimeSpan totalQueryExecutionTime, long trueResults, long falseResults)
         {
             if (!SessionIsStillInWorld(session))
                 return;
 
-            ChatPacket.SendServerMessage(session, $"{biotasPerTest} {testDescription.PadRight(17)}. Duration: {duration.TotalSeconds.ToString("N1").PadLeft(5)} seconds. Successes: {trueResults.ToString().PadLeft(4)}, Failures: {falseResults.ToString().PadLeft(4)}. Average: {(duration.TotalMilliseconds / biotasPerTest).ToString("N0").PadLeft(3)} ms", ChatMessageType.System);
+            ChatPacket.SendServerMessage(session, $"{biotasPerTest} {testDescription.PadRight(17)} Duration: {duration.TotalSeconds.ToString("N1").PadLeft(5)} s. Queue Wait Time: {queueWaitTime.TotalMilliseconds.ToString("N0").PadLeft(3)} ms. Average Execution Time: {(totalQueryExecutionTime.TotalMilliseconds / biotasPerTest).ToString("N0").PadLeft(3)} ms. Success/Fail: {trueResults}/{falseResults}.", ChatMessageType.System);
         }
     }
 }

@@ -177,12 +177,40 @@ namespace ACE.Database
             }));
         }
 
+        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+            }));
+        }
+
         public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
                 callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
             }));
         }
 
@@ -195,12 +223,40 @@ namespace ACE.Database
             }));
         }
 
+        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+            }));
+        }
+
         public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
                 callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
             }));
         }
 
