@@ -1058,8 +1058,7 @@ namespace ACE.Server.WorldObjects
                 }
                 spellProjectile.Location = origin;
             }
-            
-            spellProjectile.ParentWorldObject = (Creature)this;
+
             spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
             spellProjectile.ProjectileSource = this;
             spellProjectile.ProjectileTarget = target;

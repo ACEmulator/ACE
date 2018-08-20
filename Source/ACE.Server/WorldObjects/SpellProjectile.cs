@@ -21,11 +21,9 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        private Creature projectileCaster;
         private uint spellId;
         private uint lifeProjectileDamage;
 
-        public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
         public float DistanceToTarget { get; set; }
         public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
@@ -234,7 +232,7 @@ namespace ACE.Server.WorldObjects
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
-            var player = projectileCaster as Player;
+            var player = ProjectileSource as Player;
 
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
@@ -258,7 +256,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var critical = false;
-            var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
+            var damage = MagicDamageTarget(ProjectileSource as Creature, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
 
             var targetPlayer = target as Player;
 
@@ -285,7 +283,7 @@ namespace ACE.Server.WorldObjects
                 {
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
-                    target.DamageHistory.Add(projectileCaster, amount);
+                    target.DamageHistory.Add(ProjectileSource, amount);
                 }
 
                 string verb = null, plural = null;
@@ -316,7 +314,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                         //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
                 }
             }
@@ -325,13 +323,13 @@ namespace ACE.Server.WorldObjects
                 if (damage == -1)
                     return;
 
-                CurrentLandblock?.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
+                CurrentLandblock?.EnqueueBroadcastSound(ProjectileSource, Sound.ResistSpell);
 
                 if (player != null)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));
 
                 if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ProjectileSource.Name}'s {spell.Name}", ChatMessageType.Magic));
 
             }
 
