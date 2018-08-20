@@ -477,8 +477,8 @@ namespace ACE.Server.WorldObjects
                     GeneratorQueue.Clear();
                     GeneratorProfilesActive.Clear();
 
-                    InitGeneratedObjects = Biota.GetProperty(PropertyInt.InitGeneratedObjects, biotaPropertiesIntLock);
-                    MaxGeneratedObjects = Biota.GetProperty(PropertyInt.MaxGeneratedObjects, biotaPropertiesIntLock);
+                    InitGeneratedObjects = GetProperty(PropertyInt.InitGeneratedObjects);
+                    MaxGeneratedObjects = GetProperty(PropertyInt.MaxGeneratedObjects);
                 }
                 else
                 {

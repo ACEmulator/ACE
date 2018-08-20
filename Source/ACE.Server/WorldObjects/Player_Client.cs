@@ -116,7 +116,7 @@ namespace ACE.Server.WorldObjects
             {
                 Character.CharacterPropertiesShortcutBar.Remove(entity);
 
-                if (ExistsInDatabase && entity.Id != 0)
+                if (entity.Id != 0)
                     DatabaseManager.Shard.RemoveEntity(entity, null);
             }
         }

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
-using System.Threading.Tasks;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -951,8 +951,14 @@ namespace ACE.Server.Entity
 
         public void SaveDB()
         {
-            // only updates corpses atm
-            var biotas = worldObjects.Values.Where(wo => wo is Corpse && (wo as Corpse).IsMonster == false).Select(wo => wo.Biota).ToList();
+            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+
+            foreach (var wo in worldObjects.Values)
+            {
+                // only updates corpses atm
+                if (wo is Corpse corpse && !corpse.IsMonster)
+                    biotas.Add((corpse.Biota, corpse.BiotaDatabaseLock));
+            }
 
             DatabaseManager.Shard.SaveBiotas(biotas, result => { });
         }

@@ -529,7 +529,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // remove friend in DB
-            if (Character.TryRemoveFriend(friendId, out var entity) && ExistsInDatabase && entity.Id != 0)
+            if (Character.TryRemoveFriend(friendId, out var entity) && entity.Id != 0)
                 DatabaseManager.Shard.RemoveEntity(entity, null);
 
             // send network message

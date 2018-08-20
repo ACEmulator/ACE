@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects
                 // http://asheron.wikia.com/wiki/Item_Decay
 
                 if (!IsMonster)
-                    DatabaseManager.Shard.RemoveBiota(Biota, result => { });
+                    DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, result => { });
 
                 Destroy();
                 return;

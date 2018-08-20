@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -10,47 +9,17 @@ namespace ACE.Database.Models.Shard
 {
     public static class BiotaExtensions
     {
-        public static uint? GetAnimationId(this Biota biota, byte index)
-        {
-            return biota.BiotaPropertiesAnimPart.FirstOrDefault(x => x.Index == index)?.AnimationId;
-        }
-
-        public static BiotaPropertiesAttribute GetAttribute(this Biota biota, PropertyAttribute attribute)
-        {
-            return biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)attribute);
-        }
-
-        public static BiotaPropertiesAttribute2nd GetAttribute2nd(this Biota biota, PropertyAttribute2nd attribute)
-        {
-            return biota.BiotaPropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)attribute);
-        }
-
-        public static BiotaPropertiesBodyPart GetBodyPart(this Biota biota, ushort key)
-        {
-            return biota.BiotaPropertiesBodyPart.FirstOrDefault(x => x.Key == key);
-        }
-
-        public static BiotaPropertiesBookPageData GetBookPageData(this Biota biota, uint pageId)
-        {
-            return biota.BiotaPropertiesBookPageData.FirstOrDefault(x => x.PageId == pageId);
-        }
-
         public static bool? GetProperty(this Biota biota, PropertyBool property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
             try
             {
-                return biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint) property)?.Value;
+                return biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property)?.Value;
             }
             finally
             {
                 rwLock.ExitReadLock();
             }
-        }
-
-        public static BiotaPropertiesCreateList GetCreateList(this Biota biota, sbyte destinationType)
-        {
-            return biota.BiotaPropertiesCreateList.FirstOrDefault(x => x.DestinationType == destinationType);
         }
 
         public static uint? GetProperty(this Biota biota, PropertyDataId property, ReaderWriterLockSlim rwLock)
@@ -66,20 +35,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesEmote GetEmote(this Biota biota, uint category)
-        {
-            return biota.BiotaPropertiesEmote.FirstOrDefault(x => x.Category == category);
-        }
-
-        public static IEnumerable<BiotaPropertiesEmote> GetEmotes(this Biota biota, uint category)
-        {
-            return biota.BiotaPropertiesEmote.Where(x => x.Category == category);
-        }
-
-        public static BiotaPropertiesEventFilter GetEventFilter(this Biota biota, int eventId)
-        {
-            return biota.BiotaPropertiesEventFilter.FirstOrDefault(x => x.Event == eventId);
-        }
+        // BiotaPropertiesEnchantmentRegistry
 
         public static double? GetProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
         {
@@ -93,8 +49,6 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitReadLock();
             }
         }
-
-        // BiotaPropertiesGenerator
 
         public static uint? GetProperty(this Biota biota, PropertyInstanceId property, ReaderWriterLockSlim rwLock)
         {
@@ -135,11 +89,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesPalette GetPalette(this Biota biota, uint subPaletteId)
-        {
-            return biota.BiotaPropertiesPalette.FirstOrDefault(x => x.SubPaletteId == subPaletteId);
-        }
-
         public static Position GetPosition(this Biota biota, PositionType positionType, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -158,16 +107,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesSkill GetProperty(this Biota biota, Skill skill)
-        {
-            return biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
-        }
-
-        public static BiotaPropertiesSpellBook GetSpell(this Biota biota, int spell)
-        {
-            return biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
-        }
-
         public static string GetProperty(this Biota biota, PropertyString property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -181,11 +120,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesTextureMap GetTextureMap(this Biota biota, byte index)
-        {
-            return biota.BiotaPropertiesTextureMap.FirstOrDefault(x => x.Index == index);
-        }
-
 
 
         public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock)
@@ -193,7 +127,7 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                var result = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint) property);
+                var result = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
                     result.Value = value;
                 else
@@ -244,12 +178,14 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // BiotaPropertiesEnchantmentRegistry
+
         public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort) property);
+                var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
                 if (result != null)
                     result.Value = value;
                 else
@@ -272,14 +208,12 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        // BiotaPropertiesGenerator
-
         public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                var result = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint) property);
+                var result = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
                     result.Value = value;
                 else
@@ -358,39 +292,11 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint) property);
-                if (result != null)
-                    result.Value = value;
-                else
-                {
-                    rwLock.EnterWriteLock();
-                    try
-                    { 
-                        var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
-                        biota.BiotaPropertiesString.Add(entity);
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
         public static void SetPosition(this Biota biota, PositionType positionType, Position position, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
             try
-            { 
+            {
                 var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
                 if (result != null)
                 {
@@ -407,9 +313,37 @@ namespace ACE.Database.Models.Shard
                 {
                     rwLock.EnterWriteLock();
                     try
-                    { 
+                    {
                         var entity = new BiotaPropertiesPosition { ObjectId = biota.Id, PositionType = (ushort)positionType, ObjCellId = position.Cell, OriginX = position.PositionX, OriginY = position.PositionY, OriginZ = position.PositionZ, AnglesW = position.RotationW, AnglesX = position.RotationX, AnglesY = position.RotationY, AnglesZ = position.RotationZ, Object = biota };
                         biota.BiotaPropertiesPosition.Add(entity);
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
+                if (result != null)
+                    result.Value = value;
+                else
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
+                        biota.BiotaPropertiesString.Add(entity);
                     }
                     finally
                     {
@@ -430,7 +364,7 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint) property);
+                entity = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();
@@ -481,6 +415,34 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
+                        entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
         public static bool TryRemoveProperty(this Biota biota, PropertyFloat property, out BiotaPropertiesFloat entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -509,14 +471,12 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        // BiotaPropertiesGenerator
-
         public static bool TryRemoveProperty(this Biota biota, PropertyInstanceId property, out BiotaPropertiesIID entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint) property);
+                entity = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();
@@ -651,32 +611,412 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+
+        public static Biota Clone(this Biota biota)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            var result = new Biota();
+
+            result.Id = biota.Id;
+            result.WeenieClassId = biota.WeenieClassId;
+            result.WeenieType = biota.WeenieType;
+            result.PopulatedCollectionFlags = biota.PopulatedCollectionFlags;
+
+            if (biota.BiotaPropertiesBook != null)
             {
-                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
-                if (entity != null)
+                result.BiotaPropertiesBook = new BiotaPropertiesBook();
+                result.BiotaPropertiesBook.Id = biota.BiotaPropertiesBook.Id;
+                result.BiotaPropertiesBook.ObjectId = biota.BiotaPropertiesBook.ObjectId;
+                result.BiotaPropertiesBook.MaxNumPages = biota.BiotaPropertiesBook.MaxNumPages;
+                result.BiotaPropertiesBook.MaxNumCharsPerPage = biota.BiotaPropertiesBook.MaxNumCharsPerPage;
+            }
+
+            foreach (var value in biota.BiotaPropertiesAnimPart)
+            {
+                result.BiotaPropertiesAnimPart.Add(new BiotaPropertiesAnimPart
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
-                        biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
-                        entity.Object = null;
-                        return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-                return false;
+                    Id = value.Id,
+                    ObjectId = value.Id,
+                    Index = value.Index,
+                    AnimationId = value.AnimationId,
+                    Order = value.Order,
+                });
             }
-            finally
+
+            foreach (var value in biota.BiotaPropertiesAttribute)
             {
-                rwLock.ExitUpgradeableReadLock();
+                result.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    InitLevel = value.InitLevel,
+                    LevelFromCP = value.LevelFromCP,
+                    CPSpent = value.CPSpent,
+                });
             }
+
+            foreach (var value in biota.BiotaPropertiesAttribute2nd)
+            {
+                result.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    InitLevel = value.InitLevel,
+                    LevelFromCP = value.LevelFromCP,
+                    CPSpent = value.CPSpent,
+                    CurrentLevel = value.CurrentLevel,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesBodyPart)
+            {
+                result.BiotaPropertiesBodyPart.Add(new BiotaPropertiesBodyPart
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Key = value.Key,
+                    DType = value.DType,
+                    DVal = value.DVal,
+                    DVar = value.DVar,
+                    BaseArmor = value.BaseArmor,
+                    ArmorVsSlash = value.ArmorVsSlash,
+                    ArmorVsPierce = value.ArmorVsPierce,
+                    ArmorVsBludgeon = value.ArmorVsBludgeon,
+                    ArmorVsCold = value.ArmorVsCold,
+                    ArmorVsFire = value.ArmorVsFire,
+                    ArmorVsAcid = value.ArmorVsAcid,
+                    ArmorVsElectric = value.ArmorVsElectric,
+                    ArmorVsNether = value.ArmorVsNether,
+                    BH = value.BH,
+                    HLF = value.HLF,
+                    MLF = value.MLF,
+                    LLF = value.LLF,
+                    HRF = value.HRF,
+                    MRF = value.MRF,
+                    LRF = value.LRF,
+                    HLB = value.HLB,
+                    MLB = value.MLB,
+                    LLB = value.LLB,
+                    HRB = value.HRB,
+                    MRB = value.MRB,
+                    LRB = value.LRB,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesBookPageData)
+            {
+                result.BiotaPropertiesBookPageData.Add(new BiotaPropertiesBookPageData
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    PageId = value.PageId,
+                    AuthorId = value.AuthorId,
+                    AuthorName = value.AuthorName,
+                    AuthorAccount = value.AuthorAccount,
+                    IgnoreAuthor = value.IgnoreAuthor,
+                    PageText = value.PageText,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesBool)
+            {
+                result.BiotaPropertiesBool.Add(new BiotaPropertiesBool
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesCreateList)
+            {
+                result.BiotaPropertiesCreateList.Add(new BiotaPropertiesCreateList
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    DestinationType = value.DestinationType,
+                    WeenieClassId = value.WeenieClassId,
+                    StackSize = value.StackSize,
+                    Palette = value.Palette,
+                    Shade = value.Shade,
+                    TryToBond = value.TryToBond,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesDID)
+            {
+                result.BiotaPropertiesDID.Add(new BiotaPropertiesDID
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+
+            foreach (var value in biota.BiotaPropertiesEmote)
+            {
+                var emote = new BiotaPropertiesEmote
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Category = value.Category,
+                    Probability = value.Probability,
+                    WeenieClassId = value.WeenieClassId,
+                    Style = value.Style,
+                    Substyle = value.Substyle,
+                    Quest = value.Quest,
+                    VendorType = value.VendorType,
+                    MinHealth = value.MinHealth,
+                    MaxHealth = value.MaxHealth,
+                };
+
+                foreach (var value2 in value.BiotaPropertiesEmoteAction)
+                {
+                    var action = new BiotaPropertiesEmoteAction
+                    {
+                        Id = value2.Id,
+                        EmoteId = value2.EmoteId,
+                        Order = value2.Order,
+                        Type = value2.Type,
+                        Delay = value2.Delay,
+                        Extent = value2.Extent,
+                        Motion = value2.Motion,
+                        Message = value2.Message,
+                        TestString = value2.TestString,
+                        Min = value2.Min,
+                        Max = value2.Max,
+                        Min64 = value2.Min64,
+                        Max64 = value2.Max64,
+                        MinDbl = value2.MinDbl,
+                        MaxDbl = value2.MaxDbl,
+                        Stat = value2.Stat,
+                        Display = value2.Display,
+                        Amount = value2.Amount,
+                        Amount64 = value2.Amount64,
+                        HeroXP64 = value2.HeroXP64,
+                        Percent = value2.Percent,
+                        SpellId = value2.SpellId,
+                        WealthRating = value2.WealthRating,
+                        TreasureClass = value2.TreasureClass,
+                        TreasureType = value2.TreasureType,
+                        PScript = value2.PScript,
+                        Sound = value2.Sound,
+                        DestinationType = value2.DestinationType,
+                        WeenieClassId = value2.WeenieClassId,
+                        StackSize = value2.StackSize,
+                        Palette = value2.Palette,
+                        Shade = value2.Shade,
+                        TryToBond = value2.TryToBond,
+                        ObjCellId = value2.ObjCellId,
+                        OriginX = value2.OriginX,
+                        OriginY = value2.OriginY,
+                        OriginZ = value2.OriginZ,
+                        AnglesW = value2.AnglesW,
+                        AnglesX = value2.AnglesX,
+                        AnglesY = value2.AnglesY,
+                        AnglesZ = value2.AnglesZ,
+                    };
+
+                    emote.BiotaPropertiesEmoteAction.Add(action);
+                }
+
+                result.BiotaPropertiesEmote.Add(emote);
+            }
+
+
+            foreach (var value in biota.BiotaPropertiesEnchantmentRegistry)
+            {
+                result.BiotaPropertiesEnchantmentRegistry.Add(new BiotaPropertiesEnchantmentRegistry
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    EnchantmentCategory = value.EnchantmentCategory,
+                    SpellId = value.SpellId,
+                    LayerId = value.LayerId,
+                    HasSpellSetId = value.HasSpellSetId,
+                    SpellCategory = value.SpellCategory,
+                    PowerLevel = value.PowerLevel,
+                    StartTime = value.StartTime,
+                    Duration = value.Duration,
+                    CasterObjectId = value.CasterObjectId,
+                    DegradeModifier = value.DegradeModifier,
+                    DegradeLimit = value.DegradeLimit,
+                    LastTimeDegraded = value.LastTimeDegraded,
+                    StatModType = value.StatModType,
+                    StatModKey = value.StatModKey,
+                    StatModValue = value.StatModValue,
+                    SpellSetId = value.SpellSetId,
+                });
+            }
+
+
+            foreach (var value in biota.BiotaPropertiesEventFilter)
+            {
+                result.BiotaPropertiesEventFilter.Add(new BiotaPropertiesEventFilter
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Event = value.Event,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesFloat)
+            {
+                result.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesGenerator)
+            {
+                result.BiotaPropertiesGenerator.Add(new BiotaPropertiesGenerator
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Probability = value.Probability,
+                    WeenieClassId = value.WeenieClassId,
+                    Delay = value.Delay,
+                    InitCreate = value.InitCreate,
+                    MaxCreate = value.MaxCreate,
+                    WhenCreate = value.WhenCreate,
+                    WhereCreate = value.WhereCreate,
+                    StackSize = value.StackSize,
+                    PaletteId = value.PaletteId,
+                    Shade = value.Shade,
+                    ObjCellId = value.ObjCellId,
+                    OriginX = value.OriginX,
+                    OriginY = value.OriginY,
+                    OriginZ = value.OriginZ,
+                    AnglesW = value.AnglesW,
+                    AnglesX = value.AnglesX,
+                    AnglesY = value.AnglesY,
+                    AnglesZ = value.AnglesZ,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesIID)
+            {
+                result.BiotaPropertiesIID.Add(new BiotaPropertiesIID
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesInt)
+            {
+                result.BiotaPropertiesInt.Add(new BiotaPropertiesInt
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesInt64)
+            {
+                result.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesPalette)
+            {
+                result.BiotaPropertiesPalette.Add(new BiotaPropertiesPalette
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    SubPaletteId = value.SubPaletteId,
+                    Offset = value.Offset,
+                    Length = value.Length,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesPosition)
+            {
+                result.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    PositionType = value.PositionType,
+                    ObjCellId = value.ObjCellId,
+                    OriginX = value.OriginX,
+                    OriginY = value.OriginY,
+                    OriginZ = value.OriginZ,
+                    AnglesW = value.AnglesW,
+                    AnglesX = value.AnglesX,
+                    AnglesY = value.AnglesY,
+                    AnglesZ = value.AnglesZ,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesSkill)
+            {
+                result.BiotaPropertiesSkill.Add(new BiotaPropertiesSkill
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    LevelFromPP = value.LevelFromPP,
+                    SAC = value.SAC,
+                    PP = value.PP,
+                    InitLevel = value.InitLevel,
+                    ResistanceAtLastCheck = value.ResistanceAtLastCheck,
+                    LastUsedTime = value.LastUsedTime,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesSpellBook)
+            {
+                result.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Spell = value.Spell,
+                    Probability = value.Probability,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesString)
+            {
+                result.BiotaPropertiesString.Add(new BiotaPropertiesString
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+            foreach (var value in biota.BiotaPropertiesTextureMap)
+            {
+                result.BiotaPropertiesTextureMap.Add(new BiotaPropertiesTextureMap
+                {
+                    Id = value.Id,
+                    ObjectId = value.ObjectId,
+                    Index = value.Index,
+                    OldId = value.OldId,
+                    NewId = value.NewId,
+                    Order = value.Order,
+                });
+            }
+
+            return result;
         }
     }
 }

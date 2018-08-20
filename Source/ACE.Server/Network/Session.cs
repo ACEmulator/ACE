@@ -261,6 +261,7 @@ namespace ACE.Server.Network
         {
             playerWaitLock.EnterWriteLock();
             Player = player;
+            lastAutoSaveTime = DateTime.UtcNow;
             // NOTE(ddevec): Once again -- no reader-writer lock and Monitor support in c# -- ventring frustration now --  asa;gklkfj;kl
             //  -- This should be a rare operation, so we don't really care about the stupid double locking, as long as its done right for no deadlocks
             lock (playerSync)

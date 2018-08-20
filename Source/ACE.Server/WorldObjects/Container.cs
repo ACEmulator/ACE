@@ -28,10 +28,6 @@ namespace ACE.Server.WorldObjects
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
-
-            // A player has their possessions passed via the ctor. All other world objects must load their own inventory
-            if (!(this is Player) && !(new ObjectGuid(ContainerId ?? 0).IsPlayer()))
-                DatabaseManager.Shard.GetInventory(guid.Full, false, SortBiotasIntoInventory);
         }
 
         /// <summary>

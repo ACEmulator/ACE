@@ -67,6 +67,19 @@ namespace ACE.Database
         }
 
 
+        public int QueueCount => _queue.Count;
+
+        public void GetCurrentQueueWaitTime(Action<TimeSpan> callback)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                callback?.Invoke(DateTime.UtcNow - initialCallTime);
+            }));
+        }
+
+
         public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>
@@ -109,7 +122,7 @@ namespace ACE.Database
             return _wrappedDatabase.IsCharacterPlussed(biotaId);
         }
 
-        public void AddCharacter(Biota biota, IEnumerable<Biota> possessions, Character character, Action<bool> callback)
+        public void AddCharacter(Biota biota, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -146,24 +159,6 @@ namespace ACE.Database
         }
 
 
-        public void AddBiota(Biota biota, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddBiota(biota);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void AddBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddBiotasInParallel(biotas);
-                callback?.Invoke(result);
-            }));
-        }
-
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
@@ -173,16 +168,30 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiota(Biota biota, Action<bool> callback)
+        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveBiota(biota);
+                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
                 callback?.Invoke(result);
             }));
         }
 
-        public void SaveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+            }));
+        }
+
+        public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -191,16 +200,44 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiota(Biota biota, Action<bool> callback)
+        public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+            }));
+        }
+
+        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.RemoveBiota(biota);
+                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
                 callback?.Invoke(result);
             }));
         }
 
-        public void RemoveBiotas(IEnumerable<Biota> biotas, Action<bool> callback)
+        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+            }));
+        }
+
+        public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -209,99 +246,22 @@ namespace ACE.Database
             }));
         }
 
+        public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                var taskStartTime = DateTime.UtcNow;
+                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
+                var taskCompletedTime = DateTime.UtcNow;
+                callback?.Invoke(result);
+                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+            }));
+        }
+
 
         public void RemoveEntity(object entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-
-        public void RemoveEntity(BiotaPropertiesBool entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesDID entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesEnchantmentRegistry entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesFloat entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesIID entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesInt entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesInt64 entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesPosition entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesSpellBook entity, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveEntity(entity);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveEntity(BiotaPropertiesString entity, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
