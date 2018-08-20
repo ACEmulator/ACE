@@ -8,7 +8,7 @@ namespace ACE.Server.Command.Handlers
 {
     public static class DeveloperDatabaseCommands
     {
-        [CommandHandler("databasequeueinfo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Show database queue information.")]
+        [CommandHandler("databasequeueinfo", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Show database queue information.")]
         public static void HandleDatabaseQueueInfo(Session session, params string[] parameters)
         {
             ChatPacket.SendServerMessage(session, $"Current database queue count: {DatabaseManager.Shard.QueueCount}", ChatMessageType.System);
@@ -19,7 +19,7 @@ namespace ACE.Server.Command.Handlers
             });
         }
 
-        [CommandHandler("databaseperftest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Test server/database performance.", "biotasPerTest\n" + "optional parameter biotasPerTest if omitted 1000")]
+        [CommandHandler("databaseperftest", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Test server/database performance.", "biotasPerTest\n" + "optional parameter biotasPerTest if omitted 1000")]
         public static void HandleDatabasePerfTest(Session session, params string[] parameters)
         {
             int biotasPerTest = DatabasePerfTest.DefaultBiotasTestCount;
