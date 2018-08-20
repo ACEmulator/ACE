@@ -1431,16 +1431,16 @@ namespace ACE.Server.WorldObjects
             else
             {
                 offsetList = new List<Vector3> {
-                    new Vector3(0f + xPadding, 3.2f, defaultZOffset),    // Center bottom
-                    new Vector3(0f + xPadding, 3.2f, topRowZOffset),     // Center top
-                    new Vector3(-2f - xPadding, 3.2f, defaultZOffset),   // Far left bottom
-                    new Vector3(-1f - xPadding, 3.2f, defaultZOffset),   // Near left bottom
-                    new Vector3(1f + xPadding, 3.2f, defaultZOffset),    // Near right bottom
-                    new Vector3(2f + xPadding, 3.2f, defaultZOffset),    // Far right bottom
-                    new Vector3(-2f - xPadding, 3.2f, topRowZOffset),    // Far left top
-                    new Vector3(-1f - xPadding, 3.2f, topRowZOffset),    // Near left top
-                    new Vector3(1f + xPadding, 3.2f, topRowZOffset),     // Near right top
-                    new Vector3(2f + xPadding, 3.2f, topRowZOffset),     // Far right top
+                    new Vector3(0f, 3.2f, defaultZOffset),                     // Center bottom
+                    new Vector3(0f, 3.2f, topRowZOffset),                      // Center top
+                    new Vector3(-2f - (2 * xPadding), 3.2f, defaultZOffset),   // Far left bottom
+                    new Vector3(-1f - xPadding, 3.2f, defaultZOffset),         // Near left bottom
+                    new Vector3(1f + xPadding, 3.2f, defaultZOffset),          // Near right bottom
+                    new Vector3(2f + (2 * xPadding), 3.2f, defaultZOffset),    // Far right bottom
+                    new Vector3(-2f - (2 * xPadding), 3.2f, topRowZOffset),    // Far left top
+                    new Vector3(-1f - xPadding, 3.2f, topRowZOffset),          // Near left top
+                    new Vector3(1f + xPadding, 3.2f, topRowZOffset),           // Near right top
+                    new Vector3(2f + (2 * xPadding), 3.2f, topRowZOffset),     // Far right top
                 };
             }
 
