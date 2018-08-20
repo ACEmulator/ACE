@@ -67,6 +67,19 @@ namespace ACE.Database
         }
 
 
+        public int QueueCount => _queue.Count;
+
+        public void GetCurrentQueueWaitTime(Action<TimeSpan> callback)
+        {
+            var initialCallTime = DateTime.UtcNow;
+
+            _queue.Add(new Task(() =>
+            {
+                callback?.Invoke(DateTime.UtcNow - initialCallTime);
+            }));
+        }
+
+
         public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>
